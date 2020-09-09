@@ -125,4 +125,9 @@ public class CertTools {
 		return null;
 	}
 
+	public static String stringToBCDNString(String ret) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
