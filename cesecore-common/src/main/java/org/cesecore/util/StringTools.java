@@ -66,4 +66,14 @@ public class StringTools {
 		}
 	}
 
+	public static String ipOctetsToString(byte[] octets) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static byte[] ipStringToOctets(String addr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

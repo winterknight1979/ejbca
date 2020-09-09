@@ -36,6 +36,11 @@
 		</dependency>
 
 		<dependency>
+			<groupId>com.novell.ldap</groupId>
+			<artifactId>jldap</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>org.ejbca.cvc</groupId>
 			<artifactId>cert-cvc</artifactId>
 		</dependency>
@@ -43,63 +48,110 @@
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>shared-resources</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
+	<plugins>
+	<plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+        <execution>
+        <id>Copy Shared Resources</id>
+        <configuration>
+		<resources>
+			<resource>
+				<includes>
+					<include>**/intresources/*</include>
+				</includes>
+			</resource>
+		</resources>
+		</configuration>
+		</execution>
+		</executions>
+		</plugin>
+		
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-remote-resources-plugin</artifactId>
+				<version>1.7.0</version>
+				<configuration>
+					<resourceBundles>
+						<resourceBundle>${project.groupId}:shared-resources:${project.version}</resourceBundle>
+					</resourceBundles>
+					<outputDirectory>${project.build.directory}/maven-shared-archive-resource</outputDirectory>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>process</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-install-plugin</artifactId>
+				<version>3.0.0-M1</version>
+				<executions>
+					<execution>
+						<phase>initialize</phase>
+						<id>Install cert-cvc</id>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<configuration>
+							<file>../ext/cert-cvc-1.4.9.jar</file>
+							<groupId>org.ejbca.cvc</groupId>
+							<artifactId>cert-cvc</artifactId>
+							<version>1.4.9</version>
+							<packaging>jar</packaging>
+							<generatePom>true</generatePom>
+						</configuration>
+					</execution>
+					<execution>
+						<phase>initialize</phase>
+						<id>Install Service Manifest Builder</id>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<configuration>
+							<file>../ext/servicemanifestbuilder-1.0.0.jar</file>
+							<groupId>com.primekey.anttools</groupId>
+							<artifactId>servicemanifestbuilder</artifactId>
+							<version>1.0.0</version>
+							<packaging>jar</packaging>
+							<generatePom>true</generatePom>
+						</configuration>
+					</execution>
+					<execution>
+						<phase>initialize</phase>
+						<id>Install Swagger UI</id>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<configuration>
+							<file>../ext/swagger-ui.war</file>
+							<groupId>org.ejbca.swagger</groupId>
+							<artifactId>swagger-ui</artifactId>
+							<version>1.0.0</version>
+							<packaging>war</packaging>
+							<generatePom>true</generatePom>
+						</configuration>
+					</execution>
+				</executions>
+
+			</plugin>
+		</plugins>
 		<pluginManagement>
 			<plugins>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-install-plugin</artifactId>
-					<executions>
-						<execution>
-							<phase>initialize</phase>
-							<id>Install cert-cvc</id>
-							<goals>
-								<goal>install-file</goal>
-							</goals>
-							<configuration>
-								<file>../ext/cert-cvc-1.4.9.jar</file>
-								<groupId>org.ejbca.cvc</groupId>
-								<artifactId>cert-cvc</artifactId>
-								<version>1.4.9</version>
-								<packaging>jar</packaging>
-								<generatePom>true</generatePom>
-							</configuration>
-						</execution>
-						<execution>
-							<phase>initialize</phase>
-							<id>Install Service Manifest Builder</id>
-							<goals>
-								<goal>install-file</goal>
-							</goals>
-							<configuration>
-								<file>../ext/servicemanifestbuilder-1.0.0.jar</file>
-								<groupId>com.primekey.anttools</groupId>
-								<artifactId>servicemanifestbuilder</artifactId>
-								<version>1.0.0</version>
-								<packaging>jar</packaging>
-								<generatePom>true</generatePom>
-							</configuration>
-						</execution>
-						<execution>
-							<phase>initialize</phase>
-							<id>Install Swagger UI</id>
-							<goals>
-								<goal>install-file</goal>
-							</goals>
-							<configuration>
-								<file>../ext/swagger-ui.war</file>
-								<groupId>org.ejbca.swagger</groupId>
-								<artifactId>swagger-ui</artifactId>
-								<version>1.0.0</version>
-								<packaging>war</packaging>
-								<generatePom>true</generatePom>
-							</configuration>
-						</execution>
-					</executions>
-
-				</plugin>
 				<!--This plugin's configuration is used to store Eclipse m2e settings 
 					only. It has no influence on the Maven build itself. -->
 				<plugin>
@@ -108,7 +160,22 @@
 					<version>1.0.0</version>
 					<configuration>
 						<lifecycleMappingMetadata>
+
 							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.apache.maven.plugins</groupId>
+										<artifactId>maven-remote-resources-plugin</artifactId>
+										<versionRange>[1.0,)</versionRange>
+										<goals>
+											<goal>process</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore>
+										</ignore>
+									</action>
+								</pluginExecution>
 								<pluginExecution>
 									<pluginExecutionFilter>
 										<groupId>
