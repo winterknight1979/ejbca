@@ -45,6 +45,12 @@
 			<artifactId>cert-cvc</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>com.primekey.anttools</groupId>
+			<artifactId>servicemanifestbuilder</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 		</dependency>
@@ -58,25 +64,23 @@
 	</dependencies>
 
 	<build>
-	<plugins>
-	<plugin>
-        <artifactId>maven-resources-plugin</artifactId>
-        <executions>
-        <execution>
-        <id>Copy Shared Resources</id>
-        <configuration>
+
 		<resources>
 			<resource>
+				<directory>${project.build.directory}/maven-shared-archive-resource</directory>
 				<includes>
 					<include>**/intresources/*</include>
+					<include>defaultvalues.properties</include>
+					<include>dncomponents.properties</include>
+					<include>profilemappings.properties</include>
+					<include>profilemappings_enterprise.properties</include>
+					<include>certextensions.properties</include>
 				</includes>
 			</resource>
 		</resources>
-		</configuration>
-		</execution>
-		</executions>
-		</plugin>
-		
+
+		<plugins>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-remote-resources-plugin</artifactId>
@@ -86,6 +90,7 @@
 						<resourceBundle>${project.groupId}:shared-resources:${project.version}</resourceBundle>
 					</resourceBundles>
 					<outputDirectory>${project.build.directory}/maven-shared-archive-resource</outputDirectory>
+					<attachToMain>false</attachToMain>
 				</configuration>
 				<executions>
 					<execution>
@@ -95,60 +100,31 @@
 					</execution>
 				</executions>
 			</plugin>
-
+<!--  comment this out until we've got all the classes in. I'd rather do it this way than with antrun if poss.
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-install-plugin</artifactId>
-				<version>3.0.0-M1</version>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.0.0</version>
 				<executions>
 					<execution>
-						<phase>initialize</phase>
-						<id>Install cert-cvc</id>
+						<id>Generate Service Manifest</id>
+						<phase>process-test-classes</phase>
 						<goals>
-							<goal>install-file</goal>
+							<goal>java</goal>
 						</goals>
 						<configuration>
-							<file>../ext/cert-cvc-1.4.9.jar</file>
-							<groupId>org.ejbca.cvc</groupId>
-							<artifactId>cert-cvc</artifactId>
-							<version>1.4.9</version>
-							<packaging>jar</packaging>
-							<generatePom>true</generatePom>
-						</configuration>
-					</execution>
-					<execution>
-						<phase>initialize</phase>
-						<id>Install Service Manifest Builder</id>
-						<goals>
-							<goal>install-file</goal>
-						</goals>
-						<configuration>
-							<file>../ext/servicemanifestbuilder-1.0.0.jar</file>
-							<groupId>com.primekey.anttools</groupId>
-							<artifactId>servicemanifestbuilder</artifactId>
-							<version>1.0.0</version>
-							<packaging>jar</packaging>
-							<generatePom>true</generatePom>
-						</configuration>
-					</execution>
-					<execution>
-						<phase>initialize</phase>
-						<id>Install Swagger UI</id>
-						<goals>
-							<goal>install-file</goal>
-						</goals>
-						<configuration>
-							<file>../ext/swagger-ui.war</file>
-							<groupId>org.ejbca.swagger</groupId>
-							<artifactId>swagger-ui</artifactId>
-							<version>1.0.0</version>
-							<packaging>war</packaging>
-							<generatePom>true</generatePom>
+							<mainClass>com.primekey.anttools.ServiceManifestBuilder</mainClass>
+							<classpathScope>compile</classpathScope>
+							<arguments>
+								<argument>${project.build.directory}/classes</argument>
+								<argument>org.cesecore.authentication.tokens.AuthenticationTokenMetaData;org.cesecore.certificates.ca.CvcPlugin;org.cesecore.authorization.rules.AccessRulePlugin;org.cesecore.configuration.ConfigurationCache;org.cesecore.certificates.certificate.certextensions.CustomCertificateExtension;org.cesecore.keys.validation.Validator</argument>
+							</arguments>
 						</configuration>
 					</execution>
 				</executions>
-
 			</plugin>
+
+-->
 		</plugins>
 		<pluginManagement>
 			<plugins>
@@ -179,16 +155,16 @@
 								<pluginExecution>
 									<pluginExecutionFilter>
 										<groupId>
-											org.apache.maven.plugins
+											org.codehaus.mojo
 										</groupId>
 										<artifactId>
-											maven-install-plugin
+											exec-maven-plugin
 										</artifactId>
 										<versionRange>
-											[2.4,)
+											[3.0.0,)
 										</versionRange>
 										<goals>
-											<goal>install-file</goal>
+											<goal>java</goal>
 										</goals>
 									</pluginExecutionFilter>
 									<action>
