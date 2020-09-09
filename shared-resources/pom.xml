@@ -51,21 +51,6 @@
 					</execution>
 					<execution>
 						<phase>initialize</phase>
-						<id>Install Service Manifest Builder</id>
-						<goals>
-							<goal>install-file</goal>
-						</goals>
-						<configuration>
-							<file>ext/servicemanifestbuilder-1.0.0.jar</file>
-							<groupId>com.primekey.anttools</groupId>
-							<artifactId>servicemanifestbuilder</artifactId>
-							<version>1.0.0</version>
-							<packaging>jar</packaging>
-							<generatePom>true</generatePom>
-						</configuration>
-					</execution>
-					<execution>
-						<phase>initialize</phase>
 						<id>Install Swagger UI</id>
 						<goals>
 							<goal>install-file</goal>
