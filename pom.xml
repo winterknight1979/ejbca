@@ -343,9 +343,11 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
-	
+
 	<modules>
 		<module>cesecore-common</module>
 	</modules>
+
+	
 
 </project>
