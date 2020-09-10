@@ -441,7 +441,8 @@
 	
 	<scm>
 		<connection>scm:git:https://github.com/winterknight1979/ejbca.git</connection>
-		<developerConnection>scm:git:https://github.com/winterknight1979/ejbca.git</developerConnection>
+		<developerConnection>scm:git:git@github.com:winterknight1979/ejbca.git</developerConnection>
 		<url>https://github.com/winterknight1979/ejbca</url>
 	</scm>
+	<url>https://github.com/winterknight1979/ejbca</url>
 </project>
