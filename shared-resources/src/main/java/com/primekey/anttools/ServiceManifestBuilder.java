@@ -4,26 +4,16 @@
 
 package com.primekey.anttools;
 
-import java.util.Collection;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.io.PrintWriter;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Method;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.io.File;
 
 public class ServiceManifestBuilder
 {
-	private static final String META_INF = "META-INF";
-	private static final String SERVICES = "services";
-	private static final String CLASS_EXTENSION = ".class";
+	
 
 	public static void main(final String[] args) {
 		final int errorCode = mainInternal(args);
@@ -34,7 +24,6 @@ public class ServiceManifestBuilder
 
 	static int mainInternal(final String[] args) {
 		if (args.length < 2 || args.length > 3) {
-			final String TAB = "     ";
 			final StringBuffer out = new StringBuffer();
 			out.append("DESCRIPTION:\n");
 			out.append("     This command line tool inserts service manifest files into a given directory.\n");
@@ -59,28 +48,23 @@ public class ServiceManifestBuilder
 			System.err.println(archive + " does not appear to be a .jar file.");
 			return 1;
 		}
-		final String cp = System.getProperty("java.class.path");
-		String[] paths = cp.split(":");
-		URL urls[] = new URL[paths.length];
-		try {
-			for (int i = 0; i < paths.length; i++) {	
-				urls[i] = new File(paths[i]).toURI().toURL();
-			}
-		}catch (MalformedURLException e) {
-			// TODO: handle exception
-		}
-
-		final URLClassLoader sysloader = new URLClassLoader(urls, ClassLoader.getSystemClassLoader());
-		try {
-			final Method method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
-			method.setAccessible(true);
-			method.invoke(sysloader, archive.toURI().toURL());
-		}
-		catch (Throwable t) {
-			throw new RuntimeException("Exception caught while trying to modify classpath", t);
-		}
+		/*
+		 * We shouldn't need to hack the classpath because Maven automatically adds the output directory
+		 * 
+		 * final String cp = System.getProperty("java.class.path"); String[] paths =
+		 * cp.split(":"); URL urls[] = new URL[paths.length]; try { for (int i = 0; i <
+		 * paths.length; i++) { urls[i] = new File(paths[i]).toURI().toURL(); } }catch
+		 * (MalformedURLException e) { // TODO: handle exception }
+		 * 
+		 * final URLClassLoader sysloader = new URLClassLoader(urls,
+		 * ClassLoader.getSystemClassLoader()); try { final Method method =
+		 * URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+		 * method.setAccessible(true); method.invoke(sysloader,
+		 * archive.toURI().toURL()); } catch (Throwable t) { throw new
+		 * RuntimeException("Exception caught while trying to modify classpath", t); }
+		 */
 		final String[] classNames = args[1].split(";");
-		final Class<?>[] classes = (Class<?>[])new Class[classNames.length];
+		final Class<?>[] classes = new Class[classNames.length];
 		for (int i = 0; i < classNames.length; ++i) {
 			try {
 				classes[i] = Class.forName(classNames[i]);
