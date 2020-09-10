@@ -10,19 +10,26 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
+
 package org.cesecore.authorization.access;
 
 /**
- * Interface for subscriber to AuthorizationCacheReload events.
+ * Enum adapted from the constants in AccessTreeNode in EJBCA. Represents the state of an accessTree node.
  * 
- * @version $Id: AuthorizationCacheReloadListener.java 25591 2017-03-23 13:13:02Z jeklund $
+ * @version $Id: AccessTreeState.java 17625 2013-09-20 07:12:06Z netmackan $
+ * 
  */
-public interface AuthorizationCacheReloadListener {
 
-    /** Invoked when the authorization system has been modified. 
-     * @param event Event*/
-    void onReload(AuthorizationCacheReload event);
+public enum AccessTreeState {
+    STATE_UNKNOWN(1), STATE_ACCEPT(2), STATE_ACCEPT_RECURSIVE(3), STATE_DECLINE(4);
 
-    /** @return a human readable name for logging of who is subscribing to events. */
-    String getListenerName();
+    private AccessTreeState(int legacyNumber) {
+        this.legacyNumber = legacyNumber;
+    }
+
+    public int getLegacyNumber() {
+        return legacyNumber;
+    }
+
+    private int legacyNumber;
 }

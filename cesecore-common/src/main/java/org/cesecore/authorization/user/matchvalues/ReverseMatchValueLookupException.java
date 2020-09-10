@@ -10,19 +10,32 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
-package org.cesecore.authorization.access;
+package org.cesecore.authorization.user.matchvalues;
 
 /**
- * Interface for subscriber to AuthorizationCacheReload events.
+ * Thrown if an error occurs during reverse lookup
  * 
- * @version $Id: AuthorizationCacheReloadListener.java 25591 2017-03-23 13:13:02Z jeklund $
+ * @version $Id: ReverseMatchValueLookupException.java 17625 2013-09-20 07:12:06Z netmackan $
+ *
  */
-public interface AuthorizationCacheReloadListener {
+public class ReverseMatchValueLookupException extends RuntimeException{
 
-    /** Invoked when the authorization system has been modified. 
-     * @param event Event*/
-    void onReload(AuthorizationCacheReload event);
+    private static final long serialVersionUID = -7869788516422286307L;
 
-    /** @return a human readable name for logging of who is subscribing to events. */
-    String getListenerName();
+    public ReverseMatchValueLookupException() {
+        super();
+    }
+
+    public ReverseMatchValueLookupException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public ReverseMatchValueLookupException(String message) {
+        super(message);
+    }
+
+    public ReverseMatchValueLookupException(Throwable cause) {
+        super(cause);
+    }
+
 }

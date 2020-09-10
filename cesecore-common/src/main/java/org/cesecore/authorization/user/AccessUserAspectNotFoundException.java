@@ -10,19 +10,34 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
-package org.cesecore.authorization.access;
+package org.cesecore.authorization.user;
 
 /**
- * Interface for subscriber to AuthorizationCacheReload events.
+ * Thrown when an AccessUserAspect is not found.
  * 
- * @version $Id: AuthorizationCacheReloadListener.java 25591 2017-03-23 13:13:02Z jeklund $
+ * @version $Id: AccessUserAspectNotFoundException.java 25461 2017-03-14 00:10:54Z jeklund $
+ *
  */
-public interface AuthorizationCacheReloadListener {
+public class AccessUserAspectNotFoundException extends RuntimeException {
 
-    /** Invoked when the authorization system has been modified. 
-     * @param event Event*/
-    void onReload(AuthorizationCacheReload event);
+    private static final long serialVersionUID = -3503860340121024920L;
 
-    /** @return a human readable name for logging of who is subscribing to events. */
-    String getListenerName();
+    public AccessUserAspectNotFoundException() {
+        super();
+    }
+
+    public AccessUserAspectNotFoundException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public AccessUserAspectNotFoundException(String message) {
+        super(message);
+    }
+
+    public AccessUserAspectNotFoundException(Throwable cause) {
+        super(cause);
+    } 
+
+    
+
 }

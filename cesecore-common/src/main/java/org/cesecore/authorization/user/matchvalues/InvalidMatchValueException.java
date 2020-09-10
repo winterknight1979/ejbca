@@ -10,19 +10,33 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
-package org.cesecore.authorization.access;
+package org.cesecore.authorization.user.matchvalues;
 
 /**
- * Interface for subscriber to AuthorizationCacheReload events.
+ * This runtime exception is thrown to signify that an attempt of an enum to extend the AccessMatchValue
+ * interface failed and could not be recovered.
  * 
- * @version $Id: AuthorizationCacheReloadListener.java 25591 2017-03-23 13:13:02Z jeklund $
+ * @version $Id: InvalidMatchValueException.java 17625 2013-09-20 07:12:06Z netmackan $
+ *
  */
-public interface AuthorizationCacheReloadListener {
+public class InvalidMatchValueException extends RuntimeException {
 
-    /** Invoked when the authorization system has been modified. 
-     * @param event Event*/
-    void onReload(AuthorizationCacheReload event);
+    private static final long serialVersionUID = -7145630440532075247L;
 
-    /** @return a human readable name for logging of who is subscribing to events. */
-    String getListenerName();
+    public InvalidMatchValueException() {
+        super();
+    }
+
+    public InvalidMatchValueException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public InvalidMatchValueException(String message) {
+        super(message);
+    }
+
+    public InvalidMatchValueException(Throwable cause) {
+        super(cause);
+    }
+
 }

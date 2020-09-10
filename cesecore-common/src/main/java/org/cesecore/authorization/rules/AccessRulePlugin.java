@@ -10,19 +10,20 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
-package org.cesecore.authorization.access;
+package org.cesecore.authorization.rules;
+
+import java.util.Map;
 
 /**
- * Interface for subscriber to AuthorizationCacheReload events.
+ * Marker interface to allow access rules to be plugged in. 
  * 
- * @version $Id: AuthorizationCacheReloadListener.java 25591 2017-03-23 13:13:02Z jeklund $
+ * @version $Id: AccessRulePlugin.java 25428 2017-03-09 14:45:59Z jeklund $
  */
-public interface AuthorizationCacheReloadListener {
+public interface AccessRulePlugin {
 
-    /** Invoked when the authorization system has been modified. 
-     * @param event Event*/
-    void onReload(AuthorizationCacheReload event);
-
-    /** @return a human readable name for logging of who is subscribing to events. */
-    String getListenerName();
+    /** @return a map of resources (rules) as map keys and their human readable counterpart as value (if available or otherwise the resource again) */
+    Map<String,String> getRules();
+    
+    /** @return a category key this rule set belongs to */
+    String getCategory();
 }

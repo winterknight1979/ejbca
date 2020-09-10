@@ -115,7 +115,8 @@ public class X509CertificateAuthenticationToken extends NestableAuthenticationTo
         this(new HashSet<>(Arrays.asList(certificate.getSubjectX500Principal())), new HashSet<>(Arrays.asList(certificate)));
     }
 
-    @Override
+    @SuppressWarnings("deprecation")
+	@Override
     public boolean matches(AccessUserAspect accessUser) {
         // Protect against spoofing by checking if this token was created locally
         if (!super.isCreatedInThisJvm()) {

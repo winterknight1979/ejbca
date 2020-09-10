@@ -1,6 +1,6 @@
 /*************************************************************************
  *                                                                       *
- *  CESeCore: CE Security Core                                           *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
  *                                                                       *
  *  This software is free software; you can redistribute it and/or       *
  *  modify it under the terms of the GNU Lesser General Public           *
@@ -10,19 +10,27 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
-package org.cesecore.authorization.access;
+package org.cesecore.authorization.control;
+
+import java.util.Map;
+
+import org.cesecore.authorization.rules.AccessRulePlugin;
 
 /**
- * Interface for subscriber to AuthorizationCacheReload events.
+ * Dynamically defined access rules for the security events audit log.
  * 
- * @version $Id: AuthorizationCacheReloadListener.java 25591 2017-03-23 13:13:02Z jeklund $
+ * @version $Id: AuditLogRulesReference.java 25428 2017-03-09 14:45:59Z jeklund $
  */
-public interface AuthorizationCacheReloadListener {
+public class AuditLogRulesReference implements AccessRulePlugin{
 
-    /** Invoked when the authorization system has been modified. 
-     * @param event Event*/
-    void onReload(AuthorizationCacheReload event);
+    @Override
+    public Map<String,String> getRules() {
+        return AuditLogRules.getAllResources();
+    }
 
-    /** @return a human readable name for logging of who is subscribing to events. */
-    String getListenerName();
+    @Override
+    public String getCategory() {
+        return "AUDITLOGRULES";
+    }
+
 }
