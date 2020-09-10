@@ -72,8 +72,7 @@ public class SecurityFilterInputStream extends FilterInputStream {
 
 	/**
 	 * Returns max bytes that can be read from serialized object.
-	 * @param 
-	 *      max bytes that can be read from serialized object. Default: 0xFFFFF 
+	 * 
 	 */
 	public long getMaxBytes() {
 		return maxBytes;
@@ -81,8 +80,8 @@ public class SecurityFilterInputStream extends FilterInputStream {
 
 	/**
 	 * Set max bytes that can be read from serialized object
-	 * @return 
-	 *      max bytes that can be read from serialized object.
+	 * @param maxBytes
+	 *      max bytes that can be read from serialized object. Default: 0xFFFFF 
 	 */
 	public void setMaxBytes(long maxBytes) {
 		this.maxBytes = maxBytes;
