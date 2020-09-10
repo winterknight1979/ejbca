@@ -122,32 +122,34 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!-- comment this out until we've got all the classes in. I'd rather do 
-				it this way than with antrun if poss. -->
-			<!-- <plugin> -->
-			<!-- <groupId>org.codehaus.mojo</groupId> -->
-			<!-- <artifactId>exec-maven-plugin</artifactId> -->
-			<!-- <version>3.0.0</version> -->
-			<!-- <executions> -->
-			<!-- <execution> -->
-			<!-- <id>Generate Service Manifest</id> -->
-			<!-- <phase>process-test-classes</phase> -->
-			<!-- <goals> -->
-			<!-- <goal>java</goal> -->
-			<!-- </goals> -->
-			<!-- <configuration> -->
-			<!-- <mainClass>com.primekey.anttools.ServiceManifestBuilder</mainClass> -->
-			<!-- <classpathScope>compile</classpathScope> -->
-			<!-- <arguments> -->
-			<!-- <argument>${project.build.directory}/classes</argument> -->
-			<!-- <argument>org.cesecore.authentication.tokens.AuthenticationTokenMetaData;org.cesecore.certificates.ca.CvcPlugin;org.cesecore.authorization.rules.AccessRulePlugin;org.cesecore.configuration.ConfigurationCache;org.cesecore.certificates.certificate.certextensions.CustomCertificateExtension;org.cesecore.keys.validation.Validator</argument> -->
-			<!-- </arguments> -->
-			<!-- </configuration> -->
-			<!-- </execution> -->
-			<!-- </executions> -->
-			<!-- </plugin> -->
 
-			<!-- -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.0.0</version>
+				<executions>
+					<execution>
+						<id>Generate Service Manifest</id>
+						<phase>process-test-classes</phase>
+						<goals>
+							<goal>java</goal>
+						</goals>
+						<configuration>
+							<mainClass>com.primekey.anttools.ServiceManifestBuilder</mainClass>
+							<classpathScope>compile</classpathScope>
+							<arguments>
+								<argument>${project.build.directory}/classes</argument>
+								<argument>
+									org.cesecore.authentication.tokens.AuthenticationTokenMetaData<!-- 
+										;org.cesecore.certificates.ca.CvcPlugin;org.cesecore.authorization.rules.AccessRulePlugin;org.cesecore.configuration.ConfigurationCache;org.cesecore.certificates.certificate.certextensions.CustomCertificateExtension;org.cesecore.keys.validation.Validator -->
+								</argument>
+							</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+
 		</plugins>
 		<pluginManagement>
 			<plugins>
