@@ -44,6 +44,7 @@ import org.apache.log4j.Logger;
  * bytes in compressed serialized form.
  * 
  * @version $Id: CompressedCollection.java 34193 2020-01-07 15:18:15Z samuellb $
+ * @param <T> Type of node
  */
 public class CompressedCollection<T extends Serializable> implements  Collection<T>, Serializable {
 
@@ -83,7 +84,9 @@ public class CompressedCollection<T extends Serializable> implements  Collection
 		return ret;
 	}
 
-	/** Lazy initialization of our in memory object storage */
+	/** Lazy initialization of our in memory object storage 
+	 * @return OutputStream 
+	 * @throws IOException on failure*/
 	private ObjectOutputStream getObjectOutputStream() throws IOException {
 		if (oos==null) {
 			baos = new ByteArrayOutputStream();

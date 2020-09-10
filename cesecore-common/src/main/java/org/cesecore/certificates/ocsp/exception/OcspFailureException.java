@@ -30,7 +30,7 @@ public class OcspFailureException extends RuntimeException {
 	}
 
 	/**
-	 * @param arg0
+	 * @param msg message
 	 */
 	public OcspFailureException(String msg) {
 		super(msg);
@@ -38,7 +38,7 @@ public class OcspFailureException extends RuntimeException {
 	}
 
 	/**
-	 * @param arg0
+	 * @param t cause
 	 */
 	public OcspFailureException(Throwable t) {
 		super(t);
@@ -46,8 +46,8 @@ public class OcspFailureException extends RuntimeException {
 	}
 
 	/**
-	 * @param arg0
-	 * @param arg1
+	 * @param msg message
+	 * @param t cause
 	 */
 	public OcspFailureException(String msg, Throwable t) {
 		super(msg, t);

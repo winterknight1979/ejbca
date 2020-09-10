@@ -30,15 +30,17 @@ public final class MapTools {
     /**
      * Adds an item to a map, and returns it. Useful for initialization:
      * <code>
-     * doWorkWithMapExample(addToMap(new HashMap<Integer,String>(), 0, "none"));
+     * doWorkWithMapExample(addToMap(new HashMap&lt;Integer,String&gt;(), 0, "none"));
      * </code>
      * 
-     * <p>Unlike the <code>new HashMap<>() {{ put(x,y); }}</code> pattern, this does not create a new class (which can create problems with de-serialization)
+     * <p>Unlike the <code>new HashMap&lt;&gt;() {{ put(x,y); }}</code> pattern, this does not create a new class (which can create problems with de-serialization)
      * 
      * @param map Map to use.
      * @param key1 First key.
      * @param value1 Value of first key.
      * @return Returns the map.
+     * @param <K> Key type
+     * @param <V> Value type
      * @see #addToMap(Map, Object, Object, Object, Object)
      * @see #addToMap(Map, Object, Object, Object, Object, Object, Object)
      */
@@ -49,6 +51,14 @@ public final class MapTools {
     
     /**
      * Adds two items to a map, and returns it. Useful for initialization. See {@link #addToMap(Map, Object, Object)}.
+     * @param key1 Key 1
+     * @param value1 Value 1
+     * @param key2 Key 2
+     * @param value2 Value 2
+     * @param <K> Key type
+     * @param <V> Value type
+     * @param map Map to add to
+     * @return Map object
      * @see #addToMap(Map, Object, Object)
      * @see #addToMap(Map, Object, Object, Object, Object, Object, Object)
      */
@@ -60,6 +70,16 @@ public final class MapTools {
     
     /**
      * Adds three items to a map, and returns it. Useful for initialization. See {@link #addToMap(Map, Object, Object)}.
+     * @param key1 Key 1
+     * @param value1 Value 1
+     * @param key2 Key 2
+     * @param value2 Value 2
+     * @param key3 Key 3
+     * @param value3 Value 3
+     * @param <K> Key type
+     * @param <V> Value type
+     * @param map Map to add to
+     * @return Map object
      * @see #addToMap(Map, Object, Object)
      * @see #addToMap(Map, Object, Object, Object, Object)
      */
@@ -76,11 +96,13 @@ public final class MapTools {
      * doWorkWithMapExample(unmodifiableMap(0, "none"));
      * </code>
      * 
-     * <p>Unlike the <code>new HashMap<>() {{ put(x,y); }}</code> pattern, this does not create a new class (which can create problems with de-serialization)
+     * <p>Unlike the <code>new HashMap&lt;&gt;() {{ put(x,y); }}</code> pattern, this does not create a new class (which can create problems with de-serialization)
      * 
      * @param key1 First key.
      * @param value1 Value of first key.
      * @return Returns the map.
+     * @param <K> Key type
+     * @param <V> Value type
      * @see #unmodifiableMap(Object, Object, Object, Object)
      * @see #unmodifiableMap(Object, Object, Object, Object, Object, Object)
      */
@@ -92,6 +114,13 @@ public final class MapTools {
     /**
      * Creates an unmodifiable map with two items. The returned map is backed by a LinkedHashMap, so it preserves order.
      * Useful for initialization. See {@link #unmodifiableMap(Object, Object)}.
+     * @param key1 Key 1
+     * @param value1 Value 1
+     * @param key2 Key 2
+     * @param value2 Value 2
+     * @param <K> Key type
+     * @param <V> Value type
+     * @return Map object
      * @see #unmodifiableMap(Object, Object)
      * @see #unmodifiableMap(Object, Object, Object, Object, Object, Object)
      */
@@ -102,6 +131,15 @@ public final class MapTools {
     /**
      * Creates an unmodifiable map with two items. The returned map is backed by a LinkedHashMap, so it preserves order.
      * Useful for initialization. See {@link #unmodifiableMap(Object, Object)}.
+     * @param key1 Key 1
+     * @param value1 Value 1
+     * @param key2 Key 2
+     * @param value2 Value 2
+     * @param key3 Key 3
+     * @param value3 Value 3
+     * @param <K> Key type
+     * @param <V> Value type
+     * @return Map object
      * @see #unmodifiableMap(Object, Object)
      * @see #unmodifiableMap(Object, Object, Object, Object)
      */

@@ -33,7 +33,7 @@ import org.apache.log4j.Logger;
 import org.cesecore.internal.InternalResources;
 
 /**
- * Tools to handle calls with Java Process API ({@link https://docs.oracle.com/javase/8/docs/api/java/lang/Process.html}.
+ * Tools to handle calls with  @see <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Process.html">Java Process API</a>.
  *
  * @version $Id: ExternalProcessTools.java 27126 2017-12-16 09:28:54Z anjakobs $
  */
@@ -109,6 +109,8 @@ public final class ExternalProcessTools {
 	 * @param failOnCode Determines if the method should fail on a non-zero exit code.
 	 * @param failOnOutput Determines if the method should fail on output to standard error.
 	 * @param args Added to the command after the temporary files name
+	 * @param filePrefix Prefix
+	 * @return List
 	 * @throws ExternalProcessException if the temporary file could not be written or the external process fails.
 	 */
 	public static final List<String> launchExternalCommand(final String cmd, final byte[] bytes, final boolean failOnCode, final boolean failOnOutput,
@@ -128,6 +130,8 @@ public final class ExternalProcessTools {
 	 * @param logStdOut if the scripts STDOUT should be logged as info.
 	 * @param logErrOut if the scripts ERROUT should be logged as info.
 	 * @param arguments Added to the command after the temporary files name
+	 * @param filePrefix Prefix
+	 * @return  List
 	 * @throws ExternalProcessException if the temporary file could not be written or the external process fails.
 	 */
 	public static final List<String> launchExternalCommand(final String cmd, final byte[] bytes, final boolean failOnCode, final boolean failOnOutput,

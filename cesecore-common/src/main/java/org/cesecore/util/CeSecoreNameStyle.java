@@ -53,7 +53,7 @@ public class CeSecoreNameStyle extends BCStyle {
 	public static final ASN1ObjectIdentifier JURISDICTION_LOCALITY = new ASN1ObjectIdentifier("1.3.6.1.4.1.311.60.2.1.1");
 	/**
 	 * X.520 organizationIdentifier, used by ETSI TS 319 412 (eIDAS).
-	 * https://www.itu.int/rec/dologin.asp?lang=e&id=T-REC-X.520-201210-S!Cor3!PDF-E&type=items
+	 * https://www.itu.int/rec/dologin.asp?lang=e&amp;id=T-REC-X.520-201210-S!Cor3!PDF-E&amp;type=items
 	 */
 	public static final ASN1ObjectIdentifier ORGANIZATION_IDENTIFIER = new ASN1ObjectIdentifier("2.5.4.97");
 
@@ -203,6 +203,9 @@ public class CeSecoreNameStyle extends BCStyle {
 	 * useful e.g. when the DefaultSymbols map is not the default inherited from
 	 * BCStyle. It is public so it can be re-used by other classes as well
 	 * (e.g. LdapNameStyle in EJBCA).
+	 * @param defaultSymbols Symbols
+	 * @param name X.509 Name
+	 * @return A string
 	 */
 	public static String buildString(Hashtable<ASN1ObjectIdentifier,String> defaultSymbols, X500Name name) {
 		StringBuffer buf = new StringBuffer();

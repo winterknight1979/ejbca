@@ -445,7 +445,9 @@ public abstract class CertTools {
 	}
 
 	/** Removes any unescaped '\' character from the provided StringBuilder. Assumes that escaping quotes have been stripped. 
-	 * Special treatment of the # sign, which if not escaped will be treated as hex encoded DER value by BC. */
+	 * Special treatment of the # sign, which if not escaped will be treated as hex encoded DER value by BC. 
+	 * @param sb String Builder
+	 * @return String builder with no escapes*/
 	private static StringBuilder unescapeValue(final StringBuilder sb) {
 		boolean esq = false;
 		int index = 0;
@@ -483,6 +485,8 @@ public abstract class CertTools {
 	 * Check if the String contains any unescaped '+'. RFC 2253, section 2.2 states that '+' is used for multi-valued RelativeDistinguishedName.
 	 * BC (version 1.45) did not support multi-valued RelativeDistinguishedName, and automatically escaped them instead.
 	 * Even though it is now (BC 1.49b15) supported, we want to keep ecaping '+' chars and warn that this might not be supported in the future.
+	 * @param dn String containing DN
+	 * @return dn with escaped + symbols
 	 */
 	public static String handleUnescapedPlus(final String dn) {
 		if (dn == null) {
@@ -566,7 +570,7 @@ public abstract class CertTools {
 	 * Search for e-mail address, first in SubjectAltName (as in PKIX recommendation) then in subject DN. Original author: Marco Ferrante, (c) 2005
 	 * CSITA - University of Genoa (Italy)
 	 * 
-	 * @param certificate
+	 * @param certificate Certificate 
 	 * @return subject email or null if not present in certificate
 	 */
 	public static String getEMailAddress(Certificate certificate) {
@@ -693,6 +697,9 @@ public abstract class CertTools {
 	/**
 	 * Checks if a DN has at least two components. Then the DN can be in either LDAP or X500 order.
 	 * Otherwise it's not possible to determine the order.
+	 * 
+	 * @param dn String containing DN, The DN string has the format "C=SE, O=xx, OU=yy, CN=zz".
+	 * @return boolean
 	 */
 	public static boolean dnHasMultipleComponents(String dn) {
 		final X509NameTokenizer xt = new X509NameTokenizer(dn);
@@ -810,7 +817,6 @@ public abstract class CertTools {
 	 * the DNpart is defined by a name such as CN och rfc822Name. This method only returns a oid once, so if the input string has multiple of the same
 	 * oid, only one value is returned.
 	 * 
-	 * @param dn String containing DN, The DN string has the format "C=SE, O=xx, OU=yy, CN=zz", or "rfc822Name=foo@bar.com", etc.
 	 * @param dn String specifying which part of the DN to get, should be "CN" or "OU" etc.
 	 * 
 	 * @return ArrayList containing unique oids or empty list if no custom OIDs are present
@@ -997,7 +1003,7 @@ public abstract class CertTools {
 	 * string (remove the letters) and convert to int - 5 letter alfanumeric string with only letters (cvc), will convert to integer from string with
 	 * radix 36
 	 * 
-	 * @param sernoString
+	 * @param sernoString Serial number
 	 * @return BigInteger
 	 */
 	public static BigInteger getSerialNumberFromString(String sernoString) {
@@ -1210,7 +1216,7 @@ public abstract class CertTools {
 	 * @throws FileNotFoundException if certFile was not found
 	 * @throws CertificateParsingException if the file contains an incorrect certificate.
 	 * 
-	 * @deprecated Use org.cesecore.util.CertTools.getCertsFromPEM(String, Class<T>) instead
+	 * @deprecated Use org.cesecore.util.CertTools.getCertsFromPEM(String, Class&lt;T&gt;) instead
 	 */
 	@Deprecated
 	public static List<Certificate> getCertsFromPEM(String certFilename) throws FileNotFoundException, CertificateParsingException {
@@ -1223,6 +1229,7 @@ public abstract class CertTools {
 	 * 
 	 * @param certFilename filename of the file containing the certificates in PEM-format
 	 * @param returnType a Class specifying the desired return type. Certificate can be used if return type is unknown.
+	 * @param <T> Type
 	 * 
 	 * @return Ordered List of Certificates, first certificate first, or empty List
 	 * @throws FileNotFoundException if certFile was not found
@@ -1261,6 +1268,7 @@ public abstract class CertTools {
 	 * @throws FileNotFoundException if the file cannot be found.
 	 * @throws CertificateParsingException if a certificate could not be parsed.
 	 * @throws CertificateEncodingException if a certificate cannot be encoded.
+	 * @throws IOException on I/O errorS
 	 */
 	public static final byte[] readCertificateChainAsArrayOrThrow(final String file)
 			throws FileNotFoundException, IOException, CertificateParsingException, CertificateEncodingException {
@@ -1312,7 +1320,7 @@ public abstract class CertTools {
 	 *
 	 * @throws CertificateParsingException if the stream contains an incorrect certificate.
 	 * 
-	 * @deprecated Use org.cesecore.util.CertTools.getCertsFromPEM(InputStream, Class<T>) instead. 
+	 * @deprecated Use org.cesecore.util.CertTools.getCertsFromPEM(InputStream, Class&lt;T&gt;) instead. 
 	 */
 	@Deprecated
 	public static List<Certificate> getCertsFromPEM(InputStream certstream) throws CertificateParsingException {
@@ -1323,6 +1331,7 @@ public abstract class CertTools {
 	 * Reads certificates in PEM-format from an InputStream. 
 	 * The stream may contain other things between the different certificates.
 	 * 
+	 * @param <T> type
 	 * @param certstream the input stream containing the certificates in PEM-format
 	 * @param returnType specifies the desired certificate type. Certificate can be used if certificate type is unknown.
 	 * @return Ordered List of Certificates, first certificate first, or empty List
@@ -1401,8 +1410,8 @@ public abstract class CertTools {
 	 * @param certs Certificate[] of certificates to convert
 	 * @param provider provider for example "SUN" or "BC", use null for the default provider (BC)
 	 * @return An ArrayList of certificates in the same order as the passed in array
-	 * @throws NoSuchProviderException
-	 * @throws CertificateException
+	 * @throws NoSuchProviderException If provider not loaded
+	 * @throws CertificateException if the stream does not contain a correct certificate.
 	 */
 	public static List<Certificate> getCertCollectionFromArray(Certificate[] certs, String provider) throws CertificateException,
 	NoSuchProviderException {
@@ -1432,7 +1441,7 @@ public abstract class CertTools {
 	 * @return byte array containing PEM certificate
 	 * @exception CertificateException if the stream does not contain a correct certificate.
 	 * 
-	 * @deprecated Since 6.0.0, use org.cesecore.util.CertTools.getPemFromCertificateChain(Collection<Certificate>) instead
+	 * @deprecated Since 6.0.0, use org.cesecore.util.CertTools.getPemFromCertificateChain(Collection&lt;Certificate&gt;) instead
 	 */
 	@Deprecated
 	public static byte[] getPEMFromCerts(Collection<Certificate> certs) throws CertificateException {
@@ -1475,7 +1484,8 @@ public abstract class CertTools {
 		return out;
 	}
 
-	/** @return a CRL in PEM-format as a byte array. */
+	/** @return a CRL in PEM-format as a byte array. 
+	 * @param crlBytes byte array*/
 	public static byte[] getPEMFromCrl(byte[] crlBytes) {
 		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try ( final PrintStream printStream = new PrintStream(baos) ) {
@@ -1484,7 +1494,8 @@ public abstract class CertTools {
 		return baos.toByteArray();
 	}
 
-	/** @return a PublicKey in PEM-format as a byte array. */
+	/** @return a PublicKey in PEM-format as a byte array.
+	 * @param publicKeyBytes byte array */
 	public static byte[] getPEMFromPublicKey(final byte[] publicKeyBytes) {
 		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try ( final PrintStream printStream = new PrintStream(baos) ) {
@@ -1501,7 +1512,8 @@ public abstract class CertTools {
 		return baos.toByteArray();
 	}
 
-	/** @return a PublicKey in PEM-format as a byte array. */
+	/** @return a PublicKey in PEM-format as a byte array. 
+	 * @param certificateRequestBytes byte array*/
 	public static byte[] getPEMFromCertificateRequest(final byte[] certificateRequestBytes) {
 		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try ( final PrintStream printStream = new PrintStream(baos) ) {
@@ -1522,7 +1534,11 @@ public abstract class CertTools {
 		return baos.toByteArray();
 	}
 
-	/** Write the supplied bytes to the printstream as Base64 using beginKey and endKey around it. */
+	/** Write the supplied bytes to the printstream as Base64 using beginKey and endKey around it. 
+	 * @param printStream Stream
+	 * @param unencodedData Data
+	 * @param beginKey Start Key
+	 * @param endKey Emd Key*/
 	private static void writeAsPemEncoded(PrintStream printStream, byte[] unencodedData, String beginKey, String endKey) {
 		printStream.println(beginKey);
 		printStream.println(new String(Base64.encode(unencodedData)));
@@ -1530,7 +1546,7 @@ public abstract class CertTools {
 	}
 
 
-	/**
+	/**S
 	 * Creates Certificate from byte[], can be either an X509 certificate or a CVCCertificate
 	 * 
 	 * @param cert byte array containing certificate in binary (DER) format, or PEM encoded X.509 certificate
@@ -1539,7 +1555,7 @@ public abstract class CertTools {
 	 * @return a Certificate 
 	 * @throws CertificateParsingException if certificate couldn't be parsed from cert
 	 * 
-	 * @deprecated Use org.cesecore.util.CertTools.getCertfromByteArray(byte[], String, Class<T>) instead. 
+	 * @deprecated Use org.cesecore.util.CertTools.getCertfromByteArray(byte[], String, Class&lt;T&gt;) instead. 
 	 */
 	@Deprecated
 	public static Certificate getCertfromByteArray(byte[] cert, String provider) throws CertificateParsingException {
@@ -1552,6 +1568,7 @@ public abstract class CertTools {
 	 * @param cert byte array containing certificate in binary (DER) format, or PEM encoded X.509 certificate
 	 * @param provider provider for example "SUN" or "BC", use null for the default provider (BC)
 	 * @param returnType the type of Certificate to be returned. Certificate can be used if certificate type is unknown.
+	 * @param <T> type
 	 * 
 	 * @return a Certificate 
 	 * @throws CertificateParsingException if certificate couldn't be parsed from cert, or if the incorrect return type was specified.
@@ -1622,10 +1639,10 @@ public abstract class CertTools {
 
 
 	/**
-	 * 
+	 *  @param cert Certificate as byte array
 	 * @throws CertificateParsingException if the byte array does not contain a proper certificate.
-	 * 
-	 * @deprecated Use org.cesecore.util.CertTools.getCertfromByteArray(byte[], Class<T>) to specify return type instead.
+	 * @return Certificate
+	 * @deprecated Use org.cesecore.util.CertTools.getCertfromByteArray(byte[], Class&lt;T&gt;) to specify return type instead.
 	 */
 	@Deprecated
 	public static Certificate getCertfromByteArray(byte[] cert) throws CertificateParsingException {
@@ -1633,8 +1650,10 @@ public abstract class CertTools {
 	}
 
 	/**
+	 * @param cert Certificate as byte array
+	 * @param <T> Type
 	 * @param returnType the type of Certificate to be returned, for example X509Certificate.class. Certificate.class can be used if certificate type is unknown.
-	 * 
+	 * @return Certificate
 	 * @throws CertificateParsingException if the byte array does not contain a proper certificate.
 	 */
 	public static <T extends Certificate> T getCertfromByteArray(byte[] cert, Class<T> returnType) throws CertificateParsingException {
@@ -1789,9 +1808,8 @@ public abstract class CertTools {
 	 * 
 	 * @return X509Certificate, self signed
 	 * 
-	 * @throws IOException 
-	 * @throws CertificateException 
-	 * @throws OperatorCreationException 
+	 * @throws CertificateException if generated below
+	 * @throws OperatorCreationException if generated below
 	 */
 	public static X509Certificate genSelfCert(String dn, long validity, String policyId, PrivateKey privKey, PublicKey pubKey, String sigAlg,
 			boolean isCA) throws OperatorCreationException, CertificateException  {
@@ -1799,9 +1817,20 @@ public abstract class CertTools {
 	}
 
 	/** Generates a self signed certificate with keyUsage X509KeyUsage.keyCertSign + X509KeyUsage.cRLSign, i.e. a CA certificate
-	 * @throws IOException 
-	 * @throws OperatorCreationException 
-	 * @throws CertificateParsingException 
+	 * @param dn subject and issuer DN
+	 * @param validity in days
+	 * @param policyId policy string ('2.5.29.32.0') or null
+	 * @param privKey private key
+	 * @param pubKey public key
+	 * @param sigAlg signature algorithm, you can use one of the contants AlgorithmConstants.SIGALG_XXX
+	 * @param isCA boolean true or false
+	 * @param provider Provider
+	 * @param ldapOrder Order output?
+	 * 
+	 * @return X509Certificate, self signed
+	 * 
+	 * @throws OperatorCreationException if generated below
+	 * @throws CertificateParsingException if generated below
 	 * 
 	 */
 	public static X509Certificate genSelfCert(String dn, long validity, String policyId, PrivateKey privKey, PublicKey pubKey, String sigAlg,
@@ -1816,7 +1845,17 @@ public abstract class CertTools {
 	} // genselfCert
 
 	/** Generates a self signed certificate with keyUsage X509KeyUsage.keyCertSign + X509KeyUsage.cRLSign, i.e. a CA certificate
-	 * 
+	 * @param dn subject and issuer DN
+	 * @param validity in days
+	 * @param policyId policy string ('2.5.29.32.0') or null
+	 * @param privKey private key
+	 * @param pubKey public key
+	 * @param sigAlg signature algorithm, you can use one of the contants AlgorithmConstants.SIGALG_XXX
+	 * @param isCA boolean true or false
+	 * @param provider Proviser
+	 * @return Certificate
+	 * @throws CertificateException If cert is invalid
+	 * @throws OperatorCreationException If cert cannot be created
 	 */
 	public static X509Certificate genSelfCert(String dn, long validity, String policyId, PrivateKey privKey, PublicKey pubKey, String sigAlg,
 			boolean isCA, String provider) throws OperatorCreationException, CertificateException {
@@ -1834,6 +1873,10 @@ public abstract class CertTools {
 	 * @param sigAlg signature algorithm, you can use one of the contants AlgorithmConstants.SIGALG_XXX
 	 * @param isCA boolean true or false
 	 * @param keyusage as defined by constants in X509KeyUsage
+	 * @param ldapOrder Should the output be ordered?
+	 * @return Certificate
+	 * @throws CertificateParsingException If cert is invalid
+	 * @throws OperatorCreationException If cert cannot be created
 	 */
 	public static X509Certificate genSelfCertForPurpose(String dn, long validity, String policyId, PrivateKey privKey, PublicKey pubKey,
 			String sigAlg, boolean isCA, int keyusage, boolean ldapOrder) throws CertificateParsingException, OperatorCreationException {
@@ -2107,6 +2150,8 @@ public abstract class CertTools {
 	 * 
 	 * @param cert certificate containing the extension
 	 * @return String with the UPN name or null if the altName does not exist
+	 * @throws IOException On I/O error
+	 * @throws CertificateParsingException if cert is invalid
 	 */
 	public static String getUPNAltName(Certificate cert) throws IOException, CertificateParsingException {
 		return getUTF8AltNameOtherName(cert, CertTools.UPN_OBJECTID);
@@ -2133,6 +2178,8 @@ public abstract class CertTools {
 	 * @param cert certificate containing the extension
 	 * @param oid the OID of the OtherName
 	 * @return String with the UTF8 name or null if the altName does not exist
+	 * @throws IOException On I/O error
+	 * @throws CertificateParsingException if cert is invalidS
 	 */
 	public static String getUTF8AltNameOtherName(final Certificate cert, final String oid) throws IOException, CertificateParsingException {
 		String ret = null;
@@ -2155,6 +2202,7 @@ public abstract class CertTools {
 	 * Helper method for the above method.
 	 * 
 	 * @param seq the OtherName sequence
+	 * @param oid OID
 	 * @return String which is the decoded ASN.1 UTF8 String of the (simple) OtherName
 	 */
 	private static String getUTF8StringFromSequence(final ASN1Sequence seq, final String oid) {
@@ -2179,6 +2227,7 @@ public abstract class CertTools {
 	 * Helper method.
 	 * 
 	 * @param seq the OtherName sequence
+	 * @param oid OID
 	 * @return String which is the decoded ASN.1 IA5String of the (simple) OtherName
 	 */
 	private static String getIA5StringFromSequence(final ASN1Sequence seq, final String oid) {
@@ -2203,6 +2252,7 @@ public abstract class CertTools {
 	 * Helper method.
 	 * 
 	 * @param seq the OtherName sequence
+	 * @param oid OID
 	 * @return bytes which is the decoded ASN.1 Octet String of the (simple) OtherName
 	 */
 	private static byte[] getOctetStringFromSequence(final ASN1Sequence seq, final String oid) {
@@ -2247,6 +2297,8 @@ public abstract class CertTools {
 	 * 
 	 * @param cert certificate containing the extension
 	 * @return String with the permanentIdentifier name or null if the altName does not exist
+	 * @throws IOException On I/O error
+	 * @throws CertificateParsingException if cert is invalid
 	 */
 	public static String getPermanentIdentifierAltName(Certificate cert) throws IOException, CertificateParsingException {
 		String ret = null;
@@ -2269,7 +2321,7 @@ public abstract class CertTools {
 
 	/**
 	 * (This method intentionally has package level visibility to be able to be invoked from JUnit tests.)
-	 * @param seq
+	 * @param seq ASN.1 Sequence
 	 * @return The extension values encoded as an permanentIdentifierString
 	 */
 	static String getPermanentIdentifierStringFromSequence(ASN1Sequence seq) {
@@ -2327,7 +2379,7 @@ public abstract class CertTools {
 
 	/**
 	 * (This method intentionally has package level visibility to be able to be invoked from JUnit tests.)
-	 * @param permanentIdentifierString
+	 * @param permanentIdentifierString ID
 	 * @return A two elements String array with the extension values
 	 */
 	static String[] getPermanentIdentifierValues(String permanentIdentifierString) {
@@ -2354,6 +2406,7 @@ public abstract class CertTools {
 	 * Helper method to get MS GUID from GeneralName otherName sequence
 	 * 
 	 * @param seq the OtherName sequence
+	 * @return GUIDS
 	 */
 	private static String getGUIDStringFromSequence(ASN1Sequence seq) {
 		String ret = null;
@@ -2445,6 +2498,8 @@ public abstract class CertTools {
 	 * 
 	 * @param cert certificate containing the extension
 	 * @return String with the hex-encoded GUID byte array or null if the altName does not exist
+	 * @throws IOException On I/O error
+	 * @throws CertificateParsingException if cert is invalidS
 	 */
 	public static String getGuidAltName(Certificate cert) throws IOException, CertificateParsingException {
 		if (cert instanceof X509Certificate) {
@@ -2468,6 +2523,8 @@ public abstract class CertTools {
 
 	/**
 	 * Helper for the above methods
+	 * @param listitem Item
+	 * @return  ASN.1 sequence
 	 */
 	private static ASN1Sequence getAltnameSequence(List<?> listitem) {
 		Integer no = (Integer) listitem.get(0);
@@ -2580,8 +2637,8 @@ public abstract class CertTools {
 	 * GeneralName ::= CHOICE { otherName [0] OtherName, rfc822Name [1] IA5String, dNSName [2] IA5String, x400Address [3] ORAddress, directoryName [4]
 	 * Name, ediPartyName [5] EDIPartyName, uniformResourceIdentifier [6] IA5String, iPAddress [7] OCTET STRING, registeredID [8] OBJECT IDENTIFIER}
 	 * 
-	 * SubjectAltName is of form \"rfc822Name=<email>, dNSName=<host name>, uniformResourceIdentifier=<http://host.com/>, iPAddress=<address>,
-	 * guid=<globally unique id>, directoryName=<CN=testDirName|dir|name>, permanentIdentifier=<identifierValue/assigner|identifierValue|/assigner|/>
+	 * SubjectAltName is of form \"rfc822Name=&lt;email&gt;, dNSName=&lt;host name&gt;, uniformResourceIdentifier=&lt;http://host.com/&gt;, iPAddress=&lt;address&gt;,
+	 * guid=&lt;globally unique id&gt;, directoryName=&lt;CN=testDirName|dir|name&gt;, permanentIdentifier=&lt;identifierValue/assigner|identifierValue|/assigner|/&gt;
 	 * 
 	 * Supported altNames are upn, krb5principal, rfc822Name, uniformResourceIdentifier, dNSName, iPAddress, directoryName, permanentIdentifier
 	 * 
@@ -2704,7 +2761,7 @@ public abstract class CertTools {
 	/**
 	 * From an altName string as defined in getSubjectAlternativeName
 	 * 
-	 * @param altName
+	 * @param altName NameS
 	 * @return ASN.1 GeneralNames
 	 * @see #getSubjectAlternativeName
 	 */
@@ -2912,8 +2969,8 @@ public abstract class CertTools {
 	 * 
 	 * @param tag the no tag 0-8
 	 * @param value the ASN1Encodable value as returned by GeneralName.getName()
-	 * @return String in form rfc822Name=<email> or uri=<uri> etc
-	 * @throws IOException
+	 * @return String in form rfc822Name=&lt;email&gt; or uri=lt;uri&gt; etc
+	 * @throws IOException on error
 	 * @see #getSubjectAlternativeName
 	 */
 	public static String getGeneralNameString(int tag, ASN1Encodable value) throws IOException {
@@ -3103,7 +3160,6 @@ public abstract class CertTools {
 	 * 
 	 * @param cert certificate to verify, if null the method returns immediately, null does not have a validity to check.
 	 * @param date the Date to check against to see if this certificate is valid at that date/time.
-	 * @throws NoSuchFieldException
 	 * @throws CertificateExpiredException - if the certificate has expired with respect to the date supplied.
 	 * @throws CertificateNotYetValidException - if the certificate is not yet valid with respect to the date supplied.
 	 * @see java.security.cert.X509Certificate#checkValidity(Date)
@@ -3154,7 +3210,7 @@ public abstract class CertTools {
 	 * This method extracts "distributionPoint" (tag 0) from the first DistributionPoint included in the extension. No other 
 	 * tags are read.
 	 * 
-	 * @param certificate
+	 * @param certificate Certificate
 	 * @return A URL, or null if no CRL distribution points were found
 	 */
 	public static URL getCrlDistributionPoint(final Certificate certificate) {
@@ -3183,7 +3239,7 @@ public abstract class CertTools {
 	 * This method extracts "distributionPoint" (tag 0) from every DistributionPoint included in the extension. No other 
 	 * tags are read.
 	 * 
-	 * @param x509cert
+	 * @param x509cert Certificate
 	 * @return A list of URLs
 	 */
 	public static Collection<URL> getCrlDistributionPoints(final X509Certificate x509cert) {
@@ -3260,6 +3316,7 @@ public abstract class CertTools {
 	}
 
 	/**
+	 * @param cert CertificateS
 	 * @return all CA issuer URI that are inside AuthorityInformationAccess extension or an empty list
 	 */
 	public static List<String> getAuthorityInformationAccessCAIssuerUris(Certificate cert) {
@@ -3271,6 +3328,7 @@ public abstract class CertTools {
 	 * Returns the first OCSP URL that is inside AuthorityInformationAccess extension, or null.
 	 * 
 	 * @param cert is the certificate to parse
+	 * @return URLS
 	 */
 	public static String getAuthorityInformationAccessOcspUrl(Certificate cert) {
 		Collection<String> urls = getAuthorityInformationAccessOcspUrls(cert);
@@ -3281,6 +3339,7 @@ public abstract class CertTools {
 	}
 
 	/**
+	 * @param cert CertificateS
 	 * @return all OCSP URL that is inside AuthorityInformationAccess extension or an empty list
 	 */
 	public static List<String> getAuthorityInformationAccessOcspUrls(Certificate cert) {
@@ -3288,6 +3347,8 @@ public abstract class CertTools {
 	}
 
 	/**
+	 * @param cert Certificate
+	 * @param onlyfirst only return first result 
 	 * @return all CA issuer URI that are inside AuthorityInformationAccess extension or an empty list.
 	 */
 	private static List<String> getAuthorityInformationAccessCaIssuerUris(Certificate cert, final boolean onlyfirst) {
@@ -3327,6 +3388,8 @@ public abstract class CertTools {
 
 	/**
 	 * @return all OCSP URL that is inside AuthorityInformationAccess extension or an empty list
+	 * @param cert Certificate
+	 * @param onlyfirst Only return first resultS
 	 */
 	private static List<String> getAuthorityInformationAccessOcspUrls(Certificate cert, final boolean onlyfirst) {
 		final List<String> urls = new ArrayList<>();
@@ -3364,7 +3427,8 @@ public abstract class CertTools {
 	}
 
 
-	/** @return PrivateKeyUsagePeriod extension from a certificate */
+	/** @return PrivateKeyUsagePeriod extension from a certificate
+	 * @param cert Certificate */
 	public static PrivateKeyUsagePeriod getPrivateKeyUsagePeriod(final X509Certificate cert) {
 		PrivateKeyUsagePeriod res = null;
 		final byte[] extvalue = cert.getExtensionValue(Extension.privateKeyUsagePeriod.getId());
@@ -3403,7 +3467,9 @@ public abstract class CertTools {
 		return getDerObjectFromByteArray(crl.getExtensionValue(oid));
 	}
 
-	/** @return the PKCS#10's extension of the specified OID or null if no such extension exists */
+	/** @return the PKCS#10's extension of the specified OID or null if no such extension exists 
+	 * @param pkcs10CertificateRequest Request
+	 * @param oid OID*/
 	public static Extension getExtension(final PKCS10CertificationRequest pkcs10CertificateRequest, String oid) {
 		if (pkcs10CertificateRequest != null && oid != null) {
 			final Extensions extensions = getPKCS10Extensions(pkcs10CertificateRequest);
@@ -3414,7 +3480,8 @@ public abstract class CertTools {
 		return null;
 	}
 
-	/** @return the first found extensions or null if PKCSObjectIdentifiers.pkcs_9_at_extensionRequest was not present in the PKCS#10 */
+	/** @return the first found extensions or null if PKCSObjectIdentifiers.pkcs_9_at_extensionRequest was not present in the PKCS#10 
+	 * @param pkcs10CertificateRequest Request*/
 	private static Extensions getPKCS10Extensions(final PKCS10CertificationRequest pkcs10CertificateRequest) {
 		final Attribute[] attributes = pkcs10CertificateRequest.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
 		for (final Attribute attribute : attributes) {
@@ -3706,6 +3773,8 @@ public abstract class CertTools {
 
 	/**
 	 * Splits a DN into components.
+	 * @param dn DN
+	 * @return Components
 	 * @see X509NameTokenizer
 	 */
 	public static List<String> getX500NameComponents(String dn) {
@@ -3721,6 +3790,8 @@ public abstract class CertTools {
 	 * Returns the parent DN of a DN string, e.g. if the input is
 	 * "cn=User,dc=example,dc=com" then it would return "dc=example,dc=com".
 	 * Returns an empty string if there is no parent DN.
+	 * @param dn dn
+	 * @return  Parent dn
 	 */
 	public static String getParentDN(String dn) {
 		final X509NameTokenizer tokenizer = new X509NameTokenizer(dn);
@@ -3737,7 +3808,8 @@ public abstract class CertTools {
 		private char separator;
 		private StringBuffer buf = new StringBuffer();
 
-		/** Creates the object, using the default comma (,) as separator for tokenization */
+		/** Creates the object, using the default comma (,) as separator for tokenization 
+		 * @param oid OID*/
 		public X509NameTokenizer(String oid) {
 			this(oid, ',');
 		}
@@ -3803,7 +3875,8 @@ public abstract class CertTools {
 		}
 
 		/**
-		 * Returns the remaining (not yet tokenized) part of the DN.
+		 * @return the remaining (not yet tokenized) part of the DN.
+		 *  
 		 */
 		String getRemainingString() {
 			return index + 1 < value.length() ? value.substring(index + 1) : "";
@@ -4012,8 +4085,8 @@ public abstract class CertTools {
 	/**
 	 * Obtain the directory string for the directoryName generation form the Subject Alternative Name String.
 	 * 
-	 * @param altName
-	 * @return
+	 * @param altName NameS
+	 * @return Directory
 	 */
 	private static String getDirectoryStringFromAltName(String altName) {
 		String directoryName = CertTools.getPartFromDN(altName, CertTools.DIRECTORYNAME);
@@ -4029,11 +4102,11 @@ public abstract class CertTools {
 	 * 
 	 * @param certlistin List of certificates to create certificate chain from.
 	 * @return the certificatepath with the root CA at the end
-	 * @throws CertPathValidatorException if the certificate chain can not be constructed or validated
-	 * @throws InvalidAlgorithmParameterException
-	 * @throws NoSuchProviderException
-	 * @throws NoSuchAlgorithmException
-	 * @throws CertificateException
+	 * @throws CertPathValidatorException if the certificate chain can not be constructed
+	 * @throws InvalidAlgorithmParameterException If invalid params passed
+	 * @throws NoSuchProviderException if provider not found
+	 * @throws NoSuchAlgorithmException if algorithm not found
+	 * @throws CertificateException on any other error
 	 */
 	public static List<Certificate> createCertChain(Collection<?> certlistin) throws CertPathValidatorException, InvalidAlgorithmParameterException,
 	NoSuchAlgorithmException, NoSuchProviderException, CertificateException {
@@ -4048,10 +4121,10 @@ public abstract class CertTools {
 	 * @param now Date to use when checking if the CAs chain is valid.
 	 * @return the certificate path with the root CA at the end
 	 * @throws CertPathValidatorException if the certificate chain can not be constructed
-	 * @throws InvalidAlgorithmParameterException
-	 * @throws NoSuchProviderException
-	 * @throws NoSuchAlgorithmException
-	 * @throws CertificateException
+	 * @throws InvalidAlgorithmParameterException If invalid params passed
+	 * @throws NoSuchProviderException if provider not found
+	 * @throws NoSuchAlgorithmException if algorithm not found
+	 * @throws CertificateException on any other error
 	 */
 	public static List<Certificate> createCertChain(Collection<?> certlistin, Date now) throws CertPathValidatorException, InvalidAlgorithmParameterException,
 	NoSuchAlgorithmException, NoSuchProviderException, CertificateException {
@@ -4133,6 +4206,7 @@ public abstract class CertTools {
 	 * 
 	 * @param certlist list of certificates to order can be collection of Certificate or byte[] (der encoded certs), must contain a full chain.
 	 * @return List with certificatechain, Root CA last.
+	 * @throws CertPathValidatorException if an invalid certificate is found
 	 */
 	private static List<Certificate> orderCertificateChain(Collection<?> certlist) throws CertPathValidatorException {
 		ArrayList<Certificate> returnval = new ArrayList<Certificate>();
@@ -4196,8 +4270,11 @@ public abstract class CertTools {
 	 * Method ordering a list of X509 certificate into a certificate path with the root CA, or topmost Sub CA at the end. Does not check validity or verification of any kind,
 	 * just ordering by issuerdn/keyId. This is mostly a wrapper around CertPath.generateCertPath, but we do regression test this ordering.
 	 * 
+	 * 
+	 * 
 	 * @param certlist list of certificates to order can be collection of Certificate or byte[] (der encoded certs).
 	 * @return List with certificate chain with leaf certificate first, and root CA, or last sub CA, in the end, does not have to contain a Root CA is input does not.
+	 * @throws CertPathValidatorException on failure.
 	 */
 	@SuppressWarnings("unchecked")
 	public static List<X509Certificate> orderX509CertificateChain(List<X509Certificate> certlist) throws CertPathValidatorException {
@@ -4214,7 +4291,10 @@ public abstract class CertTools {
 		return (List<X509Certificate>)cp.getCertificates();
 	} // orderX509CertificateChain
 
-	/**
+	/** 
+	 * Compare certificate chains
+	 * @param chainA First cert chain
+	 * @param chainB Second cert chain
 	 * @return true if the chains are nonempty, contain the same certificates in the same order
 	 */
 	public static boolean compareCertificateChains(Certificate[] chainA, Certificate[] chainB) {
@@ -4380,9 +4460,9 @@ public abstract class CertTools {
 	/**
 	 * Generated Generates a ContentVerifierProvider.
 	 * 
-	 * @param pubkey
+	 * @param pubkey Public Key
 	 * @return a JcaContentVerifierProvider. Useful for verifying the signiture in a PKCS10CertificationRequest
-	 * @throws OperatorCreationException
+	 * @throws OperatorCreationException on fail
 	 */
 	public static ContentVerifierProvider genContentVerifierProvider(PublicKey pubkey) throws OperatorCreationException {
 		return new JcaContentVerifierProviderBuilder().setProvider(BouncyCastleProvider.PROVIDER_NAME).build(pubkey);
@@ -4390,6 +4470,7 @@ public abstract class CertTools {
 
 	/**
 	 * @return a Certificate Collection as a X509Certificate list
+	 * @param chain The certificate chain
 	 * @throws ClassCastException if one of the Certificates in the collection is not an X509Certificate
 	 */
 	public static final List<X509Certificate> convertCertificateChainToX509Chain(final Collection<Certificate> chain) throws ClassCastException {
@@ -4400,7 +4481,8 @@ public abstract class CertTools {
 		return ret;
 	}
 
-	/** @return a X509Certificate Collection as a Certificate list */
+	/** @return a X509Certificate Collection as a Certificate list 
+	 * @param chain The certificate chain*/
 	public static final List<Certificate> convertCertificateChainToGenericChain(final Collection<X509Certificate> chain) {
 		final List<Certificate> ret = new ArrayList<>();
 		for (final Certificate certificate : chain) {

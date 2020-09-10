@@ -184,6 +184,7 @@ public final class ConfigurationHolder {
 
     /**
      * Add built in config file
+     * @param resourcename The filename to load from
      */
     public static void addConfigurationResource(final String resourcename) {
         // Make sure the basic initialization has been done
@@ -322,6 +323,9 @@ public final class ConfigurationHolder {
     /**
      * Given the prefix "something", in a list of properties named "something.NAME.xxx.yyy", returns all
      * unique names (the NAME part only) in sorted order.
+     * 
+     * @param prefix The property name prefix
+     * @return A list of property names
      */
     @SuppressWarnings("unchecked")
 	public static List<String> getPrefixedPropertyNames(String prefix) {
@@ -344,6 +348,8 @@ public final class ConfigurationHolder {
      * restore configuration.
      *
      * Normally used by functional (system) tests, but can also be used to "try" configuraiton settings in a live system.
+     * 
+     * @return always true
      */
     public static boolean backupConfiguration() {
         if (configBackup != null) {
@@ -360,6 +366,8 @@ public final class ConfigurationHolder {
      * is used in conjunction with updateConfiguration and backup configuration.
      *
      * Normally used by functional (system) tests, but can also be used to "try" configuration settings in a live system.
+     * 
+     * @return always true
      */
     public static boolean restoreConfiguration() {
         if (configBackup == null) {
@@ -375,6 +383,9 @@ public final class ConfigurationHolder {
      * or database, so it is volatile during the running of the application. Persisting the configuration must be handles outside of this method.
      *
      * Normally used by functional (system) tests, but can also be used to "try" configuration settings in a live system.
+     * 
+     * @param properties properties
+     * @return always true
      */
     public static boolean updateConfiguration(final Properties properties) {
         backupConfiguration(); // Only takes a backup if necessary.
@@ -386,6 +397,10 @@ public final class ConfigurationHolder {
      * or database, so it is volatile during the running of the application. Persisting the configuration must be handles outside of this method.
      *
      * Normally used by functional (system) tests, but can also be used to "try" configuration settings in a live system.
+     * 
+     * @param key key
+     * @param value value
+     * @return always true
      */
     public static boolean updateConfiguration(final String key, final String value) {
         backupConfiguration(); // Only takes a backup if necessary.
@@ -395,6 +410,9 @@ public final class ConfigurationHolder {
     /**
      * Updates the active configuration. Does not persist the configuration change to disk or database, so it is volatile during the running of the application.
      * Persisting the configuration must be handles outside of this method.
+     * 
+     * @param properties properties
+     * @return always true
      */
     public static boolean updateConfigurationWithoutBackup(final Properties properties) {
         for (Object key : properties.keySet()) {
@@ -408,6 +426,10 @@ public final class ConfigurationHolder {
     /**
      * Updates the active configuration. Does not persist the configuration change to disk or database, so it is volatile during the running of the application.
      * Persisting the configuration must be handles outside of this method.
+     * 
+     * @param key key
+     * @param value value
+     * @return always true
      */
     public static boolean updateConfigurationWithoutBackup(final String key, final String value) {
         config.setProperty(key, value);

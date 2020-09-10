@@ -9,7 +9,7 @@ import org.bouncycastle.util.encoders.DecoderException;
 public class StringTools {
 	
 	 /**
-     * Takes input and converts to Base64 on the format "B64:<base64 endoced string>", if the string is not null or empty.
+     * Takes input and converts to Base64 on the format "B64:&lt;base64 endoced string&gt;", if the string is not null or empty.
      *
      * @param s String to base64 encode
      * @return Base64 encoded string, or original string if it was null or empty
@@ -19,7 +19,7 @@ public class StringTools {
     }
     
     /**
-     * Takes input and converts to Base64 on the format "B64:<base64 endoced string>", if the string is not null or empty.
+     * Takes input and converts to Base64 on the format "B64:&lt;base64 endoced string&gt;", if the string is not null or empty.
      *
      * @param s String to base64 encode
      * @param dontEncodeAsciiPrintable if the String is made up of pure ASCII printable characters, we will not B64 encode it
@@ -42,7 +42,7 @@ public class StringTools {
 
     /**
      * Takes a string given as input and converts it from Base64 if the string
-     * begins with the case-insensitive prefix b64, i.e. is on format "b64:<base64 encoded string>".
+     * begins with the case-insensitive prefix b64, i.e. is on format "b64:&lt;base64 encoded string&gt;".
      *
      * @param input String to Base64 decode
      * @return Base64 decoded string, or original string if it was not base64 encoded

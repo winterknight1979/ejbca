@@ -34,7 +34,7 @@ import org.apache.log4j.Logger;
  * 
  * Simple usage:
  * LookAheadObjectInputStream lookAheadObjectInputStream = new LookAheadObjectInputStream(new ByteArrayInputStream(someByteArray);
- * HashSet<Class<? extends Serializable>> acceptedClasses = new HashSet<Class<? extends Serializable>>(3);
+ * HashSet&lt;Class&lt;? extends Serializable&gt;&gt; acceptedClasses = new HashSet&lt;Class&lt;? extends Serializable&gt;&gt;(3);
            acceptedClasses.add(X509Certificate.class);
            lookAheadObjectInputStream.setAcceptedClasses(acceptedClasses);
  * lookAheadObjectInputStream.setMaxObjects(1);
@@ -124,7 +124,7 @@ public class LookAheadObjectInputStream extends ObjectInputStream {
 	}
 
 	/**
-	 * NOTE: If you want to re-use the same Set of accepted classes, you should use {@link #setAcceptedClasses(HashSet)}
+	 * NOTE: If you want to re-use the same Set of accepted classes, you should use {@link #setAcceptedClasses(Set)}
 	 * 
 	 * Set accepted classes that can be deserialized using this LookAheadObjectInputStream.
 	 * Primitive types (boolean, char, int,...), their wrappers (Boolean, Character, Integer,...) and String class
@@ -255,7 +255,8 @@ public class LookAheadObjectInputStream extends ObjectInputStream {
 				Number.class.isAssignableFrom(classType) || Character.class.isAssignableFrom(classType);
 	}
 
-	/** Add the provided class and all its dependencies needed for deserialization to this instance's accept class white list. */
+	/** Add the provided class and all its dependencies needed for deserialization to this instance's accept class white list.
+	 * @param resolvedClassType Class type */
 	@SuppressWarnings("unchecked")
 	private void whitelistImplementation(final Class<?> resolvedClassType) {
 		final Set<Class<? extends Serializable>> newAcceptedClassesDynamically = new HashSet<>();
@@ -271,7 +272,9 @@ public class LookAheadObjectInputStream extends ObjectInputStream {
 		acceptedClassesDynamically.addAll(newAcceptedClassesDynamically);
 	}
 
-	/** @return a Set of all classes declared as non-transient, non-static field in the class and its superclasses if such is defined */
+	/** @return a Set of all classes declared as non-transient, non-static field in the class and its superclasses if such is defined 
+	 * @param clazz Class type
+	 * @throws NoClassDefFoundError On error*/
 	@SuppressWarnings("unchecked")
 	public static Set<Class<? extends Serializable>> getRequiredClassesToSerialize(final Class<?> clazz) throws NoClassDefFoundError {
 		final Set<Class<? extends Serializable>> acceptedClasses = new HashSet<>();

@@ -72,6 +72,7 @@ public class SecurityFilterInputStream extends FilterInputStream {
 
 	/**
 	 * Returns max bytes that can be read from serialized object.
+	 * @return  bytes
 	 * 
 	 */
 	public long getMaxBytes() {

@@ -23,7 +23,7 @@ import org.apache.log4j.Logger;
  * The sole purpose of this class is to standardize mapping in JNDI of our Stateless Session Beans.
  * 
  * Use like this:
- * <at>Stateless(mappedName=(JndiConstants.APP_JNDI_PREFIX + RemoteInterfaceClass.class.getSimpleName()))
+ * &lt;at&gt;Stateless(mappedName=(JndiConstants.APP_JNDI_PREFIX + RemoteInterfaceClass.class.getSimpleName()))
  * 
  * @version $Id: JndiHelper.java 28613 2018-04-03 10:53:27Z aminkh $
  */
@@ -49,10 +49,10 @@ public abstract class JndiHelper {
 	 * 
 	 * Example usage: CAAdminSessionRemote caadminsession = JndiHelper.getRemoteSession(CAAdminSessionRemote.class);
 	 * 
-	 * @param <T>
+	 * @param <T> Type
 	 * @param module the module where the bean is deployed, i.e. ejbca-ejb or systemtests-ejb.
-	 * @param remoteInterface
-	 * @return
+	 * @param remoteInterface Interface
+	 * @return Session
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> T getRemoteSession(final Class<T> remoteInterface, final String module) {

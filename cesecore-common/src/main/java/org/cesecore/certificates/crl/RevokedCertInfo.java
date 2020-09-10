@@ -72,8 +72,12 @@ public class RevokedCertInfo implements Serializable {
 
 	/**
 	 * Constructor filling in the whole object.
+	 * @param fingerprint Fingerprint
+	 * @param sernoBigIntegerArray Serial No.s
+	 * @param revdate Revocation date
 	 * 
 	 * @param reason {@link RevokedCertInfo#REVOCATION_REASON_UNSPECIFIED}
+	 * @param expdate Expiry date
 	 *
 	 **/
 	public RevokedCertInfo(final byte[] fingerprint, final byte[] sernoBigIntegerArray, final long revdate, final int reason, final long expdate) {
@@ -85,7 +89,7 @@ public class RevokedCertInfo implements Serializable {
 	}
 
 	/**
-	 * Certificate fingerprint
+	 * @return Certificate fingerprint
 	 **/
 	public String getCertificateFingerprint() {
 		return fingerprint == null ? null : new String(fingerprint);
@@ -93,13 +97,14 @@ public class RevokedCertInfo implements Serializable {
 
 	/**
 	 * Certificate fingerprint
+	 * @param fp Fingerprint
 	 **/
 	public void setCertificateFingerprint(final String fp) {
 		this.fingerprint = fp == null ? null : fp.getBytes();
 	}
 
 	/**
-	 * Certificate serial number
+	 * @return Certificate serial number
 	 **/
 	public BigInteger getUserCertificate() {
 		return userCertificate == null ? null : new BigInteger(userCertificate);
@@ -107,6 +112,7 @@ public class RevokedCertInfo implements Serializable {
 
 	/**
 	 * Certificate serial number
+	 * @param serno Serial no.
 	 **/
 	public void setUserCertificate(final BigInteger serno) {
 		this.userCertificate = serno==null ? null : serno.toByteArray();
@@ -120,7 +126,7 @@ public class RevokedCertInfo implements Serializable {
 	}
 
 	/**
-	 * Date when the certificate was revoked.
+	 * @return Date when the certificate was revoked.
 	 **/
 	public Date getRevocationDate() {
 		return revocationDate == 0 ? null : new Date(revocationDate);
@@ -128,13 +134,14 @@ public class RevokedCertInfo implements Serializable {
 
 	/**
 	 * Date when the certificate was revoked.
+	 * @param date Revocation date
 	 **/
 	public void setRevocationDate(final Date date) {
 		this.revocationDate = date == null ? 0 : date.getTime();
 	}
 
 	/**
-	 * Date when the certificate expires.
+	 * @return Date when the certificate expires.
 	 **/
 	public Date getExpireDate() {
 		return expireDate == 0 ? null : new Date(expireDate);
@@ -142,6 +149,7 @@ public class RevokedCertInfo implements Serializable {
 
 	/**
 	 * Date when the certificate expires.
+	 * @param date Expiry date
 	 **/
 	public void setExpireDate(final Date date) {
 		this.expireDate = date==null ? 0 : date.getTime();
@@ -163,6 +171,7 @@ public class RevokedCertInfo implements Serializable {
 	 *    aACompromise(10)
 	 * }
 	 * </pre>
+	 * @return Reason
 	 * @see #REVOCATION_REASON_UNSPECIFIED
 	 **/
 	public int getReason() {
@@ -191,7 +200,7 @@ public class RevokedCertInfo implements Serializable {
 	}
 
 	/**
-	 * Returns true if the certificate is permanently revoked (i.e. revoked and not just "on hold")
+	 * @return true if the certificate is permanently revoked (i.e. revoked and not just "on hold")
 	 */
 	public boolean isPermanentlyRevoked() {
 		return isPermanentlyRevoked(reason);
@@ -231,7 +240,7 @@ public class RevokedCertInfo implements Serializable {
 	 * 
 	 * @param a First collection of RevokedCertInfo. May <b>not</b> contain duplicates for the same serial number.
 	 * @param b Second collection of RevokedCertInfo. May contain duplicates
-	 * @param lastBaseCrlDate Entries in unrevoked state will only be included if they are more recent than this date. (<= 0 means never include them)
+	 * @param lastBaseCrlDate Entries in unrevoked state will only be included if they are more recent than this date. (&lt;= 0 means never include them)
 	 * @return CompressionCollection of certificates. May simply be a reference to <code>a</code> if <code>b</code> is empty, or a new merged CompressedCollection with any duplicates removed.
 	 */
 	public static Collection<RevokedCertInfo> mergeByDateAndStatus(final Collection<RevokedCertInfo> a, final Collection<RevokedCertInfo> b, final long lastBaseCrlDate) {

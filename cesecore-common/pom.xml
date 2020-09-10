@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -10,6 +11,9 @@
 	<artifactId>cesecore-common</artifactId>
 
 	<dependencies>
+
+		<!-- BouncyCastle crypto -->
+
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
 			<artifactId>bcprov-jdk15on</artifactId>
@@ -18,6 +22,9 @@
 			<groupId>org.bouncycastle</groupId>
 			<artifactId>bcpkix-jdk15on</artifactId>
 		</dependency>
+
+		<!-- Apache Commons -->
+
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
@@ -35,30 +42,41 @@
 			<artifactId>commons-configuration</artifactId>
 		</dependency>
 
+		<!-- JSON -->
+
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+		</dependency>
+
+		<!-- LDAP -->
+
 		<dependency>
 			<groupId>com.novell.ldap</groupId>
 			<artifactId>jldap</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>org.ejbca.cvc</groupId>
-			<artifactId>cert-cvc</artifactId>
-		</dependency>
-<!-- 		<dependency> -->
-<!-- 			<groupId>com.primekey.anttools</groupId> -->
-<!-- 			<artifactId>servicemanifestbuilder</artifactId> -->
-<!-- 			<scope>compile</scope> -->
-<!-- 		</dependency> -->
+		<!-- Logging -->
 
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 		</dependency>
 
+		<!-- Cert-CVC -->
+
+		<dependency>
+			<groupId>org.ejbca.cvc</groupId>
+			<artifactId>cert-cvc</artifactId>
+		</dependency>
+
+		<!-- Shared Resource bundle and Service Manifest generator -->
+
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>shared-resources</artifactId>
 			<version>${project.version}</version>
+			<scope>compile</scope>
 		</dependency>
 
 	</dependencies>
@@ -100,31 +118,32 @@
 					</execution>
 				</executions>
 			</plugin>
-<!--  comment this out until we've got all the classes in. I'd rather do it this way than with antrun if poss. -->
-<!-- 			<plugin> -->
-<!-- 				<groupId>org.codehaus.mojo</groupId> -->
-<!-- 				<artifactId>exec-maven-plugin</artifactId> -->
-<!-- 				<version>3.0.0</version> -->
-<!-- 				<executions> -->
-<!-- 					<execution> -->
-<!-- 						<id>Generate Service Manifest</id> -->
-<!-- 						<phase>process-test-classes</phase> -->
-<!-- 						<goals> -->
-<!-- 							<goal>java</goal> -->
-<!-- 						</goals> -->
-<!-- 						<configuration> -->
-<!-- 							<mainClass>com.primekey.anttools.ServiceManifestBuilder</mainClass> -->
-<!-- 							<classpathScope>compile</classpathScope> -->
-<!-- 							<arguments> -->
-<!-- 								<argument>${project.build.directory}/classes</argument> -->
-<!-- 								<argument>org.cesecore.authentication.tokens.AuthenticationTokenMetaData;org.cesecore.certificates.ca.CvcPlugin;org.cesecore.authorization.rules.AccessRulePlugin;org.cesecore.configuration.ConfigurationCache;org.cesecore.certificates.certificate.certextensions.CustomCertificateExtension;org.cesecore.keys.validation.Validator</argument> -->
-<!-- 							</arguments> -->
-<!-- 						</configuration> -->
-<!-- 					</execution> -->
-<!-- 				</executions> -->
-<!-- 			</plugin> -->
+			<!-- comment this out until we've got all the classes in. I'd rather do 
+				it this way than with antrun if poss. -->
+			<!-- <plugin> -->
+			<!-- <groupId>org.codehaus.mojo</groupId> -->
+			<!-- <artifactId>exec-maven-plugin</artifactId> -->
+			<!-- <version>3.0.0</version> -->
+			<!-- <executions> -->
+			<!-- <execution> -->
+			<!-- <id>Generate Service Manifest</id> -->
+			<!-- <phase>process-test-classes</phase> -->
+			<!-- <goals> -->
+			<!-- <goal>java</goal> -->
+			<!-- </goals> -->
+			<!-- <configuration> -->
+			<!-- <mainClass>com.primekey.anttools.ServiceManifestBuilder</mainClass> -->
+			<!-- <classpathScope>compile</classpathScope> -->
+			<!-- <arguments> -->
+			<!-- <argument>${project.build.directory}/classes</argument> -->
+			<!-- <argument>org.cesecore.authentication.tokens.AuthenticationTokenMetaData;org.cesecore.certificates.ca.CvcPlugin;org.cesecore.authorization.rules.AccessRulePlugin;org.cesecore.configuration.ConfigurationCache;org.cesecore.certificates.certificate.certextensions.CustomCertificateExtension;org.cesecore.keys.validation.Validator</argument> -->
+			<!-- </arguments> -->
+			<!-- </configuration> -->
+			<!-- </execution> -->
+			<!-- </executions> -->
+			<!-- </plugin> -->
 
-<!--  -->
+			<!-- -->
 		</plugins>
 		<pluginManagement>
 			<plugins>
@@ -136,7 +155,6 @@
 					<version>1.0.0</version>
 					<configuration>
 						<lifecycleMappingMetadata>
-
 							<pluginExecutions>
 								<pluginExecution>
 									<pluginExecutionFilter>
@@ -148,8 +166,7 @@
 										</goals>
 									</pluginExecutionFilter>
 									<action>
-										<ignore>
-										</ignore>
+										<ignore />
 									</action>
 								</pluginExecution>
 								<pluginExecution>
@@ -168,7 +185,7 @@
 										</goals>
 									</pluginExecutionFilter>
 									<action>
-										<ignore></ignore>
+										<ignore />
 									</action>
 								</pluginExecution>
 							</pluginExecutions>
@@ -178,6 +195,43 @@
 			</plugins>
 		</pluginManagement>
 	</build>
+
+	<reporting>
+		<plugins>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>3.0.0</version>
+
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-report-plugin</artifactId>
+				<version>3.0.0-M4</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jxr-plugin</artifactId>
+				<version>3.0.0</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-changelog-plugin</artifactId>
+				<version>2.3</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>3.1.1</version>
+				<configuration>
+					<quiet>true</quiet>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</reporting>
 
 
 

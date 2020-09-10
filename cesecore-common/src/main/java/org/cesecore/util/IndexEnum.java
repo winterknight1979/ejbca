@@ -22,6 +22,7 @@ package org.cesecore.util;
  * @version $Id: IndexEnum.java 30982 2019-01-04 12:53:31Z samuellb $
  */
 public interface IndexEnum {
-    /** Returns a stable "index" of the enum value, which is guaranteed to not change with new versions (unlike {@link Enum#ordinal}). */
+    /** Returns a stable "index" of the enum value, which is guaranteed to not change with new versions (unlike {@link Enum#ordinal}). 
+     * @return index*/
     int getIndex();
 }
