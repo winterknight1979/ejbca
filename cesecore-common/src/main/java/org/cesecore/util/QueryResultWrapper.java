@@ -30,8 +30,6 @@ public abstract class QueryResultWrapper {
      * not exist, since exceptions will mess with the garbage collection and lead to worse performance.
      * 
      * We still throws NonUniqueResultException and IllegalStateException, just as getSingleResult would.
-     * @param query Query
-     * @param <T> Return type
      * 
      * @return single result or null
      */
@@ -49,9 +47,6 @@ public abstract class QueryResultWrapper {
      * not exist, since exceptions will mess with the garbage collection and lead to worse performance.
      * 
      * We still throws NonUniqueResultException and IllegalStateException, just as getSingleResult would.
-     * @param query Qurey
-     * @param defaultValue Default value 
-     * @param <T> Return type
      * 
      * @return single result or defaultValue
      */
@@ -73,9 +68,7 @@ public abstract class QueryResultWrapper {
         }
     }
 
-    /** @param query Query 
-     * @param <T> Rturn type
-     * @return the first result of the query or null */
+    /** @return the first result of the query or null */
     public static <T> T getLastResult(final Query query) {
         @SuppressWarnings("unchecked")
         final List<T> resultList = query.getResultList();

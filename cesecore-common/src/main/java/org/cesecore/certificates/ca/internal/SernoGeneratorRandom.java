@@ -76,7 +76,6 @@ public class SernoGeneratorRandom implements SernoGenerator {
     private static Map<Integer, SernoGeneratorRandom> instances = new HashMap<>();
     /**
      * Creates (if needed) a serial number generator and returns the object.
-     * @param noOctets Number of bytes
      *
      * @return An instance of the serial number generator.
      */
@@ -91,7 +90,6 @@ public class SernoGeneratorRandom implements SernoGenerator {
 
     /** DO NOT USE: Protected only to do testing of this implementation
      * use {@link #instance(Integer)} instead
-     * @param noOctets Number of bytes
      */
     protected SernoGeneratorRandom(Integer noOctets) {
         if (log.isTraceEnabled()) {
@@ -182,8 +180,6 @@ public class SernoGeneratorRandom implements SernoGenerator {
      * This validates that the argument is a non-zero number to be encoded (according to X.690, "8.3 Encoding of an
      * integer value") exactly in 'noOctets' bytes. For example, for an 8 bytes serial number it will validate that it
      * falls within the range 0080000000000000 - 7FFFFFFFFFFFFFFF (both inclusive).
-     * @param serno Serial no.
-     * @return Is valid?
      */
     protected boolean checkSernoValidity(final BigInteger serno) {
         return serno.compareTo(BigInteger.ZERO) != 0 && serno.bitLength() / 8 + 1 == noOctets;

@@ -63,8 +63,6 @@ public interface AccessMatchValue {
      * Normalizes a match value string. If normalization is not applicable for the
      * match key, then it returns the string unchanged. If the match key does not
      * have match values at all, then it returns null.
-     * @param value Value string
-     * @return Normalized string
      */
     String normalizeMatchValue(String value);
 }

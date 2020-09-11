@@ -20,38 +20,38 @@ package org.cesecore.certificates.ocsp.exception;
  */
 public class OcspFailureException extends RuntimeException {
 
-	private static final long serialVersionUID = 3024801898030204798L;
+    private static final long serialVersionUID = 3024801898030204798L;
 
-	/**
-	 * 
-	 */
-	public OcspFailureException() {
+    /**
+     * 
+     */
+    public OcspFailureException() {
+    
+    }
 
-	}
+    /**
+     * @param arg0
+     */
+    public OcspFailureException(String msg) {
+        super(msg);
 
-	/**
-	 * @param msg message
-	 */
-	public OcspFailureException(String msg) {
-		super(msg);
+    }
 
-	}
+    /**
+     * @param arg0
+     */
+    public OcspFailureException(Throwable t) {
+        super(t);
 
-	/**
-	 * @param t cause
-	 */
-	public OcspFailureException(Throwable t) {
-		super(t);
+    }
 
-	}
-
-	/**
-	 * @param msg message
-	 * @param t cause
-	 */
-	public OcspFailureException(String msg, Throwable t) {
-		super(msg, t);
-
-	}
+    /**
+     * @param arg0
+     * @param arg1
+     */
+    public OcspFailureException(String msg, Throwable t) {
+        super(msg, t);
+        
+    }
 
 }

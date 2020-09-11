@@ -87,7 +87,7 @@ public class AuditLogReportElem implements Serializable {
     /**
      * Sets the reasons for this instance.
      *
-     * @param reason The reasons.
+     * @param reasons The reasons.
      */
     public void setReason(String reason) {
         this.reasons.add(reason);

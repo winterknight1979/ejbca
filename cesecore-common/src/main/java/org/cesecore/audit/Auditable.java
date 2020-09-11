@@ -53,13 +53,13 @@ public interface Auditable {
      * @param cryptoToken Crypto Token to be used.
      * @param timestamp Timestamp till which the logs will be exported.
      * @param deleteAfterExport Deletes the exported results if true.
-     * @param signatureDetails Map containing signature details. (@see AuditLogBasicExporter public static varaibles).
-     * @param exporter the exporter implementation to be used
+     * @param signatureDetails Map containing signature details. {@see AuditLogBasicExporter public static varaibles}.
+     * @param c the exporter implementation to be used
      * @param properties properties to be passed on the device
      * 
      * @return A extended validation report with the path to the exported file.
      * 
-     * @throws AuditLogExporterException on error
+     * @throws AuditLogExporterException
      */
     AuditLogExportReport exportAuditLogs(AuthenticationToken token, CryptoToken cryptoToken, Date timestamp, boolean deleteAfterExport,
             Map<String, Object> signatureDetails, Properties properties, Class<? extends AuditExporter> exporter) throws AuditLogExporterException;
@@ -67,13 +67,12 @@ public interface Auditable {
     /**
      * This operation is used to verify integrity of log to detect potential
      * modifications.
-     * @param token Authentication token
      * 
      * @param date Date from which to start verifying logs.
      * @param properties properties to be passed on the device
      * 
      * @return validation report.
-     * @throws AuditLogValidatorException On error
+     * @throws AuditLogValidatorException
      */
     AuditLogValidationReport verifyLogsIntegrity(AuthenticationToken token, Date date, Properties properties) throws AuditLogValidatorException;
 

@@ -28,8 +28,7 @@ import org.apache.log4j.Logger;
 public abstract class NetworkTools {
     private static final Logger log = Logger.getLogger(NetworkTools.class);
 
-    /** @return the URL object of the provided CDP if it is well formed and uses the HTTP protocol. null otherwise 
-     * @param cdp CDP*/
+    /** @return the URL object of the provided CDP if it is well formed and uses the HTTP protocol. null otherwise */
     public static URL getValidHttpUrl(final String cdp) {
         if (cdp==null) {
             return null;
@@ -46,9 +45,7 @@ public abstract class NetworkTools {
         return url;
     }
 
-    /** @return the data found at the provided URL if available and the size is less the maxSize
-     * @param url URL to get 
-     * @param maxSize Size*/
+    /** @return the data found at the provided URL if available and the size is less the maxSize */
     public static byte[] downloadDataFromUrl(final URL url, final int maxSize) {
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         final byte data[] = new byte[32768];    // 32KiB at the time

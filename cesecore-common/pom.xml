@@ -53,11 +53,24 @@
 			<artifactId>json-simple</artifactId>
 		</dependency>
 
+		<!-- Google -->
+
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+		</dependency>
+
 		<!-- LDAP -->
 
 		<dependency>
 			<groupId>com.novell.ldap</groupId>
 			<artifactId>jldap</artifactId>
+		</dependency>
+
+		<!-- XML -->
+		<dependency>
+			<groupId>xmlpull</groupId>
+			<artifactId>xmlpull</artifactId>
 		</dependency>
 
 		<!-- Logging -->
@@ -140,8 +153,7 @@
 							<arguments>
 								<argument>${project.build.directory}/classes</argument>
 								<argument>
-									org.cesecore.authentication.tokens.AuthenticationTokenMetaData<!-- 
-										;org.cesecore.certificates.ca.CvcPlugin;org.cesecore.authorization.rules.AccessRulePlugin;org.cesecore.configuration.ConfigurationCache;org.cesecore.certificates.certificate.certextensions.CustomCertificateExtension;org.cesecore.keys.validation.Validator -->
+									org.cesecore.authentication.tokens.AuthenticationTokenMetaData;org.cesecore.certificates.ca.CvcPlugin;org.cesecore.authorization.rules.AccessRulePlugin;org.cesecore.configuration.ConfigurationCache;org.cesecore.certificates.certificate.certextensions.CustomCertificateExtension;org.cesecore.keys.validation.Validator
 								</argument>
 							</arguments>
 						</configuration>

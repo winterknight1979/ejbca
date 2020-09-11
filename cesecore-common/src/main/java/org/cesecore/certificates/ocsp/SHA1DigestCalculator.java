@@ -27,35 +27,34 @@ import org.cesecore.certificates.ocsp.exception.OcspFailureException;
  *
  */
 public class SHA1DigestCalculator implements DigestCalculator {
-	private ByteArrayOutputStream bOut = new ByteArrayOutputStream();
-	private MessageDigest digest;
-	
-	public SHA1DigestCalculator(MessageDigest digest) {
-		this.digest = digest;
-	}
-	
-	public AlgorithmIdentifier getAlgorithmIdentifier() {
-		return RespID.HASH_SHA1;
-	}
-	
-	public OutputStream getOutputStream() {
-		return bOut;
-	}
-	
-	public byte[] getDigest() {
-		byte[] bytes = digest.digest(bOut.toByteArray());
-		
-		bOut.reset();
-		
-		return bytes;
-	}
-	
-	public static SHA1DigestCalculator buildSha1Instance() {
-		try {
-			return new SHA1DigestCalculator(MessageDigest.getInstance("SHA1"));
-		} catch (NoSuchAlgorithmException e) {
-			throw new OcspFailureException(e);
-		}
-	}
-	
+    private ByteArrayOutputStream bOut = new ByteArrayOutputStream();
+    private MessageDigest digest;
+
+    public SHA1DigestCalculator(MessageDigest digest) {
+        this.digest = digest;
+    }
+
+    public AlgorithmIdentifier getAlgorithmIdentifier() {
+        return RespID.HASH_SHA1;
+    }
+
+    public OutputStream getOutputStream() {
+        return bOut;
+    }
+
+    public byte[] getDigest() {
+        byte[] bytes = digest.digest(bOut.toByteArray());
+
+        bOut.reset();
+
+        return bytes;
+    }
+    
+    public static SHA1DigestCalculator buildSha1Instance() {
+        try {
+            return new SHA1DigestCalculator(MessageDigest.getInstance("SHA1"));
+        } catch (NoSuchAlgorithmException e) {
+            throw new OcspFailureException(e);
+        }
+    }
 }

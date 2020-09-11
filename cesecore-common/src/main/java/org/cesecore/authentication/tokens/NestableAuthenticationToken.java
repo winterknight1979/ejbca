@@ -90,8 +90,7 @@ public abstract class NestableAuthenticationToken extends LocalJvmOnlyAuthentica
         return ret;
     }
 
-    /** Override and return anything but null to use this value instead of {@link AuthenticationToken#toString()} 
-     * @return  null */
+    /** Override and return anything but null to use this value instead of {@link AuthenticationToken#toString()} */
     protected String toStringOverride() {
         return null;
     }

@@ -38,9 +38,7 @@ public abstract class LocalJvmOnlyAuthenticationToken extends AuthenticationToke
     /** transient authToken should NOT be serialized. **/
     private transient byte[] authToken;
 
-    /** @param principals Principals
-     * @param credentials Credentials
-     * @see org.cesecore.authentication.tokens.AuthenticationToken#AuthenticationToken */
+    /** @see org.cesecore.authentication.tokens.AuthenticationToken.AuthenticationToken(Set<? extends Principal>, Set<?>) */
 	protected LocalJvmOnlyAuthenticationToken(Set<? extends Principal> principals, Set<?> credentials) {
 		super(principals, credentials);
 		authToken = RANDOM_TOKEN;

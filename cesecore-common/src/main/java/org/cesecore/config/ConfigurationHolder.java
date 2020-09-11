@@ -46,145 +46,142 @@ import org.apache.log4j.Logger;
  */
 public final class ConfigurationHolder {
 
-	private static final Logger log = Logger.getLogger(ConfigurationHolder.class);
+    private static final Logger log = Logger.getLogger(ConfigurationHolder.class);
 
-	private static volatile CompositeConfiguration defaultValues;
+    private static volatile CompositeConfiguration defaultValues;
 
-	private static volatile CompositeConfiguration config = null;
-	private static CompositeConfiguration configBackup = null;
+    private static volatile CompositeConfiguration config = null;
+    private static CompositeConfiguration configBackup = null;
 
-	/** cesecore.properties must be first in this file, because CONFIGALLOWEXTERNAL is defined in there.
-	 * NOTE: diff between EJBCA and CESeCore*/
-	private static final String[] CONFIG_FILES = { "cesecore.properties", "extendedkeyusage.properties",
-			"cache.properties", "database.properties", "databaseprotection.properties", "backup.properties", "va.properties", "ocsp.properties"};
+    /** cesecore.properties must be first in this file, because CONFIGALLOWEXTERNAL is defined in there.
+     * NOTE: diff between EJBCA and CESeCore*/
+    private static final String[] CONFIG_FILES = { "cesecore.properties", "extendedkeyusage.properties",
+            "cache.properties", "database.properties", "databaseprotection.properties", "backup.properties", "va.properties", "ocsp.properties"};
 
-	/** Configuration property that enables dynamic reading of properties from the file system. This is not allowed by default for security reasons. */
-	private static final String CONFIGALLOWEXTERNAL = "allow.external-dynamic.configuration";
+    /** Configuration property that enables dynamic reading of properties from the file system. This is not allowed by default for security reasons. */
+    private static final String CONFIGALLOWEXTERNAL = "allow.external-dynamic.configuration";
 
-	private static final String DEFAULT_CONFIG_FILE = "/defaultvalues.properties";
+    private static final String DEFAULT_CONFIG_FILE = "/defaultvalues.properties";
 
-	/** This is a singleton so it's not allowed to create an instance explicitly */
-	private ConfigurationHolder() {
-	}
+    /** This is a singleton so it's not allowed to create an instance explicitly */
+    private ConfigurationHolder() {
+    }
 
-	public static synchronized Configuration instance() {
-		if (config == null) {
-			// read in default values
-			defaultValues = new CompositeConfiguration();
-			final URL defaultConfigUrl = ConfigurationHolder.class.getResource(DEFAULT_CONFIG_FILE);
-			try {
-				defaultValues.addConfiguration(new PropertiesConfiguration(defaultConfigUrl));
-			} catch (ConfigurationException e) {
-				log.error("Error encountered when loading default properties. Could not load configuration from " + defaultConfigUrl, e);
-			}
+    public static synchronized Configuration instance() {
+        if (config == null) {
+            // Read in default values
+            defaultValues = new CompositeConfiguration();
+            final URL defaultConfigUrl = ConfigurationHolder.class.getResource(DEFAULT_CONFIG_FILE);
+            try {
+                defaultValues.addConfiguration(new PropertiesConfiguration(defaultConfigUrl));
+            } catch (ConfigurationException e) {
+                log.error("Error encountered when loading default properties. Could not load configuration from " + defaultConfigUrl, e);
+            }
 
-			// read cesecore.properties, from config file built into jar, and see if we allow configuration by external files
-			boolean allowexternal = false;
-			try {
-				final URL url = ConfigurationHolder.class.getResource("/conf/"+CONFIG_FILES[0]);
-				if (url != null) {
-					final PropertiesConfiguration pc = new PropertiesConfiguration(url);
-					allowexternal = "true".equalsIgnoreCase(pc.getString(CONFIGALLOWEXTERNAL, "false"));
-					log.info("Allow external re-configuration: " + allowexternal);
-				}
-			} catch (ConfigurationException e) {
-				log.error("Error intializing configuration: ", e);
-			}
-			config = new CompositeConfiguration();
+            // read cesecore.properties, from config file built into jar, and see if we allow configuration by external files
+            boolean allowexternal = false;
+            try {
+                final URL url = ConfigurationHolder.class.getResource("/conf/"+CONFIG_FILES[0]);
+                if (url != null) {
+                    final PropertiesConfiguration pc = new PropertiesConfiguration(url);
+                    allowexternal = "true".equalsIgnoreCase(pc.getString(CONFIGALLOWEXTERNAL, "false"));
+                    log.info("Allow external re-configuration: " + allowexternal);
+                }
+            } catch (ConfigurationException e) {
+                log.error("Error intializing configuration: ", e);
+            }
+            config = new CompositeConfiguration();
 
-			// Only add these config sources if we allow external configuration
-			if (allowexternal) {
-				// Override with system properties, this is prio 1 if it exists (java -Dscep.test=foo)
-				config.addConfiguration(new SystemConfiguration());
-				log.info("Added system properties to configuration source (java -Dfoo.prop=bar).");
+            // Only add these config sources if we allow external configuration
+            if (allowexternal) {
+                // Override with system properties, this is prio 1 if it exists (java -Dscep.test=foo)
+                config.addConfiguration(new SystemConfiguration());
+                log.info("Added system properties to configuration source (java -Dfoo.prop=bar).");
 
-				// Override with file in "application server home directory"/conf, this is prio 2
-				for (int i = 0; i < CONFIG_FILES.length; i++) {
-					File f = null;
-					try {
-						f = new File("conf" + File.separator + CONFIG_FILES[i]);
-						final PropertiesConfiguration pc = new PropertiesConfiguration(f);
-						pc.setReloadingStrategy(new FileChangedReloadingStrategy());
-						config.addConfiguration(pc);
-						log.info("Added file to configuration source: " + f.getAbsolutePath());
-					} catch (ConfigurationException e) {
-						log.error("Failed to load configuration from file " + f.getAbsolutePath());
-					}
-				}
-				// Override with file in "/etc/cesecore/conf/, this is prio 3
-				for (int i = 0; i < CONFIG_FILES.length; i++) {
-					File f = null;
-					try {
-						f = new File("/etc/cesecore/conf/" + CONFIG_FILES[i]);
-						final PropertiesConfiguration pc = new PropertiesConfiguration(f);
-						pc.setReloadingStrategy(new FileChangedReloadingStrategy());
-						config.addConfiguration(pc);
-						log.info("Added file to configuration source: " + f.getAbsolutePath());
-					} catch (ConfigurationException e) {
-						log.error("Failed to load configuration from file " + f.getAbsolutePath());
-					}
-				}
-			} // if (allowexternal)
+                // Override with file in "application server home directory"/conf, this is prio 2
+                for (int i = 0; i < CONFIG_FILES.length; i++) {
+                    File f = null;
+                    try {
+                        f = new File("conf" + File.separator + CONFIG_FILES[i]);
+                        final PropertiesConfiguration pc = new PropertiesConfiguration(f);
+                        pc.setReloadingStrategy(new FileChangedReloadingStrategy());
+                        config.addConfiguration(pc);
+                        log.info("Added file to configuration source: " + f.getAbsolutePath());
+                    } catch (ConfigurationException e) {
+                        log.error("Failed to load configuration from file " + f.getAbsolutePath());
+                    }
+                }
+                // Override with file in "/etc/cesecore/conf/, this is prio 3
+                for (int i = 0; i < CONFIG_FILES.length; i++) {
+                    File f = null;
+                    try {
+                        f = new File("/etc/cesecore/conf/" + CONFIG_FILES[i]);
+                        final PropertiesConfiguration pc = new PropertiesConfiguration(f);
+                        pc.setReloadingStrategy(new FileChangedReloadingStrategy());
+                        config.addConfiguration(pc);
+                        log.info("Added file to configuration source: " + f.getAbsolutePath());
+                    } catch (ConfigurationException e) {
+                        log.error("Failed to load configuration from file " + f.getAbsolutePath());
+                    }
+                }
+            } // if (allowexternal)
 
-			// Default values build into jar file, this is last prio used if no of the other sources override this
-			for (int i = 0; i < CONFIG_FILES.length; i++) {
-				addConfigurationResource("/conf/"+CONFIG_FILES[i]);
-			}
-			// Load internal.properties only from built in configuration file
-			try {
-				final URL url = ConfigurationHolder.class.getResource("/internal.properties");
-				if (url != null) {
-					final PropertiesConfiguration pc = new PropertiesConfiguration(url);
-					config.addConfiguration(pc);
-					log.debug("Added url to configuration source: " + url);
-				}
-			} catch (ConfigurationException e) {
-				log.error("Failed to load configuration from resource internal.properties", e);
-			}
-		}
+            // Default values build into jar file, this is last prio used if no of the other sources override this
+            for (int i = 0; i < CONFIG_FILES.length; i++) {
+                addConfigurationResource("/conf/"+CONFIG_FILES[i]);
+            }
+            // Load internal.properties only from built in configuration file
+            try {
+                final URL url = ConfigurationHolder.class.getResource("/internal.properties");
+                if (url != null) {
+                    final PropertiesConfiguration pc = new PropertiesConfiguration(url);
+                    config.addConfiguration(pc);
+                    log.debug("Added url to configuration source: " + url);
+                }
+            } catch (ConfigurationException e) {
+                log.error("Failed to load configuration from resource internal.properties", e);
+            }
+        }
+        return config;
+    }
+    
+    private static synchronized void addConfiguration(final PropertiesConfiguration pc) {
+        // The try/catch is needed with commons-configuration 1.10 (but not with 1.06)
+//        try {
+            final CompositeConfiguration cfgClone = (CompositeConfiguration) config.clone();
+            cfgClone.addConfiguration(pc);
+            config = cfgClone; // atomic replacement, since we don't want to require all the get*() methods to be synchronized
+//        } catch (ConfigurationRuntimeException e) {
+//            // Appears to happen due to some bug in MapConfiguration (on certain systems only)
+//            if (log.isDebugEnabled()) {
+//                log.debug("Configuration class " + config.getClass().getName() + " is not cloneable. Falling back to not fully thread safe code.", e);
+//            }
+//            config.addConfiguration(pc);
+//        }
+    }
 
-		return config;
-	}
-
-	private static synchronized void addConfiguration(final PropertiesConfiguration pc) {
-		// The try/catch is needed with commons-configuration 1.10 (but not with 1.06)
-		//        try {
-		final CompositeConfiguration cfgClone = (CompositeConfiguration) config.clone();
-		cfgClone.addConfiguration(pc);
-		config = cfgClone; // atomic replacement, since we don't want to require all the get*() methods to be synchronized
-		//        } catch (ConfigurationRuntimeException e) {
-		//            // Appears to happen due to some bug in MapConfiguration (on certain systems only)
-		//            if (log.isDebugEnabled()) {
-		//                log.debug("Configuration class " + config.getClass().getName() + " is not cloneable. Falling back to not fully thread safe code.", e);
-		//            }
-		//            config.addConfiguration(pc);
-		//        }
-	}
-
-	/**
-	 * Method used primarily for JUnit testing, where we can add a new properties file (in tmp directory) to the configuration.
-	 *
-	 * @param filename the full path to the properties file used for configuration.
-	 */
-	public static void addConfigurationFile(final String filename) {
-		// Make sure the basic initialization has been done
-		instance();
-		File f = null;
-		try {
-			f = new File(filename);
-			final PropertiesConfiguration pc = new PropertiesConfiguration(f);
-			pc.setReloadingStrategy(new FileChangedReloadingStrategy());
-			addConfiguration(pc);
-			log.info("Added file to configuration source: " + f.getAbsolutePath());
-		} catch (ConfigurationException e) {
-			log.error("Failed to load configuration from file " + f.getAbsolutePath());
-		}
-	}
-	
+    /**
+     * Method used primarily for JUnit testing, where we can add a new properties file (in tmp directory) to the configuration.
+     *
+     * @param filename the full path to the properties file used for configuration.
+     */
+    public static void addConfigurationFile(final String filename) {
+        // Make sure the basic initialization has been done
+        instance();
+        File f = null;
+        try {
+            f = new File(filename);
+            final PropertiesConfiguration pc = new PropertiesConfiguration(f);
+            pc.setReloadingStrategy(new FileChangedReloadingStrategy());
+            addConfiguration(pc);
+            log.info("Added file to configuration source: " + f.getAbsolutePath());
+        } catch (ConfigurationException e) {
+            log.error("Failed to load configuration from file " + f.getAbsolutePath());
+        }
+    }
 
     /**
      * Add built in config file
-     * @param resourcename The filename to load from
      */
     public static void addConfigurationResource(final String resourcename) {
         // Make sure the basic initialization has been done
@@ -205,12 +202,11 @@ public final class ConfigurationHolder {
             log.error("Failed to load configuration from resource " + resourcename, e);
         }
     }
-    
+
     /**
      * @return the configuration as a regular Properties object
      */
-    @SuppressWarnings("unchecked")
-	public static Properties getAsProperties() {
+    public static Properties getAsProperties() {
         final Properties properties = new Properties();
         final Iterator<String> i = instance().getKeys();
         while (i.hasNext()) {
@@ -245,7 +241,7 @@ public final class ConfigurationHolder {
         }
         return ret;
     }
-    
+
     /**
      * @param property the property to look for
      * @return String configured for property. If the value is not configured, return null. (DOES NOT LOOK FOR FALLBACK VALUE FROM defaultvalues.properties)
@@ -292,7 +288,7 @@ public final class ConfigurationHolder {
         }
         return ret;
     }
-    
+
     private static String interpolate(final String orderString) {
         final Pattern PATTERN = Pattern.compile("\\$\\{(.+?)\\}");
         final Matcher m = PATTERN.matcher(orderString);
@@ -318,17 +314,12 @@ public final class ConfigurationHolder {
         m.appendTail(sb);
         return sb.toString();
     }
-    
 
     /**
      * Given the prefix "something", in a list of properties named "something.NAME.xxx.yyy", returns all
      * unique names (the NAME part only) in sorted order.
-     * 
-     * @param prefix The property name prefix
-     * @return A list of property names
      */
-    @SuppressWarnings("unchecked")
-	public static List<String> getPrefixedPropertyNames(String prefix) {
+    public static List<String> getPrefixedPropertyNames(String prefix) {
         Set<String> algs = new HashSet<String>();
         // Just get the keys from configuration that starts with prefix, we assume below that it has a . following the prefix
         Iterator<String> iterator = config.getKeys(prefix);
@@ -348,8 +339,6 @@ public final class ConfigurationHolder {
      * restore configuration.
      *
      * Normally used by functional (system) tests, but can also be used to "try" configuraiton settings in a live system.
-     * 
-     * @return always true
      */
     public static boolean backupConfiguration() {
         if (configBackup != null) {
@@ -366,8 +355,6 @@ public final class ConfigurationHolder {
      * is used in conjunction with updateConfiguration and backup configuration.
      *
      * Normally used by functional (system) tests, but can also be used to "try" configuration settings in a live system.
-     * 
-     * @return always true
      */
     public static boolean restoreConfiguration() {
         if (configBackup == null) {
@@ -383,24 +370,17 @@ public final class ConfigurationHolder {
      * or database, so it is volatile during the running of the application. Persisting the configuration must be handles outside of this method.
      *
      * Normally used by functional (system) tests, but can also be used to "try" configuration settings in a live system.
-     * 
-     * @param properties properties
-     * @return always true
      */
     public static boolean updateConfiguration(final Properties properties) {
         backupConfiguration(); // Only takes a backup if necessary.
         return updateConfigurationWithoutBackup(properties);
     }
-    
+
     /**
      * Takes a backup of the active configuration if necessary and updates the active configuration. Does not persist the configuration change to disk
      * or database, so it is volatile during the running of the application. Persisting the configuration must be handles outside of this method.
      *
      * Normally used by functional (system) tests, but can also be used to "try" configuration settings in a live system.
-     * 
-     * @param key key
-     * @param value value
-     * @return always true
      */
     public static boolean updateConfiguration(final String key, final String value) {
         backupConfiguration(); // Only takes a backup if necessary.
@@ -410,9 +390,6 @@ public final class ConfigurationHolder {
     /**
      * Updates the active configuration. Does not persist the configuration change to disk or database, so it is volatile during the running of the application.
      * Persisting the configuration must be handles outside of this method.
-     * 
-     * @param properties properties
-     * @return always true
      */
     public static boolean updateConfigurationWithoutBackup(final Properties properties) {
         for (Object key : properties.keySet()) {
@@ -422,14 +399,10 @@ public final class ConfigurationHolder {
         }
         return true;
     }
-    
+
     /**
      * Updates the active configuration. Does not persist the configuration change to disk or database, so it is volatile during the running of the application.
      * Persisting the configuration must be handles outside of this method.
-     * 
-     * @param key key
-     * @param value value
-     * @return always true
      */
     public static boolean updateConfigurationWithoutBackup(final String key, final String value) {
         config.setProperty(key, value);

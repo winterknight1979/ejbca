@@ -18,10 +18,10 @@ import java.io.Serializable;
  * You can have a method that has a parameter of this type with the &#64;Observes attribute to be
  * notified when the access rules or roles have been changed. Please make the method
  * &#64;Asynchronous so it doesn't block the caller (currently
- * org.cesecore.authorization.cache.AccessTreeUpdateSessionBean.signalForAccessTreeUpdate()) [from cesecore-ejb].
+ * {@link org.cesecore.authorization.cache.AccessTreeUpdateSessionBean#signalForAccessTreeUpdate()})
  * 
  * Currently we can't use JEE events, because it requires that we use CDI.
- * Instead the method org.cesecore.authorization.cache.AccessTreeUpdateSessionLocal.addReloadEvent(AuthorizationCacheReloadListener) [from cesecore-ejb] can be used
+ * Instead the method {@link org.cesecore.authorization.cache.AccessTreeUpdateSessionLocal.addReloadEvent(AuthorizationCacheReloadListener)} can be used
  * 
  * @version $Id: AuthorizationCacheReload.java 25591 2017-03-23 13:13:02Z jeklund $
  */

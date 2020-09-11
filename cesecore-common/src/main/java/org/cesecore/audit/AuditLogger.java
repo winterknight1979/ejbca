@@ -37,9 +37,6 @@ public interface AuditLogger {
      * @param module The module where the operation took place.
      * @param service The service(application) that performed the operation.
      * @param authToken The authentication token that invoked the operation.
-     * @param customId ID
-     * @param searchDetail1 Search 1
-     * @param searchDetail2 Search 2
      * @param additionalDetails Additional details to be logged.
      * @param properties properties to be passed on the device
      * 

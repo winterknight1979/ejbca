@@ -57,16 +57,13 @@ public enum AuthorizationCache {
     
     /** Call-back interface for loading access rules on cache miss */
     public interface AuthorizationCacheCallback {
-        /** @param authenticationToken Token
-         * @return the access rules and corresponding update number for the specified authenticationToken  
-         * @throws AuthenticationFailedException on Fail */
+        /** @return the access rules and corresponding update number for the specified authenticationToken  */
         AuthorizationResult loadAuthorization(AuthenticationToken authenticationToken) throws AuthenticationFailedException;
         
         /** @return the number of milliseconds to keep cache entries for after an authentication token was last seen */
         long getKeepUnusedEntriesFor();
 
-        /** Invoked by cache on first cache miss to start listening to authorization updates 
-         * @param authorizationCacheReloadListener Listener */
+        /** Invoked by cache on first cache miss to start listening to authorization updates */
         void subscribeToAuthorizationCacheReload(AuthorizationCacheReloadListener authorizationCacheReloadListener);
     }
     
@@ -111,9 +108,7 @@ public enum AuthorizationCache {
         authorizationCacheReloadListenerRegistered.set(false);
     }
 
-    /** Re-build the authorization cache for all entries that been seen recently (as determined by authorizationCacheCallback.getKeepUnusedEntriesFor()). 
-     * @param authorizationCacheCallback Callback 
-     * @param refreshUpdateNumber Update number */
+    /** Re-build the authorization cache for all entries that been seen recently (as determined by authorizationCacheCallback.getKeepUnusedEntriesFor()). */
     public void refresh(final AuthorizationCacheCallback authorizationCacheCallback, final int refreshUpdateNumber) {
         //final int refreshUpdateNumber = authorizationCacheCallback.getUpdateNumber();
         if (log.isTraceEnabled()) {
@@ -153,18 +148,12 @@ public enum AuthorizationCache {
         }
     }
 
-    /** @param authenticationToken Token
-     * @param authorizationCacheCallback Callback 
-     * @return the access rules granted to the specified authenticationToken using the callback to load them if needed. Never null.  
-     * @throws AuthenticationFailedException On fail */
+    /** @return the access rules granted to the specified authenticationToken using the callback to load them if needed. Never null.  */
     public HashMap<String, Boolean> get(final AuthenticationToken authenticationToken, final AuthorizationCacheCallback authorizationCacheCallback) throws AuthenticationFailedException {
         return getAuthorizationResult(authenticationToken, authorizationCacheCallback).accessRules;
     }
 
-    /** @param authenticationToken Token
-     * @param authorizationCacheCallback Callback 
-     * @return the access rules granted to the specified authenticationToken and corresponding update number using the callback to load them if needed. Never null.  
-     * @throws AuthenticationFailedException on Fail */
+    /** @return the access rules granted to the specified authenticationToken and corresponding update number using the callback to load them if needed. Never null.  */
     public AuthorizationResult getAuthorizationResult(final AuthenticationToken authenticationToken, final AuthorizationCacheCallback authorizationCacheCallback) throws AuthenticationFailedException {
         if (authenticationToken==null || authorizationCacheCallback==null) {
             return new AuthorizationResult(new HashMap<String,Boolean>(), 0);
@@ -228,7 +217,6 @@ public enum AuthorizationCache {
 
     /** 
      * Non-blocking atomic update of the last known update number.
-     * @param readUpdateNumber Update No.
      * @return true if the number was updated, false if it was already set
      */
     private boolean setUpdateNumberIfLower(final int readUpdateNumber) {

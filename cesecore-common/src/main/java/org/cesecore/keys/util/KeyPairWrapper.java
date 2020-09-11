@@ -10,7 +10,6 @@
  *  See terms of license at gnu.org.                                     *
  *                                                                       *
  *************************************************************************/
-
 package org.cesecore.keys.util;
 
 import java.io.Serializable;
@@ -55,11 +54,11 @@ public class KeyPairWrapper implements Serializable {
      * 
      */
     private PublicKey getPublicKey() {
-    	try {
-    		KeyFactory keyFactory = KeyFactory.getInstance(algorithm, BouncyCastleProvider.PROVIDER_NAME);
-    		X509EncodedKeySpec keySpec =  new X509EncodedKeySpec(encodedPublicKey);
-    		return keyFactory.generatePublic(keySpec);
-    	} catch (NoSuchProviderException e) {
+        try {
+            KeyFactory keyFactory = KeyFactory.getInstance(algorithm, BouncyCastleProvider.PROVIDER_NAME);
+            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encodedPublicKey);
+            return keyFactory.generatePublic(keySpec);
+        } catch (NoSuchProviderException e) {
             throw new IllegalStateException("BouncyCastle was not a known provider.", e);
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("Algorithm "  + algorithm + " was not known at deserialisation", e);
@@ -87,10 +86,12 @@ public class KeyPairWrapper implements Serializable {
         } 
     }
     
+    
     public KeyPair getKeyPair() {
         if(cachedKeyPair == null) {
             cachedKeyPair = new KeyPair(getPublicKey(), getPrivateKey());
         } 
         return cachedKeyPair;
     }
+   
 }

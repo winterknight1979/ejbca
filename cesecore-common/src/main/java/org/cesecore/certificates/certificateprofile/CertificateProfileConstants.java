@@ -17,7 +17,7 @@ package org.cesecore.certificates.certificateprofile;
  * Constants for users and certificates. Constants for Type of user: Type is constructed as a mask
  * since one user can be of several types. To test a user type:
  * <pre>
- * if (((type &amp; USER_ENDUSER) == USER_ENDUSER) &amp;&amp; ((type &amp; USER_CAADMIN) == USER_ADMINISTOR) || ...
+ * if (((type & USER_ENDUSER) == USER_ENDUSER) && ((type & USER_CAADMIN) == USER_ADMINISTOR) || ...
  *    ...
  * </pre>
  * Bit usage: bits 0-7   (1:st byte):  user types bits 8-15  (2:nd byte):  unused bits 16-23 (3:rd
@@ -56,7 +56,6 @@ public final class CertificateProfileConstants {
     public static final int FIXED_CERTIFICATEPROFILE_BOUNDRY = 1000;
 
     /**
-     * @param profileId ID
      * @return true is certificate profile identified by profileId is fixed
      */
     public static boolean isFixedCertificateProfile(final int profileId) {

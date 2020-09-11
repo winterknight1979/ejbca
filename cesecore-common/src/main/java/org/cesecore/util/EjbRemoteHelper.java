@@ -48,7 +48,6 @@ public enum EjbRemoteHelper {
      * Returns a cached remote session bean.
      * 
      * @param key the @Remote-appended interface for this session bean
-     * @param <T> Type
      * @return the sought interface, or null if it doesn't exist in JNDI context.
      */
     public <T> T getRemoteSession(final Class<T> key) {
@@ -59,7 +58,6 @@ public enum EjbRemoteHelper {
      * Returns a cached remote session bean.
      * 
      * @param key the @Remote-appended interface for this session bean
-     * @param <T> Type
      * @param module the module where the bean is deployed, i.e. systemtests-ejb or cesecore-other-ejb, if null defaults to cesecore-ejb for packages under org.cesecore, otherwise ejbca-ejb.
      * @return the sought interface, or null if it doesn't exist in JNDI context.
      */

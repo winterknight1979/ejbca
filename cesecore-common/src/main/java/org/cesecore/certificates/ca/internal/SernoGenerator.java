@@ -42,7 +42,7 @@ public interface SernoGenerator {
      * random generator it can be a random seed. The constructor may seed the generator enough so
      * this method may not be nessecary to call.
      *
-     * @param seed the seed used to initilize the serno generator.
+     * @param the seed used to initilize the serno generator.
      */
     void setSeed(long seed);
     
@@ -50,8 +50,7 @@ public interface SernoGenerator {
      * Set the algorithm used for the serial number generator, if needed to set.
      * Usually a default value is provided for your serial number generator. 
      * This can be used to override/change default values. Usage must consider multi-threaded behavior. 
-     * @param algo an (optional) algorithm for a serial number generator implementation
-     * @throws NoSuchAlgorithmException  on error
+     * @param an (optional) algorithm for a serial number generator implementation
      */
      void setAlgorithm(final String algo) throws NoSuchAlgorithmException;
      

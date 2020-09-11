@@ -19,15 +19,14 @@ import java.util.Comparator;
  * Compares objects with their string representation, by calling String.valueOf(x) on the compared objects.
  * @version $Id: AsStringComparator.java 28178 2018-02-02 12:37:55Z samuellb $
  */
-public final class AsStringComparator implements Comparator<Object>, Serializable
-{
-	private static final long serialVersionUID = 1L;
-	
-	@Override
-	public int compare(final Object o1, final Object o2) {
-		final String s1 = String.valueOf(o1);
-		final String s2 = String.valueOf(o2);
-		return s1.compareTo(s2);
-	}
+public final class AsStringComparator implements Comparator<Object>, Serializable {
+    
+    private static final long serialVersionUID = 1L;
 
+    @Override
+    public int compare(final Object o1, final Object o2) {
+        final String s1 = String.valueOf(o1);
+        final String s2 = String.valueOf(o2);
+        return s1.compareTo(s2);
+    }
 }
