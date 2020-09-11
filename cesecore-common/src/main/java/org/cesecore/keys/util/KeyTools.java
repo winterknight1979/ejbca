@@ -257,6 +257,9 @@ public final class KeyTools {
     } // genKeys
 
     /**
+     * @param keySpec Spec
+     * @param keyAlg Algorithm
+     * @return Key pair
      * @see KeyTools#genKeys(String,AlgorithmParameterSpec,String)
      * 
      * @throws InvalidAlgorithmParameterException  if the given parameters are inappropriate for this key pair generator.
@@ -274,9 +277,9 @@ public final class KeyTools {
      * @param keySpec
      *            name of curve for example brainpoolp224r1
      * @return PublicKey with parameters from the named curve
-     * @throws NoSuchProviderException
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeySpecException
+     * @throws NoSuchProviderException if provider not found
+     * @throws NoSuchAlgorithmException if algorithm not found
+     * @throws InvalidKeySpecException if spec is invalid
      */
     public static PublicKey getECPublicKeyWithParams(final PublicKey pk, final String keySpec) throws NoSuchAlgorithmException,
             NoSuchProviderException, InvalidKeySpecException {
@@ -718,6 +721,11 @@ public final class KeyTools {
      * @param keyStoreBytes byte array containing key store
      * @param password of the key store
      * @return JKS or P12 KeyStore depending of input content
+     * @throws KeyStoreException If store fails
+     * @throws NoSuchProviderException If provider not found
+     * @throws IOException On I/O error
+     * @throws NoSuchAlgorithmException If algorithm not found 
+     * @throws CertificateException on invalid certificate
      */
     public static KeyStore createKeyStore(byte[] keyStoreBytes, String password) throws KeyStoreException, 
             NoSuchProviderException, IOException, NoSuchAlgorithmException, CertificateException {
@@ -739,6 +747,14 @@ public final class KeyTools {
     
     /**
      * Convert a KeyStore to PEM format.
+     * @param ks Key store
+     * @param password password
+     * @return PEM
+     * @throws KeyStoreException if store fails 
+     * @throws CertificateEncodingException If cert cannot be parsed
+     * @throws IOException on i/o error
+     * @throws UnrecoverableKeyException if key cannot be read 
+     * @throws NoSuchAlgorithmException if algorithm not found
      */
     public static byte[] getSinglePemFromKeyStore(final KeyStore ks, final char[] password) throws KeyStoreException, CertificateEncodingException,
     IOException, UnrecoverableKeyException, NoSuchAlgorithmException {
@@ -837,7 +853,9 @@ public final class KeyTools {
         return buffer.toByteArray();
     }
 
-    /** @return a buffer with the public key in PEM format */
+    /** @param publicKey Key
+     * @return a buffer with the public key in PEM format 
+     * @throws IOException on I/O error */
     public static String getAsPem(final PublicKey publicKey) throws IOException {
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try ( final JcaPEMWriter pemWriter = new JcaPEMWriter(new OutputStreamWriter(baos)) ) {
@@ -855,6 +873,7 @@ public final class KeyTools {
      *            the alias of the privatekey for which the certchain belongs.
      * 
      * @return array of Certificate, or null if no certificates are found.
+     * @throws KeyStoreException on fail
      */
     public static Certificate[] getCertChain(final KeyStore keyStore, final String privateKeyAlias) throws KeyStoreException {
         if (log.isTraceEnabled()) {
@@ -987,6 +1006,9 @@ public final class KeyTools {
      * @param data
      *            the data to sign
      * @return the signature
+     * @throws SignatureException If sig is invalid
+     * @throws NoSuchAlgorithmException If algorithm not found
+     * @throws InvalidKeyException if key is invalid
      * @throws NoSuchProviderException if BouncyCastleProvider is not installed 
      */
     public static byte[] signData(final PrivateKey privateKey, final String signatureAlgorithm, final byte[] data) throws SignatureException,
@@ -1008,6 +1030,9 @@ public final class KeyTools {
      * @param signature
      *            the signature
      * @return true if the signature is ok
+     * @throws SignatureException if signature is invalid
+     * @throws NoSuchAlgorithmException if algo not found
+     * @throws InvalidKeyException if key is invalid
      * @throws NoSuchProviderException if BouncyCastleProvider is not installed 
      */
     public static boolean verifyData(final PublicKey publicKey, final String signatureAlgorithm, final byte[] data, final byte[] signature)
@@ -1240,6 +1265,8 @@ public final class KeyTools {
     
     /**
      * Gets the parameter spec from a given OID of a DSTU curve (they don't have names) 
+     * @param dstuOid OIS
+     * @return spec
      */
     public static AlgorithmParameterSpec dstuOidToAlgoParams(String dstuOid) {
         return new ECGenParameterSpec(dstuOid);
@@ -1267,6 +1294,8 @@ public final class KeyTools {
     /**
      * Converts a standalone specspec that starts with the keyalg to a short keyspec which
      * is to be used together with a separate "keyalg" value.
+     * @param keyspec spec
+     * @return short spec
      */
     public static String shortenKeySpec(String keyspec) {
         if (keyspec.startsWith(AlgorithmConstants.KEYALGORITHM_DSA) || keyspec.startsWith(AlgorithmConstants.KEYALGORITHM_RSA) ) {
@@ -1277,6 +1306,9 @@ public final class KeyTools {
     
     /**
      * Converts a keyalg/keyspec pair into a standalone specspec.
+     * @param keyalg algorithm
+     * @param keyspec spec
+     * @return specspec
      */
     public static String keyalgspecToKeyspec(String keyalg, String keyspec) {
         if ("DSA".equals(keyalg)) {

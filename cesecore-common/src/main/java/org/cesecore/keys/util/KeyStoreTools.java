@@ -117,9 +117,9 @@ public class KeyStoreTools {
     /** Deletes an entry in the keystore
      * 
      * @param alias is a reference to the entry in the KeyStore that should be deleted, if alias is null, all entries are deleted.
-     * @return keystore identifier
      * 
-     * @throws KeyStoreException 
+     * 
+     * @throws KeyStoreException on error
      */
     public void deleteEntry(final String alias) throws KeyStoreException {
         if ( alias!=null ) {
@@ -331,7 +331,8 @@ public class KeyStoreTools {
     /** Generates asymmteric keys in the Keystore token.
      * 
      * @param keySpec all decimal digits RSA key length, otherwise name of ECC curve or DSA key using syntax DSAnnnn
-     * @param keyEntryName
+     * @param keyEntryName entry name
+     * @throws InvalidAlgorithmParameterException if invalid params apssed
      */
     public void generateKeyPair(final String keySpec, final String keyEntryName) throws
             InvalidAlgorithmParameterException {
@@ -357,9 +358,9 @@ public class KeyStoreTools {
      * @param algorithm symmetric algorithm specified in http://download.oracle.com/javase/1.5.0/docs/api/index.html, suggest AES, DESede or DES
      * @param keysize keysize of symmetric key, suggest 128 or 256 for AES, 64 for 168 for DESede and 64 for DES
      * @param keyEntryName the alias the key will get in the keystore
-     * @throws NoSuchProviderException 
-     * @throws NoSuchAlgorithmException 
-     * @throws KeyStoreException 
+     * @throws NoSuchProviderException  if provider not found
+     * @throws NoSuchAlgorithmException  of algo not found
+     * @throws KeyStoreException  if store fails
      */
     public void generateKey(final String algorithm, final int keysize,
                             final String keyEntryName) throws NoSuchAlgorithmException, NoSuchProviderException, KeyStoreException {
@@ -371,8 +372,8 @@ public class KeyStoreTools {
 
     /** Generates keys in the Keystore token.
      * @param keyParams AlgorithmParameterSpec for the KeyPairGenerator. Can be anything like RSAKeyGenParameterSpec, DSAParameterSpec, ECParameterSpec or ECGenParameterSpec. 
-     * @param keyAlias
-     * @throws InvalidAlgorithmParameterException 
+     * @param keyAlias Alias
+     * @throws InvalidAlgorithmParameterException if params are invalid
      */
     public void generateKeyPair(final AlgorithmParameterSpec keyParams, final String keyAlias) throws InvalidAlgorithmParameterException {
         if (log.isTraceEnabled()) {
@@ -547,7 +548,7 @@ public class KeyStoreTools {
 
     /**
      * Install certificate chain to key in keystore.
-     * @param file name of the file with chain. Starting with the certificate of the key. Ending with the root certificate.
+     * @param fileName name of the file with chain. Starting with the certificate of the key. Ending with the root certificate.
      */
     public void installCertificate(final String fileName) {
         try( final InputStream is = new FileInputStream(fileName) ) {
@@ -582,7 +583,7 @@ public class KeyStoreTools {
     
     /**
      * Install trusted root in trust store
-     * @param File name of the trusted root.
+     * @param fileName name of the trusted root.
      */
     public void installTrustedRoot(String fileName) {
         try( final InputStream is = new FileInputStream(fileName) ) {

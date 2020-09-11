@@ -66,12 +66,12 @@ public class SignWithWorkingAlgorithm {
     }
     /**
      * First time each algorithm in availableSignAlgorithms are tried until the 
-     * {@link ISignOperation#taskWithSigning(String, Provider) is successfully completed.
+     * {@link ISignOperation#taskWithSigning(String, Provider)} is successfully completed.
      * The working algorithm is saved after the first time. Succeeding calls
      * with same availableSignAlgorithms and provider will directly use the 
      * algorithm that was working the first time.
      * @param availableSignAlgorithms algorithms to choose from.
-     * @param provider
+     * @param provider provider
      * @param operation operation that performs the signing
      * @return true if the signing was done.
      * @throws TaskWithSigningException thrown if {@link ISignOperation#taskWithSigning(String, Provider)} is failing.
@@ -80,7 +80,7 @@ public class SignWithWorkingAlgorithm {
             final List<String> availableSignAlgorithms,
             final Provider provider,
             final ISignOperation operation) throws TaskWithSigningException {
-        final Integer mapKey = new Integer(availableSignAlgorithms.hashCode()^provider.hashCode());
+        final Integer mapKey = Integer.valueOf(availableSignAlgorithms.hashCode()^provider.hashCode());
         final SignWithWorkingAlgorithm instance;
         synchronized (instanceMap) {
             final SignWithWorkingAlgorithm waitInstance = instanceMap.get(mapKey);

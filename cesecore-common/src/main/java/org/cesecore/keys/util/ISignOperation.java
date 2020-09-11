@@ -33,8 +33,8 @@ public interface ISignOperation {
      * the algorithm that worked.
      * Call {@link SignWithWorkingAlgorithm#doSignTask(List, Provider, ISignOperation)}
      * when {@link #taskWithSigning(String, Provider)} should be executed.
-     * @param signAlgorithm
-     * @param provider
+     * @param signAlgorithm algorithm
+     * @param provider provider
      * @throws TaskWithSigningException thrown if the signing can not be done.
      */
     void taskWithSigning(String signAlgorithm, Provider provider) throws TaskWithSigningException;
