@@ -67,6 +67,14 @@ public class X509CAInfo extends CAInfo {
     /**
      * This constructor can be used when creating a CA.
      * This constructor uses defaults for the fields that are not specified.
+     * @param subjectdn DN
+     * @param name Name
+     * @param status Status
+     * @param certificateProfileId Profile
+     * @param encodedValidity Vlidity
+     * @param signedby Signer
+     * @param certificatechain Certs 
+     * @param catoken Token
      */
     public X509CAInfo(final String subjectdn, final String name, final int status,
             final int certificateProfileId, final String encodedValidity, int signedby, final Collection<Certificate> certificatechain, final CAToken catoken) {
@@ -131,7 +139,7 @@ public class X509CAInfo extends CAInfo {
      * Please use the shorter form if you do not need to set all of the values.
      * @param subjectDn the Subject DN of the CA as found in the certificate
      * @param name the name of the CA shown in EJBCA, can be changed by the user
-     * @param status the operational status of the CA, one of the constants in {@link #CAConstants}
+     * @param status the operational status of the CA, one of the constants in {@link CAConstants}
      * @param updateTime the last time this CA was updated, normally the current date and time
      * @param subjectaltname the Subject Alternative Name (SAN) of the CA, as found in the certificate
      * @param certificateprofileid the ID of the certificate profile for this CA
@@ -154,36 +162,36 @@ public class X509CAInfo extends CAInfo {
      * @param deltacrlperiod how often Delta CRLs should be distributed
      * @param crlpublishers a collection of publisher IDs for this CA
      * @param keyValidators a collection of key validator IDs for this CA
-     * @param useauthoritykeyidentifier
-     * @param authoritykeyidentifiercritical
-     * @param usecrlnumber
-     * @param crlnumbercritical
+     * @param useauthoritykeyidentifier bool
+     * @param authoritykeyidentifiercritical bool
+     * @param usecrlnumber bool
+     * @param crlnumbercritical bool
      * @param defaultcrldistpoint the URI of the default CRL distribution point
-     * @param defaultcrlissuer
-     * @param defaultocspservicelocator
-     * @param authorityInformationAccess
-     * @param certificateAiaDefaultCaIssuerUri
+     * @param defaultcrlissuer Issuer
+     * @param defaultocspservicelocator Locator
+     * @param authorityInformationAccess Acces
+     * @param certificateAiaDefaultCaIssuerUri Issuer URI
      * @param nameConstraintsPermitted a list of name constraints which should be permitted
      * @param nameConstraintsExcluded a list of name constraints which should be excluded
-     * @param cadefinedfreshestcrl
-     * @param finishuser
-     * @param extendedcaserviceinfos
-     * @param useUTF8PolicyText
+     * @param cadefinedfreshestcrl CRL
+     * @param finishuser bool
+     * @param extendedcaserviceinfos bool
+     * @param useUTF8PolicyText bool
      * @param approvals a map of approval profiles which should be used for different operations
-     * @param usePrintableStringSubjectDN
-     * @param useLdapDnOrder
-     * @param useCrlDistributionPointOnCrl
-     * @param crlDistributionPointOnCrlCritical
+     * @param usePrintableStringSubjectDN bool
+     * @param useLdapDnOrder biik
+     * @param useCrlDistributionPointOnCrl bool
+     * @param crlDistributionPointOnCrlCritical bool
      * @param includeInHealthCheck enable healthcheck for this CA
-     * @param _doEnforceUniquePublicKeys
-     * @param _doEnforceUniqueDistinguishedName
-     * @param _doEnforceUniqueSubjectDNSerialnumber
-     * @param _useCertReqHistory
-     * @param _useUserStorage
-     * @param _useCertificateStorage
-     * @param _acceptRevocationNonExistingEntry
-     * @param _cmpRaAuthSecret
-     * @param keepExpiredCertsOnCRL
+     * @param _doEnforceUniquePublicKeys bool
+     * @param _doEnforceUniqueDistinguishedName bool
+     * @param _doEnforceUniqueSubjectDNSerialnumber bool
+     * @param _useCertReqHistory bool
+     * @param _useUserStorage bool
+     * @param _useCertificateStorage bool
+     * @param _acceptRevocationNonExistingEntry bool
+     * @param _cmpRaAuthSecret bool
+     * @param keepExpiredCertsOnCRL bool
      */
     private X509CAInfo(final String subjectDn, final String name, final int status, final Date updateTime, final String subjectaltname,
             final int certificateprofileid, final int defaultCertprofileId, final boolean useNoConflictCertificateData, final String encodedValidity, final Date expiretime, final int catype, final int signedBy,
@@ -275,7 +283,53 @@ public class X509CAInfo extends CAInfo {
         this.caSerialNumberOctetSize = caSerialNumberOctetSize;
     }
 
-    /** Constructor that should be used when updating CA data. */
+    /**
+     * Constructor that should be used when creating CA and retrieving CA info.
+     * Please use the shorter form if you do not need to set all of the values.
+     * @param caid ID of the CA
+     * @param defaultCertprofileId the id of default cetificate profile for certificates this CA issues
+     * @param useNoConflictCertificateData should use NoConflictCertificate data table to write to
+     * @param encodedValidity the validity of this CA as a human-readable string, e.g. 25y
+     * @param catoken the CA token for this CA, containing e.g. a reference to the crypto token
+     * @param description a text describing this CA
+     * @param caSerialNumberOctetSize serial number octet size for this CA
+     * @param crlperiod the CRL validity period in ms
+     * @param crlIssueInterval how often in ms the CRLs should be distributed, e.g. 3600000 will generate a new CRL every hour
+     * @param crlOverlapTime the validity overlap in ms for a subsequent CRL, e.g. 5000 will generate a CRL 5m before the previous CRL expires
+     * @param deltacrlperiod how often Delta CRLs should be distributed
+     * @param crlpublishers a collection of publisher IDs for this CA
+     * @param keyValidators a collection of key validator IDs for this CA
+     * @param useauthoritykeyidentifier bool
+     * @param authoritykeyidentifiercritical bool
+     * @param usecrlnumber bool
+     * @param crlnumbercritical bool
+     * @param defaultcrldistpoint the URI of the default CRL distribution point
+     * @param defaultcrlissuer Issuer
+     * @param defaultocspservicelocator Locator
+     * @param crlAuthorityInformationAccess Access info to CRLs 
+     * @param certificateAiaDefaultCaIssuerUri Issuer URI
+     * @param nameConstraintsPermitted a list of name constraints which should be permitted
+     * @param nameConstraintsExcluded a list of name constraints which should be excluded
+     * @param cadefinedfreshestcrl CRL
+     * @param finishuser bool
+     * @param extendedcaserviceinfos bool
+     * @param useUTF8PolicyText bool
+     * @param approvals a map of approval profiles which should be used for different operations
+     * @param usePrintableStringSubjectDN bool
+     * @param useLdapDnOrder biik
+     * @param useCrlDistributionPointOnCrl bool
+     * @param crlDistributionPointOnCrlCritical bool
+     * @param includeInHealthCheck enable healthcheck for this CA
+     * @param _doEnforceUniquePublicKeys bool
+     * @param _doEnforceUniqueDistinguishedName bool
+     * @param _doEnforceUniqueSubjectDNSerialnumber bool
+     * @param _useCertReqHistory bool
+     * @param _useUserStorage bool
+     * @param _useCertificateStorage bool
+     * @param _acceptRevocationNonExistingEntry bool
+     * @param _cmpRaAuthSecret bool
+     * @param keepExpiredCertsOnCRL bool
+     */
     public X509CAInfo(final int caid, final String encodedValidity, final CAToken catoken, final String description, final int caSerialNumberOctetSize, 
             final long crlperiod, final long crlIssueInterval, final long crlOverlapTime, final long deltacrlperiod, final Collection<Integer> crlpublishers,
             final Collection<Integer> keyValidators, final boolean useauthoritykeyidentifier, final boolean authoritykeyidentifiercritical,
@@ -454,7 +508,8 @@ public class X509CAInfo extends CAInfo {
         return externalCdp;
     }
 
-    /** Set what should be a String formatted URL pointing to an external CA's CDP. */
+    /** Set what should be a String formatted URL pointing to an external CA's CDP. 
+     * @param externalCdp CDP*/
     public void setExternalCdp(final String externalCdp) {
         this.externalCdp = externalCdp;
     }
@@ -464,7 +519,8 @@ public class X509CAInfo extends CAInfo {
         return nameChanged;
     }
 
-    /** NameChanged attribute should only be set when X509CA is retrieved from DB */
+    /** NameChanged attribute should only be set when X509CA is retrieved from DB 
+     * @param value new name*/
     void setNameChanged(final boolean value){
         nameChanged = value;
     }

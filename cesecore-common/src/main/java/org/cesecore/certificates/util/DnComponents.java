@@ -302,6 +302,8 @@ public class DnComponents {
 
     /**
      * Method to get a language error constant for the admin-GUI from a profile name
+     * @param name name
+     * @return language
      */
     public static String getLanguageConstantFromProfileName(String name) {
         String ret = (String) profileNameLanguageMap.get(name);
@@ -310,6 +312,8 @@ public class DnComponents {
 
     /**
      * Method to get a language error constant for the admin-GUI from a profile id
+     * @param id ID
+     * @return language
      */
     public static String getLanguageConstantFromProfileId(int id) {
         String ret = (String) profileIdLanguageMap.get(Integer.valueOf(id));
@@ -318,6 +322,8 @@ public class DnComponents {
 
     /**
      * Method to get a clear text error msg for the admin-GUI from a dn id
+     * @param id ID
+     * @return error text
      */
     public static String getErrTextFromDnId(int id) {
         String ret = (String) dnIdErrorMap.get(Integer.valueOf(id));
@@ -326,6 +332,7 @@ public class DnComponents {
 
     /** This method is only used to initialize EndEntityProfile, because of legacy baggage.
      * Should be refactored sometime! Please don't use this whatever you do!
+     * @return map
      */
     public static HashMap<String, Integer> getProfilenameIdMap() {
         return profileNameIdMap;
@@ -336,6 +343,8 @@ public class DnComponents {
      *  For example : profileFieldIdToUserFieldIdMapper(EndEntityProfile.COMMONNAME) returns DnFieldExctractor.COMMONNAME.
      *
      *  Should only be used with subjectDN, Subject Alternative Names and subject directory attribute fields.
+     * @param profileid ID
+     * @return  DN ID
      */
     public static int profileIdToDnId(int profileid) {
         Integer val = (Integer) profileIdToDnIdMap.get(Integer.valueOf(profileid));
@@ -349,6 +358,8 @@ public class DnComponents {
     /**
      * Returns the dnObjects (forward or reverse). 
      * ldaporder = true is the default order in EJBCA. 
+     * @param ldaporder boolean
+     * @return objects
      */
     public static String[] getDnObjects(boolean ldaporder) {
         if (ldaporder) {
@@ -360,6 +371,7 @@ public class DnComponents {
     /**
      * Returns the reversed dnObjects.
      * Protected to allow testing
+     * @return objects
      */
     protected static String[] getDnObjectsReverse() {
         // Create and reverse the order if it has not been initialized already
@@ -396,7 +408,7 @@ public class DnComponents {
     /**
      * Reads properties from a properties file. Fails nicely if file wasn't found. 
      * 
-     * @param propertiesFile
+     * @param propertiesFile File
      */
     private static void loadProfileMappingsFromFile(String propertiesFile) {
         // Read the file to an array of lines 

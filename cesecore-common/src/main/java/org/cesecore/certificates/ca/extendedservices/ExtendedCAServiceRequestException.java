@@ -37,7 +37,7 @@ public class ExtendedCAServiceRequestException extends java.lang.Exception {
 
     /**
      * Constructs an instance of <code>ExtendedCAServiceRequestException</code> with the specified cause.
-     * @param msg the detail message.
+     * @param e the detail message.
      */
     public ExtendedCAServiceRequestException(Exception e) {
         super(e);

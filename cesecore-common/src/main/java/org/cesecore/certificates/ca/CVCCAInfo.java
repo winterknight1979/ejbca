@@ -39,6 +39,14 @@ public class CVCCAInfo extends CAInfo {
     /**
      * This constructor can be used when creating a CA.
      * This constructor uses defaults for the fields that are not specified.
+     * @param subjectdn DN
+     * @param name name
+     * @param status status
+     * @param certificateprofileid ID
+     * @param encodedValidity Validity
+     * @param signedby signer
+     * @param certificatechain chain 
+     * @param catoken token
      * */
     public CVCCAInfo(String subjectdn, String name, int status, int certificateprofileid, String encodedValidity, int signedby,
             List<Certificate> certificatechain, CAToken catoken) {
@@ -74,6 +82,38 @@ public class CVCCAInfo extends CAInfo {
 	/**
 	 * Constructor that should be used when creating CA and retrieving CA info.
 	 * Please use the shorter form if you do not need to set all of the values.
+	 * @param subjectDn DN
+	 * @param name Name
+	 * @param status Status
+	 * @param updateTime Update
+	 * @param certificateprofileid ID 
+	 * @param defaultCertprofileId ID
+	 * @param encodedValidity Validity
+	 * @param expiretime Expiry
+	 * @param catype Type of CA
+	 * @param signedBy Signer
+	 * @param certificatechain Chain 
+	 * @param catoken Token
+	 * @param description Description
+	 * @param revocationReason Reason for revoking
+	 * @param revocationDate Date of revoking
+	 * @param crlperiod CRL period
+	 * @param crlIssueInterval CRL Issue interval
+	 * @param crlOverlapTime CRL Overlap
+	 * @param deltacrlperiod CRL change
+	 * @param crlpublishers Publisher of CRL
+	 * @param keyValidators Validators
+	 * @param finishuser boolean
+	 * @param extendedcaserviceinfos info 
+	 * @param approvals approvals
+	 * @param includeInHealthCheck bool 
+	 * @param _doEnforceUniquePublicKeys bool 
+	 * @param _doEnforceUniqueDistinguishedName bool 
+	 * @param _doEnforceUniqueSubjectDNSerialnumber bool
+	 * @param _useCertReqHistory bool
+	 * @param _useUserStorage bool
+	 * @param _useCertificateStorage bool 
+	 * @param _acceptRevocationNonExistingEntry bool  
 	 */
 	public CVCCAInfo(String subjectDn, String name, int status, Date updateTime, int certificateprofileid, int defaultCertprofileId,
             String encodedValidity, Date expiretime, int catype, int signedBy, List<Certificate> certificatechain,
@@ -123,6 +163,28 @@ public class CVCCAInfo extends CAInfo {
 	/**
 	 * Constructor that should be used when updating CA data.
      * Used by the web. Jsp and stuff like that.
+	 * @param caid CA ID
+	 * @param encodedValidity Validity 
+	 * @param catoken Token
+	 * @param description Description
+	 * @param crlperiod CRL period
+	 * @param crlIssueInterval CRL Issue
+	 * @param crlOverlapTime CRL Overlap
+	 * @param deltacrlperiod CRL Delta
+	 * @param crlpublishers CRL Publisher
+	 * @param keyValidators Validators
+	 * @param finishuser bool
+	 * @param extendedcaserviceinfos info
+	 * @param approvals approvals
+	 * @param includeInHealthCheck bool 
+	 * @param _doEnforceUniquePublicKeys bool 
+	 * @param _doEnforceUniqueDistinguishedName bool 
+	 * @param _doEnforceUniqueSubjectDNSerialnumber bool
+	 * @param _useCertReqHistory bool
+	 * @param _useUserStorage bool
+	 * @param _useCertificateStorage bool 
+	 * @param _acceptRevocationNonExistingEntry bool 
+	 * @param defaultCertprofileId ID
 	 */
 	public CVCCAInfo(int caid, String encodedValidity, CAToken catoken, String description,
 			long crlperiod, long crlIssueInterval, long crlOverlapTime, long deltacrlperiod,

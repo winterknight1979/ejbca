@@ -89,7 +89,8 @@ public class CAToken extends UpgradeableDataHashMap {
         internalInit(caTokenProperties);
     }
 
-	/** Common code to initialize object called from all constructors. */
+	/** Common code to initialize object called from all constructors. 
+	 * @param caTokenProperties properties*/
 	private void internalInit(Properties caTokenProperties) {
         this.keyStrings = new PurposeMapping(caTokenProperties);
         setCATokenPropertyData(storeProperties(caTokenProperties));
@@ -97,7 +98,7 @@ public class CAToken extends UpgradeableDataHashMap {
 
     /** Constructor used to initialize a stored CA token, when the UpgradeableHashMap has been stored as is.
      * 
-     * @param data LinkedHashMap
+     * @param tokendata LinkedHashMap
      */
     @SuppressWarnings("rawtypes")
     public CAToken(final HashMap tokendata) {
@@ -112,7 +113,10 @@ public class CAToken extends UpgradeableDataHashMap {
         internalInit(caTokenProperties);
     }
     
-    /** Verifies that the all the mapped keys are present in the CryptoToken and optionally that the test key is usable. */
+    /** Verifies that the all the mapped keys are present in the CryptoToken and optionally that the test key is usable. 
+     * @param caTokenSignTest bool
+     * @param cryptoToken token
+     * @return status code*/
     public int getTokenStatus(boolean caTokenSignTest, CryptoToken cryptoToken) {
         if (log.isTraceEnabled()) {
             log.trace(">getCATokenStatus");
@@ -210,7 +214,9 @@ public class CAToken extends UpgradeableDataHashMap {
         return ret;
     }
 
-    /** @return the key pair alias in the CryptoToken from the CATokenConstants.CAKEYPURPOSE_.. */
+    /** @param purpose purpose
+     * @return the key pair alias in the CryptoToken from the CATokenConstants.CAKEYPURPOSE_.. 
+     * @throws CryptoTokenOfflineException if offline */
     public String getAliasFromPurpose(final int purpose) throws CryptoTokenOfflineException {
         if (keyStrings==null) {
             // keyStrings is transient and can be null after serialization
@@ -227,13 +233,16 @@ public class CAToken extends UpgradeableDataHashMap {
     public int getCryptoTokenId() {
         return cryptoTokenId;
     }
-    /** Set the reference to the CA's CryptoToken. Use with care! */
+    /** Set the reference to the CA's CryptoToken. Use with care! 
+     * @param cryptoTokenId ID*/
     public void setCryptoTokenId(final int cryptoTokenId) {
         this.cryptoTokenId = cryptoTokenId;
         data.put(CAToken.CRYPTOTOKENID, String.valueOf(cryptoTokenId));
     }
 
-    /** Set a property and update underlying Map */
+    /** Set a property and update underlying Map 
+     * @param key Key
+     * @param value Value*/
     public void setProperty(String key, String value) {
         final Properties caTokenProperties = getProperties();
         caTokenProperties.setProperty(key, value);
@@ -243,7 +252,7 @@ public class CAToken extends UpgradeableDataHashMap {
     /**
      * Internal method just to get rid of the always present date that is part of the standard Properties.store().
      * 
-     * @param prop
+     * @param caTokenProperties properties
      * @return String that can be loaded by Properties.load
      */
     private String storeProperties(Properties caTokenProperties) {
@@ -261,7 +270,8 @@ public class CAToken extends UpgradeableDataHashMap {
         return sw.toString();
     }
 
-    /** Sets the propertydata used to configure this CA Token. */
+    /** Sets the propertydata used to configure this CA Token. 
+     * @param propertydata data*/
     private void setCATokenPropertyData(String propertydata) {
         data.put(CAToken.PROPERTYDATA, propertydata);
     }
@@ -295,7 +305,7 @@ public class CAToken extends UpgradeableDataHashMap {
         return prop;
     }
 
-    /** Returns the Sequence, that is a sequence that is updated when keys are re-generated */
+    /** @return the Sequence, that is a sequence that is updated when keys are re-generated */
     public String getKeySequence() {
         Object seq = data.get(SEQUENCE);
         if (seq == null) {
@@ -304,17 +314,19 @@ public class CAToken extends UpgradeableDataHashMap {
         return (String) seq;
     }
 
-    /** Sets the key sequence */
+    /** Sets the key sequence 
+     * @param sequence sequence*/
     public void setKeySequence(String sequence) {
         data.put(SEQUENCE, sequence);
     }
 
-    /** Sets the SequenceFormat */
+    /** Sets the SequenceFormat 
+     * @param sequence format*/
     public void setKeySequenceFormat(int sequence) {
         data.put(SEQUENCE_FORMAT, sequence);
     }
 
-    /** Returns the Sequence format, that is the format of the key sequence */
+    /** @return the Sequence format, that is the format of the key sequence */
     public int getKeySequenceFormat() {
         Object seqF = data.get(SEQUENCE_FORMAT);
         if (seqF == null) {
@@ -323,22 +335,24 @@ public class CAToken extends UpgradeableDataHashMap {
         return (Integer) seqF;
     }
 
-    /** Returns the SignatureAlgoritm */
+    /** @return the SignatureAlgoritm */
     public String getSignatureAlgorithm() {
         return (String) data.get(CAToken.SIGNATUREALGORITHM);
     }
 
-    /** Sets the SignatureAlgoritm */
+    /** Sets the SignatureAlgoritm 
+     * @param signaturealgoritm Algo*/
     public void setSignatureAlgorithm(String signaturealgoritm) {
         data.put(CAToken.SIGNATUREALGORITHM, signaturealgoritm);
     }
 
-    /** Returns the EncryptionAlgoritm */
+    /** @return the EncryptionAlgoritm */
     public String getEncryptionAlgorithm() {
         return (String) data.get(CAToken.ENCRYPTIONALGORITHM);
     }
 
-    /** Sets the EncryptionAlgoritm */
+    /** Sets the EncryptionAlgoritm 
+     * @param encryptionalgo Algo*/
     public void setEncryptionAlgorithm(String encryptionalgo) {
         data.put(CAToken.ENCRYPTIONALGORITHM, encryptionalgo);
     }
@@ -354,7 +368,7 @@ public class CAToken extends UpgradeableDataHashMap {
     public void upgrade() {
         if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
             // New version of the class, upgrade
-            String msg = intres.getLocalizedMessage("token.upgrade", new Float(getVersion()));
+            String msg = intres.getLocalizedMessage("token.upgrade", Float.valueOf(getVersion()));
             log.info(msg);
             // Put upgrade stuff here
             if (data.get(CAToken.SEQUENCE_FORMAT) == null) { // v7
@@ -402,7 +416,7 @@ public class CAToken extends UpgradeableDataHashMap {
                 data.put(CAToken.CLASSPATH, newclasspath);
             }
 
-            data.put(VERSION, new Float(LATEST_VERSION));
+            data.put(VERSION, Float.valueOf(LATEST_VERSION));
         }
     }
 
@@ -478,14 +492,16 @@ public class CAToken extends UpgradeableDataHashMap {
         setCATokenPropertyData(storeProperties(caTokenProperties));
     }
 
-    /** Set the next singing key alias */
+    /** Set the next singing key alias 
+     * @param nextSignKeyAlias Alias*/
     public void setNextCertSignKey(String nextSignKeyAlias) {
         final Properties caTokenProperties = getProperties();
         caTokenProperties.setProperty(CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING_NEXT, nextSignKeyAlias);
         setCATokenPropertyData(storeProperties(caTokenProperties));
     }
 
-    /** Set the next key sequence */
+    /** Set the next key sequence 
+     * @param newSequence sequence*/
     public void setNextKeySequence(String newSequence) {
         final Properties caTokenProperties = getProperties();
         caTokenProperties.setProperty(CATokenConstants.NEXT_SEQUENCE_PROPERTY, newSequence);

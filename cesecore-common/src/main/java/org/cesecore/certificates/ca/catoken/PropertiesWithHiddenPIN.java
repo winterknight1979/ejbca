@@ -31,7 +31,7 @@ public class PropertiesWithHiddenPIN extends Properties {
     }
 
     /**
-     * @param defaults
+     * @param defaults Properties
      */
     public PropertiesWithHiddenPIN(Properties defaults) {
         super(defaults);

@@ -54,6 +54,7 @@ public enum OcspExtensionsCache {
 
     /**
      * Method to manually reload the cache. 
+     * @param newExtensionMap new cache
      */
     private void reloadCache(Map<String, OCSPExtension> newExtensionMap) {
         extensionMap = newExtensionMap;

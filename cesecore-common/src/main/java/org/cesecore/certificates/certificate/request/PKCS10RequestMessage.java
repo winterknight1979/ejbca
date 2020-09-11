@@ -106,7 +106,6 @@ public class PKCS10RequestMessage implements RequestMessage {
      * Constructs a new PKCS#10 message handler object.
      *
      * @param msg The DER encoded PKCS#10 request.
-     * @throws IOException
      */
     public PKCS10RequestMessage(byte[] msg) {
     	if (log.isTraceEnabled()) {
@@ -123,7 +122,7 @@ public class PKCS10RequestMessage implements RequestMessage {
      * Constructs a new PKCS#10 message handler object.
      *
      * @param p10 the PKCS#10 request
-     * @throws IOException
+     * @throws IOException on fail
      */
     public PKCS10RequestMessage(JcaPKCS10CertificationRequest p10) throws IOException {
     	if (log.isTraceEnabled()) {
@@ -161,6 +160,7 @@ public class PKCS10RequestMessage implements RequestMessage {
 
     /**
      * force a password, i.e. ignore the challenge password in the request
+     * @param pwd password
      */
     public void setPassword(String pwd) {
         this.password = pwd;
@@ -232,6 +232,7 @@ public class PKCS10RequestMessage implements RequestMessage {
 
     /**
      * force a username, i.e. ignore the DN/username in the request
+     * @param username username
      */
     public void setUsername(String username) {
         this.username = username;
@@ -242,6 +243,7 @@ public class PKCS10RequestMessage implements RequestMessage {
      * use the default validity specified in the certificate profile. The value
      * specified here will only be considered if user-defined validity dates are
      * allowed by the certificate profile, e.g. if Validity override" is enabled.
+     * @param notAfter expiry
      */
     public void setNotAfter(final Date notAfter) {
         this.notAfter = notAfter;

@@ -26,6 +26,10 @@ public interface CTAuditLogCallback {
     
     /**
      * Called after a pre-certificate has been submitted to CT logs, or on failure to submit it.
+     * @param issuer issuer
+     * @param subject subject
+     * @param precert certificate
+     * @param success boolean
      */
     void logPreCertSubmission(X509CA issuer, EndEntityInformation subject, X509Certificate precert, boolean success);
 }

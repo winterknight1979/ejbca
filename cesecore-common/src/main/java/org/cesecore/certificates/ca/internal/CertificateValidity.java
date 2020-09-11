@@ -110,7 +110,16 @@ public class CertificateValidity {
         this(new Date(), subject, certProfile, notBefore, notAfter, cacert, isRootCA, isLinkCertificate);
     }
    
-    /** Constructor that injects the reference point (now). This constructor mainly is used for unit testing. */
+    /** Constructor that injects the reference point (now). This constructor mainly is used for unit testing. 
+     * @param now Now
+     * @param subject Subject 
+     * @param certProfile Profila
+     * @param notBefore Start date
+     * @param notAfter End date
+     * @param cacert CA Certificate
+     * @param isRootCA  bool
+     * @param isLinkCertificate bool 
+     * @throws IllegalValidityException on fail */
 	public CertificateValidity(Date now, final EndEntityInformation subject, final CertificateProfile certProfile, 
 			final Date notBefore, final Date notAfter, final Certificate cacert, final boolean isRootCA, final boolean isLinkCertificate) throws IllegalValidityException {
 		if (log.isDebugEnabled()) {
@@ -295,6 +304,7 @@ public class CertificateValidity {
 	 * Gets the start time by the extended entity information.
 	 * @param now the reference point.
 	 * @param subject the end entity information.
+	 * @return Start time
 	 */
 	private Date getExtendedInformationStartTime(final Date now, final EndEntityInformation subject) {
 	    Date result = null;
@@ -312,6 +322,7 @@ public class CertificateValidity {
      * Gets the end time by the extended entity information.
      * @param now the reference point.
      * @param subject the end entity information.
+	 * @return End time
      */
 	private Date getExtendedInformationEndTime(final Date now, final EndEntityInformation subject) {
         Date result = null;
@@ -328,7 +339,7 @@ public class CertificateValidity {
 	
 	/**
 	 * Checks that the PrivateKeyUsagePeriod of the certificate is valid at this time
-	 * @param cacert
+	 * @param cert Certificate
 
 	 * @throws CAOfflineException if PrivateKeyUsagePeriod either is not valid yet or has expired, exception message gives details
 	 */

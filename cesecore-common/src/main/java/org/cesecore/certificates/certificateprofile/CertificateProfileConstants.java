@@ -56,6 +56,7 @@ public final class CertificateProfileConstants {
     public static final int FIXED_CERTIFICATEPROFILE_BOUNDRY = 1000;
 
     /**
+     * @param profileId ID
      * @return true is certificate profile identified by profileId is fixed
      */
     public static boolean isFixedCertificateProfile(final int profileId) {
@@ -74,7 +75,7 @@ public final class CertificateProfileConstants {
     /**
      * Default key lengths. Users are allowed to choose from these key lengths when
      * lookup of available bit lengths fails.
-     * @see org.ejbca.ui.web.pub.ApplyBean
+     * @see "org.ejbca.ui.web.pub.ApplyBean (in publicweb-gui)"
      */
     public static final int[] DEFAULT_KEY_LENGTHS = new int[] {512, 1024, 2048};
     

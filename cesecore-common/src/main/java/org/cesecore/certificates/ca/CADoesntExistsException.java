@@ -48,7 +48,7 @@ public class CADoesntExistsException extends CesecoreException {
 
     /**
      * Constructs an instance of <code>CAProfileDoesntExistsException</code> with the specified cause.
-     * @param msg the detail message.
+     * @param e the detail message.
      */
     public CADoesntExistsException(Exception e) {
         super(e);

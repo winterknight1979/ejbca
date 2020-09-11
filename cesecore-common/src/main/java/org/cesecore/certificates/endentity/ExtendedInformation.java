@@ -364,6 +364,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap implements Seria
 
     /**
      * Gets generic string data from the ExtendedInformation map.
+     * @param key Key
      * @return a string from the ExtendedInformation map or null.
      */
     public String getMapData(String key) {
@@ -377,6 +378,8 @@ public class ExtendedInformation extends UpgradeableDataHashMap implements Seria
 
     /**
      * Sets generic string data in the ExtendedInformation map.
+     * @param key Key
+     * @param value Value
      */
     public void setMapData(String key, String value) {
         data.put(key, value);
@@ -384,6 +387,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap implements Seria
 
     /**
      * Special method used to retrieve custom set userdata
+     * @param key Key
      *
      * @return The data or null if no such data have been set for the user
      */
@@ -402,6 +406,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap implements Seria
 
     /**
      * Special method used to retrieve custom extension data.
+     * @param key Key
      * @return The data or null if no such data have been set for the user
      */
     public String getExtensionData(String key){
@@ -434,12 +439,14 @@ public class ExtendedInformation extends UpgradeableDataHashMap implements Seria
         data.put(CUSTOMDATA + key, value);
     }
 
-    /** Function required by XMLEncoder to do a proper serialization. */
+    /** Function required by XMLEncoder to do a proper serialisation. 
+     * @param hmData data*/
     public void setData(Object hmData) {
         loadData(hmData);
     }
 
-    /** Function required by XMLEncoder to do a proper serialization. */
+    /** Function required by XMLEncoder to do a proper serialization. 
+     * @return data*/
     public Object getData() {
         return saveData();
     }
@@ -532,7 +539,8 @@ public class ExtendedInformation extends UpgradeableDataHashMap implements Seria
         }
     }
 
-    /** @return true if argument is null, empty or in the relative time format. */
+    /** @param time time
+     * @return true if argument is null, empty or in the relative time format. */
     private boolean isEmptyOrRelative(final String time) {
     	return (time == null || time.length()==0 || time.matches("^\\d+:\\d?\\d:\\d?\\d$"));
     }
@@ -551,7 +559,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap implements Seria
      *
      * Inheriting class should call 'setClassPath(this) in it's constructor.
      *
-     * @param type
+     * @param type Type
      */
     private void setType(int type) {
         data.put(TYPE, type);

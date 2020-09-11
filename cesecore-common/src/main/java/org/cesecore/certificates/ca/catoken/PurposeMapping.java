@@ -108,6 +108,8 @@ public final class PurposeMapping {
     /** Returns which key alias string is used for a certain key purpose. 
      * For example for CryptoTokenConstants.CAKEYPURPOSE_CERTSIGN would either a key alias as defined by the property "CAKEYPURPOSE_CERTSIGN_STRING myCertSignKey" (myCertSignKey) 
      * or null be returned. null is returned if no CAKEYPURPOSE_CERTSIGN_STRING (certSignKey) property was specified by the user.
+     * @param purpose purpose
+     * @return alias
      */ 
     public String getAlias(final int purpose) {
         String alias;
@@ -130,6 +132,8 @@ public final class PurposeMapping {
      * For example for CryptoTokenConstants.CAKEYPURPOSE_CERTSIGN would either CAKEYPURPOSE_CERTSIGN_STRING (certSignKey) 
      * or CAKEYPURPOSE_DEFAULT_STRING (defaultKey) be returned.
      * Special handling is for CERTSIGN_PREVIOUS and CERTSIGN_NEXT. If they can not be found, the defaultKey is _not_ returned.
+     * @param purpose purpose
+     * @return property
      */ 
     public String getPurposeProperty(final int purpose) {
         String s;
@@ -165,7 +169,8 @@ public final class PurposeMapping {
     	return map.toString();
     }
     
-    /** @return true if the provided alias is mapped exactly once */
+    /** @param alias alias
+     * @return true if the provided alias is mapped exactly once */
     public boolean isAliasMappedForSinglePurpose(final String alias) {
         if (alias==null) {
             return false;

@@ -28,13 +28,14 @@ public final class CTSubmissionConfigParams implements Serializable {
     private GoogleCtPolicy validityPolicy;
     
     /**
-     * Contains definitions (URL, public key, etc.) of the logs that can be used.
+     * @return definitions (URL, public key, etc.) of the logs that can be used.
      */
     public Map<Integer, CTLogInfo> getConfiguredCTLogs() {
         return configuredCTLogs;
     }
     
     /**
+     * @param configuredCTLogs Logs
      * @see #getConfiguredCTLogs
      */
     public void setConfiguredCTLogs(final Map<Integer, CTLogInfo> configuredCTLogs) {
@@ -43,12 +44,14 @@ public final class CTSubmissionConfigParams implements Serializable {
     
     /**
      * Policy for setting min/max SCTs based on the validity
+     * @return policy
      */
     public GoogleCtPolicy getValidityPolicy() {
         return validityPolicy;
     }
     
     /**
+     * @param validityPolicy policy
      * @see #getValidityPolicy
      */
     public void setValidityPolicy(final GoogleCtPolicy validityPolicy) {

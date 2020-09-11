@@ -196,7 +196,12 @@ public final class QCStatementExtension extends CertTools {
         return ret;
     }
 
-    /** Assumes that the statementoid in the QcStatements Sequence, seq, is a String and extracts that value from position, pos, of sequence */
+    /** Assumes that the statementoid in the QcStatements Sequence, seq, is a String and extracts that value from position, pos, of sequence 
+     * @param seq ASN.1 sequence
+     * @param statementoid OIS
+     * @param pos position
+     * @return value
+     * @throws IOException  on error */
     public static String getStatementStringValue(final ASN1Sequence seq, final String statementoid, final int pos) throws IOException {
         // Look through all the QCStatements and see if we have a standard ETSI PDS URL
         for (int i = 0; i < seq.size(); i++) {

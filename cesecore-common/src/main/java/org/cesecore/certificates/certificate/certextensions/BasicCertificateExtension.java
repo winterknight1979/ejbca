@@ -68,7 +68,8 @@ public class BasicCertificateExtension extends CertificateExtension implements C
 
     private static final long serialVersionUID = 6896964791897238060L;
 
-    private static final Logger log = Logger.getLogger(BasicCertificateExtension.class);
+    @SuppressWarnings("unused")
+	private static final Logger log = Logger.getLogger(BasicCertificateExtension.class);
 
     private static final InternalResources intres = InternalResources.getInstance();
     
@@ -235,6 +236,7 @@ public class BasicCertificateExtension extends CertificateExtension implements C
      * dynamic is enabled) and then in the static configuration.
      * 
      * @param userData The userdata to get the ExtendedInformation from
+     * @param oid OID
      * @return The value(s) for the extension (usually 1) or null if no value found
      */
     private String[] getValues(EndEntityInformation userData, final String oid) {
@@ -424,6 +426,9 @@ public class BasicCertificateExtension extends CertificateExtension implements C
 
     /**
      * Tries to read the hex-string as an DERObject. If it contains more than one ASN1Encodable object, return a DERSequence of the objects.
+     * @param value value
+     * @return DER sequence
+     * @throws CertificateExtensionException on fail
      */
     private ASN1Encodable parseHexEncodedDERObject(String value) throws CertificateExtensionException {
         ASN1Encodable retval = null;

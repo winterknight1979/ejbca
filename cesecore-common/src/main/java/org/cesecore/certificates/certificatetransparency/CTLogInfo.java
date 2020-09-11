@@ -141,7 +141,8 @@ public final class CTLogInfo implements Serializable {
         return isMandatory;
     }
 
-    /** Sets the timeout in milliseconds when sending a request to the log server */
+    /** Sets the timeout in milliseconds when sending a request to the log server 
+     * @param timeout timeout*/
     public void setTimeout(final int timeout) {
         if (timeout < 0) {
             throw new IllegalArgumentException("Timeout value is negative");
@@ -149,7 +150,9 @@ public final class CTLogInfo implements Serializable {
         this.timeout = timeout;
     }
 
-    /** Makes sure that a URL ends with /ct/v1/ */
+    /** Makes sure that a URL ends with /ct/v1/ 
+     * @param urlToFix URL
+     * @return fixed URL */
     public static String fixUrl(final String urlToFix) {
         String url = (urlToFix.endsWith("/") ? urlToFix : urlToFix + "/");
         if (!url.endsWith("/ct/v1/")) {

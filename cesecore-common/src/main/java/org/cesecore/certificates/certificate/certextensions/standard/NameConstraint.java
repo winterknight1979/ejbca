@@ -86,6 +86,8 @@ public class NameConstraint extends StandardCertificateExtension {
      * Converts a list of encoded strings of Name Constraints into ASN1 GeneralSubtree objects.
      * This is needed when creating an BouncyCastle ASN1 NameConstraint object for inclusion
      * in a certificate.
+     * @param list encoded strings
+     * @return ASN1 subtree
      */
     public static GeneralSubtree[] toGeneralSubtrees(List<String> list) {
         if (list == null) {
@@ -118,7 +120,8 @@ public class NameConstraint extends StandardCertificateExtension {
     }
 
     /**
-     * Returns the GeneralName type code for an encoded Name Constraint.
+     * @param encoded name constraint
+     * @return the GeneralName type code for an encoded Name Constraint.
      */
     private static int getNameConstraintType(String encoded) {
         String typeString = encoded.split(":", 2)[0];
@@ -139,6 +142,8 @@ public class NameConstraint extends StandardCertificateExtension {
 
     /**
      * Returns the GeneralName data (as a byte array or String) from an encoded string.
+     * @param encoded string
+     * @return GeneralName
      */
     private static Object getNameConstraintData(String encoded) {
         int type = getNameConstraintType(encoded);
@@ -167,6 +172,8 @@ public class NameConstraint extends StandardCertificateExtension {
      *
      * This format is essentially a hex string representation of a RFC 5280 GeneralName,
      * but only DNS Names and IP Addresses are supported so far.
+     * @param str constraint
+     * @return encoded string
      *
      * @throws CertificateExtensionException if the string can not be parsed.
      */
@@ -221,7 +228,10 @@ public class NameConstraint extends StandardCertificateExtension {
 
     /**
      * Parses human readable name constraints, one entry per line, into a list of encoded name constraints.
-     * @see parseNameConstraintEntry
+     * @param input Constraints
+     * @return encoded constraints
+     * @throws CertificateExtensionException if the string cannot be parsed
+     * @see #parseNameConstraintEntry
      */
     public static List<String> parseNameConstraintsList(String input) throws CertificateExtensionException {
         List<String> encodedNames = new ArrayList<>();
@@ -239,6 +249,8 @@ public class NameConstraint extends StandardCertificateExtension {
 
     /**
      * Formats an encoded name constraint from parseNameConstraintEntry into human-readable form.
+     * @param encoded encoded string
+     * @return human-readable
      */
     public static String formatNameConstraintEntry(String encoded) {
         if (encoded == null) {
@@ -286,6 +298,7 @@ public class NameConstraint extends StandardCertificateExtension {
 
     /**
      * Formats an encoded list of name constraints into a human-readable list, with one entry per line.
+     * @param encodedList List of constraints
      * @return a newline-separated string of encoded name constraints
      */
     public static String formatNameConstraintsList(final List<String> encodedList) {

@@ -96,8 +96,8 @@ public enum CaCertificateCache  {
 	 * We keep this method as synchronized, it should not take more than a few microseconds to complete if the cache does not have
 	 * to be reloaded. If the cache must be reloaded, we must wait for it anyway to not have ConcurrentModificationException.
 	 * We also only want one single thread to do the rebuilding.
+	 * @param certs Certificates
 	 * 
-	 * @return true if the cache was reloaded, false if cache wasn't expired.
 	 */
     public synchronized void loadCertificates(final Collection<Certificate> certs) {
         if (log.isDebugEnabled()) {

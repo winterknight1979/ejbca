@@ -102,17 +102,15 @@ public abstract class PatternLogger implements Serializable {
     /**
      * @param doLogging
      *            True if you want this pattern logger to do anything upon flush.
-     * @param logger
+     * @param loggerClass
      *            The Class to create Log4j logger for, to log to if doLogging is true
      * @param matchPattern
      *            A string to create a matcher that is used together with matchString to determine how output is formatted
      * @param matchString
      *            A string that matches the pattern in m and specifies the order in which values are logged by the logger
-     * @param logger
-     *            A log4j Logger that is used for output
      * @param logDateFormat
      *            A string that specifies how the log-time is formatted
-     * @param timeZone
+     * @param timeZone Time Zone
      */
     protected PatternLogger(boolean doLogging, Class<?> loggerClass, String matchPattern, String matchString, String logDateFormat, String timeZone) {
         this.doLogging = doLogging;
@@ -190,8 +188,8 @@ public abstract class PatternLogger implements Serializable {
     /**
      * Hex-encodes the bytes.
      * method that makes sure that a "" is inserted instead of null
-     * @param key
-     * @param value
+     * @param key key
+     * @param value value
      */
     public void paramPut(String key, byte[] value) {
         paramPut(key, new String(Hex.encode(value)));
@@ -199,8 +197,8 @@ public abstract class PatternLogger implements Serializable {
 
     /**
      * method that makes sure that a "" is inserted instead of null
-     * @param key
-     * @param value
+     * @param key key
+     * @param value value
      */
     public void paramPut(String key, String value) {
         // logger.debug("paramput: "+ key+ ";" +value +";" +valuepairs.toString());
@@ -216,8 +214,8 @@ public abstract class PatternLogger implements Serializable {
 
     /**
      * method that makes sure that a "" is inserted instead of null
-     * @param key
-     * @param value
+     * @param key key
+     * @param value value
      */
     public void paramPut(String key, Integer value) {
         if (value == null) {

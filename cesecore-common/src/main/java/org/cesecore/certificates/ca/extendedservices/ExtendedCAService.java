@@ -74,31 +74,43 @@ public abstract class ExtendedCAService extends UpgradeableDataHashMap implement
     /**
      * Initializes the ExtendedCAService the first time it is created. Only used when the CA service is created the first time, usually this is when
      * the CA is created, or the service of the CA is renewed.
+     * @param cryptoToken token
      * 
      * @param ca the CA from which the service can use private keys to generate service certificates etc. This must not be stored.
      * @param cceConfig containing a list of available custom certificate extensions
+     * @throws Exception on error
      */
     public abstract void init(final CryptoToken cryptoToken, CA ca, AvailableCustomCertificateExtensionsConfiguration cceConfig) throws Exception;
 
     /**
      * Update the ExtendedCAService data
+     * @param cryptoToken token
      * 
      * @param info
      *            contains information used to activate the service.
+     * @param ca CA
+     * @param cceConfig config 
      */
     public abstract void update(final CryptoToken cryptoToken, ExtendedCAServiceInfo info, CA ca, AvailableCustomCertificateExtensionsConfiguration cceConfig);
 
     /**
      * Method used to retrieve information about the service.
+     * @return info
      */
 
     public abstract ExtendedCAServiceInfo getExtendedCAServiceInfo();
 
     /**
      * Method used to perform the service.
-     * @throws OperatorCreationException 
-     * @throws CertificateException 
-     * @throws CertificateEncodingException 
+     * @param cryptoToken token
+     * @param request request
+     * @return response
+     * @throws ExtendedCAServiceRequestException on error
+     * @throws IllegalExtendedCAServiceRequestException on illegal action
+     * @throws ExtendedCAServiceNotActiveException if service is inactive or unreachable
+     * @throws OperatorCreationException if creation fails
+     * @throws CertificateException if certificate is invalid
+     * @throws CertificateEncodingException if certificate cannot be parsed
      */
     public abstract ExtendedCAServiceResponse extendedService(final CryptoToken cryptoToken, ExtendedCAServiceRequest request) throws ExtendedCAServiceRequestException,
             IllegalExtendedCAServiceRequestException, ExtendedCAServiceNotActiveException, CertificateEncodingException, CertificateException, OperatorCreationException;

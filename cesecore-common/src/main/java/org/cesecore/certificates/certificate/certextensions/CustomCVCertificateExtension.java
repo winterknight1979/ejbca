@@ -35,7 +35,7 @@ public interface CustomCVCertificateExtension extends CustomCertificateExtension
      * @param userPublicKey Public key of user.
      * @param caPublicKey Public key of CA, or old public key in link certificates. Null in CSRs.
      * @param validity Validity, or null in CSRs and link certificates.
-     * @param isCSR true if generating a CSR, false if generating a certificate.
+     * @param extensionLocation location
      * @return The Discretionary Data Template object
      * @throws CertificateExtensionException In case of encoding errors etc.
      */
@@ -43,17 +43,17 @@ public interface CustomCVCertificateExtension extends CustomCertificateExtension
             PublicKey caPublicKey, CertificateValidity validity, CertificateExtensionLocation extensionLocation) throws CertificateExtensionException;
     
     /**
-     * Returns true if the certificate is to be included in certificates.
+     * @return true if the certificate is to be included in certificates.
      */
     boolean isIncludedInCertificates();
     
     /**
-     * Returns true if the certificate is to be included in CSRs.
+     * @return true if the certificate is to be included in CSRs.
      */
     boolean isIncludedInCSR();
     
     /**
-     * Returns true if the certificate is to be included in link certificates.
+     * @return true if the certificate is to be included in link certificates.
      */
     boolean isIncludedInLinkCertificates();
 }

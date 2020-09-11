@@ -13,7 +13,7 @@
 
 package org.cesecore.certificates.ocsp.extension;
 
-import java.io.IOException;
+
 import java.security.cert.X509Certificate;
 import java.util.Map;
 import java.util.Set;
@@ -54,7 +54,6 @@ public interface OCSPExtension {
      * 
      * @return Hashtable with X509Extensions <String oid, X509Extension ext> that will be added to responseExtensions by OCSP responder, or null if an
      *         error occurs
-     * @throws IOException 
      */
     Map<ASN1ObjectIdentifier, Extension> process(final X509Certificate[] requestCertificates, final String remoteAddress, final String remoteHost,
             final X509Certificate cert, final CertificateStatus status, final InternalKeyBinding internalKeyBinding);

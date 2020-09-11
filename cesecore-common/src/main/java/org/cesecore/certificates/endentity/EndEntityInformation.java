@@ -111,13 +111,14 @@ public class EndEntityInformation implements Serializable {
      * @param subjectaltname the Subject Alternative Name to be used.
      * @param email the email of the subject (may be null).
      * @param status Status of user, from {@link EndEntityConstants#STATUS_NEW} etc
-     * @param type Type of user, from {@link EndEntityConstants#ENDUSER} etc, can be "or:ed" together, i.e. EndEntityConstants#USER_ENDUSER | {@link EndEntityConstants#SENDNOTIFICATION}
+     * @param type Type of user, from {@link EndEntityTypes#ENDUSER} etc, can be "or:ed" together, i.e. EndEntityTypes#ENDUSER | {@link EndEntityTypes#SENDNOTIFICATION}
      * @param endentityprofileid the id number of the end entity profile bound to this user.
      * @param certificateprofileid the id number of the certificate profile that should be generated for the user.
      * @param timecreated DOCUMENT ME!
      * @param timemodified DOCUMENT ME!
      * @param tokentype the type of token, from {@link EndEntityConstants#TOKEN_USERGEN} etc
      * @param hardtokenissuerid if token should be hard, the id of the hard token issuer, else 0.
+     * @param extendedinfo info
 
      */
     public EndEntityInformation(final String username, final String dn, final int caid, final String subjectaltname, final String email,
@@ -156,7 +157,7 @@ public class EndEntityInformation implements Serializable {
      * @param certificateprofileid the id number of the certificate profile that should be generated for the user.
      * @param tokentype the type of token, from {@link EndEntityConstants#TOKEN_USERGEN} etc
      * @param hardtokenissuerid if token should be hard, the id of the hard token issuer, else 0.
-     * @param extendedinfo
+     * @param extendedinfo info
      */
     public EndEntityInformation(final String username, final String dn, final int caid, final String subjectaltname, final String email,
             final EndEntityType type, final int endentityprofileid, final int certificateprofileid, final int tokentype, final int hardtokenissuerid,
@@ -214,6 +215,7 @@ public class EndEntityInformation implements Serializable {
     /**
      * Gets the user's clear text password. For empty passwords, it can either return
      * null or an empty string depending on the database software used.
+     * @return password
      */
     public String getPassword() {return StringTools.getBase64String(password);}
     public void setStatus(int status) {this.status=status;}
@@ -235,6 +237,7 @@ public class EndEntityInformation implements Serializable {
 
 
     /**
+     * @return boolean
      * @deprecated from EJBCA 3.8.0. The admin property is no longer used. This method is still used for deserializing objects in CertReqHistoryDataBean.
      */
     @Deprecated
@@ -243,6 +246,7 @@ public class EndEntityInformation implements Serializable {
     }
 
     /**
+     * @param administrator boolean
      * @deprecated from EJBCA 3.8.0. The admin property is no longer used. This method is still used for deserializing objects in CertReqHistoryDataBean.
      */
     @Deprecated
@@ -318,6 +322,8 @@ public class EndEntityInformation implements Serializable {
     /**
      * Help Method used to create an ExtendedInformation from String representation.
      * Used when creating an ExtendedInformation from queries.
+     * @param extendedinfostring info string
+     * @return info object
      */
     public static ExtendedInformation getExtendedInformationFromStringData(final String extendedinfostring) {
         ExtendedInformation returnval = null;
@@ -362,7 +368,6 @@ public class EndEntityInformation implements Serializable {
      * CN=Tomas,OU=,OU=PrimeKey,C=SE. See ECA-1841 for an explanation of this.
      * Use method getCertificateDN() to get the DN stripped from empty fields, getDN() returns DN with empty fields.
      * @see #getDN()
-     * @return String with DN, with no empty fields, use getDN to get including empty fields
      */
     public String getCertificateDN() {
     	if (subjectDNClean == null) {

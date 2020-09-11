@@ -57,7 +57,6 @@ public class EndEntityType implements Serializable{
     /**
      * Creates an amalgam of all types given as parameters using binary OR on their hex values.   
      * 
-     * @param type First type to add. Separate parameter to avoid empty instantiation. 
      * @param types varargs list of types. 
      */
     public EndEntityType(EndEntityTypes ... types) {

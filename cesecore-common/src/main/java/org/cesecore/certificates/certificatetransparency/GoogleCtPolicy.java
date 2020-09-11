@@ -38,6 +38,7 @@ public class GoogleCtPolicy implements Serializable {
      * <ul>
      *   <li>Ensure the number of CT logs are all greater than zero.</li>
      * </ul>
+     * @return boolean
      */
     public boolean isValid() {
         for (int i = 0; i < minScts.length; i++) {
@@ -114,7 +115,7 @@ public class GoogleCtPolicy implements Serializable {
     /**
      * Get the minimum number of SCTs required for non EV-certificates with a lifetime
      * of more than 39 Months.
-     * return a number of SCTs
+     * @return a number of SCTs
      */
     public int getMoreThan39Months() {
         return minScts[MORE_THAN_39_MONTHS];
@@ -143,7 +144,7 @@ public class GoogleCtPolicy implements Serializable {
     }
     
     /**
-     * Returns the number of breakpoints (i.e. indices to getMinSctsByIndex/getLessThanMonthsByIndex)
+     * @return the number of breakpoints (i.e. indices to getMinSctsByIndex/getLessThanMonthsByIndex)
      */
     public int getNumberOfBreakpoints() {
         return minScts.length;

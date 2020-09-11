@@ -40,9 +40,9 @@ public class RequestAndPublicKeySelector {
     /** Constructor taking input needed to make decision on which public key and requets message to use. After construction caller can use the methods
      * {@link #getPublicKey()} and {@link #getRequestMessage()} to retrieve the selected objects.
      * 
-     * @param providedRequestMessage
-     * @param providedPublicKey
-     * @param endEntityInformation
+     * @param providedRequestMessage message
+     * @param providedPublicKey key
+     * @param endEntityInformation info
      */
     public RequestAndPublicKeySelector(final RequestMessage providedRequestMessage, final PublicKey providedPublicKey, final ExtendedInformation endEntityInformation) {
         requestMessage = providedRequestMessage; //The request message was provided outside of endEntityInformation

@@ -36,7 +36,7 @@ public class ExtendedCAServiceNotActiveException extends java.lang.Exception {
 
     /**
      * Constructs an instance of <code>IllegalExtendedServiceRequestException</code> with the specified cause.
-     * @param msg the detail message.
+     * @param e the detail message.
      */
     public ExtendedCAServiceNotActiveException(Exception e) {
         super(e);

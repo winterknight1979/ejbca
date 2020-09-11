@@ -50,6 +50,7 @@ public final class CertificateGenerationParams implements Serializable {
     
     /**
      * Sets CT parameters that are not specific to the certificate profile, for example list of available CT logs.
+     * @param ctSubmissionConfigParams parameters
      */
     public void setCTSubmissionConfigParams(final CTSubmissionConfigParams ctSubmissionConfigParams) {
         this.ctSubmissionConfigParams = ctSubmissionConfigParams;
@@ -58,8 +59,9 @@ public final class CertificateGenerationParams implements Serializable {
     /**
      * Set the a callback to be called after CT log submission.
      * This method is called automatically from CertificateCreateSession when generating a certificate.
+     * @param ctAuditLogCallback callback
      */
-    public void setCTAuditLogCallback(CTAuditLogCallback ctAuditLogCallback) {
+    public void setCTAuditLogCallback(CTAuditLogCallback ctAuditLogCallback) { 
         this.ctAuditLogCallback = ctAuditLogCallback;
     }
 

@@ -17,7 +17,7 @@ import java.security.cert.Certificate;
 
 /**
  * General interface for any object that wraps a certificate, such as
- * {@link CertificateDataWrapper} and {@link CertificateSerializableWrapper}.
+ * CertificateDataWrapper and CertificateSerializableWrapper.
  * 
  * Implementations of this interface are expected to handle (de-)serialization of certificates
  * from the BouncyCastle provider. E.g. having a transient Certificate object and

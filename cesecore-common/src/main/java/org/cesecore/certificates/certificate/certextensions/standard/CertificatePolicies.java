@@ -109,9 +109,9 @@ public class CertificatePolicies extends StandardCertificateExtension {
     /**
      * Obtains the Policy Qualifier Information object
      * 
-     * @param policy,
+     * @param policy
      *          CertificatePolicy with oid, user notice and cps uri
-     * @param displayencoding,
+     * @param displayencoding
      *          the encoding used for UserNotice text, DisplayText.CONTENT_TYPE_BMPSTRING, CONTENT_TYPE_UTF8STRING, CONTENT_TYPE_IA5STRING or CONTENT_TYPE_VISIBLESTRING 
      *          
      * @return PolicyQualifierInfo

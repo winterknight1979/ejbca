@@ -12,6 +12,7 @@
  *************************************************************************/ 
 package org.cesecore.certificates.certificate.certextensions;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 
 import org.apache.log4j.Logger;
@@ -88,6 +89,7 @@ public class CertificateExtensionFactory {
 	 * Method used to get the instance of the factory.
 	 * If it is the first time the method is called will
 	 * the configuration file be parsed.
+	 * @return The factory instance
 	 */
 	public static CertificateExtensionFactory getInstance(){
 		if(instance == null){
@@ -100,8 +102,10 @@ public class CertificateExtensionFactory {
 	/**
 	 * Method returning the instance of the standard CertificateExtension
 	 * given its object identifier
+	 * @param oid OID
+	 * @param certProf Profile 
 	 * 
-	 * @returns null if the CertificateExtension doesn't exist
+	 * @return null if the CertificateExtension doesn't exist
 	 */
 	public CertificateExtension getStandardCertificateExtension(final String oid, final CertificateProfile certProf){
 		StandardCertificateExtension ret = null;
@@ -109,7 +113,7 @@ public class CertificateExtensionFactory {
 		if (classPath != null) {
 			try {
 				final Class<?> implClass = Class.forName(classPath);
-				ret = (StandardCertificateExtension)implClass.newInstance();					
+				ret = (StandardCertificateExtension)implClass.getConstructor().newInstance();					
 				ret.init(certProf);                    
 			} catch (ClassNotFoundException e) {
 				log.error(intres.getLocalizedMessage("certext.noextensionforid", oid), e);			
@@ -117,7 +121,11 @@ public class CertificateExtensionFactory {
 				log.error(intres.getLocalizedMessage("certext.noextensionforid", oid), e);			
 			} catch (IllegalAccessException e) {
 				log.error(intres.getLocalizedMessage("certext.noextensionforid", oid), e);			
-			}			
+			}	catch (InvocationTargetException e) {
+				log.error(intres.getLocalizedMessage("certext.noextensionforid", oid), e);			
+			}	catch (NoSuchMethodException e) {
+				log.error(intres.getLocalizedMessage("certext.noextensionforid", oid), e);			
+			}					
 		}
 		if (ret == null) {
 			log.error(intres.getLocalizedMessage("certext.noextensionforid", oid));			

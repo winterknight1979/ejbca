@@ -120,7 +120,8 @@ public class SimpleRequestMessage implements RequestMessage {
      * @param pubkey the public key to be certified
      * @param username username of the EJBCA user
      * @param password password of the EJBCA user
-     * @param the end validity of this certificate
+     * @param validityNotBefore the start validity of this certificate
+     * @param validityNotAfter the end validity of this certificate
      */
     public SimpleRequestMessage(final PublicKey pubkey, final String username, final String password, final Date validityNotBefore, final Date validityNotAfter) {
         this.pubkey = new PublicKeyWrapper(pubkey);
@@ -136,6 +137,7 @@ public class SimpleRequestMessage implements RequestMessage {
     }
 
     /** set a password
+     * @param pwd password
      */
     public void setPassword(String pwd) {
         this.password = pwd;
@@ -147,6 +149,7 @@ public class SimpleRequestMessage implements RequestMessage {
     }
 
     /** set a username
+     * @param username username
      */
     public void setUsername(String username) {
         this.username = username;
@@ -221,7 +224,8 @@ public class SimpleRequestMessage implements RequestMessage {
 	    return x509Extensions;
 	}
 	
-	/** Sets request extensions, if any */
+	/** Sets request extensions, if any 
+	 * @param extensions extensions*/
 	public void setRequestExtensions(final Extensions extensions) {
 	    this.x509Extensions = extensions;
 	}

@@ -39,7 +39,8 @@ public final class PKIDisclosureStatement implements Serializable, Cloneable {
         return url;
     }
 
-    /** Sets the PDS URL (EN 319 412-05) */
+    /** Sets the PDS URL (EN 319 412-05) 
+     * @param url URL*/
     public void setUrl(final String url) {
         this.url = url;
     }
@@ -53,6 +54,7 @@ public final class PKIDisclosureStatement implements Serializable, Cloneable {
 
     /** Sets String with PDS Language (EN 319 412-05) 
      * Shall be a two letter ISO 639-1 code, i.e. en, sv, fr 
+     * @param language language
      */
     public void setLanguage(final String language) {
         this.language = language;

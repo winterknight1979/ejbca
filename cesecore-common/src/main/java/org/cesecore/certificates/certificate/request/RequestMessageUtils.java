@@ -59,6 +59,7 @@ public abstract class RequestMessageUtils {
 
 	/** Tries to parse the byte array to create a request message of the correct type.
 	 * Currently handles PKCS10 request messages and CVC request messages.
+	 * @param request byte array
 	 * 
 	 * @return IRequestMessage
 	 */
@@ -108,8 +109,9 @@ public abstract class RequestMessageUtils {
 
 	/** Tries to get decoded bytes from a certificate request or certificate
 	 * 
-	 * @param bytes pem (with headers) or plain base64 with a CSR of certificate 
+	 * @param b64Encoded pem (with headers) or plain base64 with a CSR of certificate 
 	 * @return binary bytes
+	 * @throws IOException on error
 	 */
 	public static byte[] getRequestBytes(byte[] b64Encoded) throws IOException {
 		byte[] buffer = null;

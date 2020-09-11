@@ -109,7 +109,9 @@ public abstract class DNFieldsUtil {
     }
 
 
-	/** Invoke removeEmpties and only return the fully clean dn String. */
+	/** Invoke removeEmpties and only return the fully clean dn String. 
+	 * @param dn DN
+	 * @return clean DN */
 	public static String removeAllEmpties(final String dn) {
 		if (dn==null) {
 			return null;
@@ -135,6 +137,7 @@ public abstract class DNFieldsUtil {
 	 * the same time for use in EndEntityInformation.
 	 * 
 	 * @param sDN the String to clean.
+	 * @param removedAllEmpties StringBuilder
 	 * @param processTrailing true is removedTrailingEmpties should be considered.
 	 * @return removedTrailingEmpties StringBuilder if both types of cleaning give different results or null if they are the same.
 	 */
@@ -217,7 +220,10 @@ public abstract class DNFieldsUtil {
         }
     }
 
-	/** Populates the two lists with starting positions in the character buffer where the value=key pair begins and keys begin. */
+	/** Populates the two lists with starting positions in the character buffer where the value=key pair begins and keys begin. 
+	 * @param startOfPairs pairs start
+	 * @param startOfValues values start
+	 * @param buf buffer */
     private static void populatePositionLists(final List<Integer> startOfPairs, final List<Integer> startOfValues, final char[] buf) {
     	if (buf.length>0) {
         	startOfPairs.add(Integer.valueOf(0));
@@ -267,7 +273,11 @@ public abstract class DNFieldsUtil {
     	}
     }
 
-    /** Compares the two character sequences in the buffer at the positions until a not escaped '=' is found. */
+    /** Compares the two character sequences in the buffer at the positions until a not escaped '=' is found. 
+     * @param sb buffer
+     * @param pos1 position 1
+     * @param pos2 position 2
+     * @return  boolean */
     private static boolean hasSameKey(final char[] sb, int pos1, int pos2) {
     	final int len = sb.length;
     	boolean notEscaped = true;	// Keep track of what is escapes and not

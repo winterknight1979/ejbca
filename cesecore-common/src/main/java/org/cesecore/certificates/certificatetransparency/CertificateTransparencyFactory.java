@@ -31,7 +31,7 @@ public enum CertificateTransparencyFactory {
         try {
             // No lock is used since the CertificateTransparencyImpl class has no state
             // so it's OK with multiple instances.
-            instance = (CertificateTransparency)Class.forName(IMPLEMENTATION_CLASSNAME).newInstance();
+            instance = (CertificateTransparency)Class.forName(IMPLEMENTATION_CLASSNAME).getConstructor().newInstance();
         } catch (Exception e) { // NOPMD not a good idea to throw an exception in a enum constructor
             instance = null;
         }
@@ -41,13 +41,14 @@ public enum CertificateTransparencyFactory {
     /**
      * Returns the implementation of the CertificateTransparency interface, or null if not available.
      * No exceptions can ever be thrown by this method, so it's safe to call from static-blocks and initializers.
+     * @return implementation
      */
     public static CertificateTransparency getInstance() {
         return SINGLETON.ct;
     }
     
     /**
-     * Returns true if the implementation class is available. No exceptions can be thrown by this method. 
+     * @return true if the implementation class is available. No exceptions can be thrown by this method. 
      */
     public static boolean isCTAvailable() {
         return getInstance() != null;

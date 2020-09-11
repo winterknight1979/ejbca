@@ -73,6 +73,7 @@ public class CertificateCreateException extends CesecoreException {
      * 
      * @see CertificateCreateException
      * @param e causing exception that will be wrapped
+     * @param msg the detail message.
      */
     public CertificateCreateException(String msg, Exception e) {
         super(msg, e);
@@ -83,7 +84,7 @@ public class CertificateCreateException extends CesecoreException {
      *
      * @see CertificateCreateException
      * @param errorCode defines the cause of the exception.
-     * @param message Human readable error message, can not be NULL.
+     * @param msg Human readable error message, can not be NULL.
      */
     public CertificateCreateException(ErrorCode errorCode, String msg) {
        super(errorCode, msg);

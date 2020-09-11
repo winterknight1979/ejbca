@@ -32,7 +32,7 @@ import org.bouncycastle.asn1.x509.CRLNumber;
 import org.bouncycastle.asn1.x509.DistributionPoint;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.GeneralNames;
-import org.bouncycastle.x509.extension.X509ExtensionUtil;
+import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import org.cesecore.certificates.crl.RevokedCertInfo;
 
 /**
@@ -44,6 +44,7 @@ public class CrlExtensions {
     private static Logger log = Logger.getLogger(CrlExtensions.class);
 
     /** Returns the CRL number if it exists as a CRL extension
+     * @param crl CRL
      * 
      * @return the CRLnumber, or 0 if no CRL number extension was found or an error reading it occurred. Never return null.
      */
@@ -64,6 +65,7 @@ public class CrlExtensions {
     }
 
     /** Returns the delta crl indicator number if it exists as a CRL extension
+     * @param crl CRL
      * 
      * @return the BaseCRLNumber, or -1 if no delta crl indicator extension was found or an error reading it occurred. Never return null.
      */
@@ -85,6 +87,10 @@ public class CrlExtensions {
 
     /**
      * Return an Extension ASN1Primitive from a CRL
+     * @param crl CRL
+     * @param oid OID
+     * @return an Extension ASN1Primitive from a CRL
+     * @throws IOException on error
      */
     protected static ASN1Primitive getExtensionValue(X509CRL crl, String oid)
       throws IOException {
@@ -101,14 +107,15 @@ public class CrlExtensions {
         return aIn.readObject();
     } //getExtensionValue
 
-    /** @return the revocation reason code as defined in RevokedCertInfo.REVOCATION_REASON_... */
+    /** @param crlEntry CRL
+     * @return the revocation reason code as defined in RevokedCertInfo.REVOCATION_REASON_... */
     public static int extractReasonCode(final X509CRLEntry crlEntry) {
         int reasonCode = RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED;
         if (crlEntry.hasExtensions()) {
             final byte[] extensionValue = crlEntry.getExtensionValue(Extension.reasonCode.getId());
             if (extensionValue!=null) {
                 try {
-                    final ASN1Enumerated reasonCodeExtension = ASN1Enumerated.getInstance(X509ExtensionUtil.fromExtensionValue(extensionValue));
+                    final ASN1Enumerated reasonCodeExtension = ASN1Enumerated.getInstance(JcaX509ExtensionUtils.parseExtensionValue(extensionValue));
                     if (reasonCodeExtension!=null) {
                         reasonCode = reasonCodeExtension.getValue().intValue();
                     }
@@ -120,7 +127,8 @@ public class CrlExtensions {
         return reasonCode;
     }
 
-    /** @return a list of URLs in String format with present freshest CRL extensions or an empty List */
+    /** @param crl CRL
+     * @return a list of URLs in String format with present freshest CRL extensions or an empty List */
     public static List<String> extractFreshestCrlDistributionPoints(final X509CRL crl) {
         final List<String> freshestCdpUrls = new ArrayList<String>();
         final byte[] extensionValue = crl.getExtensionValue(Extension.freshestCRL.getId());
@@ -139,7 +147,10 @@ public class CrlExtensions {
         return freshestCdpUrls;
     }
     
-    /** @return the first object found when treating the provided byte array as an ASN1InputStream */
+    /** @param bytes bytes
+     * @param clazz class
+     * @param <T> type
+     * @return the first object found when treating the provided byte array as an ASN1InputStream */
     @SuppressWarnings("unchecked")
     private static <T> T getAsn1ObjectFromBytes(final byte[] bytes, final Class<T> clazz) {
         T ret = null;

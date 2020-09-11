@@ -118,6 +118,8 @@ public class DNFieldExtractor implements java.io.Serializable {
 
     /**
      * Fields that can be selected in Certificate profile and Publisher
+     * @param type Type
+     * @return fields
      */
     public static List<Integer> getUseFields(final int type) {
         if (type == DNFieldExtractor.TYPE_SUBJECTDN) {
@@ -159,7 +161,7 @@ public class DNFieldExtractor implements java.io.Serializable {
 
     /**
      * Looks up a DN Id (for use with DnComponents functions etc.) from a DN component.
-     * @param field Component, e.g. "CN". Not case sensitive.
+     * @param dnComponent Component, e.g. "CN". Not case sensitive.
      * @param dnType DN type, e.g. DNFieldExtractor.TYPE_SUBJECTDN
      * @return DN Id, or null if no such component exists for the given DN type.
      */

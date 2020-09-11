@@ -51,7 +51,8 @@ public enum OcspRequestSignerStatusCache {
         return Integer.toHexString(signercertIssuerName.hashCode()) + ";" + signercertSerNo.toString(16);
     }
 
-    /** @return a usable CertificateStatus or null of the cache needs an update for this entry. */
+    /** @param cacheLookupKey key
+     * @return a usable CertificateStatus or null of the cache needs an update for this entry. */
     public CertificateStatus getCachedCertificateStatus(final String cacheLookupKey) {
         final OcspSignerStatus ocspSignerStatus = cache.get(cacheLookupKey);
         if (ocspSignerStatus==null) {
@@ -67,7 +68,9 @@ public enum OcspRequestSignerStatusCache {
         return ocspSignerStatus.certificateStatus;
     }
 
-    /** Update the cache with an usable CertificateStatus. */
+    /** Update the cache with an usable CertificateStatus. 
+     * @param cacheLookupKey key
+     * @param certificateStatus status*/
     public void updateCachedCertificateStatus(final String cacheLookupKey, final CertificateStatus certificateStatus) {
         if (certificateStatus==null) {
             cache.remove(cacheLookupKey);

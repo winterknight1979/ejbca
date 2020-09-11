@@ -97,6 +97,7 @@ public class CtLogManager {
     /**
      * Moves the specified CT log up one step. This method does nothing if the CT log is already
      * on top or if the CT log group to which the CT log belongs only contains one log.
+     * @param ctLog Log
      * @throws IllegalArgumentException if the CT log given as argument is not managed by this CT log manager
      */
     public void moveUp(final CTLogInfo ctLog) {
@@ -114,6 +115,7 @@ public class CtLogManager {
     /**
      * Moves the specified CT log down one step. This method does nothing if the CT log is already
      * on the bottom or if the CT log group to which the CT log belongs only contains one log.
+     * @param ctLog Log
      * @throws IllegalArgumentException if the CT log given as argument is not managed by this CT log manager
      */
     public void moveDown(final CTLogInfo ctLog) {
@@ -159,7 +161,7 @@ public class CtLogManager {
      *   <li>The other log has an ID identical to the new CT log</li>
      *   <li>The other log is has an identical URL and label as the new CT log</li>
      * </ul>
-     * @param the new CT log to check
+     * @param ctLog the new CT log to check
      * @return true if the CT log given as input can be added, false otherwise
      */
     public boolean canAdd(final CTLogInfo ctLog) {

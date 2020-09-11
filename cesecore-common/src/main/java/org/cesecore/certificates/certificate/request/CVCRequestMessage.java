@@ -136,6 +136,7 @@ public class CVCRequestMessage implements RequestMessage {
     }
 
     /** force a password
+     * @param pwd password
      */
     public void setPassword(String pwd) {
         this.password = pwd;
@@ -147,6 +148,7 @@ public class CVCRequestMessage implements RequestMessage {
     }
 
     /** force a username, i.e. ignore the DN/username in the request
+     * @param username username
      */
     public void setUsername(String username) {
         this.username = username;
@@ -355,7 +357,8 @@ public class CVCRequestMessage implements RequestMessage {
         this.additionalExtraCertsCertificates = additionalExtraCertsCertificates;
     }
 
-    /** Specific to CVC request messages, EAC requests contains a sequence */
+    /** Specific to CVC request messages, EAC requests contains a sequence 
+     * @return sequence*/
     public String getKeySequence() {
     	String ret = null;
     	try {

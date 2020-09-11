@@ -157,7 +157,8 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
     /** No args constructor required for ServiceLocator */
     protected CA() {}
 
-    /** Creates a new instance of CA, this constructor should be used when a new CA is created */
+    /** Creates a new instance of CA, this constructor should be used when a new CA is created 
+     * @param cainfo Info*/
     public CA(CAInfo cainfo) {
         init(cainfo);
     }
@@ -232,7 +233,8 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
         init(data);
     }
 
-    /** Constructor used when retrieving existing CA from database. */
+    /** Constructor used when retrieving existing CA from database. 
+     * @param data data*/
     public void init(HashMap<Object, Object> data) {
         loadData(data);
         extendedcaservicemap = new HashMap<>();
@@ -308,7 +310,7 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
      * Sets the validity as relative time (format '*y *mo *d *h *m *s', i.e. '1y +2mo -3d 4h 5m 6s') or as fixed end date
      * (ISO8601 format, i.e. 'yyyy-MM-dd HH:mm:ssZZ', 'yyyy-MM-dd HH:mmZZ' or 'yyyy-MM-ddZZ' with optional '+00:00' appended).
      *
-     * @param encodedValidity
+     * @param encodedValidity validity
      */
     public void setEncodedValidity(String encodedValidity) {
         data.put(ENCODED_VALIDITY, encodedValidity);
@@ -460,7 +462,9 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
         return caToken;
     }
 
-    /** Sets the CA token. */
+    /** Sets the CA token. 
+     * @param catoken token
+     * @throws InvalidAlgorithmException  if algorithm is not valid*/
     public void setCAToken(CAToken catoken) throws InvalidAlgorithmException {
         // Check that the signature algorithm is one of the allowed ones, only check if there is a sigAlg though
     	// things like a NulLCryptoToken does not have signature algorithms
@@ -482,7 +486,8 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
         this.caToken = catoken;
     }
 
-    /** Returns a collection of CA certificates, or null if no request certificate chain exists */
+    /** Returns a collection of CA certificates, or null if no request certificate chain exists 
+     * @return certificates*/
     public Collection<Certificate> getRequestCertificateChain() {
         if (requestcertchain == null) {
             @SuppressWarnings("unchecked")
@@ -654,7 +659,7 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
         data.remove(ROLLOVERCERTIFICATECHAIN);
     }
 
-    /** Returns the CAs certificate, or null if no CA-certificates exist. */
+    /** @return the CAs certificate, or null if no CA-certificates exist. */
     public Certificate getCACertificate() {
         if (certificatechain == null) {
             getCertificateChain();
@@ -675,7 +680,8 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
         return ret;
     }
 
-    /** Returns true if we should use the next CA certificate for rollover, instead of the current CA certificate. */
+    /** @param request Request message
+     * @return true if we should use the next CA certificate for rollover, instead of the current CA certificate. */
     public boolean getUseNextCACert(final RequestMessage request) {
         final Certificate currentCert = getCACertificate();
         if (request == null) {
@@ -759,6 +765,7 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
      * used when the value is missing in the database, and is true for compatibility with
      * old CAs since it was not configurable and always enabled before 3.10.4.
      * For new CAs the default value is set in the web or CLI code and is false since 6.0.0.
+     * @return true/false
      */
     public boolean isUseCertReqHistory() {
         return getBoolean(USE_CERTREQ_HISTORY, true);
@@ -768,7 +775,8 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
         putBoolean(USE_CERTREQ_HISTORY, useCertReqHistory);
     }
 
-    /** whether users should be stored or not, default true as was the case before 3.10.x */
+    /**@return whether users should be stored or not, default true as was the case before 3.10.x 
+     * */
     public boolean isUseUserStorage() {
         return getBoolean(USE_USER_STORAGE, true);
     }
@@ -777,7 +785,7 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
         putBoolean(USE_USER_STORAGE, useUserStorage);
     }
 
-    /** whether issued certificates should be stored or not, default true as was the case before 3.10.x */
+    /**@return whether issued certificates should be stored or not, default true as was the case before 3.10.x */
     public boolean isUseCertificateStorage() {
         return getBoolean(USE_CERTIFICATE_STORAGE, true);
     }
@@ -790,7 +798,7 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
         putBoolean(ACCEPT_REVOCATION_NONEXISTING_ENTRY, acceptRevocationNonExistingEntry);
     }
 
-    /** whether revocations for non existing entry accepted */
+    /** @return whether revocations for non existing entry accepted */
     public boolean isAcceptRevocationNonExistingEntry() {
         return getBoolean(ACCEPT_REVOCATION_NONEXISTING_ENTRY, false);
     }
@@ -826,6 +834,7 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
 
     /**
      * Collection of Integers (CAInfo.REQ_APPROVAL_ constants) of which action that requires approvals
+     * @param approvalSettings settings
      *
      * @deprecated since 6.8.0, see setApprovals()
      */
@@ -849,6 +858,7 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
 
     /**
      * The number of different administrators that needs to approve
+     * @param numOfReqApprovals # of approvals
      * @deprecated since 6.6.0, use the appropriate approval profile instead.
      * Needed in order to be able to upgrade from 6.5 and earlier
      */
@@ -872,6 +882,7 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
 
     /**
      * The id of the approval profile.
+     * @param approvalProfileID ID
      *
      * @deprecated since 6.8.0, see setApprovals()
      */
@@ -961,6 +972,7 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
      * or from other places in the code.
      *
      * A few more values are also set in the overridden method in X509CA.
+     * @param cainfo Info
      */
     public void updateUninitializedCA(CAInfo cainfo) {
         setSignedBy(cainfo.getSignedBy());
@@ -968,17 +980,18 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
 
     /**
      *
+     * @param cryptoToken Token
      * @param publicKey provided public key. Will not have any precedence over subject.extendedInformation.certificateRequest
      * @param subject end entity information. If it contains certificateRequest under extendedInformation, it will be used instead of the provided RequestMessage and publicKey
      * @param notBefore null or a custom date to use as notBefore date
      * @param keyusage BouncyCastle key usage {@link X509KeyUsage}, e.g. X509KeyUsage.digitalSignature | X509KeyUsage.keyEncipherment
      * @param encodedValidity requested validity as SimpleTime string or ISO8601 date string (see ValidityDate.java).
-     * @param certProfile
+     * @param certProfile Profile
      * @param sequence an optional requested sequence number (serial number) for the certificate, may or may not be used by the CA. Currently used by
      *            CVC CAs for sequence field. Can be set to null.
      * @param cceConfig containing a list of available custom certificate extensions
      * @return The newly created certificate
-     * @throws Exception
+     * @throws Exception On error
      */
     public Certificate generateCertificate(CryptoToken cryptoToken, EndEntityInformation subject, PublicKey publicKey, int keyusage, Date notBefore, String encodedValidity,
             CertificateProfile certProfile, String sequence, AvailableCustomCertificateExtensionsConfiguration cceConfig) throws Exception {
@@ -997,16 +1010,16 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
 
     /**
      *
-     * @param cryptoToken
+     * @param cryptoToken Token
      * @param request provided request message containing optional information, and will be set with the signing key and provider.
      * If the certificate profile allows subject DN override this value will be used instead of the value from subject.getDN. Its public key is going to be used if
      * publicKey == null && subject.extendedInformation.certificateRequest == null. Can be null.
      * @param publicKey provided public key which will have precedence over public key from the provided RequestMessage but not over subject.extendedInformation.certificateRequest
      * @param subject end entity information. If it contains certificateRequest under extendedInformation, it will be used instead of the provided RequestMessage and publicKey
      * @param keyusage BouncyCastle key usage {@link X509KeyUsage}, e.g. X509KeyUsage.digitalSignature | X509KeyUsage.keyEncipherment
-     * @param notBefore
-     * @param notAfter
-     * @param certProfile
+     * @param notBefore Start date
+     * @param notAfter End date
+     * @param certProfile Profile
      * @param extensions an optional set of extensions to set in the created certificate, if the profile allows extension override, null if the
      *            profile default extensions should be used.
      * @param sequence an optional requested sequence number (serial number) for the certificate, may or may not be used by the CA. Currently used by
@@ -1034,11 +1047,33 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
 
     /**
      *
+     *@param cryptoToken Token
      * @param request provided request message containing optional information, and will be set with the signing key and provider.
-     * If the certificate profile allows subject DN override this value will be used instead of the value from subject.getDN. Can be null. Its public key is going to be used if
-     * publicKey == null && subject.extendedInformation.certificateRequest == null
+     * If the certificate profile allows subject DN override this value will be used instead of the value from subject.getDN. Its public key is going to be used if
+     * publicKey == null && subject.extendedInformation.certificateRequest == null. Can be null.
      * @param publicKey provided public key which will have precedence over public key from the provided RequestMessage but not over subject.extendedInformation.certificateRequest
      * @param subject end entity information. If it contains certificateRequest under extendedInformation, it will be used instead of the provided RequestMessage and publicKey
+     * @param keyusage BouncyCastle key usage {@link X509KeyUsage}, e.g. X509KeyUsage.digitalSignature | X509KeyUsage.keyEncipherment
+     * @param notBefore Start date
+     * @param notAfter End date
+     * @param certProfile Profile
+     * @param extensions an optional set of extensions to set in the created certificate, if the profile allows extension override, null if the
+     *            profile default extensions should be used.
+     * @param sequence an optional requested sequence number (serial number) for the certificate, may or may not be used by the CA. Currently used by
+     *            CVC CAs for sequence field. Can be set to null.
+     * @param cceConfig containing a list of available custom certificate extensions
+     * @return the generated certificate
+     *
+     * @throws CryptoTokenOfflineException if the crypto token was unavailable
+     * @throws CertificateExtensionException  if any of the certificate extensions were invalid
+     * @throws CertificateCreateException if an error occurred when trying to create a certificate.
+     * @throws OperatorCreationException  if CA's private key contained an unknown algorithm or provider
+     * @throws IllegalNameException if the name specified in the certificate request contains illegal characters
+     * @throws IllegalValidityException  if validity was invalid
+     * @throws InvalidAlgorithmException  if the signing algorithm in the certificate profile (or the CA Token if not found) was invalid.
+     * @throws CAOfflineException if the CA wasn't active
+     * @throws SignatureException if the CA's certificate's and request's certificate's and signature algorithms differ
+     * @throws IllegalKeyException if the using public key is not allowed to be used by specified certProfile
      */
     public final Certificate generateCertificate(CryptoToken cryptoToken, final EndEntityInformation subject, final RequestMessage request,
             final PublicKey publicKey, final int keyusage, final Date notBefore, final Date notAfter, final CertificateProfile certProfile,
@@ -1057,9 +1092,9 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
     /**
      * Create a signed PKCS#7 / CMS message.
      *
-     * @param cryptoToken
-     * @param cert
-     * @param includeChain
+     * @param cryptoToken Token
+     * @param cert Certificate
+     * @param includeChain True to include all certs
      * @return A DER-encoded PKCS#7
      * @throws SignRequestSignatureException if the certificate doesn't seem to be signed by this CA
      * @see CertTools#createCertsOnlyCMS(List) for how to craete a certs-only PKCS7/CMS
@@ -1068,14 +1103,17 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
 
     /**
      * Creates a roll over PKCS7 for the next CA certificate, signed with the current CA key. Used by ScepServlet.
+     * @param cryptoToken Token
      *
      * @return Encoded signed certificate chain, suitable for use in SCEP.
+     * @throws SignRequestSignatureException if the certificate doesn't seem to be signed by this CA
      */
     public abstract byte[] createPKCS7Rollover(CryptoToken cryptoToken) throws SignRequestSignatureException;
 
     /**
      * Creates a certificate signature request (CSR), that can be sent to an external Root CA. Request format can vary depending on the type of CA. For
      * X509 CAs PKCS#10 requests are created, for CVC CAs CVC requests are created.
+     * @param cryptoToken Token
      *
      * @param attributes PKCS10 attributes to be included in the request, a Collection of ASN1Encodable objects, ready to put in the request. Can be
      *            null.
@@ -1097,6 +1135,7 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
 
     /**
      * General encryption method used to encrypt using a CA
+     * @param cryptoToken token
      *
      * @param data the data to encrypt
      * @param keyPurpose should be one of the SecConst.CAKEYPURPOSE_ constants
@@ -1111,6 +1150,7 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
 
     /**
      * General encryption method used to decrypt using a CA
+     * @param cryptoToken Token
      *
      * @param data the data to decrypt
      * @param cAKeyPurpose should be one of the SecConst.CAKEYPURPOSE_ constants
@@ -1128,6 +1168,7 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
      * @param type the type of the extended key service
      * @param ca the CA used to initiate the service
      * @param cceConfig containing a list of available custom certificate extensions
+     * @throws Exception On error
      */
     public void initExtendedService(CryptoToken cryptoToken, int type, CA ca, final AvailableCustomCertificateExtensionsConfiguration cceConfig) throws Exception {
         ExtendedCAService service = getExtendedCAService(type);
@@ -1137,7 +1178,9 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
         }
     }
 
-    /** Method used to retrieve information about the service. */
+    /** Method used to retrieve information about the service. 
+     * @param type type
+     * @return info */
     public ExtendedCAServiceInfo getExtendedCAServiceInfo(int type) {
         ExtendedCAServiceInfo ret = null;
         ExtendedCAService service = getExtendedCAService(type);
@@ -1149,9 +1192,15 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
 
     /**
      * Method used to perform the service.
-     * @throws OperatorCreationException
-     * @throws CertificateException
-     * @throws CertificateEncodingException
+     * @param cryptoToken token
+     * @param request request
+     * @return  service response
+     * @throws ExtendedCAServiceRequestException If there was a problem with the request
+     * @throws IllegalExtendedCAServiceRequestException If the request is illegal
+     * @throws ExtendedCAServiceNotActiveException If the service is inactive or not found
+     * @throws OperatorCreationException If creation fails
+     * @throws CertificateException Ig there was a problem with the certificate
+     * @throws CertificateEncodingException if there was a problem constructing a certificate extension.
      */
     public ExtendedCAServiceResponse extendedService(CryptoToken cryptoToken, ExtendedCAServiceRequest request) throws ExtendedCAServiceRequestException,
             IllegalExtendedCAServiceRequestException, ExtendedCAServiceNotActiveException, CertificateEncodingException, CertificateException, OperatorCreationException {
@@ -1245,7 +1294,8 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
         extendedcaservicemap.put(Integer.valueOf(info.getType()), extendedcaservice);
     }
 
-    /** Returns a Collection of ExternalCAServices (int) added to this CA. */
+    /** Returns a Collection of ExternalCAServices (int) added to this CA. 
+     * @return types*/
     @SuppressWarnings("unchecked")
     public Collection<Integer> getExternalCAServiceTypes() {
         if (data.get(EXTENDEDCASERVICES) == null) {
@@ -1257,14 +1307,22 @@ public abstract class CA extends UpgradeableDataHashMap implements Serializable 
     /**
      * Method to upgrade new (or existing externacaservices) This method needs to be called outside the regular upgrade since the CA isn't
      * instantiated in the regular upgrade.
+     * @return true/false
      */
     public abstract boolean upgradeExtendedCAServices();
 
-    /** Create a certificate with all the current CA certificate info, but signed by the old issuer */
+    /** Create a certificate with all the current CA certificate info, but signed by the old issuer 
+     * @param cryptoToken token
+     * @param createLinkCertificate create?
+     * @param certProfile profile
+     * @param cceConfig config
+     * @param oldCaCert old cert
+     * @throws CryptoTokenOfflineException on error */
     public abstract void createOrRemoveLinkCertificate(CryptoToken cryptoToken, boolean createLinkCertificate, CertificateProfile certProfile,
             AvailableCustomCertificateExtensionsConfiguration cceConfig, Certificate oldCaCert) throws CryptoTokenOfflineException;
 
-    /** Store the latest link certificate in this object. */
+    /** Store the latest link certificate in this object. 
+     * @param encodedLinkCertificate certificate*/
     protected void updateLatestLinkCertificate(byte[] encodedLinkCertificate) {
         if (encodedLinkCertificate == null) {
             data.remove(LATESTLINKCERTIFICATE);

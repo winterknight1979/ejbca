@@ -63,7 +63,8 @@ public enum OcspSigningCache {
         return defaultResponderCacheEntry;
     }
 
-    /** WARNING: This method potentially exports references to CAs private keys! */
+    /** WARNING: This method potentially exports references to CAs private keys! 
+     * @return entries*/
     public Collection<OcspSigningCacheEntry> getEntries() {
         return cache.values();
     }
@@ -142,7 +143,10 @@ public enum OcspSigningCache {
         lock.unlock();
     }
 
-    /** Log any change in default responder */
+    /** Log any change in default responder 
+     * @param currentEntry current entry
+     * @param stagedEntry  staged entry
+     * @param defaultResponderSubjectDn boolean */
     private void logDefaultResponderChanges(final OcspSigningCacheEntry currentEntry, final OcspSigningCacheEntry stagedEntry, final String defaultResponderSubjectDn) {
         String msg = null;
         if (stagedEntry==null && (currentEntry!=null || !logDefaultHasRunOnce)) {
@@ -211,7 +215,8 @@ public enum OcspSigningCache {
         }
     }
 
-    /** @return a cache identifier based on the provided CertificateID. */
+    /** @param certID ID
+     * @return a cache identifier based on the provided CertificateID. */
     public static int getCacheIdFromCertificateID(final CertificateID certID) {
         // Use bitwise XOR of the hashcodes for IssuerNameHash and IssuerKeyHash to produce the integer.
         int result = new BigInteger(certID.getIssuerNameHash()).hashCode() ^ new BigInteger(certID.getIssuerKeyHash()).hashCode();
@@ -222,7 +227,8 @@ public enum OcspSigningCache {
         return result;
     }
 
-    /** @return the CertificateID's based on the provided certificate */
+    /** @param certificate certificate
+     * @return the CertificateID's based on the provided certificate */
     public static List<CertificateID> getCertificateIDFromCertificate(final X509Certificate certificate) {
         try {
             if (log.isTraceEnabled()) {

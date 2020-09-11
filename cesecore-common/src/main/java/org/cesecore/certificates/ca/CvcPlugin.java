@@ -39,23 +39,56 @@ public interface CvcPlugin {
     String getCvcType();
     
     /** 
+     * @param cryptoToken Token
+     * @param attributes Attrs
+     * @param signAlg Algorithm
+     * @param cacert CA Certificate
+     * @param signatureKeyPurpose Purpose
+     * @param certificateProfile Profile
+     * @param cceConfig Config
+     * @return Request
+     * @throws CryptoTokenOfflineException if offline 
+     * @throws CertificateExtensionException if certificate has invalid extensions
      * @see org.cesecore.certificates.ca.CA#createRequest(CryptoToken, Collection, String, Certificate, int, CertificateProfile, AvailableCustomCertificateExtensionsConfiguration) 
      */
     byte[] createRequest(CryptoToken cryptoToken, Collection<ASN1Encodable> attributes, String signAlg, Certificate cacert, int signatureKeyPurpose,
             CertificateProfile certificateProfile, AvailableCustomCertificateExtensionsConfiguration cceConfig) throws CryptoTokenOfflineException, CertificateExtensionException;
 
     /** 
+     * @param cryptoToken Token
+     * @param request Request
+     * @return Response
+     * @throws CryptoTokenOfflineException if offline 
      * @see org.cesecore.certificates.ca.CA#createAuthCertSignRequest(CryptoToken, byte[]) 
      */
     byte[] createAuthCertSignRequest(CryptoToken cryptoToken, byte[] request) throws CryptoTokenOfflineException;
     
     /** 
+     * @param cryptoToken Token
+     * @param createLinkCertificate bool 
+     * @param certProfile Profile
+     * @param cceConfig Config
+     * @param oldCaCert Old certificate
+     * @throws CryptoTokenOfflineException if offline
      * @see org.cesecore.certificates.ca.CA#createOrRemoveLinkCertificate(CryptoToken, boolean, CertificateProfile, AvailableCustomCertificateExtensionsConfiguration, Certificate) 
      */
     void createOrRemoveLinkCertificate(final CryptoToken cryptoToken, final boolean createLinkCertificate, final CertificateProfile certProfile, 
             AvailableCustomCertificateExtensionsConfiguration cceConfig, Certificate oldCaCert) throws CryptoTokenOfflineException;   
 
     /** 
+     * @param cryptoToken Token
+     * @param subject Subject
+     * @param request Request
+     * @param publicKey Public key
+     * @param keyusage Usage
+     * @param notBefore start date
+     * @param notAfter End date
+     * @param certProfile Profile
+     * @param extensions extensions
+     * @param sequence sequence
+     * @param cceConfig config
+     * @return certificate
+     * @throws Exception on error
      * @see org.cesecore.certificates.ca.CA#generateCertificate(CryptoToken, EndEntityInformation, RequestMessage, PublicKey, int, Date, Date, CertificateProfile, Extensions, String, CertificateGenerationParams, AvailableCustomCertificateExtensionsConfiguration) 
      */
     Certificate generateCertificate(CryptoToken cryptoToken, EndEntityInformation subject, 

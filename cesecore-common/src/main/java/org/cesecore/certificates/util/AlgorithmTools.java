@@ -55,7 +55,6 @@ import org.bouncycastle.jce.spec.ECNamedCurveSpec;
 import org.bouncycastle.math.ec.ECCurve;
 import org.cesecore.config.CesecoreConfiguration;
 import org.cesecore.keys.util.KeyTools;
-import org.cesecore.util.CertTools;
 import org.cesecore.util.StringTools;
 import org.ejbca.cvc.AlgorithmUtil;
 import org.ejbca.cvc.CVCPublicKey;
@@ -70,7 +69,6 @@ import org.ejbca.cvc.OIDField;
  * added to EJBCA.
  *
  * @see AlgorithmConstants
- * @see CertTools#getSignatureAlgorithm
  * @see KeyTools#getKeyLength
  *
  * @version $Id: AlgorithmTools.java 28555 2018-03-27 07:19:14Z tarmo_r_helmes $
@@ -203,7 +201,7 @@ public abstract class AlgorithmTools {
     }
     
     /**
-     * Gets a list of allowed curves (see {@link http://csrc.nist.gov/groups/ST/toolkit/documents/dss/NISTReCur.pdf}.
+     * Gets a list of allowed curves (@see <a href="http://csrc.nist.gov/groups/ST/toolkit/documents/dss/NISTReCur.pdf>NIST curves</a>).
      * 
      * @return the list of allowed curves.
      */
@@ -261,7 +259,8 @@ public abstract class AlgorithmTools {
         }
     }
 
-    /** @return the number of bits a named elliptic curve has or 0 if the curve name is unknown. */
+    /** @param ecNamedCurve Curve
+     * @return the number of bits a named elliptic curve has or 0 if the curve name is unknown. */
     public static int getNamedEcCurveBitLength(final String ecNamedCurve) {
         ECNamedCurveParameterSpec ecNamedCurveParameterSpec = ECGOST3410NamedCurveTable.getParameterSpec(ecNamedCurve);
         if (ecNamedCurveParameterSpec!=null) {
@@ -407,7 +406,9 @@ public abstract class AlgorithmTools {
         return keyspec;
     }
 
-    /** Check if the curve name is known by the first found PKCS#11 provider or default (BC) (if no EC capable PKCS#11 provider were found)*/
+    /** Check if the curve name is known by the first found PKCS#11 provider or default (BC) (if no EC capable PKCS#11 provider were found)
+     * @param ecNamedCurveBc Curve
+     * @return boolean */
     public static boolean isNamedECKnownInDefaultProvider(String ecNamedCurveBc) {
         final Provider[] providers = Security.getProviders("KeyPairGenerator.EC");
         String providerName = providers[0].getName();
@@ -462,7 +463,8 @@ public abstract class AlgorithmTools {
         return oid.getId();
     }
 
-    /** @return a list of aliases for the provided curve name (including the provided name) */
+    /** @param namedEllipticCurve Curve name
+     * @return a list of aliases for the provided curve name (including the provided name) */
     public static List<String> getEcKeySpecAliases(final String namedEllipticCurve) {
         final ECNamedCurveParameterSpec parameterSpec = ECNamedCurveTable.getParameterSpec(namedEllipticCurve);
         final List<String> ret = new ArrayList<>();
@@ -566,6 +568,7 @@ public abstract class AlgorithmTools {
     /**
      * Simple methods that returns the signature algorithm value from the certificate. Not usable for setting signature algorithms names in EJBCA,
      * only for human presentation.
+     * @param cert certificate
      *
      * @return Signature algorithm name from the certificate as a human readable string, for example SHA1WithRSA.
      */
@@ -700,6 +703,8 @@ public abstract class AlgorithmTools {
     /**
      * Get the digest algorithm corresponding to the signature algorithm. This is used for the creation of
      * PKCS7 file. SHA1 shall always be used, but it is not working with GOST which needs GOST3411 digest.
+     * @param sigAlg Algorithm
+     * @return name
      */
     public static String getDigestFromSigAlg(String sigAlg) {
         if (sigAlg.toUpperCase().contains("GOST") || sigAlg.toUpperCase().contains("DSTU")) {
@@ -845,7 +850,8 @@ public abstract class AlgorithmTools {
 
     /**
      * <p>Perform a case-insensitive lookup of all known aliases for an elliptic curve given one known alias.</p>
-     * <p>To determine whether an alias is known, see {@link #isKnownCurveAlias}.</p>
+     * <p>To determine whether an alias is known, see {@link #isKnownAlias}.</p>
+     * @param alias alias
      * @return a sorted list of aliases for the elliptic curve specified, never null
      */
     public static List<String> getAllCurveAliasesFromAlias(final String alias) {
@@ -865,7 +871,7 @@ public abstract class AlgorithmTools {
 
     /**
      * Returns the name of the algorithm corresponding to the specified OID
-     * @param sigAlgOid
+     * @param sigAlgOid OID
      * @return The name of the algorithm corresponding sigAlgOid or null if the algorithm is not recognized.
      */
     public static String getAlgorithmNameFromOID(ASN1ObjectIdentifier sigAlgOid) {

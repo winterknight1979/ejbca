@@ -72,8 +72,12 @@ public class RevokedCertInfo implements Serializable {
 
     /**
      * Constructor filling in the whole object.
+     * @param fingerprint print
+     * @param sernoBigIntegerArray serials 
+     * @param revdate date
      * 
      * @param reason {@link RevokedCertInfo#REVOCATION_REASON_UNSPECIFIED}
+     * @param expdate date
      *
      **/
     public RevokedCertInfo(final byte[] fingerprint, final byte[] sernoBigIntegerArray, final long revdate, final int reason, final long expdate) {
@@ -85,28 +89,28 @@ public class RevokedCertInfo implements Serializable {
     }
 
     /**
-     * Certificate fingerprint
+     * @return Certificate fingerprint
      **/
     public String getCertificateFingerprint() {
         return fingerprint == null ? null : new String(fingerprint);
     }
 
     /**
-     * Certificate fingerprint
+     * @param fp Certificate fingerprint
      **/
     public void setCertificateFingerprint(final String fp) {
         this.fingerprint = fp == null ? null : fp.getBytes();
     }
     
     /**
-     * Certificate serial number
+     * @return Certificate serial number
      **/
     public BigInteger getUserCertificate() {
         return userCertificate == null ? null : new BigInteger(userCertificate);
     }
 
     /**
-     * Certificate serial number
+     * @param serno Certificate serial number
      **/
     public void setUserCertificate(final BigInteger serno) {
         this.userCertificate = serno==null ? null : serno.toByteArray();
@@ -120,28 +124,28 @@ public class RevokedCertInfo implements Serializable {
     }
 
     /**
-     * Date when the certificate was revoked.
+     * @return Date when the certificate was revoked.
      **/
     public Date getRevocationDate() {
         return revocationDate == 0 ? null : new Date(revocationDate);
     }
 
     /**
-     * Date when the certificate was revoked.
+     * @param date Date when the certificate was revoked.
      **/
     public void setRevocationDate(final Date date) {
         this.revocationDate = date == null ? 0 : date.getTime();
     }
 
     /**
-     * Date when the certificate expires.
+     * @return Date when the certificate expires.
      **/
     public Date getExpireDate() {
         return expireDate == 0 ? null : new Date(expireDate);
     }
 
     /**
-     * Date when the certificate expires.
+     * @param date Date when the certificate expires.
      **/
     public void setExpireDate(final Date date) {
         this.expireDate = date==null ? 0 : date.getTime();
@@ -163,6 +167,7 @@ public class RevokedCertInfo implements Serializable {
      *    aACompromise(10)
      * }
      * </pre>
+     * @return reason
      * @see #REVOCATION_REASON_UNSPECIFIED
      **/
     public int getReason() {
@@ -191,7 +196,7 @@ public class RevokedCertInfo implements Serializable {
     }
     
     /**
-     * Returns true if the certificate is permanently revoked (i.e. revoked and not just "on hold")
+     * @return true if the certificate is permanently revoked (i.e. revoked and not just "on hold")
      */
     public boolean isPermanentlyRevoked() {
         return isPermanentlyRevoked(reason);

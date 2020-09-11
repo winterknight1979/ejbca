@@ -23,6 +23,8 @@ public class CertificateExtentionConfigurationException extends Exception {
 
     /**
      * Exception thrown of advanced certificate extensions when it is configured with bad properties.
+     * @param message Message
+     * @param throwable Cause
      */
     public CertificateExtentionConfigurationException(String message, Throwable throwable) {
         super(message, throwable);
@@ -30,6 +32,7 @@ public class CertificateExtentionConfigurationException extends Exception {
 
     /**
      * Exception thrown of advanced certificate extensions when it is configured with bad properties.
+     * @param message message
      */
     public CertificateExtentionConfigurationException(String message) {
         super(message);

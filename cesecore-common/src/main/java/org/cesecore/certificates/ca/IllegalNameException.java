@@ -49,6 +49,7 @@ public class IllegalNameException extends CesecoreException {
     /**
      * Constructor used to create exception with a message and an embedded exception.
      * Calls the same constructor in baseclass <code>CesecoreException</code>.
+     * @param message message
      *
      * @param exception exception to be embedded.
      */

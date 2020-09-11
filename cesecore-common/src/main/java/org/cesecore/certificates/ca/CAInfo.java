@@ -146,7 +146,8 @@ public abstract class CAInfo implements Serializable {
         this.name = name;
     }
 
-    /** CAConstants.CA_ACTIVE etc, 0 means not defined (i.e. not updated when editing CA) */
+    /** CAConstants.CA_ACTIVE etc, 0 means not defined (i.e. not updated when editing CA) 
+     * @return status code*/
     public int getStatus() {
         return status;
     }
@@ -155,7 +156,7 @@ public abstract class CAInfo implements Serializable {
         this.status = status;
     }
 
-    /** CAInfo.CATYPE_X509 or CAInfo.CATYPE_CVC */
+    /**@return  CAInfo.CATYPE_X509 or CAInfo.CATYPE_CVC */
     public int getCAType() {
         return catype;
     }
@@ -211,6 +212,7 @@ public abstract class CAInfo implements Serializable {
 
     /** Retrieves the certificate chain for the CA. The returned certificate chain MUST have the
      * RootCA certificate in the last position and the CAs certificate in the first.
+     * @return chain
      */
     public List<Certificate> getCertificateChain() {
         if (certificatechain == null) {
@@ -396,6 +398,7 @@ public abstract class CAInfo implements Serializable {
 
     /**
      * Returns the ID of an approval profile
+     * @return profilw
      *
      * @deprecated since 6.8.0. Use getApprovals() instead;
      */
@@ -406,6 +409,7 @@ public abstract class CAInfo implements Serializable {
 
     /**
      * Sets the ID of an approval profile.
+     * @param approvalProfileID ID
      *
      * @deprecated since 6.8.0. Use setApprovals() instead;
      */
@@ -420,6 +424,7 @@ public abstract class CAInfo implements Serializable {
      * action that requires approvals, default none
      *
      * Never null
+     * @return settings
      *
      * @deprecated since 6.8.0. Use getApprovals() instead;
      */
@@ -431,6 +436,7 @@ public abstract class CAInfo implements Serializable {
     /**
      * Collection of Integers (CAInfo.REQ_APPROVAL_ constants) of which
      * action that requires approvals
+     * @param approvalSettings settings
      *
      * @deprecated since 6.8.0. Use getApprovals() instead;
      */
@@ -505,7 +511,7 @@ public abstract class CAInfo implements Serializable {
     }
 
     /**
-     * @param doEnforceUniquePublicKeys
+     * @param doEnforceUniquePublicKeys boolean
      */
     public void setDoEnforceUniquePublicKeys(boolean doEnforceUniquePublicKeys) {
         this.doEnforceUniquePublicKeys = doEnforceUniquePublicKeys;
@@ -519,14 +525,14 @@ public abstract class CAInfo implements Serializable {
     }
 
     /**
-     * @param doEnforceUniqueSubjectDNSerialnumber
+     * @param doEnforceUniqueSubjectDNSN boolean
      */
     public void setDoEnforceUniqueSubjectDNSerialnumber(boolean doEnforceUniqueSubjectDNSN) {
         this.doEnforceUniqueSubjectDNSerialnumber = doEnforceUniqueSubjectDNSN;
     }
 
     /**
-     * @param doEnforceUniqueDistinguishedName
+     * @param doEnforceUniqueDistinguishedName boolean
      */
     public void setDoEnforceUniqueDistinguishedName(boolean doEnforceUniqueDistinguishedName) {
         this.doEnforceUniqueDistinguishedName = doEnforceUniqueDistinguishedName;

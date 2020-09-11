@@ -206,7 +206,8 @@ public class X509CA extends CA implements Serializable {
     private static final CertificateTransparency ct = CertificateTransparencyFactory.getInstance();
 
     // Public Methods
-    /** Creates a new instance of CA, this constructor should be used when a new CA is created */
+    /** Creates a new instance of CA, this constructor should be used when a new CA is created 
+     * @param cainfo Info*/
     public X509CA(final X509CAInfo cainfo) {
         super(cainfo);
         //Verify integrity if caInfo, either one SubjectDN or SubjectAltName needs to be filled in
@@ -236,12 +237,19 @@ public class X509CA extends CA implements Serializable {
         setNameConstraintsPermitted(cainfo.getNameConstraintsPermitted());
         setNameConstraintsExcluded(cainfo.getNameConstraintsExcluded());
         data.put(CA.CATYPE, Integer.valueOf(CAInfo.CATYPE_X509));
-        data.put(VERSION, new Float(LATEST_VERSION));
+        data.put(VERSION, Float.valueOf(LATEST_VERSION));
         setCaSerialNumberOctetSize(cainfo.getCaSerialNumberOctetSize());
     }
 
     /**
      * Constructor used when retrieving existing X509CA from database.
+     * @param data Data
+     * @param caId ID
+     * @param subjectDn DN 
+     * @param name Name
+     * @param status Status
+     * @param updateTime Updated
+     * @param expireTime Expiry
      */
     @SuppressWarnings("deprecation")
     public X509CA(final HashMap<Object, Object> data, final int caId, final String subjectDn, final String name, final int status,
@@ -529,7 +537,8 @@ public class X509CA extends CA implements Serializable {
         return (String) getMapValueWithDefault(EXTERNALCDP, "");
     }
 
-    /** Set what should be a String formatted URL pointing to an external CA's CDP. */
+    /** Set what should be a String formatted URL pointing to an external CA's CDP. 
+     * @param externalCdp CDP*/
     public void setExternalCdp(final String externalCdp) {
         data.put(EXTERNALCDP, externalCdp);
     }
@@ -559,7 +568,8 @@ public class X509CA extends CA implements Serializable {
         data.put(NAMECHANGED, Boolean.valueOf(nameChanged));
     }
 
-    /** Retrieving NAMECHANGED flag that shows if this CA has gone through the Name Change any time in its history renewal. */
+    /** Retrieving NAMECHANGED flag that shows if this CA has gone through the Name Change any time in its history renewal. 
+     * @return boolean*/
     public boolean getNameChanged() {
         Boolean v = ((Boolean) data.get(NAMECHANGED));
         return (v == null) ? false : v.booleanValue();
@@ -590,7 +600,7 @@ public class X509CA extends CA implements Serializable {
         setNameConstraintsExcluded(info.getNameConstraintsExcluded());
         setExternalCdp(info.getExternalCdp());
         setSubjectAltName(info.getSubjectAltName());
-        setCaSerialNumberOctetSize(new Integer(info.getCaSerialNumberOctetSize()));
+        setCaSerialNumberOctetSize( Integer.valueOf(info.getCaSerialNumberOctetSize()));
     }
 
     /**
@@ -801,6 +811,10 @@ public class X509CA extends CA implements Serializable {
     }
 
     /**
+     * @param cryptoToken Token
+     * @param createLinkCertificate boolean
+     * @param certProfile Profile
+     * @param cceConfig Config
      * @param caNameChange if set to false, regular X509 link certificate will be created. Otherwise, created link certificates
      * will be modified as explained in the ICAO 9303 7th edition part 12. In addition to regular X509 link certificate format
      * this link certificate will have:
@@ -808,6 +822,7 @@ public class X509CA extends CA implements Serializable {
      *       IssuerDN as CA's SubjectDN/IssuerDN before CA Name Change
      *       the Name Change Extension
      * @param oldCaCert to get expire date info from the old CA certificate to put in the link certificate
+     * @throws CryptoTokenOfflineException if offline 
      */
     private void createOrRemoveLinkCertificate(final CryptoToken cryptoToken, final boolean createLinkCertificate, final CertificateProfile certProfile,
             final AvailableCustomCertificateExtensionsConfiguration cceConfig, boolean caNameChange, final Certificate oldCaCert) throws CryptoTokenOfflineException {
@@ -887,6 +902,20 @@ public class X509CA extends CA implements Serializable {
      * @param providedPublicKey provided public key which will have precedence over public key from providedRequestMessage but not over subject.extendedInformation.certificateRequest
      * @param subject end entity information. If it contains certificateRequest under extendedInformation, it will be used instead of providedRequestMessage and providedPublicKey
      * Otherwise, providedRequestMessage will be used.
+     * @param keyusage Usage
+     * @param notBefore Start date
+     * @param notAfter End date
+     * @param certProfile Profile
+     * @param extensions extensions
+     * @param sequence sequence
+     * @param caPublicKey Public Key
+     * @param caPrivateKey Prvate Key
+     * @param provider Provider
+     * @param certGenParams Parameters
+     * @param cceConfig config
+     * @param linkCertificate boolean
+     * @param caNameChange boolean
+     * @return Certificate
      *
      * @throws CAOfflineException if the CA wasn't active
      * @throws InvalidAlgorithmException if the signing algorithm in the certificate profile (or the CA Token if not found) was invalid.
@@ -1501,11 +1530,11 @@ public class X509CA extends CA implements Serializable {
      * If the DNS values in the subjectAlternativeName extension contain parentheses to specify labels that should be redacted, the parentheses are removed and another extension
      * containing the number of redacted labels is added.
      *
-     * @param subAltNameExt
-     * @param publishToCT
+     * @param subAltNameExt Alt Name
+     * @param publishToCT boolean
      * @return An extension generator containing the SubjectAlternativeName extension and an extension holding the number of redacted labels if the certificate is to be published
      * to a CTLog
-     * @throws IOException
+     * @throws IOException if read fails
      */
     protected ExtensionsGenerator getSubjectAltNameExtensionForCert(Extension subAltNameExt, boolean publishToCT) throws IOException {
         GeneralNames names = CertTools.getGeneralNamesFromExtension(subAltNameExt);
@@ -1561,9 +1590,9 @@ public class X509CA extends CA implements Serializable {
      *
      * If the DNS values in the subjectAlternativeName extension contain parentheses to specify labels that should be redacted, these labels will be replaced by the string "PRIVATE"
      *
-     * @param subAltNameExt
-     * @returnAn extension generator containing the SubjectAlternativeName extension
-     * @throws IOException
+     * @param subAltNameExt Alt Name
+     * @return An extension generator containing the SubjectAlternativeName extension
+     * @throws IOException if read fails
      */
     protected ExtensionsGenerator getSubjectAltNameExtensionForCTCert(Extension subAltNameExt) throws IOException {
         Pattern parenthesesRegex = Pattern.compile("\\(.*\\)"); // greedy match, so against "(a).(b).example.com" it will match "(a).(b)", like the old code did
@@ -1609,14 +1638,14 @@ public class X509CA extends CA implements Serializable {
      * @param isDeltaCRL true if we should generate a DeltaCRL
      * @param basecrlnumber caseCRLNumber for a delta CRL, use 0 for full CRLs
      * @return X509CRLHolder with the generated CRL
-     * @throws CryptoTokenOfflineException
-     * @throws IllegalCryptoTokenException
-     * @throws IOException
-     * @throws SignatureException
-     * @throws NoSuchProviderException
-     * @throws InvalidKeyException
-     * @throws CRLException
-     * @throws NoSuchAlgorithmException
+     * @throws CryptoTokenOfflineException If offline
+     * @throws IllegalCryptoTokenException If token is invalid
+     * @throws IOException If read/write fails
+     * @throws SignatureException If signature is invalid
+     * @throws NoSuchProviderException If provider cannot be found
+     * @throws InvalidKeyException If key is invalid
+     * @throws CRLException if CRL is invalid
+     * @throws NoSuchAlgorithmException If algorithm is invalid
      */
     private X509CRLHolder generateCRL(CryptoToken cryptoToken, Collection<RevokedCertInfo> certs, long crlPeriod, int crlnumber, boolean isDeltaCRL, int basecrlnumber)
             throws CryptoTokenOfflineException, IllegalCryptoTokenException, IOException, SignatureException, NoSuchProviderException,

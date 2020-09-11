@@ -50,11 +50,12 @@ public abstract class CvcCA extends CA implements Serializable {
 	/** Version of this class, if this is increased the upgrade() method will be called automatically */
 	public static final float LATEST_VERSION = 4;
 
-	/** Creates a new instance of CA, this constructor should be used when a new CA is created */
+	/** Creates a new instance of CA, this constructor should be used when a new CA is created 
+	 * @param cainfo info*/
 	public void init(CVCCAInfo cainfo) {
 	    super.init(cainfo);
         data.put(CA.CATYPE, Integer.valueOf(CAInfo.CATYPE_CVC));
-        data.put(VERSION, new Float(LATEST_VERSION));   
+        data.put(VERSION, Float.valueOf(LATEST_VERSION));   
 	}
 
 	public static CvcCA getInstance(CVCCAInfo cainfo) {
@@ -95,7 +96,14 @@ public abstract class CvcCA extends CA implements Serializable {
         return null;
     }
 
-	/** Constructor used when retrieving existing CVCCA from database. */
+	/** Constructor used when retrieving existing CVCCA from database. 
+	 * @param data data
+	 * @param caId ID
+	 * @param subjectDN DN
+	 * @param name name
+	 * @param status status
+	 * @param updateTime Update time
+	 * @param expireTime expiry*/
 	@SuppressWarnings("deprecation")
     public void init(HashMap<Object, Object> data, int caId, String subjectDN, String name, int status, Date updateTime, Date expireTime) {
 		super.init(data);

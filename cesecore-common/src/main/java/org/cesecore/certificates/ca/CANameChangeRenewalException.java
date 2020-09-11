@@ -45,7 +45,7 @@ public class CANameChangeRenewalException extends CesecoreException {
 
     /**
      * Constructs an instance of <code>CANameChangeRenewalException</code> with the specified cause.
-     * @param msg the detail message.
+     * @param e the detail message.
      */
     public CANameChangeRenewalException(Exception e) {
         super(e);

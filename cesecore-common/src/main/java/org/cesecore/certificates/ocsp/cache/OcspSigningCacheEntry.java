@@ -163,6 +163,7 @@ public class OcspSigningCacheEntry {
     /**
      * Checks if the entry has a OCSP signing certificate separate from the certificate chain.
      * Only entries with a keybinding can have a separate certificate.
+     * @return boolean
      */
     public boolean isUsingSeparateOcspSigningCertificate() { return ocspSigningCertificate != null; }
 
@@ -190,7 +191,7 @@ public class OcspSigningCacheEntry {
      * - If !includingSignCert --> not including any certificate or chain no matter what value includeChain has. The value of the 
      *   certificate chain  will then be an empty array.
      *   
-     * @param certChain
+     * @param certChain certificate chain
      * @return the certificate chain that will be included in the OCSP response
      */
     private X509Certificate[] getResponseCertChain(X509Certificate[] certChain) {

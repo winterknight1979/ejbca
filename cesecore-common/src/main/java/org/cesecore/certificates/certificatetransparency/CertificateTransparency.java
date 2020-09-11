@@ -50,6 +50,10 @@ public interface CertificateTransparency {
 
     /**
      * Overloaded method with usageMode = UsageMode.CERTIFICATE.
+     * @param chain Certificate chain
+     * @param certProfile Certificate Profile
+     * @param config Config
+     * @return  SCT List
      *
      * @throws CTLogException If too many servers are down to satisfy the certificate profile.
      * @see CertificateTransparency#fetchSCTList(List, CertificateProfile, CTSubmissionConfigParams, UsageMode)
@@ -71,11 +75,14 @@ public interface CertificateTransparency {
 
     /**
      * Adds a critical extension to prevent the certificate from being used
+     * @param precertbuilder builder
      */
     void addPreCertPoison(X509v3CertificateBuilder precertbuilder);
 
     /**
-     * Returns true if the given certificate has an SCT extension with at least one entry.
+     * @return true if the given certificate has an SCT extension with at least one entry.
+     * @param cert certificate 
+     * 
      */
     boolean hasSCTs(Certificate cert);
 
@@ -88,8 +95,9 @@ public interface CertificateTransparency {
     /**
      * Ensure that all SCTs in the certificate are valid or throw an exception. No checks are performed if the certificate given
      * as input does not have an SCT extension present.
-     * @param cert The final certificate to check
-     * @param certGenParams certificate generation parameters containing the CT logs being used, may be null if the SCT extension is not present
+     * @param leafCertificate The final certificate to check
+     * @param issuerCertificates Other certs in the chain 
+     * @param ctLogs Logs
      * @throws CertificateCreateException if one of the SCTs are invalid or if the certificate could not be parsed
      */
     void allSctsAreValidOrThrow(X509Certificate leafCertificate, List<Certificate> issuerCertificates, Collection<CTLogInfo> ctLogs)

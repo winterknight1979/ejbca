@@ -15,6 +15,7 @@ package org.cesecore.certificates.certificate.certextensions;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -79,7 +80,7 @@ public class AvailableCustomCertificateExtensionsConfiguration extends Configura
             final boolean required, Properties properties) throws CertificateExtentionConfigurationException {
         try {
             Class<?> implClass = Class.forName(classPath);
-            CertificateExtension certificateExtension = (CertificateExtension) implClass.newInstance();
+            CertificateExtension certificateExtension = (CertificateExtension) implClass.getConstructor().newInstance();
             certificateExtension.init(id, oid.trim(), displayName, critical, required, properties);
             data.put(id, certificateExtension);
         } catch (ClassNotFoundException e) {
@@ -88,7 +89,11 @@ public class AvailableCustomCertificateExtensionsConfiguration extends Configura
             throw new CertificateExtentionConfigurationException("Cannot add custom certificate extension. " + e.getLocalizedMessage());
         } catch (IllegalAccessException e) {
             throw new CertificateExtentionConfigurationException("Cannot add custom certificate extension. " + e.getLocalizedMessage());
-        }
+        } catch (InvocationTargetException e) {
+            throw new CertificateExtentionConfigurationException("Cannot add custom certificate extension. " + e.getLocalizedMessage());
+		} catch (NoSuchMethodException e) {
+            throw new CertificateExtentionConfigurationException("Cannot add custom certificate extension. " + e.getLocalizedMessage());
+		} 
     }
     
     public void removeCustomCertExtension(int id) {
@@ -110,7 +115,7 @@ public class AvailableCustomCertificateExtensionsConfiguration extends Configura
     /**
      * Returns a list of the available CertificateExtensions as Properties. Each property contains the extension OID 
      * as its 'key' and the extension's label as its 'value'
-     * @return
+     * @return Properties
      */
     public Properties getAsProperties() {
         Properties properties = new Properties();
@@ -183,6 +188,10 @@ public class AvailableCustomCertificateExtensionsConfiguration extends Configura
     /**
      * Used for upgrading from old certextensions.properties files.
      * Package-internal to allow for testing.
+     * @param id ID
+     * @param propertiesInFile Properties
+     * @return Certificate extension
+     * @throws CertificateExtentionConfigurationException on fail 
      */
     static CertificateExtension getCertificateExtensionFromFile(int id, Properties propertiesInFile) throws CertificateExtentionConfigurationException {
         String PROPERTY_ID           = "id";
@@ -205,7 +214,7 @@ public class AvailableCustomCertificateExtensionsConfiguration extends Configura
             if(used){
                 if(oid != null && classPath != null && displayName != null){
                     Class<?> implClass = Class.forName(classPath);
-                    CertificateExtension certificateExtension = (CertificateExtension) implClass.newInstance();
+                    CertificateExtension certificateExtension = (CertificateExtension) implClass.getConstructor().newInstance();
                     Properties extensionProperties = getExtensionProperties(id, propertiesInFile);
                     if(translatable) {
                         extensionProperties.put("translatable", true);

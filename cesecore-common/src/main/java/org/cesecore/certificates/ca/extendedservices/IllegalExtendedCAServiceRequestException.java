@@ -37,7 +37,7 @@ public class IllegalExtendedCAServiceRequestException extends Exception {
 
     /**
      * Constructs an instance of <code>IllegalExtendedCAServiceRequestException</code> with the specified cause.
-     * @param msg the detail message.
+     * @param e the detail message.
      */
     public IllegalExtendedCAServiceRequestException(Exception e) {
         super(e);

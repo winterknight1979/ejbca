@@ -38,7 +38,7 @@ public class IllegalKeyException extends CesecoreException {
     }
     /**
      * Constructs an instance of <code>IllegalKeyException</code> with the specified cause.
-     * @param msg the detail message.
+     * @param e the detail message.
      */
     public IllegalKeyException(Exception e) {
         super(e);

@@ -224,14 +224,14 @@ public interface RequestMessage extends Serializable {
     /** Sometimes (CMP) the response identifier sent depends on which request identifier was used, 
      * even if the messages themselves are the same messages.
      * 
-     * @param reqtype which type of request message this response is in response to
+     * @return which type of request message this response is in response to
      */ 
     int getRequestType();
     
     /**
      * For some types of request-responses there is a need for a requestId to match the request and the
      * response together.
-     * @param reqId the id from the request matching to this response
+     * @return the id from the request matching to this response
      */
     int getRequestId();
     

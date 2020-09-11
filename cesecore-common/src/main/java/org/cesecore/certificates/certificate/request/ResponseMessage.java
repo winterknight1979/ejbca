@@ -51,7 +51,7 @@ public interface ResponseMessage extends Serializable {
      * Determines if the CA certificate should be included in the response message, if
      * applicable for the response message type.
      * 
-     * @param includeCACert true or false
+     * @param incCACert true or false
      */
     void setIncludeCACert(boolean incCACert);
 
@@ -145,7 +145,7 @@ public interface ResponseMessage extends Serializable {
      * Sets the public and private key needed to sign the message. Must be set if
      * requireSignKeyInfo() returns true.
      *
-     * @param cert certificate containing the public key.
+     * @param certs certificate containing the public key.
      * @param key private key.
      * @param provider the provider to use, if the private key is on a HSM you must use a special provider. If null is given, the default BC provider is used.
      *
@@ -185,7 +185,7 @@ public interface ResponseMessage extends Serializable {
      * Sets preferred digest algorithm for the response message, if applicable. 
      * If this is not called, a default is used.
      * 
-     * @param String oid of digest algorithm ex CMSSignedDataGenerator.SHA1, SHA256 etc
+     * @param digest String oid of digest algorithm ex CMSSignedDataGenerator.SHA1, SHA256 etc
      */
     void setPreferredDigestAlg(String digest);
     
@@ -199,14 +199,14 @@ public interface ResponseMessage extends Serializable {
     /**
      * For some types of request-responses there is a need for a requetsId to match the request and the
      * response together.
-     * @param reqId the id from the request matching to this response
+     * @param reqid the id from the request matching to this response
      */
     void setRequestId(int reqid);
     
     /**
      * For some types of requests, the protection used depends on parameters from the request,
      * for example password based protection where algorithms, keyId etc is the same in the response as in the request
-     * @param RequestMessage the request from where to pick protection parameters
+     * @param reqMsg the request from where to pick protection parameters
      */
     void setProtectionParamsFromRequest(RequestMessage reqMsg);
 }
