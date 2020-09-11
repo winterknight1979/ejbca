@@ -123,19 +123,22 @@ public abstract class AuthenticationToken implements Serializable {
     /**
      * Returns the preferred match key for this type of authentication token. E.g. serial number for X.509 tokens
      * If not applicable to this authentication token, then it returns {@link #NO_PREFERRED_MATCH_KEY}.
+     * @return Key
      */
     public abstract int getPreferredMatchKey();
     
     /**
      * Returns the preferred match value for this authentication token. E.g. the serial number of X.509 tokens.
      * <b>Note:</b> For performance reasons, this value must support case sensitive searching.
+     * @return Value
      */
     public abstract String getPreferredMatchValue();
     
     /** @return a String that is guaranteed to be unique across all AuthenticationTokens of this type. */
     protected abstract String generateUniqueId();
 
-    /** @return a hex-encoded string of the hash over all the provided arguments */
+    /** @param arguments Args
+     * @return a hex-encoded string of the hash over all the provided arguments */
     protected String generateUniqueId(final Object...arguments) {
         try {
             final MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");

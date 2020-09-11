@@ -109,7 +109,8 @@ public class AlwaysAllowLocalAuthenticationToken extends NestableAuthenticationT
     }
     
     /** Do not use since EJBCA 6.8. Kept for backwards compatibility reasons to de-serialize ApprovalRequests. See ECA-6442 */
-    @Deprecated 
+    @SuppressWarnings("unused")
+	@Deprecated 
     private static enum InternalMatchValue implements AccessMatchValue {
         INSTANCE(0), DEFAULT(Integer.MAX_VALUE);
 

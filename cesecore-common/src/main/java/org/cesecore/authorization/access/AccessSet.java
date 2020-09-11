@@ -63,11 +63,12 @@ public final class AccessSet implements Serializable {
     @Deprecated
     private Collection<String> set;
 
-    /** No-args constructor for deserialization only. To create an empty AccessSet, use {@link #createEmptyAccessSet()} */
+    /** No-args constructor for deserialization only.  */
     public AccessSet() { }
 
     /**
      * Creates an AccessSet with a legacy 6.6.0 access rule set, which can't contain deny rules and works using the old access rule system.
+     * @param legacySet Rule set
      * @deprecated Since 6.8.0
      */
     @Deprecated
@@ -75,7 +76,9 @@ public final class AccessSet implements Serializable {
         this.set = new HashSet<>(legacySet);
     }
 
-    /** Creates an access set merged from two access sets. */
+    /** Creates an access set merged from two access sets. 
+     * @param a Set a
+     * @param b Set b */
     public AccessSet(final AccessSet a, final AccessSet b) {
         set = new HashSet<>(a.set.size() + b.set.size());
         set.addAll(a.set);

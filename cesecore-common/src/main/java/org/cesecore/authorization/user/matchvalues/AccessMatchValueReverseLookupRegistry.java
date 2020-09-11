@@ -41,7 +41,8 @@ public enum AccessMatchValueReverseLookupRegistry {
         }
     }
 
-    /** package accessible register class also for use from JUnit test */
+    /** package accessible register class also for use from JUnit test 
+     * @param metaData metadata*/
     void register(final AuthenticationTokenMetaData metaData) {
         if (metaData!=null && metaData.getTokenType()!=null && metaData.getAccessMatchValues()!=null && !metaData.getAccessMatchValues().isEmpty()) {
             metaDatas.put(metaData.getTokenType(), metaData);
@@ -55,7 +56,8 @@ public enum AccessMatchValueReverseLookupRegistry {
         return metaDatas.keySet();
     }
     
-    /** @return the meta data for the specified tokenType or null if none exists */
+    /** @param tokenType type
+     * @return the meta data for the specified tokenType or null if none exists */
     public AuthenticationTokenMetaData getMetaData(final String tokenType) {
         return metaDatas.get(tokenType);
     }
@@ -87,6 +89,7 @@ public enum AccessMatchValueReverseLookupRegistry {
     }
 
     /**
+     * @param tokenType Type
      * @return the nameLookupMap for a given token type. Never returns null.
      */
     public Map<String, AccessMatchValue> getNameLookupRegistryForTokenType(final String tokenType) {

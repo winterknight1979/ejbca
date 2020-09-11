@@ -44,6 +44,7 @@ public final class RemoteAccessSetCacheHolder {
      * Returns a ConcurrentCache object that can be used for caching AccessSets from remote systems.
      * The caller is responsible for filling it with results from getAccessSetForAuthToken from the
      * remote system, but it's automatically cleared whenever local access rules change.
+     * @return Cache
      */
     public static ConcurrentCache<AuthenticationToken,AccessSet> getCache() {
         return cache;

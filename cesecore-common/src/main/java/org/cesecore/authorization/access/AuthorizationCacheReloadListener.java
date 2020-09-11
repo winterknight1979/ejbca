@@ -19,7 +19,8 @@ package org.cesecore.authorization.access;
  */
 public interface AuthorizationCacheReloadListener {
 
-    /** Invoked when the authorization system has been modified. */
+    /** Invoked when the authorization system has been modified. 
+     * @param event Event*/
     void onReload(AuthorizationCacheReload event);
 
     /** @return a human readable name for logging of who is subscribing to events. */
