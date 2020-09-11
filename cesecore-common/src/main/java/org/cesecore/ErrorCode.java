@@ -97,7 +97,7 @@ public class ErrorCode implements Serializable {
     private ErrorCode() {}
 
     /** Constructor.
-     * @param errorCode error code.
+     * @param internalErrorCode error code.
      */
     private ErrorCode(String internalErrorCode) {
         this.internalErrorCode = internalErrorCode;
@@ -203,12 +203,14 @@ public class ErrorCode implements Serializable {
     /** Trying to delete an item when references exist. For example, a deleting publisher when it's used by profiles. */
     public static final ErrorCode REFERENCES_TO_ITEM_EXIST = new ErrorCode(_REFERENCES_TO_ITEM_EXIST);
 
-    /** Get the internal error code. */
+    /** Get the internal error code. 
+     * @return Error code*/
     public String getInternalErrorCode() {
         return internalErrorCode;
     }
 
-    /** Set the internal error code. */
+    /** Set the internal error code. 
+     * @param internalErrorCode Error code*/
     public void setInternalErrorCode(String internalErrorCode) {
         this.internalErrorCode = internalErrorCode;
     }

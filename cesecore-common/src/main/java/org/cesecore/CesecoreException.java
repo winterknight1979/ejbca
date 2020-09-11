@@ -104,6 +104,7 @@ public class CesecoreException extends Exception {
      * baseclass <code>Exception</code>.
      *
      * @param message Human readable error message, can not be NULL.
+     * @param cause Embedded exception
      */
     public CesecoreException(final String message, final Throwable cause) {
 		super(message, cause);

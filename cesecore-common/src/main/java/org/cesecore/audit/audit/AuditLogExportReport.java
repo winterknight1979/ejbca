@@ -29,7 +29,8 @@ public class AuditLogExportReport extends AuditLogValidationReport {
 		super();
 	}
 
-	/** Full pathname to the exported file, if any. */
+	/** Full pathname to the exported file, if any. 
+	 * @param exportedFile File name*/
 	public void setExportedFile(final String exportedFile) {
 		this.exportedFile = exportedFile;
 	}
@@ -39,7 +40,8 @@ public class AuditLogExportReport extends AuditLogValidationReport {
 		return exportedFile;
 	}
 
-	/** Full pathname to the signature of the exported file, if any. */
+	/** Full pathname to the signature of the exported file, if any. 
+	 * @param signatureFile File name*/
 	public void setSignatureFile(final String signatureFile) {
 		this.signatureFile = signatureFile;
 	}

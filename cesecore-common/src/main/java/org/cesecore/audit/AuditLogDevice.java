@@ -23,7 +23,8 @@ import org.cesecore.audit.log.AuditLogResetException;
  */
 public interface AuditLogDevice extends Auditable, AuditLogger {
 
-	/** Setter for the ejbs that the log devices can invoke.. */
+	/** Setter for the ejbs that the log devices can invoke.. 
+	 * @param ejbs EJB's*/
 	void setEjbs(Map<Class<?>, ?> ejbs);
 	
 	/** @return true if this device can respond to queries. */
@@ -34,6 +35,7 @@ public interface AuditLogDevice extends Auditable, AuditLogger {
      * This method will block till all audit log processes are completed. 
      * Should be used with caution because once called audit log will not be operational. 
      * Any attempt to log will result in an exception.
+     * @throws AuditLogResetException If reset fails
      */
     void prepareReset() throws AuditLogResetException;
 
@@ -41,6 +43,7 @@ public interface AuditLogDevice extends Auditable, AuditLogger {
      * Resets all security audit events logger internal state.
      * Once this method finishes the audit log will be available again.
      * This method should be used with caution.
+     * @throws AuditLogResetException If reset fails 
      */
     void reset() throws AuditLogResetException;
 }
