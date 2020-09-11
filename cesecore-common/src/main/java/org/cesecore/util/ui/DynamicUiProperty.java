@@ -42,6 +42,7 @@ import org.cesecore.util.LookAheadObjectInputStream;
  * Allows creation of dynamic properties for display in the UI.
  *
  * @version $Id: DynamicUiProperty.java 34324 2020-01-17 12:22:39Z henriks $
+ * @param <T> Type
  */
 public class DynamicUiProperty<T extends Serializable> implements Serializable, Cloneable {
 
@@ -809,7 +810,8 @@ public class DynamicUiProperty<T extends Serializable> implements Serializable, 
         return possibleValues != null;
     }
 
-    /** Returns the current value, like getValue, but has a workaround for JSF bug with ui:repeat and rendered. See ECA-5342 */
+    /** Returns the current value, like getValue, but has a workaround for JSF bug with ui:repeat and rendered. See ECA-5342 
+     * @return value*/
     @SuppressWarnings("unchecked")
     public T getJsfBooleanValue() {
         if (hasMultipleValues || type != Boolean.class) {
@@ -1001,7 +1003,8 @@ public class DynamicUiProperty<T extends Serializable> implements Serializable, 
                 + ", labelOnly=" + labelOnly + ", type=" + type + ", hasMultipleValues=" + hasMultipleValues + "]";
     }
 
-    /** Delegation method for {@link DynamicUIModel#addDynamicUiComponent}. */
+    /** Delegation method for {@link DynamicUiModel#addDynamicUiComponent}. 
+     * @param component component */
     public void addDynamicUiComponent(final DynamicUiComponent component) {
         getDynamicUiModel().addDynamicUiComponent(name, component);
     }

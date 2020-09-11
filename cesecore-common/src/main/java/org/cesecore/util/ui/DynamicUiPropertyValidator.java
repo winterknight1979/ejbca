@@ -20,6 +20,7 @@ import java.io.Serializable;
  * defined here) and through the one defined in Validator. 
  *
  * @version $Id: DynamicUiPropertyValidator.java 24958 2016-12-28 17:07:58Z mikekushner $
+ * @param <T> Type
  *
  */
 public interface DynamicUiPropertyValidator<T extends Serializable> extends Serializable {
@@ -27,7 +28,6 @@ public interface DynamicUiPropertyValidator<T extends Serializable> extends Seri
     /**
      * 
      * @param value the value to be validated
-     * @return true if the value passes validation
      * 
      * @throws PropertyValidationException if the validation failed, including a detailed error message.
      */

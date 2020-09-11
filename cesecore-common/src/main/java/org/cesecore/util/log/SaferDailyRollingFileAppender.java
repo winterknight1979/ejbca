@@ -49,7 +49,8 @@ public class SaferDailyRollingFileAppender extends DailyRollingFileAppender {
         }
     }
 
-    /** Sets the SaferAppenderListener that will be informed if a logging error occurs. */
+    /** Sets the SaferAppenderListener that will be informed if a logging error occurs. 
+     * @param pSubscriber subscriber*/
     public static void addSubscriber(SaferAppenderListener pSubscriber) {
         subscriber = pSubscriber;
     }

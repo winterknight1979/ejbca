@@ -22,7 +22,7 @@ public interface DynamicUiComponent {
 
 	/**
 	 * Enables or disables the component.
-	 * @param disabled
+	 * @param disabled boolean
 	 */
     void setDisabled(final boolean disabled);
 }

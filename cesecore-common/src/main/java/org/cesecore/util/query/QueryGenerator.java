@@ -128,9 +128,9 @@ public final class QueryGenerator implements Serializable {
 
     /**
      * Returns a new QueryGenerator or null if criteria is null
-     * @param clazz
+     * @param clazz class
      * @param criteria QueryCriteria
-     * @param attrAlias
+     * @param attrAlias alias
      * @return QueryGenerator or null if criteria is null
      */
     public static QueryGenerator generator(final Class<?> clazz,
@@ -167,7 +167,7 @@ public final class QueryGenerator implements Serializable {
     /**
      * Traverses the terms list that is constructed according to the elements list in the QueryCriteria.
      * 
-     * @param terms
+     * @param elements elements
      */
     private void termTraversal(List<Elem> elements) {
         boolean first = true;
@@ -184,7 +184,7 @@ public final class QueryGenerator implements Serializable {
     /**
      * Traverses the clauses list that is constructed according to the elements list in the QueryCriteria.
      * 
-     * @param clauses
+     * @param clauses clauses
      */
     private void clauseTraversal(List<Elem> clauses) {
         for (final Elem clause : clauses) {
@@ -195,7 +195,7 @@ public final class QueryGenerator implements Serializable {
     /** 
      * Partial query generation according to the provided element.
      * 
-     * @param element. Term or Operation or Order object
+     * @param elem Term or Operation or Order object
      */
     private void generate(final Elem elem) {
         if (elem instanceof Operation) {
@@ -250,7 +250,8 @@ public final class QueryGenerator implements Serializable {
         return parameters.keySet();
     }
 
-    /** @return the value of a stored parameter */
+    /** @param key key
+     * @return the value of a stored parameter */
     public Object getParameterValue(final String key) {
         return parameters.get(key);
     }

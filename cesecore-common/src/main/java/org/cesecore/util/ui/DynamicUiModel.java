@@ -165,7 +165,9 @@ public class DynamicUiModel {
         }
     }
 
-    /** Store data in the underlying map. Encourages use of String valued keys. */
+    /** Store data in the underlying map. Encourages use of String valued keys. 
+     * @param key key
+     * @param value value */
     private void putData(final String key, final Object value) {
         data.put(key, value);
     }

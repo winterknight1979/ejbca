@@ -34,36 +34,49 @@ public class Criteria implements Serializable {
         return new Term(RelationalOperator.EQ, name, value);
     }
 
-    /** @return the query with an appended "not equal to" condition */
+    /** @param name name
+     * @param value value
+     * @return the query with an appended "not equal to" condition */
     public static Elem neq(final String name, final Object value) {
         return new Term(RelationalOperator.NEQ, name, value);
     }
 
-    /** @return the query with an appended "greater than or equal to" condition */
+    /** @param name name
+     * @param value value
+     * @return the query with an appended "greater than or equal to" condition */
     public static Elem geq(final String name, final Object value) {
         return new Term(RelationalOperator.GE, name, value);
 
     }
 
-    /** @return the query with an appended "greater than" condition */
+    /** @param name name
+     * @param value value
+     * @return the query with an appended "greater than" condition */
     public static Elem grt(final String name, final Object value) {
         return new Term(RelationalOperator.GT, name, value);
 
     }
 
-    /** @return the query with an appended "less than or equal to" condition */
+    /** @param name name
+     * @param value value
+     * @return the query with an appended "less than or equal to" condition */
     public static Elem leq(final String name, final Object value) {
         return new Term(RelationalOperator.LE, name, value);
 
     }
 
-    /** @return the query with an appended "less than to" condition */
+    /** @param name name
+     * @param value value
+     * @return the query with an appended "less than to" condition */
     public static Elem lsr(final String name, final Object value) {
         return new Term(RelationalOperator.LT, name, value);
 
     }
 
-    /** @return the query with an appended "between" condition */
+    /**@param name name
+     * @param after after
+     * @param before before
+     *  @return the query with an appended "between" condition */
     public static Elem between(final String name, final Object after,
             final Object before) {
         return new Term(RelationalOperator.BETWEEN, name,

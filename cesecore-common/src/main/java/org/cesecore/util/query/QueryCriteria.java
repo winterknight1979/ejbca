@@ -48,7 +48,7 @@ public final class QueryCriteria implements Serializable {
     
     /**
      * Adds a new Criteria (Restriction)
-     * @param restriction element to be added
+     * @param elem element to be added
      * 
      * @return QueryCriteria instance for chained calls.
      */
