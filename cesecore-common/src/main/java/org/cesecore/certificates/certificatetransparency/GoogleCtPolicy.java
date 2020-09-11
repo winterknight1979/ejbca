@@ -69,7 +69,7 @@ public class GoogleCtPolicy implements Serializable {
 
     /**
      * Set the minimum number of SCTs required for certificates with a lifetime
-     * of >27 Months but ≤39 Months.
+     * of &gt;27 Months but ≤39 Months.
      * @param value a number of SCTs
      */
     public void setBetween27And39Months(final int value) {
@@ -105,7 +105,7 @@ public class GoogleCtPolicy implements Serializable {
 
     /**
      * Get the minimum number of SCTs required for certificates with a lifetime
-     * of >27 Months but ≤39 Months.
+     * of &gt;27 Months but ≤39 Months.
      * @return a number of SCTs
      */
     public int getBetween27And39Months() {

@@ -161,7 +161,7 @@ public final class StringTools {
     }
 
     /**
-     * Strips '<' and '>' as well as all special characters from a string by replacing them with a forward slash, '/'.
+     * Strips '&lt;' and '&gt;' as well as all special characters from a string by replacing them with a forward slash, '/'.
      * @param str the string whose contents will be stripped.
      * @return the stripped version of the input string.
      */
@@ -462,7 +462,7 @@ public final class StringTools {
     }
 
     /**
-     * Takes input and converts to Base64 on the format "B64:<base64 endoced string>", if the string is not null or empty.
+     * Takes input and converts to Base64 on the format "B64:&lt;base64 endoced string&gt;", if the string is not null or empty.
      *
      * @param s String to base64 encode
      * @return Base64 encoded string, or original string if it was null or empty
@@ -472,7 +472,7 @@ public final class StringTools {
     }
 
     /**
-     * Takes input and converts to Base64 on the format "B64:<base64 endoced string>", if the string is not null or empty.
+     * Takes input and converts to Base64 on the format "B64:&lt;base64 endoced string&gt;", if the string is not null or empty.
      *
      * @param s String to base64 encode
      * @param dontEncodeAsciiPrintable if the String is made up of pure ASCII printable characters, we will not B64 encode it
@@ -495,7 +495,7 @@ public final class StringTools {
 
     /**
      * Takes a string given as input and converts it from Base64 if the string
-     * begins with the case-insensitive prefix b64, i.e. is on format "b64:<base64 encoded string>".
+     * begins with the case-insensitive prefix b64, i.e. is on format "b64:&lt;base64 encoded string&gt;".
      *
      * @param input String to Base64 decode
      * @return Base64 decoded string, or original string if it was not base64 encoded
@@ -1148,7 +1148,7 @@ public final class StringTools {
      *
      * @param first a version number
      * @param second a version number
-     * @return true of the first version is lower (1.0 < 2.0) than the second, false otherwise.
+     * @return true of the first version is lower (1.0 &lt; 2.0) than the second, false otherwise.
      **/
     public static boolean isLesserThan(final String first, final String second) {
         if (log.isTraceEnabled()) {

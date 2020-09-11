@@ -38,7 +38,7 @@ public class ProfileID {
 	}
 	/**
 	 * @param db The {@link DB} implementation.
-	 * @return The ID to be used. Always returning >0xffff. IDs <0x10000 are reserved for constant defined in the code.
+	 * @return The ID to be used. Always returning &gt;0xffff. IDs &lt;0x10000 are reserved for constant defined in the code.
 	 */
 	public static int getNotUsedID(final DB db) {
 		for ( int i=0; i<10; i++ ) {

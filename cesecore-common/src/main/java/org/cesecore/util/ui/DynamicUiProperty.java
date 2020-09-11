@@ -435,7 +435,7 @@ public class DynamicUiProperty<T extends Serializable> implements Serializable, 
     }
 
     /**
-     * Gets the given value of type <T>.
+     * Gets the given value of type &lt;T&gt;.
      * @return the value.
      */
     public T getDefaultValue() {
@@ -443,7 +443,7 @@ public class DynamicUiProperty<T extends Serializable> implements Serializable, 
     }
 
     /**
-     * Sets the given value of type <T>.
+     * Sets the given value of type &lt;T&gt;.
      * @param defaultValue the value.
      */
     public void setDefaultValue(T defaultValue) {
@@ -506,7 +506,7 @@ public class DynamicUiProperty<T extends Serializable> implements Serializable, 
     }
 
     /**
-     * Sets the current value of type <T>.
+     * Sets the current value of type &lt;T&gt;.
      * @param object a value for this property.
      * @throws PropertyValidationException if the validation of the value failed.
      */
@@ -535,7 +535,7 @@ public class DynamicUiProperty<T extends Serializable> implements Serializable, 
     }
 
     /**
-     * Sets the list of current values of type <T>.
+     * Sets the list of current values of type &lt;T&gt;.
      * @param objects a list of values to set.
      * @throws PropertyValidationException if any one of the values didn't pass validation.
      */
@@ -574,7 +574,7 @@ public class DynamicUiProperty<T extends Serializable> implements Serializable, 
     }
 
     /**
-     * Gets the current value of type <T> as base 64 encoded string.
+     * Gets the current value of type &lt;T&gt; as base 64 encoded string.
      * @return the base 64 encoded string.
      */
     public String getEncodedValue() {
@@ -582,7 +582,7 @@ public class DynamicUiProperty<T extends Serializable> implements Serializable, 
     }
 
     /**
-     * Gets the list of current values of type <T> as list of base 64 encoded strings.
+     * Gets the list of current values of type &lt;T&gt; as list of base 64 encoded strings.
      * @return the list.
      */
     public List<String> getEncodedValues() {
@@ -612,7 +612,7 @@ public class DynamicUiProperty<T extends Serializable> implements Serializable, 
     }
 
     /**
-     * Sets the current value of type <T> by the given base 64 encoded string.
+     * Sets the current value of type &lt;T&gt; by the given base 64 encoded string.
      * @param encodedValue the base 64 encoded value.
      */
     @SuppressWarnings("unchecked")
@@ -625,7 +625,7 @@ public class DynamicUiProperty<T extends Serializable> implements Serializable, 
     }
 
     /**
-     * Sets the list of values of type <T> by the given list of base 64 encoded strings.
+     * Sets the list of values of type &lt;T&gt; by the given list of base 64 encoded strings.
      * @param encodedValues a list of encoded values.
      * @throws PropertyValidationException if any one of the values doesn't pass validation.
      */
@@ -639,7 +639,7 @@ public class DynamicUiProperty<T extends Serializable> implements Serializable, 
     }
 
     /**
-     * Sets the current value of type <T>.
+     * Sets the current value of type &lt;T&gt;.
      * @param object the value.
      */
     @SuppressWarnings("unchecked")
@@ -662,7 +662,7 @@ public class DynamicUiProperty<T extends Serializable> implements Serializable, 
     }
 
     /**
-     * Sets the current value of type <T>.
+     * Sets the current value of type &lt;T&gt;.
      * @param object the value.
      */
     @SuppressWarnings("unchecked")
@@ -685,7 +685,7 @@ public class DynamicUiProperty<T extends Serializable> implements Serializable, 
     }
 
     /**
-     * Sets the list of current values of type <T>.
+     * Sets the list of current values of type &lt;T&gt;.
      * @param list the list of values.
      *
      */
@@ -824,7 +824,7 @@ public class DynamicUiProperty<T extends Serializable> implements Serializable, 
 
     /**
      * Sets the value, by calling setValue. Needed for the getJsfBooleanValue workaround.
-     * @param newValue the new value of type <T>.
+     * @param newValue the new value of type &lt;T&gt;.
      * @throws PropertyValidationException if the value failed validation.
      */
     public void setJsfBooleanValue(final T newValue) throws PropertyValidationException {

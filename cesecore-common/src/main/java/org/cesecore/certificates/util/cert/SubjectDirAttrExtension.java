@@ -64,7 +64,7 @@ public class SubjectDirAttrExtension extends CertTools {
      * AttributeValue ::= ANY
      * 
 	 * SubjectDirectoryAttributes is of form 
-	 * dateOfBirth=<19590927>, placeOfBirth=<string>, gender=<M/F>, countryOfCitizenship=<two letter ISO3166>, countryOfResidence=<two letter ISO3166>
+	 * dateOfBirth=&lt;19590927&gt;, placeOfBirth=&lt;string&gt;, gender=&lt;M/F&gt;, countryOfCitizenship=&lt;two letter ISO3166&gt;, countryOfResidence=&lt;two letter ISO3166&gt;
      * 
      * Supported subjectDirectoryAttributes are the ones above 
 	 *

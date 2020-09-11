@@ -77,7 +77,7 @@ public class CertificateValidity {
     /**
      * Gets the default validity offset.
      * @return the offset as relative time.
-     * @See {@link org.cesecore.util.SimpleTime SimpleTime}
+     * @see org.cesecore.util.SimpleTime SimpleTime
      */
     public static final long getValidityOffset() {
         return DEFAULT_VALIDITY_OFFSET;

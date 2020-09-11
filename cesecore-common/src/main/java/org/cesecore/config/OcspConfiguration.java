@@ -325,7 +325,7 @@ public class OcspConfiguration {
      * 
      * Deprecated: May still be required for 6.12 upgrades
      * 
-     * @return a List<String> of extension OIDs, an empty list if none are found.
+     * @return a List&lt;String&gt; of extension OIDs, an empty list if none are found.
      */
     @Deprecated
     public static List<String> getExtensionOids() {
@@ -341,7 +341,7 @@ public class OcspConfiguration {
      * 
      * @deprecated since 6.12. May still be required for upgrades.
      * 
-     * @return a List<String> of extension classes
+     * @return a List&lt;String&gt; of extension classes
      */
     @Deprecated
     public static List<String> getExtensionClasses() {

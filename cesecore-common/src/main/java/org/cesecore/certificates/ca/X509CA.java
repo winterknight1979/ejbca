@@ -872,7 +872,7 @@ public class X509CA extends CA implements Serializable {
     /**
      * @param request provided request message containing optional information, and will be set with the signing key and provider.
      * If the certificate profile allows subject DN override this value will be used instead of the value from subject.getDN. Its public key is going to be used if
-     * publicKey == null && subject.extendedInformation.certificateRequest == null. Can be null.
+     * publicKey == null &amp;&amp; subject.extendedInformation.certificateRequest == null. Can be null.
      * @param publicKey provided public key which will have precedence over public key from the provided RequestMessage but not over subject.extendedInformation.certificateRequest
      * @param subject end entity information. If it contains certificateRequest under extendedInformation, it will be used instead of the provided RequestMessage and publicKey
      */

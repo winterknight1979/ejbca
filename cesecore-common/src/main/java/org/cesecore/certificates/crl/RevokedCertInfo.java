@@ -236,7 +236,7 @@ public class RevokedCertInfo implements Serializable {
      * 
      * @param a First collection of RevokedCertInfo. May <b>not</b> contain duplicates for the same serial number.
      * @param b Second collection of RevokedCertInfo. May contain duplicates
-     * @param lastBaseCrlDate Entries in unrevoked state will only be included if they are more recent than this date. (<= 0 means never include them)
+     * @param lastBaseCrlDate Entries in unrevoked state will only be included if they are more recent than this date. (&lt;= 0 means never include them)
      * @return CompressionCollection of certificates. May simply be a reference to <code>a</code> if <code>b</code> is empty, or a new merged CompressedCollection with any duplicates removed.
      */
     public static Collection<RevokedCertInfo> mergeByDateAndStatus(final Collection<RevokedCertInfo> a, final Collection<RevokedCertInfo> b, final long lastBaseCrlDate) {

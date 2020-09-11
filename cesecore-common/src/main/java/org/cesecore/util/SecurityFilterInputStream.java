@@ -22,8 +22,7 @@ import java.io.InputStream;
  * ObjectInputStream objectInputStream = new ObjectInputStream(new SecurityFilterInputStream(new ByteArrayInputStream(someByteArray), 256));
  * objectInputStream.readObject(); //If serialized object have more than 256 bytes, SecurityException will be thrown
  * 
- * @see "SecurityFilterInputStreamTest"
- * 	in the test code for more examples
+ *  see "SecurityFilterInputStreamTest" in the test code for more examples
  * 
  * @version $Id: SecurityFilterInputStream.java 26057 2017-06-22 08:08:34Z anatom $
  */

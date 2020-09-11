@@ -19,7 +19,7 @@ import java.util.Map;
 
 
 /** An implementation of HashMap that base64 decodes all String's that you 'get', 
- * if they start with 'B64', i.e. it base64 decodes string of form "B64:<base64 encoded string>".
+ * if they start with 'B64', i.e. it base64 decodes string of form "B64:&lt;base64 encoded string&gt;".
  * It only tries to decode objects of type String.
  * 
  * @version $Id: Base64GetHashMap.java 17625 2013-09-20 07:12:06Z netmackan $

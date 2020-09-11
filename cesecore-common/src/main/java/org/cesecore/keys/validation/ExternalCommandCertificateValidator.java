@@ -355,7 +355,7 @@ public class ExternalCommandCertificateValidator extends CertificateValidatorBas
 
     /**
      * Tests the external command with the uploaded test certificate.
-     * @return a list with size > 0 and the exit code in field with index 0 and STDOUT and ERROR appended subsequently.
+     * @return a list with size &gt; 0 and the exit code in field with index 0 and STDOUT and ERROR appended subsequently.
      * @throws DynamicUiCallbackException if the external script path does not exist or accessible or the script call fails otherwise.
      */
     @SuppressWarnings("unchecked")

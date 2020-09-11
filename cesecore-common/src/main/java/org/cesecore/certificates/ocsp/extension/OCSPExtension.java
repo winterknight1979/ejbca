@@ -52,7 +52,7 @@ public interface OCSPExtension {
      * @param internalKeyBinding
      *            Used to get the trusted ca cert etc.
      * 
-     * @return Hashtable with X509Extensions <String oid, X509Extension ext> that will be added to responseExtensions by OCSP responder, or null if an
+     * @return Hashtable with X509Extensions &lt;String oid, X509Extension ext&gt; that will be added to responseExtensions by OCSP responder, or null if an
      *         error occurs
      */
     Map<ASN1ObjectIdentifier, Extension> process(final X509Certificate[] requestCertificates, final String remoteAddress, final String remoteHost,

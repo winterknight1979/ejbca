@@ -137,7 +137,7 @@ public class InternalResources implements Serializable {
      * 
      * It first looks up in the primary language then in the secondary If not
      * found in any of the resource file "no text" is returned.
-     * <br/><br/>
+     * <br><br>
      * NOTE: String is immutable and you will get a copy of the String instead
      * of a reference to it. This is more memory consuming than using
      * getLocalizedMessageCs(..) if you pass on the result to Log4J.

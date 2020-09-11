@@ -20,7 +20,7 @@ import java.util.List;
 import org.cesecore.util.IndexEnum;
 
 /**
- * This class contains a representation of mathematical conditions, i.e <, <=, >, >=.
+ * This class contains a representation of mathematical conditions, i.e &lt;, &lt;=, &gt;, &gt;=.
  * @version $Id: KeyValidatorDateConditions.java 30982 2019-01-04 12:53:31Z samuellb $
  */
 public enum KeyValidatorDateConditions implements IndexEnum {

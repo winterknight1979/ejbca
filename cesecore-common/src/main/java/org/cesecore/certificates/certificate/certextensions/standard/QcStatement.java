@@ -62,9 +62,9 @@ import org.cesecore.util.CertTools;
  *
  *    QCStatements ::= SEQUENCE OF QCStatement
  *    QCStatement ::= SEQUENCE {
- *        statementId   QC-STATEMENT.&Id({SupportedStatements}),
- *        statementInfo QC-STATEMENT.&Type
- *        ({SupportedStatements}{@statementId}) OPTIONAL }
+ *        statementId   QC-STATEMENT.&amp;Id({SupportedStatements}),
+ *        statementInfo QC-STATEMENT.&amp;Type
+ *        ({SupportedStatements}{@literal @}statementId}) OPTIONAL }
  *
  *    SupportedStatements QC-STATEMENT ::= { qcStatement-1,...}
  * 

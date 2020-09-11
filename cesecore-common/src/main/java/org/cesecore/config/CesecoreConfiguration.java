@@ -107,8 +107,8 @@ public final class CesecoreConfiguration {
      * The relative time offset for the notBefore value of CA and end entity certificates. Changing this value,
      * also changes the notAfter attribute of the certificates, if a relative time is used for its validity. While
      * certificate issuance this value can be overwritten by the corresponding value in the certificate profile used.
-     * @See {@link org.cesecore.certificates.certificateprofile.CertificateProfile#getCertificateValidityOffset()}
-     * @See {@link org.cesecore.util.SimpleTime}
+     * @see org.cesecore.certificates.certificateprofile.CertificateProfile#getCertificateValidityOffset()
+     * @see org.cesecore.util.SimpleTime
      * @return offset
      */
     public static String getCertificateValidityOffset() {

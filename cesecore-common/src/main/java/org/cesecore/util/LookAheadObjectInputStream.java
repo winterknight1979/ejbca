@@ -34,14 +34,13 @@ import org.apache.log4j.Logger;
  * 
  * Simple usage:
  * LookAheadObjectInputStream lookAheadObjectInputStream = new LookAheadObjectInputStream(new ByteArrayInputStream(someByteArray);
- * HashSet<Class<? extends Serializable>> acceptedClasses = new HashSet<Class<? extends Serializable>>(3);
+ * HashSet&lt;Class&lt;? extends Serializable&gt;&gt; acceptedClasses = new HashSet&lt;Class&lt;? extends Serializable&gt;&gt;(3);
             acceptedClasses.add(X509Certificate.class);
             lookAheadObjectInputStream.setAcceptedClasses(acceptedClasses);
  * lookAheadObjectInputStream.setMaxObjects(1);
  * X509Certificate certificate = (X509Certificate) lookAheadObjectInputStream.readObject(); //If serialized object is not of the type X509Certificate SecurityException will be thrown
  * 
- * @see "LookAheadObjectInputStreamTest"  
- * 	in the test code for more examples
+ * See "LookAheadObjectInputStreamTest" in the test code for more examples
  * 
  * @version $Id: LookAheadObjectInputStream.java 34325 2020-01-17 15:40:23Z jekaterina_b_helmes $
  */

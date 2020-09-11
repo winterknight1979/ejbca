@@ -201,7 +201,7 @@ public abstract class AlgorithmTools {
     }
     
     /**
-     * Gets a list of allowed curves (@see <a href="http://csrc.nist.gov/groups/ST/toolkit/documents/dss/NISTReCur.pdf>NIST curves</a>).
+     * Gets a list of allowed curves (@see <a href="http://csrc.nist.gov/groups/ST/toolkit/documents/dss/NISTReCur.pdf">NIST curves</a>).
      * 
      * @return the list of allowed curves.
      */

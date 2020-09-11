@@ -141,7 +141,7 @@ public abstract class UpgradeableDataHashMap implements IUpgradeableData, Serial
      *
 	 * @param oldmap Old map
 	 * @param newmap New map
-	 * @return Map<Object, Object> with difference
+	 * @return Map&lt;Object, Object&gt; with difference
 	 */
 	public static Map<Object, Object> diffMaps(Map<Object, Object> oldmap, Map<Object, Object> newmap) {
 		Map<Object, Object> result = new LinkedHashMap<Object, Object>();

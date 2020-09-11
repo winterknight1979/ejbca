@@ -41,7 +41,7 @@ import org.cesecore.certificates.util.DnComponents;
  * including a privacy-sensitive identifier in the subjectAltName extension of a certificate. The SIM is 
  * an optional feature that may be used by relying parties to determine whether the subject of a particular 
  * certificate is also the person corresponding to a particular sensitive identifier 
- * (@see <a href="https://tools.ietf.org/html/rfc4683>RFC4683</a>.)
+ * (@see <a href="https://tools.ietf.org/html/rfc4683">RFC4683</a>.)
  * 
  * @version $Id: RFC4683Tools.java 31882 2019-03-18 13:50:56Z anatom $
  */
@@ -59,7 +59,7 @@ public final class RFC4683Tools {
     private static final Logger LOG = Logger.getLogger(RFC4683Tools.class);
 
     /**
-     * Gets the allowed hash algorithm object identifiers (@see <a href="https://tools.ietf.org/html/rfc4683#section-4.3>RFC4683</a>).
+     * Gets the allowed hash algorithm object identifiers (@see <a href="https://tools.ietf.org/html/rfc4683#section-4.3">RFC4683</a>).
      * @return a list of ASN1ObjectIdentifier {@link TSPAlgorithms#ALLOWED}.
      */
     @SuppressWarnings("unchecked")
@@ -190,7 +190,7 @@ public final class RFC4683Tools {
      * @param hashAlgorithmIdentifier the OID string for the hash algorithm used to hash R and PEPSI.
      * @param authorityRandom the registration authority chosen random value, hashed with hash of hashAlogrithmOidString (see https://tools.ietf.org/html/rfc4683#section-4.3).
      * @param pepsi Privacy-Enhanced Protected Subject Information (PEPSI), with SIM = R || PEPSI.
-     * @return the RFC4683 SIM GeneralName (@see <a href="https://tools.ietf.org/html/rfc4683>RFC4683</a>.).
+     * @return the RFC4683 SIM GeneralName (@see <a href="https://tools.ietf.org/html/rfc4683">RFC4683</a>.).
      */
     public static final ASN1Primitive createSimGeneralName(final String hashAlgorithmIdentifier, final String authorityRandom, final String pepsi) {
         if (LOG.isDebugEnabled()) {

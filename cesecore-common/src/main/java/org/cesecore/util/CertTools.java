@@ -1214,7 +1214,7 @@ public abstract class CertTools {
     * @throws FileNotFoundException if certFile was not found
     * @throws CertificateParsingException if the file contains an incorrect certificate.
     * 
-    * @deprecated Use org.cesecore.util.CertTools.getCertsFromPEM(String, Class<T>) instead
+    * @deprecated Use org.cesecore.util.CertTools.getCertsFromPEM(String, Class&lt;T&gt;) instead
     */
     @Deprecated
    public static List<Certificate> getCertsFromPEM(String certFilename) throws FileNotFoundException, CertificateParsingException {
@@ -1227,7 +1227,7 @@ public abstract class CertTools {
      * 
      * @param certFilename filename of the file containing the certificates in PEM-format
      * @param returnType a Class specifying the desired return type. Certificate can be used if return type is unknown.
-     * 
+     * @param <T> type
      * @return Ordered List of Certificates, first certificate first, or empty List
      * @throws FileNotFoundException if certFile was not found
      * @throws CertificateParsingException if the file contains an incorrect certificate.
@@ -1317,7 +1317,7 @@ public abstract class CertTools {
      *
      * @throws CertificateParsingException if the stream contains an incorrect certificate.
      * 
-     * @deprecated Use org.cesecore.util.CertTools.getCertsFromPEM(InputStream, Class<T>) instead. 
+     * @deprecated Use org.cesecore.util.CertTools.getCertsFromPEM(InputStream, Class&lt;T&gt;) instead. 
      */
     @Deprecated
     public static List<Certificate> getCertsFromPEM(InputStream certstream) throws CertificateParsingException {
@@ -1330,6 +1330,7 @@ public abstract class CertTools {
      * 
      * @param certstream the input stream containing the certificates in PEM-format
      * @param returnType specifies the desired certificate type. Certificate can be used if certificate type is unknown.
+     * @param <T> type
      * @return Ordered List of Certificates, first certificate first, or empty List
      * @exception CertificateParsingException if the stream contains an incorrect certificate.
      */
@@ -1437,7 +1438,7 @@ public abstract class CertTools {
      * @return byte array containing PEM certificate
      * @exception CertificateException if the stream does not contain a correct certificate.
      * 
-     * @deprecated Since 6.0.0, use org.cesecore.util.CertTools.getPemFromCertificateChain(Collection<Certificate>) instead
+     * @deprecated Since 6.0.0, use org.cesecore.util.CertTools.getPemFromCertificateChain(Collection&lt;Certificate&gt;) instead
      */
     @Deprecated
     public static byte[] getPEMFromCerts(Collection<Certificate> certs) throws CertificateException {
@@ -1551,7 +1552,7 @@ public abstract class CertTools {
      * @return a Certificate 
      * @throws CertificateParsingException if certificate couldn't be parsed from cert
      * 
-     * @deprecated Use org.cesecore.util.CertTools.getCertfromByteArray(byte[], String, Class<T>) instead. 
+     * @deprecated Use org.cesecore.util.CertTools.getCertfromByteArray(byte[], String, Class&lt;Y&gt;) instead. 
      */
     @Deprecated
     public static Certificate getCertfromByteArray(byte[] cert, String provider) throws CertificateParsingException {
@@ -1564,7 +1565,7 @@ public abstract class CertTools {
      * @param cert byte array containing certificate in binary (DER) format, or PEM encoded X.509 certificate
      * @param provider provider for example "SUN" or "BC", use null for the default provider (BC)
      * @param returnType the type of Certificate to be returned. Certificate can be used if certificate type is unknown.
-     * 
+     * @param <T> type
      * @return a Certificate 
      * @throws CertificateParsingException if certificate couldn't be parsed from cert, or if the incorrect return type was specified.
      * 
@@ -1639,7 +1640,7 @@ public abstract class CertTools {
      * @return certificate
      * @throws CertificateParsingException if the byte array does not contain a proper certificate.
      * 
-     * @deprecated Use org.cesecore.util.CertTools.getCertfromByteArray(byte[], Class<T>) to specify return type instead.
+     * @deprecated Use org.cesecore.util.CertTools.getCertfromByteArray(byte[], Class&lt;T&gt;) to specify return type instead.
      */
     @Deprecated
     public static Certificate getCertfromByteArray(byte[] cert) throws CertificateParsingException {
@@ -2637,8 +2638,8 @@ public abstract class CertTools {
      * GeneralName ::= CHOICE { otherName [0] OtherName, rfc822Name [1] IA5String, dNSName [2] IA5String, x400Address [3] ORAddress, directoryName [4]
      * Name, ediPartyName [5] EDIPartyName, uniformResourceIdentifier [6] IA5String, iPAddress [7] OCTET STRING, registeredID [8] OBJECT IDENTIFIER}
      * 
-     * SubjectAltName is of form \"rfc822Name=<email>, dNSName=<host name>, uniformResourceIdentifier=<http://host.com/>, iPAddress=<address>,
-     * guid=<globally unique id>, directoryName=<CN=testDirName|dir|name>, permanentIdentifier=<identifierValue/assigner|identifierValue|/assigner|/>
+     * SubjectAltName is of form \"rfc822Name=&lt;email&gt;, dNSName=&lt;host name&gt;, uniformResourceIdentifier=&lt;http://host.com/&gt;, iPAddress=&lt;address&gt;,
+     * guid=&lt;globally unique id&gt;, directoryName=&lt;CN=testDirName|dir|name&gt;, permanentIdentifier=&lt;identifierValue/assigner|identifierValue|/assigner|/&gt;
      * 
      * Supported altNames are upn, krb5principal, rfc822Name, uniformResourceIdentifier, dNSName, iPAddress, directoryName, permanentIdentifier
      * 
@@ -2969,7 +2970,7 @@ public abstract class CertTools {
      * 
      * @param tag the no tag 0-8
      * @param value the ASN1Encodable value as returned by GeneralName.getName()
-     * @return String in form rfc822Name=<email> or uri=<uri> etc
+     * @return String in form rfc822Name=&lt;email&gt; or uri=&lt;uri&gt; etc
      * @throws IOException on disk error
      * @see #getSubjectAlternativeName
      */

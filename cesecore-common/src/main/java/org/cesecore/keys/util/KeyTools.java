@@ -349,7 +349,7 @@ public final class KeyTools {
      * 
      * @param pk
      *            PublicKey used to derive the keysize
-     * @return -1 if key is unsupported, otherwise a number >= 0. 0 usually means the length can not be calculated, for example if the key is an EC
+     * @return -1 if key is unsupported, otherwise a number &gt;= 0. 0 usually means the length can not be calculated, for example if the key is an EC
      *         key and the "implicitlyCA" encoding is used.
      */
     public static int getKeyLength(final PublicKey pk) {

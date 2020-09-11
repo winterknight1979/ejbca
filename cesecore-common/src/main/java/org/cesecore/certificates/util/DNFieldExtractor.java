@@ -135,8 +135,8 @@ public class DNFieldExtractor implements java.io.Serializable {
     
     /**
      * Returns the valid components for the given DN type (Subject DN, Subject Alternative Name or Subject Directory Attributes)
-     * @param dnType DNFieldExtractor.TYPE_&ast;
-     * @return List of valid components from DnComponents.&ast;
+     * @param dnType DNFieldExtractor.TYPE_*
+     * @return List of valid components from DnComponents.*
      */
     public static List<String> getValidFieldComponents(final int dnType) {
         switch (dnType) {

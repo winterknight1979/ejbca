@@ -58,10 +58,10 @@ public class RsaKeyValidator extends KeyValidatorBase {
     /** SHOULD be odd exponent. */
     public static final boolean CAB_FORUM_BLR_142_PUBLIC_EXPONENT_ONLY_ALLOW_ODD = true;
 
-    /** MUST be >= 3, SHOULD be > 2^16+1 = 65.536+1 */
+    /** MUST be &gt;= 3, SHOULD be &gt; 2^16+1 = 65.536+1 */
     public static final String CAB_FORUM_BLR_142_PUBLIC_EXPONENT_MIN = "65537";
 
-    /** SHOULD be <= 2^256-1 = 115792089237316195423570985008687907853269984665640564039457584007913129639936-1 = 2^64*2^4-1 */
+    /** SHOULD be &lt;= 2^256-1 = 115792089237316195423570985008687907853269984665640564039457584007913129639936-1 = 2^64*2^4-1 */
     public static final String CAB_FORUM_BLR_142_PUBLIC_EXPONENT_MAX = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
 
     /** SHOULD be odd modulus. */
@@ -70,7 +70,7 @@ public class RsaKeyValidator extends KeyValidatorBase {
     /** SHOULD not be the power of a prime. */
     public static final boolean CAB_FORUM_BLR_142_PUBLIC_MODULUS_DONT_ALLOW_POWER_OF_PRIME = true;
 
-    /** SHOULD be with smallest factor >= 752 */
+    /** SHOULD be with smallest factor &gt;= 752 */
     public static final int CAB_FORUM_BLR_142_PUBLIC_MODULUS_SMALLEST_FACTOR = 752;
 
     /** The key validator type. */

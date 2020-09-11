@@ -420,7 +420,7 @@ public class EndEntityInformation implements Serializable {
      *
      *
      * @param other another {@link EndEntityInformation}
-     * @return the differences between this map and the parameter, as <key, [thisValue, otherValue]>
+     * @return the differences between this map and the parameter, as &lt;key, [thisValue, otherValue]&gt;
      */
     public Map<String, String[]> getDiff(EndEntityInformation other) {
         Map<String, String[]> changedValues = new LinkedHashMap<>();

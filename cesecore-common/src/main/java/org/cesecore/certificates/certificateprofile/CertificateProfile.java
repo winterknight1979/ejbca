@@ -701,8 +701,8 @@ public class CertificateProfile extends UpgradeableDataHashMap implements Serial
     /**
      * Gets the encoded validity.
      * @return the validity as ISO8601 date or relative time.
-     * @See {@link org.cesecore.util.ValidityDate ValidityDate}
-     * @See {@link org.cesecore.util.SimpleTime SimpleTime}
+     * @see org.cesecore.util.ValidityDate ValidityDate
+     * @see org.cesecore.util.SimpleTime SimpleTime
      */
     @SuppressWarnings("deprecation")
     public String getEncodedValidity() {
@@ -717,8 +717,8 @@ public class CertificateProfile extends UpgradeableDataHashMap implements Serial
     /**
      * Sets the encoded validity .
      * @param encodedValidity the validity as ISO8601 date or relative time.
-     * @See {@link org.cesecore.util.ValidityDate ValidityDate}
-     * @See {@link org.cesecore.util.SimpleTime SimpleTime}
+     * @see  org.cesecore.util.ValidityDate ValidityDate
+     * @see  org.cesecore.util.SimpleTime SimpleTime
      */
     public void setEncodedValidity(String encodedValidity) {
         data.put(ENCODED_VALIDITY, encodedValidity);
@@ -818,7 +818,7 @@ public class CertificateProfile extends UpgradeableDataHashMap implements Serial
     }
 
     /**
-     * Gets a copy of the List<Boolean> where validity restriction for weekdays are stored.
+     * Gets a copy of the List&lt;Boolean&gt; where validity restriction for weekdays are stored.
      *
      * @return boolean array.
      */
@@ -1839,7 +1839,7 @@ public class CertificateProfile extends UpgradeableDataHashMap implements Serial
      * Saves the CertificateProfile's list of publishers that certificates created with this profile should be published to.
      *
      * @param publisher
-     *            a List<Integer> of publisher Ids
+     *            a List&lt;Integer&gt; of publisher Ids
      */
 
     public void setPublisherList(List<Integer> publisher) {
