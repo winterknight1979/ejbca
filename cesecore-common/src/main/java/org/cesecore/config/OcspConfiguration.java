@@ -78,7 +78,8 @@ public class OcspConfiguration {
     public static Set<String> acceptedSignatureAlgorithms = new HashSet<>();
     
     /**
-     * Algorithm used by server to generate signature on OCSP responses
+     * @return Algorithm used by server to generate signature on OCSP responses
+     * 
      */
     public static String getSignatureAlgorithm() {
         return ConfigurationHolder.getString("ocsp.signaturealgorithm");
@@ -90,7 +91,7 @@ public class OcspConfiguration {
      * The signatures algorithms that are accepted by EJBCA are specified in 'ocsp.signaturealgorithm' in the 
      * EJBCA_HOME/conf/ocsp.properties file.
      * 
-     * @param sigAlg
+     * @param sigAlg Algorithm name
      * @return 'true' if sigAlg is accepted by EJBCA, and 'false' otherwise
      */
     public static boolean isAcceptedSignatureAlgorithm(String sigAlg) {
@@ -127,7 +128,7 @@ public class OcspConfiguration {
     }
     
     /**
-     * The interval on which new OCSP signing certificates are loaded in milliseconds
+     * @return The interval on which new OCSP signing certificates are loaded in milliseconds
      */
     public static int getSigningCertsValidTimeInMilliseconds() {
         int timeInSeconds;
@@ -142,7 +143,7 @@ public class OcspConfiguration {
     }
 
     /**
-     * The interval on which new OCSP signing certificates are loaded in milliseconds
+     * @return The interval on which new OCSP signing certificates are loaded in milliseconds
      */
     public static long getRequestSigningCertRevocationCacheTimeMs() {
         long timeInSeconds;
@@ -157,7 +158,7 @@ public class OcspConfiguration {
     }
 
     /**
-     * If set to true the responder will enforce OCSP request signing
+     * @return If set to true the responder will enforce OCSP request signing
      */
     public static boolean getEnforceRequestSigning() {
         String value = ConfigurationHolder.getString(SIGNATUREREQUIRED);
@@ -165,7 +166,7 @@ public class OcspConfiguration {
     }
 
     /**
-     * If set to true the responder will restrict OCSP request signing
+     * @return If set to true the responder will restrict OCSP request signing
      */
     @Deprecated //Remove this method once upgrading VAs to EJBCA 6 has been dropped
     public static boolean getRestrictSignatures() {
@@ -176,7 +177,7 @@ public class OcspConfiguration {
     /**
      * Set this to issuer or signer depending on how you want to restrict allowed signatures for OCSP request signing.
      * 
-     * @returns one of OcspConfiguration.RESTRICTONISSUER and OcspConfiguration.RESTRICTONSIGNER
+     * @return one of OcspConfiguration.RESTRICTONISSUER and OcspConfiguration.RESTRICTONSIGNER
      */
     @Deprecated //Remove this method once upgrading VAs to EJBCA 6 has been dropped
     public static int getRestrictSignaturesByMethod() {
@@ -187,7 +188,7 @@ public class OcspConfiguration {
     }
 
     /**
-     * If ocsp.restrictsignatures is true the Servlet will look in this directory for allowed signer certificates or issuers.
+     *@return If ocsp.restrictsignatures is true the Servlet will look in this directory for allowed signer certificates or issuers.
      */
     @Deprecated //Remove this value once upgrading VAs to EJBCA 6 has been dropped
     public static String getSignTrustDir() {
@@ -195,7 +196,7 @@ public class OcspConfiguration {
     }
 
     /**
-     * If set to true the certificate chain will be returned with the OCSP response.
+     *@return If set to true the certificate chain will be returned with the OCSP response.
      */
     public static boolean getIncludeCertChain() {
         String value = ConfigurationHolder.getString(INCLUDE_CERT_CHAIN);
@@ -203,7 +204,7 @@ public class OcspConfiguration {
     }
     
     /**
-     * If set to true the signature certificate will be included the OCSP response.
+     *@return If set to true the signature certificate will be included the OCSP response.
      */
     public static boolean getIncludeSignCert() {
         String value = ConfigurationHolder.getString(INCLUDE_SIGNING_CERT);
@@ -213,7 +214,7 @@ public class OcspConfiguration {
     /**
      * If set to name the OCSP responses will use the Name ResponseId type, if set to keyhash the KeyHash type will be used.
      * 
-     * @returns one of OCSPUtil.RESPONDERIDTYPE_NAME and OCSPUtil.RESPONDERIDTYPE_KEYHASH
+     * @return one of OCSPUtil.RESPONDERIDTYPE_NAME and OCSPUtil.RESPONDERIDTYPE_KEYHASH
      * 
      * @deprecated no longer used, as responder ID type is instead set individually for each keybinding and CA
      */
@@ -360,7 +361,7 @@ public class OcspConfiguration {
     }
 
     /**
-     * Directory containing certificates of trusted entities allowed to query for Fnrs.
+     * @return Directory containing certificates of trusted entities allowed to query for Fnrs.
      * @deprecated since 6.12. May still be required for upgrades. CA+serial of trusted certificates are now stored in the database, in internal key bindings.
      */
     @Deprecated
@@ -369,7 +370,7 @@ public class OcspConfiguration {
     }
 
     /**
-     * File containing the CA-certificate, in PEM format, that signed the trusted clients.
+     *@return File containing the CA-certificate, in PEM format, that signed the trusted clients.
      * @deprecated since 6.12. May still be required for upgrades. CA+serial of trusted certificates are now stored in the database, in internal key bindings.
      */
     @Deprecated
@@ -388,7 +389,7 @@ public class OcspConfiguration {
     }
     
     /**
-     * When true, an audit log will be created.
+     *@return When true, an audit log will be created.
      */
     public static boolean getAuditLog() {
         String value = ConfigurationHolder.getString("ocsp.audit-log");
@@ -396,21 +397,21 @@ public class OcspConfiguration {
     }
 
     /**
-     * A format string for logging of dates in auditLog and accountLog.
+     *@return A format string for logging of dates in auditLog and accountLog.
      */
     public static String getLogDateFormat() {
         return ConfigurationHolder.getString("ocsp.log-date");
     }
 
     /**
-     * A format string for TimeZone auditLog and accountLog.
+     *@return A format string for TimeZone auditLog and accountLog.
      */
     public static String getLogTimeZone() {
         return ConfigurationHolder.getString("ocsp.log-timezone");
     }
 
     /**
-     * Set to true if you want transactions to be aborted when logging fails.
+     *@return Set to true if you want transactions to be aborted when logging fails.
      */
     public static boolean getLogSafer() {
         String value = ConfigurationHolder.getString("ocsp.log-safer");
@@ -418,14 +419,14 @@ public class OcspConfiguration {
     }
 
     /**
-     * A String to create a java Pattern to format the audit Log
+     *@return A String to create a java Pattern to format the audit Log
      */
     public static String getAuditLogPattern() {
         return ConfigurationHolder.getString("ocsp.audit-log-pattern");
     }
 
     /**
-     * A String which combined with auditLogPattern determines how auditLog output is formatted.
+     *@return A String which combined with auditLogPattern determines how auditLog output is formatted.
      */
     public static String getAuditLogOrder() {
         String value = ConfigurationHolder.getString("ocsp.audit-log-order");
@@ -434,7 +435,7 @@ public class OcspConfiguration {
     }
 
     /**
-     * All available signing keys should be tested.
+     *@return All available signing keys should be tested.
      */
     public static boolean getHealthCheckSignTest() {
         return ConfigurationHolder.getString("ocsphealthcheck.signtest").toLowerCase().indexOf("false") < 0;
@@ -448,7 +449,7 @@ public class OcspConfiguration {
     }
 
     /**
-     * When true, a transaction log will be created.
+     *@return When true, a transaction log will be created.
      */
     public static boolean getTransactionLog() {
         String value = ConfigurationHolder.getString("ocsp.trx-log");
@@ -456,14 +457,14 @@ public class OcspConfiguration {
     }
 
     /**
-     * A String to create a java Pattern to format the transaction Log.
+     *@return A String to create a java Pattern to format the transaction Log.
      */
     public static String getTransactionLogPattern() {
         return ConfigurationHolder.getString("ocsp.trx-log-pattern");
     }
 
     /**
-     * A String which combined with transactionLogPattern determines how transaction Log output is formatted.
+     *@return A String which combined with transactionLogPattern determines how transaction Log output is formatted.
      */
     public static String getTransactionLogOrder() {
         String value = ConfigurationHolder.getString("ocsp.trx-log-order");
@@ -473,7 +474,7 @@ public class OcspConfiguration {
 
     
     /**
-     * The default number of milliseconds a response is valid, or -1 to disable. See RFC5019.
+     *@return The default number of milliseconds a response is valid, or -1 to disable. See RFC5019.
      */
     public static long getExpiredArchiveCutoff() {
         Configuration config = ConfigurationHolder.instance();
@@ -495,7 +496,8 @@ public class OcspConfiguration {
     
     
     /**
-     * The default number of milliseconds a response is valid, or 0 to disable. See RFC5019.
+     *@param certProfileId profile ID
+     * @return The default number of milliseconds a response is valid, or 0 to disable. See RFC5019.
      */
     public static long getUntilNextUpdate(int certProfileId) {
         long value = 0;
@@ -512,7 +514,8 @@ public class OcspConfiguration {
         return value;
     }
     
-    /** @return true if Until Next Update is explicitly configured for the requested certificate profile */
+    /** @param certificateProfileId Profile ID
+     * @return true if Until Next Update is explicitly configured for the requested certificate profile */
     public static boolean isUntilNextUpdateConfigured(final int certificateProfileId) {
         if (certificateProfileId==CertificateProfileConstants.CERTPROFILE_NO_PROFILE){
             return ConfigurationHolder.instance().containsKey(UNTIL_NEXT_UPDATE);
@@ -522,7 +525,8 @@ public class OcspConfiguration {
     }
     
     /**
-     * The default number of milliseconds a response of a revoked certificate is valid, or 0 to disable. See RFC5019.
+     * @param certProfileId profile ID
+     * @return The default number of milliseconds a response of a revoked certificate is valid, or 0 to disable. See RFC5019.
      */
     public static long getRevokedUntilNextUpdate(int certProfileId) {
         long value = 0;
@@ -539,7 +543,8 @@ public class OcspConfiguration {
         return value;
     }
     
-    /** @return true if Until Next Update is explicitly configured for the requested certificate profile in case of a revoked certificate */
+    /** @param certificateProfileId Profile ID
+     * @return true if Until Next Update is explicitly configured for the requested certificate profile in case of a revoked certificate */
     public static boolean isRevokedUntilNextUpdateConfigured(final int certificateProfileId) {
         if (certificateProfileId==CertificateProfileConstants.CERTPROFILE_NO_PROFILE){
             return ConfigurationHolder.instance().containsKey(REVOKED_UNTIL_NEXT_UPDATE);
@@ -548,8 +553,9 @@ public class OcspConfiguration {
         }
     }
 
-    /**
-     * The default number of milliseconds a HTTP-response should be cached. See RFC5019.
+    /** 
+     *@param certProfileId profile ID
+     * @return The default number of milliseconds a HTTP-response should be cached. See RFC5019.
      */
     public static long getMaxAge(int certProfileId) {
         long value = 30;
@@ -568,7 +574,8 @@ public class OcspConfiguration {
         return value;
     }
 
-    /** @return true if Until Next Update is explicitly configured for the requested certificate profile */
+    /** @param certificateProfileId Profile ID
+     * @return true if Until Next Update is explicitly configured for the requested certificate profile */
     public static boolean isMaxAgeConfigured(final int certificateProfileId) {
         if (certificateProfileId==CertificateProfileConstants.CERTPROFILE_NO_PROFILE){
             return ConfigurationHolder.instance().containsKey(MAX_AGE);
@@ -578,7 +585,8 @@ public class OcspConfiguration {
     }
     
     /**
-     * The default number of milliseconds a HTTP-response for a revoked certificater should be cached. See RFC5019.
+     * @param certProfileId Profile ID
+     * @return The default number of milliseconds a HTTP-response for a revoked certificater should be cached. See RFC5019.
      */
     public static long getRevokedMaxAge(int certProfileId) {
         long value = 30;
@@ -597,7 +605,8 @@ public class OcspConfiguration {
         return value;
     }
 
-    /** @return true if Until Next Update is explicitly configured for the requested certificate profile in case of a revoked certificate*/
+    /** @param certificateProfileId Profile ID
+     * @return true if Until Next Update is explicitly configured for the requested certificate profile in case of a revoked certificate*/
     public static boolean isRevokedMaxAgeConfigured(final int certificateProfileId) {
         if (certificateProfileId==CertificateProfileConstants.CERTPROFILE_NO_PROFILE){
             return ConfigurationHolder.instance().containsKey(REVOKED_MAX_AGE);
@@ -610,7 +619,7 @@ public class OcspConfiguration {
     // Values for stand-alone OCSP
 
     /**
-     * Directory name of the soft keystores. The signing keys will be fetched from all files in this directory. Valid formats of the files are JKS and
+     * @return Directory name of the soft keystores. The signing keys will be fetched from all files in this directory. Valid formats of the files are JKS and
      * PKCS12 (p12)."
      */
     @Deprecated //Remove this method once upgrading VAs to EJBCA 6 has been dropped
@@ -643,14 +652,14 @@ public class OcspConfiguration {
     }
 
     /**
-     * The password for all keys stored on card.
+     * @return The password for all keys stored on card.
      */
     public static String getCardPassword() {
         return ConfigurationHolder.getString(CARD_PASSWORD);
     }
 
     /**
-     * The class that implements card signing of the OCSP response.
+     * @return The class that implements card signing of the OCSP response.
      */
     public static String getHardTokenClassName() {
         return ConfigurationHolder.getString("ocsp.hardToken.className");

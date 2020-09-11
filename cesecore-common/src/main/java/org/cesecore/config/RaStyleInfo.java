@@ -90,7 +90,8 @@ public class RaStyleInfo implements Serializable {
         return archiveId;
     }
 
-    /** Should not be used normally! */
+    /** Should not be used normally! 
+     * @param archiveId  ID*/
     public void setArchiveId(int archiveId) {
         this.archiveId = archiveId;
     }

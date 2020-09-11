@@ -35,7 +35,8 @@ public class AvailableExtendedKeyUsagesConfiguration extends ConfigurationBase i
     private static final long serialVersionUID = -3430732247486886608L;
     public static final String CONFIGURATION_ID = "AVAILABLE_EXTENDED_KEY_USAGES";
     
-    /** Creates a new instance of AvailableExtendedKeyUsagesConfiguration without defaults */
+    /** Creates a new instance of AvailableExtendedKeyUsagesConfiguration without defaults 
+     * @param ignored ignored */
     public AvailableExtendedKeyUsagesConfiguration(boolean ignored)  {
         super();
     }

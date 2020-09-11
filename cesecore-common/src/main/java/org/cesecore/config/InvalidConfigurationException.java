@@ -29,22 +29,22 @@ public class InvalidConfigurationException extends Exception {
     }
 
     /**
-     * @param message
+     * @param message message
      */
     public InvalidConfigurationException(String message) {
         super(message);
     }
 
     /**
-     * @param cause
+     * @param cause cause
      */
     public InvalidConfigurationException(Throwable cause) {
         super(cause);
     }
 
     /**
-     * @param message
-     * @param cause
+     * @param message message
+     * @param cause cause
      */
     public InvalidConfigurationException(String message, Throwable cause) {
         super(message, cause);
