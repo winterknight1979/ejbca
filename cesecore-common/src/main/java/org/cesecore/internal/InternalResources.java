@@ -61,10 +61,7 @@ public class InternalResources implements Serializable {
     /**
      * Method used to setup the Internal Resource management.
      * 
-     * @param globalConfiguration
-     *            used to retrieve the internal language of the application,
-     *            configured in the System Configuration.
-     * @throws IOException
+     *
      */
     protected InternalResources() {
         setupResources(RESOURCE_LOCATION);
@@ -185,7 +182,11 @@ public class InternalResources implements Serializable {
         return getLocalizedMessageInternal(sb, key, params);
     }
 
-    /** Lookup the default string if the StringBuilder is empty. Perform place holder replacement processing. */
+    /** Lookup the default string if the StringBuilder is empty. Perform place holder replacement processing. 
+     * @param sb StringBuilder buffer
+     * @param key key
+     * @param params parameters
+     * @return processed message */
     protected CharSequence getLocalizedMessageInternal(final StringBuilder sb, final String key, final Object... params) {
         if (sb.length()==0) {
             if (primaryResource.containsKey(key)) {
@@ -227,7 +228,10 @@ public class InternalResources implements Serializable {
         return placeHolders;
     }
     
-    /** Replace any "{placeHolderIndex}" String that is present in the StringBuilder with 'replacementObject'. */
+    /** Replace any "{placeHolderIndex}" String that is present in the StringBuilder with 'replacementObject'. 
+     * @param sb StringBuilder buffer
+     * @param placeHolderIndex Index
+     * @param replacementObject Object */
     private static void replaceAll(final StringBuilder sb, final int placeHolderIndex, final Object replacementObject) {
         if (sb==null) {
             log.error("No StringBuilder. Unable to create localized message.");
@@ -256,7 +260,9 @@ public class InternalResources implements Serializable {
         }
     }
 
-    /** Remove any "{number}" string that is still present in the StringBuilder where number starts with 'startPlaceHolderIndex'. */
+    /** Remove any "{number}" string that is still present in the StringBuilder where number starts with 'startPlaceHolderIndex'. 
+     * @param sb StringBuilder buffer
+     * @param startPlaceHolderIndex  index */
     private static void removeUnusedPlaceHolders(final StringBuilder sb, final int startPlaceHolderIndex) {
         final String[] placeHolders = getPlaceHolders();
         if (startPlaceHolderIndex<0 || startPlaceHolderIndex>(placeHolders.length-1)) {

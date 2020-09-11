@@ -13,6 +13,7 @@
 package org.cesecore.keybind;
 
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -72,7 +73,7 @@ public enum InternalKeyBindingFactory {
             log.error("Unable to create Signer. Implementation for type '" + type + "' not found.");
         } else {
             try {
-                internalKeyBinding = (InternalKeyBinding) Class.forName(implementationClassName).newInstance();
+                internalKeyBinding = (InternalKeyBinding) Class.forName(implementationClassName).getConstructor().newInstance();
                 // Ensure that fingerprint is lower case, to match items in the database
                 final String certFp;
                 if (certificateId != null) {
@@ -87,12 +88,17 @@ public enum InternalKeyBindingFactory {
                 log.error("Unable to create InternalKeyBinding. Not allowed to instantiate implementation '" + implementationClassName + "'.", e);
             } catch (ClassNotFoundException e) {
                 log.error("Unable to create InternalKeyBinding. Could not find implementation '" + implementationClassName + "'.", e);
-            }
+            } catch (InvocationTargetException e) {
+            	log.error("Unable to create InternalKeyBinding. Could not be instantiate implementation '" + implementationClassName + "'.", e);
+            } catch (NoSuchMethodException e) {
+            	log.error("Unable to create InternalKeyBinding. Could not find implementation '" + implementationClassName + "'.", e);
+			}
         }
         return internalKeyBinding;
     }
 
-    /** @return the registered alias for the provided Signer or "null" if this is an unknown implementation. */
+    /** @param internalKeyBinding binding
+     * @return the registered alias for the provided Signer or "null" if this is an unknown implementation. */
     public String getTypeFromImplementation(final InternalKeyBinding internalKeyBinding) {
         return String.valueOf(implementationToAliasMap.get(internalKeyBinding.getClass().getName()));
     }
@@ -102,18 +108,20 @@ public enum InternalKeyBindingFactory {
         List<String> implementationPropertyKeys = null;
         Map<String, DynamicUiProperty<? extends Serializable>> implementationProperties = null;
         try {
-            final InternalKeyBinding temporaryInstance = c.newInstance();
+            final InternalKeyBinding temporaryInstance = c.getConstructor().newInstance();
             alias = temporaryInstance.getImplementationAlias();
             implementationProperties = temporaryInstance.getCopyOfProperties();
             implementationPropertyKeys = new ArrayList<String>();
             for (String name : implementationProperties.keySet()) {
                 implementationPropertyKeys.add(name);
             }
-        } catch (InstantiationException e) {
+        } catch (InstantiationException | InvocationTargetException e) {
             log.error("Unable to create InternalKeyBinding. Could not be instantiate implementation '" + c.getName() + "'.", e);
         } catch (IllegalAccessException e) {
             log.error("Unable to create InternalKeyBinding. Not allowed to instantiate implementation '" + c.getName() + "'.", e);
-        }
+        }  catch (NoSuchMethodException e) {
+        	log.error("Unable to create InternalKeyBinding. Could not find implementation '" + c.getName() + "'.", e);
+		}
         if (alias != null) {
             aliasToImplementationMap.put(alias, c.getName());
             implementationToAliasMap.put(c.getName(), alias);

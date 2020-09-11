@@ -45,6 +45,7 @@ public interface IUpgradeableData {
 
     /**
      * Function loading saved data into to data structure.
+     * @param data data
      */
     void loadData(Object data);
 

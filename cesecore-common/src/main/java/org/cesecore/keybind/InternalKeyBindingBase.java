@@ -96,7 +96,7 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap impl
         setKeyPairAlias(keyPairAlias);
         if (dataMap.get(VERSION) == null) {
             // If we are creating a new object we need a version
-            dataMap.put(VERSION, new Float(getLatestVersion()));
+            dataMap.put(VERSION,  Float.valueOf(getLatestVersion()));
         }
         loadData(dataMap);
     }
@@ -172,7 +172,9 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap impl
     private static final Pattern DATE_FORMAT_PATTERN = Pattern.compile("_\\d{8}\\d{6}$");
     private static final Pattern DATE_FORMAT_PATTERN_MS = Pattern.compile("_\\d{8}\\d{9}$");
     
-    /** Replace existing postfix or generate add a new one (using current time with millisecond granularity). */
+    /** Replace existing postfix or generate add a new one (using current time with millisecond granularity). 
+     * @param oldAlias alias
+     * @return  new alias*/
     private String getNewAlias(final String oldAlias) {
         final Matcher matcherMs = DATE_FORMAT_PATTERN_MS.matcher(oldAlias);
         final String newPostFix = "_" + DATE_FORMAT_MS.format(new Date());
@@ -272,27 +274,39 @@ public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap impl
         upgrade(getLatestVersion(), getVersion());
     }
 
-    /** Invoked after the all data has been loaded in init(...) */
+    /** Invoked after the all data has been loaded in init(...) 
+     * @param latestVersion new version
+     * @param currentVersion old version */
     protected abstract void upgrade(final float latestVersion, final float currentVersion);
 
-    /** Store data in the underlying map. Encourages use of String valued keys. */
+    /** Store data in the underlying map. Encourages use of String valued keys. 
+     * @param key key
+     * @param value value */
     private void putData(final String key, final Object value) {
         data.put(SUBCLASS_PREFIX + key, value);
     }
 
-    /** @return data from the underlying map. Encourages use of String valued keys. */
+    /** @param key key
+     * @param defaultValue value 
+     * @param <T> type
+     * @return data from the underlying map. Encourages use of String valued keys. */
     @SuppressWarnings("unchecked")
     private <T> T getData(final String key, final T defaultValue) {
         final T ret = (T) data.get(SUBCLASS_PREFIX + key);
         return ret==null ? defaultValue : ret;
     }
 
-    /** Store data in the underlying map. Encourages use of String valued keys. */
+    /** Store data in the underlying map. Encourages use of String valued keys. 
+     * @param key key
+     * @param value value*/
     private void putDataInternal(final String key, final Object value) {
         data.put(BASECLASS_PREFIX + key, value);
     }
 
-    /** @return data from the underlying map. Encourages use of String valued keys. */
+    /** @param key key
+     * @param defaultValue value
+     * @param <T> type
+     * @return data from the underlying map. Encourages use of String valued keys. */
     @SuppressWarnings("unchecked")
     private <T> T getDataInternal(final String key, final T defaultValue) {
         final T ret = (T) data.get(BASECLASS_PREFIX + key);

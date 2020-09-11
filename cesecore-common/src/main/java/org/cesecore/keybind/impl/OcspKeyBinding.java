@@ -166,7 +166,8 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
     public long getUntilNextUpdate() {
         return (Long) getProperty(PROPERTY_UNTIL_NEXT_UPDATE).getValue();
     }
-    /** Set the value in seconds (granularity defined in RFC 5019) */
+    /** Set the value in seconds (granularity defined in RFC 5019) 
+     * @param untilNextUpdate time */
     public void setUntilNextUpdate(long untilNextUpdate) {
         setProperty(PROPERTY_UNTIL_NEXT_UPDATE, Long.valueOf(untilNextUpdate));
     }
@@ -174,7 +175,8 @@ public class OcspKeyBinding extends InternalKeyBindingBase {
     public long getMaxAge() {
         return (Long) getProperty(PROPERTY_MAX_AGE).getValue();
     }
-    /** Set the value in seconds (granularity defined in RFC 5019) */
+    /** Set the value in seconds (granularity defined in RFC 5019) 
+     * @param maxAge age*/
     public void setMaxAge(long maxAge) {
         setProperty(PROPERTY_MAX_AGE, Long.valueOf(maxAge));
     }

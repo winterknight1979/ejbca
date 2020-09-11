@@ -51,7 +51,7 @@ public class InternalKeyBindingNameInUseException extends CesecoreException {
     /**
      * Constructs an instance of <code>InternalKeyBindingNameInUseException</code> with the specified detail message.
      * @param msg the detail message.
-     * @param exception the exception that caused this
+     * @param e the exception that caused this
      */
     public InternalKeyBindingNameInUseException(String msg, Exception e) {
         super(INTERNAL_KEY_BINDING_NAME_IN_USE, msg, e);

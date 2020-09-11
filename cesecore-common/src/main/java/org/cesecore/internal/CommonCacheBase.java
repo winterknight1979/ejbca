@@ -30,6 +30,7 @@ import org.apache.log4j.Logger;
  * during updates.
  * 
  * @version $Id: CommonCacheBase.java 28332 2018-02-20 14:40:52Z anatom $
+ * @param <T> type
  */
 public abstract class CommonCacheBase<T> implements CommonCache<T> {
     
@@ -153,12 +154,15 @@ public abstract class CommonCacheBase<T> implements CommonCache<T> {
         return entry != null ? entry.name : null;
     }
     
-    /** @return cache entry for the requested key or null */
+    /** @param key key
+     * @return cache entry for the requested key or null */
     private CacheEntry getCacheEntry(final Integer key) {
         return cache.get(key);
     }
     
-    /** Set or remove cache entry. */
+    /** Set or remove cache entry. 
+     * @param key key
+     * @param cacheEntry entry */
     private void setCacheEntry(final Integer key, final CacheEntry cacheEntry) {
         final Map<Integer, CacheEntry> cacheStage = new HashMap<Integer, CacheEntry>();
         final Map<String, Integer> nameToIdMapStage = new HashMap<String, Integer>();

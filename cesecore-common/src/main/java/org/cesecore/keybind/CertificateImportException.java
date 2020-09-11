@@ -50,7 +50,7 @@ public class CertificateImportException extends CesecoreException {
     /**
      * Constructs an instance of <code>CertificateImportException</code> with the specified detail message.
      * @param msg the detail message.
-     * @param exception the exception that caused this
+     * @param e the exception that caused this
      */
     public CertificateImportException(String msg, Exception e) {
         super(CERTIFICATE_IMPORT, msg, e);

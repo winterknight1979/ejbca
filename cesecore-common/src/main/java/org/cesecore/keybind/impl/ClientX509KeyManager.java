@@ -90,7 +90,11 @@ public class ClientX509KeyManager implements X509KeyManager {
         return null;    // We are not server side
     }  
 
-    /** Write debug log if enabled for any of the provided nullable arguments */
+    /** Write debug log if enabled for any of the provided nullable arguments 
+     * @param alias Alias
+     * @param keyTypes Types
+     * @param issuers Issuers
+     * @param socket Socket */
     private void logDebugIfEnabled(final String alias, final String[] keyTypes, final Principal[] issuers, final Socket socket) {
         if (log.isDebugEnabled()) {
             log.debug(Thread.currentThread().getStackTrace()[2].getMethodName() + ":");

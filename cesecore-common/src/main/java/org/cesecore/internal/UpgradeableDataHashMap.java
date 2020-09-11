@@ -139,8 +139,8 @@ public abstract class UpgradeableDataHashMap implements IUpgradeableData, Serial
      * added:key, addedvalue
      * </pre>
      *
-	 * @param oldmap
-	 * @param newmap
+	 * @param oldmap Old map
+	 * @param newmap New map
 	 * @return Map<Object, Object> with difference
 	 */
 	public static Map<Object, Object> diffMaps(Map<Object, Object> oldmap, Map<Object, Object> newmap) {
@@ -184,6 +184,8 @@ public abstract class UpgradeableDataHashMap implements IUpgradeableData, Serial
 
 	/** helper method to get nice output from types that do
 	 * not work nicely with Object.toString()
+	 * @param o Object
+	 * @return String
 	 */
 	private static String getVal(Object o) {
 	    StringBuilder b = new StringBuilder();
@@ -237,7 +239,9 @@ public abstract class UpgradeableDataHashMap implements IUpgradeableData, Serial
         return (String) object;
     }
 
-    /** Set the value for the specified key as a primitive (never null) boolean */
+    /** Set the value for the specified key as a primitive (never null) boolean 
+     * @param key key
+     * @param value value */
     protected void putBoolean(final String key, final boolean value) {
         data.put(key, value);
     }

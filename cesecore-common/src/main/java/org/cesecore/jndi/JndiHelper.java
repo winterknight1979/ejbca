@@ -49,10 +49,10 @@ public abstract class JndiHelper {
 	 * 
 	 * Example usage: CAAdminSessionRemote caadminsession = JndiHelper.getRemoteSession(CAAdminSessionRemote.class);
 	 * 
-	 * @param <T>
+	 * @param <T> type
      * @param module the module where the bean is deployed, i.e. ejbca-ejb or systemtests-ejb.
-	 * @param remoteInterface
-	 * @return
+	 * @param remoteInterface interface
+	 * @return Session
 	 */
     @SuppressWarnings("unchecked")
 	public static <T> T getRemoteSession(final Class<T> remoteInterface, final String module) {
