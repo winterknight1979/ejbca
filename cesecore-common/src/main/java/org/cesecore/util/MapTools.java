@@ -49,6 +49,14 @@ public final class MapTools {
     
     /**
      * Adds two items to a map, and returns it. Useful for initialization. See {@link #addToMap(Map, Object, Object)}.
+     * @param map Map
+     * @param key1 Key 1
+     * @param value1 Value 1
+     * @param key2 Key 2
+     * @param value2 Value 2
+     * @param <K> Key type
+     * @param <V> Value type
+     * @return Map
      * @see #addToMap(Map, Object, Object)
      * @see #addToMap(Map, Object, Object, Object, Object, Object, Object)
      */
@@ -60,6 +68,16 @@ public final class MapTools {
     
     /**
      * Adds three items to a map, and returns it. Useful for initialization. See {@link #addToMap(Map, Object, Object)}.
+     * @param map Map
+     * @param key1 Key 1
+     * @param value1 Value 1
+     * @param key2 Key 2
+     * @param value2 Value 2
+     * @param <K> Key type
+     * @param <V> Value type
+     * @param key3 Key 3
+     * @param value3 Value 3
+     * @return Map
      * @see #addToMap(Map, Object, Object)
      * @see #addToMap(Map, Object, Object, Object, Object)
      */
@@ -92,6 +110,14 @@ public final class MapTools {
     /**
      * Creates an unmodifiable map with two items. The returned map is backed by a LinkedHashMap, so it preserves order.
      * Useful for initialization. See {@link #unmodifiableMap(Object, Object)}.
+     *
+     * @param key1 Key 1
+     * @param value1 Value 1
+     * @param key2 Key 2
+     * @param value2 Value 2
+     * @param <K> Key type
+     * @param <V> Value type
+     * @return Map
      * @see #unmodifiableMap(Object, Object)
      * @see #unmodifiableMap(Object, Object, Object, Object, Object, Object)
      */
@@ -102,6 +128,15 @@ public final class MapTools {
     /**
      * Creates an unmodifiable map with two items. The returned map is backed by a LinkedHashMap, so it preserves order.
      * Useful for initialization. See {@link #unmodifiableMap(Object, Object)}.
+     * @param key1 Key 1
+     * @param value1 Value 1
+     * @param key2 Key 2
+     * @param value2 Value 2
+     * @param <K> Key type
+     * @param <V> Value type
+     * @param key3 Key 3
+     * @param value3 Value 3
+     * @return Map
      * @see #unmodifiableMap(Object, Object)
      * @see #unmodifiableMap(Object, Object, Object, Object)
      */

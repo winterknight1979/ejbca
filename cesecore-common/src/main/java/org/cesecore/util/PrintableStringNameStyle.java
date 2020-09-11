@@ -36,8 +36,10 @@ public class PrintableStringNameStyle extends CeSecoreNameStyle {
     protected PrintableStringNameStyle() { }
     
     /**
-     * return true if the passed in String can be represented without
+     * @return true if the passed in String can be represented without
      * loss as a PrintableString, false otherwise.
+     * @param str String
+     * 
      */
     private boolean canBePrintable(
         String  str)

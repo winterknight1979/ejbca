@@ -185,8 +185,9 @@ public class SimpleTime {
     
     /**
      * Gets the TimeUnitFormat by precision.
-     * @param precision
+     * @param precision precision
      * @return the TimeUnitFormat with the desired precision if existent.
+     * @throws IllegalArgumentException if invalid args
      * @see SimpleTime#AVAILABLE_PRECISIONS
      */
     public static final TimeUnitFormat getTimeUnitFormatOrThrow(final String precision) throws IllegalArgumentException {
@@ -235,7 +236,8 @@ public class SimpleTime {
         milliSeconds = time;
 	}
 
-	/** Get the total number of milliseconds for this time (including days, hours etc).*/
+	/** Get the total number of milliseconds for this time (including days, hours etc).
+	 * @return ms*/
 	public long getLong() { return longTime; }
 	public long getYears() { return years; }
 	public long getMonths() { return months; }

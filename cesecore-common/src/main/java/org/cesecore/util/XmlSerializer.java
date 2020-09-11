@@ -77,6 +77,8 @@ public class XmlSerializer {
 	
 	/**
 	 * Serializes a map using Java's XMLEncoder. Non ASCII printable characters are Base64 encoded.
+	 * @param input map
+	 * @return String
 	 */
 	public static String encode(final Map<String, Object> input) {
         return encodeInternal(input, true);
@@ -84,6 +86,8 @@ public class XmlSerializer {
 	
 	/**
      * Serializes a map using Java's XMLEncoder. No Base64 encoding is done of non-printable characters.
+	 * @param input map
+	 * @return string
      */
 	public static String encodeWithoutBase64(final Map<String, Object> input) {
         return encodeInternal(input, false);

@@ -35,6 +35,8 @@ public abstract class ValueExtractor {
      * where the first value is row and the second is the value.
      * As another sad little bonus, Oracle native queries returns a pair of {BigDecimal, BigDecimal}
      * where the first value is the value and the second is the row.
+     * @param object object
+     * @return value
      */
     public static int extractIntValue(Object object) {
         try {
@@ -52,6 +54,8 @@ public abstract class ValueExtractor {
      * Return the longValue if the supplied object has a "longValue" method.
      * Since different JDBC driver will return different types of objects like
      * Long, BigInteger or BigDecimal (Oracle) this is convenient.
+     * @param object object
+     * @return value
      */
     public static long extractLongValue(Object object) {
         try {

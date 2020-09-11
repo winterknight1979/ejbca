@@ -243,7 +243,8 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
     /**
      * Check the revocation status of 'cert' using a CRL
      * @param cert the certificate whose revocation status is to be checked
-     * @throws CertPathValidatorException
+     * @param issuerDN DN
+     * @throws CertPathValidatorException if invalid
      */
     private void fallBackToCrl(final Certificate cert, final String issuerDN) throws CertPathValidatorException {
         final ArrayList<URL> crlUrls = getCrlUrl(cert);
@@ -345,8 +346,8 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
      * @param certSerialnumber the serialnumber of the certificate to be checked
      * @param nonce random nonce to be included in the OCSP request (OCSP POST)
      * @return OCSPReq
-     * @throws CertificateEncodingException
-     * @throws OCSPException
+     * @throws CertificateEncodingException if cert is corrupt
+     * @throws OCSPException if OCSP fails
      */
     private OCSPReq getOcspRequest(Certificate cacert, BigInteger certSerialnumber, final byte[] nonce) throws CertificateEncodingException, OCSPException {
         OCSPReqBuilder gen = new OCSPReqBuilder();
@@ -363,6 +364,12 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
     
     /**
      * Sends an OCSP request, gets a response and verifies the response as much as possible before returning it to the caller.
+     * @param ocspurl URL
+     * @param ocspRequest Request 
+     * @param cert Certificate
+     * @param nonce Nonce
+     * @param expectedOcspRespCode OCSP response 
+     * @param expectedHttpRespCode HTTP response
      * 
      * @return The OCSP response, or null of no correct response could be obtained.
      */
@@ -493,6 +500,7 @@ public class PKIXCertRevocationStatusChecker extends PKIXCertPathChecker {
     
     /**
      * Reads the content of 'httpErrorStream' and ignores it. 
+     * @param httpErrorStream stream
      */
     private void handleContentOfErrorStream(final InputStream httpErrorStream) {
         if (httpErrorStream != null) {

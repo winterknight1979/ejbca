@@ -38,6 +38,8 @@ import org.apache.log4j.Logger;
  * All methods in this class and inner classes are thread-safe.
  * 
  * @version $Id: ConcurrentCache.java 27456 2017-12-07 10:59:06Z samuellb $
+ * @param <K> Key type
+ * @param <V> Value type 
  *
  */
 public final class ConcurrentCache<K,V> {
@@ -46,6 +48,7 @@ public final class ConcurrentCache<K,V> {
     
     /**
      * Internal entries are stored in the ConcurrentMap
+     * @param <V> Value type
      */
     private final static class InternalEntry<V> {
         final V value;
@@ -103,6 +106,7 @@ public final class ConcurrentCache<K,V> {
         /**
          * Updates the value in this Entry as well as in the underlying cache.
          * The expire time is set to be "infinite". Thread-safe.
+         * @param value value
          */
         public void putValue(final V value) {
             if (key != null) {
@@ -146,7 +150,7 @@ public final class ConcurrentCache<K,V> {
     private volatile boolean enabled = true;
     /** @see #setCloseOnEviction */
     private volatile boolean closeOnEviction = false;
-    /** @see setMaxEntries */
+    /** @see #setMaxEntries */
     private volatile long maxEntries = NO_LIMIT;
     
     private AtomicLong numEntries = new AtomicLong(0L);
@@ -164,7 +168,7 @@ public final class ConcurrentCache<K,V> {
      * Creates a concurrent cache initialized with the mapping defined in the given map.
      * Can be used for rebuilding the cache in the background for instance.
      * 
-     * @param map
+     * @param map map
      * @param validFor Time in milliseconds which the entry will be valid for, or -1L for forever.
      * @see ConcurrentCache#getKeys()
      */
@@ -281,7 +285,8 @@ public final class ConcurrentCache<K,V> {
     }
     
     /**
-     * Returns a set of the keys in the cache. Useful for rebuilding the cache in the background.
+     * @return a set of the keys in the cache. Useful for rebuilding the cache in the background.
+     * 
      * @see ConcurrentCache#ConcurrentCache(Map, long)
      */
     public Set<K> getKeys() {
@@ -296,12 +301,14 @@ public final class ConcurrentCache<K,V> {
      * <p>Disabling the cache doesn't stop any currently "open" cache entries from being written to.</p>
      * 
      * <p>The default is enabled.</p>
+     * @param enabled bool
      */
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
     
-    /** @see ConcurrentCache#setEnabled */
+    /** @return bool
+     * @see ConcurrentCache#setEnabled */
     public boolean isEnabled() {
         return enabled;
     }
@@ -312,12 +319,14 @@ public final class ConcurrentCache<K,V> {
      * Exceptions from the close() method are debug logged and swallowed.</p>
      * 
      * <p>The default is false.</p>
+     * @param closeOnEviction bool
      */
     public void setCloseOnEviction(boolean closeOnEviction) {
         this.closeOnEviction = closeOnEviction;
     }
     
-    /** @see ConcurrentCache#setCloseOnEviction */
+    /** @return bool
+     * @see ConcurrentCache#setCloseOnEviction */
     public boolean isCloseOnEviction() {
         return closeOnEviction;
     }
@@ -327,6 +336,7 @@ public final class ConcurrentCache<K,V> {
      * strict limit, and the cache may temporarily exceed this number.</p>
      * 
      * <p>The value {@link ConcurrentCache#NO_LIMIT} (-1) is the default.</p>
+     * @param maxEntries Max number of entries
      */
     public void setMaxEntries(long maxEntries) {
         if (maxEntries == NO_LIMIT || maxEntries > 0L) {
@@ -336,7 +346,8 @@ public final class ConcurrentCache<K,V> {
         }
     }
     
-    /** @see ConcurrentCache#setMaxEntries */
+    /** @return max number of entries
+     * @see ConcurrentCache#setMaxEntries */
     public long getMaxEntries() {
         return maxEntries;
     }
@@ -345,12 +356,14 @@ public final class ConcurrentCache<K,V> {
      * Sets the minimum time in milliseconds between two cleanup runs.
      * 
      * The default is 1000 (= 1 second).
+     * @param milliseconds cleanup interval
      */
     public void setCleanupInterval(long milliseconds) {
         cleanupInterval = milliseconds;
     }
     
-    /** @see ConcurrentCache#setCleanupInterval */
+    /** @return cleanup interval
+     * @see ConcurrentCache#setCleanupInterval */
     public long getCleanupInterval() {
         return cleanupInterval;
     }
@@ -368,7 +381,9 @@ public final class ConcurrentCache<K,V> {
         }
     }
     
-    /** Used internally for testing. */
+    /** Used internally for testing. 
+     * @param min min
+     * @param max max */
     void checkNumberOfEntries(long min, long max) {
         long a = numEntries.get();
         long b = cache.size();

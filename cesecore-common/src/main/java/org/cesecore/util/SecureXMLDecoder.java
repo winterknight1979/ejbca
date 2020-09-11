@@ -85,7 +85,7 @@ public class SecureXMLDecoder implements AutoCloseable {
 
     /**
      * Creates a SecureXMLDecoder. Errors when calling readObject() will generate an IOException.
-     * @param is
+     * @param is stream
      */
     public SecureXMLDecoder(final InputStream is) {
         this(is, false);
@@ -158,7 +158,9 @@ public class SecureXMLDecoder implements AutoCloseable {
         }
     }
     
-    /** Reads the &lt;java version="xx" class="xx"&gt; header */
+    /** Reads the &lt;java version="xx" class="xx"&gt; header 
+     * @throws XmlPullParserException on xml parse fail
+     * @throws IOException on io error */
     private void readHeader() throws XmlPullParserException, IOException {
         if (parser.getEventType() != XmlPullParser.START_DOCUMENT) {
             throw new IOException("Incorrect header of XML document");
@@ -178,13 +180,18 @@ public class SecureXMLDecoder implements AutoCloseable {
         seenHeader = true;
     }
     
-    /** Reads an object, array or (boxed) elementary type value. */
+    /** Reads an object, array or (boxed) elementary type value. 
+     * @return object
+     * @throws XmlPullParserException on xml parse fail
+     * @throws IOException on io error */
     private Object readValue() throws XmlPullParserException, IOException {
         return readValue(true);
     }
     
     /**
      * Reads an object, array or (boxed) elementary type value.
+     * @param disallowTextAfterElement bool
+     * @return object
      * @throws XmlPullParserException On low level XML parse errors
      * @throws IOException On not valid XMLEncoder XML
      * @throws NoValueException If no value could be parsed
@@ -346,8 +353,8 @@ public class SecureXMLDecoder implements AutoCloseable {
                 try {
                     // EJBCA, SignServer and test classes, so not available in CESeCore.
                     // In the long run we should make the whitelisted class names configurable, e.g. by subclassing (ECA-4916)
-                    value = parseObject(Class.forName(className).newInstance());
-                } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+                    value = parseObject(Class.forName(className).getConstructor().newInstance());
+                } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | InvocationTargetException | NoSuchMethodException e) {
                     throw new IOException(errorMessage("Deserialization of class '" + className + "' failed: " + e.getMessage()), e);
                 }
                 break;
@@ -439,6 +446,9 @@ public class SecureXMLDecoder implements AutoCloseable {
      * Reads the text content between two tags. Stops if there are nested tags, e.g.
      * <code>&lt;text&gt;blabla&lt;nested/&gt;blabla&lt;/text&gt;</code>,
      * so be careful if there could be nested tags.
+     * @return text
+     * @throws XmlPullParserException on xml parse fail
+     * @throws IOException on io error 
      */
     private String readText() throws XmlPullParserException, IOException {
         final String text;
@@ -454,7 +464,9 @@ public class SecureXMLDecoder implements AutoCloseable {
     /**
      * Reads a string, possibly containing &lt;char code="#xxx"/&gt; escapes.
      *
-     * @returns String, never null.
+     * @return String, never null.
+     * @throws XmlPullParserException on xml parse fail
+     * @throws IOException on io error 
      */
     private String readString() throws XmlPullParserException, IOException {
         final StringBuilder sb = new StringBuilder();
@@ -477,12 +489,18 @@ public class SecureXMLDecoder implements AutoCloseable {
         return sb.toString();
     }
     
-    /** Checks if the next item is an <int> start tag */
+    /** Checks if the next item is an <int> start tag 
+     * @return bool
+     * @throws XmlPullParserException on xml parse fail
+     * */
     private boolean isIntValue() throws XmlPullParserException {
         return parser.getEventType() == XmlPullParser.START_TAG && "int".equals(parser.getName());
     }
     
-    /** Reads an &lt;array class="xx" length="xx"&gt; element */
+    /** Reads an &lt;array class="xx" length="xx"&gt; element
+     * @return object
+     * @throws XmlPullParserException on xml parse fail
+     * @throws IOException on io error  */
     private Object readArray() throws XmlPullParserException, IOException {
         final String className = parser.getAttributeValue(null, "class");
         final String lengthStr = parser.getAttributeValue(null, "length");
@@ -545,6 +563,9 @@ public class SecureXMLDecoder implements AutoCloseable {
     /**
      * Reads a method call start tag, e.g. &lt;void method="add"&gt;.
      * The data inside the void element is the method arguments.
+     * @return String
+     * @throws XmlPullParserException on xml parse fail
+     * @throws IOException on io error 
      */
     private String readMethodCall() throws XmlPullParserException, IOException {
         if (parser.getEventType() != XmlPullParser.START_TAG || !"void".equals(parser.getName())) {
@@ -559,7 +580,11 @@ public class SecureXMLDecoder implements AutoCloseable {
         return method;
     }
     
-    /** Parses data for Collection objects, such as ArrayList, but also HashSet etc. */
+    /** Parses data for Collection objects, such as ArrayList, but also HashSet etc. 
+     * @param col Collection
+     * @return object
+     * @throws XmlPullParserException on xml parse fail
+     * @throws IOException on io error */
     private Object parseCollection(final Collection<Object> col) throws XmlPullParserException, IOException {
         while (true) {
             if (parser.getEventType() == XmlPullParser.END_TAG) {
@@ -580,7 +605,11 @@ public class SecureXMLDecoder implements AutoCloseable {
         return col;
     }
 
-    /** Parses data for Map objects */
+    /** Parses data for Map objects
+     * @param map Map
+     * @return Object
+     * @throws XmlPullParserException on xml parse fail
+     * @throws IOException on io error  */
     private Object parseMap(final Map<Object,Object> map) throws XmlPullParserException, IOException {
         while (true) {
             if (parser.getEventType() == XmlPullParser.END_TAG) {
@@ -637,7 +666,11 @@ public class SecureXMLDecoder implements AutoCloseable {
         }
     }
     
-    /** Parses an arbitrary object. Note that this method will allow any property to be set. */
+    /** Parses an arbitrary object. Note that this method will allow any property to be set.
+     * @param obj Object
+     * @return Object
+     * @throws XmlPullParserException on xml parse fail
+     * @throws IOException on io error  */
     private Object parseObject(final Object obj) throws XmlPullParserException, IOException {
         while (true) {
             if (parser.getEventType() == XmlPullParser.END_TAG) {

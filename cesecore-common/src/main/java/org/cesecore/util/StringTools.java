@@ -92,7 +92,7 @@ public final class StringTools {
         private Set<Character> charSet = null;
         /**
          * Create a set of characters from a char array.
-         * @param array
+         * @param array chars
          */
         private CharSet(char[] array) {
             final Set<Character> set = new HashSet<Character>();
@@ -349,7 +349,7 @@ public final class StringTools {
     /**
      * Converts ip-adress octets, according to ipStringToOctets to human readable string in form 10.1.1.1 for ipv4 adresses.
      *
-     * @param octets
+     * @param octets bytes
      * @return ip address string, null if input is invalid
      * @see #ipStringToOctets(String)
      */
@@ -594,7 +594,7 @@ public final class StringTools {
     /**
      * Retrieves the clear text from a string obfuscated with the obfuscate methods
      *
-     * @param s obfuscated string, usually (but not necessarily) starts with OBF:
+     * @param in obfuscated string, usually (but not necessarily) starts with OBF:
      * @return plain text string, or original if it was empty
      */
     public static String deobfuscate(final String in) {
@@ -673,6 +673,7 @@ public final class StringTools {
     }
 
     /** number of rounds for password based encryption. FIXME 100 is not secure and can easily be broken.
+     * @return count
      */
     private static int getCount() {
         final String str = ConfigurationHolder.getString("password.encryption.count");
@@ -689,7 +690,13 @@ public final class StringTools {
      *
      * Note that this method does provide limited security (e.g. DBA's won't be able to access encrypted passwords in database)
      * as long as the 'password.encryption.key' is set, otherwise, it won't provide any real encryption more than obfuscation.
-     * @throws InvalidKeySpecException
+     * @param in string
+     * @return encrypted string
+     * @throws InvalidKeyException if key invalid
+     * @throws InvalidAlgorithmParameterException if algo invalid 
+     * @throws IllegalBlockSizeException if block size invalid
+     * @throws BadPaddingException if padding invalid
+     * @throws InvalidKeySpecException if spec invalis
      */
     public static String pbeEncryptStringWithSha256Aes192(final String in)
             throws InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, InvalidKeySpecException {
@@ -702,6 +709,10 @@ public final class StringTools {
      * @param in clear text string to encrypt
      * @param p encryption passphrase
      * @return hex encoded encrypted data in form "encryption_version:salt:count:encrypted_data" or clear text string if no strong crypto is available (Oracle JVM without unlimited strength crypto policy files)
+     * @throws InvalidKeyException if key invalid
+     * @throws IllegalBlockSizeException if block size invalid
+     * @throws BadPaddingException if padding invalid
+     * @throws InvalidKeySpecException if spec invalis
      */
     public static String pbeEncryptStringWithSha256Aes192(final String in, char[] p)
             throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidKeySpecException {
@@ -747,10 +758,10 @@ public final class StringTools {
     *
     * @param in hex encoded encrypted string in form "encryption_version:salt:count:encrypted_data", or just "encrypted_data" for older versions
     * @return decrypted clear text string
-     * @throws InvalidKeySpecException 
-     * @throws BadPaddingException 
-     * @throws IllegalBlockSizeException 
-     * @throws InvalidKeyException 
+     * @throws InvalidKeyException if key invalid
+     * @throws IllegalBlockSizeException if block size invalid
+     * @throws BadPaddingException if padding invalid
+     * @throws InvalidKeySpecException if spec invalis
     */
    public static String pbeDecryptStringWithSha256Aes192(final String in) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidKeySpecException {
        char[] p = ConfigurationHolder.getString("password.encryption.key").toCharArray();
@@ -762,6 +773,10 @@ public final class StringTools {
      * @param in hex encoded encrypted string in form "encryption_version:salt:count:encrypted_data", or just "encrypted_data" for older versions
      * @param p decryption passphrase
      * @return decrypted clear text string
+     * @throws InvalidKeyException if key invalid
+     * @throws IllegalBlockSizeException if block size invalid
+     * @throws BadPaddingException if padding invalid
+     * @throws InvalidKeySpecException if spec invalis
      */
     public static String pbeDecryptStringWithSha256Aes192(final String in, char[] p) throws IllegalBlockSizeException, BadPaddingException,
             InvalidKeyException, InvalidKeySpecException {
@@ -958,7 +973,7 @@ public final class StringTools {
      * <p>
      * See org.ejbca.core.model.ca.certextensions.TestCertificateExtensionManager#test03TestSplitURIs() for more examples.
      *
-     * @param dispPoints The semicolon separated string and which optionally uses double-quotes
+     * @param dPoints The semicolon separated string and which optionally uses double-quotes
      * @return A collection of strings
      */
     public static Collection<String> splitURIs(String dPoints) {
@@ -1024,7 +1039,8 @@ public final class StringTools {
         return ret;
     }
 
-    /** @return the IP address of the X-Forwarded-For HTTP header with illegal chars replaced with '?'. IPv6 address hex chars are converted to lower case. */
+    /** @param rawHeaderValue value
+     * @return the IP address of the X-Forwarded-For HTTP header with illegal chars replaced with '?'. IPv6 address hex chars are converted to lower case. */
     public static String getCleanXForwardedFor(final String rawHeaderValue) {
         if (rawHeaderValue==null) {
             return null;
@@ -1040,7 +1056,9 @@ public final class StringTools {
         return rawHeaderValue.trim().toLowerCase().replaceAll("[^0-9a-f.,: ]", "?");
     }
 
-    /** @return the items as a String separated by the provided separator. */
+    /** @param separator sep
+     * @param values values
+     * @return the items as a String separated by the provided separator. */
     public static String getAsStringWithSeparator(final String separator, final Collection<?> values) {
         final StringBuilder names = new StringBuilder();
         for (final Object value : values) {
@@ -1110,7 +1128,8 @@ public final class StringTools {
         return Pattern.matches(blackList, value);
     }
 
-    /** @return false of if the string contains any characters that are neither a letter (unicode) or an asciiPrintable character */
+    /** @param str string
+     * @return false of if the string contains any characters that are neither a letter (unicode) or an asciiPrintable character */
     public static boolean isAlphaOrAsciiPrintable(String str) {
         if (str == null) {
             return false;

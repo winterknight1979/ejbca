@@ -44,6 +44,7 @@ import org.apache.log4j.Logger;
  * bytes in compressed serialized form.
  * 
  * @version $Id: CompressedCollection.java 34193 2020-01-07 15:18:15Z samuellb $
+ * @param <T> type
  */
 public class CompressedCollection<T extends Serializable> implements Collection<T> , Serializable {
 
@@ -57,9 +58,10 @@ public class CompressedCollection<T extends Serializable> implements Collection<
     private final List<LookAheadObjectInputStream> oiss = new ArrayList<>();
     private final Set<Class<? extends Serializable>> acceptedClasses;
 
-    @SafeVarargs
+    @SuppressWarnings("unchecked")
+	@SafeVarargs
     public CompressedCollection(final Class<T> elementClass, final Class<? extends Serializable>... nestedClasses) {
-        acceptedClasses = SetUtils.typedSet(new HashSet<>(nestedClasses.length + 1), Serializable.class); // generic varargs are not type safe
+        acceptedClasses = SetUtils.typedSet(new HashSet<>(nestedClasses.length + 1), Serializable.class); // generic fireworks are not type safe
         acceptedClasses.add(elementClass);
         acceptedClasses.addAll(Arrays.asList(nestedClasses));
         clear();
@@ -83,7 +85,9 @@ public class CompressedCollection<T extends Serializable> implements Collection<
         return ret;
     }
 
-    /** Lazy initialization of our in memory object storage */
+    /** Lazy initialization of our in memory object storage 
+     * @return stream
+     * @throws IOException on error */
     private ObjectOutputStream getObjectOutputStream() throws IOException {
         if (oos==null) {
             baos = new ByteArrayOutputStream();

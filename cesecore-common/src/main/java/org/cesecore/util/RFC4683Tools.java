@@ -41,7 +41,7 @@ import org.cesecore.certificates.util.DnComponents;
  * including a privacy-sensitive identifier in the subjectAltName extension of a certificate. The SIM is 
  * an optional feature that may be used by relying parties to determine whether the subject of a particular 
  * certificate is also the person corresponding to a particular sensitive identifier 
- * (see {@link https://tools.ietf.org/html/rfc4683}).
+ * (@see <a href="https://tools.ietf.org/html/rfc4683>RFC4683</a>.)
  * 
  * @version $Id: RFC4683Tools.java 31882 2019-03-18 13:50:56Z anatom $
  */
@@ -59,7 +59,7 @@ public final class RFC4683Tools {
     private static final Logger LOG = Logger.getLogger(RFC4683Tools.class);
 
     /**
-     * Gets the allowed hash algorithm object identifiers (see: {@link https://tools.ietf.org/html/rfc4683#section-4.3}).
+     * Gets the allowed hash algorithm object identifiers (@see <a href="https://tools.ietf.org/html/rfc4683#section-4.3>RFC4683</a>).
      * @return a list of ASN1ObjectIdentifier {@link TSPAlgorithms#ALLOWED}.
      */
     @SuppressWarnings("unchecked")
@@ -86,6 +86,9 @@ public final class RFC4683Tools {
      * 
      * @param san the SAN string in internal storage format with SIM as user parameters.
      * @return SAN string in internal storage format with generated SIM strings.
+     * @throws IllegalArgumentException on illegal request
+     * @throws NoSuchProviderException If provider not found
+     * @throws NoSuchAlgorithmException If algorithm not found
      */
     public static final String generateSimForInternalSanFormat(String san)
             throws IllegalArgumentException, NoSuchProviderException, NoSuchAlgorithmException {
@@ -126,7 +129,9 @@ public final class RFC4683Tools {
      * @param ssiType OID string of an SSI type (see https://tools.ietf.org/html/rfc4683#section-4.1).
      * @param ssi Sensitive Identification Information (SII) (see https://tools.ietf.org/html/rfc4683#section-4.1).
      * @return a '::' separated string of hashAlogrithmOidString, R and PEPSI.
-     * @throws IllegalArgumentException
+     * @throws IllegalArgumentException on illegal request
+     * @throws NoSuchProviderException If provider not found
+     * @throws NoSuchAlgorithmException If algorithm not found
      */
     public static final String generateInternalSimString(final String hashAlogrithmOidString, final String userChosenPassword, final String ssiType,
             final String ssi) throws IllegalArgumentException, NoSuchProviderException, NoSuchAlgorithmException {
@@ -182,11 +187,10 @@ public final class RFC4683Tools {
      * SIM ::= SEQUENCE { hashAlg AlgorithmIdentifier, authorityRandom OCTET
      * STRING, -- RA-chosen random number -- used in computation of -- pEPSI
      * pEPSI OCTET STRING -- hash of HashContent -- with algorithm hashAlg }
-     * 
-     * @param hashAlogrithmOidString the OID string for the hash algorithm used to hash R and PEPSI.
+     * @param hashAlgorithmIdentifier the OID string for the hash algorithm used to hash R and PEPSI.
      * @param authorityRandom the registration authority chosen random value, hashed with hash of hashAlogrithmOidString (see https://tools.ietf.org/html/rfc4683#section-4.3).
      * @param pepsi Privacy-Enhanced Protected Subject Information (PEPSI), with SIM = R || PEPSI.
-     * @return the RFC4683 SIM GeneralName (see {@link https://tools.ietf.org/html/rfc4683#section-4.3}).
+     * @return the RFC4683 SIM GeneralName (@see <a href="https://tools.ietf.org/html/rfc4683>RFC4683</a>.).
      */
     public static final ASN1Primitive createSimGeneralName(final String hashAlgorithmIdentifier, final String authorityRandom, final String pepsi) {
         if (LOG.isDebugEnabled()) {

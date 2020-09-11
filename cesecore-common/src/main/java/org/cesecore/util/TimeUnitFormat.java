@@ -46,6 +46,7 @@ public final class TimeUnitFormat {
     /**
      * Instantiates a new TimeUnitFormat and initializes it with the given units.
      * @param units List of units (suffixes, i.e. 'ms', 'mo', 'y', 'd', 'h', 'm', and 's').
+     * @param factors factors
      */
     public TimeUnitFormat(final List<String> units, final Map<String, Long> factors) {
         this.units = units;
@@ -68,7 +69,7 @@ public final class TimeUnitFormat {
     /**
      * Parses a formatted time string.
      * 
-     * @param formatted
+     * @param formattedString
      *            time string, i.e '1y-2mo10d'.
      * @return the milliseconds as long value from 0.
      * @throws NumberFormatException  if the string cannot be parsed, i.e. it contains units not listed or other illegal characters or forms.
@@ -107,6 +108,7 @@ public final class TimeUnitFormat {
     /**
      * Formats the given period in milliseconds to a readable string.   
      * @param millis the milliseconds (count from 0 - not epoch).
+     * @param factors factors
      * @param zeroType the unit if the result is 0.
      * @return a readable string in form of the ordered value unit pairs (*y *mo *d *h *m *s), separated by white space character. Milliseconds are lost.
      */

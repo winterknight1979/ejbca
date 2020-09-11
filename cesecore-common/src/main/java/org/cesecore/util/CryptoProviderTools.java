@@ -34,6 +34,8 @@ import org.ejbca.cvc.CVCProvider;
  * 
  * @version $Id: CryptoProviderTools.java 26046 2017-06-20 08:53:38Z mikekushner $
  */
+
+@SuppressWarnings("deprecation")
 public final class CryptoProviderTools {
 	
 	private static final Logger log = Logger.getLogger(CryptoProviderTools.class);
@@ -87,7 +89,7 @@ public final class CryptoProviderTools {
         // Also remove the CVC provider
         Security.removeProvider("CVC");
     }
-    @SuppressWarnings({ "unchecked", "deprecation" })
+    @SuppressWarnings({ "unchecked" })
     public static synchronized void installBCProvider() {
     	
         // A flag that ensures that we install the parameters for implcitlyCA only when we have installed a new provider
@@ -139,6 +141,7 @@ public final class CryptoProviderTools {
         // Finally we must configure SERIALNUMBER behavior in BC >=1.36 to be the same
         // as the behavior in BC 1.35, it changed from SN to SERIALNUMBER in BC 1.36
         // We must be backwards compatible
+        
         X509Name.DefaultSymbols.put(X509Name.SN, "SN");
         // We hard specify the system security provider in a few cases (see SYSTEM_SECURITY_PROVIDER). 
         // If the SUN provider does not exist, we will always use BC.

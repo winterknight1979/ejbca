@@ -37,6 +37,8 @@ public class GUIDGenerator {
      * NOTE: This guid is not cryptographically secure, and should not be used as such.
      * 
      * Usage: Add an id field (type java.lang.String) to your EJB, and add setId(XXXUtil.generateGUID(this)); to the ejbCreate method.
+     * @param o object
+     * @return guid
      */
     public static final String generateGUID(Object o) {
 

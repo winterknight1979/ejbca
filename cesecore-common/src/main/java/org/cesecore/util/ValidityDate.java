@@ -50,12 +50,18 @@ public class ValidityDate {
     private ValidityDate() {
     }
 	
-	/** Parse a String in the format "yyyy-MM-dd HH:mm" as a date with implied TimeZone UTC. */
+	/** Parse a String in the format "yyyy-MM-dd HH:mm" as a date with implied TimeZone UTC. 
+	 * @param dateString string
+	 * @return date
+	 * @throws ParseException if parse fails */
 	public static Date parseAsUTC(final String dateString) throws ParseException {
 		return DateUtils.parseDateStrictly(dateString+"+00:00", IMPLIED_UTC_PATTERN_TZ);
 	}
 
-	/** Parse a String in the format "yyyy-MM-dd HH:mm:ssZZ". The hour/minutes, seconds and timezone are optional parts. */
+	/** Parse a String in the format "yyyy-MM-dd HH:mm:ssZZ". The hour/minutes, seconds and timezone are optional parts. 
+	 *  @param dateString string
+	 * @return date
+	 * @throws ParseException if parse fails*/
 	public static Date parseAsIso8601(final String dateString) throws ParseException {
 	    try {
 		    return DateUtils.parseDateStrictly(dateString, ISO8601_PATTERNS);
@@ -84,32 +90,50 @@ public class ValidityDate {
 	    }
 	}
 
-	/** Convert a Date to the format "yyyy-MM-dd HH:mm" with implied TimeZone UTC. */
+	/** Convert a Date to the format "yyyy-MM-dd HH:mm" with implied TimeZone UTC. 
+	 * @param date Date
+	 * @return String */
 	public static String formatAsUTC(final Date date) {
 		return FastDateFormat.getInstance(IMPLIED_UTC_PATTERN[0], TIMEZONE_UTC).format(date);
 	}
 	
-	/** Convert a absolute number of milliseconds to the format "yyyy-MM-dd HH:mm" with implied TimeZone UTC. */
+	/** Convert a absolute number of milliseconds to the format "yyyy-MM-dd HH:mm" with implied TimeZone UTC. 
+	 * @param millis ms
+	 * @return String */
 	public static String formatAsUTC(final long millis) {
 		return FastDateFormat.getInstance(IMPLIED_UTC_PATTERN[0], TIMEZONE_UTC).format(millis);
+		
 	}
 	
-	/** Convert a Date to the format "yyyy-MM-dd HH:mm:ssZZ" (the T is not required). The server's time zone is used. */
+	/** Convert a Date to the format "yyyy-MM-dd HH:mm:ssZZ" (the T is not required). The server's time zone is used. 
+	 * @param date Date
+	 * @param timeZone TZ
+	 * @return String */
 	public static String formatAsISO8601(final Date date, final TimeZone timeZone) {
 		return FastDateFormat.getInstance(ISO8601_PATTERNS[0], timeZone).format(date);
 	}
 
-	/** Convert a Date in milliseconds to the format "yyyy-MM-dd HH:mm:ssZZ". The server's time zone is used. */
+	/** Convert a Date in milliseconds to the format "yyyy-MM-dd HH:mm:ssZZ". The server's time zone is used. 
+	 * @param millis ms
+	 * @param timeZone TZ 
+	 * @return String */
 	public static String formatAsISO8601ServerTZ(final long millis, final TimeZone timeZone) {
 		return FastDateFormat.getInstance(ISO8601_PATTERNS[0], TIMEZONE_SERVER).format(millis);
 	}
 
-	/** Convert a the format "yyyy-MM-dd HH:mm:ssZZ" to "yyyy-MM-dd HH:mm" with implied TimeZone UTC. */
+	/** Convert a the format "yyyy-MM-dd HH:mm:ssZZ" to "yyyy-MM-dd HH:mm" with implied TimeZone UTC. 
+	 * @param dateString Date
+	 * @return String
+	 * @throws ParseException on parse fail */
 	public static String getImpliedUTCFromISO8601(final String dateString) throws ParseException {
 		return formatAsUTC(parseAsIso8601(dateString));
 	}
 	
-	/** Convert a the format "yyyy-MM-dd HH:mm" with implied TimeZone UTC to "yyyy-MM-dd HH:mm:ssZZ". */
+	/** Convert a the format "yyyy-MM-dd HH:mm" with implied TimeZone UTC to "yyyy-MM-dd HH:mm:ssZZ". 
+	 * @param dateString Date
+	 * @param timeZone TZ
+	 * @return String
+	 * @throws ParseException on parse fail */
 	public static String getISO8601FromImpliedUTC(final String dateString, final TimeZone timeZone) throws ParseException {
 		return formatAsISO8601(parseAsUTC(dateString), timeZone);
 	}
@@ -150,6 +174,7 @@ public class ValidityDate {
 	/**
 	 * Decodes encoded value to string in the form "yyyy-MM-dd HH:mm:ssZZ" or "1234d" (relative days).
 	 * @param lEncoded If this is below Integer.MAX_VALUE it is interpreted as a number of days to firstDate, otherwise an unix timestamp.
+	 * @return String
 	 */
 	@Deprecated
 	public static String getStringBeforeVersion661(final long lEncoded) {
@@ -163,6 +188,7 @@ public class ValidityDate {
 	 * Decodes encoded value to Date.
 	 * @param lEncoded encoded value. If this is below Integer.MAX_VALUE it is interpreted as a number of days to firstDate, otherwise an unix timestamp.
 	 * @param firstDate date to be used if encoded value is a delta time. Can never be null.
+	 * @return Date
 	 */
 	@Deprecated
 	public static Date getDateBeforeVersion661(final long lEncoded, final Date firstDate) {
@@ -199,7 +225,9 @@ public class ValidityDate {
 	    }
 	}
 
-	/** If below the integer capacity we have stored a relative date in days, otherwise it is an absolute time in milliseconds. */
+	/** If below the integer capacity we have stored a relative date in days, otherwise it is an absolute time in milliseconds. 
+	 * @param lEncoded long
+	 * @return bool */
 	@Deprecated
 	public static boolean isDeltaTimeBeforeVersion661(final long lEncoded) {
 		return lEncoded < Integer.MAX_VALUE;	// This could probably be <= instead??
@@ -208,6 +236,7 @@ public class ValidityDate {
 	/**
 	 * Parse a date as either "yyyy-MM-dd HH:mm:ssZZ" or a relative hex encoded UNIX time stamp (in seconds).
 	 * Use for parsing of the build time property "ca.toolateexpiredate" in ejbca.properties.
+	 * @param sDate Date
 	 * @return the date or the largest possible Date if unable to parse the argument.
 	 */
 	public static Date parseCaLatestValidDateTime(final String sDate) {

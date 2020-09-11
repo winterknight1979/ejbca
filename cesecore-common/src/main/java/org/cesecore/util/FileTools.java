@@ -120,6 +120,7 @@ public abstract class FileTools {
 
     /**
      * Help function to read an InputStream to a byte array.
+     * @param in stream
      *
      * @return byte[] containing the contents of the file.
      *
@@ -142,6 +143,7 @@ public abstract class FileTools {
 
     /**
      * Sort the files by name with directories first.
+     * @param files files
      */
     public static void sortByName(final File[] files) {
     	if (files == null) {

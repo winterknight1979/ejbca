@@ -203,6 +203,9 @@ public class CeSecoreNameStyle extends BCStyle {
      * useful e.g. when the DefaultSymbols map is not the default inherited from
      * BCStyle. It is public so it can be re-used by other classes as well
      * (e.g. LdapNameStyle in EJBCA).
+     * @param defaultSymbols symbols
+     * @param name Name
+     * @return String
      */
     public static String buildString(Hashtable<ASN1ObjectIdentifier,String> defaultSymbols, X500Name name) {
         StringBuffer buf = new StringBuffer();
