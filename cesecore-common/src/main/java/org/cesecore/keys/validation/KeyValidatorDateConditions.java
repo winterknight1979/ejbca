@@ -50,6 +50,7 @@ public enum KeyValidatorDateConditions implements IndexEnum {
      *
      * @param index index
      * @param label resource key or label.
+     * @param expression expression
      */
     private KeyValidatorDateConditions(final int index, final String label, final String expression) {
         this.index = index;
@@ -59,7 +60,7 @@ public enum KeyValidatorDateConditions implements IndexEnum {
 
     /**
      * Gets the index.
-     * @return
+     * @return index
      */
     @Override
     public int getIndex() {
@@ -68,7 +69,7 @@ public enum KeyValidatorDateConditions implements IndexEnum {
 
     /**
      * Gets the resource key or label.
-     * @return
+     * @return label
      */
     public String getLabel() {
         return label;
@@ -76,6 +77,8 @@ public enum KeyValidatorDateConditions implements IndexEnum {
 
     /**
      * Return a key validator date condition given its index.
+     * @param index index
+     * @return conditions
      */
     public static KeyValidatorDateConditions fromIndex(final int index) {
         for (final KeyValidatorDateConditions condition : KeyValidatorDateConditions.values()) {
@@ -88,7 +91,7 @@ public enum KeyValidatorDateConditions implements IndexEnum {
 
     /**
      * Gets an Integer list instance containing all indices.
-     * @return
+     * @return indices
      */
     public static final List<Integer> index() {
         final List<Integer> result = new ArrayList<Integer>();

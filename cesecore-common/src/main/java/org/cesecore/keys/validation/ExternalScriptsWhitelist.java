@@ -14,7 +14,6 @@
 package org.cesecore.keys.validation;
 
 import java.io.File;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -50,7 +49,6 @@ public class ExternalScriptsWhitelist {
      * @param text an input string containing the content of the whitelist
      * @param isEnabled true if the whitelist is enabled
      * @return an External Scripts Whitelist object constructed from the input
-     * @throws ParseException if the whitelist is enabled and one of paths does not point to a file
      */
     public static ExternalScriptsWhitelist fromText(final String text, final boolean isEnabled) {
         final List<File> scripts = new ArrayList<>();
@@ -72,7 +70,6 @@ public class ExternalScriptsWhitelist {
      * lines beginning with '#' are treated as comments.
      * @param text an input string containing the content of the whitelist
      * @return an External Scripts Whitelist object constructed from the input
-     * @throws ParseException if one of paths does not point to a file
      */
     public static ExternalScriptsWhitelist fromText(final String text) {
         return ExternalScriptsWhitelist.fromText(text, true);
@@ -90,7 +87,7 @@ public class ExternalScriptsWhitelist {
 
     /**
      * Create a new enabled whitelist permitting execution of the scripts given as input.
-     * @param scripts a list of path strings
+     * @param paths a list of path strings
      */
     public ExternalScriptsWhitelist(final String... paths) {
         this.scripts = new ArrayList<File>();

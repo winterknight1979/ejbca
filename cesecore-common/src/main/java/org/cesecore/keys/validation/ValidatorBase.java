@@ -14,6 +14,7 @@
 package org.cesecore.keys.validation;
 
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -88,6 +89,7 @@ public abstract class ValidatorBase extends ProfileBase implements Serializable,
     
     /**
      * Creates a new instance.
+     * @param name name
      */
     public ValidatorBase(final String name) {
         super(name);
@@ -110,7 +112,7 @@ public abstract class ValidatorBase extends ProfileBase implements Serializable,
     public void init() {
         super.initialize();
         if (null == data.get(VERSION)) {
-            data.put(VERSION, new Float(LATEST_VERSION));
+            data.put(VERSION, Float.valueOf(LATEST_VERSION));
         }
         if (null == data.get(PHASE)) {
             setPhase(getApplicablePhases().get(0));
@@ -246,10 +248,10 @@ public abstract class ValidatorBase extends ProfileBase implements Serializable,
         super.upgrade();
         if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
             // New version of the class, upgrade.
-            log.info(intres.getLocalizedMessage("validator.upgrade", new Float(getVersion())));
+            log.info(intres.getLocalizedMessage("validator.upgrade", Float.valueOf(getVersion())));
             init();
             // Finished upgrade, set new version
-            data.put(VERSION, new Float(LATEST_VERSION));
+            data.put(VERSION, Float.valueOf(LATEST_VERSION));
         }
     }
 
@@ -268,8 +270,8 @@ public abstract class ValidatorBase extends ProfileBase implements Serializable,
         getType();
         Validator clone;
         try {
-            clone = (Validator) getType().newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
+            clone = (Validator) getType().getConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             throw new IllegalStateException("Could not instansiate class of type " + getType().getCanonicalName());
         }
         clone.setProfileName(getProfileName());

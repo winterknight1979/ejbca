@@ -42,13 +42,13 @@ public interface Validator extends PhasedValidator, CertificateProfileAwareValid
     void setKeyValidatorSettingsTemplate(KeyValidatorSettingsTemplate template);
     
     /**
-     * Gets the failed action index {@see #setFailedAction(int)}.
+     * Gets the failed action index (@see #setFailedAction(int)).
      * @return the index.
      */
     int getFailedAction();
     
     /**
-     * Sets the failed action index {@link KeyValidationFailedActions}, defining what action should
+     * Sets the failed action index (@link KeyValidationFailedActions), defining what action should
      * be taken when validation fails, i.e. #validate returns errors
      * @param index the index.
      */
@@ -56,7 +56,7 @@ public interface Validator extends PhasedValidator, CertificateProfileAwareValid
 
     
     /**
-     * Gets the not_applicable action index {@see #setNotApplicableAction(int).
+     * Gets the not_applicable action index (@see #setNotApplicableAction(int)).
      * @return the index.
      */
     int getNotApplicableAction();
@@ -70,7 +70,7 @@ public interface Validator extends PhasedValidator, CertificateProfileAwareValid
     void setNotApplicableAction(int index);
 
     /**
-     * Gets a list of applicable CA types (X509 or CVC see {@link CAInfo.CATYPE_X509 or CAInfo.CATYPE_CVC}).
+     * Gets a list of applicable CA types (X509 or CVC see {@link CAInfo#CATYPE_X509} or {@link CAInfo#CATYPE_CVC}).
      * @return the list of class names of the allowed CA types.
      */
     List<Integer> getApplicableCaTypes();
@@ -82,7 +82,7 @@ public interface Validator extends PhasedValidator, CertificateProfileAwareValid
     
     /**
      * Sets the settings template index.
-     * @param type the type {@link KeyValidatorSettingsTemplate}.
+     * @param option the type {@link KeyValidatorSettingsTemplate}.
      */
     void setSettingsTemplate(Integer option);
     
@@ -109,7 +109,8 @@ public interface Validator extends PhasedValidator, CertificateProfileAwareValid
        */
       void setDescription(String description);
       
-      /** Implementation of UpgradableDataHashMap function getLatestVersion */    
+      /** Implementation of UpgradableDataHashMap function getLatestVersion 
+     * @return version */    
       float getLatestVersion();
       
       UpgradeableDataHashMap getUpgradableHashmap();

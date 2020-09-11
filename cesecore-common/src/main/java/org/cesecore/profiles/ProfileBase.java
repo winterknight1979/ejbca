@@ -72,7 +72,6 @@ public abstract class ProfileBase extends UpgradeableDataHashMap implements Prof
     /**
      * Method allows implementions to add non-datamapped objects to be persisted. 
      * 
-     * @return
      */
     protected abstract void saveTransientObjects();
     
@@ -130,14 +129,19 @@ public abstract class ProfileBase extends UpgradeableDataHashMap implements Prof
     @Override
     public void upgrade() {}
     
-    /** @return data from the underlying map. Encourages use of String valued keys. */
+    /** @param key key
+     * @param defaultValue value 
+     * @param <T> type
+     * @return data from the underlying map. Encourages use of String valued keys. */
     @SuppressWarnings("unchecked")
     protected <T> T getData(final String key, final T defaultValue) {
         final T ret = (T) data.get(key);
         return ret==null ? defaultValue : ret;
     }
     
-    /** Store data in the underlying map. Encourages use of String valued keys. */
+    /** Store data in the underlying map. Encourages use of String valued keys. 
+     * @param key key
+     * @param value value */
     protected void putData(final String key, final Object value) {
         data.put(key, value);
     }

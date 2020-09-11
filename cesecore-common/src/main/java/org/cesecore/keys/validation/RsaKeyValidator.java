@@ -176,6 +176,7 @@ public class RsaKeyValidator extends KeyValidatorBase {
     /**
      * Gets the smallest factor of the positive natural number greater than 2.
      * @param n the number
+     * @param intFactor factor
      * @return the smallest factor or 2 for n=0.
      */
     protected static final boolean hasSmallerFactorThan(BigInteger n, int intFactor) {
@@ -205,6 +206,7 @@ public class RsaKeyValidator extends KeyValidatorBase {
 
     /**
      * Creates a new instance.
+     * @param name name
      */
     public RsaKeyValidator(final String name) {
         super(name);
@@ -335,8 +337,8 @@ public class RsaKeyValidator extends KeyValidatorBase {
 
     /**
      * Sets the CA/B Forum requirements chapter 6.1.6 for RSA public keys.
-     * @see {@link https://cabforum.org/wp-content/uploads/CA-Browser-Forum-BR-1.4.2.pdf}
-     * @param keyValidator
+     * @see <a href="https://cabforum.org/wp-content/uploads/CA-Browser-Forum-BR-1.4.2.pdf"> CA/B-Forum Baseline Requirements </a>
+    
      */
     private void setCertProfileSettings() {
         setBitLengths(new ArrayList<String>());
@@ -354,8 +356,8 @@ public class RsaKeyValidator extends KeyValidatorBase {
 
     /**
      * Sets the CA/B Forum requirements chapter 6.1.6 for RSA public keys.
-     * @see {@link https://cabforum.org/wp-content/uploads/CA-Browser-Forum-BR-1.4.2.pdf}
-     * @param keyValidator
+     * @see <a href="https://cabforum.org/wp-content/uploads/CA-Browser-Forum-BR-1.4.2.pdf"> CA/B-Forum Baseline Requirements </a>
+     * 
      */
     public void setCABForumBaseLineRequirements142Settings() {
         // Only apply most important conditions (sequence is Root-CA, Sub-CA, User-Certificate)!
@@ -634,7 +636,7 @@ public class RsaKeyValidator extends KeyValidatorBase {
         }
         if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
             // New version of the class, upgrade.
-            log.info(intres.getLocalizedMessage("rsakeyvalidator.upgrade", new Float(getVersion())));
+            log.info(intres.getLocalizedMessage("rsakeyvalidator.upgrade",  Float.valueOf(getVersion())));
             init();
         }
     }
@@ -758,6 +760,7 @@ public class RsaKeyValidator extends KeyValidatorBase {
 
     /**
      * Gets the available bit lengths to choose.
+     * @param minLength minimum length
      * @return the list of available bit lengths.
      */
     public static List<String> getAvailableBitLengths(final int minLength) {
@@ -772,6 +775,7 @@ public class RsaKeyValidator extends KeyValidatorBase {
 
     /**
      * Gets the available bit lengths to choose as map ( key = value).
+     * @param minLength minimum length
      * @return the map of available bit lengths.
      */
     public static Map<String,String> getAvailableBitLengthsAsMap(final int minLength) {

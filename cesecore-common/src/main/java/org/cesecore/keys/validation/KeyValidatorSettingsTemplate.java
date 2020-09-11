@@ -50,7 +50,7 @@ public enum KeyValidatorSettingsTemplate {
 
     /**
      * Gets the option index.
-     * @return
+     * @return index
      */
     public int getOption() {
         return option;
@@ -58,7 +58,7 @@ public enum KeyValidatorSettingsTemplate {
 
     /**
      * Gets the resource key or label.
-     * @return
+     * @return label
      */
     public String getLabel() {
         return label;
@@ -66,7 +66,7 @@ public enum KeyValidatorSettingsTemplate {
 
     /**
      * Gets an Integer list instance containing all options.
-     * @return
+     * @return indices
      */
     public static final List<Integer> types() {
         final List<Integer> result = new ArrayList<Integer>();
@@ -78,7 +78,7 @@ public enum KeyValidatorSettingsTemplate {
     
     /**
      * Gets a String list instance containing all I18N label keys.
-     * @return
+     * @return keys
      */
     public static final Map<Integer,String> map() {
         final Map<Integer,String> result = new LinkedHashMap<Integer,String>();

@@ -87,6 +87,7 @@ public class ExternalCommandCertificateValidator extends CertificateValidatorBas
 
     /**
      * Creates a new instance.
+     * @param name name
      */
     public ExternalCommandCertificateValidator(final String name) {
         super(name);
@@ -175,7 +176,7 @@ public class ExternalCommandCertificateValidator extends CertificateValidatorBas
         }
         if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
             // New version of the class, upgrade.
-            log.info(intres.getLocalizedMessage("validator.implementation.certificate.external", new Float(getVersion())));
+            log.info(intres.getLocalizedMessage("validator.implementation.certificate.external", Float.valueOf(getVersion())));
             init();
         }
     }
@@ -447,6 +448,7 @@ public class ExternalCommandCertificateValidator extends CertificateValidatorBas
     /**
      * Runs the external command
      * @param externalCommand the external command.
+     * @param externalScriptsWhitelist whitelist
      * @param certificates the list of certificates.
      * @return a string list holding exit code at index 0, and the STDOUT and ERROUT appended.
      * @throws CertificateEncodingException if the certificates could not be encoded.

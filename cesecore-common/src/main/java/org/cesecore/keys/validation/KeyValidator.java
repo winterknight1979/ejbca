@@ -34,7 +34,7 @@ public interface KeyValidator extends Validator, ValidityAwareValidator, Dynamic
      * Method that validates the public key.
      * 
      * @param publicKey the public key to validate.
-     * @param certificateProfile the Certificate Profile as input for validation
+     * @param certificateProfiles the Certificate Profile as input for validation
      * @return the error messages or an empty list if the public key was validated successfully.
      * @throws ValidatorNotApplicableException when this validator is not applicable for the input, for example ECC keys as input to an RSA key validator
      * @throws ValidationException if the certificate issuance MUST be aborted.

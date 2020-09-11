@@ -45,7 +45,7 @@ public enum KeyValidationFailedActions implements IndexEnum {
 
     /**
      * Gets the index.
-     * @return
+     * @return index
      */
     @Override
     public int getIndex() {
@@ -54,7 +54,7 @@ public enum KeyValidationFailedActions implements IndexEnum {
 
     /**
      * Gets the resource key or label.
-     * @return
+     * @return label
      */
     public String getLabel() {
         return label;
@@ -62,7 +62,7 @@ public enum KeyValidationFailedActions implements IndexEnum {
 
     /**
      * Gets an Integer list instance containing all index.
-     * @return
+     * @return indices
      */
     public static final List<Integer> index() {
         final List<Integer> result = new ArrayList<Integer>();

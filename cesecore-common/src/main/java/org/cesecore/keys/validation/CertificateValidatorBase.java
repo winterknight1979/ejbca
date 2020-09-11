@@ -63,6 +63,7 @@ public abstract class CertificateValidatorBase extends ValidatorBase implements 
 
     /**
      * Creates a new instance.
+     * @param name name
      */
     public CertificateValidatorBase(final String name) {
         super(name);

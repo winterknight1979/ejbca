@@ -64,6 +64,7 @@ public class EccKeyValidator extends KeyValidatorBase {
     
     /**
      * Creates a new instance.
+     * @param name name
      */
     public EccKeyValidator(final String name) {
         super(name);
@@ -157,8 +158,7 @@ public class EccKeyValidator extends KeyValidatorBase {
 
     /**
      * Sets the CA/B Forum requirements chapter 6.1.6 for RSA public keys.
-     * @see {@link https://cabforum.org/wp-content/uploads/CA-Browser-Forum-BR-1.4.2.pdf}
-     * @param keyValidator
+     * @see <a href="https://cabforum.org/wp-content/uploads/CA-Browser-Forum-BR-1.4.2.pdf"> CA/B-Forum Baseline Requirements </a>
      */
     public void setCABForumBaseLineRequirements142Settings() {
         setCurves(AlgorithmTools.getNistCurves());
@@ -189,7 +189,7 @@ public class EccKeyValidator extends KeyValidatorBase {
     /**
      * Use full public key validation routine.
      * @see <a href="https://cabforum.org/wp-content/uploads/CA-Browser-Forum-BR-1.4.2.pdf">CA/B-Forum Baseline Requirements 1.4.2 Chapter 5.6.2.3.3s</a>
-     * @param use
+     * @param allowed boolean
      */
     public void setUseFullPublicKeyValidationRoutine(boolean allowed) {
         data.put(USE_FULL_PUBLIC_KEY_VALIDATION_ROUTINE, Boolean.valueOf(allowed));
@@ -203,7 +203,7 @@ public class EccKeyValidator extends KeyValidatorBase {
         }
         if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
             // New version of the class, upgrade.
-            log.info(intres.getLocalizedMessage("ecckeyvalidator.upgrade", new Float(getVersion())));
+            log.info(intres.getLocalizedMessage("ecckeyvalidator.upgrade", Float.valueOf(getVersion())));
             init();
         }
     }
@@ -319,7 +319,7 @@ public class EccKeyValidator extends KeyValidatorBase {
 
     /**
      * Sets the CA/B Forum requirements chapter 6.1.6 for ECC public keys.
-     * @see {@link https://cabforum.org/wp-content/uploads/CA-Browser-Forum-BR-1.4.2.pdf}
+     * @see <a href="https://cabforum.org/wp-content/uploads/CA-Browser-Forum-BR-1.4.2.pdf"> CA/B-Forum Baseline Requirements </a>
      */
     public final void setCABForumBaseLineRequirements142() {
         setUseFullPublicKeyValidationRoutine(true);

@@ -55,6 +55,7 @@ public abstract class KeyValidatorBase extends ValidatorBase implements KeyValid
     
     /**
      * Creates a new instance.
+     * @param name name
      */
     public KeyValidatorBase(final String name) {
         super(name);
