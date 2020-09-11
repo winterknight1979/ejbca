@@ -70,11 +70,12 @@ public interface CryptoToken extends Serializable {
      * @param properties Properties info used to create token, new token or init existing token
      * @param data byte[] data as created internally for tokens, can be null for tokens that don't need it
      * @param id unique ID of the user of the token, the id is user defined and not used internally for anything but logging.
-     * @throws Exception
+     * @throws Exception on fail
      */
     void init(Properties properties, byte[] data, int id) throws Exception;
 
     /** Gets the id that was passed as parameter to init
+     * @return id
      *
      */
     int getId();
@@ -96,7 +97,7 @@ public interface CryptoToken extends Serializable {
     void deactivate();
 
     /** Checks if an alias is in use by a Crypto Token
-     * @param the alias that we want to check
+     * @param alias the alias that we want to check
      * @return true if there is a private, public or symmetric entry with this alias in the CryptoToken 
      */
     boolean isAliasUsed(String alias);
@@ -130,10 +131,11 @@ public interface CryptoToken extends Serializable {
      *
      * @param alias is a reference to the entry in the token that should be deleted.
 
-     * @throws KeyStoreException
-     * @throws IOException
-     * @throws CertificateException
-     * @throws NoSuchAlgorithmException
+     * @throws KeyStoreException on fail
+     * @throws IOException on IO error
+     * @throws CertificateException on invalid cert
+     * @throws NoSuchAlgorithmException if algorithm not found
+     * @throws CryptoTokenOfflineException if offline
      */
     void deleteEntry(String alias) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, CryptoTokenOfflineException;
 
@@ -141,6 +143,8 @@ public interface CryptoToken extends Serializable {
      *
      * @param keySpec all decimal digits RSA key length, otherwise name of ECC curve or DSA key using syntax DSAnnnn
      * @param alias the name of the key pair in the crypto token
+     * @throws InvalidAlgorithmParameterException if params are invalid
+     * @throws CryptoTokenOfflineException if offline
      */
     void generateKeyPair(final String keySpec, final String alias) throws InvalidAlgorithmParameterException,
             CryptoTokenOfflineException;
@@ -153,6 +157,10 @@ public interface CryptoToken extends Serializable {
      *
      * @param spec AlgorithmParameterSpec describing the key pair to be generated
      * @param alias the name of the key pair in the crypto token
+     * @throws InvalidAlgorithmParameterException On invalid parameters
+     * @throws CertificateException On invalid certificate
+     * @throws IOException On IO error
+     * @throws CryptoTokenOfflineException if offline 
      */
     void generateKeyPair(final AlgorithmParameterSpec spec, final String alias) throws InvalidAlgorithmParameterException, CertificateException,
             IOException, CryptoTokenOfflineException;
@@ -162,9 +170,17 @@ public interface CryptoToken extends Serializable {
      * @param algorithm symmetric algorithm specified in http://download.oracle.com/javase/1.5.0/docs/api/index.html, suggest AES, DESede or DES
      * @param keysize keysize of symmetric key, suggest 128 or 256 for AES, 64 for 168 for DESede and 64 for DES
      * @param alias the alias the key will get in the keystore
-     * @throws NoSuchProviderException
-     * @throws NoSuchAlgorithmException
-     * @throws KeyStoreException
+     * @throws NoSuchProviderException If provider not found
+     * @throws NoSuchAlgorithmException of algo not found
+     * @throws KeyStoreException If store fails
+     * @throws CryptoTokenOfflineException if offline
+     * @throws InvalidKeyException if key is invalid
+     * @throws InvalidAlgorithmParameterException  if parameters are invalid
+     * @throws SignatureException if signature is invalid
+     * @throws CertificateException if cert is invalid
+     * @throws IOException on IO fail
+     * @throws NoSuchPaddingException if padding is invalid 
+     * @throws IllegalBlockSizeException if block size is incorrect
      */
     void generateKey(final String algorithm, final int keysize, final String alias) throws NoSuchAlgorithmException, NoSuchProviderException, KeyStoreException, CryptoTokenOfflineException,
     InvalidKeyException, InvalidAlgorithmParameterException, SignatureException, CertificateException, IOException, NoSuchPaddingException, IllegalBlockSizeException;
@@ -189,13 +205,14 @@ public interface CryptoToken extends Serializable {
 
     /** @return user friendly identifier */
     String getTokenName();
-    /** Set user friendly identifier */
+    /** Set user friendly identifier 
+     * @param tokenName name*/
     void setTokenName(String tokenName);
     
     /**
      *  Method that returns the current status of the crypto token.
      *
-     *  Returns one of the CryptoToken.STATUS_.. values
+     *  @return one of the CryptoToken.STATUS_.. values
      */
     int getTokenStatus();
 

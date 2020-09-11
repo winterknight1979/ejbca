@@ -57,8 +57,8 @@ public class Pkcs11SlotLabel {
 
     /**
      * Use explicit values.
-     * @param type
-     * @param value
+     * @param type type
+     * @param value value
      */
     public Pkcs11SlotLabel(final Pkcs11SlotLabelType type, final String value) {
         if(type == null) {
@@ -69,7 +69,7 @@ public class Pkcs11SlotLabel {
     }
 
     /**
-     * Get a string that later could be used to create a new object with {@link Pkcs11SlotLabel#PKCS11Slot(String)}.
+     * Get a string that later could be used to create a new object.
      * Use it when you want to store a reference to the slot.
      * @return the string.
      */
@@ -162,7 +162,8 @@ public class Pkcs11SlotLabel {
         return null;
     }
 
-    /** @return a List of "slotId;tokenLabel" in the (indexed) order we get the from the P11 */
+    /** @param libFile library file
+     * @return a List of "slotId;tokenLabel" in the (indexed) order we get the from the P11 */
     public static List<String> getExtendedTokenLabels(final File libFile) {
         final List<String> tokenLabels = new ArrayList<>();
         final Pkcs11Wrapper p11 = Pkcs11Wrapper.getInstance(libFile);
@@ -188,7 +189,7 @@ public class Pkcs11SlotLabel {
     /**
      * Get slot ID for a token label.
      * @param tokenLabel the label.
-     * @param object to get slot list and labels for all slots with tokens
+     * @param p11 object to get slot list and labels for all slots with tokens
      * @return the slot ID.
      * @throws NoSuchSlotException if no slot as defined by tokenLabel was found
 
@@ -223,7 +224,7 @@ public class Pkcs11SlotLabel {
      * Get the IAIK provider.
      * @param slot Slot list index or slot ID.
      * @param libFile P11 module so file.
-     * @param isIndex true if first parameter is a slot list index, false if slot ID.
+     * @param type type
      * @return the provider
      */
     private static Provider getIAIKP11Provider(final long slot, final File libFile, final Pkcs11SlotLabelType type) {
@@ -394,13 +395,13 @@ public class Pkcs11SlotLabel {
      * Get the provider without taking care of exceptions.
      * @param is InputStream for sun configuration file.
      * @return The Sun provider
-     * @throws ClassNotFoundException
-     * @throws IllegalArgumentException
-     * @throws SecurityException
-     * @throws InstantiationException
-     * @throws IllegalAccessException
-     * @throws InvocationTargetException
-     * @throws NoSuchMethodException
+     * @throws ClassNotFoundException If Sun provider not found
+     * @throws IllegalArgumentException If illegal args passed
+     * @throws SecurityException If security violation
+     * @throws InstantiationException If instantiation fails
+     * @throws IllegalAccessException if access is illegal
+     * @throws InvocationTargetException if invication fails
+     * @throws NoSuchMethodException if method not found
      */
     private static Provider getSunP11ProviderNoExceptionHandling(final InputStream is) throws ClassNotFoundException, IllegalArgumentException, SecurityException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         // Sun PKCS11 has InputStream as constructor argument
@@ -436,7 +437,7 @@ public class Pkcs11SlotLabel {
      * called once.
      * To check this implementation the p11 spy utils could be used. Check that
      * it is only one C_Initialize call and that null is not passed.
-     * @param a file with the path of the p11 module on which C_Finalize should
+     * @param libFile a file with the path of the p11 module on which C_Finalize should
      * be called.
      */
     static void doC_Initialize(final File libFile) {
@@ -461,6 +462,7 @@ public class Pkcs11SlotLabel {
      *            The value of the slot, which may be a number ([0...9]*), an index i[0...9] or a label, but may also be labels matching the former.
      *            To solve this ambiguity, slots will be presumed to be numbers or indexes if the names match, and if no slot is found by that number
      *            or index will then be presumed to be labels (for legacy reasons). 
+     * @param slotLabelType label type
      * @param fileName
      *            the manufacturers provided pkcs11 library (.dll or .so) or config file name if slot is null
 
@@ -489,6 +491,7 @@ public class Pkcs11SlotLabel {
      *            The value of the slot, which may be a number ([0...9]*), an index i[0...9] or a label, but may also be labels matching the former.
      *            To solve this ambiguity, slots will be presumed to be numbers or indexes if the names match, and if no slot is found by that number
      *            or index will then be presumed to be labels (for legacy reasons). Can be null if slotLabelType is SUN_FILE, then the slot must be specified in the attributesFile.
+     * @param slotLabelType label type
      * @param fileName
      *            the manufacturers provided pkcs11 library (.dll or .so) or config file name if slot is null
 

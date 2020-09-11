@@ -34,7 +34,7 @@ public class AvailableCryptoToken {
 	
 	/**
 	 *  Method returning the classpath used to create the plugin. Must implement the HardCAToken interface.
-	 * 
+	 * @return classpath
 	 */
 	public String getClassPath(){
 		return this.classpath;
@@ -43,7 +43,7 @@ public class AvailableCryptoToken {
 	/**
 	 *  Method returning the general name of the plug-in used in the adminweb-gui. If translateable flag is 
 	 *  set then must the resource be in the language files.
-	 * 
+	 * @return name
 	 */	
 	
 	public String getName(){
@@ -52,7 +52,7 @@ public class AvailableCryptoToken {
 
 	/**
 	 *  Indicates if the name should be translated in the adminweb-gui. 
-	 * 
+	 * @return boolean
 	 */	
 	public boolean isTranslateable(){
 		return this.translateable;
@@ -60,7 +60,7 @@ public class AvailableCryptoToken {
 
 	/**
 	 *  Indicates if the plug should be used in the system or if it's a dummy or test class.
-	 * 
+	 * @return boolean
 	 */		
 	public boolean isUsed(){
 		return this.use;

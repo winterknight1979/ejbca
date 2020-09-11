@@ -12,6 +12,7 @@
  *************************************************************************/
 package org.cesecore.keys.token;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +42,8 @@ public class CryptoTokenFactory {
     /** Don't allow external creation of this class, implementing the Singleton pattern. */
     private CryptoTokenFactory() {}
     
-    /** Get the instance of this singleton */
+    /** Get the instance of this singleton 
+     * @return instance*/
     public synchronized static CryptoTokenFactory instance() {
         if (instance == null) {
             instance = new CryptoTokenFactory();
@@ -65,6 +67,7 @@ public class CryptoTokenFactory {
 
 	/**
 	 * Method returning to the available CryptoToken implementations with given classpath.
+	 * @param classname name
 	 * 
 	 * @return the corresponding AvailableCryptoToken or null of classpath couldn't be found
 	 */
@@ -115,15 +118,16 @@ public class CryptoTokenFactory {
 	/**
      * Method loading a class in order to test if it can be instantiated.
      * 
-     * @param classname 
+     * @param classname name
+	 * @return boolean
      */
     private boolean loadClass(final String classname){
         try {           
-        	Thread.currentThread().getContextClassLoader().loadClass(classname).newInstance();       
+        	Thread.currentThread().getContextClassLoader().loadClass(classname).getConstructor().newInstance();       
             return true;
-        } catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
             log.info(InternalResources.getInstance().getLocalizedMessage("token.classnotfound", classname)); 
-        } catch (InstantiationException e) {
+        } catch (InstantiationException | InvocationTargetException e) {
             log.info(InternalResources.getInstance().getLocalizedMessage("token.errorinstansiate", classname, e.getMessage()));
         } catch (IllegalAccessException e) {
             log.error("IllegalAccessException: "+classname, e);
@@ -141,6 +145,7 @@ public class CryptoTokenFactory {
      * @param data byte data passed to the init method of the CryptoToken
      * @param cryptoTokenId id passed to the init method of the CryptoToken, the id is user defined and not used internally for anything but logging.
      * @param tokenName user friendly identifier
+     * @return token
      * @throws NoSuchSlotException if no slot as defined in properties could be found.
      */
     public static final CryptoToken createCryptoToken(final String inClassname, final Properties properties, final byte[] data, final int cryptoTokenId,
@@ -157,6 +162,7 @@ public class CryptoTokenFactory {
      * @param cryptoTokenId id passed to the init method of the CryptoToken, the id is user defined and not used internally for anything but logging.
      * @param tokenName user friendly identifier
      * @param allowNonExistingSlot if the NoSuchSlotException should be used
+     * @return token
      * @throws NoSuchSlotException if no slot as defined in properties could be found.
      */
     public static final CryptoToken createCryptoToken(final String inClassname, final Properties properties, final byte[] data, final int cryptoTokenId,
@@ -198,7 +204,7 @@ public class CryptoTokenFactory {
     private static final CryptoToken createTokenFromClass(final String classpath) {
     	try {
     		Class<?> implClass = Class.forName(classpath);
-    		Object obj = implClass.newInstance();
+    		Object obj = implClass.getConstructor().newInstance();
     		return (CryptoToken) obj;
     	} catch (Throwable e) {
     		log.error("Error contructing Crypto Token (setting to null). Classpath="+classpath, e);

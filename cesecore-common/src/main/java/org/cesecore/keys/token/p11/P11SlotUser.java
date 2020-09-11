@@ -31,7 +31,7 @@ public interface P11SlotUser {
     /**
      * Called by the {@link P11Slot} when resetting the slot.
      * 
-     * @throws Exception
+     * @throws Exception on error
      */
     void deactivate() throws Exception;
 

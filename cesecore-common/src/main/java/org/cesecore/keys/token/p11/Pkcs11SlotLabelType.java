@@ -12,6 +12,7 @@
  *************************************************************************/
 package org.cesecore.keys.token.p11;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -68,8 +69,8 @@ public enum Pkcs11SlotLabelType {
             this.validator = null;
         } else {
             try {
-                this.validator = validator.newInstance();
-            } catch (InstantiationException e) {
+                this.validator = validator.getConstructor().newInstance();
+            } catch (InstantiationException | NoSuchMethodException | InvocationTargetException e) {
                 throw new RuntimeException("Could not instansiate " + validator, e);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException("Could not instansiate " + validator, e);

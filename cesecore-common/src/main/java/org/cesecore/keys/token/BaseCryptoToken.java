@@ -14,6 +14,7 @@ package org.cesecore.keys.token;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.KeyStore;
@@ -330,16 +331,19 @@ public abstract class BaseCryptoToken implements CryptoToken {
      * @throws IllegalAccessException if the default constructor for the class specified by jcaProviderClassName was not public
      * @throws InstantiationException if the class specified by jcaProviderClassName was an abstract class, an interface, an array class, a primitive
      *             type, or void; or if it has no nullary constructor; or if the instantiation fails for some other reason.
-     * @see {@link #setJCAProvider(Provider)}
+     * 
+     * @throws NoSuchMethodException in constructor not found
+     * @throws InvocationTargetException If the underlying constructor throws an exception
+     * @see #setJCAProvider(Provider)
      */
     protected void setProviders(String jcaProviderClassName, String jceProviderClassName) throws InstantiationException, IllegalAccessException,
-            ClassNotFoundException {
-        Provider jcaProvider = (Provider) Class.forName(jcaProviderClassName).newInstance();
+            ClassNotFoundException, InvocationTargetException, NoSuchMethodException {
+        Provider jcaProvider = (Provider) Class.forName(jcaProviderClassName).getConstructor().newInstance();
         setProvider(jcaProvider);
         this.mJcaProviderName = jcaProvider.getName();
         if (jceProviderClassName != null) {
             try {
-                Provider jceProvider = (Provider) Class.forName(jceProviderClassName).newInstance();
+                Provider jceProvider = (Provider) Class.forName(jceProviderClassName).getConstructor().newInstance();
                 setProvider(jceProvider);
                 this.mJceProviderName = jceProvider.getName();
             } catch (Exception e) {
@@ -450,8 +454,11 @@ public abstract class BaseCryptoToken implements CryptoToken {
         return getPrivateKey(alias, true);
     }
 
-    /** @see #getPrivateKey(String) 
+    /** @param alias Alias
+     * @see #getPrivateKey(String) 
      * @param warn if we should log a warning if the key does not exist
+     * @return Private key
+     * @throws CryptoTokenOfflineException if offline 
      */
     private PrivateKey getPrivateKey(final String alias, boolean warn) throws CryptoTokenOfflineException {
         // Auto activate is done in the call to getKeyStore below
@@ -488,8 +495,11 @@ public abstract class BaseCryptoToken implements CryptoToken {
         return getPublicKey(alias, true);
     }
     
-    /** @see #getPublicKey(String)
+    /** @param alias alias
+     * @see #getPublicKey(String)
      * @param warn if we should log a warning if the key does not exist 
+     * @return Public key
+     * @throws CryptoTokenOfflineException if offline 
      */
     private PublicKey getPublicKey(final String alias, boolean warn) throws CryptoTokenOfflineException {
         // Auto activate is done in the call to getKeyStore below (from readPublicKey)
@@ -525,7 +535,10 @@ public abstract class BaseCryptoToken implements CryptoToken {
     }
 
     /** see {@link #getKey(String)}
+     * @param alias alias
      * @param warn if we should log a warning if the key does not exist 
+     * @return key
+     * @throws CryptoTokenOfflineException if offline
      */
     private Key getKey(final String alias, final boolean warn) throws CryptoTokenOfflineException {
         // Auto activate is done in the call to getKeyStore below

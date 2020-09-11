@@ -172,7 +172,7 @@ public class SoftCryptoToken extends BaseCryptoToken {
     /**
      * Throws an exception if the export of this crypto token should be denied.
      * 
-     * @param authCode
+     * @param authCode code
      * @throws CryptoTokenAuthenticationFailedException if the authentication code is incorrect.
      * @throws CryptoTokenOfflineException if the crypto token is offline or an unknown error occurs.
      * @throws PrivateKeyNotExtractableException if the crypto tokens does not allow it's keys to be extracted.
@@ -261,6 +261,7 @@ public class SoftCryptoToken extends BaseCryptoToken {
      * 
      * @param authenticationCode
      *            authentication code for the keystore
+     * @param cryptoTokenId ID
      * @return true if verification was ok
      */
     private boolean checkSoftKeystorePassword(final char[] authenticationCode, int cryptoTokenId) {

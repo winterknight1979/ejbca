@@ -78,8 +78,7 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
     private String sSlotLabel = null;
     
     /**
-     * @param providerClass
-     * @throws InstantiationException
+     * @throws InstantiationException on error
      */
     public PKCS11CryptoToken() throws InstantiationException {
         super();
@@ -261,7 +260,8 @@ public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
         return null;
     }
     
-    /** Used for testing */
+    /** Used for testing 
+     * @return slot*/
     protected P11Slot getP11slot() {
         return p11slot;
     }

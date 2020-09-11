@@ -26,6 +26,7 @@ public class PrivateKeyNotExtractableException extends CesecoreException {
     
     /**
      * Creates a new instance of <code>PrivateKeyNotExtractableException</code> with the cause 
+     * @param exception exception
      */
     public PrivateKeyNotExtractableException(Exception exception) {
         super(exception);       
@@ -34,6 +35,8 @@ public class PrivateKeyNotExtractableException extends CesecoreException {
     
     /**
      * Creates a new instance of <code>PrivateKeyNotExtractableException</code> with the specified detail message and cause 
+     * @param message message
+     * @param cause cause
      */
     public PrivateKeyNotExtractableException(String message, Throwable cause) {
         super(message, cause);
@@ -42,6 +45,7 @@ public class PrivateKeyNotExtractableException extends CesecoreException {
     
     /**
      * Creates a new instance of <code>PrivateKeyNotExtractableException</code> with the specified detail message 
+     * @param message message
      */
     public PrivateKeyNotExtractableException(String message) {
         super(message);

@@ -205,13 +205,13 @@ public class P11Slot {
         return getInstance(slotLabelType, friendlyName, slotLabel, sharedLibrary, attributesFile, null, p11SlotUser, id, addProvider);
     }
     /**
-     * As {@link #getInstance(String, String, boolean, String, org.ejbca.util.keystore.P11Slot.P11SlotUser)} but is using config file instead parameters. Do only use this method if the P11 shared library is ony specified in this config file.
+     * As {@link #getInstance(String, String, Pkcs11SlotLabelType, String, P11SlotUser, int, boolean)} but is using config file instead parameters. Do only use this method if the P11 shared library is ony specified in this config file.
      * @param sunP11ConfigFileName name of config file
      * @param p11SlotUser Token that should use this object.
      * @param id unique ID of the user of the token. For EJBCA this is the caid. For the OCSP responder this is fixed since then there is only one user.
      * @param addProvider default value should be true, set to false to create a P11 slot without actually adding the P11 provider to Java Security
      * @return a new P11Slot instance
-     * @throws CryptoTokenOfflineException
+     * @throws CryptoTokenOfflineException on fail
      * @throws NoSuchSlotException if no slot defined by the label in configFileName could be found.
      */
     public static P11Slot getInstance(final String sunP11ConfigFileName, final P11SlotUser p11SlotUser, final int id, boolean addProvider) throws NoSuchSlotException, CryptoTokenOfflineException {

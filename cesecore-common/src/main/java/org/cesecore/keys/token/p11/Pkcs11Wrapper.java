@@ -143,9 +143,9 @@ public class Pkcs11Wrapper {
 
     /**
      * Get an instance of the class.
-     * @param the p11 .so file.
+     * @param file the p11 .so file.
      * @return the instance.
-     * @throws IllegalArgumentException
+     * @throws IllegalArgumentException on fail
      */
     public static Pkcs11Wrapper getInstance(final File file) throws IllegalArgumentException {
         final String canonicalFileName;

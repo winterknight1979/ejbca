@@ -25,12 +25,12 @@ import org.cesecore.keys.validation.CertificateValidationDomainService;
  * session beans from this class, for instance the global configuration
  * or audit logging.
  * 
- * @note Since instances of this class may reference session beans, you must ensure
+ * @apiNote Since instances of this class may reference session beans, you must ensure
  * that instances of this interface are only used temporarily, e.g. as
  * functions arguments, and never as e.g. instance variables of non-temporary
  * classes.
  * 
- * @note Since it might not be possible to obtain the parameters, all methods that
+ * @apiNote Since it might not be possible to obtain the parameters, all methods that
  * accept objects of this class should also accept a null value, or null values
  * inside the CertificateGenerationParams object.
  * 

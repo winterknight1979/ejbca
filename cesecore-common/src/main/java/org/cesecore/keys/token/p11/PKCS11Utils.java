@@ -97,8 +97,8 @@ public class PKCS11Utils {
     /**
      * If CESeCoreUtils is in the classpath
      * then the CKA_MODIFIABLE attribute of the key will be set to false.
-     * @param key
-     * @param providerName
+     * @param key key
+     * @param providerName provider
      */
     public void makeKeyUnmodifiable( final Key key, final String providerName) {
         final String sError = "Not possible to set the attribute CKA_MODIFIABLE to false for the key object.";
@@ -123,8 +123,8 @@ public class PKCS11Utils {
 
     /**
      * Reads the CKA_MODIFIABLE attribute of the p11 key object.
-     * @param key
-     * @param providerName
+     * @param key key
+     * @param providerName provider
      * @return the value of CKA_MODIFIABLE
      */
     public boolean isKeyModifiable( final Key key, final String providerName ) {
@@ -146,7 +146,8 @@ public class PKCS11Utils {
      * Writes info about security related attributes of the key. If there is
      * no CESeCoreUtils in the classpath then a message that the class is not
      * in the classpath will be written.
-     * @param key
+     * @param key key
+     * @param providerName Provider
      * @param sb the info is written to this.
      */
     public void securityInfo(final Key key, final String providerName, final StringBuilder sb) {

@@ -244,7 +244,10 @@ public class CachingKeyStoreWrapper {
         }
     }
 
-    /** @see java.security.KeyStore#getCertificate(String) */
+    /** @param alias alias
+     * @return certificate
+     * @throws KeyStoreException on fail 
+     * @see java.security.KeyStore#getCertificate(String) */
     public Certificate getCertificate(final String alias) throws KeyStoreException {
         if (this.keyStoreCache==null) {
             return this.keyStore.getCertificate(alias);
@@ -259,7 +262,10 @@ public class CachingKeyStoreWrapper {
         return keyStoreMapEntry.certificateChain[0];
     }
 
-    /** @see java.security.KeyStore#setCertificateEntry(String, Certificate) */
+    /** @param alias alias
+     * @param certificate certificate
+     * @throws KeyStoreException on fail
+     * @see java.security.KeyStore#setCertificateEntry(String, Certificate) */
     public void setCertificateEntry(final String alias, final Certificate certificate) throws KeyStoreException {
         // Update the TrustedCertificateEntry in the real key store
         this.keyStore.setCertificateEntry(alias, certificate);
@@ -277,7 +283,9 @@ public class CachingKeyStoreWrapper {
         }
     }
 
-    /** @see java.security.KeyStore#aliases() */
+    /** @return aliases
+     * @throws KeyStoreException on fail 
+     * @see java.security.KeyStore#aliases() */
     public Enumeration<String> aliases() throws KeyStoreException {
         if (this.keyStoreCache==null) {
             return this.keyStore.aliases();
@@ -285,12 +293,23 @@ public class CachingKeyStoreWrapper {
         return this.keyStoreCache.getAliases();
     }
 
-    /** @see java.security.KeyStore#store(OutputStream, char[]) */
+    /** @param outputStream stream
+     * @param password password
+     * @throws KeyStoreException if store fails 
+     * @throws NoSuchAlgorithmException if algo not found
+     * @throws CertificateException if certificate invalid
+     * @throws IOException on I/O error
+     * @see java.security.KeyStore#store(OutputStream, char[]) */
     public void store(final OutputStream outputStream, final char[] password) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
         this.keyStore.store(outputStream, password);
     }
 
-    /** @see java.security.KeyStore#setKeyEntry(String, Key, char[], Certificate[]) */
+    /** @param alias alias
+     * @param key key
+     * @param password password 
+     * @param chain certs
+     * @throws KeyStoreException on failure 
+     * @see java.security.KeyStore#setKeyEntry(String, Key, char[], Certificate[]) */
     public void setKeyEntry(final String alias, final Key key, final char[] password, final Certificate[] chain) throws KeyStoreException {
         this.keyStore.setKeyEntry(alias, key, password, chain);
         if (this.keyStoreCache==null) {
@@ -308,7 +327,9 @@ public class CachingKeyStoreWrapper {
         }
     }
 
-    /** @see java.security.KeyStore#deleteEntry(String) */
+    /** @param alias alias
+     * @throws KeyStoreException on failure
+     * @see java.security.KeyStore#deleteEntry(String) */
     public void deleteEntry(final String alias) throws KeyStoreException {
         this.keyStore.deleteEntry(makeBadUTF8(alias));
         if (this.keyStoreCache==null) {
@@ -325,7 +346,13 @@ public class CachingKeyStoreWrapper {
         }
     }
 
-    /** @see java.security.KeyStore#getEntry(String, ProtectionParameter) */
+    /** @param alias alias
+     * @param protParam params
+     * @return entry
+     * @throws NoSuchAlgorithmException if algo not found 
+     * @throws UnrecoverableEntryException if corrupt
+     * @throws KeyStoreException on failure
+     * @see java.security.KeyStore#getEntry(String, ProtectionParameter) */
     public Entry getEntry(final String alias, final ProtectionParameter protParam) throws NoSuchAlgorithmException, UnrecoverableEntryException, KeyStoreException {
         if (this.keyStoreCache==null) {
             return this.keyStore.getEntry(alias, protParam);
@@ -355,7 +382,11 @@ public class CachingKeyStoreWrapper {
         }
     }
 
-    /** @see java.security.KeyStore#setEntry(String, Entry, ProtectionParameter) */
+    /** @param alias alias
+     * @param entry entry
+     * @param protParam parameterd
+     * @throws KeyStoreException on failure
+     * @see java.security.KeyStore#setEntry(String, Entry, ProtectionParameter) */
     public void setEntry(final String alias, final Entry entry, final ProtectionParameter protParam) throws KeyStoreException {
         this.keyStore.setEntry(alias, entry, protParam);
         if (this.keyStoreCache==null) {
@@ -370,12 +401,19 @@ public class CachingKeyStoreWrapper {
         }
     }
 
-    /** @see java.security.KeyStore#getProvider() */
+    /** @return provider
+     * @see java.security.KeyStore#getProvider() */
     public Provider getProvider() {
         return this.keyStore.getProvider();
     }
 
-    /** @see java.security.KeyStore#getKey(String, char[]) */
+    /** @param alias alias
+     * @param password password
+     * @return key
+     * @throws UnrecoverableKeyException if key is unrecoverable 
+     * @throws KeyStoreException on failure
+     * @throws NoSuchAlgorithmException if algo not found
+     * @see java.security.KeyStore#getKey(String, char[]) */
     public Key getKey(final String alias, final char[] password) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
         if (this.keyStoreCache==null) {
             return this.keyStore.getKey(alias, password);
@@ -409,7 +447,10 @@ public class CachingKeyStoreWrapper {
         }
     }
 
-    /** @see java.security.KeyStore#isKeyEntry(String) */
+    /** @param alias alias
+     * @return boolean
+     * @throws KeyStoreException on failure
+     * @see java.security.KeyStore#isKeyEntry(String) */
     public boolean isKeyEntry(final String alias ) throws KeyStoreException {
         if (this.keyStoreCache==null) {
             return this.keyStore.isKeyEntry(alias);
@@ -418,7 +459,10 @@ public class CachingKeyStoreWrapper {
         return keyStoreMapEntry!=null && !keyStoreMapEntry.isTrusted;
     }
 
-    /** @see java.security.KeyStore#getCertificateChain(String) */
+    /** @param alias alias
+     * @return certificate
+     * @throws KeyStoreException on fail
+     * @see java.security.KeyStore#getCertificateChain(String) */
     public Certificate[] getCertificateChain(String alias) throws KeyStoreException {
         if (this.keyStoreCache==null) {
             return this.keyStore.getCertificateChain(alias);
