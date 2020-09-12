@@ -1,0 +1,90 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>goldeneyes.ejbca</groupId>
+    <artifactId>ejbca</artifactId>
+    <version>1.0</version>
+  </parent>
+  <artifactId>cesecore-entity</artifactId>
+  
+  
+  <dependencies>
+  	
+  	<!-- CERT-CVC -->
+  	  	
+  	<dependency>
+  		<groupId>org.ejbca.cvc</groupId>
+  		<artifactId>cert-cvc</artifactId>
+  	</dependency>
+  
+  	<!-- BouncyCastle -->
+  	
+  	<dependency>
+  		<groupId>org.bouncycastle</groupId>
+  		<artifactId>bcprov-jdk15on</artifactId>
+  	</dependency>
+  	<dependency>
+  		<groupId>org.bouncycastle</groupId>
+  		<artifactId>bcpkix-jdk15on</artifactId>
+  	</dependency>
+  	
+  	<!-- Commons -->
+  	
+  	<dependency>
+  		<groupId>commons-logging</groupId>
+  		<artifactId>commons-logging</artifactId>
+  	</dependency>
+  	<dependency>
+  		<groupId>commons-lang</groupId>
+  		<artifactId>commons-lang</artifactId>
+  	</dependency>
+  	<dependency>
+  		<groupId>commons-configuration</groupId>
+  		<artifactId>commons-configuration</artifactId>
+  	</dependency>
+  	<dependency>
+  		<groupId>commons-collections</groupId>
+  		<artifactId>commons-collections</artifactId>
+  	</dependency>
+  	<dependency>
+  		<groupId>commons-io</groupId>
+  		<artifactId>commons-io</artifactId>
+  		<scope>test</scope>
+  	</dependency>
+  	<dependency>
+  		<groupId>commons-codec</groupId>
+  		<artifactId>commons-codec</artifactId>
+  		<scope>test</scope>
+  	</dependency>
+  	
+  	<!-- log4j -->
+  	<dependency>
+  		<groupId>log4j</groupId>
+  		<artifactId>log4j</artifactId>
+  	</dependency>
+  	
+  	<!-- Other modules -->
+  	<dependency>
+  		<groupId>${project.groupId}</groupId>
+  		<artifactId>cesecore-common</artifactId>
+  		<version>${project.version}</version>
+  	</dependency>
+  	
+  	<!-- Test -->
+  	
+  	<dependency>
+  		<groupId>junit</groupId>
+  		<artifactId>junit</artifactId>
+  		<scope>test</scope>
+  	</dependency>
+  	<dependency>
+  		<groupId>org.easymock</groupId>
+  		<artifactId>easymock</artifactId>
+  		<scope>test</scope>
+  	</dependency>
+  	
+  	
+  
+  </dependencies>
+  
+</project>
