@@ -110,7 +110,7 @@ public class CertificateData extends BaseCertificateData implements Serializable
      * @param endEntityProfileId end entity profile id, can be 0 for "no profile"
      * @param tag a custom tag to map the certificate to any custom defined tag
      * @param updatetime the time the certificate was updated in the database, i.e. System.currentTimeMillis().
-     * @param storeCertificate true if the certificate should be stored in this table in the base&4Cert column, false if certificate data isn't to be stored in this table. NOTE: If false and the data should be stored in Base64CertData then the caller must store the certificate in Base64CertData as well.
+     * @param storeCertificate true if the certificate should be stored in this table in the base64Cert column, false if certificate data isn't to be stored in this table. NOTE: If false and the data should be stored in Base64CertData then the caller must store the certificate in Base64CertData as well.
      * @param storeSubjectAltName true if the subjectAltName column should be populated with the Subject Alternative Name of the certificate
      */
     public CertificateData(Certificate certificate, PublicKey enrichedpubkey, String username, String cafp, int status, int type, int certprofileid, int endEntityProfileId,
@@ -175,6 +175,7 @@ public class CertificateData extends BaseCertificateData implements Serializable
 
     /**
      * Copy Constructor
+     * @param copy data
      */
     public CertificateData(final BaseCertificateData copy) {
         setBase64Cert(copy.getBase64Cert());
@@ -352,6 +353,7 @@ public class CertificateData extends BaseCertificateData implements Serializable
      * Horrible work-around due to the fact that Oracle needs to have (LONG and) CLOB values last in order to avoid ORA-24816.
      *
      * Since Hibernate sorts columns by the property names, naming this Z-something will apparently ensure that this column is used last.
+     * @return string
      * @deprecated Use {@link #getBase64Cert()} instead
      */
     @Deprecated
@@ -359,7 +361,8 @@ public class CertificateData extends BaseCertificateData implements Serializable
         return base64Cert;
     }
     
-    /** @deprecated Use {@link #setBase64Cert(String)} instead */
+    /** @param zzzBase64Cert string
+     * @deprecated Use {@link #setBase64Cert(String)} instead */
     @Deprecated
     public void setZzzBase64Cert(final String zzzBase64Cert) {
         this.base64Cert = zzzBase64Cert;
@@ -417,6 +420,7 @@ public class CertificateData extends BaseCertificateData implements Serializable
 
     /**
      * The ID of the public key of the certificate
+     * @param subjectKeyId ID
      */
     public void setSubjectKeyId(String subjectKeyId) {
         this.subjectKeyId = subjectKeyId;
@@ -445,6 +449,7 @@ public class CertificateData extends BaseCertificateData implements Serializable
      * Horrible work-around due to the fact that Oracle needs to have (LONG and) CLOB values last in order to avoid ORA-24816.
      *
      * Since Hibernate sorts columns by the property names, naming this Z-something will apparently ensure that this column is used last.
+     * @return String
      * @deprecated Use {@link #getRowProtection()} instead
      */
     @Deprecated
@@ -452,7 +457,8 @@ public class CertificateData extends BaseCertificateData implements Serializable
         return rowProtection;
     }
     
-    /** @deprecated Use {@link #setRowProtection(String)} instead */
+    /** @param zzzRowProtection String
+     * @deprecated Use {@link #setRowProtection(String)} instead */
     @Deprecated
     public void setZzzRowProtection(final String zzzRowProtection) {
         this.rowProtection = zzzRowProtection;
@@ -616,7 +622,10 @@ public class CertificateData extends BaseCertificateData implements Serializable
     // Search functions (deprecated, use methods in CertificateDataSession instead)
     //
 
-    /** @deprecated Since 6.13.0. Use method in CertificateDataSession instead */
+    /** @param entityManager EM
+     * @param fingerprint FP
+     * @return cert
+     * @deprecated Since 6.13.0. Use method in CertificateDataSession instead */
     @Deprecated
     public static CertificateData findByFingerprint(EntityManager entityManager, String fingerprint) {
         return entityManager.find(CertificateData.class, fingerprint);
@@ -624,10 +633,11 @@ public class CertificateData extends BaseCertificateData implements Serializable
 
     /**
      * Get next batchSize row ordered by fingerprint. Used by OcspMonitoringTool.
+     * @param entityManager EM
      *
-     * @param certificateProfileId
-     * @param currentFingerprint
-     * @param batchSize
+     * @param certificateProfileId ID
+     * @param currentFingerprint FP
+     * @param batchSize Size
      * @return List of certificates
      */
     @SuppressWarnings("unchecked")
@@ -640,7 +650,10 @@ public class CertificateData extends BaseCertificateData implements Serializable
         return query.getResultList();
     }
 
-    /** Returns the number of entries with the given certificate profile. Used by OcspMonitoringTool. */
+    /** Returns the number of entries with the given certificate profile. Used by OcspMonitoringTool. 
+     * @param entityManager EM
+     * @param certificateProfileId ID 
+     * @return count */
     public static long getCount(EntityManager entityManager, int certificateProfileId) {
         final Query countQuery = entityManager
                 .createQuery("SELECT COUNT(a) FROM CertificateData a WHERE a.certificateProfileId=:certificateProfileId");
@@ -648,7 +661,9 @@ public class CertificateData extends BaseCertificateData implements Serializable
         return ((Long) countQuery.getSingleResult()).longValue(); // Always returns a result
     }
 
-    /** Returns a list of Certificate Profile IDs that are used in certificates. Used by OcspMonitoringTool. */
+    /** Returns a list of Certificate Profile IDs that are used in certificates. Used by OcspMonitoringTool. 
+     * @param entityManager EM
+     * @return IDs */
     @SuppressWarnings("unchecked")
     public static List<Integer> getUsedCertificateProfileIds(EntityManager entityManager) {
         final Query query = entityManager.createQuery("SELECT DISTINCT a.certificateProfileId FROM CertificateData a ORDER BY a.certificateProfileId");

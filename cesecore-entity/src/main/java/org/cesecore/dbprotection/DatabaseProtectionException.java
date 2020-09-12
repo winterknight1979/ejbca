@@ -30,6 +30,8 @@ public class DatabaseProtectionException extends RuntimeException {
     /**
      * Constructs an instance of exception with a simple details message
      * and the read entity causing the error.
+     * @param msg msg
+     * @param entity Entitt
      */
     public DatabaseProtectionException(final String msg, final ProtectedData entity) {
         super(msg);
@@ -40,6 +42,8 @@ public class DatabaseProtectionException extends RuntimeException {
     /**
      * Constructs an instance of exception with a simple details message
      * and the underlying exception
+     * @param msg message
+     * @param e cause
      */
     public DatabaseProtectionException(final String msg, final Exception e) {
         super(msg, e);
@@ -47,6 +51,7 @@ public class DatabaseProtectionException extends RuntimeException {
     }
     /**
      * Constructs an instance of exception with a simple details message
+     * @param msg message
      */
     public DatabaseProtectionException(final String msg) {
         super(msg);
@@ -55,6 +60,7 @@ public class DatabaseProtectionException extends RuntimeException {
 
     /**
      * Constructs an instance of exception wrapping the causing error
+     * @param e cause
      */
     public DatabaseProtectionException(final Exception e) {
         super(e);

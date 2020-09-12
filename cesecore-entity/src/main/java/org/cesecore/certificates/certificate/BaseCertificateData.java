@@ -102,10 +102,10 @@ public abstract class BaseCertificateData extends ProtectedData {
      */
     public abstract int getStatus();
     
-    /** @returns the number of milliseconds since 1970-01-01 00:00:00 GMT until the certificate was issued or null if the information is not known. */
+    /** @return the number of milliseconds since 1970-01-01 00:00:00 GMT until the certificate was issued or null if the information is not known. */
     public abstract Long getNotBefore();
     
-    /** @returns the number of milliseconds since 1970-01-01 00:00:00 GMT until the certificate expires. */
+    /** @return the number of milliseconds since 1970-01-01 00:00:00 GMT until the certificate expires. */
     public abstract long getExpireDate();
     
     /**
@@ -124,7 +124,7 @@ public abstract class BaseCertificateData extends ProtectedData {
     public abstract long getRevocationDate();
     
     /**
-     * The ID of the public key of the certificate
+     * @return The ID of the public key of the certificate
      */
     public abstract String getSubjectKeyId();
     
@@ -202,6 +202,7 @@ public abstract class BaseCertificateData extends ProtectedData {
     
     /**
      * The time this row was last updated.
+     * @param updateTime time
      */
     public abstract void setUpdateTime(Long updateTime);
     
@@ -334,6 +335,7 @@ public abstract class BaseCertificateData extends ProtectedData {
     
     /**
      * Returns the certificate as an object.
+     * @param entityManager EM
      *
      * @return The certificate or null if it doesn't exist or is blank/null in the database
      */
@@ -356,6 +358,7 @@ public abstract class BaseCertificateData extends ProtectedData {
     
     /**
      * Returns the certificate as an object.
+     * @param base64CertData data
      *
      * @return The certificate or null if it doesn't exist or is blank/null in the database
      */
@@ -386,6 +389,7 @@ public abstract class BaseCertificateData extends ProtectedData {
      * Serialnumber formated as BigInteger.toString(16).toUpperCase(), or just as it is in DB if not encodable to hex.
      *
      * @return serial number in hex format
+     * @throws NumberFormatException if badly formatted
      */
     @Transient
     public String getSerialNumberHex() throws NumberFormatException {
@@ -415,8 +419,10 @@ public abstract class BaseCertificateData extends ProtectedData {
     
     /**
      * Compare the status field of this and another CertificateData object.
+     * @param certificateData data
      *
      * @param strict will treat NOTIFIED as ACTIVE and ARCHIVED as REVOKED if set to false
+     * @return status
      */
     public boolean equalsStatus(final BaseCertificateData certificateData, final boolean strict) {
         final int status = getStatus();

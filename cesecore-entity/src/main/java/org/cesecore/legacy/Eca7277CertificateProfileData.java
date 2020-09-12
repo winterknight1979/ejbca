@@ -22,7 +22,7 @@ import org.cesecore.certificates.certificateprofile.CertificateProfileData;
  * getData() method returned a LinkedHashMap. StringBuilder.build() called toString() on the LinkedHashMap, which
  * in turn called toString() on the objects in it. One of the objects was an ApprovalRequestType. In ECA-6518 the
  * toString() method was overridden in this enum, causing the string representation to be different. This caused
- * rowProtection signature verification to fail when you upgraded from a version <=6.11 to a version >=6.12.
+ * rowProtection signature verification to fail when you upgraded from a version &lt;=6.11 to a version &gt;=6.12.
  *
  * The aim of Eca7277CertificateProfileData is to fix this problem. Eca7277CertificateProfileData behaves exactly
  * like CertificateProfileData, but replaces any faulty substrings found in the protect string returned by

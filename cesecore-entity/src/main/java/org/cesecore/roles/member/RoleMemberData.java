@@ -58,7 +58,8 @@ public class RoleMemberData extends ProtectedData implements Serializable, Compa
     public RoleMemberData() {
     }
 
-    /** Construct the object from RoleMember value object */
+    /** Construct the object from RoleMember value object 
+     * @param roleMember member*/
     public RoleMemberData(final RoleMember roleMember) {
         setPrimaryKey(roleMember.getId());
         updateValuesFromValueObject(roleMember);
@@ -209,13 +210,15 @@ public class RoleMemberData extends ProtectedData implements Serializable, Compa
      * Horrible work-around due to the fact that Oracle needs to have (LONG and) CLOB values last in order to avoid ORA-24816.
      * 
      * Since Hibernate sorts columns by the property names, naming this Z-something will apparently ensure that this column is used last.
+     * @return string
      * @deprecated Use {@link #getRowProtection()} instead
      */
     @Deprecated
     public String getZzzRowProtection() {
         return rowProtection;
     }
-    /** @deprecated Use {@link #setRowProtection(String)} instead */
+    /** @param zzzRowProtection string
+     * @deprecated Use {@link #setRowProtection(String)} instead */
     @Deprecated
     public void setZzzRowProtection(final String zzzRowProtection) {
         this.rowProtection = zzzRowProtection;
@@ -273,7 +276,8 @@ public class RoleMemberData extends ProtectedData implements Serializable, Compa
         return new RoleMember(primaryKey, tokenType, tokenIssuerId, tokenMatchKey, tokenMatchOperator, getTokenMatchValue(), roleId, getDescription());
     }
     
-    /** Sets all fields except the ID */
+    /** Sets all fields except the ID 
+     * @param roleMember member*/
     @Transient
     public void updateValuesFromValueObject(final RoleMember roleMember) {
         setTokenType(roleMember.getTokenType());

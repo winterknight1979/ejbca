@@ -64,11 +64,11 @@ public class AccessRuleData extends ProtectedData implements Serializable, Compa
      * 
      * @param primaryKey
      *            Primary key for this rule. Can be generated using the static method {@link AccessRuleData#generatePrimaryKey(String, String)}
-     * @param accessruleName
+     * @param accessRuleName
      *            The rule that this AccessRule should represent.         
      * @param internalState
      *            The rule's state.
-     * @param recursive
+     * @param isRecursive
      *            True if the rule is recursive.
      */
     public AccessRuleData(int primaryKey, final String accessRuleName, final AccessRuleState internalState, boolean isRecursive) {
@@ -88,11 +88,11 @@ public class AccessRuleData extends ProtectedData implements Serializable, Compa
      * 
      * @param roleName 
      *            The name of the Role to which this rule belongs. Used to generate primary key.
-     * @param accessruleName
+     * @param accessRuleName
      *          The rule that this AccessRule should represent.
      * @param internalState
      *            The rule's state.
-     * @param recursive
+     * @param isRecursive
      *            True if the rule is recursive.
      */
     public AccessRuleData(final String roleName, final String accessRuleName, final AccessRuleState internalState, boolean isRecursive) {
@@ -156,6 +156,7 @@ public class AccessRuleData extends ProtectedData implements Serializable, Compa
 
     /** This is a "combined" value of recursiveBool and recursiveInt. Used because some databases lacks a boolean type
      * so booleanInt is a workaround to get boolean values on such databases (Ingres). 
+     * @return boolean
      */ 
     @Transient
     public boolean getRecursive() {
@@ -182,12 +183,14 @@ public class AccessRuleData extends ProtectedData implements Serializable, Compa
 
     /**
      * Use getIsRecursive() instead of this method! Ingres: Transient Non-ingres: Mapped to "isRecursive"
+     * @return bool
      */
     public Boolean getRecursiveBool() {
         return recursiveBool;
     }
 
-    /** Use setIsRecursive(boolean) instead of this method! */
+    /** Use setIsRecursive(boolean) instead of this method! 
+     * @param recursiveBool boolean */
     public void setRecursiveBool(final Boolean recursiveBool) {
         if(recursiveBool == null) {
             throw new InvalidParameterException("Illegal to create an access rule with recursiveBool == null");
@@ -197,12 +200,14 @@ public class AccessRuleData extends ProtectedData implements Serializable, Compa
 
     /**
      * Use getIsRecursive() instead of this method! Ingres: Mapped to "isRecursive" Non-ingres: Transient
+     * @return int
      */
     public Integer getRecursiveInt() {
         return recursiveInt;
     }
 
-    /** Use setIsRecursive(boolean) instead of this method! */
+    /** Use setIsRecursive(boolean) instead of this method! 
+     * @param isRecursiveInt int */
     public void setRecursiveInt(final Integer isRecursiveInt) {
         if(isRecursiveInt == null) {
             throw new InvalidParameterException("Illegal to create an access rule with isRecursiveInt == null");
@@ -266,6 +271,9 @@ public class AccessRuleData extends ProtectedData implements Serializable, Compa
      * primitive int primary key in the db, but embeds logic for enforcing constraints, which would otherwise have to be programatically added to the
      * beans. If needed it can easily be replaced with an int pk and programmatic logic to handle constraints. From the database view the pk is just
      * an int.
+     * @param roleName role
+     * @param accessRuleName rule
+     * @return PK
      */
     public static int generatePrimaryKey(final String roleName, final String accessRuleName) {
         final int roleNameHash = roleName == null ? 0 : roleName.hashCode();

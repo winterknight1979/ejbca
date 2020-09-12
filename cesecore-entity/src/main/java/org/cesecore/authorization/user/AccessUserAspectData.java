@@ -60,7 +60,13 @@ public class AccessUserAspectData extends ProtectedData implements AccessUserAsp
         this(roleName, caId, matchWith.getNumericValue(), matchWith.getTokenType(), matchType, matchValue);        
     }
     
-     /** This constructor for internal use only */
+     /** This constructor for internal use only 
+     * @param roleName role
+     * @param caId CA
+     * @param matchWith match 
+     * @param tokenType type
+     * @param matchType match
+     * @param matchValue match*/
     public AccessUserAspectData(final String roleName, final int caId, final int matchWith, final String tokenType, final AccessMatchType matchType,
             final String matchValue) {
         if (roleName == null) {
@@ -212,7 +218,6 @@ public class AccessUserAspectData extends ProtectedData implements AccessUserAsp
      * @param matchWith The type to match with
      * @param matchType How to match
      * @param matchValue the value to match
-     * @param tokenType the token type.
      * @return a pseudo-unique primary key
      * 
      */
@@ -231,6 +236,7 @@ public class AccessUserAspectData extends ProtectedData implements AccessUserAsp
      * @param matchWith The type to match with
      * @param matchType How to match
      * @param matchValue the value to match
+     * @param tokenType the token type.
      * @return a pseudo-unique primary key
      * 
      */

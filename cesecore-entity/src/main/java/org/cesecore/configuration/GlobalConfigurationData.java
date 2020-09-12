@@ -78,8 +78,7 @@ public class GlobalConfigurationData extends ProtectedData implements Serializab
 	        RaCssInfo.class, 
 	        RaStyleInfo.class));
 	
-	/** Unique ID defined by respective configuration object, such as 
-	 * @link GlobalCesecoreConfiguration#CESECORE_CONFIGURATION_ID 
+	/** Unique ID defined by respective configuration object
 	 */
 	private String configurationId;
 	private byte[] data;
@@ -109,7 +108,8 @@ public class GlobalConfigurationData extends ProtectedData implements Serializab
 	//@Column @Lob
 	// Gets the data on raw bytes from the database
 	public byte[] getDataUnsafe() { return data; }
-	/** DO NOT USE! Stick with setData(HashMap data) instead. */
+	/** DO NOT USE! Stick with setData(HashMap data) instead. 
+	 * @param data data*/
 	public void setDataUnsafe(byte[] data) { this.data = data; }
 
 	/** Gets the serialized object that was stored, as a byte array, in the database.
@@ -168,6 +168,7 @@ public class GlobalConfigurationData extends ProtectedData implements Serializab
 
 	/** 
 	 * Method that saves the global configuration to database.
+	 * @param configuration config
 	 */
 	@SuppressWarnings("rawtypes")
     public void setConfiguration(ConfigurationBase configuration){

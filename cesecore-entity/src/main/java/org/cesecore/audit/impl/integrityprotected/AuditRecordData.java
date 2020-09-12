@@ -152,7 +152,7 @@ public class AuditRecordData extends ProtectedData implements Serializable, Audi
     }
 
     /** Sets event type. @see EventStatusEnum
-     * @param eventType should match the enumeration names.
+     * @param eventStatus should match the enumeration names.
      */
     public void setEventStatus(final String eventStatus) {
     	this.eventStatus = eventStatus;
@@ -166,7 +166,7 @@ public class AuditRecordData extends ProtectedData implements Serializable, Audi
     /**
      * Sets the user that triggered the creation of a log
      *
-     * @param userId user id. Normally obtained by the following example: authenticationToken.toString()
+     * @param authToken user id. Normally obtained by the following example: authenticationToken.toString()
      */
     public void setAuthToken(final String authToken) {
         this.authToken = authToken;
@@ -175,7 +175,7 @@ public class AuditRecordData extends ProtectedData implements Serializable, Audi
     /**
      * Gets service type. @see ServiceTypes
      * 
-     * @return
+     * @return service
      */
     public String getService() {
         return service;
@@ -184,7 +184,7 @@ public class AuditRecordData extends ProtectedData implements Serializable, Audi
     /**
      * Sets service type. @see ServiceTypes
      * 
-     * @param service
+     * @param service service
      */
     public void setService(final String service) {
         this.service = service;
@@ -250,7 +250,8 @@ public class AuditRecordData extends ProtectedData implements Serializable, Audi
         return additionalDetails;
     }
 
-    /** Sets additional details in raw format. */
+    /** Sets additional details in raw format. 
+     * @param additionalDetails details*/
     public void setAdditionalDetails(final String additionalDetails) {
         this.additionalDetails = additionalDetails;
     }

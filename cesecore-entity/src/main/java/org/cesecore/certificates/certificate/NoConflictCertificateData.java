@@ -85,6 +85,7 @@ public class NoConflictCertificateData extends BaseCertificateData implements Se
     
     /**
      * Copy Constructor
+     * @param copy rtiginal
      */
     public NoConflictCertificateData(final NoConflictCertificateData copy) {
         setId(copy.getId());
@@ -126,7 +127,7 @@ public class NoConflictCertificateData extends BaseCertificateData implements Se
 
     /** Generated GUID for the table entry
      * 
-     * @param id
+     * @param id ID
      */
     public void setId(String id) {
         this.id = id;
@@ -278,6 +279,7 @@ public class NoConflictCertificateData extends BaseCertificateData implements Se
      * Horrible work-around due to the fact that Oracle needs to have (LONG and) CLOB values last in order to avoid ORA-24816.
      *
      * Since Hibernate sorts columns by the property names, naming this Z-something will apparently ensure that this column is used last.
+     * @return string
      * @deprecated Use {@link #getBase64Cert()} instead
      */
     @Deprecated
@@ -285,7 +287,8 @@ public class NoConflictCertificateData extends BaseCertificateData implements Se
         return base64Cert;
     }
     
-    /** @deprecated Use {@link #setBase64Cert(String)} instead */
+    /** @param zzzBase64Cert string
+     * @deprecated Use {@link #setBase64Cert(String)} instead */
     @Deprecated
     public void setZzzBase64Cert(final String zzzBase64Cert) {
         this.base64Cert = zzzBase64Cert;
@@ -343,6 +346,7 @@ public class NoConflictCertificateData extends BaseCertificateData implements Se
 
     /**
      * The ID of the public key of the certificate
+     * @param subjectKeyId ID
      */
     public void setSubjectKeyId(String subjectKeyId) {
         this.subjectKeyId = subjectKeyId;
@@ -371,13 +375,15 @@ public class NoConflictCertificateData extends BaseCertificateData implements Se
      * Horrible work-around due to the fact that Oracle needs to have (LONG and) CLOB values last in order to avoid ORA-24816.
      *
      * Since Hibernate sorts columns by the property names, naming this Z-something will apparently ensure that this column is used last.
+     * @return String
      * @deprecated Use {@link #getRowProtection()} instead
      */
     @Deprecated
     public String getZzzRowProtection() {
         return rowProtection;
     }
-    /** @deprecated Use {@link #setRowProtection(String)} instead */
+    /** @param zzzRowProtection String
+     * @deprecated Use {@link #setRowProtection(String)} instead */
     @Deprecated
     public void setZzzRowProtection(final String zzzRowProtection) {
         this.rowProtection = zzzRowProtection;

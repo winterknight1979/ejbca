@@ -18,6 +18,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -57,6 +58,8 @@ public class ProfileData extends ProtectedData implements Serializable {
     
     /**
      * Entity holding data of an approval profile.
+     * @param id ID
+     * @param profile profile
      */
     public ProfileData(int id, Profile profile) {
         setId(id);
@@ -86,9 +89,11 @@ public class ProfileData extends ProtectedData implements Serializable {
     public String getProfileType() { return profileType; }
     public void setProfileType(String profileType) { this.profileType = profileType; }
 
-    /** Should not be invoked directly. Use getDataMap() instead. */
+    /** Should not be invoked directly. Use getDataMap() instead. 
+     * @return data*/
     public String getRawData() { return rawData; }
-    /** Should not be invoked directly. Use setDataMap(..) instead. */
+    /** Should not be invoked directly. Use setDataMap(..) instead. 
+     * @param rawData data*/
     public void setRawData(String rawData) { this.rawData = rawData; }
 
     @Transient
@@ -174,8 +179,8 @@ public class ProfileData extends ProtectedData implements Serializable {
         }
         Profile returnValue;
         try {     
-            returnValue = implementationClass.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
+            returnValue = implementationClass.getConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             throw new IllegalStateException("Could not instansiate class of type " + implementationClass.getCanonicalName()+" for profile '"+profileName+"'", e);
         }
         returnValue.setProfileName(profileName);

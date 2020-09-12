@@ -66,6 +66,10 @@ public class CRLData extends ProtectedData implements Serializable {
      *            the (X509)CRL to be stored in the database.
      * @param number
      *            monotonically increasing CRL number
+     * @param issuerDN DN
+     * @param thisUpdate Date 
+     * @param nextUpdate Date of next update
+     * @param cafingerprint FP
      * @param deltaCRLIndicator
      *            -1 for a normal CRL and 1 for a deltaCRL
      */
@@ -115,6 +119,7 @@ public class CRLData extends ProtectedData implements Serializable {
 
     /**
      * Use setIssuer instead
+     * @param issuerDN DN
      * 
      * @see #setIssuer(String)
      */
@@ -147,6 +152,7 @@ public class CRLData extends ProtectedData implements Serializable {
 
     /**
      * Date formated as seconds since 1970 (== Date.getTime())
+     * @param thisUpdate Date
      */
     public void setThisUpdate(long thisUpdate) {
         this.thisUpdate = thisUpdate;
@@ -159,6 +165,7 @@ public class CRLData extends ProtectedData implements Serializable {
 
     /**
      * Date formated as seconds since 1970 (== Date.getTime())
+     * @param nextUpdate date
      */
     public void setNextUpdate(long nextUpdate) {
         this.nextUpdate = nextUpdate;
@@ -248,12 +255,17 @@ public class CRLData extends ProtectedData implements Serializable {
     // Search functions.
     //
 
-    /** @return the found entity instance or null if the entity does not exist */
+    /** @param entityManager EM
+     * @param fingerprint FP
+     * @return the found entity instance or null if the entity does not exist */
     public static CRLData findByFingerprint(EntityManager entityManager, String fingerprint) {
         return entityManager.find(CRLData.class, fingerprint);
     }
 
     /**
+     * @param entityManager EM
+     * @param issuerDN DN
+     * @param crlNumber CRL
      * @throws javax.persistence.NonUniqueResultException
      *             if more than one entity with the name exists
      * @return the found entity instance or null if the entity does not exist
@@ -266,6 +278,8 @@ public class CRLData extends ProtectedData implements Serializable {
     }
     
     /**
+     * @param entityManager EM
+     * @param issuerDN DN
      * @return the all list of CRLData for specified issuerDN
      */
     public static List<CRLData> findByIssuerDN(EntityManager entityManager, String issuerDN) {
@@ -277,6 +291,9 @@ public class CRLData extends ProtectedData implements Serializable {
     }
 
     /**
+     * @param entityManager EM
+     * @param issuerDN DN
+     * @param deltaCRL CRL
      * @return the highest CRL number or null if no CRL for the specified issuer exists.
      */
     public static Integer findHighestCRLNumber(EntityManager entityManager, String issuerDN, boolean deltaCRL) {

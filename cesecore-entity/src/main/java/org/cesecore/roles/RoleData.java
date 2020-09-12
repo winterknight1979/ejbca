@@ -92,9 +92,11 @@ public class RoleData extends ProtectedData implements Serializable {
 
 
     // @Column
-    /** Should not be invoked directly. Use getDataMap() instead. */
+    /** Should not be invoked directly. Use getDataMap() instead. 
+     * @return data*/
     public String getRawData() { return rawData; }
-    /** Should not be invoked directly. Use setDataMap(..) instead. */
+    /** Should not be invoked directly. Use setDataMap(..) instead. 
+     * @param rawData data */
     public void setRawData(String rawData) { this.rawData = rawData; }
 
     @Transient

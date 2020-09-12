@@ -73,6 +73,7 @@ public class Base64CertData extends ProtectedData implements Serializable {
     
     /**
      * Copy constructor
+     * @param copy original
      */
     public Base64CertData(final Base64CertData copy) {
         setBase64Cert(copy.getBase64Cert());
@@ -187,12 +188,15 @@ public class Base64CertData extends ProtectedData implements Serializable {
     // Search functions.
     //
 
-    /** @return the found entity instance or null if the entity does not exist */
+    /** @param entityManager EM
+     * @param fingerprint FP
+     * @return the found entity instance or null if the entity does not exist */
     public static Base64CertData findByFingerprint(EntityManager entityManager, String fingerprint) {
         return entityManager.find(Base64CertData.class, fingerprint);
     }
 
-    /** @return the number of entries with the given parameter */
+    /** @param entityManager EM
+     * @return the number of entries with the given parameter */
     public static long getCount(EntityManager entityManager) {
         final Query countQuery = entityManager.createQuery("SELECT COUNT(a) FROM Base64CertData a");
         return ((Long) countQuery.getSingleResult()).longValue(); // Always returns a result

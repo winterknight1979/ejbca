@@ -26,16 +26,19 @@ import org.cesecore.roles.member.RoleMember;
  * @version $Id: RoleInformation.java 25516 2017-03-16 16:08:31Z jeklund $
  *
  */
+@SuppressWarnings("deprecation")
 public class RoleInformation implements Serializable {
     private static final long serialVersionUID = 1L;
     private final int identifier;
     private final String name;
-    @SuppressWarnings("deprecation")
     private final List<AccessUserAspectData> accessUserAspects;
     // Fields added in EJBCA 6.8.0 that we cannot be sure is ever set (defaults to null)
     private final String nameSpace;
     
-    /** @deprecated use fromRoleMembers */
+    /** @param identifier ID
+     * @param roleName Name
+     * @param accessUserAspects Aspects 
+     * @deprecated use fromRoleMembers */
     @Deprecated
     public RoleInformation(final int identifier, final String roleName, final List<AccessUserAspectData> accessUserAspects) {
         this(identifier, null, roleName, accessUserAspects);
@@ -54,8 +57,12 @@ public class RoleInformation implements Serializable {
      * 
      * Note that this it is in general a bad idea to keep a list of RoleMembers that were part of the Role at a point
      * in time in this class.
+     * @param identifier ID
+     * @param nameSpace NS
+     * @param roleName Name
+     * @param roleMembers Members
+     * @return Info
      */
-    @SuppressWarnings("deprecation")
     public static RoleInformation fromRoleMembers(final int identifier, final String nameSpace, final String roleName, final List<RoleMember> roleMembers) {
         final String nameSpaceToUse = StringUtils.isEmpty(nameSpace) ? null : nameSpace;
         final List<AccessUserAspectData> accessUserAspects = new ArrayList<>();

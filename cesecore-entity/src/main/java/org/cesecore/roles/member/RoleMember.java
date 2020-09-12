@@ -41,9 +41,11 @@ public class RoleMember implements Serializable {
     /**
      * Constructor for a new RoleMember. Will by default be constructed with the primary key 0, which means that this object hasn't been
      * persisted yet. In that case, the primary key will be set by the CRUD bean. 
+     * @param tokenType Type
      * 
-     * @param accessMatchValue the AccessMatchValue to match this object with, i.e CN, SN, etc. 
      * @param tokenIssuerId the issuer identifier of this token or 0 if not relevant
+     * @param tokenMatchKey Key
+     * @param tokenMatchOperator Operator
      * @param tokenMatchValue the actual value with which to match
      * @param roleId roleId the ID of the role to which this member belongs. May be null.
      * @param description a human readable description of this role member.
@@ -54,10 +56,14 @@ public class RoleMember implements Serializable {
     }
 
     /**
-     * Constructor for a RoleMember object that has already been assigned an ID (the RoleMember already exists).
+     * Constructor for a new RoleMember. Will by default be constructed with the primary key 0, which means that this object hasn't been
+     * persisted yet. In that case, the primary key will be set by the CRUD bean. 
+     * @param id ID
+     * @param tokenType Type
      * 
-     * @param accessMatchValue the AccessMatchValue to match this object with, i.e CN, SN, etc. 
      * @param tokenIssuerId the issuer identifier of this token or 0 if not relevant
+     * @param tokenMatchKey Key
+     * @param tokenMatchOperator Operator
      * @param tokenMatchValue the actual value with which to match
      * @param roleId roleId the ID of the role to which this member belongs. May be null.
      * @param description a human readable description of this role member.
@@ -74,7 +80,8 @@ public class RoleMember implements Serializable {
         this.description = description;
     }
 
-    /** Copy constructor */
+    /** Copy constructor 
+     * @param roleMember original */
     public RoleMember(final RoleMember roleMember) {
         this.id = roleMember.id;
         this.tokenType = roleMember.tokenType;

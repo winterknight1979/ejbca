@@ -19,13 +19,16 @@ package org.cesecore.dbprotection;
  */
 public interface ProtectedDataImpl {
 
-    /** Sets the table name if the entity being protected */
+    /** Sets the table name if the entity being protected 
+     * @param table table*/
     void setTableName(final String table);
 
-    /** Creates and sets the actual database integrity protection, or does nothing */
+    /** Creates and sets the actual database integrity protection, or does nothing 
+     * @param obj object*/
     void protectData(ProtectedData obj);
 
-    /** Reads and verifies the actual database integrity protection, or does nothing */
+    /** Reads and verifies the actual database integrity protection, or does nothing 
+     * @param obj object*/
     void verifyData(ProtectedData obj);
 	
     String calculateProtection(final ProtectedData obj);
@@ -33,7 +36,8 @@ public interface ProtectedDataImpl {
     /**
      * Throws DatabaseProtectionException if erroronverifyfail is enabled in databaseprotection.properties
      * and logs a "row protection failed" message on ERROR level.
-     * @throws the exception given as parameter if erroronverifyfail is enabled
+     * @param e exception
+     * @throws DatabaseProtectionException the exception given as parameter if erroronverifyfail is enabled
      */
     void onDataVerificationError(final DatabaseProtectionException e);
 

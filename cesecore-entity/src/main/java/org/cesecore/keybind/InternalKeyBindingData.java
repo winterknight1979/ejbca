@@ -88,9 +88,11 @@ public class InternalKeyBindingData extends ProtectedData implements Serializabl
     public void setName(String name) { this.name = name; }
 
     // @Column
-    /** Use getStatusEnum() instead */
+    /** Use getStatusEnum() instead 
+     * @return status*/
     public String getStatus() { return status; }
-    /** Use setStatusEnum(..) instead */
+    /** Use setStatusEnum(..) instead 
+     * @param status status*/
     public void setStatus(String status) { this.status = status; }
 
     // @Column
@@ -119,9 +121,11 @@ public class InternalKeyBindingData extends ProtectedData implements Serializabl
     public void setLastUpdate(long lastUpdate) { this.lastUpdate = lastUpdate; }
 
     // @Column @Lob
-    /** Should not be invoked directly. Use getDataMap() instead. */
+    /** Should not be invoked directly. Use getDataMap() instead. 
+     * @return data*/
     public String getRawData() { return rawData; }
-    /** Should not be invoked directly. Use setDataMap(..) instead. */
+    /** Should not be invoked directly. Use setDataMap(..) instead. 
+     * @param rawData data */
     public void setRawData(String rawData) { this.rawData = rawData; }
 
     // @Version @Column

@@ -50,7 +50,8 @@ public class Role extends UpgradeableDataHashMap implements Comparable<Role> {
     private String roleName;
     private String nameSpace;
 
-    /** Copy constructor */
+    /** Copy constructor 
+     * @param role orig */
     public Role(final Role role) {
         this.roleId = role.roleId;
         this.nameSpace = role.nameSpace;
@@ -87,7 +88,11 @@ public class Role extends UpgradeableDataHashMap implements Comparable<Role> {
         }
     }
 
-    /** Constructor used during load from database */
+    /** Constructor used during load from database 
+     * @param roleId ID
+     * @param nameSpace NS 
+     * @param roleName Name
+     * @param dataMap data */
     public Role(final int roleId, final String nameSpace, final String roleName, final LinkedHashMap<Object, Object> dataMap) {
         this.roleId = roleId;
         setNameSpace(nameSpace);
@@ -214,6 +219,7 @@ public class Role extends UpgradeableDataHashMap implements Comparable<Role> {
      * Access rules are stored as map with pairs of "/resource/subresource/subsubresource" and STATE_ALLOW/STATE_DENY.
      * 
      * Resource definitions are always recursive ("/resource/" with STATE_ALLOW implies "/resource/subresource/" with STATE_ALLOW etc.)
+     * @return map
      */
     public LinkedHashMap<String, Boolean> getAccessRules() {
         @SuppressWarnings("unchecked")
@@ -225,7 +231,8 @@ public class Role extends UpgradeableDataHashMap implements Comparable<Role> {
         return ret;
     }
 
-    /** @return true if this Role has access to the given resource */
+    /** @param resource resource
+     * @return true if this Role has access to the given resource */
     public boolean hasAccessToResource(final String resource) {
         return AccessRulesHelper.hasAccessToResource(getAccessRules(), resource);
     }

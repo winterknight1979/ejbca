@@ -12,6 +12,8 @@
  *************************************************************************/
 package org.cesecore.dbprotection;
 
+import java.lang.reflect.InvocationTargetException;
+
 import org.apache.log4j.Logger;
 
 
@@ -88,14 +90,14 @@ public abstract class ProtectedData {
                     implClass = Class.forName(implClassName);
                     log.debug("ProtectedDataIntegrityImpl is available, and used, in this version of EJBCA.");
                 }
-                impl = (ProtectedDataImpl)implClass.newInstance();
+                impl = (ProtectedDataImpl)implClass.getConstructor().newInstance();
                 impl.setTableName(getTableName());
-            } catch (ClassNotFoundException e) {
+            } catch (ClassNotFoundException | NoSuchMethodException e) {
                 // We only end up here once, if the class does not exist, we will never end up here again
                 integrityExists = false;
                 log.info("No database integrity protection available in this version of EJBCA.");
                 impl = new ProtectedDataNoopImpl();
-            } catch (InstantiationException e) {
+            } catch (InstantiationException | InvocationTargetException e ) {
                 log.error("Error intitilizing database integrity protection: ", e);
             } catch (IllegalAccessException e) {
                 log.error("Error intitilizing database integrity protection: ", e);
@@ -109,7 +111,7 @@ public abstract class ProtectedData {
      * asks the data class for the string to be protected. Version is -1 for a new row to be protected, and otherwise a version given earlier from the
      * data class when storing the row.
      *
-     * @param version the version of the string that is protected, used as input when verifying data. -1 when getting protection string for data to be
+     * @param rowversion the version of the string that is protected, used as input when verifying data. -1 when getting protection string for data to be
      *          inserted or updated. -1 means that the data class should use it's latest version of protect string
      * @return String to be integrity protected, i.e. input to hmac.
      */
@@ -126,8 +128,9 @@ public abstract class ProtectedData {
 
     /**
      * The extending class must have a database column "rowProtection" that can be read and set.
+     * @param rowProtection protect
      */
-    abstract public void setRowProtection(final String rowProtection);
+    abstract public void setRowProtection(final String rowProtection); 
 
     abstract public String getRowProtection();
 
@@ -176,7 +179,8 @@ public abstract class ProtectedData {
     /**
      * Throws DatabaseProtectionException if erroronverifyfail is enabled in databaseprotection.properties
      * and logs a "row protection failed" message on ERROR level.
-     * @throws the exception given as parameter if erroronverifyfail is enabled
+     * @param e exception
+     * @throws DatabaseProtectionException the exception given as parameter if erroronverifyfail is enabled
      */
     protected void onDataVerificationError(final DatabaseProtectionException e) {
         impl.onDataVerificationError(e);

@@ -39,6 +39,7 @@ import org.cesecore.util.QueryResultWrapper;
  *
  * @version $Id: CertificateProfileData.java 34415 2020-01-30 12:29:30Z aminkh $
  */
+@SuppressWarnings("deprecation")
 @Entity
 @Table(name = "CertificateProfileData")
 public class CertificateProfileData extends ProtectedData implements Serializable {
@@ -58,6 +59,9 @@ public class CertificateProfileData extends ProtectedData implements Serializabl
 
     /**
      * Entity holding data of a certificate profile.
+     * @param id ID
+     * @param profilename Name 
+     * @param profile Profile
      */
     public CertificateProfileData(final Integer id, final String profilename, final CertificateProfile profile) {
         setId(id);
@@ -91,8 +95,9 @@ public class CertificateProfileData extends ProtectedData implements Serializabl
         return data;
     }
 
-    /** DO NOT USE! Stick with setData(HashMap data) instead. */
-    public void setDataUnsafe(Serializable data) {
+    /** DO NOT USE! Stick with setData(HashMap data) instead. 
+     * @param data data*/
+    public void setDataUnsafe(Serializable data) { 
         this.data = data;
     }
 
@@ -132,6 +137,7 @@ public class CertificateProfileData extends ProtectedData implements Serializabl
 
     /**
      * Method that returns the certificate profiles and updates it if necessary.
+     * @return profile
      */
     @Transient
     public CertificateProfile getCertificateProfile() {
@@ -140,6 +146,7 @@ public class CertificateProfileData extends ProtectedData implements Serializabl
 
     /**
      * Method that saves the certificate profile to database.
+     * @param profile profile
      */
     public final void setCertificateProfile(final CertificateProfile profile) {
         setData((LinkedHashMap<?, ?>) profile.saveData());
@@ -181,12 +188,16 @@ public class CertificateProfileData extends ProtectedData implements Serializabl
     // Search functions.
     //
 
-    /** @return the found entity instance or null if the entity does not exist */
+    /** @param entityManager EM
+     * @param id ID
+     * @return the found entity instance or null if the entity does not exist */
     public static CertificateProfileData findById(final EntityManager entityManager, final Integer id) {
         return entityManager.find(CertificateProfileData.class, id);
     }
 
     /**
+     * @param entityManager EM
+     * @param certificateProfileName Name 
      * @throws javax.persistence.NonUniqueResultException
      *             if more than one entity with the name exists
      * @return the found entity instance or null if the entity does not exist
@@ -197,7 +208,8 @@ public class CertificateProfileData extends ProtectedData implements Serializabl
         return (CertificateProfileData) QueryResultWrapper.getSingleResult(query);
     }
 
-    /** @return return the query results as a List. */
+    /** @param entityManager EM
+     * @return return the query results as a List. */
     @SuppressWarnings("unchecked")
     public static List<CertificateProfileData> findAll(final EntityManager entityManager) {
         final Query query = entityManager.createQuery("SELECT a FROM CertificateProfileData a");

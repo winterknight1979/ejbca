@@ -64,7 +64,7 @@ public class CAData extends ProtectedData implements Serializable {
     
 	/**
 	 * Entity Bean holding data of a CA.
-	 * @param subjectdn
+	 * @param subjectdn DN
 	 * @param name of CA
 	 * @param status initial status
 	 * @param ca CA to store
@@ -109,7 +109,8 @@ public class CAData extends ProtectedData implements Serializable {
 	public long getExpireTime() { return expireTime; }
 	public void setExpireTime(long expireTime) { this.expireTime = expireTime; }
 
-	/** When was this CA updated in the database */
+	/** When was this CA updated in the database 
+	 * @return time */
 	//@Column
 	public long getUpdateTime() { return updateTime; }
 	public void setUpdateTime(long updateTime){ this.updateTime = updateTime; }
@@ -149,7 +150,8 @@ public class CAData extends ProtectedData implements Serializable {
         return ca;
     }
 
-	/**  Method that converts the CA object to storage representation. */
+	/**  Method that converts the CA object to storage representation. 
+	 * @param ca CA */
 	@SuppressWarnings({"unchecked"})
     @Transient
     public final void setCA(final CA ca) {
