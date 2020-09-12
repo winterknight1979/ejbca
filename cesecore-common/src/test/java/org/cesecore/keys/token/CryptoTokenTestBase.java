@@ -364,7 +364,7 @@ public abstract class CryptoTokenTestBase {
             }
 
     /**
-     *  * @param cryptoToken token
+     * @param cryptoToken token
      * @throws KeyStoreException fail
      * @throws NoSuchAlgorithmException fail
      * @throws CertificateException fail

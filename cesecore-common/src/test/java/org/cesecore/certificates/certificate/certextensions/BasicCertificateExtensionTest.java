@@ -734,7 +734,7 @@ public class BasicCertificateExtensionTest {
 	}
         
     /**
-     * Test using encoding=RAW but nvalues > 1 specified which is a
+     * Test using encoding=RAW but nvalues &gt; 1 specified which is a
      * configuration error.
      * @throws Exception fail
      */

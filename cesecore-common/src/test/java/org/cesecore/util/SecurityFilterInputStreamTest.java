@@ -105,7 +105,7 @@ public class SecurityFilterInputStreamTest {
     }
 
     /**
-     * Test if good input stream (size < SecurityFilterInputStream.maxBytes) can be filtered
+     * Test if good input stream (size &lt; SecurityFilterInputStream.maxBytes) can be filtered
      * @throws Exception fail
      */
     @Test
