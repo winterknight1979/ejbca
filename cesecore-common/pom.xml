@@ -72,6 +72,10 @@
 			<groupId>xmlpull</groupId>
 			<artifactId>xmlpull</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>xpp3</groupId>
+			<artifactId>xpp3_min</artifactId>
+		</dependency>
 
 		<!-- Logging -->
 
@@ -86,6 +90,19 @@
 			<groupId>org.ejbca.cvc</groupId>
 			<artifactId>cert-cvc</artifactId>
 		</dependency>
+
+		<!-- test -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.easymock</groupId>
+			<artifactId>easymock</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 
 		<!-- Shared Resource bundle and Service Manifest generator -->
 
@@ -245,9 +262,9 @@
 				<version>3.1.1</version>
 				<configuration>
 					<quiet>true</quiet>
-					
+
 					<!-- Maven's javadoc does not recognise the new tags -->
-					
+
 					<tags>
 						<tag>
 							<name>apiNote</name>

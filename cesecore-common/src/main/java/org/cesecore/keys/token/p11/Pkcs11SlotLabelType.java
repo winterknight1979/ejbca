@@ -158,6 +158,9 @@ public enum Pkcs11SlotLabelType {
      *
      */
     protected static class NumberValidator implements LabelTypeValidator {
+    	
+    	
+    	public NumberValidator() {}
         
         @Override
         public boolean validate(String value) {
@@ -180,6 +183,8 @@ public enum Pkcs11SlotLabelType {
      *
      */
     protected static class IndexValidator extends NumberValidator {
+    	
+    	public IndexValidator() {}
         
         @Override
         public boolean validate(String value) {
@@ -194,6 +199,8 @@ public enum Pkcs11SlotLabelType {
     }
     
     protected static class LabelValidator implements LabelTypeValidator {
+    	
+    	public LabelValidator() {}
 
         @Override
         public boolean validate(String value) {
