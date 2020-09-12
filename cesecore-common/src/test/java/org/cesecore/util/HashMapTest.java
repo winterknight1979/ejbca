@@ -21,7 +21,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 
-import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
 
 /** Tests Base64 HashMap XML encoding and decoding
@@ -88,7 +87,7 @@ public class HashMapTest {
         }
         String javaver = System.getProperty("java.version");
         System.out.println(javaver);
-        if (StringUtils.contains(javaver, "1.6") || StringUtils.contains(javaver, "1.7") || StringUtils.contains(javaver, "1.8")) {
+        if (getVersion() >= 6) {
         	// In java 1.6 the above does work because it encodes the special characters
         	//   <string><char code="#0"/>1<char code="#0"/>2fooString</string> 
             assertTrue(true);        	
@@ -98,6 +97,19 @@ public class HashMapTest {
             assertTrue(false);        	        	
         }
     }
+    
+    /* from stack xchange, to work around the Java Versioning system change between Java 8 and Java 9 */
+    private static int getVersion() {
+    	String version = System.getProperty("java.version");
+    	if (version.startsWith("1.")) {
+    		version = version.substring(2,3);
+    	} else {
+    		int dot = version.indexOf(".");
+    		if (dot != -1) { version = version.substring(0, dot); }
+    	}
+    	return Integer.parseInt(version);
+    }
+    
     @SuppressWarnings("rawtypes")
     @Test
     public void testHashMapStrangeCharsSafe() throws Exception {

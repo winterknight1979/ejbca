@@ -411,6 +411,9 @@
 					<version>3.0.0-M4</version>
 					<configuration>
 						<testFailureIgnore>true</testFailureIgnore>
+						<forkCount>4</forkCount>
+						<reuseForks>false</reuseForks>
+						<rerunFailingTestsCount>2</rerunFailingTestsCount>
 					</configuration>
 				</plugin>
 
