@@ -22,8 +22,6 @@ import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 
 import org.apache.commons.lang.StringUtils;
-import org.cesecore.util.Base64GetHashMap;
-import org.cesecore.util.Base64PutHashMap;
 import org.junit.Test;
 
 /** Tests Base64 HashMap XML encoding and decoding

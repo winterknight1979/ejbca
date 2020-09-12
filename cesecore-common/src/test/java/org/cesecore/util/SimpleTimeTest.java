@@ -28,6 +28,7 @@ public class SimpleTimeTest {
     
     /**
      * Test parsing without default value.
+     * @throws Exception fail
      */
     @Test
     public void test01ParseWithoutDefault() throws Exception {
@@ -60,6 +61,7 @@ public class SimpleTimeTest {
     
     /**
      * Test parsing with default value.
+     * @throws Exception fail
      */
     @Test
     public void test02ParseWithDefault() throws Exception {
@@ -91,6 +93,7 @@ public class SimpleTimeTest {
     
     /**
      * Test formatting.
+     * @throws Exception fail
      */
     @Test
     public void test03Format() throws Exception {
@@ -105,6 +108,7 @@ public class SimpleTimeTest {
     
     /**
      * Tests the constructor that takes an argument of type long
+     * @throws Exception fail
      */
     @Test
     public void test04ConstructorLong() throws Exception {
@@ -113,6 +117,8 @@ public class SimpleTimeTest {
     
     /**
      * Helper for tests that we expect to fail.
+     * @param time time
+     * @param defaultTime defaulr 
      */
     private void failHelper(String time, String defaultTime) {
         simpeTimeHelper(time, defaultTime, true, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -120,6 +126,17 @@ public class SimpleTimeTest {
     
     /**
      * Get a new SimpleTime object and verify that it was created correctly.
+     * @param time time
+     * @param defaultTime default 
+     * @param fail fail
+     * @param longTime long
+     * @param years Y
+     * @param months M
+     * @param days D
+     * @param hours h
+     * @param minutes m 
+     * @param seconds s
+     * @param milliSeconds ms 
      */
     private void simpeTimeHelper(String time, String defaultTime, boolean fail, long longTime, long years, long months, long days, long hours, long minutes, long seconds, long milliSeconds) {
         SimpleTime simpleTime;

@@ -39,7 +39,8 @@ import org.junit.Test;
 public class SernoGeneratorTest {
     private static final Logger log = Logger.getLogger(SernoGeneratorTest.class);
 
-    /** Test min and max values for different serial number sizes. */
+    /** Test min and max values for different serial number sizes. 
+     * @throws NoSuchAlgorithmException fail */
     @Test
     public void testSernoValidationChecker() throws NoSuchAlgorithmException {
         // Default serno size 20 bytes (160 bits)
@@ -93,6 +94,7 @@ public class SernoGeneratorTest {
 
     /** Test certificate serialNumber generation with 8 octets size (64 bits). 
      * Using 64 bit serial numbers should not product any collisions for 500.000 serials
+     * @throws Exception fail
      */
     @Test
     public void testGenerateSernos8OctetsSHA1PRNG() throws Exception {
@@ -109,6 +111,7 @@ public class SernoGeneratorTest {
     
     /** Using only 32 bit serial numbers will produce collisions 
      * about 1-5 times for 100.000 serial numbers
+     * @throws Exception fail
      */
     @Test
     public void testGenerateSernos4OctetsSHA1PRNG() throws Exception {
@@ -125,6 +128,7 @@ public class SernoGeneratorTest {
     
     /** Test certificate serialNumber generation with 20 octets size (160 bits). 
      * Using 160 bit serial numbers should not product any collisions for 500.000 serials
+     * @throws Exception fail
      */
     @Test
     public void testGenerateSernos20OctetsSHA1PRNG() throws Exception {
@@ -144,6 +148,7 @@ public class SernoGeneratorTest {
      * We will not make actual tests with this, since on Tomas's Linux laptop (on real HW) 
      * it takes 30-70 seconds to generate a single random number once the entropy pool is exhausted after 0-10 serials.
      * On JDK7 and less the "defaultstrong" option is not available, which is considered in this test.
+     * @throws Exception fail
      */
     @Test
     public void testGettingDefaultStrong() throws Exception {
@@ -167,6 +172,7 @@ public class SernoGeneratorTest {
     }
 
     /** Try fetching a random number generator of type "default". This will create a default SecureRandom implementation. 
+     * @throws Exception fail
      */
     @Test
     public void testGenerateSernos8OctetsDefault() throws Exception {

@@ -1223,6 +1223,7 @@ public class CertToolsTest {
     }
 
     /**
+     * @throws Exception fail
 	 */
     @Test
     public void test12GetPartsFromDN() throws Exception {
@@ -2077,6 +2078,7 @@ public class CertToolsTest {
 
     /**
      * Tests encoding DN attributes as UTF-8 or printable string
+     * @throws Exception fail
      */
     @Test
     public void testPrintableStringDN() throws Exception {
@@ -2100,10 +2102,11 @@ public class CertToolsTest {
     /**
      * Tests the following methods:
      * <ul>
-     * <li>{@link CertTools.checkNameConstraints}</li>
-     * <li>{@link NameConstraint.parseNameConstraintsList}</li>
-     * <li>{@link NameConstraint.toGeneralSubtrees}</li>
+     * <li>{@link CertTools#checkNameConstraints}</li>
+     * <li>{@link NameConstraint#parseNameConstraintsList}</li>
+     * <li>{@link NameConstraint#toGeneralSubtrees}</li>
      * </ul>
+     * @throws Exception fail
      */
     @Test
     public void testNameConstraints() throws Exception {
@@ -2255,6 +2258,7 @@ public class CertToolsTest {
     
     /**
      * Tests preventing heap overflow during getCertsFromPEM()
+     * @throws Exception fail
      */
     @Test
     public void testPreventingHeapOverflowDuringGetCertsFromPEM() throws Exception {
@@ -2287,6 +2291,7 @@ public class CertToolsTest {
     
     /**
      * Tests preventing heap overflow during getCertsFromByteArray for X509Certificate.class
+     * @throws Exception fail
      */
     @Test
     public void testPreventingHeapOverflowDuringGetCertsFromByteArray() throws Exception {
@@ -2318,8 +2323,8 @@ public class CertToolsTest {
     }
 
     /** Test CertTools methods for reading CertificatePolicy information from a certificate
-     * @throws CertificateParsingException 
-     * @throws IOException 
+     * @throws CertificateParsingException  fail
+     * @throws IOException fail
      */
     @Test
     public void testCertificatePolicies() throws CertificateParsingException, IOException {

@@ -40,6 +40,7 @@ public class SecurityFilterInputStreamTest {
      * @param payloadSize
      *      payloadSize of string that is going to be generated; use high value for exploit (etc. 0x1FFFFFFF);
      *      also be aware that some high values could throw heap error on attacker's JVM
+     * @throws IOException fail
      */
     public static void prepareExploitStream(final OutputStream outputStream, final long payloadSize) throws IOException {
 
@@ -72,6 +73,7 @@ public class SecurityFilterInputStreamTest {
 
     /**
      * Test preventing exploit by checking its size with SecurityFilterInputStream
+     * @throws Exception fail
      */
     @Test
     public void testPreventingTheStringBuilderExploit() throws Exception {
@@ -104,6 +106,7 @@ public class SecurityFilterInputStreamTest {
 
     /**
      * Test if good input stream (size < SecurityFilterInputStream.maxBytes) can be filtered
+     * @throws Exception fail
      */
     @Test
     public void testAcceptedSizeInputStream() throws Exception {

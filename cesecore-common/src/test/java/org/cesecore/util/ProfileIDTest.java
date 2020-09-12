@@ -80,7 +80,7 @@ public class ProfileIDTest {
 	}
 	/**
 	 * Simulates real behavior. We check that the ID never has been generated before.
-	 * Check the log and see that {@link ProfileID#getNotUsedID(ProfileID.DB)} only calls {@link ProfileID.DB#isFree(Integer)} once in almost all test.
+	 * Check the log and see that {@link ProfileID#getNotUsedID(ProfileID.DB)} only calls {@link ProfileID.DB#isFree} once in almost all test.
 	 */
 	@Test
 	public void testReal() {

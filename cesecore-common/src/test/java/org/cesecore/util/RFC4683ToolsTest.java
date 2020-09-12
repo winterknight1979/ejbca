@@ -34,7 +34,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
- * (see {@link https://tools.ietf.org/html/rfc4683}).
+ * (see <a href="https://tools.ietf.org/html/rfc4683">RFC4683</a>).
  * 
  * @version $Id: RFC4683ToolsTest.java 25221 2017-02-08 14:24:59Z anatom $
  */

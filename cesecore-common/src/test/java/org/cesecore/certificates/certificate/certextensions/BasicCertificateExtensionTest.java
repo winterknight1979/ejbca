@@ -418,6 +418,7 @@ public class BasicCertificateExtensionTest {
 	 *
 	 * There should be an exception if no value was specified in ExtendedInformation.
 	 * But it should succeed if an value was specified in ExtendedInformation.
+	 * @throws Exception fail
 	 */
 	@Test
 	public void test13DynamicTrueNoStatic() throws Exception {
@@ -455,6 +456,7 @@ public class BasicCertificateExtensionTest {
 	 *
 	 * The static value should be used if no value was specified in ExtendedInformation.
 	 * The value from ExtendedInformation should be used if present.
+	 * @throws Exception fail
 	 */
     @Test
 	public void test14DynamicTrueStatic() throws Exception {
@@ -486,6 +488,7 @@ public class BasicCertificateExtensionTest {
 	 *
 	 * The static values should be used if no value was specified in ExtendedInformation.
 	 * The values from ExtendedInformation should be used if present.
+	 * @throws Exception fail
 	 */
     @SuppressWarnings("unchecked")
     @Test
@@ -541,6 +544,7 @@ public class BasicCertificateExtensionTest {
 	 *
 	 * The static value should be used regardless of there was a value in 
 	 * ExtendedInformation or not.
+	 * @throws Exception fail
 	 */
     @Test
 	public void test16DynamicDefaultsToFalse() throws Exception {
@@ -569,6 +573,7 @@ public class BasicCertificateExtensionTest {
 	/**
 	 * Same as test16DynamicDefaultsToFalse but with dynamic explicitly set to
 	 *  false.
+	 * @throws Exception fail
 	 */
     @Test
 	public void test17DynamicFalse() throws Exception {
@@ -597,6 +602,7 @@ public class BasicCertificateExtensionTest {
 	
 	/**
 	 * Test with dynamic=true and value specified with key 1.2.3.value=.
+	 * @throws Exception fail
 	 */
     @Test
 	public void test18DynamicValueValue() throws Exception {
@@ -622,6 +628,7 @@ public class BasicCertificateExtensionTest {
 	
     /**
      * Test using encoding=RAW and both dynamic and static value.
+     * @throws Exception fail
      */
     @Test
 	public void test19RawValue() throws Exception {
@@ -680,6 +687,7 @@ public class BasicCertificateExtensionTest {
 
     /**
      * Test using encoding=RAW and only dynamic value.
+     * @throws Exception fail
      */
     @Test
 	public void test21RawValueNotSpecified() throws Exception {
@@ -707,6 +715,7 @@ public class BasicCertificateExtensionTest {
         
     /**
      * Test without any value specified.
+     * @throws Exception fail
      */
     @Test
     public void test22ValueNotSpecified() throws Exception{
@@ -727,6 +736,7 @@ public class BasicCertificateExtensionTest {
     /**
      * Test using encoding=RAW but nvalues > 1 specified which is a
      * configuration error.
+     * @throws Exception fail
      */
     @Test
 	public void test23RawValueButNValues() throws Exception {

@@ -126,7 +126,9 @@ public class CachingKeyStoreWrapperTest {
         Assert.assertFalse("Alias of removed key pair still exist.", isContainsAlias(cachingKeyStoreWrapper, alias));
     }
 
-    /** @return the count of aliases the wrapped key store claims to exist */
+    /** @param cachingKeyStoreWrapper wrapper
+     * @return the count of aliases the wrapped key store claims to exist 
+     * @throws KeyStoreException fail*/
     private int getAliasCount(final CachingKeyStoreWrapper cachingKeyStoreWrapper) throws KeyStoreException {
         final Enumeration<String> aliasEnumeration = cachingKeyStoreWrapper.aliases();
         int aliasCount = 0;
@@ -137,7 +139,10 @@ public class CachingKeyStoreWrapperTest {
         return aliasCount;
     }
 
-    /** @return true if the wrapped key store claims the alias exist */
+    /** @param cachingKeyStoreWrapper wrapper
+     * @param alias alias
+     * @return true if the wrapped key store claims the alias exist 
+     * @throws KeyStoreException fail */
     private boolean isContainsAlias(final CachingKeyStoreWrapper cachingKeyStoreWrapper, final String alias) throws KeyStoreException {
         final Enumeration<String> aliasEnumeration = cachingKeyStoreWrapper.aliases();
         while (aliasEnumeration.hasMoreElements()) {

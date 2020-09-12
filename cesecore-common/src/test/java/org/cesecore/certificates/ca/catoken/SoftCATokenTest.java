@@ -140,8 +140,8 @@ public class SoftCATokenTest extends CATokenTestBase {
 	 * trying to use default pwd, if pwd is not specified.
 	 * Also the auto activation pin is not set when nodefaultpwd == false.
 	 * 
-	 * @param useAutoActivationPin
-	 * @return
+	 * @param useAutoActivationPin PIN
+	 * @return token
 	 */
 	private CryptoToken createSoftToken(boolean useAutoActivationPin) {
 		CryptoToken cryptoToken = SoftCryptoTokenTest.createSoftToken(true);

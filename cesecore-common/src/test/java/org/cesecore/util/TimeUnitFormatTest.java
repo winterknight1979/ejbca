@@ -64,6 +64,7 @@ public class TimeUnitFormatTest {
      * Tests the default parser and formatter (with '*y *mo *d *h *m *s *ms'). 
      * Both methods of the test object (a.parseMillis() and a.format()) are tested here, to not to double code.
      * Values with '0' are not rendered (i.e. '1y 0mo' -> '1y').
+     * @throws Exception fail
      */
     @Test
     public void testParserAndFormatter() throws Exception {
@@ -177,6 +178,7 @@ public class TimeUnitFormatTest {
      * Tests the default parser and formatter (with '*y *mo *d *h *m *s *ms'). 
      * Both methods of the test object (a.parseMillis() and a.format()) are tested here, to not to double code.
      * Values with '0' are not rendered (i.e. '1y 0mo' -> '1y').
+     * @throws Exception fail
      */
     @Test
     public void test02ParserAndFormatterForSecondsPrecision() throws Exception {
@@ -202,6 +204,7 @@ public class TimeUnitFormatTest {
      * Tests the default parser and formatter (with '*y *mo *d *h *m *s *ms'). 
      * Both methods of the test object (a.parseMillis() and a.format()) are tested here, to not to double code.
      * Values with '0' are not rendered (i.e. '1y 0mo' -> '1y').
+     * @throws Exception fail
      */
     @Test
     public void test03ParserAndFormatterForDaysPrecision() throws Exception {

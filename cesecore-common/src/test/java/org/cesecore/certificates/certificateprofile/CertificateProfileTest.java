@@ -673,7 +673,8 @@ public class CertificateProfileTest {
         assertEquals("https://example.com/pds.pdf", pdsList.get(0).getUrl());
     }
 
-    /** Initializes a data hash map. This does not (yet) initialize the full data hashmap from "v1", so it might be necessary to add additional properties in the future. */
+    /** Initializes a data hash map. This does not (yet) initialize the full data hashmap from "v1", so it might be necessary to add additional properties in the future. 
+     * @param data data*/
     private void initDataMap(final Map<String, Object> data) {
         data.put(UpgradeableDataHashMap.VERSION, 1.0F);
         data.put(CertificateProfile.AVAILABLEBITLENGTHS, new ArrayList<>(Arrays.asList(1024)));

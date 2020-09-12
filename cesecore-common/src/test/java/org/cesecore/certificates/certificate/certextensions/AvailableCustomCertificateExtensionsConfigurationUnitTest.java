@@ -27,7 +27,7 @@ import org.junit.Test;
 
 /**
  * Unit test of {@link AvailableCustomCertificateExtensionsConfiguration}.
- * @see org.cesecore.certificates.certificate.AvailableCustomCertExtensionsConfigTest AvailableCustomCertExtensionsConfigTest (related system test)
+ * see org.cesecore.certificates.certificate.AvailableCustomCertExtensionsConfigTest AvailableCustomCertExtensionsConfigTest (related system test)
  * @version $Id: AvailableCustomCertificateExtensionsConfigurationUnitTest.java 30621 2018-11-26 09:44:13Z samuellb $
  */
 public class AvailableCustomCertificateExtensionsConfigurationUnitTest {
@@ -39,6 +39,7 @@ public class AvailableCustomCertificateExtensionsConfigurationUnitTest {
 
     /**
      * Tests the method that is used for parsing old certextensions.properties files from EJBCA 6.3.x and earlier.
+     * @throws Exception fail 
      */
     @Test
     public void testUpgradeParsing() throws Exception {

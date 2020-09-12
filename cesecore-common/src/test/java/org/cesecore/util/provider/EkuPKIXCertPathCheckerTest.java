@@ -127,8 +127,14 @@ public class EkuPKIXCertPathCheckerTest {
         assertFalse(validateCert(keyPair, CA, ekus4, ekus6));
     }
 
-    /** @return true if the extendedKeyUsage was accepted */
+    /** @param keyPair keys
+     * @param isCa CA
+     * @param actualOids OIDs
+     * @param requiredOids OIDs
+     * @return true if the extendedKeyUsage was accepted 
+     * @throws Exception fail */
     private boolean validateCert(KeyPair keyPair, boolean isCa, List<String> actualOids, List<String> requiredOids) throws Exception {
+    	
         final long now = System.currentTimeMillis();
         final List<Extension> additionalExtensions = new ArrayList<Extension>();
         if (actualOids!=null) {

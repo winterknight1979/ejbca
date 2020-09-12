@@ -118,9 +118,9 @@ public class SignWithWorkingAlgorithmTest {
      * First time for BC provider. Check that 5 tries are made until
      * SIGALG_SHA1_WITH_RSA_AND_MGF1 that is working is found. The key is too
      * short for first algorithms.
-     * @throws NoSuchProviderException
-     * @throws GeneralSecurityException
-     * @throws TaskWithSigningException 
+     * @throws NoSuchProviderException fail
+     * @throws GeneralSecurityException fail
+     * @throws TaskWithSigningException  fail
      */
     @Test
     public void n1BC512() throws NoSuchProviderException, GeneralSecurityException, TaskWithSigningException {
@@ -132,9 +132,9 @@ public class SignWithWorkingAlgorithmTest {
     }
     /**
      * Second time the right key is picked directly.
-     * @throws NoSuchProviderException
-     * @throws GeneralSecurityException
-     * @throws TaskWithSigningException 
+     * @throws NoSuchProviderException fail
+     * @throws GeneralSecurityException fail
+     * @throws TaskWithSigningException  fail
      */
     @Test
     public void n2BC2048() throws NoSuchProviderException, GeneralSecurityException, TaskWithSigningException {
@@ -146,9 +146,9 @@ public class SignWithWorkingAlgorithmTest {
     }
     /**
      * The provider SunRsaSign is not supporting MGF1 so we have to try one more time.
-     * @throws NoSuchProviderException
-     * @throws GeneralSecurityException
-     * @throws TaskWithSigningException 
+     * @throws NoSuchProviderException fail
+     * @throws GeneralSecurityException fail
+     * @throws TaskWithSigningException  fail
      */
     @Test
     public void n3SunRsaSign512() throws NoSuchProviderException, GeneralSecurityException, TaskWithSigningException {
@@ -160,9 +160,9 @@ public class SignWithWorkingAlgorithmTest {
     }
     /**
      * Second time the right key is picked directly.
-     * @throws NoSuchProviderException
-     * @throws GeneralSecurityException
-     * @throws TaskWithSigningException 
+     * @throws NoSuchProviderException fail
+     * @throws GeneralSecurityException fail
+     * @throws TaskWithSigningException  fail
      */
     @Test
     public void n4SunRsaSign2048() throws NoSuchProviderException, GeneralSecurityException, TaskWithSigningException {
@@ -174,9 +174,9 @@ public class SignWithWorkingAlgorithmTest {
     }
     /**
      * Just checking that right algorithm is stilled picked for the BC provider.
-     * @throws NoSuchProviderException
-     * @throws GeneralSecurityException
-     * @throws TaskWithSigningException 
+     * @throws NoSuchProviderException fail
+     * @throws GeneralSecurityException fail
+     * @throws TaskWithSigningException  fail
      */
     @Test
     public void n5BC1024() throws NoSuchProviderException, GeneralSecurityException, TaskWithSigningException {
@@ -188,9 +188,9 @@ public class SignWithWorkingAlgorithmTest {
     }
     /**
      * Just checking that right algorithm is stilled picked for the SunRsaSign provider.
-     * @throws NoSuchProviderException
-     * @throws GeneralSecurityException
-     * @throws TaskWithSigningException 
+     * @throws NoSuchProviderException fail
+     * @throws GeneralSecurityException fail
+     * @throws TaskWithSigningException  fail
      */
     @Test
     public void n6SunRsaSign1024() throws NoSuchProviderException, GeneralSecurityException, TaskWithSigningException {

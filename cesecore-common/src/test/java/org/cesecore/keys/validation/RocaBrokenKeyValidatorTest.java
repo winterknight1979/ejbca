@@ -53,6 +53,8 @@ public class RocaBrokenKeyValidatorTest {
 
     /**
      * Run a test on a known bad key (from https://github.com/crocs-muni/roca/blob/master/roca/tests/data/csr05.pem)
+     * @throws NoSuchAlgorithmException fail
+     * @throws InvalidKeySpecException fail
      */
     @Test
     public void testKnownBadKey() throws NoSuchAlgorithmException, InvalidKeySpecException {        
@@ -65,6 +67,8 @@ public class RocaBrokenKeyValidatorTest {
     
     /**
      * Run a test on a known good key 
+     * @throws NoSuchAlgorithmException fail
+     * @throws InvalidKeySpecException fail
      */
     @Test
     public void testKnownGoodKey() throws NoSuchAlgorithmException, InvalidKeySpecException {        

@@ -59,17 +59,17 @@ public abstract class CryptoTokenTestBase {
     }
 
     /**
-     * @param cryptoToken
-     * @throws KeyStoreException
-     * @throws NoSuchAlgorithmException
-     * @throws CertificateException
-     * @throws IOException
-     * @throws CryptoTokenOfflineException
-     * @throws NoSuchProviderException
-     * @throws InvalidKeyException
-     * @throws SignatureException
-     * @throws CryptoTokenAuthenticationFailedException
-     * @throws InvalidAlgorithmParameterException
+     * @param cryptoToken token
+     * @throws KeyStoreException fail
+     * @throws NoSuchAlgorithmException fail
+     * @throws CertificateException fail
+     * @throws IOException fail
+     * @throws CryptoTokenOfflineException fail
+     * @throws NoSuchProviderException fail
+     * @throws InvalidKeyException fail
+     * @throws SignatureException fail
+     * @throws CryptoTokenAuthenticationFailedException fail
+     * @throws InvalidAlgorithmParameterException fail
      */
     protected void doCryptoTokenRSA(CryptoToken cryptoToken) throws KeyStoreException,
             NoSuchAlgorithmException, CertificateException, IOException,
@@ -256,17 +256,21 @@ public abstract class CryptoTokenTestBase {
     }
 
     /**
-     * @param cryptoToken
-     * @throws KeyStoreException
-     * @throws NoSuchAlgorithmException
-     * @throws CertificateException
-     * @throws IOException
-     * @throws CryptoTokenOfflineException
-     * @throws NoSuchProviderException
-     * @throws InvalidKeyException
-     * @throws SignatureException
-     * @throws CryptoTokenAuthenticationFailedException
-     * @throws InvalidAlgorithmParameterException
+      * @param cryptoToken token
+     * @param curve1 curve 
+     * @param keyLen1 length
+     * @param curve2 curve
+     * @param keyLen2 length
+     * @throws KeyStoreException fail
+     * @throws NoSuchAlgorithmException fail
+     * @throws CertificateException fail
+     * @throws IOException fail
+     * @throws CryptoTokenOfflineException fail
+     * @throws NoSuchProviderException fail
+     * @throws InvalidKeyException fail
+     * @throws SignatureException fail
+     * @throws CryptoTokenAuthenticationFailedException fail
+     * @throws InvalidAlgorithmParameterException fail
      */
     protected void doCryptoTokenECC(CryptoToken cryptoToken, String curve1, int keyLen1, String curve2, int keyLen2) throws KeyStoreException,
             NoSuchAlgorithmException, CertificateException, IOException,
@@ -360,17 +364,17 @@ public abstract class CryptoTokenTestBase {
             }
 
     /**
-     * @param cryptoToken
-     * @throws KeyStoreException
-     * @throws NoSuchAlgorithmException
-     * @throws CertificateException
-     * @throws IOException
-     * @throws NoSuchProviderException
-     * @throws InvalidAlgorithmParameterException
-     * @throws InvalidKeyException
-     * @throws SignatureException
-     * @throws CryptoTokenOfflineException
-     * @throws CryptoTokenAuthenticationFailedException
+     *  * @param cryptoToken token
+     * @throws KeyStoreException fail
+     * @throws NoSuchAlgorithmException fail
+     * @throws CertificateException fail
+     * @throws IOException fail
+     * @throws CryptoTokenOfflineException fail
+     * @throws NoSuchProviderException fail
+     * @throws InvalidKeyException fail
+     * @throws SignatureException fail
+     * @throws CryptoTokenAuthenticationFailedException fail
+     * @throws InvalidAlgorithmParameterException fail
      */
     protected void doActivateDeactivate(CryptoToken cryptoToken)
             throws KeyStoreException, NoSuchAlgorithmException,
@@ -449,17 +453,17 @@ public abstract class CryptoTokenTestBase {
             }
 
     /**
-     * @param cryptoToken
-     * @throws CryptoTokenOfflineException
-     * @throws KeyStoreException
-     * @throws NoSuchProviderException
-     * @throws NoSuchAlgorithmException
-     * @throws CertificateException
-     * @throws IOException
-     * @throws InvalidKeyException
-     * @throws SignatureException
-     * @throws CryptoTokenAuthenticationFailedException
-     * @throws InvalidAlgorithmParameterException
+      * @param cryptoToken token
+     * @throws KeyStoreException fail
+     * @throws NoSuchAlgorithmException fail
+     * @throws CertificateException fail
+     * @throws IOException fail
+     * @throws CryptoTokenOfflineException fail
+     * @throws NoSuchProviderException fail
+     * @throws InvalidKeyException fail
+     * @throws SignatureException fail
+     * @throws CryptoTokenAuthenticationFailedException fail
+     * @throws InvalidAlgorithmParameterException fail
      */
     protected void doAutoActivate(CryptoToken cryptoToken)
             throws CryptoTokenOfflineException, KeyStoreException,

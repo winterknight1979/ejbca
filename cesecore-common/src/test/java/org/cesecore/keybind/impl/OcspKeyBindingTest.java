@@ -45,7 +45,6 @@ import org.cesecore.keybind.impl.OcspKeyBinding.ResponderIdType;
 import org.cesecore.keys.util.KeyTools;
 import org.cesecore.util.CertTools;
 import org.cesecore.util.CryptoProviderTools;
-import org.cesecore.util.ui.DynamicUiProperty;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -132,7 +131,18 @@ public class OcspKeyBindingTest {
         }
     }
 
-    /** @return A self-signed certificate. */
+    /** @param keyUsage usage
+     * @param extensions ext
+     * @return A self-signed certificate. 
+     * @throws InvalidAlgorithmParameterException fail
+     * @throws InvalidKeyException fail
+     * @throws NoSuchAlgorithmException fail 
+     * @throws SignatureException fail
+     * @throws IllegalStateException fail
+     * @throws NoSuchProviderException fail
+     * @throws OperatorCreationException fail
+     * @throws CertificateException fail
+     * @throws IOException fail */
     private X509Certificate getCertificate(final int keyUsage, final List<Extension> extensions) throws InvalidAlgorithmParameterException, InvalidKeyException, NoSuchAlgorithmException,
         SignatureException, IllegalStateException, NoSuchProviderException, OperatorCreationException, CertificateException, IOException {
         final KeyPair keyPair = KeyTools.genKeys("512", AlgorithmConstants.KEYALGORITHM_RSA);
@@ -140,7 +150,8 @@ public class OcspKeyBindingTest {
                 keyUsage, null, null, BouncyCastleProvider.PROVIDER_NAME, true, extensions);
     }
 
-    /** @return An extended key usage extension with id_kp_OCSPSigning set. */
+    /** @return An extended key usage extension with id_kp_OCSPSigning set. 
+     * @throws IOException fail*/
     private static Extension getExtendedKeyUsageExtension() throws IOException {
         final ASN1Encodable usage = KeyPurposeId.getInstance(KeyPurposeId.id_kp_OCSPSigning);
         final ASN1Sequence seq = ASN1Sequence.getInstance(new DERSequence(usage));

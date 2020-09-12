@@ -63,7 +63,11 @@ public class XmlSerializerTest {
 		log.trace("<serializeSpecialXmlChars");
 	}
 	
-	/** Make a round trip using a xml enc and dec. */
+	/** Make a round trip using a xml enc and dec. 
+	 * @param value val
+	 * @param useBase64 bool 
+	 * @param expectBase64 bool
+	 * @return object */
 	private Object encDecAsXml(String value, boolean useBase64, boolean expectBase64) {
 		final String KEY = "SomeKey";
 		final Map<String,Object> inputMap = new LinkedHashMap<>();

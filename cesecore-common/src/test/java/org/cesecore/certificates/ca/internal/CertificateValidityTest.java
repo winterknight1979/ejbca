@@ -614,6 +614,8 @@ public class CertificateValidityTest {
     
     /**
      * Returns true if the encoded validity given is no ISO8601 date.
+     * @param encodedValidity valid
+     * @return bool
      */
     private final boolean isRelativeTime(final String encodedValidity) {
         try {
@@ -625,12 +627,17 @@ public class CertificateValidityTest {
         }
     }
     
-    /** Compares the dates without milliseconds. */
+    /** Compares the dates without milliseconds. 
+     * @param leftSide date
+     * @param rightSide date
+     * @return bool */
     private final boolean equals(final Date leftSide, final Date rightSide) {
         return leftSide.getTime() / 1000 == rightSide.getTime() / 1000;
     }
     
-    /** Creates a boolean[] for all weekdays, where the weekdays value given is set to true. */
+    /** Creates a boolean[] for all weekdays, where the weekdays value given is set to true. 
+     * @param profile profile
+     * @param weekday date */
     private final void setExpirationRestrictionForWeekdays(final CertificateProfile profile, final int weekday) {
         for (int i = 1; i<=7; i++) {
             profile.setExpirationRestrictionWeekday(i, weekday == i);

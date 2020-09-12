@@ -31,7 +31,8 @@ public class ValidityDateTest {
     private static final String RELATIVE = "relative";
     private static final String ABSOLUTE = "absolute";
     
-    /** Since the test will run in different time zones we will test combined operations. */
+    /** Since the test will run in different time zones we will test combined operations. 
+     * @throws ParseException fail */
     @Test
     public void testParseFormat() throws ParseException {
         LOG.trace(">testParseFormat");

@@ -24,7 +24,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -77,6 +76,7 @@ public class SecureXMLDecoderTest {
     
     /**
      * Test deserialization of Lists and Maps.
+     * @throws IOException fail
      */
     @Test
     public void testBasicCollections() throws IOException {
@@ -112,6 +112,7 @@ public class SecureXMLDecoderTest {
     
     /**
      * Tests encoding and decoding an enum 
+     * @throws IOException fail
      */
     @Test
     public void testEnum() throws IOException {        
@@ -128,7 +129,7 @@ public class SecureXMLDecoderTest {
     
     /**
      * Encodes a complex value with the standard XMLEncoder and tries to decode it again.
-     * @throws UnsupportedEncodingException 
+     * @throws IOException fail
      */
     @Test
     public void testComplexEncodeDecode() throws IOException {
@@ -227,7 +228,8 @@ public class SecureXMLDecoderTest {
         public void setBooleanValue(boolean booleanValue) { this.booleanValue = booleanValue; }
     }
 
-    /** Tests properties with primitive types */
+    /** Tests properties with primitive types 
+     * @throws IOException fail */
     @Test
     public void testPrimitiveTypeProperty() throws IOException {
         log.trace(">testPrimitiveTypeProperty");
@@ -245,7 +247,8 @@ public class SecureXMLDecoderTest {
         log.trace("<testPrimitiveTypeProperty");
     }
     
-    /** Tests property with null value */
+    /** Tests property with null value 
+     * @throws IOException fail */
     @Test
     public void testNullProperty() throws IOException {
         log.trace(">testNullProperty");
@@ -260,7 +263,8 @@ public class SecureXMLDecoderTest {
         log.trace("<testNullProperty");
     }
 
-    /** Tests decoding of an empty object */
+    /** Tests decoding of an empty object 
+     * @throws IOException fail */
     @Test
     public void testEmptyObject() throws IOException {
         log.trace(">testEmptyObject");
@@ -275,7 +279,8 @@ public class SecureXMLDecoderTest {
         log.trace("<testEmptyObject");
     }
 
-    /** Tests properties with referenced object */
+    /** Tests properties with referenced object 
+     * @throws IOException fail */
     @Test
     public void testReferencedObject() throws IOException {
         log.trace(">testReferencedObject");
@@ -375,6 +380,8 @@ public class SecureXMLDecoderTest {
     
     /**
      * Decodes an XML string with both the standard XMLDecoder and with SecureXMLDecoder, and compares the resulting objects.
+     * @param xml fail
+     * @throws IOException fail
      */
     private void decodeCompare(final String xml) throws IOException {
         decodeCompare(xml.getBytes());

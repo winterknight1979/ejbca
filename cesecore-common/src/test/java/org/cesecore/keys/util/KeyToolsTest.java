@@ -608,6 +608,7 @@ public class KeyToolsTest {
 
     /**
      * Tests {@link KeyTools#getBytesFromPEM} and {@link KeyTools#getBytesFromPublicKeyFile}
+     * @throws Exception fail
      */
     @Test
     public void testGetBytes() throws Exception {

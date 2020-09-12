@@ -20,6 +20,7 @@ package org.cesecore.keys.validation;
 
 import static org.junit.Assert.assertEquals;
 
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.security.KeyFactory;
 import java.security.PublicKey;
@@ -116,7 +117,7 @@ public class RsaKeyValidatorTest {
         keyValidator.setPublicKeyModulusMinFactor(2);
         keyValidator.setPublicKeyModulusMinFactor(-4);
         Assert.assertEquals("Test should not fail, validator field can not be set to a negative value ",
-                keyValidator.getPublicKeyModulusMinFactor(), new Integer("2"));
+                keyValidator.getPublicKeyModulusMinFactor(), Integer.valueOf("2"));
         log.trace("<testNoNegativeNumbers()");
    }
 
@@ -346,9 +347,18 @@ public class RsaKeyValidatorTest {
     }
 
     /** Tests public key validation for the ROCA vulnerable key generation. CVE-2017-15361
+     * @throws CertificateParsingException fail
+     * @throws InstantiationException fail
+     * @throws IllegalAccessException fail
+     * @throws ValidatorNotApplicableException fail 
+     * @throws ValidationException fail
+     * @throws SecurityException fail
+     * @throws NoSuchMethodException fail
+     * @throws InvocationTargetException fail
+     * @throws IllegalArgumentException fail
      */
     @Test
-    public void testRocaWeakKeys() throws CertificateParsingException, InstantiationException, IllegalAccessException, ValidatorNotApplicableException, ValidationException {
+    public void testRocaWeakKeys() throws CertificateParsingException, InstantiationException, IllegalAccessException, ValidatorNotApplicableException, ValidationException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
         log.trace(">testRocaWeakKeys()");
         X509Certificate noroca = CertTools.getCertfromByteArray(noRocaCert, X509Certificate.class);
         X509Certificate roca = CertTools.getCertfromByteArray(rocaCert, X509Certificate.class);

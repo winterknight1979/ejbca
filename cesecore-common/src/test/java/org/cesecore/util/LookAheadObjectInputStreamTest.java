@@ -104,7 +104,6 @@ public class LookAheadObjectInputStreamTest {
     private static class BadDog implements AnimalInterface {
         private static final long serialVersionUID = 7L;
         public Object object;
-        public GoodClass1 goodClass1 = new GoodClass1(123);
 
         public BadDog(final Object object) {
             this.object = object;
@@ -142,6 +141,7 @@ public class LookAheadObjectInputStreamTest {
 
     /**
      * Test that accepted java objects can be deserialized
+     * @throws Exception fail
      */
     @Test
     public void testDeserializingAcceptedJavaObject() throws Exception {
@@ -160,6 +160,7 @@ public class LookAheadObjectInputStreamTest {
 
     /**
      * Test that non-accepted java objects can NOT be deserialized (SecurityException has to be thrown)
+     * @throws Exception fail
      */
     @Test
     public void testDeserializingNonAcceptedJavaObject() throws Exception {
@@ -181,6 +182,7 @@ public class LookAheadObjectInputStreamTest {
 
     /**
      * Test that non-initialized LookAheadObjectInputStream can not read any objects (except default (primitive) ones)
+     * @throws Exception fail
      */
     @Test
     public void testNonInitializedLookAheadObjectInputStream() throws Exception {
@@ -202,6 +204,7 @@ public class LookAheadObjectInputStreamTest {
 
     /**
      * Test that array of accepted java objects can be deserialized
+     * @throws Exception fail
      */
     @Test
     public void testDeserializingAcceptedJavaObjectArray() throws Exception {
@@ -220,6 +223,7 @@ public class LookAheadObjectInputStreamTest {
     /**
      * Test that array of non-accepted java objects can NOT be deserialized (SecurityException has to be thrown).
      * Although deserialization of non-accepted class is not exploit by itself, it seems natural to not allow it.
+     * @throws Exception fail
      */
     @Test
     public void testDeserializingNonAcceptedJavaObjectArray() throws Exception {
@@ -241,6 +245,7 @@ public class LookAheadObjectInputStreamTest {
 
     /**
      * Test that array of mixed (accepted and non-accepted) objects can NOT be deserialized
+     * @throws Exception fail
      */
     @Test
     public void testDeserializingMixedObjectArray() throws Exception {
@@ -281,6 +286,7 @@ public class LookAheadObjectInputStreamTest {
     
     /**
      * Test limiting maximum count of objects that can be deserialized
+     * @throws Exception fail
      */
     @Test
     public void testLimitingMaxObjects() throws Exception {
@@ -307,6 +313,7 @@ public class LookAheadObjectInputStreamTest {
     /**
      * Test that Primitive types (boolean, char, int,...), their wrappers (Boolean, Character, Integer,...) and String class
      * can always be deserialized
+     * @throws Exception fail
      */
     @Test
     public void testDeserializingPrimitiveTypes() throws Exception {
@@ -369,6 +376,7 @@ public class LookAheadObjectInputStreamTest {
 
     /**
      * Test deserializing subclass
+     * @throws Exception fail
      */
     @Test
     public void testDeserializingExtendedClasses() throws Exception {
@@ -392,6 +400,7 @@ public class LookAheadObjectInputStreamTest {
 
     /**
      * Test deserializing inherited class without allowing the superclass
+     * @throws Exception fail
      */
     @Test
     public void testDeserializingExtendedClassesWithoutAllowingSuperclass() throws Exception {
@@ -437,6 +446,7 @@ public class LookAheadObjectInputStreamTest {
 
     /**
      * Test deserializing interface implementations
+     * @throws Exception fail
      */
     @Test
     public void testDeserializingInterfaceImplementationDenied() throws Exception {
@@ -460,6 +470,7 @@ public class LookAheadObjectInputStreamTest {
 
     /**
      * Test deserializing interface implementations where implementation is not belonging to the correct package
+     * @throws Exception fail
      */
     @Test
     public void testDeserializingInterfaceImplementationRestrictedToPackageFail() throws Exception {
@@ -484,6 +495,7 @@ public class LookAheadObjectInputStreamTest {
 
     /**
      * Test deserializing interface implementations where implementation is not belonging to the correct package
+     * @throws Exception fail
      */
     @Test
     public void testDeserializingInterfaceImplementationRestrictedToPackageOk() throws Exception {
@@ -504,6 +516,7 @@ public class LookAheadObjectInputStreamTest {
 
     /**
      * Test deserializing interface implementations
+     * @throws Exception fail
      */
     @Test
     public void testDeserializingInterfaceImplementationAllowedWithoutSubclassing() throws Exception {
@@ -524,6 +537,7 @@ public class LookAheadObjectInputStreamTest {
 
     /**
      * Test deserializing interface implementations (when also subclassing is enabled)
+     * @throws Exception fail
      */
     @Test
     public void testDeserializingInterfaceImplementationAllowedWithSubclassing() throws Exception {
@@ -544,6 +558,7 @@ public class LookAheadObjectInputStreamTest {
 
     /**
      * Test deserializing class where field object is not whitelisted
+     * @throws Exception fail
      */
     @Test
     public void testDeserializingWithNonWhitelistedField() throws Exception {
@@ -564,7 +579,8 @@ public class LookAheadObjectInputStreamTest {
         log.trace("<" + Thread.currentThread().getStackTrace()[1].getMethodName());
     }
     
-    /** Test commonly serialized class combo */
+    /** Test commonly serialized class combo 
+     * @throws Exception fail*/
     @Test
     public void testAuthenticationToken() throws Exception {
         log.trace(">" + Thread.currentThread().getStackTrace()[1].getMethodName());

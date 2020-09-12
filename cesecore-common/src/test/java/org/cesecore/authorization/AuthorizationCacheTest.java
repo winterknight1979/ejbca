@@ -119,7 +119,9 @@ public class AuthorizationCacheTest {
         log.trace("<testBasicOperations");
     }
 
-    /** Test already cached entries are reloaded if there is an update to the authorization system */
+    /** Test already cached entries are reloaded if there is an update to the authorization system 
+     * @throws InterruptedException fail
+     * @throws AuthenticationFailedException fail  */
     @Test
     public void testSubscribeToAuthorizationCacheReload() throws InterruptedException, AuthenticationFailedException {
         log.trace(">testSubscribeToAuthorizationCacheReload");
@@ -184,7 +186,9 @@ public class AuthorizationCacheTest {
         log.trace("<testSubscribeToAuthorizationCacheReload");
     }
 
-    /** Test cache refresh similar to what AuthorizationSessionBean timeout performs on the cache */
+    /** Test cache refresh similar to what AuthorizationSessionBean timeout performs on the cache 
+     * @throws InterruptedException fail
+     * @throws AuthenticationFailedException fail */
     @Test
     public void testAuthorizationCacheRefresh() throws InterruptedException, AuthenticationFailedException {
         log.trace(">testAuthorizationCacheRefresh");
@@ -249,7 +253,8 @@ public class AuthorizationCacheTest {
         log.trace("<testAuthorizationCacheRefresh");
     }
 
-    /** Verify that only one of many calling threads for a cache entry will do the actual database lookup. */
+    /** Verify that only one of many calling threads for a cache entry will do the actual database lookup. 
+     * @throws InterruptedException fail */
     @Test
     public void testConcurrentRead() throws InterruptedException {
         log.trace(">testConcurrentRead");

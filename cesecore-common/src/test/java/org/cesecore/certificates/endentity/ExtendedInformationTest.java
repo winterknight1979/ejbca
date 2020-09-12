@@ -47,7 +47,8 @@ public class ExtendedInformationTest {
             +"sLtaUfVr74y1FhDq55fqAY5+k0IpJVYGlOVsAAcx5O2jUKbxZHBSQnyVBLKczITY"
             +"PfoNI8s9NXa/fIfqp56llOPzDy3OcHc=";
 
-    @Test
+
+	@Test
     public void testExtendedInformationCSR() {
         // Test basic function, latest version->latest version
         ExtendedInformation ei = new ExtendedInformation();
@@ -66,7 +67,7 @@ public class ExtendedInformationTest {
         // As it was stored before EJBCA 6.8.0
         ExtendedInformation ei4 = new ExtendedInformation();
         LinkedHashMap<String,Object> map = new LinkedHashMap<String,Object>();
-        map.put(UpgradeableDataHashMap.VERSION, new Float(4));
+        map.put(UpgradeableDataHashMap.VERSION, Float.valueOf(4));
         map.put("CERTIFICATE_REQUEST", Base64.decode(pkcs10.getBytes(StandardCharsets.UTF_8)));
         ei4.setData(map);
         assertEquals(pkcs10, new String(Base64.encode(ei4.getCertificateRequest()), StandardCharsets.UTF_8));
