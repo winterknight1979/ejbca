@@ -1,0 +1,40 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>goldeneyes.ejbca</groupId>
+    <artifactId>ejbca</artifactId>
+    <version>1.0</version>
+  </parent>
+  <artifactId>cesecore-common-entity-tests</artifactId>
+  
+  <dependencies>
+  	<dependency>
+  		<groupId>${project.groupId}</groupId>
+  		<artifactId>cesecore-common</artifactId>
+  		<version>${project.version}</version>
+  		<scope>test</scope>
+  	</dependency>
+  	<dependency>
+  		<groupId>${project.groupId}</groupId>
+  		<artifactId>cesecore-entity</artifactId>
+  		<version>${project.version}</version>
+  		<scope>test</scope>
+  	</dependency>
+  	<dependency>
+  		<groupId>org.easymock</groupId>
+  		<artifactId>easymock</artifactId>
+  		<scope>test</scope>
+  	</dependency>
+  	<dependency>
+  		<artifactId>junit</artifactId>
+  		<groupId>junit</groupId>
+  	</dependency>
+  
+  </dependencies>
+  
+  <description>This module contains tests for cesecore-common that depend on classes from cesecore-entity.
+
+Because Maven runs the tests immediately after building each induvidual jar, this creates a circular dependency.
+
+These tests have therefore been folded out into their own module.</description>
+</project>
