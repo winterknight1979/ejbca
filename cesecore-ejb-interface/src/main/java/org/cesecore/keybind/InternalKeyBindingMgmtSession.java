@@ -132,7 +132,7 @@ public interface InternalKeyBindingMgmtSession {
 
     /**
      * A createInternalKeyBinding() that chooses the id of the new object automatically.
-     *  * @param authenticationToken is the authentication token
+     * @param authenticationToken is the authentication token
      * @param type is the alias of the registered InternalKeyBinding's type
      * @param name is the unique name that this InternalKeyBinding will be given
      * @param status the initial status to give the InternalKeyBinding

@@ -213,12 +213,12 @@ public interface CertificateStoreSession {
     /**
      * The method retrieves all certificates from a specific issuer which are
      * identified by list of serial numbers. The collection will be empty if the
-     * issuerDN is <tt>null</tt>/empty or the collection of serial numbers is
+     * issuerDN is {@code null}/empty or the collection of serial numbers is
      * empty.
      * 
      * @param issuerDN the subjectDN of a CA certificate
      * @param sernos a collection of certificate serialnumbers
-     * @return Collection a list of certificates; never <tt>null</tt>
+     * @return Collection a list of certificates; never {@code null}
      */
     Collection<Certificate> findCertificatesByIssuerAndSernos(String issuerDN, Collection<BigInteger> sernos);
 
@@ -325,11 +325,11 @@ public interface CertificateStoreSession {
      * given from a specific issuer.
      *
      * @param issuerDN get all certificates issued by a specific issuer.
-     *                 If <tt>null</tt> or empty return certificates regardless of
+     *                 If {@code null} or empty return certificates regardless of
      *                 the issuer.
      * @param type     CERTTYPE_* types from CertificateConstants
      * @throws IllegalArgumentException when admin is null or type is not one or more of of SecConst.CERTTYPE_SUBCA, SecConst.CERTTYPE_ENDENTITY, SecConst.CERTTYPE_ROOTCA
-     * @return Collection of Certificate, never <tt>null</tt>
+     * @return Collection of Certificate, never {@code null}
      */
     Collection<CertificateWrapper> findCertificatesByType(int type, String issuerDN);
 

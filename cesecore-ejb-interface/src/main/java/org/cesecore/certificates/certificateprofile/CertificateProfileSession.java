@@ -22,7 +22,7 @@ import org.cesecore.authorization.AuthorizationDeniedException;
  * 
  * In order to add or edit CertificateProfiles the admin needs access to:
  * - /ca_functionality/edit_certificate_profiles (StandardRules.CERTIFICATEPROFILEEDIT)
- * - the CAs set as "available CAs" with CA rules as /ca/<caid> (StandardRules.CAACCESS)
+ * - the CAs set as "available CAs" with CA rules as /ca/&lt;caid&gt; (StandardRules.CAACCESS)
  * - if "available CAs" contains ANYCA (-1) the -1 caid privilege is needed.
  *
  * @version $Id: CertificateProfileSession.java 29410 2018-06-29 09:44:31Z mikekushner $

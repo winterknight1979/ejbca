@@ -91,12 +91,12 @@ public interface CertificateDataSessionLocal extends CertificateDataSession {
     Set<String> findUsernamesBySubjectKeyIdOrDnAndIssuer(String issuerDN, String subjectKeyId, String subjectDN);
     
     /** @param issuerDN Issuer DN
-     * @return return the query results as a List<String>. */
+     * @return return the query results as a List&lt;String&gt;. */
     List<String> findFingerprintsByIssuerDN(String issuerDN);
     
     /** @param issuerDN Issuer DN
      * @param lastbasecrldate CRL date
-     * @return return the query results as a Collection<RevokedCertInfo>. */
+     * @return return the query results as a Collection&lt;RevokedCertInfo&gt;. */
     Collection<RevokedCertInfo> getRevokedCertInfos(String issuerDN, long lastbasecrldate);
     
     /** @param expireDate Date
@@ -142,14 +142,14 @@ public interface CertificateDataSessionLocal extends CertificateDataSession {
     CertificateInfo getCertificateInfo(String fingerprint);
     
     /** @param certificateTypes Types
-     * @return a List<Certificate> of SecConst.CERT_ACTIVE and CERT_NOTIFIEDABOUTEXPIRATION certs that have one of the specified types. */
+     * @return a List&lt;Certificate&gt; of SecConst.CERT_ACTIVE and CERT_NOTIFIEDABOUTEXPIRATION certs that have one of the specified types. */
     List<Certificate> findActiveCertificatesByType(Collection<Integer> certificateTypes);
     
     
     /**
      * @param certificateTypes Types
      * @param issuerDN Issuer DN 
-     * @return a List<Certificate> of SecConst.CERT_ACTIVE and CERT_NOTIFIEDABOUTEXPIRATION certs that have one of the specified types for the given
+     * @return a List&lt;Certificate&gt; of SecConst.CERT_ACTIVE and CERT_NOTIFIEDABOUTEXPIRATION certs that have one of the specified types for the given
      *         issuer.
      */
     List<Certificate> findActiveCertificatesByTypeAndIssuer(Collection<Integer> certificateTypes, String issuerDN);
@@ -166,12 +166,12 @@ public interface CertificateDataSessionLocal extends CertificateDataSession {
      *
      * The first is checked by:
      *
-     * notify = currRunTimestamp + thresHold <= ExpireDate < nextRunTimestamp + thresHold
+     * notify = currRunTimestamp + thresHold &lt;= ExpireDate &lt; nextRunTimestamp + thresHold
      *          AND (status = ACTIVE OR status = NOTIFIEDABOUTEXPIRATION)
      *
      * The second can be checked by:
      *
-     * notify = currRunTimestamp + thresHold > ExpireDate AND status = ACTIVE
+     * notify = currRunTimestamp + thresHold &gt; ExpireDate AND status = ACTIVE
      *
      * @param cas A list of CAs that the sought certificates should be issued from
      * @param certificateProfiles A list if certificateprofiles to sort from. Will be ignored if left empty.

@@ -176,7 +176,7 @@ public interface CaSessionLocal extends CaSession {
      * Returns a HashMap containing mappings of caid (Integer) to CA name
      * (String) of all CAs in the system.
      * 
-     * @return HashMap with Integer->String mappings
+     * @return HashMap with Integer-&gt;String mappings
      */
     HashMap<Integer,String> getCAIdToNameMap();
     
@@ -185,7 +185,7 @@ public interface CaSessionLocal extends CaSession {
      * (String) of all active and uninitialized CAs in the system that the admin is authorized to.
      * @param authenticationToken Auth token
      * 
-     * @return HashMap with Integer->String mappings
+     * @return HashMap with Integer-&gt;String mappings
      */
     Map<Integer, String> getActiveCAIdToNameMap(final AuthenticationToken authenticationToken);
 

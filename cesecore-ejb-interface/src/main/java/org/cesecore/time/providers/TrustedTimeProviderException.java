@@ -31,6 +31,7 @@ public class TrustedTimeProviderException extends Exception {
     }
 
     /**
+     * @param message message
      * @see Exception#Exception(String)
      */
     public TrustedTimeProviderException(String message)
@@ -39,6 +40,8 @@ public class TrustedTimeProviderException extends Exception {
     }
 
     /**
+     * @param message message
+     * @param cause cause
      * @see Exception#Exception(String,Throwable)
      */
     public TrustedTimeProviderException(String message, Throwable cause)
@@ -47,6 +50,7 @@ public class TrustedTimeProviderException extends Exception {
     }
 
     /**
+     * @param cause cause
      * @see Exception#Exception(Throwable)
      */
     public TrustedTimeProviderException(Throwable cause)

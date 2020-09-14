@@ -52,7 +52,7 @@ public interface CertificateCreateSessionLocal extends CertificateCreateSession 
 	 */
 	boolean isUniqueCertificateSerialNumberIndex();
 	
-	/** Creates the certificate. This is the same method as createCertificate(AuthenticationToken admin, EndEntityInformation userData, RequestMessage req, Class<? extends ResponseMessage> responseClass)
+	/** Creates the certificate. This is the same method as createCertificate(AuthenticationToken admin, EndEntityInformation userData, RequestMessage req, Class&lt;? extends ResponseMessage&gt; responseClass)
 	 * but also taking a CA as argument. the reason for this is that if we already have fetched the CA, going through access control etc there is no need to do the same thing again.
 	 * 
      * @param admin         Information about the administrator or admin performing the event.
@@ -147,7 +147,7 @@ public interface CertificateCreateSessionLocal extends CertificateCreateSession 
      * @param keyusage integer with bit mask describing desired keys usage, may be ignored by the CA. Bit mask is packed in in integer using constants
      *            from CertificateConstants. ex. int keyusage = CertificateConstants.digitalSignature | CertificateConstants.nonRepudiation; gives
      *            digitalSignature and nonRepudiation. ex. int keyusage = CertificateConstants.keyCertSign | CertificateConstants.cRLSign; gives
-     *            keyCertSign and cRLSign. Keyusage < 0 means that default keyUsage should be used, or should be taken from extensions in the request.
+     *            keyCertSign and cRLSign. Keyusage &lt; 0 means that default keyUsage should be used, or should be taken from extensions in the request.
      * @param notBefore an optional validity to set in the created certificate, if the profile allows validity override, null if the profiles default
      *            validity should be used.
      * @param notAfter an optional validity to set in the created certificate, if the profile allows validity override, null if the profiles default

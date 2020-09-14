@@ -94,7 +94,7 @@ public interface CaSession {
      * give access to the CAs but only returns IDs of CAs.
      * 
      * @param admin AuthenticationToken of admin
-     * @return a List<Integer> of available CA IDs
+     * @return a List&lt;Integer&gt; of available CA IDs
      */
      List<Integer> getAuthorizedCaIds(AuthenticationToken admin);
      
@@ -106,14 +106,14 @@ public interface CaSession {
       * give access to the CAs but only returns names of CAs.
       * 
       * @param admin AuthenticationToken of admin
-      * @return a Collection<String> of available CA names
+      * @return a Collection&lt;String&gt; of available CA names
       */
      Collection<String> getAuthorizedCaNames(AuthenticationToken admin);
      
      /**
       * Like {@link #getAuthorizedCaNames(AuthenticationToken)}, but returns a TreeMap which includes the CA Id as well.
       * @param admin AuthenticationToken of admin
-      * @return a Collection<String> of available CA names
+      * @return a Collection&lt;String&gt; of available CA names
       * @see #getAuthorizedCaNames
       */
      TreeMap<String,Integer> getAuthorizedCaNamesToIds(AuthenticationToken admin);
@@ -125,7 +125,7 @@ public interface CaSession {
       * give access to the CAs but only returns CAInfo of CAs.
       * 
       * @param authenticationToken AuthenticationToken of admin
-      * @return a List<CAInfo> of authorized CAs
+      * @return a List&lt;CAInfo&gt; of authorized CAs
       */
      List<CAInfo> getAuthorizedCaInfos(AuthenticationToken authenticationToken);
 
@@ -138,7 +138,7 @@ public interface CaSession {
       * give access to the CAs but only returns CAInfo of CAs.
       * 
       * @param authenticationToken AuthenticationToken of admin
-      * @return a List<CAInfo> of authorized and enabled CAs
+      * @return a List&lt;CAInfo&gt; of authorized and enabled CAs
       */
      List<CAInfo> getAuthorizedAndEnabledCaInfos(AuthenticationToken authenticationToken);
      
@@ -150,7 +150,7 @@ public interface CaSession {
       * give access to the CAs but only returns CAInfo of CAs.
       * 
       * @param authenticationToken AuthenticationToken of admin
-      * @return a List<CAInfo> of authorized and non-external CAs
+      * @return a List&lt;CAInfo&gt; of authorized and non-external CAs
       */
      List<CAInfo> getAuthorizedAndNonExternalCaInfos(AuthenticationToken authenticationToken);
      
@@ -160,7 +160,7 @@ public interface CaSession {
      * "waiting for certificate response"
      * 
      * @param admin AuthenticationToken of admin
-     * @return a List<String> of available CA names
+     * @return a List&lt;String&gt; of available CA names
      */
     List<String> getActiveCANames(final AuthenticationToken admin);
 

@@ -24,7 +24,7 @@ import org.cesecore.authorization.AuthorizationDeniedException;
 /**
  * Allows auditing of securely logged events.
  * 
- * @see <a href="https://www.cesecore.eu/mediawiki/index.php/Functional_Specifications_(ADV_FSP)#Audit_Security_Events}">Audit Security Events</a>
+ * @see <a href="https://www.cesecore.eu/mediawiki/index.php/Functional_Specifications_(ADV_FSP)#Audit_Security_Events">Audit Security Events</a>
  * 
  * @version $Id: IntegrityProtectedAuditorSessionLocal.java 17625 2013-09-20 07:12:06Z netmackan $
  */

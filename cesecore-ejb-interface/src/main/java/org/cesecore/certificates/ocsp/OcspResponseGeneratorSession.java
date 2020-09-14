@@ -22,7 +22,7 @@ import org.cesecore.certificates.ocsp.logging.TransactionLogger;
 /**
  * This interface is used to generate OCSP responses.
  * 
- * @see <a href="https://www.cesecore.eu/mediawiki/index.php/Functional_Specifications_(ADV_FSP)#OCSP_Response_Generation"O>OCSP Response Generation</a>
+ * @see <a href="https://www.cesecore.eu/mediawiki/index.php/Functional_Specifications_(ADV_FSP)#OCSP_Response_Generation">OCSP Response Generation</a>
  * 
  * @version $Id: OcspResponseGeneratorSession.java 22476 2015-12-17 13:01:45Z jeklund $
  * 

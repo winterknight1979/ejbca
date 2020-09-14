@@ -51,7 +51,7 @@ public interface NoConflictCertificateStoreSession  {
     /**
      * EJBCA expects all certificate entities to have a fingerprint.
      * This method generates a dummy fingerprint, to be used in NoConflictCertificateData and for associated publisher queue entries.
-     * * @param issuerdn issuer DN of the desired certificate.
+     * @param issuerdn issuer DN of the desired certificate.
      * @param certserno serial number of the desired certificate!
      * @return Hex encoded fingerprint. It is unique per issuerdn/serial.
      */
