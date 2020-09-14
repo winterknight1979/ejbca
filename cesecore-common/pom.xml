@@ -112,7 +112,7 @@
 			<version>${project.version}</version>
 			<scope>compile</scope>
 		</dependency>
-	
+
 	</dependencies>
 
 	<build>
@@ -131,7 +131,43 @@
 			</resource>
 		</resources>
 
+
 		<plugins>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.2.0</version>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<phase>test-compile</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/target/test-classes</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.build.directory}/maven-shared-archive-resource/conf</directory>
+									<filtering>true</filtering>
+									<includes>
+										<include>systemtests.properties</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
+						<id>default-testResources</id>
+						<goals>
+							<goal>testResources</goal>
+						</goals>
+						<phase>generate-test-resources</phase>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -182,10 +218,10 @@
 		</plugins>
 	</build>
 
-	
+
 
 	<profiles>
-		
+
 
 		<profile>
 			<id>only-eclipse</id>

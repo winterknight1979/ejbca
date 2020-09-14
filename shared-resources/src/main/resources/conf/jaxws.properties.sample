@@ -1,0 +1,74 @@
+#
+# $Id: jaxws.properties.sample 27217 2017-11-19 17:33:31Z davidcarella $
+#
+# This is a sample file to override properties used
+# during deployment of EJBCA
+# 
+# You should copy and rename this file to jaxws.properties
+# and customize at will.
+#
+
+# ------------ Web service (jaxws) configuration ---------------------
+# 
+# Disable this (set to false) if you do not want to deploy the WS-API in EJBCA
+# Default: true
+#ejbcaws.enabled=true
+
+#------------------- JAXWS settings -------------
+# Setting indicating if a call to genTokenCertificates and/or viewHardToken for non-authorized users 
+# should result in an approval request instead of an authorized denied exception (i.e. rejected 
+# right away).
+# This setting is only applicable to the calls named above. 
+# (Approvals for other methods like editUser are triggered the normal way for approvals, 
+# i.e. by selecting an approval profile in the CA or Certificate Profile configuration.)       
+# The id is used instead of the name, since the name can be changed while the id remain the same.
+# Default : empty
+#jaxws.approvalprofileid=
+
+# Disable authorization control on the fetchUserData call, making it possible
+# for all with a valid certificate to retrieve userData
+# Default : false
+#jaxws.noauthonfetchuserdata=false
+
+# If this is true, all certificates on the old token will be put on hold.
+# If this is false, MS SmartCard Logon certificates will not be put on hold.
+# This is used when a temporary card is issued with ToLiMa, since MS doesn't
+# work well with temporarily revoked smartcards. 
+#
+# Default : false
+#jaxws.gentokens.setmslogononhold=false
+
+
+#------------------- EJBCAWS Logging settings -------------
+# Transaction logging logs summary lines for all WS calls.
+# Specifies if transaction logging should be performed from EJBCA and formats how that information should be logged.
+#
+# Change below to true if you want transaction information to be logged
+# Default: false
+#ejbcaws.trx-log = true
+
+# Configure how time of logging in auditlog will be output
+# Default: yyyy/MM/dd HH:mm:ss.SSS
+#
+# Almost standard example, but the time offset ':z' (e.g. ':CET') is not standard compliant:
+#ejbcaws.log-date = yyyy-MM-dd HH:mm:ss.SSS:z
+#
+# Reference: RFC 3339 - Date and Time on the Internet: Timestamps
+# Standard compliant example, the final 'Z' means that the time zone is GMT, i.e. time UTC+00:
+#ejbcaws.log-date = yyyy-MM-dd HH:mm:ss.SSSZ
+
+# Configure which time zone will be used for logging
+# Note: GMT is the time zone for the time UTC+00, and without daylight saving time. It's the best choice for logs.
+# Default: GMT
+#ejbcaws.log-timezone = GMT
+
+# A pattern for use with ejbcaws.trx-log-order to replace constants with values during logging
+# Default: \\$\\{(.+?)\\}
+#ejbcaws.trx-log-pattern = \\$\\{(.+?)\\}
+
+# Use ejbcaws.trx-log-order to specify what information should be logged and in what order.
+# The values ADMIN_REMOTE_IP and ADMIN_FORWARDED_IP are not logged by default, and must be added if you want to log them.
+# You can also configure what characters you want in between the values.
+#
+# Default: ${LOG_TIME};${SESSION_ID};${LOG_ID};${REPLY_TIME};${METHOD};${ERROR_MESSAGE};${ADMIN_DN};${ADMIN_ISSUER_DN}
+#ejbcaws.trx-log-order = ${LOG_TIME};${SESSION_ID};${LOG_ID};${REPLY_TIME};${METHOD};${ERROR_MESSAGE};${ADMIN_DN};${ADMIN_ISSUER_DN};${ADMIN_REMOTE_IP};${ADMIN_FORWARDED_IP}

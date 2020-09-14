@@ -1,41 +1,179 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>goldeneyes.ejbca</groupId>
-    <artifactId>ejbca</artifactId>
-    <version>1.0</version>
-  </parent>
-  <artifactId>cesecore-common-entity-tests</artifactId>
-  
-  <dependencies>
-  	<dependency>
-  		<groupId>${project.groupId}</groupId>
-  		<artifactId>cesecore-common</artifactId>
-  		<version>${project.version}</version>
-  		<scope>test</scope>
-  	</dependency>
-  	<dependency>
-  		<groupId>${project.groupId}</groupId>
-  		<artifactId>cesecore-entity</artifactId>
-  		<version>${project.version}</version>
-  		<scope>test</scope>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.easymock</groupId>
-  		<artifactId>easymock</artifactId>
-  		<scope>test</scope>
-  	</dependency>
-  	<dependency>
-  		<artifactId>junit</artifactId>
-  		<groupId>junit</groupId>
-  		<scope>test</scope>
-  	</dependency>
-  
-  </dependencies>
-  
-  <description>This module contains tests for cesecore-common that depend on classes from cesecore-entity.
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>goldeneyes.ejbca</groupId>
+		<artifactId>ejbca</artifactId>
+		<version>1.0</version>
+	</parent>
+	<artifactId>cesecore-common-entity-tests</artifactId>
+
+	<dependencies>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>cesecore-common</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>cesecore-entity</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.easymock</groupId>
+			<artifactId>easymock</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<artifactId>junit</artifactId>
+			<groupId>junit</groupId>
+			<scope>test</scope>
+		</dependency>
+
+
+		<!-- Shared Resource bundle and Service Manifest generator -->
+
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>shared-resources</artifactId>
+			<version>${project.version}</version>
+			<scope>compile</scope>
+		</dependency>
+
+	</dependencies>
+
+	<description>This module contains tests for cesecore-common that depend on classes from cesecore-entity.
 
 Because Maven runs the tests immediately after building each induvidual jar, this creates a circular dependency.
 
 These tests have therefore been folded out into their own module.</description>
+	<build>
+		<plugins>
+
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.2.0</version>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<phase>test-compile</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/target/test-classes</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.build.directory}/maven-shared-archive-resource/conf</directory>
+									<filtering>true</filtering>
+									<includes>
+										<include>systemtests.properties</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
+						<id>default-testResources</id>
+						<goals>
+							<goal>testResources</goal>
+						</goals>
+						<phase>generate-test-resources</phase>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-remote-resources-plugin</artifactId>
+				<version>1.7.0</version>
+				<configuration>
+					<resourceBundles>
+						<resourceBundle>${project.groupId}:shared-resources:${project.version}</resourceBundle>
+					</resourceBundles>
+					<outputDirectory>${project.build.directory}/maven-shared-archive-resource</outputDirectory>
+					<attachToMain>false</attachToMain>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>process</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+
+	<profiles>
+
+
+		<profile>
+			<id>only-eclipse</id>
+			<activation>
+				<property>
+					<name>m2e.version</name>
+				</property>
+			</activation>
+			<build>
+				<pluginManagement>
+					<plugins>
+						<!--This plugin's configuration is used to store Eclipse m2e settings 
+							only. It has no influence on the Maven build itself. -->
+						<plugin>
+							<groupId>org.eclipse.m2e</groupId>
+							<artifactId>lifecycle-mapping</artifactId>
+							<version>1.0.0</version>
+							<configuration>
+								<lifecycleMappingMetadata>
+									<pluginExecutions>
+										<pluginExecution>
+											<pluginExecutionFilter>
+												<groupId>org.apache.maven.plugins</groupId>
+												<artifactId>maven-remote-resources-plugin</artifactId>
+												<versionRange>[1.0,)</versionRange>
+												<goals>
+													<goal>process</goal>
+												</goals>
+											</pluginExecutionFilter>
+											<action>
+												<ignore />
+											</action>
+										</pluginExecution>
+										<pluginExecution>
+											<pluginExecutionFilter>
+												<groupId>
+													org.codehaus.mojo
+												</groupId>
+												<artifactId>
+													exec-maven-plugin
+												</artifactId>
+												<versionRange>
+													[3.0.0,)
+												</versionRange>
+												<goals>
+													<goal>java</goal>
+												</goals>
+											</pluginExecutionFilter>
+											<action>
+												<ignore />
+											</action>
+										</pluginExecution>
+									</pluginExecutions>
+								</lifecycleMappingMetadata>
+							</configuration>
+						</plugin>
+					</plugins>
+				</pluginManagement>
+			</build>
+		</profile>
+
+	</profiles>
 </project>
