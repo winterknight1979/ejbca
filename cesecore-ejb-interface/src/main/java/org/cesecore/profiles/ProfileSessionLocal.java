@@ -83,7 +83,7 @@ public interface ProfileSessionLocal {
     
     /**
      * @param name the name of the sought profile
-     * @param the type identifier of the sought profile
+     * @param type the type identifier of the sought profile
      * @return the found entity instances or an empty list. 
      */
     List<ProfileData> findByNameAndType(final String name, final String type);

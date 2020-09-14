@@ -82,19 +82,24 @@ public interface RoleMemberDataSessionLocal extends RoleMemberDataSession {
      */
     List<RoleMember> findRoleMemberByRoleId(int roleId);
 
-    /** @return all roleId matching the specified valid AuthenticationToken or an empty list otherwise */
+    /** @param authenticationToken Auth token
+     * @return all roleId matching the specified valid AuthenticationToken or an empty list otherwise */
     Set<Integer> getRoleIdsMatchingAuthenticationToken(AuthenticationToken authenticationToken);
 
     /** 
+     * @param authenticationToken Auth token
      * @return all roleId matching the specified valid AuthenticationToken or an empty list otherwise
      * @throws AuthenticationFailedException if there is problem matching the AuthenticationToken to a RoleMember
      */
     Set<Integer> getRoleIdsMatchingAuthenticationTokenOrFail(AuthenticationToken authenticationToken) throws AuthenticationFailedException;
 
-    /** @return roleId,tokenMatchType values for legacy priority matching  */
+    /** @param authenticationToken Auth token
+     * @return roleId,tokenMatchType values for legacy priority matching  
+     * @throws AuthenticationFailedException if access denied */
     @Deprecated // Keep for as long as we need to support upgrades to 6.8.0
     Map<Integer, Integer> getRoleIdsAndTokenMatchKeysMatchingAuthenticationToken(AuthenticationToken authenticationToken) throws AuthenticationFailedException;
 
-    /** @return all role members matching the specified valid AuthenticationToken or an empty list otherwise */
+    /** @param authenticationToken Auth token
+     * @return all role members matching the specified valid AuthenticationToken or an empty list otherwise */
     Set<RoleMember> getRoleMembersMatchingAuthenticationToken(AuthenticationToken authenticationToken);
 }

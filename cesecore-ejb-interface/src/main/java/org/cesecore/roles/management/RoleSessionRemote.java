@@ -27,6 +27,8 @@ import org.cesecore.roles.Role;
 @Remote
 public interface RoleSessionRemote extends RoleSession {
 
-    /** @return a List of Roles the authenticationTokenToCheck is a member of (without taking nesting into account) */
+    /** @param authenticationTokenForAuhtorization Auth token
+     * @param authenticationTokenToCheck token
+     * @return a List of Roles the authenticationTokenToCheck is a member of (without taking nesting into account) */
     List<Role> getRolesAuthenticationTokenIsMemberOfRemote(AuthenticationToken authenticationTokenForAuhtorization, AuthenticationToken authenticationTokenToCheck);
 }

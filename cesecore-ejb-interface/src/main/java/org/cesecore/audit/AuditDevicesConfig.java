@@ -100,7 +100,7 @@ public class AuditDevicesConfig {
                         try {
                             // Instantiate device
                             final Class<AuditLogDevice> implClass = (Class<AuditLogDevice>) Class.forName(deviceClass);
-                            final AuditLogDevice auditLogDevice = implClass.newInstance();
+                            final AuditLogDevice auditLogDevice = implClass.getConstructor().newInstance();
                             final String name = implClass.getSimpleName();
                             loggers.put(name, auditLogDevice);
                             log.info("Registered audit device using implementation: " + deviceClass);
@@ -137,7 +137,9 @@ public class AuditDevicesConfig {
         }
     }
 
-    /** Checks that there are no duplicate properties in the configuration. */
+    /** Checks that there are no duplicate properties in the configuration. 
+     * @param name Propertiy name
+     * @return boolean */
     private static boolean checkNoDuplicateProperties(String name) {
         final String[] arr = ConfigurationHolder.instance().getStringArray(name);
         if (arr != null && arr.length > 1) {
@@ -183,7 +185,10 @@ public class AuditDevicesConfig {
 
 	private static final String EXPORTFILE_DATE_FORMAT = "yyyy-MM-dd-HHmmss";
 	
-	/** @return the file name of the current export. */
+	/** @param properties Properties
+	 * @param exportDate Date exported
+	 * @return the file name of the current export. 
+	 * @throws IOException if IO fails*/
 	public static File getExportFile(final Properties properties, final Date exportDate) throws IOException {
 		final String p = properties.getProperty("export.dir", System.getProperty("java.io.tmpdir"));
 		final File dir = new File(p);
@@ -196,12 +201,16 @@ public class AuditDevicesConfig {
         return ret;
 	}
 
-    /** Parameter to specify the number of logs to be fetched in each validation round trip. */
+    /** Parameter to specify the number of logs to be fetched in each validation round trip. 
+     * @param properties Properties
+     * @return log size*/
     public static int getAuditLogValidationFetchSize(final Properties properties) {
         return getInt(properties, "validate.fetchsize", 1000);
     }
 
-    /** Parameter to specify the number of logs to be fetched in each export round trip. */
+    /** Parameter to specify the number of logs to be fetched in each export round trip. 
+     * @param properties properties
+     * @return log size */
     public static int getAuditLogExportFetchSize(final Properties properties) {
         return getInt(properties, "export.fetchsize", 1000);
     }

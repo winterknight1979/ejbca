@@ -59,13 +59,17 @@ public class SigningFileOutputStream extends FileOutputStream {
     /**
      * Generates a signature file with the same name as the export file but with .sig extension.
      * 
-     * @param exportFile the exported file.
+     * @param file the exported file.
      * @param cryptoToken the crypto token that will be used to fetch the necessary keys.
      * @param signatureDetails
      *            Set properties containing signature details like
      *            keyAlias(EXPORT_SIGN_KEYALIAS), algorithm(EXPORT_SIGN_ALG) and
      *            certificate( EXPORT_SIGN_CERT ).
-     * @return the full pathname of the signature file
+     * @throws FileNotFoundException If signature file not found
+     * @throws CryptoTokenOfflineException If offline
+     * @throws NoSuchAlgorithmException If algorithm not found
+     * @throws NoSuchProviderException If provider not found
+     * @throws InvalidKeyException If key is invalid
      */
     public SigningFileOutputStream(final File file, final CryptoToken cryptoToken, final Map<String, Object> signatureDetails) throws FileNotFoundException, CryptoTokenOfflineException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
 		super(file);

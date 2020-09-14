@@ -32,14 +32,17 @@ public interface AccessTreeUpdateSessionLocal {
     /**
      * Method returning the newest authorizationtreeupdatenumber.
      * Should be checked when the access tree cache has expired to avoid rebuilding the tree if there are no database changes. 
+     * @return int
      */
     int getAccessTreeUpdateNumber();
+    
 
     /**
      * Adds a method to be triggered when the authorization cache should be reloaded.
      * The event is called synchronously.
      * <p>
      * This is a workaround until we can use JEE Events.
+     * @param listener listener
      */
     void addReloadEvent(AuthorizationCacheReloadListener listener);
 

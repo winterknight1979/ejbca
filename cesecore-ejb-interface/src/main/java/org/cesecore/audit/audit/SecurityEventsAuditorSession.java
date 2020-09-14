@@ -27,9 +27,8 @@ import org.cesecore.util.query.QueryCriteria;
 /**
  * Allows auditing of securely logged events.
  * 
- * See {@link https
- * ://www.cesecore.eu/mediawiki/index.php/Functional_Specifications_
- * (ADV_FSP)#Audit_Security_Events}
+ * @see  <a href="https://www.cesecore.eu/mediawiki/index.php/Functional_Specifications_(ADV_FSP)#Audit_Security_Events">
+ * Audit Security Events</a>
  * 
  * @version $Id: SecurityEventsAuditorSession.java 17625 2013-09-20 07:12:06Z netmackan $
  */
@@ -45,7 +44,7 @@ public interface SecurityEventsAuditorSession {
      * @param logDeviceId identifier of the AuditLogDevice
      * 
      * @return The audit logs to the given criteria
-     * @throws AuthorizationDeniedException 
+     * @throws AuthorizationDeniedException If non-admin user
      */
     List<? extends AuditLogEntry> selectAuditLogs(AuthenticationToken token, int startIndex, int max, QueryCriteria criteria, String logDeviceId) throws AuthorizationDeniedException;
 
@@ -58,13 +57,13 @@ public interface SecurityEventsAuditorSession {
      * @param deleteAfterExport Deletes the exported results if true.
      * @param signatureDetails
      *            Map containing signature details used by the signer implementation.
-     *            {@see SigningFileOutputStream public static variables for examples}.
+     *            @see SigningFileOutputStream public static variables for examples.
      * @param logDeviceId identifier of the AuditLogDevice
      * 
      * @return A extended validation report with the path to the exported file.
      * 
-     * @throws AuditLogExporterException
-     * @throws AuthorizationDeniedException 
+     * @throws AuditLogExporterException If export fails
+     * @throws AuthorizationDeniedException If non-admin user
      */
     AuditLogExportReport exportAuditLogs(AuthenticationToken token, CryptoToken cryptoToken, Date timestamp, boolean deleteAfterExport,
             Map<String, Object> signatureDetails, String logDeviceId) throws AuditLogExporterException, AuthorizationDeniedException;
@@ -81,8 +80,8 @@ public interface SecurityEventsAuditorSession {
      * @param logDeviceId identifier of the AuditLogDevice
      * 
      * @return A extended validation report with the path to the exported file.
-     * @throws AuditLogExporterException 
-     * @throws AuthorizationDeniedException 
+     * @throws AuditLogExporterException If export fails
+     * @throws AuthorizationDeniedException If non-admin user
      */
     AuditLogExportReport exportAuditLogs(AuthenticationToken token, CryptoToken cryptoToken, Date timestamp, boolean deleteAfterExport,
             String keyAlias, String algorithm, String logDeviceId) throws AuditLogExporterException, AuthorizationDeniedException;
@@ -101,8 +100,8 @@ public interface SecurityEventsAuditorSession {
      * 
      * @return A extended validation report with the path to the exported file.
      *
-     * @throws AuditLogExporterException 
-     * @throws AuthorizationDeniedException 
+     * @throws AuditLogExporterException If export fails
+     * @throws AuthorizationDeniedException If non-admin user
      */
     AuditLogExportReport exportAuditLogs(final AuthenticationToken token, final CryptoToken cryptoToken, final Date timestamp, final boolean deleteAfterExport,
             final String keyAlias, final String algorithm, final Certificate certificate, String logDeviceId) throws AuditLogExporterException, AuthorizationDeniedException;
@@ -116,8 +115,8 @@ public interface SecurityEventsAuditorSession {
      * @param logDeviceId identifier of the AuditLogDevice
      * 
      * @return validation report.
-     * @throws AuditLogValidatorException
-     * @throws AuthorizationDeniedException 
+     * @throws AuditLogValidatorException If export fails
+     * @throws AuthorizationDeniedException If non-admin user
      */
     AuditLogValidationReport verifyLogsIntegrity(AuthenticationToken token, Date date, String logDeviceId) throws AuditLogValidatorException, AuthorizationDeniedException;
 

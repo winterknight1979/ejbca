@@ -27,22 +27,22 @@ public class MalformedRequestException extends Exception {
     }
 
     /**
-     * @param arg0
+     * @param arg0 Message
      */
     public MalformedRequestException(String arg0) {
         super(arg0);
     }
 
     /**
-     * @param arg0
+     * @param arg0 Cause
      */
     public MalformedRequestException(Throwable arg0) {
         super(arg0);
     }
 
     /**
-     * @param arg0
-     * @param arg1
+     * @param arg0 Message
+     * @param arg1 Cause
      */
     public MalformedRequestException(String arg0, Throwable arg1) {
         super(arg0, arg1);

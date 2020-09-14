@@ -16,8 +16,6 @@ import java.util.Properties;
 
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.AuthorizationDeniedException;
-import org.cesecore.configuration.ConfigurationBase;
-
 /** 
  * Session bean to handle global configuration and such.
  * 
@@ -28,29 +26,33 @@ public interface GlobalConfigurationSession {
     /**
      * Retrieves the cached GlobalConfiguration. This cache is updated from
      * persistence either by the time specified by
-     * {@link #MIN_TIME_BETWEEN_GLOBCONF_UPDATES} or when {@link #flushCache()}
+     * MIN_TIME_BETWEEN_GLOBCONF_UPDATES or when {@link #flushConfigurationCache(String)}
      * is executed. This method should be used in all cases where a quick
-     * response isn't necessary, otherwise use {@link #flushCache()}.
+     * response isn't necessary, otherwise use {@link #flushConfigurationCache(String)}.
+     * @param configID ID
      * 
      * @return the cached GlobalConfiguration value.
      */
     ConfigurationBase getCachedConfiguration(String configID);
 
-    /** Clear and load global configuration cache. */
+    /** Clear and load global configuration cache. 
+     * @param configID ID*/
     void flushConfigurationCache(String configID);
     
-    /** @return all currently used properties (configured in conf/*.properties.
+    /** @param admin Admin
+     * @param configID ID
+     * @return all currently used properties (configured in conf/*.properties.
      * Required admin access to '/' to dump these properties. 
+     * @throws AuthorizationDeniedException if privileges are insufficient 
      */
     Properties getAllProperties(AuthenticationToken admin, String configID) throws AuthorizationDeniedException;
     
     /** Saves the GlobalConfiguration. 
     *
     * @param admin an authentication token
-    * @param globconf the new Configuration
+    * @param conf the new Configuration
     * 
     * @throws AuthorizationDeniedException if admin was not authorized to edit the specific configuration
-    * @see GlobalConfigurationSessionBean#checkAuthorization
     */
    void saveConfiguration(AuthenticationToken admin, ConfigurationBase conf) throws AuthorizationDeniedException;
 

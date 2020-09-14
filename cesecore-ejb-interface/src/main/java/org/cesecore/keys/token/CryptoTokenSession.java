@@ -18,12 +18,15 @@ package org.cesecore.keys.token;
  */
 public interface CryptoTokenSession {
 
-    /** @return true if the specified name is already in use by another CryptoToken (checks the database, not the cache) */
+    /** @param cryptoTokenName name
+     * @return true if the specified name is already in use by another CryptoToken (checks the database, not the cache) */
     boolean isCryptoTokenNameUsed(String cryptoTokenName);
     
-    /** @return the full class name (including package names) for a CryptoToken type */
+    /** @param tokenType type
+     * @return the full class name (including package names) for a CryptoToken type */
     String getClassNameForType(String tokenType);
 
-    /** @return the name of the given crypto token, or null if it doesn't exist */
+    /** @param cryptoTokenId ID
+     * @return the name of the given crypto token, or null if it doesn't exist */
     String getCryptoTokenName(int cryptoTokenId);
 }

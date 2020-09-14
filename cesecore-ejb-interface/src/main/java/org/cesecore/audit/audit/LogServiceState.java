@@ -31,14 +31,16 @@ public enum LogServiceState {
 		return disabled.get();
 	}
 	
-	/** Disable security audit logging. */
+	/** Disable security audit logging. 
+	 * @throws AuditLogResetException On fail*/
 	protected void disable() throws AuditLogResetException {
 		if (disabled.getAndSet(true)) {
 			throw new AuditLogResetException("Cannot disable Security audit logging, since it was already disabled.");
 		}
 	}
 	
-	/** Enable security audit logging. */
+	/** Enable security audit logging. 
+	 * @throws AuditLogResetException On fail*/
 	protected void enable() throws AuditLogResetException {
 		if (!disabled.getAndSet(false)) {
 			throw new AuditLogResetException("Cannot enable Security audit logging, since it was already enabled.");

@@ -12,10 +12,6 @@
  *************************************************************************/ 
 package org.cesecore.certificates.certificate.request;
 
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.cert.CRL;
 import java.security.cert.Certificate;
@@ -196,14 +192,9 @@ public class X509ResponseMessage implements CertificateResponseMessage {
      *
      * @return True if signature/encryption was successful, false if it failed, request should not
      *         be sent back i failed.
+    
      *
-     * @throws IOException If input/output or encoding failed.
-     * @throws InvalidKeyException If the key used for signing/encryption is invalid.
-     * @throws NoSuchProviderException if there is an error with the Provider.
-     * @throws NoSuchAlgorithmException if the signature on the request is done with an unhandled
-     *         algorithm.
-     *
-     * @see #setSignKeyInfo()
+     * @see #setSignKeyInfo
      */
     @Override
     public boolean create() {

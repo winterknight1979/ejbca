@@ -33,14 +33,17 @@ import org.cesecore.certificates.crl.RevokedCertInfo;
  */
 public interface NoConflictCertificateStoreSession  {
 
-    /** @see CertificateStoreSession#getStatus */
+    /** @param issuerDN issuer DN of the desired certificate.
+     * @param serno  serial number of the desired certificate!
+     * @return Status
+     * @see CertificateStoreSession#getStatus */
     CertificateStatus getStatus(String issuerDN, BigInteger serno);
     
     /**
      * Gets full certificate meta data for the cert specified by issuer DN and serial number.
      * 
-     * @param issuerDN issuer DN of the desired certificate.
-     * @param serno serial number of the desired certificate!
+     * @param issuerdn issuer DN of the desired certificate.
+     * @param certserno serial number of the desired certificate!
      * @return the sought certificate, or null if not found
      */
     CertificateDataWrapper getCertificateDataByIssuerAndSerno(String issuerdn, BigInteger certserno);
@@ -48,18 +51,28 @@ public interface NoConflictCertificateStoreSession  {
     /**
      * EJBCA expects all certificate entities to have a fingerprint.
      * This method generates a dummy fingerprint, to be used in NoConflictCertificateData and for associated publisher queue entries.
+     * * @param issuerdn issuer DN of the desired certificate.
+     * @param certserno serial number of the desired certificate!
      * @return Hex encoded fingerprint. It is unique per issuerdn/serial.
      */
     String generateDummyFingerprint(String issuerdn, BigInteger certserno);
 
-    /** @see CertificateStoreSession#listRevokedCertInfo */
+    /** @param issuerdn issuerdn issuer DN of the desired certificate
+     * @param lastbasecrldate Date of last CRL
+     * @return List if revoked certs
+     * @see CertificateStoreSession#listRevokedCertInfo */
     Collection<RevokedCertInfo> listRevokedCertInfo(String issuerdn, long lastbasecrldate);
     
-    /** @see CertificateStoreSession#setStatus */
+    /** @param admin Auth token
+     * @param fingerprint FP
+     * @param status Status
+     * @return Success/fail
+     * @throws AuthorizationDeniedException If unauthorized 
+     * @see CertificateStoreSession#setStatus */
     boolean setStatus(AuthenticationToken admin, String fingerprint, int status) throws AuthorizationDeniedException;
 
     /**
-     * Returns true if the CA is a throw-away CA which allow revocation of non-existing entries.
+     * @return true if the CA is a throw-away CA which allow revocation of non-existing entries.
      * @param issuerDN Subject DN of CA to check.
      */
     boolean canRevokeNonExisting(String issuerDN);

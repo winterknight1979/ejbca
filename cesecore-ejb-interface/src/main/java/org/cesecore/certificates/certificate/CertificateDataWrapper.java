@@ -84,7 +84,7 @@ public class CertificateDataWrapper implements CertificateWrapper, Comparable<Ce
     }
     
     /**
-     * Returns the BaseCertificateData entity object, may be CertificateData or NoConflictCertificateData entity object.
+     * @return the BaseCertificateData entity object, may be CertificateData or NoConflictCertificateData entity object.
      * 
      * Note that the NoConflictCertificateData table is append only, so no updates to existing objects!
      */
@@ -94,6 +94,7 @@ public class CertificateDataWrapper implements CertificateWrapper, Comparable<Ce
 
     /**
      * Returns the CertificateData entity object, or throws if the certificate is stored in NoConflictCertificateData
+     * @return CertificateData object. Do not modify the returned object! Modifications might not be written back to the database.
      * @throws ClassCastException If certificate is stored in NoConflictCertificateData
      */
     public CertificateData getCertificateData() {
@@ -102,7 +103,7 @@ public class CertificateDataWrapper implements CertificateWrapper, Comparable<Ce
     
     /**
      * Returns the CertificateData object, or a copy converted to CertificateData, if it was a NoConflictCertificateData entity object.
-     * @returns CertificateData object. Do not modify the returned object! Modifications might not be written back to the database.
+     * @return CertificateData object. Do not modify the returned object! Modifications might not be written back to the database.
      */
     public CertificateData getCertificateDataOrCopy() {
         if (certificateData instanceof CertificateData) {
@@ -135,10 +136,10 @@ public class CertificateDataWrapper implements CertificateWrapper, Comparable<Ce
     public int compareTo(final CertificateDataWrapper other) {
         if (getCertificate()!=null && other.getCertificate()!=null) {
             // Sort descending by issuance date if certificates are available 
-            return new Long(CertTools.getNotBefore(other.getCertificate()).getTime()).compareTo(CertTools.getNotBefore(getCertificate()).getTime());          
+            return Long.valueOf(CertTools.getNotBefore(other.getCertificate()).getTime()).compareTo(CertTools.getNotBefore(getCertificate()).getTime());          
         } else {
             // Sort descending by expiration date if certificates are not available        
-            return new Long(other.getCertificateData().getExpireDate()).compareTo(getCertificateData().getExpireDate());
+            return Long.valueOf(other.getCertificateData().getExpireDate()).compareTo(getCertificateData().getExpireDate());
         }
     }
 

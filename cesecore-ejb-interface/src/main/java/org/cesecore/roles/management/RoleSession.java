@@ -28,6 +28,8 @@ public interface RoleSession {
 
     /**
      * Store the provided role. If the role id is 0, a new Id will be assigned and the role will be created.
+     * @param authenticationToken Token
+     * @param role Role
      * 
      * @return the persisted version of the object including an assigned id and normalized access rules.
      * @throws RoleExistsException if provided role's nameSpace and roleName combination is used by another role
@@ -50,6 +52,8 @@ public interface RoleSession {
 
     /**
      * Deletes the role with the requested id.
+     * @param authenticationToken Token
+     * @param roleId Role
      * 
      * @throws AuthorizationDeniedException if the caller is not authorized to see this role and edit roles in general
      * @return true if a change was made to the database
@@ -57,6 +61,8 @@ public interface RoleSession {
     boolean deleteRoleIdempotent(AuthenticationToken authenticationToken, int roleId) throws AuthorizationDeniedException;
 
     /**
+     * @param authenticationToken Token
+     * @param roleId Role
      * @return the Role for the specified id or null if no such role exists
      * @throws AuthorizationDeniedException the caller is not authorized to see this role (leaks that a role with this id exists)
      */

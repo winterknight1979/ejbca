@@ -53,22 +53,26 @@ public interface CaSessionLocal extends CaSession {
      */
     List<CAData> findAll();
     
-    /** @return the found entity instance or null if the entity does not exist */
+    /** @param cAId CA
+     * @return the found entity instance or null if the entity does not exist */
     CAData findById(final Integer cAId);
    
     /**
+     * @param cAId CA
      * @throws CADoesntExistsException if the entity does not exist
      * @return the found entity instance
      */
     CAData findByIdOrThrow(final Integer cAId) throws CADoesntExistsException;
     
     /**
+     * @param name Name
      * @throws javax.persistence.NonUniqueResultException if more than one entity with the name exists
      * @return the found entity instance or null if the entity does not exist
      */
     CAData findByName(final String name);
 
     /**
+     * @param name Name
      * @throws CADoesntExistsException if the entity does not exist
      * @throws javax.persistence.NonUniqueResultException if more than one entity with the name exists
      * @return the found entity instance
@@ -155,8 +159,8 @@ public interface CaSessionLocal extends CaSession {
      * @param admin AuthenticationToken of admin
      * @param ca the CA to edit
      * @param auditlog if audit logging of the edit should be done or not, not needed if called from other internal methods that already does audit logging.
-     * @throws CADoesntExistsException
-     * @throws AuthorizationDeniedException
+     * @throws CADoesntExistsException If CA not found
+     * @throws AuthorizationDeniedException If access denied
      */
     void editCA(final AuthenticationToken admin, final CA ca, boolean auditlog) throws CADoesntExistsException, AuthorizationDeniedException;
 
@@ -179,6 +183,7 @@ public interface CaSessionLocal extends CaSession {
     /**
      * Returns a HashMap containing mappings of caid (Integer) to CA name
      * (String) of all active and uninitialized CAs in the system that the admin is authorized to.
+     * @param authenticationToken Auth token
      * 
      * @return HashMap with Integer->String mappings
      */
@@ -231,6 +236,7 @@ public interface CaSessionLocal extends CaSession {
     /**
      * Local access CRUD method for persisting the CA object to the database and removes any old
      * object with this CA id from the cache.
+     * @param ca CA
      * 
      * @return the CA Id
      */
@@ -238,7 +244,7 @@ public interface CaSessionLocal extends CaSession {
     
     /**
      * Checks if at least one CA references a key validator.
-     * @param keyValidatorId
+     * @param keyValidatorId Validator
      * @return true if there are no references.
      * 
      * @throws AuthorizationDeniedException if not authorized.

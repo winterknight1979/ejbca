@@ -35,7 +35,7 @@ public class CertificateRevokeException extends CesecoreException {
     }
     /**
      * Constructs an instance of <code>IllegalKeyException</code> with the specified cause.
-     * @param msg the detail message.
+     * @param e the detail message.
      */
     public CertificateRevokeException(Exception e) {
         super(e);

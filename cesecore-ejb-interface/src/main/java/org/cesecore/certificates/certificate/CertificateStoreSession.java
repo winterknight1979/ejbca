@@ -81,10 +81,14 @@ public interface CertificateStoreSession {
      */
     List<Certificate> findCertificatesBySubjectAndIssuer(String subjectDN, String issuerDN, boolean onlyActive);
 
-    /** @return set of users with certificates with specified subject DN issued by specified issuer. */
+    /** @param issuerDN Issuer DN
+     * @param subjectDN Subject DN
+     * @return set of users with certificates with specified subject DN issued by specified issuer. */
     Set<String> findUsernamesByIssuerDNAndSubjectDN(String issuerDN, String subjectDN);
 
-    /** @return set of users with certificates with specified key issued by specified issuer. */
+    /** @param issuerDN Issuer DB
+     * @param subjectKeyId Key
+     * @return set of users with certificates with specified key issued by specified issuer. */
     Set<String> findUsernamesByIssuerDNAndSubjectKeyId(String issuerDN, byte[] subjectKeyId);
 
     /**
@@ -172,6 +176,7 @@ public interface CertificateStoreSession {
     /**
      * Finds usernames of users having certificate(s) expiring within a
      * specified time and that has status "active" or "notifiedaboutexpiration".
+     * @param expiretime Expiry
      * 
      * @see org.cesecore.certificates.certificate.CertificateConstants#CERT_ACTIVE
      * @see org.cesecore.certificates.certificate.CertificateConstants#CERT_NOTIFIEDABOUTEXPIRATION
@@ -249,6 +254,7 @@ public interface CertificateStoreSession {
      * Finds username for a given certificate serial number.
      * 
      * @param serno the serialnumber of the certificate to find username for.
+     * @param issuerdn Issuer DN
      * @return username or null if none found.
      */
     String findUsernameByCertSerno(BigInteger serno, String issuerdn);
@@ -300,6 +306,7 @@ public interface CertificateStoreSession {
      * transaction where the reading of this info might depend on something
      * stored earlier in the transaction. This is because this method uses
      * direct SQL.
+     * @param fingerprint FP
      * 
      * @return CertificateInfo or null if certificate does not exist.
      */
@@ -308,6 +315,7 @@ public interface CertificateStoreSession {
     /**
      * Finds a certificate based on fingerprint. 
      * You can get fingerprint by for example "String fingerprint = CertTools.getFingerprintAsString(certificate);"
+     * @param fingerprint FP
      * @return Certificate or null if it can not be found.
      */
     Certificate findCertificateByFingerprint(String fingerprint);
@@ -340,6 +348,7 @@ public interface CertificateStoreSession {
      * @param admin    the administrator performing the event.
      * @param issuerdn the dn of CA about to be revoked
      * @param reason   the reason of revocation.
+     * @throws AuthorizationDeniedException Access denied
      */
     void revokeAllCertByCA(AuthenticationToken admin, String issuerdn, int reason) throws AuthorizationDeniedException;
 
@@ -355,6 +364,8 @@ public interface CertificateStoreSession {
 
     /**
      * Get certificate status fast.
+     * @param issuerDN Issuer DN
+     * @param serno Serial No.
      * @return CertificateStatus status of the certificate, never null, CertificateStatus.NOT_AVAILABLE if the certificate is not found.
      */
     CertificateStatus getStatus(String issuerDN, BigInteger serno);
@@ -371,9 +382,11 @@ public interface CertificateStoreSession {
     
     /**
      * Update the status of a cert in the database.
-     * @param fingerprint
+     * @param admin Auth token
+     * @param fingerprint FP
      * @param status one of CertificateConstants.CERT_...
      * @return true if the status was updated, false if not, for example if the certificate did not exist
+     * @throws AuthorizationDeniedException Access Denied 
      */
     boolean setStatus(AuthenticationToken admin, String fingerprint, int status) throws AuthorizationDeniedException;
     

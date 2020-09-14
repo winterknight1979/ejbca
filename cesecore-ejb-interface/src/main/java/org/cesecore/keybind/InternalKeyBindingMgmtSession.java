@@ -92,6 +92,7 @@ public interface InternalKeyBindingMgmtSession {
      * @param allowMissingKeyPair if a missing key pair or crypto token should be allowed
      * @param signatureAlgorithm is the signature algorithm that this InternalKeyBinding will use for signatures (if applicable)
      * @param dataMap is a Map of implementation specific properties for this type of IntenalKeyBinding
+     * @param trustedCertificateReferences Trusted Certificates
      * @return the created InternalKeyBinding's unique identifier
      * 
      * @throws CryptoTokenOfflineException if the requested key pair was not accessible
@@ -106,7 +107,23 @@ public interface InternalKeyBindingMgmtSession {
     
     /**
      * A createInternalKeyBinding() with allowMissingKeyPair=false
-     * @see createInternalKeyBinding
+     * @param authenticationToken is the authentication token
+     * @param type is the alias of the registered InternalKeyBinding's type
+     * @param id is the id to use for the new InternalKeyBinding, or 0 for automatic choice
+     * @param name is the unique name that this InternalKeyBinding will be given
+     * @param status the initial status to give the InternalKeyBinding
+     * @param certificateId is the certificate fingerprint matching the mapped key pair or null
+     * @param cryptoTokenId is the CryptoToken id of the container where the mapped key pair is stored
+     * @param keyPairAlias is the alias of the mapped key pair in the specified CryptoToken (may not be null)
+     * @param signatureAlgorithm is the signature algorithm that this InternalKeyBinding will use for signatures (if applicable)
+     * @param dataMap is a Map of implementation specific properties for this type of IntenalKeyBinding
+     * @param trustedCertificateReferences Trusted Certificates
+     * @return the created InternalKeyBinding's unique identifier
+     *  @throws CryptoTokenOfflineException if the requested key pair was not accessible
+     * @throws AuthorizationDeniedException if the authentication token was not authorized to create the InternalKeyBinding
+     * @throws InternalKeyBindingNameInUseException if the requested name was already in use by another InternalKeyBinding
+     * @throws InvalidAlgorithmException if the requested signature algorithm is not available
+     * @see #createInternalKeyBinding
      */
     int createInternalKeyBinding(AuthenticationToken authenticationToken, String type, int id, String name, InternalKeyBindingStatus status, String certificateId,
             int cryptoTokenId, String keyPairAlias, String signatureAlgorithm, Map<String, Serializable> dataMap,
@@ -115,7 +132,22 @@ public interface InternalKeyBindingMgmtSession {
 
     /**
      * A createInternalKeyBinding() that chooses the id of the new object automatically.
-     * @see createInternalKeyBinding
+     *  * @param authenticationToken is the authentication token
+     * @param type is the alias of the registered InternalKeyBinding's type
+     * @param name is the unique name that this InternalKeyBinding will be given
+     * @param status the initial status to give the InternalKeyBinding
+     * @param certificateId is the certificate fingerprint matching the mapped key pair or null
+     * @param cryptoTokenId is the CryptoToken id of the container where the mapped key pair is stored
+     * @param keyPairAlias is the alias of the mapped key pair in the specified CryptoToken (may not be null)
+     * @param signatureAlgorithm is the signature algorithm that this InternalKeyBinding will use for signatures (if applicable)
+     * @param dataMap is a Map of implementation specific properties for this type of IntenalKeyBinding
+     * @param trustedCertificateReferences Trusted Certificates
+     * @return the created InternalKeyBinding's unique identifier
+     *  @throws CryptoTokenOfflineException if the requested key pair was not accessible
+     * @throws AuthorizationDeniedException if the authentication token was not authorized to create the InternalKeyBinding
+     * @throws InternalKeyBindingNameInUseException if the requested name was already in use by another InternalKeyBinding
+     * @throws InvalidAlgorithmException if the requested signature algorithm is not available
+     * @see #createInternalKeyBinding
      */
     int createInternalKeyBinding(AuthenticationToken authenticationToken, String type, String name, InternalKeyBindingStatus status, String certificateId,
             int cryptoTokenId, String keyPairAlias, String signatureAlgorithm, Map<String, Serializable> dataMap,

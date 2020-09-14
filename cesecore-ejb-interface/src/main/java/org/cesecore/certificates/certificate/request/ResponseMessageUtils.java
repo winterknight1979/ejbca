@@ -13,6 +13,7 @@
 
 package org.cesecore.certificates.certificate.request;
 
+import java.lang.reflect.InvocationTargetException;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.util.Collection;
@@ -36,8 +37,8 @@ public abstract class ResponseMessageUtils {
         CertificateResponseMessage ret = null;
         // Create the response message and set all required fields
         try {
-            ret = (CertificateResponseMessage) responseClass.newInstance();
-        } catch (InstantiationException e) {
+            ret = (CertificateResponseMessage) responseClass.getConstructor().newInstance();
+        } catch (InstantiationException | NoSuchMethodException | InvocationTargetException e) {
             //TODO : do something with these exceptions
             log.error("Error creating response message", e);
             return null;

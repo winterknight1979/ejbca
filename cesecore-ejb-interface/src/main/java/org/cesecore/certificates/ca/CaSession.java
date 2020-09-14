@@ -74,8 +74,8 @@ public interface CaSession {
      * 
      * @param admin AuthenticationToken of admin
      * @param cainfo the CAInfo to change values of the CA
-     * @throws CADoesntExistsException
-     * @throws AuthorizationDeniedException
+     * @throws CADoesntExistsException If CA not found
+     * @throws AuthorizationDeniedException If access denied
      */
     void editCA(final AuthenticationToken admin, final CAInfo cainfo) throws CADoesntExistsException, AuthorizationDeniedException;
 
@@ -124,7 +124,7 @@ public interface CaSession {
       * Does not log access control to all CAs it checks, because this does not 
       * give access to the CAs but only returns CAInfo of CAs.
       * 
-      * @param admin AuthenticationToken of admin
+      * @param authenticationToken AuthenticationToken of admin
       * @return a List<CAInfo> of authorized CAs
       */
      List<CAInfo> getAuthorizedCaInfos(AuthenticationToken authenticationToken);
@@ -137,7 +137,7 @@ public interface CaSession {
       * Does not log access control to all CAs it checks, because this does not 
       * give access to the CAs but only returns CAInfo of CAs.
       * 
-      * @param admin AuthenticationToken of admin
+      * @param authenticationToken AuthenticationToken of admin
       * @return a List<CAInfo> of authorized and enabled CAs
       */
      List<CAInfo> getAuthorizedAndEnabledCaInfos(AuthenticationToken authenticationToken);
@@ -149,7 +149,7 @@ public interface CaSession {
       * Does not log access control to all CAs it checks, because this does not 
       * give access to the CAs but only returns CAInfo of CAs.
       * 
-      * @param admin AuthenticationToken of admin
+      * @param authenticationToken AuthenticationToken of admin
       * @return a List<CAInfo> of authorized and non-external CAs
       */
      List<CAInfo> getAuthorizedAndNonExternalCaInfos(AuthenticationToken authenticationToken);
@@ -194,7 +194,7 @@ public interface CaSession {
      * - /administrator
      * - /ca/&lt;ca in question&gt;
      * </pre>
-     *
+     * @param authenticationToken administrator calling the method
      * @param caName the unique name of the CA whose certificate chain should be returned.
      * @return a list of X509 Certificates or CVC Certificates with the root certificate last, or an empty list if the CA's status is "Waiting for certificate response".
      * @throws AuthorizationDeniedException if the client does not fulfill the authorization requirements specified above.
@@ -251,7 +251,9 @@ public interface CaSession {
     /**
      * Returns the future key/certificate rollover if a rollover is pending, or otherwise null.
      * @param caid numerical unique id of CA
+     * @return Certificate 
      * @throws CADoesntExistsException If no CA with the given CA Id exists.
      */
     Certificate getFutureRolloverCertificate(int caid) throws CADoesntExistsException;
+    
 }

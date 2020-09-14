@@ -28,22 +28,22 @@ public class RoleExistsException extends Exception {
     }
 
     /**
-     * @param message
+     * @param message message
      */
     public RoleExistsException(String message) {
         super(message);
     }
 
     /**
-     * @param cause
+     * @param cause cause
      */
     public RoleExistsException(Throwable cause) {
         super(cause);
     }
 
     /**
-     * @param message
-     * @param cause
+     * @param message message
+     * @param cause cause
      */
     public RoleExistsException(String message, Throwable cause) {
         super(message, cause);

@@ -64,12 +64,18 @@ public interface CertificateProfileSession {
      * @param admin Administrator performing the operation
      * @param name readable name of new certificate profile
      * @param profile the profile to be added
+     * @throws AuthorizationDeniedException If access denied
      */
     void changeCertificateProfile(AuthenticationToken admin, String name, CertificateProfile profile) throws AuthorizationDeniedException;
 
     /**
 	 * Do not use, use changeCertificateProfile instead. Used internally for
 	 * testing only. Updates a profile without flushing caches.
+	 * 
+	 * @param admin Administrator performing the operation
+     * @param name readable name of new certificate profile
+     * @param profile the profile to be added
+     * @throws AuthorizationDeniedException If access denied
 	 */
 	void internalChangeCertificateProfileNoFlushCache(AuthenticationToken admin, String name, CertificateProfile profile) throws AuthorizationDeniedException;
 
@@ -82,7 +88,10 @@ public interface CertificateProfileSession {
      * @param admin Administrator performing the operation
      * @param orgname name of old certificate profile
      * @param newname name of new certificate profile
-	 * @param availableCaIds list of CAid to replace the original list with, or null.
+	 * @param authorizedCaIds list of CAid to replace the original list with, or null.
+	 * @throws CertificateProfileExistsException If a profile already exists with the new name
+	 * @throws CertificateProfileDoesNotExistException if the profile with the given ID didn't exist. 
+	 * @throws AuthorizationDeniedException If access denied
      */
     void cloneCertificateProfile(AuthenticationToken admin, String orgname, String newname,
             List<Integer> authorizedCaIds) throws CertificateProfileExistsException, CertificateProfileDoesNotExistException, AuthorizationDeniedException;
@@ -107,6 +116,8 @@ public interface CertificateProfileSession {
      * Retrieves a Collection of id:s (Integer) of all certificate profiles which have non-existent CA Ids.
      * This requires access to the root resource (i.e. superadmin access). If access is denied then an empty
      * list is returned.
+     * @param admin Auth token
+     * @return List
      */
     List<Integer> getAuthorizedCertificateProfileWithMissingCAs(AuthenticationToken admin);
 
@@ -145,6 +156,7 @@ public interface CertificateProfileSession {
     /**
      * Method creating a Map mapping profile id (Integer) to profile name
      * (String).
+     * @return Map
      */
     Map<Integer, String> getCertificateProfileIdToNameMap();
 
@@ -157,8 +169,11 @@ public interface CertificateProfileSession {
 
     /**
 	 * Renames a certificate profile
+     * @param admin Admin
 	 * @param oldname the name of the certificate profile to rename
 	 * @param newname the new name of the certificate profile
+     * @throws CertificateProfileExistsException If a profile with the new name already exists 
+     * @throws AuthorizationDeniedException If access denied
 	 */
 	void renameCertificateProfile(AuthenticationToken admin, String oldname, String newname)
 	        throws CertificateProfileExistsException, AuthorizationDeniedException;
@@ -168,6 +183,7 @@ public interface CertificateProfileSession {
      *
      * @param admin Administrator performing the operation
      * @param name the name of the certificate profile to remove
+	 * @throws AuthorizationDeniedException If access denied
      */
     public void removeCertificateProfile(AuthenticationToken admin, String name) throws AuthorizationDeniedException;
 
@@ -175,7 +191,6 @@ public interface CertificateProfileSession {
      * Method to check if a CA id exists in any of the certificate profiles. Used
      * to avoid desyncronization of CA data.
      * 
-     * @param admin Administrator performing the operation
      * @param caid the caid to search for.
      * @return true if ca exists in any of the certificate profiles.
      */
@@ -185,7 +200,6 @@ public interface CertificateProfileSession {
      * Method to check if a Publisher id exists in any of the certificate profiles.
      * Used to avoid desynchronization of publisher data.
      * 
-     * @param admin Administrator performing the operation
      * @param publisherid the publisherid to search for.
      * @return true if publisher exists in any of the certificate profiles.
      */

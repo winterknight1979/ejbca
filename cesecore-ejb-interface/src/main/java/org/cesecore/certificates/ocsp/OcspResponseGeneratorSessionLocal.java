@@ -26,7 +26,8 @@ public interface OcspResponseGeneratorSessionLocal extends OcspResponseGenerator
 
     void initTimers();
 
-    /** One-time load and conversion of configured keystores to CryptoTokens and OcspKeyBindings */
+    /** One-time load and conversion of configured keystores to CryptoTokens and OcspKeyBindings 
+     * @param activationPassword password*/
     void adhocUpgradeFromPre60(char[] activationPassword);
 
     String healthCheck();

@@ -30,84 +30,125 @@ import org.cesecore.certificates.crl.RevokedCertInfo;
 @Local
 public interface CertificateDataSessionLocal extends CertificateDataSession {
 
-    /** @return the found entity instance or null if the entity does not exist */
+    /** @param fingerprint FP
+     * @return the found entity instance or null if the entity does not exist */
     CertificateData findByFingerprint(String fingerprint);
 
-    /** @return return the query results as a Set. */
+    /** @param subjectDN Subject DN
+     * @param issuerDN Issuer DN
+     * @return return the query results as a Set. */
     Set<String> findUsernamesBySubjectDNAndIssuerDN(String subjectDN, String issuerDN);
     
-    /** @return return the query results as a List. */
+    /** @param subjectDN Subject DN
+     * @return return the query results as a List. */
     List<CertificateData> findBySubjectDN(String subjectDN);
 
-    /** @return return the query results as a List. */
+    /** @param serialNumber Serial
+     * @return return the query results as a List. */
     List<CertificateData> findBySerialNumber(String serialNumber);
 
-    /** @return return the query results as a List. */
+    /** @param issuerDN Issuer DN
+     * @param serialNumber Serial
+     * @return return the query results as a List. */
     List<CertificateData> findByIssuerDNSerialNumber(String issuerDN, String serialNumber);
 
-    /** @return return the query results as a List. */
+    /** @param issuerDN Issuer DN
+     * @param serialNumber Serial
+     * @return return the query results as a List. */
     CertificateInfo findFirstCertificateInfo(String issuerDN, String serialNumber);
     
-    /** @return the last found username or null if none was found */
+    /** @param issuerDN Issuer DN
+     * @param serialNumber Serial
+     * @return the last found username or null if none was found */
     String findLastUsernameByIssuerDNSerialNumber(String issuerDN, String serialNumber);
 
-    /** @return return the query results as a List. */
+    /** @param username username
+     * @return return the query results as a List. */
     List<CertificateData> findByUsernameOrdered(String username);
     
-    /** @return return the query results as a List. */
+    /** @param username username
+     * @param status status
+     * @return return the query results as a List. */
     List<CertificateData> findByUsernameAndStatus(String username, int status);
 
-    /** @return return the query results as a List. */
+    /** @param username user name
+     * @param status status
+     * @param afterExpireDate date 
+     * @return return the query results as a List. */
     List<CertificateData> findByUsernameAndStatusAfterExpireDate(String username, int status, long afterExpireDate);
     
-    /** @return return the query results as a List. */
+    /** @param issuerDN Issuer DN
+     * @param subjectKeyId Key
+     * @return return the query results as a List. */
     Set<String> findUsernamesByIssuerDNAndSubjectKeyId(String issuerDN, String subjectKeyId);
 
     String findUsernameByIssuerDnAndSerialNumber(String issuerDn, String serialNumber);
     
-    /** @return return the query results as a List. */
+    /** @param issuerDN Issuer DN
+     * @param subjectKeyId Key
+     * @param subjectDN Subject DN
+     * @return return the query results as a List. */
     Set<String> findUsernamesBySubjectKeyIdOrDnAndIssuer(String issuerDN, String subjectKeyId, String subjectDN);
     
-    /** @return return the query results as a List<String>. */
+    /** @param issuerDN Issuer DN
+     * @return return the query results as a List<String>. */
     List<String> findFingerprintsByIssuerDN(String issuerDN);
     
-    /** @return return the query results as a Collection<RevokedCertInfo>. */
+    /** @param issuerDN Issuer DN
+     * @param lastbasecrldate CRL date
+     * @return return the query results as a Collection<RevokedCertInfo>. */
     Collection<RevokedCertInfo> getRevokedCertInfos(String issuerDN, long lastbasecrldate);
     
-    /** @return return the query results as a List. */
+    /** @param expireDate Date
+     * @param maxNumberOfResults max 
+     * @return return the query results as a List. */
     List<CertificateData> findByExpireDateWithLimit(long expireDate, int maxNumberOfResults);
 
-    /** @return return the query results as a List. */
+    /** @param expireDate Date
+     * @param maxNumberOfResults Max 
+     * @param offset  Offset
+     * @return return the query results as a List. */
     List<CertificateData> findByExpireDateWithLimitAndOffset(long expireDate, int maxNumberOfResults, int offset);
 
-    /** @return return count of query results. */
+    /** @param expireDate Date
+     * @return return count of query results. */
     int countByExpireDate(long expireDate);
     
-    /** @return return the query results as a List. */
+    /** @param expireDate Date
+     * @param issuerDN Issuer DN
+     * @param maxNumberOfResults max
+     * @return return the query results as a List. */
     List<CertificateData> findByExpireDateAndIssuerWithLimit(long expireDate, String issuerDN, int maxNumberOfResults);
     
-    /** @return return the query results as a List. */
+    /** @param expireDate Date
+     * @param certificateType Type
+     * @param maxNumberOfResults max
+     * @return return the query results as a List. */
     List<CertificateData> findByExpireDateAndTypeWithLimit(long expireDate, int certificateType, int maxNumberOfResults);
     
     List<String> findUsernamesByExpireTimeWithLimit(long minExpireTime, long maxExpireTime, int maxResults);
     
     /**
      * Get a list of {@link Certificate} from a list of list of {@link CertificateData}.
-     * @param cdl
+     * @param cdl data
      * @return The resulting list.
      */
     List<Certificate> getCertificateList(final List<CertificateData> cdl);
     
     List<Certificate> findCertificatesByIssuerDnAndSerialNumbers(final String issuerDN, final Collection<BigInteger> serialNumbers);
     
-    /** @return the CertificateInfo representation (all fields except the actual cert) or null if no such fingerprint exists. */
+    /** @param fingerprint FP
+     * @return the CertificateInfo representation (all fields except the actual cert) or null if no such fingerprint exists. */
     CertificateInfo getCertificateInfo(String fingerprint);
     
-    /** @return a List<Certificate> of SecConst.CERT_ACTIVE and CERT_NOTIFIEDABOUTEXPIRATION certs that have one of the specified types. */
+    /** @param certificateTypes Types
+     * @return a List<Certificate> of SecConst.CERT_ACTIVE and CERT_NOTIFIEDABOUTEXPIRATION certs that have one of the specified types. */
     List<Certificate> findActiveCertificatesByType(Collection<Integer> certificateTypes);
     
     
     /**
+     * @param certificateTypes Types
+     * @param issuerDN Issuer DN 
      * @return a List<Certificate> of SecConst.CERT_ACTIVE and CERT_NOTIFIEDABOUTEXPIRATION certs that have one of the specified types for the given
      *         issuer.
      */

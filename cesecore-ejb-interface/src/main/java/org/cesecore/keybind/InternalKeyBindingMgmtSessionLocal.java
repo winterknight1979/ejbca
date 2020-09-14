@@ -41,8 +41,12 @@ public interface InternalKeyBindingMgmtSessionLocal extends InternalKeyBindingMg
     /**
      * Internal (local only) method to get keybinding info without logging the authorization check
      * (the auth check is performed though).
+     * @param authenticationToken Token
+     * @param internalKeyBindingId Binding
+     * @return Binding Info
+     * @throws AuthorizationDeniedException if access denied
      * 
-     * @see getInternalKeyBindingInfo
+     * @see #getInternalKeyBindingInfo
      */
     InternalKeyBindingInfo getInternalKeyBindingInfoNoLog(AuthenticationToken authenticationToken, int internalKeyBindingId) throws AuthorizationDeniedException;
 
@@ -66,10 +70,9 @@ public interface InternalKeyBindingMgmtSessionLocal extends InternalKeyBindingMg
      * - If the list of trusted certificates in internalKeyBinding is null, no certificates will be trusted.
      *
      * 
-     * @param authenticationToken
-     * @param internalKeyBinding
+     * @param internalKeyBinding Binding
      * @return a collection of the trusted certificates along with their issuers' certificate chains or null if no trusted certificates or CAs are specified
-     * @throws CADoesntExistsException
+     * @throws CADoesntExistsException IF CA not found
      */
     List< Collection<X509Certificate> > getListOfTrustedCertificates(InternalKeyBinding internalKeyBinding) throws CADoesntExistsException;
 

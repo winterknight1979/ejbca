@@ -24,11 +24,15 @@ import javax.ejb.Local;
 @Local
 public interface CryptoTokenSessionLocal extends CryptoTokenSession {
 
-    /** @return the specified CryptoToken or null if it does not exis.
+    /** @param cryptoTokenId ID
+     * @return the specified CryptoToken or null if it does not exis.
      * Throws RuntimeException if allow.nonexisting.slot=false (default) and a PKCS#11 slot does not exist. */
     CryptoToken getCryptoToken(int cryptoTokenId);
 
-    /** Add the specified CryptoToken to the database and return the id used to store it */
+    /** Add the specified CryptoToken to the database and return the id used to store it 
+     * @param cryptoToken Token
+     * @return Merged token
+     * @throws CryptoTokenNameInUseException if nme in use */
     int mergeCryptoToken(CryptoToken cryptoToken) throws CryptoTokenNameInUseException;
 
     /** Remove the specified CryptoToken from the database. 
@@ -49,9 +53,12 @@ public interface CryptoTokenSessionLocal extends CryptoTokenSession {
     /** Clears the CryptoToken cache. */
     void flushCache();
     
-    /** Clears the CryptoToken cache except for the cache entries specified in excludeIDs */
+    /** Clears the CryptoToken cache except for the cache entries specified in excludeIDs 
+     * @param excludeIDs IDs to exclude*/
     void flushExcludingIDs(List<Integer> excludeIDs);
 
-    /** @return true if the specified name is used by exactly one CryptoToken and that cryptoToken has the same id (checks the database, not the cache) */
+    /** @param cryptoTokenName Name
+     * @param cryptoTokenId ID
+     * @return true if the specified name is used by exactly one CryptoToken and that cryptoToken has the same id (checks the database, not the cache) */
     boolean isCryptoTokenNameUsedByIdOnly(String cryptoTokenName, int cryptoTokenId);
 }

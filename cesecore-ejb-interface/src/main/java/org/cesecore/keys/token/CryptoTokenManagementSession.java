@@ -32,31 +32,48 @@ public interface CryptoTokenManagementSession {
     /** Indicate that we would like to keep the current auto-activation PIN (if present) when save a CryptoToken. */
     public final String KEEP_AUTO_ACTIVATION_PIN = "keepAutoActivationPin";
 
-    /** @return a list of IDs for CryptoTokens that the caller is authorized to view */
+    /** @param authenticationToken Token
+     * @return a list of IDs for CryptoTokens that the caller is authorized to view */
     List<Integer> getCryptoTokenIds(AuthenticationToken authenticationToken);
 
-    /** Requests activation of the referenced CryptoToken. */
+    /** Requests activation of the referenced CryptoToken. 
+     * @param authenticationToken Auth Token
+     * @param cryptoTokenId Crypto Token
+     * @param authenticationCode Auth Code
+     * @throws AuthorizationDeniedException If access denied 
+     * @throws CryptoTokenOfflineException  If offline
+     * @throws CryptoTokenAuthenticationFailedException if auth failed. */
     void activate(AuthenticationToken authenticationToken, int cryptoTokenId, char[] authenticationCode)
             throws AuthorizationDeniedException, CryptoTokenOfflineException, CryptoTokenAuthenticationFailedException;
 
-    /** Requests deactivation of the referenced CryptoToken. */
+    /** Requests reactivation of the referenced CryptoToken. 
+     * @param authenticationToken Auth token
+     * @param cryptoTokenId Crypto Token
+     * @throws AuthorizationDeniedException If access denied */
     void deactivate(AuthenticationToken authenticationToken, int cryptoTokenId) throws AuthorizationDeniedException;
 
     /**
      * Remove CryptoToken with the specified ID. If this CryptoToken is backed by an HSM only the reference to the
      * PKCS#11 slot will be removed not the actual key material. If the crypto token with the given id does not exists, nothing happens.
+     * @param authenticationToken Auth token
      * @param cryptoTokenId the id of the crypto token that should be removed
+     * @throws AuthorizationDeniedException If access denied
      */
     void deleteCryptoToken(AuthenticationToken authenticationToken, int cryptoTokenId) throws AuthorizationDeniedException;
 
-    /** @return true if the CryptoToken with the specified ID has been activated. */
+    /** @param authenticationToken Auth token
+     * @param cryptoTokenId Crypto token
+     * @return true if the CryptoToken with the specified ID has been activated. 
+     * @throws AuthorizationDeniedException If access denied */
     boolean isCryptoTokenStatusActive(AuthenticationToken authenticationToken, int cryptoTokenId) throws AuthorizationDeniedException;
     
     /**
      * Checks if a crypto token is present. 
+     * @param authenticationToken Auth token
      * 
      * @param cryptoTokenId the ID of the crypto token
      * @return true if it is exists and is present
+     * @throws AuthorizationDeniedException  If access denied
      */
     boolean isCryptoTokenPresent(AuthenticationToken authenticationToken, int cryptoTokenId) throws AuthorizationDeniedException;
 
@@ -67,11 +84,11 @@ public interface CryptoTokenManagementSession {
      * @param className the classname, org.cesecore.keys.token.PKCS11CryptoToken if this check should return anything but an empty list 
      * @param properties crypto token properties, with the full PKCS#11 properties needed to create a PKCS#11 crypto token
      * @return List or crypto token names which are using the same slot, or an empty list if there is none, an empty list is thus a sign to "go ahead"
-     * @throws AuthorizationDeniedException
-     * @throws CryptoTokenNameInUseException
-     * @throws CryptoTokenOfflineException
-     * @throws CryptoTokenAuthenticationFailedException
-     * @throws NoSuchSlotException
+     * @throws AuthorizationDeniedException If access denied
+     * @throws CryptoTokenNameInUseException If name already exists
+     * @throws CryptoTokenOfflineException If offline
+     * @throws CryptoTokenAuthenticationFailedException If auth fails
+     * @throws NoSuchSlotException If slot does not exist
      */
     public List<String> isCryptoTokenSlotUsed(AuthenticationToken authenticationToken, String tokenName, String className, Properties properties) 
     		throws AuthorizationDeniedException, CryptoTokenNameInUseException, CryptoTokenOfflineException,
@@ -88,10 +105,10 @@ public interface CryptoTokenManagementSession {
      * @param data the keystore data. If null a new, empty keystore will be created
      * @param authenticationCode the authentication code to the slot. Will not activate the slot if offline
      *
-     * @throws AuthorizationDeniedException
-     * @throws CryptoTokenNameInUseException
-     * @throws CryptoTokenOfflineException
-     * @throws CryptoTokenAuthenticationFailedException
+     * @throws AuthorizationDeniedException If access denied
+     * @throws CryptoTokenNameInUseException If name already exists
+     * @throws CryptoTokenOfflineException If offline
+     * @throws CryptoTokenAuthenticationFailedException If auth fails
      * @throws NoSuchSlotException if no PKCS#11 slot as defined by the label in properties could be found
      */
      void createCryptoToken(AuthenticationToken authenticationToken, String tokenName, Integer cryptoTokenId, String className, Properties properties,
@@ -108,10 +125,10 @@ public interface CryptoTokenManagementSession {
      * @param data  the keystore data. If null a new, empty keystore will be created
      * @param authenticationCode authenticationCode the authentication code to the slot
      * @return the ID of a newly persisted CryptoToken from the supplied parameters.
-     * @throws AuthorizationDeniedException
-     * @throws CryptoTokenOfflineException
-     * @throws CryptoTokenAuthenticationFailedException
-     * @throws CryptoTokenNameInUseException
+     * @throws AuthorizationDeniedException If access denied
+     * @throws CryptoTokenNameInUseException If name already exists
+     * @throws CryptoTokenOfflineException If offline
+     * @throws CryptoTokenAuthenticationFailedException If auth fails
      * @throws NoSuchSlotException if no PKCS#11 slot as defined by the label in properties could be found
      */
     int createCryptoToken(AuthenticationToken authenticationToken, String tokenName, String className, Properties properties, byte[] data,
@@ -122,15 +139,15 @@ public interface CryptoTokenManagementSession {
     /**
      * Update the CryptoToken with the specified ID. The authentication code can be omitted (null) if auto-activation is used. 
      * 
-     * @param authenticationToken
-     * @param cryptoTokenId
-     * @param tokenName
-     * @param properties
-     * @param authenticationCode
-     * @throws AuthorizationDeniedException
-     * @throws CryptoTokenOfflineException
-     * @throws CryptoTokenAuthenticationFailedException
-     * @throws CryptoTokenNameInUseException
+     * @param authenticationToken Auth Token
+     * @param cryptoTokenId Crypto token
+     * @param tokenName Name
+     * @param properties Properties
+     * @param authenticationCode Auth code
+     * @throws AuthorizationDeniedException If access denied
+     * @throws CryptoTokenNameInUseException If name already exists
+     * @throws CryptoTokenOfflineException If offline
+     * @throws CryptoTokenAuthenticationFailedException If auth fails
      * @throws NoSuchSlotException if no such slot as defined in properties could be found
      */
     void saveCryptoToken(AuthenticationToken authenticationToken, int cryptoTokenId, String tokenName, Properties properties,
@@ -141,31 +158,44 @@ public interface CryptoTokenManagementSession {
      * Changes the name and key placeholders of a CryptoToken. Doesn't de-activate the crypto token,
      * and can't be used to change any other properties (e.g. PKCS#11 slot etc.) or the authentication code.
      *
-     * @param authenticationToken
+     * @param authenticationToken Auth token
      * @param cryptoTokenId Id of the existing crypto token
      * @param newName New name of the crypto token.
      * @param newPlaceholders New key placeholders, in the same format as they are stored in the crypto token properties.
-     * @throws AuthorizationDeniedException
+     * @throws AuthorizationDeniedException if access denied
      * @throws CryptoTokenNameInUseException If the new name is already in use.
      */
     void saveCryptoToken(AuthenticationToken authenticationToken, int cryptoTokenId, String newName, String newPlaceholders) throws AuthorizationDeniedException, CryptoTokenNameInUseException;
     
-    /** @return value object with non-sensitive information about the CryptoToken for UI use or similar, or null if token does not exist. */
+    /** @param authenticationToken Auth token
+     * @param cryptoTokenId Crypto token
+     * @return value object with non-sensitive information about the CryptoToken for UI use or similar, or null if token does not exist. 
+     * @throws AuthorizationDeniedException if access denied */
     CryptoTokenInfo getCryptoTokenInfo(AuthenticationToken authenticationToken, int cryptoTokenId) throws AuthorizationDeniedException;
 
-    /** @return List value objects with non-sensitive information about authorized CryptoToken for UI use or similar. Returns empty list if no tokens exist. */
+    /** @param authenticationToken Auth token
+     * @return List value objects with non-sensitive information about authorized CryptoToken for UI use or similar. Returns empty list if no tokens exist. */
     List<CryptoTokenInfo> getCryptoTokenInfos(AuthenticationToken authenticationToken);
 
-    /** @return the cryptoTokenId from the more user friendly name. Return null of there is no such CryptoToken. */
+    /** @param cryptoTokenName Token name
+     * @return the cryptoTokenId from the more user friendly name. Return null of there is no such CryptoToken. */
     Integer getIdFromName(String cryptoTokenName);
 
-    /** @return a List of all the key pair aliases present in the specified CryptoToken. */
+    /** @param authenticationToken Auth token
+     * @param cryptoTokenId Crypto token
+     * @return a List of all the key pair aliases present in the specified CryptoToken. 
+     * @throws AuthorizationDeniedException if access denied 
+     * @throws CryptoTokenOfflineException If offline */
     List<String> getKeyPairAliases(AuthenticationToken authenticationToken, int cryptoTokenId) throws AuthorizationDeniedException, CryptoTokenOfflineException;
 
     /**
      * Generate a new key pair in the specified CryptoToken with the requested alias and key specification.
+     * @param authenticationToken Auth token
+     * @param cryptoTokenId Crypto token
+     * @param alias Alias
      * 
      * @param keySpecification should be in the form "RSAnnnn", "DSAnnnn" or an known EC curve name.
+     * @throws AuthorizationDeniedException If access denied
      * 
      * @throws CryptoTokenOfflineException if the CryptoToken is unavailable or inactive.
      * @throws InvalidKeyException if key generation failed.
@@ -177,6 +207,14 @@ public interface CryptoTokenManagementSession {
     /**
      * Generate a new key pair in the specified CryptoToken with the requested alias using the key specification from
      * another key in the same CryptoToken.
+     * @param authenticationToken Auth token
+     * @param cryptoTokenId Crypto token
+     * @param currentSignKeyAlias Signing key
+     * @param nextSignKeyAlias New signing key
+     * @throws AuthorizationDeniedException If access denied
+     * @throws CryptoTokenOfflineException If offline
+     * @throws InvalidKeyException If key invalid
+     * @throws InvalidAlgorithmParameterException If params invalid 
      * 
      * @see #createKeyPair(AuthenticationToken, int, String, String)
      */
@@ -186,27 +224,66 @@ public interface CryptoTokenManagementSession {
     /**
      * Generates a new key pair and deletes the placeholder.
      * 
+     *@param authenticationToken Auth token
+     * @param cryptoTokenId Crypto token
+     * @param alias Alias
+     * @param keySpecification Key spec 
+     * @throws AuthorizationDeniedException If access denied
+     * @throws CryptoTokenOfflineException If offline
+     * @throws InvalidKeyException If key invalid  
+     * @throws InvalidAlgorithmParameterException If params invalid 
+     * 
      * @see #createKeyPair(AuthenticationToken, int, String, String)
      */
     void createKeyPairFromTemplate(AuthenticationToken authenticationToken, int cryptoTokenId, String alias, String keySpecification)
             throws AuthorizationDeniedException, CryptoTokenOfflineException, InvalidKeyException, InvalidAlgorithmParameterException;
 
-    /** @throws InvalidKeyException if the CryptoToken is available, but the key test failed */
+    /**@param authenticationToken Auth token
+     * @param cryptoTokenId Crypto token
+     * @param alias Alias
+     * @throws AuthorizationDeniedException If access denied
+     * @throws CryptoTokenOfflineException If offline
+     * @throws InvalidKeyException if the CryptoToken is available, but the key test failed */
     void testKeyPair(AuthenticationToken authenticationToken, int cryptoTokenId, String alias) throws AuthorizationDeniedException, CryptoTokenOfflineException, InvalidKeyException;
 
-    /** @throws InvalidKeyException if the CryptoToken was active, but the key pair removal failed. */
+    /** 
+     * @param authenticationToken Auth token
+     * @param cryptoTokenId Crypto token
+     * @param alias Alias
+     * @throws AuthorizationDeniedException If access denied
+     * @throws CryptoTokenOfflineException If offline
+     * @throws InvalidKeyException if the CryptoToken was active, but the key pair removal failed. */
     void removeKeyPair(AuthenticationToken authenticationToken, int cryptoTokenId, String alias) throws AuthorizationDeniedException, CryptoTokenOfflineException, InvalidKeyException;
 
-    /** @throws InvalidKeyException if the key alias placeholder didn't exist. */
+    /** 
+     * @param authenticationToken Auth token
+     * @param cryptoTokenId Crypto token
+     * @param alias Alias
+     * @throws AuthorizationDeniedException If access denied
+     * @throws InvalidKeyException if the key alias placeholder didn't exist. */
     void removeKeyPairPlaceholder(AuthenticationToken authenticationToken, int cryptoTokenId, String alias) throws AuthorizationDeniedException, InvalidKeyException;
 
-    /** @return list of information about all key pairs in the specified CryptoToken, but no references to the actual keys. */
+    /** @param admin Auth token
+     * @param cryptoTokenId Crypo token
+     * @return list of information about all key pairs in the specified CryptoToken, but no references to the actual keys. 
+     * @throws CryptoTokenOfflineException If offline 
+     * @throws AuthorizationDeniedException  If access denied*/
     List<KeyPairInfo> getKeyPairInfos(AuthenticationToken admin, int cryptoTokenId) throws CryptoTokenOfflineException, AuthorizationDeniedException;
 
-    /** @return information about a key pair with the the specified alias in the CryptoToken, but no references to the actual keys. null if alias does not exist. */
+    /** @param authenticationToken Auth token
+     * @param cryptoTokenId Crypto token
+     * @param alias Alias
+     * @return information about a key pair with the the specified alias in the CryptoToken, but no references to the actual keys. null if alias does not exist. 
+     * @throws CryptoTokenOfflineException If offline 
+     * @throws AuthorizationDeniedException If access denied */
     KeyPairInfo getKeyPairInfo(AuthenticationToken authenticationToken, int cryptoTokenId, String alias) throws CryptoTokenOfflineException, AuthorizationDeniedException;
 
-    /** @return the public key of the key pair with the the specified alias in the CryptoToken. */
+    /** @param authenticationToken Auth token
+     * @param cryptoTokenId Crypto token
+     * @param alias Alias
+     * @return the public key of the key pair with the the specified alias in the CryptoToken. 
+     * @throws AuthorizationDeniedException If offline 
+     * @throws CryptoTokenOfflineException If access denied */
     PublicKeyWrapper getPublicKey(AuthenticationToken authenticationToken, int cryptoTokenId, String alias) throws AuthorizationDeniedException, CryptoTokenOfflineException;
 
     /**
@@ -219,6 +296,9 @@ public interface CryptoTokenManagementSession {
      * @param newAuthenticationCode is the new pin to use or null to remove the current auto-activation pin
      * @param updateOnly if true, will only modify the auto-activation setting if already present. Soft CryptoTokens will still have a password change.
      * @return true if the CryptoToken is auto-activated after call
+     * @throws AuthorizationDeniedException If access denied
+     * @throws CryptoTokenAuthenticationFailedException If auth fails
+     * @throws CryptoTokenOfflineException If offline
      */
     boolean updatePin(AuthenticationToken authenticationToken, Integer cryptoTokenId, char[] currentAuthenticationCode, char[] newAuthenticationCode,
             boolean updateOnly) throws AuthorizationDeniedException, CryptoTokenAuthenticationFailedException, CryptoTokenOfflineException;

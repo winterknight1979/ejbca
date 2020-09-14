@@ -46,7 +46,7 @@ public class ReferencesToItemExistException extends CesecoreException {
 
     /**
      * Constructs an instance of <code>ReferencesToItemExistException</code> with the specified detail message and cause.
-     * @param msg the detail message.
+     * @param message the detail message.
      * @param cause exception causing this exception.
      */
     public ReferencesToItemExistException(String message, Throwable cause) {

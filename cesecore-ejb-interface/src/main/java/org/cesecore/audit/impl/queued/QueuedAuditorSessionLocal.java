@@ -31,6 +31,7 @@ public interface QueuedAuditorSessionLocal extends Auditable {
      * This method will block till all audit log processes are completed. 
      * Should be used with caution because once called audit log will not be operational. 
      * Any attempt to log will result in an exception.
+     * @throws AuditLogResetException On fail
      */
     void prepareReset() throws AuditLogResetException;
 
@@ -38,6 +39,7 @@ public interface QueuedAuditorSessionLocal extends Auditable {
      * Resets all security audit events logger internal state.
      * Once this method finishes the audit log will be available again.
      * This method should be used with caution.
+     * @throws AuditLogResetException On fail
      */
     void reset() throws AuditLogResetException;
     

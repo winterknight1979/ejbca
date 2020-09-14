@@ -36,8 +36,8 @@ public interface SecurityEventsLoggerSession {
      * @param eventStatus The status of the operation to log.
      * @param module The module where the operation took place.
      * @param service The service (application) that performed the operation.
-     * @throws AuditRecordStorageException 
-     * @throws AuthorizationDeniedException 
+     * @throws AuditRecordStorageException On fail 
+     * @throws AuthorizationDeniedException If access denied
      */
     public void log(AuthenticationToken authToken, EventType eventType, EventStatus eventStatus, ModuleType module, ServiceType service)
             throws AuditRecordStorageException, AuthorizationDeniedException;
@@ -54,8 +54,8 @@ public interface SecurityEventsLoggerSession {
      * @param searchDetail1 A detail of this event that can be queried for using QueryCriteria (database) searches (e.g. a certificate serialnumber)
      * @param searchDetail2 A detail of this event that can be queried for using QueryCriteria (database) searches (e.g. a username)
      * @param additionalDetails Additional details of this event to be stored in a non-searchable manner.
-     * @throws AuditRecordStorageException 
-     * @throws AuthorizationDeniedException 
+     * @throws AuditRecordStorageException On fail
+     * @throws AuthorizationDeniedException If access denied
      */
     void log(AuthenticationToken authToken, EventType eventType, EventStatus eventStatus, ModuleType module, ServiceType service, String customId, String searchDetail1, String searchDetail2, Map<String, Object> additionalDetails)
             throws AuditRecordStorageException, AuthorizationDeniedException;

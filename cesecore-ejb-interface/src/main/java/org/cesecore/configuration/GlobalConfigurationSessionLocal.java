@@ -23,7 +23,8 @@ import javax.ejb.Local;
 @Local
 public interface GlobalConfigurationSessionLocal extends GlobalConfigurationSession {
     
-    /** @return the found entity instance or null if the entity does not exist */
+    /** @param configurationId ID
+     * @return the found entity instance or null if the entity does not exist */
     GlobalConfigurationData findByConfigurationId(String configurationId);
     
     /** @return all registered configuration IDs. */

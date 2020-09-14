@@ -33,7 +33,7 @@ public interface TrustedTimeWatcherSession {
      * @param force forces the TrustedTime update from the provider.
      * @return Watcher TrustedTime current instance.
      * 
-     * @throws TrustedTimeProviderException
+     * @throws TrustedTimeProviderException on fail
      */
     TrustedTime getTrustedTime(boolean force) throws TrustedTimeProviderException;
 

@@ -29,15 +29,21 @@ public interface NoConflictCertificateDataSessionLocal extends NoConflictCertifi
 
     List<NoConflictCertificateData> findByFingerprint(String fingerprint);
     
-    /** @return return the query results as a List. */
+    /** @param serialNumber SN
+     * @return return the query results as a List. */
     List<NoConflictCertificateData> findBySerialNumber(String serialNumber);
 
-    /** @return return the query results as a List. */
+    /** @param issuerDN DN
+     * @param serialNumber SN 
+     * @return return the query results as a List. */
     List<NoConflictCertificateData> findByIssuerDNSerialNumber(String issuerDN, String serialNumber);
 
     /**
      * Returns a list with information about revoked certificates. Since the NoConflictCertificateData table is append-only, the result
      * may contain duplicate entries, that should be filtered by date and revocation status.
+     * @param issuerDN DN
+     * @param lastbasecrldate Date 
+     * @return revoked certs
      */
     Collection<RevokedCertInfo> getRevokedCertInfosWithDuplicates(String issuerDN, long lastbasecrldate);
     

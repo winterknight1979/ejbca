@@ -31,25 +31,37 @@ public interface RoleSessionLocal extends RoleSession {
     /**
      * Checks if the administrator is allowed to add/edit/remove role members from role with the given ID.
      * Note that role member objects may reference a CA also, which must be checked for access as well. 
+     * @param authenticationToken Auth token
+     * @param roleId ID
+     * @param requireEditAccess bool
+     * @throws AuthorizationDeniedException if access denied 
      */
     void assertAuthorizedToRoleMembers(AuthenticationToken authenticationToken, int roleId, boolean requireEditAccess) throws AuthorizationDeniedException;
 
-    /** @return a List of Roles the caller is a member of (without taking nesting into account) */
+    /** @param authenticationToken token
+     * @return a List of Roles the caller is a member of (without taking nesting into account) */
     List<Role> getRolesAuthenticationTokenIsMemberOf(AuthenticationToken authenticationToken);
 
-    /** @return a list of all Roles that have access to the resource and the caller is allowed to see */
+    /** @param authenticationToken token
+     * @param resource resource
+     * @return a list of all Roles that have access to the resource and the caller is allowed to see */
     List<Role> getAuthorizedRolesWithAccessToResource(AuthenticationToken authenticationToken, String resource);
 
     /** 
      * Update Role access rules and optionally any RoleMember relating to the CA ID.
      * 
      * Authorization to perform this operation should be checked by the caller and implied by the type of operation.
+     * @param caIdOld Old ID
+     * @param caIdNew new ID
      * 
      * @param keepOldAccessRule when true, the /ca/(caIdOld)/ rule will be kept as well.
      * @param updateRoleMembers update the RoleMember.tokenIssuerId for members issued by this CA
+     * @return bool
      */
     boolean updateCaId(int caIdOld, int caIdNew, boolean keepOldAccessRule, boolean updateRoleMembers);
 
-    /** @throws AuthorizationDeniedException if changing this role would affect the access granted to the specified authenticationToken. */
+    /** @param authenticationToken Token
+     * @param roleId ID
+     * @throws AuthorizationDeniedException if changing this role would affect the access granted to the specified authenticationToken. */
     void assertNonImportantRoleMembership(AuthenticationToken authenticationToken, int roleId) throws AuthorizationDeniedException;
 }

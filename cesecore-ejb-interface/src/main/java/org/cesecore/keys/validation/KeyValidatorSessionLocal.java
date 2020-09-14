@@ -26,6 +26,7 @@ import javax.ejb.Local;
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.ca.CA;
+import org.cesecore.certificates.ca.CAInfo;
 import org.cesecore.certificates.ca.IllegalValidityException;
 import org.cesecore.certificates.certificate.request.RequestMessage;
 import org.cesecore.certificates.certificateprofile.CertificateProfile;
@@ -54,7 +55,7 @@ public interface KeyValidatorSessionLocal extends KeyValidatorSession, Certifica
     Map<Integer, String> getKeyValidatorIdToNameMap();
 
     /**
-     * Retrieves a Map of key validator names which are applicable for the type of CA (X509 or CVC see {@link CAInfo.CATYPE_X509 or CAInfo.CATYPE_CVC}).
+     * Retrieves a Map of key validator names which are applicable for the type of CA (X509 or CVC see {@link CAInfo#CATYPE_X509} or {@link CAInfo#CATYPE_CVC}).
      * @param applicableCas applicable CA type identifier.
      * @return mapping of key validators ids and names.
      */
@@ -85,7 +86,7 @@ public interface KeyValidatorSessionLocal extends KeyValidatorSession, Certifica
      * Adds a key validator with the same content as the original.
      *
      * @param admin an authentication token
-     * @param the ID of a validator
+     * @param validatorId the ID of a validator
      * @param newName the name of the clone
      *
      * @throws AuthorizationDeniedException required access rights are ca_functionality/edit_validator
@@ -97,6 +98,9 @@ public interface KeyValidatorSessionLocal extends KeyValidatorSession, Certifica
 
     /**
      * Adds a key validator with the same content as the original.
+     * @param admin Auth token
+     * @param validator Validator
+     * @param newName Name
      *
      * @throws AuthorizationDeniedException required access rights are ca_functionality/edit_validator
      * @throws KeyValidatorDoesntExistsException if key validator does not exist
@@ -164,7 +168,7 @@ public interface KeyValidatorSessionLocal extends KeyValidatorSession, Certifica
      * @param authenticationToken the authentication token of the administrator performing the action
      * @param ca the issuing CA
      * @param endEntityInformation the end entity object
-     * @param the incoming request message
+     * @param requestMessage the incoming request message
      *
      * @throws ValidationException if validation failed
      */
@@ -201,8 +205,9 @@ public interface KeyValidatorSessionLocal extends KeyValidatorSession, Certifica
     /**
      * Replaces the settings of a key validator without changing its name or profile ID.
      * @param authenticationToken used for authentication
-     * @param validator the new settings of the validator
-     * @param the id of the validator to update
+     * @param data the new settings of the validator
+     * @param id the id of the validator to update
+     * @throws AuthorizationDeniedException If unauthorized
      */
     void replaceKeyValidator(AuthenticationToken authenticationToken, LinkedHashMap<Object, Object> data, int id) throws AuthorizationDeniedException;
 }

@@ -38,8 +38,8 @@ public interface CrlCreateSession {
      * @param basecrlnumber the CRL number of the Base CRL to generate a deltaCRL, -1 to generate a full CRL
      * @param nextCrlNumber the CRL number.
      * @return The newly created CRL in DER encoded byte form or null, use CertTools.getCRLfromByteArray to convert to X509CRL.
-     * @throws AuthorizationDeniedException 
-     * @throws CryptoTokenOfflineException 
+     * @throws AuthorizationDeniedException If access denied 
+     * @throws CryptoTokenOfflineException If offline
      */
     byte[] generateAndStoreCRL(AuthenticationToken admin, CA ca, Collection<RevokedCertInfo> certs, int basecrlnumber, int nextCrlNumber)
             throws CryptoTokenOfflineException, AuthorizationDeniedException;

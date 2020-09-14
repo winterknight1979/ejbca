@@ -40,7 +40,7 @@ public interface SecurityEventsLoggerSessionLocal extends SecurityEventsLoggerSe
      * @param searchDetail1 A detail of this event that can be queried for using QueryCriteria (database) searches (e.g. a certificate serialnumber)
      * @param searchDetail2 A detail of this event that can be queried for using QueryCriteria (database) searches (e.g. a username)
      * @param additionalDetails Additional details to be logged.
-     * @throws AuditRecordStorageException
+     * @throws AuditRecordStorageException On fail
      */
 	void log(EventType eventType, EventStatus eventStatus, ModuleType module, ServiceType service, String authToken, 
 			String customId, String searchDetail1, String searchDetail2, Map<String, Object> additionalDetails) throws AuditRecordStorageException;
@@ -56,7 +56,7 @@ public interface SecurityEventsLoggerSessionLocal extends SecurityEventsLoggerSe
      * @param searchDetail1 A detail of this event that can be queried for using QueryCriteria (database) searches (e.g. a certificate serialnumber)
      * @param searchDetail2 A detail of this event that can be queried for using QueryCriteria (database) searches (e.g. a username)
      * @param additionalDetailsMsg A single additional details String to be logged.
-     * @throws AuditRecordStorageException
+     * @throws AuditRecordStorageException On fail
      */
     void log(EventType eventType, EventStatus eventStatus, ModuleType module, ServiceType service, String authToken, 
             String customId, String searchDetail1, String searchDetail2, String additionalDetailsMsg) throws AuditRecordStorageException;

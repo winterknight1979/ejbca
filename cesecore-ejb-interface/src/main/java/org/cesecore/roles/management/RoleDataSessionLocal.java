@@ -29,26 +29,28 @@ public interface RoleDataSessionLocal extends RoleDataSession {
     /** @return all roles */
     List<Role> getAllRoles();
 
-    /** @return a role by its unique id or null if the role does not exist */
+    /** @param id ID
+     * @return a role by its unique id or null if the role does not exist */
     Role getRole(int id);
 
     /**
      * Find a role in the database from the unique roleName and nameSpace combination.
-     * @param roleName
-     * @param nameSpace
+     * @param roleName Role
+     * @param nameSpace Namespace
      * @return the role or null if none was found
      */
     Role getRole(String roleName, String nameSpace);
 
     /**
      * Delete a role from the database (currently not affecting any role members)
-     * @param roleId
+     * @param roleId ole
      * @return true if a change was made to the database (the row was deleted)
      */
     boolean deleteRoleNoAuthorizationCheck(int roleId);
 
     /** 
      * Persist (creating a new row if needed) the role to the database.
+     * @param role Role
      * 
      * @return persisted version of the role
      */

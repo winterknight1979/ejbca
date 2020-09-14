@@ -26,9 +26,11 @@ import org.cesecore.audit.log.AuditLogResetException;
 @Local
 public interface SecurityEventsAuditorSessionLocal extends SecurityEventsAuditorSession {
 
-    /** @see org.cesecore.audit.AuditLogDevice#prepareReset() */
+    /** @throws AuditLogResetException on fail
+     * @see org.cesecore.audit.AuditLogDevice#prepareReset() */
     void prepareReset() throws AuditLogResetException;
 
-    /** @see org.cesecore.audit.AuditLogDevice#reset() */
+    /** @throws AuditLogResetException on fail
+     * @see org.cesecore.audit.AuditLogDevice#reset() */
     void reset() throws AuditLogResetException;
 }

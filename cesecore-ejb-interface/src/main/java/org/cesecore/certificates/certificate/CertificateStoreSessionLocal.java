@@ -63,6 +63,7 @@ public interface CertificateStoreSessionLocal extends CertificateStoreSession {
     /**
      * Stores a certificate without checking authorization. This should be used from other methods where authorization to
      * the CA issuing the certificate has already been checked. For efficiency this method can then be used.
+     * @param admin An authentication token to authorize the action
      * 
      * @param incert The certificate to be stored.
      * @param cafp Fingerprint (hex) of the CAs certificate.
@@ -72,6 +73,9 @@ public interface CertificateStoreSessionLocal extends CertificateStoreSession {
      * @param certificateProfileId the certificate profile id this cert was issued under
      * @param endEntityProfileId the end entity profile id this cert was issued under
      * @param tag a custom string tagging this certificate for some purpose
+     * @param updateTime epoch millis to use as last update time of the stored object
+     * 
+     * @return CertificateDataWrapper with the certificate just stored that can be used for further publishing
      * 
      */
     CertificateDataWrapper storeCertificateNoAuth(AuthenticationToken admin, Certificate incert, String username,
@@ -79,12 +83,15 @@ public interface CertificateStoreSessionLocal extends CertificateStoreSession {
 
     /** 
      * Retrieve the full wrapped CertificateData and Base64CertData objects.
+     * @param fingerprint Fingerprint
      * @return the sought certificate, or null if no data for the specified fingerprint exists
      */
     CertificateDataWrapper getCertificateData(final String fingerprint);
 
     /**
      * Update the base64cert column if the database row exists, but the column is empty.
+     * @param authenticationToken Auth token
+     * @param certificate Certificate
      * @return true if the column was empty and is now populated.
      */
     boolean updateCertificateOnly(AuthenticationToken authenticationToken, Certificate certificate);
@@ -121,7 +128,8 @@ public interface CertificateStoreSessionLocal extends CertificateStoreSession {
      */
     Certificate findMostRecentlyUpdatedActiveCertificate(byte[] subjectKeyId);
 
-    /** @return the username or null if no row was found for this certificate fingerprint */
+    /** @param fingerprint FP
+     * @return the username or null if no row was found for this certificate fingerprint */
     String findUsernameByFingerprint(String fingerprint);
 
     /** 
@@ -144,13 +152,25 @@ public interface CertificateStoreSessionLocal extends CertificateStoreSession {
 
     /** ONLY use in Unit tests or during controlled startup.
      * Sets the check for present certificate serial number unique index to specified value. Can be used to override safety check that the 
-     * index exists. */
+     * index exists. 
+     * @param value index*/
     void setUniqueCertificateSerialNumberIndex(final Boolean value);
 
     /** Checks for present certificate serial number unique index in a new transaction in order to avoid rollback, since we can expect SQL exceptions here. 
      * Should not be used externally.
      * NOTE: does not add an event to the security audit log, that test certificates were added to the database, and removed.
      * All normal operations that stores certificates in the database creates audit log events.
+     *  @param admin An authentication token to authorize the action
+     * @param incert The certificate to be stored.
+     * @param cafp Fingerprint (hex) of the CAs certificate.
+     * @param username username of end entity owning the certificate.
+     * @param status the status from the CertificateConstants.CERT_ constants
+     * @param type Type of certificate (CERTTYPE_ENDENTITY etc from CertificateConstants).
+     * @param certificateProfileId the certificate profile id this cert was issued under
+     * @param endEntityProfileId the end entity profile id this cert was issued under
+     * @param tag a custom string tagging this certificate for some purpose
+     * @param updateTime epoch millis to use as last update time of the stored object
+     * @throws AuthorizationDeniedException If access denied
      */
     void checkForUniqueCertificateSerialNumberIndexInTransaction(AuthenticationToken admin, Certificate incert, String username, String cafp, int status, int type,
             int certificateProfileId, int endEntityProfileId, String tag, long updateTime) throws AuthorizationDeniedException;
@@ -161,6 +181,14 @@ public interface CertificateStoreSessionLocal extends CertificateStoreSession {
     
     /**
      * Creates a revoked certificate data, for use with OCSP or CRL generation.
+     *  @param admin an admin that is authorized to the CA that issued the certificate
+     * @param caId the CA identifier
+     * @param issuerDn the BC normalized version of the issuer DN
+     * @param serialNumber the certificate serial number
+     * @param revocationDate the date of revocation
+     * @param reasonCode one of RevokedCertInfo.REVOCATION_REASON_...
+     * @param caFingerprint the SHA-1 of the CA Certificate that issued this entry
+     * @throws AuthorizationDeniedException  If access denied
      * @see CertificateStoreSessionLocal#updateLimitedCertificateDataStatus(AuthenticationToken, int, String, String, String, BigInteger, int, Date, int, String)
      */
     void updateLimitedCertificateDataStatus(AuthenticationToken admin, int caId, String issuerDn, BigInteger serialNumber, Date revocationDate, int reasonCode, String caFingerprint) throws AuthorizationDeniedException;
@@ -174,14 +202,14 @@ public interface CertificateStoreSessionLocal extends CertificateStoreSession {
      * @param admin an admin that is authorized to the CA that issued the certificate
      * @param caId the CA identifier
      * @param issuerDn the BC normalized version of the issuer DN
-     * @param issuerDn the BC normalized version of the subject DN
+     * @param subjectDn the BC normalized version of the subject DN
      * @param username Username
      * @param serialNumber the certificate serial number
      * @param status Certificate status
      * @param revocationDate the date of revocation
      * @param reasonCode one of RevokedCertInfo.REVOCATION_REASON_...
      * @param caFingerprint the SHA-1 of the CA Certificate that issued this entry
-     * @throws AuthorizationDeniedException
+     * @throws AuthorizationDeniedException If access denied
      */
     void updateLimitedCertificateDataStatus(final AuthenticationToken admin, final int caId, final String issuerDn, final String subjectDn, final String username, final BigInteger serialNumber,
             final int status, final Date revocationDate, final int reasonCode, final String caFingerprint) throws AuthorizationDeniedException;
@@ -200,10 +228,10 @@ public interface CertificateStoreSessionLocal extends CertificateStoreSession {
      *
      * @param admin      AuthenticationToken performing the operation
      * @param cdw the certificate data to revoke or activate.
-     * @param revokeDate when it was revoked
+     * @param revokedDate when it was revoked
      * @param reason     the reason of the revocation. (One of the RevokedCertInfo.REVOCATION_REASON constants.)
      * @return true if status was changed in the database, false if not, for example if the certificate was already revoked 
-     * @throws CertificaterevokeException (rollback) if certificate does not exist
+     * @throws CertificateRevokeException (rollback) if certificate does not exist
      * @throws AuthorizationDeniedException (rollback)
      */
     boolean setRevokeStatus(AuthenticationToken admin, CertificateDataWrapper cdw, Date revokedDate, int reason) throws CertificateRevokeException, AuthorizationDeniedException;
@@ -244,7 +272,7 @@ public interface CertificateStoreSessionLocal extends CertificateStoreSession {
      * Changes a certificate from CERT_ROLLOVERPENDING to CERT_ACTIVE. If the certificate status is already CERT_ACTIVE, then it does nothing.
      * @param admin Administrator performing the operation
      * @param fingerprint Fingerprint of the certificate
-     * @throws AuthorizationDeniedException
+     * @throws AuthorizationDeniedException if access denied
      */
     void setRolloverDoneStatus(AuthenticationToken admin, String fingerprint) throws AuthorizationDeniedException;
 

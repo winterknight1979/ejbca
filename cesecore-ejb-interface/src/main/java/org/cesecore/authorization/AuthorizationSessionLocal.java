@@ -30,12 +30,15 @@ public interface AuthorizationSessionLocal extends AuthorizationSession {
     /** Invoked when authorization cache should be checked for updates. */
     void refreshAuthorizationCache();
 
-    /** Invoked by background cache refresh timeouts */
+    /** Invoked by background cache refresh timeouts 
+     * @param timer timer*/
     void timeOut(Timer timer);
 
     /** Initialize background cache refresh timeouts */
     void scheduleBackgroundRefresh();
 
-    /** @return the access rules available to the AuthenticationToken and its nested tokens, taking each such tokens role membership into account */
+    /** @param authenticationToken token
+     * @return the access rules available to the AuthenticationToken and its nested tokens, taking each such tokens role membership into account 
+     * @throws AuthenticationFailedException access denied */
     HashMap<String, Boolean> getAccessAvailableToAuthenticationToken(AuthenticationToken authenticationToken) throws AuthenticationFailedException;
 }

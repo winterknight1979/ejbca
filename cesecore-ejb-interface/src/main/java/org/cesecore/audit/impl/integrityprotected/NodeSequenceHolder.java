@@ -37,11 +37,13 @@ public enum NodeSequenceHolder {
     public interface OnInitCallBack {
         /** @return the current node identifier */
         String getNodeId();
-        /** @return the highest known sequence number for the node identifier returned by {@link OnInitCallBack#getNodeId()}*/
+        /** @param nodeId ID
+         * @return the highest known sequence number for the node identifier returned by {@link OnInitCallBack#getNodeId()}*/
         long getMaxSequenceNumberForNode(String nodeId);
     }
 
-    /** @return the node's next log row sequence number. */
+    /** @param callBack Callback
+     * @return the node's next log row sequence number. */
     public long getNext(final OnInitCallBack callBack) {
         if (lastSequenceNumberAtomic.get()==-1L) {
             try {

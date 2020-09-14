@@ -24,12 +24,14 @@ public interface CryptoTokenManagementSessionLocal extends CryptoTokenManagement
     /**
      * This method can be used whenever the authorization is implied. E.g. the caller had access
      * to an object that references this CryptoToken and that reference cannot change.
+     * @param cryptoTokenId ID
      * 
      * @return a reference to the cached and potentially active CryptoToken object.
      */
     CryptoToken getCryptoToken(int cryptoTokenId);
 
-    /** @return value object with non-sensitive information about the CryptoToken for UI use or similar. */
+    /** @param cryptoTokenId ID
+     * @return value object with non-sensitive information about the CryptoToken for UI use or similar. */
     CryptoTokenInfo getCryptoTokenInfo(int cryptoTokenId);
 
     /**

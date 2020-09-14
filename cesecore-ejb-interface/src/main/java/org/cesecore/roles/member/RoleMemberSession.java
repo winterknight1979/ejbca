@@ -27,12 +27,17 @@ public interface RoleMemberSession {
 
     /**
      * Returns the Role Member with the given ID, or null if it does not exist.
+     * @param authenticationToken Token
+     * @param roleMemberId ID
+     * @return member
      * @throws AuthorizationDeniedException if not authorized to the Role or the CA in the RoleMember object.
      */
     RoleMember getRoleMember(AuthenticationToken authenticationToken, int roleMemberId) throws AuthorizationDeniedException;
 
     /**
      * Adds or updates a Role Member (use ID RoleMember.ROLE_MEMBER_ID_UNASSIGNED to assign when adding a RoleMember).
+     * @param authenticationToken token
+     * @param roleMember member
      * @return The persisted version of the role member (and null if the provided roleMember was null)
      * @throws AuthorizationDeniedException If access was denied to editing this role member or the referenced CA or Role.
      */
@@ -40,6 +45,8 @@ public interface RoleMemberSession {
 
     /**
      * Adds or updates a Role Member (use ID RoleMember.ROLE_MEMBER_ID_UNASSIGNED to assign when adding a RoleMember).
+     * @param authenticationToken token
+     * @param roleMember member
      * @param requireNonImportantRoleMembership if true, this method will check that the admin does not decrease its own access by adding/modifying this role
      * @return The persisted version of the role member (and null if the provided roleMember was null)
      * @throws AuthorizationDeniedException If access was denied to editing this role member or the referenced CA or Role.
@@ -49,11 +56,16 @@ public interface RoleMemberSession {
 
     /**
      * Deletes the role member with the specified ID.
+     * @param authenticationToken token
+     * @param roleMemberId Member ID
      * @return true if successfully deleted, false if it did not exist.
+     * @throws AuthorizationDeniedException if access denied 
      */
     boolean remove(final AuthenticationToken authenticationToken, final int roleMemberId) throws AuthorizationDeniedException;
 
     /**
+     * @param authenticationToken Token
+     * @param roleId Role ID
      * @return a list of RoleMembers that belongs to the specified Role
      * @throws AuthorizationDeniedException if the caller is not authorized to the role (including any of the RoleMember's tokenIssuerIds)
      */
