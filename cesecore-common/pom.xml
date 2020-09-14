@@ -73,8 +73,8 @@
 			<artifactId>xmlpull</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>xpp3</groupId>
-			<artifactId>xpp3_min</artifactId>
+			<groupId>org.ogce</groupId>
+			<artifactId>xpp3</artifactId>
 		</dependency>
 
 		<!-- Logging -->

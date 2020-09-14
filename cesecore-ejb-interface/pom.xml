@@ -72,8 +72,8 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>xpp3</groupId>
-			<artifactId>xpp3_min</artifactId>
+			<groupId>org.ogce</groupId>
+			<artifactId>xpp3</artifactId>
 			<scope>test</scope>
 		</dependency>
 
