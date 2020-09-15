@@ -7,21 +7,90 @@
 		<artifactId>ejbca</artifactId>
 		<version>1.0</version>
 	</parent>
-	<artifactId>cesecore-common-entity-tests</artifactId>
+	<artifactId>cesecore-ejb</artifactId>
 
 	<dependencies>
+
+		<!-- CERT-CVC -->
+
+		<dependency>
+			<groupId>org.ejbca.cvc</groupId>
+			<artifactId>cert-cvc</artifactId>
+		</dependency>
+
+		<!-- BouncyCastle -->
+
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-jdk15on</artifactId>
+		</dependency>
+
+		<!-- Commons -->
+
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- log4j -->
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+		</dependency>
+
+		<!-- LDAP -->
+		<dependency>
+			<groupId>com.novell.ldap</groupId>
+			<artifactId>jldap</artifactId>
+		</dependency>
+
+
+		<!-- other modules -->
+
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>cesecore-common</artifactId>
 			<version>${project.version}</version>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>cesecore-entity</artifactId>
 			<version>${project.version}</version>
-			<scope>test</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>cesecore-ejb-interface</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!-- test -->
+
 		<dependency>
 			<groupId>org.easymock</groupId>
 			<artifactId>easymock</artifactId>
@@ -45,17 +114,12 @@
 
 	</dependencies>
 
-	<description>This module contains tests for cesecore-common that depend on classes from cesecore-entity.
 
-Because Maven runs the tests immediately after building each induvidual jar, this creates a circular dependency.
-
-These tests have therefore been folded out into their own module.</description>
 	<build>
 		<plugins>
-
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
-				
+
 				<executions>
 					<execution>
 						<id>copy-resources</id>
@@ -110,5 +174,6 @@ These tests have therefore been folded out into their own module.</description>
 			</plugin>
 		</plugins>
 	</build>
+
 
 </project>
