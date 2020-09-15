@@ -22,23 +22,23 @@ import java.security.interfaces.RSAPublicKey;
 public interface CardKeys {
 
     /**
-     * @param publicKey
-     * @return
-     * @throws Exception
+     * @param publicKey Key
+     * @return Private key
+     * @throws Exception On fail
      */
     PrivateKey getPrivateKey(RSAPublicKey publicKey) throws Exception;
 
     /**
-     * @param authCode
-     * @throws InterruptedException
+     * @param authCode Code
+     * @throws InterruptedException on fail
      */
     void autenticate(String authCode) throws InterruptedException;
 
     /**
      * Check if key is OK (verifies PIN).
      * 
-     * @param publicKey
-     * @return
+     * @param publicKey Hey
+     * @return Boolean
      */
     boolean isOK(RSAPublicKey publicKey);
 }

@@ -310,7 +310,14 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
         return false;
     }
 
-	/** Ensure that the caller is authorized to the CA we are about to edit and that the CA name and subjectDN matches. */
+	/** Ensure that the caller is authorized to the CA we are about to edit and that the CA name and subjectDN matches. 
+	 * @param admin Auth token
+	 * @param name Name
+	 * @param subjectDN DN
+	 * @param cryptoTokenId ID
+	 * @param ca CA
+	 * @throws CADoesntExistsException If CA not found 
+	 * @throws AuthorizationDeniedException If access denied */
 	private void assertAuthorizationAndTarget(AuthenticationToken admin, final String name, final String subjectDN, final int cryptoTokenId, final CA ca)
 			throws CADoesntExistsException, AuthorizationDeniedException {
 		assertAuthorizationAndTargetWithNewSubjectDn(admin, name, subjectDN, cryptoTokenId, ca);
@@ -319,7 +326,14 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
         }
 	}
 
-	/** Ensure that the caller is authorized to the CA we are about to edit and that the CA name matches. */
+	/** Ensure that the caller is authorized to the CA we are about to edit and that the CA name matches. 
+	 * @param admin Admin
+	 * @param name Name
+	 * @param subjectDN DN 
+	 * @param cryptoTokenId ID
+	 * @param ca CA
+	 * @throws CADoesntExistsException If CA not found 
+	 * @throws AuthorizationDeniedException If access denied*/
     private void assertAuthorizationAndTargetWithNewSubjectDn(AuthenticationToken admin, final String name, final String subjectDN, final int cryptoTokenId, final CA ca)
             throws CADoesntExistsException, AuthorizationDeniedException {
         // Check if we are authorized to edit CA and authorization to specific CA
@@ -690,6 +704,7 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
 	/**
      * Checks if the CA certificate has expired (or is not yet valid) since last check.
      * Logs an info message first time that the CA certificate has expired, or every time when not yet valid.
+	 * @param ca CA
      *
      * @return the true if the CA is expired
      */
@@ -804,7 +819,8 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
         return ret;
     }
 
-    /** @return the CA object, from the database (including any upgrades) is necessary */
+    /** @param caId ID
+     * @return the CA object, from the database (including any upgrades) is necessary */
     private CA getCa(int caId) {
         final Integer realCAId = CACacheHelper.getCaCertHash(Integer.valueOf(caId));
         if (realCAId!=null) {
@@ -858,7 +874,9 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
         return caId;
     }
 
-    /** Performs upgrades on the entity if needed within a transaction. */
+    /** Performs upgrades on the entity if needed within a transaction. 
+     * @param cadata Data
+     * @return Upgraded data */
     private CAData upgradeAndMergeToDatabase(CAData cadata) {
         if (cadata == null) {
             return null;
@@ -900,6 +918,9 @@ public class CaSessionBean implements CaSessionLocal, CaSessionRemote {
 
     /**
      * Extract keystore or keystore reference and store it as a CryptoToken. Add a reference to the keystore.
+     * @param caid ID
+     * @param data Data
+     * @param caName Name
      * @return true if any changes where made
      */
     @SuppressWarnings("unchecked")

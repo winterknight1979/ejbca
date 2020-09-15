@@ -177,7 +177,8 @@ public class GlobalConfigurationSessionBean implements GlobalConfigurationSessio
         }
     }
 
-    /** @return the access rule required to read the specified configuration type */
+    /** @param configID ID
+     * @return the access rule required to read the specified configuration type */
     private String getAccessRuleFromConfigId(final String configID) {
         switch (configID) {
         case AvailableExtendedKeyUsagesConfiguration.CONFIGURATION_ID:

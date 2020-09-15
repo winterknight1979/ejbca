@@ -191,6 +191,7 @@ public class CertificateStoreSessionBean implements CertificateStoreSessionRemot
      * @param updateTime epoch millis to use as last update time of the stored object
      * @param doAuditLog determines if a security audit log event shall be written or not with, EventTypes.CERT_STORED, ModuleTypes.CERTIFICATE,
      * must only be used when storing special internal certificates, such as the test certificates for checking unique database index.
+     * @return data
      */
     private CertificateDataWrapper storeCertificateNoAuthInternal(AuthenticationToken adminForLogging, Certificate incert, String username, String cafp, int status, int type,
             int certificateProfileId, final int endEntityProfileId, String tag, long updateTime, boolean doAuditLog) {
@@ -242,6 +243,9 @@ public class CertificateStoreSessionBean implements CertificateStoreSessionRemot
     /**
      * We need special handling here of CVC certificate with EC keys, because they lack EC parameters in all certs
      * except the Root certificate (CVCA)
+     * @param pubk key
+     * @param cafp FP
+     * @return enriched key
      */
     private PublicKey enrichEcPublicKey(final PublicKey pubk, final String cafp) {
         PublicKey ret = pubk;
@@ -923,7 +927,9 @@ public class CertificateStoreSessionBean implements CertificateStoreSessionRemot
         return ret;
     }
 
-    /** Fetch the actual certificate is stored in a separate table and filter out entries where we don't store base64CertData at all */
+    /** Fetch the actual certificate is stored in a separate table and filter out entries where we don't store base64CertData at all 
+     * @param certificateDatas Data
+     * @return Certs */
     private List<Certificate> getAsCertificateListWithoutNulls(List<CertificateData> certificateDatas) {
         final ArrayList<Certificate> ret = new ArrayList<>();
         for (final CertificateData certificateData : certificateDatas) {
@@ -1163,6 +1169,7 @@ public class CertificateStoreSessionBean implements CertificateStoreSessionRemot
     }
 
     /**
+     * @param issuerDN DN
      * @return the certificates that have CertificateConstants.CERT_REVOKED.
      * @param firstResult pagination variable, 0 for the first call, insrease by maxRows for further calls if return value is == maxRows
      * @param maxRows pagination variable max number of rows that should be returned, used in order to make it somewhat efficient on large data
@@ -1511,7 +1518,7 @@ public class CertificateStoreSessionBean implements CertificateStoreSessionRemot
                 CertificateConstants.CERT_REVOKED, revocationDate, reasonCode, caFingerprint);
     }
 
-    @Override
+	@Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void updateLimitedCertificateDataStatus(final AuthenticationToken admin, final int caId, final String issuerDn, final String subjectDn, final String username, final BigInteger serialNumber,
             final int status, final Date revocationDate, final int reasonCode, final String caFingerprint) throws AuthorizationDeniedException {
@@ -1532,7 +1539,7 @@ public class CertificateStoreSessionBean implements CertificateStoreSessionRemot
                 limitedCertificateData.setIssuer(issuerDn);
                 limitedCertificateData.setSubjectDN(subjectDn);
                 limitedCertificateData.setUsername(username);
-                limitedCertificateData.setCertificateProfileId(new Integer(CertificateProfileConstants.CERTPROFILE_NO_PROFILE));
+                limitedCertificateData.setCertificateProfileId(Integer.valueOf(CertificateProfileConstants.CERTPROFILE_NO_PROFILE));
                 limitedCertificateData.setStatus(status);
                 limitedCertificateData.setRevocationReason(reasonCode);
                 limitedCertificateData.setRevocationDate(revocationDate);
@@ -1631,7 +1638,8 @@ public class CertificateStoreSessionBean implements CertificateStoreSessionRemot
         }
     }
 
-    /** @return the number of timers where TimerInfo is an Integer and hold the specified value */
+    /** @param id ID
+     * @return the number of timers where TimerInfo is an Integer and hold the specified value */
     private int getTimerCount(final int id) {
         if (log.isTraceEnabled()) {
             log.trace(">getTimerCount");
@@ -1652,12 +1660,16 @@ public class CertificateStoreSessionBean implements CertificateStoreSessionRemot
         return count;
     }
 
-    /** @return something that looks like a normal certificate fingerprint and is unique for each certificate entry */
+    /** @param issuerDn DN
+     * @param serialNumber Serial 
+     * @return something that looks like a normal certificate fingerprint and is unique for each certificate entry */
     private String getLimitedCertificateDataFingerprint(final String issuerDn, final BigInteger serialNumber) {
         return CertTools.getFingerprintAsString((issuerDn+";"+serialNumber).getBytes());
     }
 
-    /** Remove limited CertificateData by fingerprint (and ensures that this is not a full entry by making sure that subjectKeyId is NULL */
+    /** Remove limited CertificateData by fingerprint (and ensures that this is not a full entry by making sure that subjectKeyId is NULL 
+     * @param fingerprint FP
+     * @return success */
     private boolean deleteLimitedCertificateData(final String fingerprint) {
         log.info("Removing CertificateData entry with fingerprint=" + fingerprint + " and no subjectKeyId is defined.");
         final Query query = entityManager.createQuery("DELETE FROM CertificateData a WHERE a.fingerprint=:fingerprint AND subjectKeyId IS NULL");

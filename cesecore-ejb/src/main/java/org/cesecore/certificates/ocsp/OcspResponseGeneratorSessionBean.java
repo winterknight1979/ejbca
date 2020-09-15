@@ -622,10 +622,10 @@ public class OcspResponseGeneratorSessionBean implements OcspResponseGeneratorSe
      * 
      *    The acceptable algorithm by EJBCA are the algorithms specified in ocsp.properties file in 'ocsp.signaturealgorithm'
      * 
-     * @param req
-     * @param ocspSigningCacheEntry
-     * @param signerCert
-     * @return
+     * @param req request
+     * @param ocspSigningCacheEntry Signing cache
+     * @param signerCert Certificate
+     * @return Algorithm
      */
     private String getSigAlg(OCSPReq req, final OcspSigningCacheEntry ocspSigningCacheEntry, final X509Certificate signerCert) {
         String sigAlg = null;
@@ -695,12 +695,12 @@ public class OcspResponseGeneratorSessionBean implements OcspResponseGeneratorSe
      * @param request the byte array in question.
      * @param remoteAddress The remote address of the HttpRequest associated with this array.
      * @param transactionLogger A transaction logger.
-     * @return
-     * @throws MalformedRequestException
+     * @return OCSP Request
+     * @throws MalformedRequestException if malformed
      * @throws SignRequestException thrown if an unsigned request was processed when system configuration requires that all requests be signed.
-     * @throws CertificateException
-     * @throws NoSuchAlgorithmException
-     * @throws SignRequestSignatureException
+     * @throws CertificateException if cert is invalid
+     * @throws NoSuchAlgorithmException if algo not found
+     * @throws SignRequestSignatureException if sigs fails
      */
     private OCSPReq translateRequestFromByteArray(byte[] request, String remoteAddress, TransactionLogger transactionLogger)
             throws MalformedRequestException, SignRequestException, SignRequestSignatureException, CertificateException, NoSuchAlgorithmException {
@@ -859,11 +859,8 @@ public class OcspResponseGeneratorSessionBean implements OcspResponseGeneratorSe
      * @return X509Certificate which is the certificate that signed the OCSP request
      * @throws SignRequestSignatureException if signature verification fail, or if the signing certificate is not authorized
      * @throws SignRequestException if there is no signature on the OCSPReq
-     * @throws OCSPException if the request can not be parsed to retrieve certificates
-     * @throws NoSuchProviderException if the BC provider is not installed
      * @throws CertificateException if the certificate can not be parsed
      * @throws NoSuchAlgorithmException if the certificate contains an unsupported algorithm
-     * @throws InvalidKeyException if the certificate, or CA key is invalid
      */
     private X509Certificate checkRequestSignature(String clientRemoteAddr, OCSPReq req) throws SignRequestException, SignRequestSignatureException,
             CertificateException, NoSuchAlgorithmException {
@@ -1004,6 +1001,7 @@ public class OcspResponseGeneratorSessionBean implements OcspResponseGeneratorSe
 
     /**
      * This method cancels all timers associated with this bean.
+     * @param id ID
      */
     // We don't want the appserver to persist/update the timer in the same transaction if they are stored in different non XA DataSources. This method
     // should not be run from within a transaction.
@@ -1043,8 +1041,10 @@ public class OcspResponseGeneratorSessionBean implements OcspResponseGeneratorSe
 
     /**
      * Adds a timer to the bean
+     * @param interval Interval
      * 
      * @param id the id of the timer
+     * @return Timer
      */
     // We don't want the appserver to persist/update the timer in the same transaction if they are stored in different non XA DataSources. This method
     // should not be run from within a transaction.
@@ -1623,6 +1623,7 @@ public class OcspResponseGeneratorSessionBean implements OcspResponseGeneratorSe
      * 
      * @param certId the CertificateID for the certificate being requested. 
      * @return the now cached entry, or null if none was found. 
+     * @throws CertificateEncodingException on fail
      */
     private OcspSigningCacheEntry findAndAddMissingCacheEntry(CertificateID certId) throws CertificateEncodingException {
         OcspSigningCacheEntry ocspSigningCacheEntry = null;
@@ -1776,7 +1777,7 @@ public class OcspResponseGeneratorSessionBean implements OcspResponseGeneratorSe
      * Method that checks with ProbableErrorHandler if an error has happened since a certain time. Uses reflection to call ProbableErrorHandler
      * because it is dependent on JBoss log4j logging, which is not available on other application servers.
      * 
-     * @param startTime
+     * @param startTime time
      * @return true if an error has occurred since startTime
      */
     private boolean hasErrorHandlerFailedSince(Date startTime) {
@@ -1999,7 +2000,16 @@ public class OcspResponseGeneratorSessionBean implements OcspResponseGeneratorSe
         }
     }
     
-    /** Creates a PKCS#12 KeyStore with keys only from an JKS file (no issuer certs or trusted certs) */
+    /** Creates a PKCS#12 KeyStore with keys only from an JKS file (no issuer certs or trusted certs) 
+     * @param keyStore key store
+     * @param password  password
+     * @return new key store
+     * @throws KeyStoreException on key store error 
+     * @throws NoSuchAlgorithmException if algo not found
+     * @throws UnrecoverableEntryException if key store is corrupt
+     * @throws NoSuchProviderException if algo not found
+     * @throws CertificateException if cert is corrupt
+     * @throws IOException On IO fail */
     @Deprecated  //Remove this method as soon as upgrading from 5->6 is dropped
     private KeyStore makeKeysOnlyP12(KeyStore keyStore, char[] password) throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableEntryException, NoSuchProviderException, CertificateException, IOException {
         final KeyStore p12 = KeyStore.getInstance("PKCS12", "BC");
@@ -2024,7 +2034,18 @@ public class OcspResponseGeneratorSessionBean implements OcspResponseGeneratorSe
         return p12;
     }
     
-    /** Create InternalKeyBindings for Ocsp signing and SSL client authentication certs during ad-hoc upgrades. */
+    /** Create InternalKeyBindings for Ocsp signing and SSL client authentication certs during ad-hoc upgrades. 
+     * @param authenticationToken Auth
+     * @param cryptoTokenId Token ID
+     * @param keyStore Key store
+     * @param trustDefaults Defaults
+     *  @throws KeyStoreException on key store error 
+     * @throws CryptoTokenOfflineException if offline
+     * @throws InternalKeyBindingNameInUseException if binding name is in use
+     * @throws AuthorizationDeniedException if access denied
+     * @throws CertificateEncodingException If cert is corrupt
+     * @throws CertificateImportException if import fails
+     * @throws InvalidAlgorithmException if algo cannot be found */
     @Deprecated //Remove this method as soon as upgrading from 5->6 is dropped
     private void createInternalKeyBindings(AuthenticationToken authenticationToken, int cryptoTokenId, KeyStore keyStore, List<InternalKeyBindingTrustEntry> trustDefaults) throws KeyStoreException, CryptoTokenOfflineException, InternalKeyBindingNameInUseException, AuthorizationDeniedException, CertificateEncodingException, CertificateImportException, InvalidAlgorithmException {
         final Enumeration<String> aliases = keyStore.aliases();
@@ -2234,7 +2255,7 @@ class CardKeyHolder {
         Logger log = Logger.getLogger(CardKeyHolder.class);
         String hardTokenClassName = OcspConfiguration.getHardTokenClassName();
         try {
-            this.cardKeys = (CardKeys) OcspResponseGeneratorSessionBean.class.getClassLoader().loadClass(hardTokenClassName).newInstance();
+            this.cardKeys = (CardKeys) OcspResponseGeneratorSessionBean.class.getClassLoader().loadClass(hardTokenClassName).getConstructor().newInstance();
             this.cardKeys.autenticate(OcspConfiguration.getCardPassword());
         } catch (ClassNotFoundException e) {
             log.debug(intres.getLocalizedMessage("ocsp.classnotfound", hardTokenClassName));

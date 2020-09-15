@@ -333,7 +333,9 @@ public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {
         }
     }
     
-    /** Like {@link #assertAuthorizedToEditRoles(AuthenticationToken)}, but check for view access */
+    /** Like {@link #assertAuthorizedToEditRoles(AuthenticationToken)}, but check for view access 
+     * @param authenticationToken Token
+     * @throws AuthorizationDeniedException if denied */
     private void assertAuthorizedToViewRoles(AuthenticationToken authenticationToken) throws AuthorizationDeniedException {
         if (!authorizationSession.isAuthorizedNoLogging(authenticationToken, StandardRules.VIEWROLES.resource())) {
             String msg = InternalResources.getInstance().getLocalizedMessage("authorization.notauthorizedtoviewroles", authenticationToken.toString());
@@ -341,14 +343,21 @@ public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {
         }
     }
 
-    /** @throws AuthorizationDeniedException if the caller is not authorized to one of the rules granted access to (even implied) by this role */
+    /** @param authenticationToken Token
+     * @param role Role
+     * @param roleIdsCallerBelongsTo Caller role 
+     * @throws AuthorizationDeniedException if the caller is not authorized to one of the rules granted access to (even implied) by this role */
     private void assertAuthorizedToAllAccessRules(final AuthenticationToken authenticationToken, final Role role, final Set<Integer> roleIdsCallerBelongsTo) throws AuthorizationDeniedException {
         if (!isAuthorizedToAllAccessRules(authenticationToken, role, roleIdsCallerBelongsTo)) {
             throw new AuthorizationDeniedException("Not authorized to all access rules in role.");
         }
     }
 
-    /** @throws AuthorizationDeniedException if the caller is not authorized to one of the rules granted access to (even implied) by this role */
+    /** @param authenticationToken Token
+     * @param role Role
+     * @param roleIdsCallerBelongsTo Caller roles 
+     * @return booleam
+      */
     private boolean isAuthorizedToAllAccessRules(final AuthenticationToken authenticationToken, final Role role, final Set<Integer> roleIdsCallerBelongsTo) {
         // Verify that authenticationToken has access to every single added allow access rule
         for (final Entry<String, Boolean> entry : role.getAccessRules().entrySet()) {
@@ -375,7 +384,10 @@ public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {
         return true;
     }
 
-    /** @throws AuthorizationDeniedException if the nameSpace is not "owned" by the caller. */
+    /** @param authenticationToken Token
+     * @param role Role
+     * @param roleIdsCallerBelongsTo Caller role
+     * @throws AuthorizationDeniedException if the nameSpace is not "owned" by the caller. */
     private void assertAuthorizedToNameSpace(final AuthenticationToken authenticationToken, final Role role, final Set<Integer> roleIdsCallerBelongsTo) throws AuthorizationDeniedException {
         // Assert that AuthenticationToken is allowed to mess with the role's nameSpace
         if (!isAuthorizedToNameSpace(authenticationToken, role, roleIdsCallerBelongsTo)) {
@@ -383,7 +395,9 @@ public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {
         }
     }
     
-    /** @return true if the authenticationToken is authorized to all CAs that are issuers of RoleMembers in this Role */
+    /** @param authenticationToken Token
+     * @param roleId Role
+     * @return true if the authenticationToken is authorized to all CAs that are issuers of RoleMembers in this Role */
     private boolean isAuthorizedToAllRoleMembersIssuers(final AuthenticationToken authenticationToken, final int roleId) {
         // Verify that the caller is authorized to all CAs that are issuers of members in this role
         final Set<String> tokenIssuerAccessRules = new HashSet<>();
@@ -450,7 +464,10 @@ public class RoleSessionBean implements RoleSessionLocal, RoleSessionRemote {
         }
     }
     
-    /** @throws AuthorizationDeniedException if the nameSpace is not "owned" by the caller. */
+    /** @param authenticationToken Token
+     * @param role Role
+     * @param roleIdsCallerBelongsTo Caller roles
+     * @return boolean */
     private boolean isAuthorizedToNameSpace(final AuthenticationToken authenticationToken, final Role role, final Set<Integer> roleIdsCallerBelongsTo) {
         if (authenticationToken instanceof AlwaysAllowLocalAuthenticationToken) {
             return true; // AlwaysAllowLocalAuthenticationToken cannot belong to any roles, so the code below will not work

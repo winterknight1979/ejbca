@@ -62,6 +62,7 @@ import org.cesecore.time.providers.TrustedTimeProviderException;
  * 
  * @version $Id: AuthorizationSessionBean.java 26485 2017-09-05 11:06:37Z anatom $
  */
+@SuppressWarnings("deprecation")
 @Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + "AuthorizationSessionRemote")
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
 public class AuthorizationSessionBean implements AuthorizationSessionLocal, AuthorizationSessionRemote {
@@ -236,8 +237,10 @@ public class AuthorizationSessionBean implements AuthorizationSessionLocal, Auth
         log.debug(sb);
     }
 
-    /** @return the union of access rules available to the AuthenticationToken if it matches several roles (ignoring any nested tokens)  */
-    @SuppressWarnings("deprecation")
+    /** @param authenticationToken Token
+     * @return the union of access rules available to the AuthenticationToken if it matches several roles (ignoring any nested tokens)  
+     * @throws AuthenticationFailedException if access denied */
+    
     private HashMap<String, Boolean> getAccessAvailableToSingleToken(final AuthenticationToken authenticationToken) throws AuthenticationFailedException {
         HashMap<String, Boolean> accessRules = new HashMap<>();
         if (authenticationToken!=null) {
@@ -286,7 +289,8 @@ public class AuthorizationSessionBean implements AuthorizationSessionLocal, Auth
         return accessRules;
     }
 
-    /** @return the trusted time requires for audit logging */
+    /** @return the trusted time requires for audit logging 
+     * @throws AuditRecordStorageException if store fails*/
     private TrustedTime getTrustedTime() throws AuditRecordStorageException {
         try {
             return trustedTimeWatcherSession.getTrustedTime(false);

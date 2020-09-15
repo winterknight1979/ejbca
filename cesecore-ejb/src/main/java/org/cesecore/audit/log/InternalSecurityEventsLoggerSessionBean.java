@@ -87,7 +87,8 @@ public class InternalSecurityEventsLoggerSessionBean implements InternalSecurity
         }
     }
 
-    /** Propagate the injected SSBs, since we can't use application server agnostic EJB lookup in EJB 3.0. */
+    /** Propagate the injected SSBs, since we can't use application server agnostic EJB lookup in EJB 3.0. 
+     * @return Map*/
     private Map<Class<?>, Object> getEjbs() {
         final Map<Class<?>, Object> ejbs = new HashMap<Class<? extends Object>, Object>();
         ejbs.put(QueuedLoggerSessionLocal.class, queuedLoggerSession);

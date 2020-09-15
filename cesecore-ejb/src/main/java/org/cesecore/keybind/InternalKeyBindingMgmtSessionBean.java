@@ -918,7 +918,10 @@ public class InternalKeyBindingMgmtSessionBean implements InternalKeyBindingMgmt
         }
     }
 
-    /** Asserts that it is not a CA certificate and that the implementation finds it acceptable.  */
+    /** Asserts that it is not a CA certificate and that the implementation finds it acceptable.  
+     * @param certificate Cert
+     * @param internalKeyBinding  Binding
+     * @throws CertificateImportException If import fails */
     private void assertCertificateIsOkToImport(Certificate certificate, InternalKeyBinding internalKeyBinding) throws CertificateImportException {
         // Do some general sanity checks that this is not a CA certificate
         if (CertTools.isCA(certificate)) {
@@ -929,12 +932,18 @@ public class InternalKeyBindingMgmtSessionBean implements InternalKeyBindingMgmt
                 (AvailableExtendedKeyUsagesConfiguration) globalConfigurationSession.getCachedConfiguration(AvailableExtendedKeyUsagesConfiguration.CONFIGURATION_ID));
     }
 
-    /** @return true if a certificate with the specified certificateId (fingerprint) already exists in the database */
+    /** @param certificateId ID
+     * @return true if a certificate with the specified certificateId (fingerprint) already exists in the database */
     private boolean isCertificateAlreadyInDatabase(String certificateId) {
         return certificateStoreSession.findCertificateByFingerprint(certificateId) != null;
     }
 
-    /** Imports the certificate to the database */
+    /** Imports the certificate to the database 
+     * @param authenticationToken Auth token
+     * @param internalKeyBinding Key binding
+     * @param certificate Cert
+     * @throws AuthorizationDeniedException If access denied 
+     * @throws CertificateImportException If cert cannot be imported*/
     private void storeCertificate(AuthenticationToken authenticationToken, InternalKeyBinding internalKeyBinding, Certificate certificate)
             throws AuthorizationDeniedException, CertificateImportException {
         // First check if the certificate row has been published without the actual certificate
@@ -1014,7 +1023,10 @@ public class InternalKeyBindingMgmtSessionBean implements InternalKeyBindingMgmt
                 CertificateConstants.CERTTYPE_ENDENTITY, CertificateProfileConstants.NO_CERTIFICATE_PROFILE, EndEntityConstants.NO_END_ENTITY_PROFILE, null, System.currentTimeMillis());
     }
 
-    /** Helper method for audit logging changes */
+    /** Helper method for audit logging changes 
+     * @param oldProperties Old props
+     * @param newProperties New props
+     * @param details Details */
     private void putDelta(final Map<String, DynamicUiProperty<? extends Serializable>> oldProperties, final Map<String, DynamicUiProperty<? extends Serializable>> newProperties,
             final Map<String, Object> details) {
         // Find out what has happended to all the old properties
@@ -1033,7 +1045,11 @@ public class InternalKeyBindingMgmtSessionBean implements InternalKeyBindingMgmt
         }
     }
 
-    /** Helper method for audit logging changes */
+    /** Helper method for audit logging changes 
+     * @param key Key
+     * @param oldValue Old value
+     * @param newValue New value  
+     * @param details details */
     private void putDelta(final String key, final String oldValue, final String newValue, Map<String, Object> details) {
         if (oldValue == null && newValue == null) {
             // NOP

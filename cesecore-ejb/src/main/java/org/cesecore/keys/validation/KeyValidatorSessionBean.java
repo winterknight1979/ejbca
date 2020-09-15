@@ -728,6 +728,8 @@ public class KeyValidatorSessionBean implements KeyValidatorSessionLocal, KeyVal
      * @param admin AuthenticationToken of administrator.
      * @param keyValidator the validator to add.
      * @return the profile ID
+     * @throws AuthorizationDeniedException If access denied
+     * @throws KeyValidatorExistsException If validator does not exist
      */
     private int addValidatorInternal(AuthenticationToken admin, Validator keyValidator)
             throws AuthorizationDeniedException, KeyValidatorExistsException {
@@ -811,9 +813,9 @@ public class KeyValidatorSessionBean implements KeyValidatorSessionLocal, KeyVal
     /**
      * Calling overloaded method performValidationFailedActions when parameter shortMessage should be the same as the message.
      *
-     * @param failedAction
-     * @param message
-     * @throws ValidationException
+     * @param failedAction Action
+     * @param message Message
+     * @throws ValidationException On fail
      */
     private void performValidationFailedActions(final int failedAction, final String message) throws ValidationException {
         performValidationFailedActions(failedAction, message, message);

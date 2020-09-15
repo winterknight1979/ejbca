@@ -81,7 +81,8 @@ public final class UniqueSernoHelper {
         return isUniqueCertificateSerialNumberIndex;
     }
 
-	/** Sets isUniqueCertificateSerialNumberIndex, can set to null which should be interpreted as uninitialized */
+	/** Sets isUniqueCertificateSerialNumberIndex, can set to null which should be interpreted as uninitialized 
+	 * @param isUniqueCertificateSerialNumberIndex boolean*/
     public static void setIsUniqueCertificateSerialNumberIndex(Boolean isUniqueCertificateSerialNumberIndex) {
         UniqueSernoHelper.isUniqueCertificateSerialNumberIndex = isUniqueCertificateSerialNumberIndex;
     }	

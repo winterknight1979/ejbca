@@ -107,9 +107,10 @@ public class NoConflictCertificateStoreSessionBean implements NoConflictCertific
     }
 
     /**
-     * Returns true if the CA allows revocation of non-existing certificates.
+     * @return true if the CA allows revocation of non-existing certificates.
      * @param cainfo CA
      * @param issuerDN Subject DN of CA, for safety check against CAId collisions.
+     * 
      */
     private boolean canRevokeNonExisting(final CAInfo cainfo, final String issuerDN) {
         String dn = CertTools.stringToBCDNString(StringTools.strip(issuerDN));
@@ -224,7 +225,6 @@ public class NoConflictCertificateStoreSessionBean implements NoConflictCertific
      * Permanent revocations always take precedence over other updates, the first one wins.
      * Otherwise, the most recent update wins.
      * @param certDatas Collection of NoConflictCertificateData to filter.
-     * @param serno Certificate serial number
      * @return NoConflictCertificateData entry, or null if not found. Entity is append-only, so do not modify it.
      */
     private NoConflictCertificateData filterMostRecentCertData(final Collection<NoConflictCertificateData> certDatas) {
@@ -334,7 +334,10 @@ public class NoConflictCertificateStoreSessionBean implements NoConflictCertific
         certificateData.setUpdateTime(System.currentTimeMillis());
     }
 
-    /** @see org.cesecore.certificates.certificate.CertificateStoreSessionBean#updateLimitedCertificateDataStatus(AuthenticationToken, int, String, String, String, BigInteger, int, Date, int, String) */
+    /** @param certificateData Data
+     * @param cainfo CA
+     * @param certserno Serial 
+     * @see org.cesecore.certificates.certificate.CertificateStoreSessionBean#updateLimitedCertificateDataStatus(AuthenticationToken, int, String, String, String, BigInteger, int, Date, int, String) */
     private void fillInLimitedCertificateData(final BaseCertificateData certificateData, final CAInfo cainfo, final BigInteger certserno) {
         final int certProfId = cainfo.getDefaultCertificateProfileId();
         certificateData.setSerialNumber(certserno.toString());

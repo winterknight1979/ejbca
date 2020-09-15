@@ -38,7 +38,7 @@ import org.cesecore.jndi.JndiConstants;
 import org.cesecore.util.ProfileID;
 
 /**
- * @see RoleMemberSessionDataLocal
+ * @see RoleMemberDataSessionLocal
  * 
  * @version $Id: RoleMemberDataSessionBean.java 27283 2017-11-22 10:46:23Z anatom $
  *

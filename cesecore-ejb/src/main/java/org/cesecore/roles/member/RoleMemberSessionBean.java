@@ -68,7 +68,10 @@ public class RoleMemberSessionBean implements RoleMemberSessionLocal, RoleMember
     @EJB
     private SecurityEventsLoggerSessionLocal securityEventsLoggerSession;
 
-    /** @return the authorized role */
+    /** @param authenticationToken Token
+     * @param roleMember Member
+     * @return the authorized role 
+     * @throws AuthorizationDeniedException if access denied */
     private Role lookupRoleAndCheckAuthorization(final AuthenticationToken authenticationToken, final RoleMember roleMember) throws AuthorizationDeniedException {
         // Check existence and authorization of referenced objects
         final Role role = roleSession.getRole(authenticationToken, roleMember.getRoleId());
@@ -164,7 +167,7 @@ public class RoleMemberSessionBean implements RoleMemberSessionLocal, RoleMember
     
     /**
      * Normalizes data in the role member, e.g. changing serial numbers to uppercase without leading zeros.
-     * @param roleMember
+     * @param roleMember Member
      */
     private void normalizeRoleMember(final RoleMember roleMember) {
         final AccessMatchValue matchKey = AccessMatchValueReverseLookupRegistry.INSTANCE.performReverseLookup(roleMember.getTokenType(), roleMember.getTokenMatchKey());
@@ -214,7 +217,9 @@ public class RoleMemberSessionBean implements RoleMemberSessionLocal, RoleMember
         return ret;
     }
 
-    /** @throws AuthorizationDeniedException if the provided RoleMember is the only member in the particular RoleMember's Role matching the authentication token */
+    /** @param authenticationToken Token
+     * @param roleMember Member
+     * @throws AuthorizationDeniedException if the provided RoleMember is the only member in the particular RoleMember's Role matching the authentication token */
     private void assertNonImportantRoleMembership(final AuthenticationToken authenticationToken, final RoleMember roleMember) throws AuthorizationDeniedException {
         final List<RoleMember> roleMembers = getRoleMembersByRoleId(authenticationToken, roleMember.getRoleId());
         int count = 0;

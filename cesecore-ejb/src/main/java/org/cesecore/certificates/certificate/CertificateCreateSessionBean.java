@@ -290,9 +290,12 @@ public class CertificateCreateSessionBean implements CertificateCreateSessionLoc
 
     /**
      * Help Method that extracts the CA specified in the request.
+     * @param admin Auth token
+     * @param req Request
+     * @return CA
      * 
-     * @throws AuthorizationDeniedException
-     * @throws CADoesntExistsException
+     * @throws AuthorizationDeniedException If access denied
+     * @throws CADoesntExistsException On fail
      */
     private CA getCAFromRequest(final AuthenticationToken admin, final RequestMessage req) throws CADoesntExistsException,
             AuthorizationDeniedException {
@@ -700,6 +703,8 @@ public class CertificateCreateSessionBean implements CertificateCreateSessionLoc
     }
 
     /** When no unique index is present in the database, we still try to enforce X.509 serial number per CA uniqueness. 
+     * @param ca CA
+     * @param serialNumber SN 
      * @throws CertificateSerialNumberException if serial number already exists in database
      */
     private void assertSerialNumberForIssuerOk(final CA ca, final BigInteger serialNumber) throws CertificateSerialNumberException {
@@ -744,8 +749,12 @@ public class CertificateCreateSessionBean implements CertificateCreateSessionLoc
     /**
      * FIXME: Documentation
      * 
-     * @param admin
-     * @param e
+     * @param admin Auth token
+     * @param e Excption
+     * @param extraDetails Detaild 
+     * @param tracelog Log
+     * @param caid CA
+     * @param username User 
      */
     private void auditFailure(final AuthenticationToken admin, final Exception e, final String extraDetails, final String tracelog, final int caid, final String username) {
         final Map<String, Object> details = new LinkedHashMap<String, Object>();

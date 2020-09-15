@@ -97,7 +97,7 @@ public class IntegrityProtectedAuditorSessionBean implements IntegrityProtectedA
         try {
             final File exportFile = AuditDevicesConfig.getExportFile(properties, timestamp);
             try (final SigningFileOutputStream signingFileOutputStream = new SigningFileOutputStream(exportFile, cryptoToken, signatureDetails)) {
-                final AuditExporter auditExporter = c.newInstance();
+                final AuditExporter auditExporter = c.getConstructor().newInstance();
                 auditExporter.setOutputStream(signingFileOutputStream);
                 verifyAndOptionalExport(auditExporter, report, timestamp, AuditDevicesConfig.getAuditLogExportFetchSize(properties));
                 report.setExportedFile(exportFile.getCanonicalPath());
@@ -169,6 +169,8 @@ public class IntegrityProtectedAuditorSessionBean implements IntegrityProtectedA
 	 * @param auditExporter can be null if no export should take place
 	 * @param report is a AuditLogValidationReport or AuditLogExportReport
 	 * @param timestamp process all entries up until this time (should be epoch GMT)
+	 * @param fetchSize size
+	 * @throws IOException if io fails
 	 */
 	private void verifyAndOptionalExport(AuditExporter auditExporter, AuditLogValidationReport report, Date timestamp, final int fetchSize) throws IOException {
     	// Get a list of the nodes that have data in the database
@@ -226,7 +228,10 @@ public class IntegrityProtectedAuditorSessionBean implements IntegrityProtectedA
     	}
 	}
 
-	/** We want to export exactly like it was stored in the database, to comply with requirements on logging systems where no altering of the original log data is allowed. */
+	/** We want to export exactly like it was stored in the database, to comply with requirements on logging systems where no altering of the original log data is allowed. 
+	 * @param auditExporter Exporter
+	 * @param auditRecordData Data to export
+	 * @throws IOException if write fails */
     private void writeToExport(final AuditExporter auditExporter, final AuditRecordData auditRecordData) throws IOException {
         auditExporter.writeStartObject();
         auditExporter.writeField("pk", auditRecordData.getPk());
@@ -275,7 +280,10 @@ public class IntegrityProtectedAuditorSessionBean implements IntegrityProtectedA
 		return queryResult;
 	}
 	
-	/** Log the outcome of the verification to the secure audit log based on the supplied number of errors. */
+	/** Log the outcome of the verification to the secure audit log based on the supplied number of errors. 
+	 * @param errors Errors
+	 * @param timestamp  time
+	 * @param token Authorization */
 	private void logVerificationResult(final int errors, final Date timestamp, final AuthenticationToken token) {
     	final Map<String, Object> details = new LinkedHashMap<String, Object>();
     	details.put("timestamp", FastDateFormat.getInstance(ValidityDate.ISO8601_DATE_FORMAT, TimeZone.getTimeZone("GMT")).format(timestamp));
@@ -290,6 +298,10 @@ public class IntegrityProtectedAuditorSessionBean implements IntegrityProtectedA
 	/**
 	 * Select log entries using the supplied criteria.
 	 * Optionally using startIndex and resultLimit (used if >0).
+	 * @param startIndex Index
+	 * @param max no. of records
+	 * @param criteria search criteria
+	 * @return log entries
 	 */
 	@SuppressWarnings("unchecked")
 	private List<AuditRecordData> internalSelectAuditLogs(final int startIndex, final int max, final QueryCriteria criteria) {
@@ -305,6 +317,12 @@ public class IntegrityProtectedAuditorSessionBean implements IntegrityProtectedA
 	/**
 	 * Build a JPA Query from the supplied queryStr and criteria.
 	 * Optionally using startIndex and resultLimit (used if >0).
+	 * @param entityManager EM
+	 * @param queryStr Query
+	 * @param criteria Criteria
+	 * @param startIndex Index
+	 * @param resultLimit Max results
+	 * @return JPA query
 	 */
     private Query buildConditionalQuery(final EntityManager entityManager, final String queryStr, final QueryCriteria criteria, final int startIndex, final int resultLimit) {
         Query query = null;
@@ -328,7 +346,8 @@ public class IntegrityProtectedAuditorSessionBean implements IntegrityProtectedA
         return query;
     }
     
-    /** Class used internally for holding an object that can updated by a method. */
+    /** Class used internally for holding an object that can updated by a method. 
+     * @param <T> Type*/
     private class Holder<T> {
     	private T object;
     	Holder(final T object) { set(object); }

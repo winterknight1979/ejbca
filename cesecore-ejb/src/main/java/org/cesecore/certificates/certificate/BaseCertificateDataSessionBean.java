@@ -34,14 +34,18 @@ public abstract class BaseCertificateDataSessionBean {
 
     private static final Logger log = Logger.getLogger(CertificateDataSessionBean.class);
     
-    /** Returns the name of the table in the database. Either "CertificateData" or "NoConflictCertificateData" */
+    /** Returns the name of the table in the database. Either "CertificateData" or "NoConflictCertificateData" 
+     * @return name*/
     protected abstract String getTableName();
     
-    /** Returns the entity manager to use. */
+    /** @return the entity manager to use. */
     protected abstract EntityManager getEntityManager();
     
     /**
-     * Returns a list with information about revoked certificates. Depending on the table, the result can
+     * @param issuerDN DN
+     * @param lastbasecrldate CRL date 
+     * @param forceGetAll Get all?
+     * @return a list with information about revoked certificates. Depending on the table, the result can
      * either contain at most one entry per certificate, or it may contain duplicates.
      */
     protected Collection<RevokedCertInfo> getRevokedCertInfosInternal(final String issuerDN, final long lastbasecrldate, final boolean forceGetAll) {

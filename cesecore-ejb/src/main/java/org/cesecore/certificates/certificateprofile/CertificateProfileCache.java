@@ -134,19 +134,22 @@ public enum CertificateProfileCache {
         }
     }
 
-    /** @return the latest object from the cache or a current database representation if no caching is used. */
+    /** @param entityManager EM
+     * @return the latest object from the cache or a current database representation if no caching is used. */
     public Map<Integer, CertificateProfile> getProfileCache(final EntityManager entityManager) {
         updateProfileCache(entityManager, false);
         return profileCache;
     }
 
-    /** @return the latest object from the cache or a current database representation if no caching is used. */
+    /** @param entityManager EM
+     * @return the latest object from the cache or a current database representation if no caching is used. */
     public Map<Integer, String> getIdNameMapCache(final EntityManager entityManager) {
         updateProfileCache(entityManager, false);
         return idNameMapCache;
     }
 
-    /** @return the latest object from the cache or a current database representation if no caching is used. */
+    /** @param entityManager EM
+     * @return the latest object from the cache or a current database representation if no caching is used. */
     public Map<String, Integer> getNameIdMapCache(final EntityManager entityManager) {
         updateProfileCache(entityManager, false);
         return nameIdMapCache;

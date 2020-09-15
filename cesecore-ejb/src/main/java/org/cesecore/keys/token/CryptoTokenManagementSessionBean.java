@@ -740,7 +740,9 @@ public class CryptoTokenManagementSessionBean implements CryptoTokenManagementSe
         return getCryptoToken(cryptoTokenId).isAliasUsed(alias);
     }
 
-    /** @throws InvalidKeyException if the alias is in use by a private, public or symmetric key */
+    /** @param cryptoToken Token
+     * @param alias Alias
+     * @throws InvalidKeyException if the alias is in use by a private, public or symmetric key */
     private void assertAliasNotInUse(final CryptoToken cryptoToken, final String alias) throws InvalidKeyException {
         if (cryptoToken.isAliasUsed(alias)) {
             throw new InvalidKeyException("alias " + alias + " is in use");
@@ -851,7 +853,8 @@ public class CryptoTokenManagementSessionBean implements CryptoTokenManagementSe
         }
     }
 
-    /** @return a CryptoToken for the requested Id if exists. Never returns null. */
+    /** @param cryptoTokenId ID
+     * @return a CryptoToken for the requested Id if exists. Never returns null. */
     private CryptoToken getCryptoTokenAndAssertExistence(int cryptoTokenId) {
         final CryptoToken cryptoToken = cryptoTokenSession.getCryptoToken(cryptoTokenId);
         if (cryptoToken == null) {
@@ -860,7 +863,10 @@ public class CryptoTokenManagementSessionBean implements CryptoTokenManagementSe
         return cryptoToken;
     }
 
-    /** Helper method for audit logging changes */
+    /** Helper method for audit logging changes 
+     * @param oldProperties Old Props
+     * @param newProperties New Props
+     * @param details Details */
     private void putDelta(Properties oldProperties, Properties newProperties, Map<String, Object> details) {
         // Find out what has happended to all the old properties
         for (final Object key : oldProperties.keySet()) {
@@ -878,7 +884,11 @@ public class CryptoTokenManagementSessionBean implements CryptoTokenManagementSe
         }
     }
 
-    /** Helper method for audit logging changes */
+    /** Helper method for audit logging changes 
+     * @param key Key
+     * @param oldValue Old value 
+     * @param newValue New value 
+     * @param details Details */
     private void putDelta(String key, String oldValue, String newValue, Map<String, Object> details) {
         // Treat the auto-activation pin with care
         if (BaseCryptoToken.AUTOACTIVATE_PIN_PROPERTY.equals(key)) {

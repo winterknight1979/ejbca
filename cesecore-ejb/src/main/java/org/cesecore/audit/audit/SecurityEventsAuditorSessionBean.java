@@ -132,7 +132,10 @@ public class SecurityEventsAuditorSessionBean implements SecurityEventsAuditorSe
         LogServiceState.INSTANCE.enable();
 	}
 
-	/** Assert that we are authorized to the requested resource. */
+	/** Assert that we are authorized to the requested resource. 
+	 * @param token Token
+	 * @param accessRule accessRule
+	 * @throws AuthorizationDeniedException if access denied*/
     private void assertAuthorization(final AuthenticationToken token, final String accessRule) throws AuthorizationDeniedException {
         if (!authorizationSession.isAuthorized(token, accessRule)) {
 			throw new AuthorizationDeniedException("not authorized to: "+ token.toString());				
@@ -143,6 +146,7 @@ public class SecurityEventsAuditorSessionBean implements SecurityEventsAuditorSe
      * Propagate the injected SSBs, since we can't use application server agnostic EJB lookup in EJB 3.0.
      * With EJB 3.1 this should be delegated to each implementation where the implementation specific SSBs
      * can be looked up.
+     * @return Map
      */
     private Map<Class<?>, Object> getEjbs() {
     	final Map<Class<?>, Object> ejbs = new HashMap<Class<? extends Object>, Object>();
