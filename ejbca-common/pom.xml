@@ -1,0 +1,188 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>goldeneyes.ejbca</groupId>
+		<artifactId>ejbca</artifactId>
+		<version>1.0</version>
+	</parent>
+	<artifactId>ejbca-common</artifactId>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.ejbca.cvc</groupId>
+			<artifactId>cert-cvc</artifactId>
+		</dependency>
+
+		<!-- BouncyCastle -->
+
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-jdk15on</artifactId>
+		</dependency>
+
+		<!-- Commons -->
+
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
+
+		<!-- other modules -->
+
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>cesecore-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>cesecore-entity</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>cesecore-ejb-interface</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!-- batik -->
+
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-all</artifactId>
+		</dependency>
+
+
+		<!-- Shared Resource bundle and Service Manifest generator -->
+
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>shared-resources</artifactId>
+			<version>${project.version}</version>
+			<scope>compile</scope>
+		</dependency>
+
+
+	</dependencies>
+	<build>
+
+		<resources>
+		<resource>
+			<directory>${project.basedir}/src/main/resources</directory>
+		</resource>
+			<resource>
+				<directory>${project.build.directory}/maven-shared-archive-resource</directory>
+				<includes>
+					<include>defaultvalues.properties</include>
+				</includes>
+			</resource>
+		</resources>
+
+		<plugins>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<phase>test-compile</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/target/test-classes</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.build.directory}/maven-shared-archive-resource/conf</directory>
+									<filtering>true</filtering>
+									<includes>
+										<include>systemtests.properties</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
+						<id>default-testResources</id>
+						<goals>
+							<goal>testResources</goal>
+						</goals>
+						<phase>generate-test-resources</phase>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-remote-resources-plugin</artifactId>
+				<version>1.7.0</version>
+				<configuration>
+					<resourceBundles>
+						<resourceBundle>${project.groupId}:shared-resources:${project.version}</resourceBundle>
+					</resourceBundles>
+					<outputDirectory>${project.build.directory}/maven-shared-archive-resource</outputDirectory>
+					<attachToMain>false</attachToMain>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>process</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.0.0</version>
+				<executions>
+					<execution>
+						<id>Generate Service Manifest</id>
+						<phase>process-test-classes</phase>
+						<goals>
+							<goal>java</goal>
+						</goals>
+						<configuration>
+							<mainClass>com.primekey.anttools.ServiceManifestBuilder</mainClass>
+							<classpathScope>compile</classpathScope>
+							<arguments>
+								<argument>${project.build.directory}/classes</argument>
+								<argument>org.cesecore.authentication.tokens.AuthenticationTokenMetaData;org.cesecore.configuration.ConfigurationCache;org.ejbca.core.model.approval.profile.ApprovalProfile;org.cesecore.keys.validation.Validator</argument>
+							</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+
+		</plugins>
+	</build>
+
+</project>

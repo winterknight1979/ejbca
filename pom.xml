@@ -32,6 +32,18 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
             <version>2.3.1</version>
             <scope>provided</scope>
         </dependency>
+        <!-- test -->
+
+		<dependency>
+			<groupId>org.easymock</groupId>
+			<artifactId>easymock</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<artifactId>junit</artifactId>
+			<groupId>junit</groupId>
+			<scope>test</scope>
+		</dependency>
     </dependencies>
     <dependencyManagement>
         <dependencies>
@@ -234,7 +246,12 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
                 <groupId>org.apache.xmlgraphics</groupId>
                 <artifactId>batik-all</artifactId>
                 <version>1.11</version>
-                <type>pom</type>
+                <exclusions>
+                	<exclusion>
+                		<groupId>xml-apis</groupId>
+                		<artifactId>xml-apis</artifactId>
+                	</exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.xmlgraphics</groupId>
@@ -356,6 +373,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
         <module>cesecore-common-entity-tests</module>
         <module>cesecore-ejb-interface</module>
         <module>cesecore-ejb</module>
+        <module>ejbca-common</module>
     </modules>
     <build>
         <pluginManagement>

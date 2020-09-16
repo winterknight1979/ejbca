@@ -22,16 +22,7 @@
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.easymock</groupId>
-			<artifactId>easymock</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<artifactId>junit</artifactId>
-			<groupId>junit</groupId>
-			<scope>test</scope>
-		</dependency>
+		
 
 
 		<!-- Shared Resource bundle and Service Manifest generator -->
