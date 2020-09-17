@@ -24,14 +24,15 @@ import org.cesecore.authentication.tokens.AuthenticationToken;
  */
 public interface CustomPublisherUiSupport extends ICustomPublisher {
 
-    /** @return A list of the publisher's properties in such a way that a UI can parse the information. */
+    /** @param authenticationToken Token
+     * @return A list of the publisher's properties in such a way that a UI can parse the information. */
     List<CustomPublisherProperty> getCustomUiPropertyList(final AuthenticationToken authenticationToken);
     
     List<String> getCustomUiPropertyNames();
     
     /**
      * 
-     * @param label
+     * @param label label
      * @return the type of the property (as defined in CustomPublisherProperty), or -1 if no such property exists
      */
     int getPropertyType(final String label);

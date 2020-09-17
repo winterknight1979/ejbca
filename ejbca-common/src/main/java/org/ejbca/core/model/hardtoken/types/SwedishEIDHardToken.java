@@ -53,7 +53,12 @@ public class SwedishEIDHardToken extends HardToken {
 
 
     // Public Methods
-    /** Constructor to use. */
+    /** Constructor to use. 
+     *  @param initialsignaturepin PIN
+ * @param signaturepuk PUK
+ * @param initialauthencpin PIN 
+ * @param authencpuk PUK
+ * @param hardtokenprofileid int */
     public SwedishEIDHardToken(String initialauthencpin,
                                String authencpuk,
                                String initialsignaturepin,
@@ -69,7 +74,8 @@ public class SwedishEIDHardToken extends HardToken {
         data.put(TOKENTYPE, Integer.valueOf(THIS_TOKENTYPE));
     } 
     
-    /** Constructor only to be used internally. */
+    /** Constructor only to be used internally. 
+     * @param includePUK PUK*/
     public SwedishEIDHardToken(boolean includePUK) {
     	super(includePUK);
     	data.put(TOKENTYPE, Integer.valueOf(THIS_TOKENTYPE));

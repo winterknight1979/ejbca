@@ -33,6 +33,8 @@ public class CryptoTools {
 
     /**
      * Creates the hashed password using the bcrypt algorithm, http://www.mindrot.org/projects/jBCrypt/
+     * @param password PWD
+     * @return Hash
      */
     public static String makePasswordHash(String password) {
         if (password == null) {
@@ -50,6 +52,8 @@ public class CryptoTools {
      * Creates the hashed password using the old hashing, which is a plain SHA1 password.
      * 
      * This was used for password creation until the EJBCA 4.0 release.
+     * @param password PWD
+     * @return Hash
      */
     public static String makeOldPasswordHash(String password) {
         if (password == null) {

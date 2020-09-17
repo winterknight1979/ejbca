@@ -41,7 +41,7 @@ public class GlobalCustomCssConfiguration extends ConfigurationBase {
     
     /** 
      * Updates a RaStyleInfo archive referenced by Id of raStyleInfo
-     * @param style info to update
+     * @param raStyleInfo style info to update
      */
     public void updateRaStyle(RaStyleInfo raStyleInfo) {
         Map<Integer, RaStyleInfo> mapToUpdate = getRaStyleInfo();

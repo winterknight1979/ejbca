@@ -47,6 +47,7 @@ public class HardTokenEncryptCAServiceResponse extends ExtendedCAServiceResponse
     
     /**
      *  Method returning the  data if the type of response. 
+     * @return Data
      *  
      */
     

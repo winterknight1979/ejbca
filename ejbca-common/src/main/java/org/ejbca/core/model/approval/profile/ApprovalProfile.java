@@ -76,9 +76,11 @@ public interface ApprovalProfile extends Profile, Serializable, Cloneable, Compa
 
     void setApprovalExpirationPeriod(long approvalExpirationPeriod);
 
-    /** Maximum time which an administrator can extend a request by in milliseconds, or 0 to forbid request extension */
+    /** Maximum time which an administrator can extend a request by in milliseconds, or 0 to forbid request extension 
+     * @return long */
     long getMaxExtensionTime();
-    /** @see #getMaxExtensionTime */
+    /** @param maxExtensionTime long
+     * @see #getMaxExtensionTime */
     void setMaxExtensionTime(long maxExtensionTime);
 
 
@@ -110,6 +112,7 @@ public interface ApprovalProfile extends Profile, Serializable, Cloneable, Compa
      * @param approvalsPerformed a Collection of approvals already performed.
      *
      * @return true if this approval profile's criteria are fulfilled, allowing the approval to pass
+     * @throws ApprovalException if approval fails
      * @throws AuthenticationFailedException if any of the authentication tokens in the approval collection were faulty
      */
     boolean canApprovalExecute(final Collection<Approval> approvalsPerformed) throws ApprovalException, AuthenticationFailedException;
@@ -213,7 +216,7 @@ public interface ApprovalProfile extends Profile, Serializable, Cloneable, Compa
     /**
      * Identifier of the sequence to read first.
      *
-     * @param firstSequence
+     * @param firstStep step
      */
     void setFirstStep(final int firstStep);
 
@@ -314,22 +317,39 @@ public interface ApprovalProfile extends Profile, Serializable, Cloneable, Compa
      */
     Set<String> getReadOnlyProperties();
 
-    /** @return true if notifications is configured in the specified partition */
+    /** @param approvalPartition approval
+     * @return true if notifications is configured in the specified partition */
     boolean isNotificationEnabled(ApprovalPartition approvalPartition);
 
-    /** Add notification properties */
+    /** Add notification properties 
+     * @param approvalPartition approval
+     * @param recipient recip
+     * @param sender sender
+     * @param subject subject
+     * @param body body
+     * @return updated approval */
     ApprovalPartition addNotificationProperties(ApprovalPartition approvalPartition, String recipient, String sender, String subject, String body);
 
-    /** Remove notification properties */
+    /** Remove notification properties 
+     * @param approvalPartition approval
+     * @return updated approval */
     ApprovalPartition removeNotificationProperties(ApprovalPartition approvalPartition);
 
-    /** @return true if notifications to the end user is configured in the specified partition */
+    /** @param approvalPartition approval
+     * @return true if notifications to the end user is configured in the specified partition */
     boolean isUserNotificationEnabled(ApprovalPartition approvalPartition);
 
-    /** Add user notification properties */
+    /** Add user notification properties 
+     * @param approvalPartition approval
+     * @param sender sender
+     * @param subject subject
+     * @param body  body
+     * @return updated approval */
     ApprovalPartition addUserNotificationProperties(ApprovalPartition approvalPartition, String sender, String subject, String body);
 
-    /** Remove user notification properties */
+    /** Remove user notification properties 
+     * @param approvalPartition approval
+     * @return updated approval */
     ApprovalPartition removeUserNotificationProperties(ApprovalPartition approvalPartition);
 
     /**
@@ -342,7 +362,9 @@ public interface ApprovalProfile extends Profile, Serializable, Cloneable, Compa
      */
     boolean isPropertyPredefined(int stepIdentifier, int partitionIdentifier, final String propertyName);
 
-    /** @return the number of required approvals of the specified partition. Defaults to 1. */
+    /** @param stepIdentifier Step
+     * @param partitionIdentifier Partition
+     * @return the number of required approvals of the specified partition. Defaults to 1. */
     int getNumberOfApprovalsRequired(int stepIdentifier, int partitionIdentifier);
 
     /**
@@ -358,7 +380,7 @@ public interface ApprovalProfile extends Profile, Serializable, Cloneable, Compa
 
     /**
      * Updates any references to a CA's CAId and Subject DN. Approval Profiles can contain CA Id references in the list of allowed roles of the steps.
-     * @param approvalProfile Profile object to modify.
+     * 
      * @param fromId Old CA Id to replace.
      * @param toId New CA Id to replace with.
      * @param toSubjectDN New CA Subject DN.

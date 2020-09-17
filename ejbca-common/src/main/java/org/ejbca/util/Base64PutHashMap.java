@@ -20,7 +20,7 @@ import org.cesecore.util.StringTools;
 
 /** Only used for backwards compatibility with earlier versions of EJBCA
  * @see org.cesecore.util.Base64PutHashMap
- * @deprecated
+ * @deprecated now
  * 
  * @version $Id: Base64PutHashMap.java 23091 2016-03-29 12:04:12Z samuellb $
  */

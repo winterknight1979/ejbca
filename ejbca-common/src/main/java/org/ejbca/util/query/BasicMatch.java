@@ -39,7 +39,9 @@ public abstract class BasicMatch implements Serializable {
     /** @return true if query is legal, false otherwise */
     public abstract boolean isLegalQuery();
 
-    /** Escape single quotes as double quotes */
+    /** Escape single quotes as double quotes 
+     * @param matchValue Value
+     * @return String */
     public String escapeSql(final String matchValue) {
         return StringEscapeUtils.escapeSql(matchValue);
     }

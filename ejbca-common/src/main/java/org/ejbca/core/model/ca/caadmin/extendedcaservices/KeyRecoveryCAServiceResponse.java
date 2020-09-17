@@ -37,7 +37,12 @@ public class KeyRecoveryCAServiceResponse extends ExtendedCAServiceResponse impl
     private int cryptoTokenId;
     private String publicKeyId;
 	
-    /** Used when decrypting key recovery data, keydata is read from the database */
+    /** Used when decrypting key recovery data, keydata is read from the database 
+     * @param type Type
+     * @param keydata key
+     * @param cryptoTokenId ID
+     * @param keyAlias Key
+     * @param publicKeyId Key ID */
     public KeyRecoveryCAServiceResponse(int type, byte[] keydata, final int cryptoTokenId, final String keyAlias, final String publicKeyId) {
        this.type = type;
        this.keydata = keydata;
@@ -46,7 +51,12 @@ public class KeyRecoveryCAServiceResponse extends ExtendedCAServiceResponse impl
        this.publicKeyId = publicKeyId;
     } 
     
-    /** Used when encrypting data, keypair is encrypted to be stored in the database */
+    /** Used when encrypting data, keypair is encrypted to be stored in the database 
+     * @param type Type
+     * @param keypair Key
+     * @param cryptoTokenId OD
+     * @param keyAlias Key
+     * @param publicKeyId Key ID */
     public KeyRecoveryCAServiceResponse(int type, KeyPair keypair, final int cryptoTokenId, final String keyAlias, final String publicKeyId) {
     	this.type = type;
     	this.keypair = keypair;
@@ -65,6 +75,7 @@ public class KeyRecoveryCAServiceResponse extends ExtendedCAServiceResponse impl
     /**
      *  Method returning the encrypted key data if the type of response 
      *  is TYPE_ENCRYPTRESPONSE, null otherwise.
+     * @return data
      */
     
     public byte[] getKeyData(){
@@ -78,6 +89,7 @@ public class KeyRecoveryCAServiceResponse extends ExtendedCAServiceResponse impl
     /**
      *  Method returning the decrypted keypair if the type of response 
      *  is TYPE_DECRYPTRESPONSE, null otherwise.
+     * @return Key
      */
     public KeyPair getKeyPair(){
     	KeyPair ret = null;

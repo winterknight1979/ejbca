@@ -68,7 +68,8 @@ public final class EjbcaConfigurationHolder {
         instanceInternal();
     }
 
-    /** Method used to retrieve the singleton Configuration instance */
+    /** Method used to retrieve the singleton Configuration instance 
+     * @return instance */
     public static Configuration instance() {
         return config;
     }
@@ -163,6 +164,7 @@ public final class EjbcaConfigurationHolder {
 	
 	/**
 	 * Add built in config file
+	 * @param resourcename resource
 	 */
 	public static void addConfigurationResource(final String resourcename) {
 		// Make sure the basic initialization has been done
@@ -195,7 +197,6 @@ public final class EjbcaConfigurationHolder {
 
 	/**
 	 * @param property the property to look for
-	 * @param defaultValue default value to use if property is not found
 	 * @return String configured for property, or default value, if defaultValue is null and property is not found null is returned.
 	 */
 	public static String getString(final String property) {
@@ -225,7 +226,9 @@ public final class EjbcaConfigurationHolder {
 	 *  property1=foo
 	 *  property2=${property1}bar
 	 * would return "foobar" for property2
-	 * @param defaultValue to use if no property of such a name is found
+	 * @param property property
+	 * @return string
+
 	 */
 	public static String getExpandedString(final String property) {
 		String ret = getString(property);
@@ -267,6 +270,7 @@ public final class EjbcaConfigurationHolder {
 	 * Backups the original configuration in a non thread safe way.
 	 * 
  	 * NOTE: This method should only be used by tests through ConfigurationSessionBean!
+	 * @return bool
 	 */
 	public static boolean backupConfiguration() {
 		if (configBackup != null) {
@@ -280,6 +284,7 @@ public final class EjbcaConfigurationHolder {
 	 * Restores the original configuration in a non thread safe way.
 	 * 
 	 * NOTE: This method should only be used by tests through ConfigurationSessionBean!
+	 * @return bool
 	 */
 	public static boolean restoreConfiguration() {
 		if (configBackup == null) {
@@ -294,6 +299,8 @@ public final class EjbcaConfigurationHolder {
 	 * Takes a backup of the active configuration if necessary and updates the active configuration. 
 	 * 
 	 * NOTE: This method should only be used by tests through ConfigurationSessionBean!
+	 * @param properties props
+	 * @return bool
 	 */
 	public static boolean updateConfiguration(final Properties properties) {
 		backupConfiguration();	// Only takes a backup if necessary.
@@ -310,6 +317,9 @@ public final class EjbcaConfigurationHolder {
 	 * Takes a backup of the active configuration if necessary and updates the active configuration. 
 	 * 
 	 * NOTE: This method should only be used by tests through ConfigurationSessionBean!
+	 * @param key key
+	 * @param value value
+	 * @return bool
 	 */
 	public static boolean updateConfiguration(final String key, final String value) {
 		backupConfiguration();	// Only takes a backup if necessary.

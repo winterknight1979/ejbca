@@ -39,7 +39,9 @@ public class AdminInformation implements Serializable {
 	protected static final byte[] randomToken = createRandomToken();
 	
 	// Public Methods
-     /** Creates a new instance of AdminInformation */
+     /** Creates a new instance of AdminInformation 
+     * @param certificate Cert
+     * @param authToken Token */
     public AdminInformation(Certificate certificate, byte[] authToken) {
       this.certificate=certificate;
       this.specialuser=0;      

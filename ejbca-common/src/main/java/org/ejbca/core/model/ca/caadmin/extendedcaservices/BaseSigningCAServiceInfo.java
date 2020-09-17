@@ -36,7 +36,12 @@ public abstract class BaseSigningCAServiceInfo extends ExtendedCAServiceInfo imp
     
     private boolean renew = false;
            
-    /** Used when creating new service. */
+    /** Used when creating new service. 
+     * @param status Status
+     * @param subjectdn DN
+     * @param subjectaltname Name 
+     * @param keyspec Spec
+     * @param keyalgorithm Algo */
     public BaseSigningCAServiceInfo(int status, String subjectdn, String subjectaltname, String keyspec, String keyalgorithm) {
     	super(status);
     	this.subjectdn = subjectdn;
@@ -45,7 +50,13 @@ public abstract class BaseSigningCAServiceInfo extends ExtendedCAServiceInfo imp
     	this.keyalgorithm = keyalgorithm; 	 
     }
     
-	/** Used when returning information from service. */
+	/** Used when returning information from service. 
+	 * @param status Status
+	 * @param subjectdn DN
+	 * @param subjectaltname Name 
+	 * @param keyspec Spec
+	 * @param keyalgorithm Algo 
+	 * @param certpath Certs */
 	public BaseSigningCAServiceInfo(int status, String subjectdn, String subjectaltname, String keyspec, String keyalgorithm, List<Certificate> certpath) {
 		super(status);
 		this.subjectdn = subjectdn;

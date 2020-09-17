@@ -122,7 +122,11 @@ public class PerformanceTest {
         final private Statistic statistic;
         final private Command commands[];
         /**
-         * @param certificateProfileName 
+         * @param _nr NR
+         * @param _waitTime Time 
+         * @param _statistic Stat
+         * @param commandFactory Factory
+         * @throws Exception On fail
          */
         public TestInstance(int _nr, int _waitTime, Statistic _statistic,
                             CommandFactory commandFactory) throws Exception {
@@ -252,7 +256,7 @@ public class PerformanceTest {
                 return this.totalTime;
             }
             void printRelativeTime(long allThreadsTime) {
-                printLine(this.name, new Float((float)this.totalTime / allThreadsTime));
+                printLine(this.name, Float.valueOf((float)this.totalTime / allThreadsTime));
             }
             void printMinMaxTime() {
                 printLine("Min time for job '"+this.name+"' (ms)", Long.toString(this.minTime), this.minTimeAt);
@@ -308,8 +312,8 @@ public class PerformanceTest {
         private void printStatistics(final long startTime, final long periodStartTime, final long endTime) {
             final long time = (int)(endTime-startTime);
             final long allThreadsTime = this.nrOfThreads*time;
-            final Float testsPerSecond = new Float((float)this.nrOfSuccesses*1000/time);
-            final Float testsPerSecondInLastPeriod = new Float((float)(this.nrOfSuccesses - this.nrOfSuccessesLastTime)*1000/(endTime-periodStartTime));
+            final Float testsPerSecond = Float.valueOf((float)this.nrOfSuccesses*1000/time);
+            final Float testsPerSecondInLastPeriod = Float.valueOf((float)(this.nrOfSuccesses - this.nrOfSuccessesLastTime)*1000/(endTime-periodStartTime));
             this.nrOfSuccessesLastTime = this.nrOfSuccesses;
             final float relativeWork; 
             {
@@ -335,7 +339,7 @@ public class PerformanceTest {
                     i.next().printRelativeTime(allThreadsTime);
                 }
             }
-            printLine("Time spent with test client work", new Float(relativeWork));
+            printLine("Time spent with test client work", Float.valueOf(relativeWork));
             this.printStream.println();
             this.printStream.println("Absolute extremes:");
             {

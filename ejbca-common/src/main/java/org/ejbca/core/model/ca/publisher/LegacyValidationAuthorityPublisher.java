@@ -98,6 +98,8 @@ public class LegacyValidationAuthorityPublisher extends CustomPublisherUiBase im
     
     /**
      *  Sets the data source property for the publisher.
+     * @param dataSource Source
+     * @throws PublisherException Fail 
      */
     public void setDataSource(String dataSource) throws PublisherException {
         validateDataSource(dataSource);
@@ -112,14 +114,14 @@ public class LegacyValidationAuthorityPublisher extends CustomPublisherUiBase im
     }
     
     /**
-     *  Sets the property protect for the publisher.
+     * @param protect  Sets the property protect for the publisher.
      */
     public void setProtect(boolean protect) {
         this.data.put(PROTECT, Boolean.valueOf(protect));
     }
     
     /**
-     *  Set to false if the certificate should not be published.
+     * @param storecert Set to false if the certificate should not be published.
      */
     public void setStoreCert(boolean storecert) {
         this.data.put(STORECERT, Boolean.valueOf(storecert));
@@ -154,7 +156,7 @@ public class LegacyValidationAuthorityPublisher extends CustomPublisherUiBase im
     }
     
     /**
-     *  Set to true if the CRL should be published.
+     * @param storecert Set to true if the CRL should be published.
      */
     public void setStoreCRL(boolean storecert) {
         this.data.put(STORECRL, Boolean.valueOf(storecert));
@@ -175,7 +177,7 @@ public class LegacyValidationAuthorityPublisher extends CustomPublisherUiBase im
     }
     
     /**
-     *  Set to true if only revoked certificates should be published.
+     * @param publishRevoked Set to true if only revoked certificates should be published.
      */
     public void setOnlyPublishRevoked(boolean publishRevoked) {
         this.data.put(ONLYPUBLISHREVOKED, Boolean.valueOf(publishRevoked));

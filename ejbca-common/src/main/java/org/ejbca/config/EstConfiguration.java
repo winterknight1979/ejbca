@@ -85,6 +85,7 @@ public class EstConfiguration extends ConfigurationBase implements Serializable 
 
     /**
      * Copy constructor for {@link EstConfiguration}
+     * @param estConfiguration Config
      */
     public EstConfiguration(EstConfiguration estConfiguration) {
         super();
@@ -98,7 +99,8 @@ public class EstConfiguration extends ConfigurationBase implements Serializable 
         }
     }
 
-    /** Initializes a new cmp configuration with default values. */
+    /** Initializes a new cmp configuration with default values. 
+     * @param alias Alias */
     public void initialize(String alias){
         if(StringUtils.isNotEmpty(alias)) {
             alias = alias + ".";

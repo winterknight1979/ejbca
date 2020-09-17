@@ -70,13 +70,15 @@ public class LogEntry implements Serializable {
 
     /**
      * Function used by EJBCA to log information.
+     * @param id ID
      *
      * @param admintype is pricipally the type of data stored in the admindata field, should be one of org.ejbca.core.model.log.Admin.TYPE_ constants.
      * @param admindata is the data identifying the administrator, should be certificate snr or ip-address when no certificate could be retrieved.
+     * @param caid CA ID
      * @param module indicates from which module the event was logged. i.e one of the constans LogConstants.MODULE_RA, LogConstants.MODULE_CA ....
      * @param time the time the event occured.
      * @param username the name of the user involved or null if no user is involved.
-     * @param certificate the certificate involved in the event or null if no certificate is involved.
+     * @param certificatesnr the certificate involved in the event or null if no certificate is involved.
      * @param event id of the event, should be one of the org.ejbca.core.model.log.LogConstants.EVENT_ constants.
      * @param comment comment of the event.
      */
@@ -113,6 +115,7 @@ public class LogEntry implements Serializable {
 
     /**
      * Method used to map between event id and a string representation of event
+     * @param eventId ID
      *
      * @return a string representation of the event.
      */

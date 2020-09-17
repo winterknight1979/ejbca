@@ -41,7 +41,7 @@ public class CliAuthenticationTokenTest {
     
     /**
      * Make sure that each token is single-use only. This test tests both CliAuthenticationToken and the CliAuthenticationTokenRegistry
-     * @throws AuthenticationFailedException 
+     * @throws AuthenticationFailedException  fail
      */
     @Test
     public void testUseTokenWorksTwiceInternally() throws AuthenticationFailedException {

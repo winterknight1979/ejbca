@@ -85,7 +85,9 @@ public abstract class DatabaseIndexUtil {
         /** @return true if the index is reported as unique */
         public boolean isUnique() { return !nonUnique; }
 
-        /** Case insensitive check if all columns present in the argument is also exactly present in this index. */
+        /** Case insensitive check if all columns present in the argument is also exactly present in this index. 
+         * @param columnNames columns
+         * @return bool */
         public boolean isExactlyOverColumns(final List<String> columnNames) {
             final List<String> indexColumnNames = new ArrayList<>();
             for (final String indexColumnName : getColumnNames()) {
@@ -100,7 +102,11 @@ public abstract class DatabaseIndexUtil {
         }
     }
 
-    /** @return true if there exists an index on the specified table exactly matches the requested columns and optionally is unique. null if the check was inconclusive. */
+    /** @param dataSource DS
+     * @param tableName Table
+     * @param columnNames Columns
+     * @param requireUnique bool
+     * @return true if there exists an index on the specified table exactly matches the requested columns and optionally is unique. null if the check was inconclusive. */
     public static Boolean isIndexPresentOverColumns(final DataSource dataSource, final String tableName, final List<String> columnNames, final boolean requireUnique) {
         if (dataSource!=null) {
             try {
@@ -126,7 +132,11 @@ public abstract class DatabaseIndexUtil {
         return null;
     }
 
-    /** @return a list of representations of each database index present for a table */
+    /** @param dataSource DS
+     * @param tableName Table
+     * @param requireUnique bool
+     * @return a list of representations of each database index present for a table 
+     * @throws SQLException fail */
     public static List<DatabaseIndex> getDatabaseIndexFromTable(final DataSource dataSource, final String tableName, final boolean requireUnique) throws SQLException {
         final List<DatabaseIndex> ret = new ArrayList<>();
         try (final Connection connection = dataSource.getConnection();) {
@@ -176,7 +186,13 @@ public abstract class DatabaseIndexUtil {
         return ret;
     }
 
-    /** @return a Map of index name and the index representations of each database index present for a schema and table */
+    /** @param databaseMetaData Metadata
+     * @param catalog Catalog 
+     * @param schemaName Schema
+     * @param tableName Table
+     * @param requireUnique Bool
+     * @return a Map of index name and the index representations of each database index present for a schema and table 
+     * @throws SQLException Error */
     private static Map<String, DatabaseIndex> getDatabaseIndexMap(final DatabaseMetaData databaseMetaData, final String catalog, final String schemaName, final String tableName, final boolean requireUnique) throws SQLException {
         final Map<String,DatabaseIndex> tableIndexMap = new HashMap<>();
         // http://docs.oracle.com/javase/7/docs/api/java/sql/DatabaseMetaData.html#getIndexInfo(java.lang.String,%20java.lang.String,%20java.lang.String,%20boolean,%20boolean)

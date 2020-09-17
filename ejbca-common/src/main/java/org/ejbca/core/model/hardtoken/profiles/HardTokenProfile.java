@@ -67,12 +67,14 @@ public abstract class HardTokenProfile extends UpgradeableDataHashMap implements
      * Number of Copies indicates how many card for the samt user that should be generated.
      * Generally this means, the PIN and PUK codes and encryption keys are identical. This
      * doesn't mean that the toekns are exact copies. 
+     * @return ont
      */
     public int getNumberOfCopies(){return ((Integer)data.get(NUMBEROFCOPIES)).intValue();}
 
 	/**
 	 * Indicates if the same pin code should be used for all copies of the token or if a
 	 * new one should be generated. 
+	 * @return bool
 	 */
 
 	public boolean getGenerateIdenticalPINForCopies(){return ((Boolean) data.get(GENERATEIDENTICALPINFORCOPIES)).booleanValue();}
@@ -98,6 +100,7 @@ public abstract class HardTokenProfile extends UpgradeableDataHashMap implements
 	/**
 	 * Given a token identification string the method determines if the token
 	 * supports the structure of this profile.
+	 * @param tokenidentificationstring String
 	 * 
 	 * @return true if it's possible to create a token accoringly to the profile.
 	 */

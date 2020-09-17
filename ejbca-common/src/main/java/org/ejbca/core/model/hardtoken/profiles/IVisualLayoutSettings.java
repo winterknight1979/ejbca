@@ -47,7 +47,7 @@ public interface IVisualLayoutSettings {
     public abstract int getVisualLayoutType();    
 
 	/**      
-	 * sets the visual layout type.
+	 * @param type sets the visual layout type.
 	 */
 	public abstract void setVisualLayoutType(int type);    
     
@@ -57,18 +57,18 @@ public interface IVisualLayoutSettings {
     public abstract String getVisualLayoutTemplateFilename();
 
 	/**
-	 * Sets the filename of the current visual layout template.
+	 * @param filename Sets the filename of the current visual layout template.
 	 */    
 	public abstract void setVisualLayoutTemplateFilename(String filename);
     
 	/**
-	 * Returns the image data of the visual layout, should be a SVG image.
+	 * @return the image data of the visual layout, should be a SVG image.
 	 */
 	public abstract String getVisualLayoutData();		
 	 
 
 	/**
-	 * Sets the imagedata of the visual layout.
+	 * @param templatedata Sets the imagedata of the visual layout.
 	 */
 	public abstract void setVisualLayoutData(String templatedata);
 	
@@ -76,6 +76,14 @@ public interface IVisualLayoutSettings {
    /**
     * Method that parses the template, replaces the userdata
     * and returning a printable byte array 
+ * @param userdata Data
+ * @param pincodes PIN
+ * @param pukcodes PUK
+ * @param hardtokensn SN
+ * @param copyoftokensn SN Copy
+ * @return Validity
+ * @throws IOException IO fail
+ * @throws PrinterException Printer fail
     */	
 	public abstract Printable printVisualValidity(EndEntityInformation userdata, 
 	                                        String[] pincodes, String[] pukcodes,

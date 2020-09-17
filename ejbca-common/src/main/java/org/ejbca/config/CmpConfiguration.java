@@ -139,6 +139,7 @@ public class CmpConfiguration extends ConfigurationBase implements Serializable 
     
     /**
      * Copy constructor for {@link CmpConfiguration}
+     * @param cmpConfiguration config
      */
     public CmpConfiguration(CmpConfiguration cmpConfiguration) {
         super();
@@ -153,7 +154,8 @@ public class CmpConfiguration extends ConfigurationBase implements Serializable 
       }
     
     
-    /** Initializes a new cmp configuration with default values. */
+    /** Initializes a new cmp configuration with default values. 
+     * @param alias alias*/
     public void initialize(String alias){
         if(StringUtils.isNotEmpty(alias)) {
             alias = alias + ".";
@@ -222,7 +224,9 @@ public class CmpConfiguration extends ConfigurationBase implements Serializable 
     }
 
     
-    /** Method used by the Admin GUI. */
+    /** Method used by the Admin GUI. 
+     * @param alias alias
+     * @return string */
     public String getCMPDefaultCA(String alias) {
         String key = alias + "." + CONFIG_DEFAULTCA;
         return getValue(key, alias);
@@ -505,7 +509,7 @@ public class CmpConfiguration extends ConfigurationBase implements Serializable 
     
 
     /**
-     * @param alias
+     * @param alias alias
      * @return the end entity profile ID
      */
     public String getRAEEProfile(String alias) {

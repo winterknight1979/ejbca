@@ -38,14 +38,14 @@ public class WebConfiguration {
 	public static final String CONFIG_REQCERTINDB = "web.reqcertindb";
 	
 	/**
-	 * The configured server host name
+	 * @return The configured server host name
 	 */
 	public static String getHostName() {
 		return EjbcaConfigurationHolder.getExpandedString(CONFIG_HTTPSSERVERHOSTNAME);
 	}
 	
 	/**
-	 * Port used by EJBCA public webcomponents. i.e that doesn't require client authentication
+	 * @return Port used by EJBCA public webcomponents. i.e that doesn't require client authentication
 	 */
 	public static int getPublicHttpPort() {
 		int value = 8080;
@@ -58,7 +58,7 @@ public class WebConfiguration {
 	}
 	
 	/**
-	 * Port used by EJBCA private webcomponents. i.e that requires client authentication
+	 * @return Port used by EJBCA private webcomponents. i.e that requires client authentication
 	 */
 	public static int getPrivateHttpsPort() {
 		int value = 8443;
@@ -71,7 +71,7 @@ public class WebConfiguration {
 	}
 
 	/**
-	 * Port used by EJBCA public web to construct a correct url.
+	 * @return Port used by EJBCA public web to construct a correct url.
 	 */
 	public static int getExternalPrivateHttpsPort() {
 		int value = getPrivateHttpsPort();
@@ -84,14 +84,14 @@ public class WebConfiguration {
 	}
 
 	/**
-	 * Defines the available languages by language codes separated with a comma
+	 * @return Defines the available languages by language codes separated with a comma
 	 */
 	public static String getAvailableLanguages() {
 		return EjbcaConfigurationHolder.getExpandedString("web.availablelanguages");
 	}
 	
 	/**
-	 * Setting to indicate if the secret information stored on hard tokens (i.e initial PIN/PUK codes) should
+	 * @return Setting to indicate if the secret information stored on hard tokens (i.e initial PIN/PUK codes) should
 	 * be displayed for the administrators. If false only non-sensitive information is displayed. 
 	 */
 	public static boolean getHardTokenDiplaySensitiveInfo() {
@@ -108,7 +108,7 @@ public class WebConfiguration {
 	}
 	
 	/**
-	 * Require administrator certificates to be available to access the Admin GUI
+	 * @return Require administrator certificates to be available to access the Admin GUI
 	 */
 	public static boolean getRequireAdminCertificate() {
         // Anything but an explicit setting this configuration value to "false" will enforce the client certificate check
@@ -116,28 +116,28 @@ public class WebConfiguration {
 	}
 
     /**
-     * Require administrator certificates to be available in database for revocation checks.
+     * @return Require administrator certificates to be available in database for revocation checks.
      */
     public static boolean getRequireAdminCertificateInDatabase() {
         return Boolean.valueOf(EjbcaConfigurationHolder.getExpandedString(CONFIG_REQCERTINDB));
     }
 
 	/**
-	 * Default content encoding used to display JSP pages
+	 * @return Default content encoding used to display JSP pages
 	 */
 	public static String getWebContentEncoding() {
 	   	return EjbcaConfigurationHolder.getString("web.contentencoding");
 	}
 	
 	/**
-	 * Whether self-registration (with admin approval) is enabled in public web
+	 * @return Whether self-registration (with admin approval) is enabled in public web
 	 */
 	public static boolean getSelfRegistrationEnabled() {
 		return Boolean.valueOf(EjbcaConfigurationHolder.getExpandedString("web.selfreg.enabled"));
 	}
 	
 	/**
-	 * The request browser certificate renewal web application is deployed
+	 * @return The request browser certificate renewal web application is deployed
 	 */
 	public static boolean getRenewalEnabled() {
 		return Boolean.valueOf(EjbcaConfigurationHolder.getExpandedString("web.renewalenabled"));
@@ -167,6 +167,7 @@ public class WebConfiguration {
     
         
     /**
+     * @return
      * Whether the remote IP address should be logged during administrator login.
      * This works as expected when using an Apache AJP proxy, but if a reverse proxy
      * server is running in front of EJBCA then the address of the proxy will be logged.
@@ -176,11 +177,11 @@ public class WebConfiguration {
     }
     
     /**
-     * Whether the IP address seen at the proxy (from the HTTP header "X-Forwarded-For")
+     * @return Whether the IP address seen at the proxy (from the HTTP header "X-Forwarded-For")
      * should be logged. This information can only be trusted if the request
      * is known to come from a trusted proxy server.
      * 
-     * @see getAdminLogRemoteAddress()
+     * @see #getAdminLogRemoteAddress()
      */
     public static boolean getAdminLogForwardedFor() {
         return Boolean.valueOf(EjbcaConfigurationHolder.getString("web.log.adminforwardedip"));
@@ -285,17 +286,17 @@ public class WebConfiguration {
         return EjbcaConfigurationHolder.getString("statedump.templatebasedir");
     }
     
-    /** Returns true if the CRL Store Servlet (search.cgi) is enabled. Default is false */
+    /** @return true if the CRL Store Servlet (search.cgi) is enabled. Default is false */
     public static boolean isCrlStoreEnabled() {
         return Boolean.valueOf(EjbcaConfigurationHolder.getString("crlstore.enabled"));
     }
     
-    /** Returns true if the Certificate Store Servlet (search.cgi) is enabled. Default is false */
+    /** @return true if the Certificate Store Servlet (search.cgi) is enabled. Default is false */
     public static boolean isCertStoreEnabled() {
         return Boolean.valueOf(EjbcaConfigurationHolder.getString("certstore.enabled"));
     }
     
-    /** Returns the base URL path of the CRL store servlet, e.g. /ejbca/publicweb/crls */ 
+    /** @return the base URL path of the CRL store servlet, e.g. /ejbca/publicweb/crls */ 
     public static String getCrlStoreContextRoot() {
         String value = EjbcaConfigurationHolder.getString("crlstore.contextroot");
         if (value == null) {

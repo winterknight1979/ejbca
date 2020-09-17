@@ -106,6 +106,7 @@ public class CustomerLdapPublisher1UnitTest {
 
     /**
      * Test for initialization and parsing of configuration.
+     * @throws Exception Fail
      */
     @Test
     public void testInit() throws Exception {
@@ -153,7 +154,8 @@ public class CustomerLdapPublisher1UnitTest {
         assertEquals("logconnectiontests", expectedLogConnectionTests, instance.isLogConnectionTests());
     }
     
-    /** Tests that storeCertificate can not be called before it has been initialized. */
+    /** Tests that storeCertificate can not be called before it has been initialized. 
+     * @throws Exception Fail*/
     @Test
     public void testStoreCertificate_uninitialized() throws Exception {
         try {
@@ -164,7 +166,8 @@ public class CustomerLdapPublisher1UnitTest {
         }
     }
     
-    /** Tests the logic in storeCertificate when storing active end entity certificates. */
+    /** Tests the logic in storeCertificate when storing active end entity certificates. 
+     * @throws Exception Fail*/
     @Test
     public void testStoreCertificate_activeEndentity() throws Exception {
         // Create mocked instance
@@ -231,7 +234,8 @@ public class CustomerLdapPublisher1UnitTest {
         assertEquals("error logging", "err", instance.getStoreLogParameters().getLevel());
     }
     
-    /** Tests the logic in storeCertificate when storing non-active or non end entity certificates. */
+    /** Tests the logic in storeCertificate when storing non-active or non end entity certificates. 
+     * @throws Exception Fail*/
     @Test
     public void testStoreCertificate_NonActiveOrNonEndentity() throws Exception {
         // Create mocked instance
@@ -255,7 +259,8 @@ public class CustomerLdapPublisher1UnitTest {
         assertFalse("storeLog called for revokation", instance.isStoreLogCalled());
     }
     
-    /** Tests that storeCRL can not be called before it has been initialized. */
+    /** Tests that storeCRL can not be called before it has been initialized. 
+     * @throws Exception Fail*/
     @Test
     public void testStoreCRL_uninitialized() throws Exception {
         try {
@@ -266,7 +271,8 @@ public class CustomerLdapPublisher1UnitTest {
         }
     }
     
-    /** Tests the logic in storeCRL. */
+    /** Tests the logic in storeCRL. 
+     * @throws Exception Fail*/
     @Test
     public void testStoreCRL() throws Exception {
         // Create mocked instance
@@ -333,7 +339,8 @@ public class CustomerLdapPublisher1UnitTest {
         assertEquals("error logging", "err", instance.getStoreLogParameters().getLevel());
     }
     
-    /** Tests that testConnection can not be called before it has been initialized. */
+    /** Tests that testConnection can not be called before it has been initialized. 
+     * @throws Exception Fail*/
     @Test
     public void testConnection_uninitialized() throws Exception {
         try {
@@ -344,7 +351,8 @@ public class CustomerLdapPublisher1UnitTest {
         }
     }
     
-    /** Tests the logic in testConnection. */
+    /** Tests the logic in testConnection. 
+     * @throws Exception Fail*/
     @Test
     public void testConnection() throws Exception {
         // Create mocked instance
@@ -410,7 +418,8 @@ public class CustomerLdapPublisher1UnitTest {
         assertEquals("error logging", "err", instance.getStoreLogParameters().getLevel());
     }
     
-    /** Tests the logic in testConnection when logging is disabled. */
+    /** Tests the logic in testConnection when logging is disabled. 
+     * @throws Exception Fail*/
     @Test
     public void testConnection_nolog() throws Exception {
         // Create mocked instance
@@ -440,7 +449,8 @@ public class CustomerLdapPublisher1UnitTest {
         assertFalse("storeLog not called", instance.isStoreLogCalled());
     }
     
-    /** Tests the logic and implementation details of doStoreCertificate. */
+    /** Tests the logic and implementation details of doStoreCertificate. 
+     * @throws Exception Fail*/
     @Test
     public void testDoStoreCertificate() throws Exception {
         
@@ -481,7 +491,8 @@ public class CustomerLdapPublisher1UnitTest {
         assertEquals("ldapDN", "CN=C=SE\\,O=Test\\,CN=Test+sn=20EAA2570247CFEF,ou=staging,dc=test.example.com,dc=com", newEntry.getDN());
     }
     
-    /** Tests the logic and implementation details of doStoreCRL. */
+    /** Tests the logic and implementation details of doStoreCRL. 
+     * @throws Exception Fail*/
     @Test
     public void testDoStoreCRL() throws Exception {
         // Precondition
@@ -511,7 +522,8 @@ public class CustomerLdapPublisher1UnitTest {
         assertNotNull(attributeSet.getAttribute("objectclass"));
     }
     
-    /** Tests the logic in storeLog. */
+    /** Tests the logic in storeLog. 
+     * @throws Exception Fail*/
     @Test
     public void testStoreLog() throws Exception {
         // Create mocked instance
@@ -558,6 +570,9 @@ public class CustomerLdapPublisher1UnitTest {
 
     /**
      * Helper that tests the extendedInfoObjectClass value against the properties
+     * @param properties Props
+     * @param expectedExtendedInfoObjectClassValue Value 
+     * @throws Exception Fail
      */
     private void testExtendedInfoObjectClass(final Properties properties, final String expectedExtendedInfoObjectClassValue) throws Exception {
         // Prepare mock instance
@@ -586,6 +601,7 @@ public class CustomerLdapPublisher1UnitTest {
 
     /**
      * Tests the extendedInfoObjectClass property
+     * @throws Exception FDail
      */
     @Test
     public void testExtendedInfoObjectClass() throws Exception {
@@ -594,6 +610,7 @@ public class CustomerLdapPublisher1UnitTest {
 
     /**
      * Tests the default value of extendedInfoObjectClass property
+     * @throws Exception Fail
      */
     @Test
     public void testDefaultExtendedInfoObjectClass() throws Exception {

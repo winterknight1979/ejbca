@@ -52,6 +52,7 @@ public class CliAuthenticationToken extends AuthenticationToken {
      * 
      * @param principal a UsernamePrincipal representing a user name.
      * @param passwordHash a hashed password.
+     * @param sha1Salt Salt
      * @param referenceId the reference ID of this token.
      * @param hashAlgorithm the hash algorithm used to produce the password hash. This will be needed in order to reproduce the sha1Hash on the client
      *            side.
@@ -91,9 +92,9 @@ public class CliAuthenticationToken extends AuthenticationToken {
     /**
      * Construct a SHA1 hash from the concatenated password hash and reference id.
      * 
-     * @param passwordHash
-     * @param referenceId
-     * @return
+     * @param passwordHash Hash
+     * @param referenceId ID
+     * @return String
      */
     private String generateSha1Hash(final String passwordHash, final Long referenceId) {
         String concactenatedInput = passwordHash.concat(referenceId.toString());

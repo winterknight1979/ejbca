@@ -23,22 +23,22 @@ public class CertificateSignatureException extends Exception {
     private static final long serialVersionUID = 1L;
 
     /**
-     * @param message
+     * @param message message
      */
     public CertificateSignatureException(String message) {
         super(message);
     }
     
     /**
-     * @param cause
+     * @param cause cause
      */
     public CertificateSignatureException(Throwable cause) {
         super(cause);
     }
 
     /**
-     * @param message
-     * @param cause
+     * @param message message
+     * @param cause cause
      */
     public CertificateSignatureException(String message, Throwable cause) {
         super(message, cause);

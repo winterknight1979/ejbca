@@ -42,12 +42,12 @@ public class DummyApprovalRequest extends ApprovalRequest {
 	
     /**
      * Main constructor of an approval request
-     * @param requestAdminCert the certificate of the requesting admin
+     * @param requestAdmin the certificate of the requesting admin
      * @param requestSignature signature of the requestor (OPTIONAL, for future use)
-     * @param approvalRequestType one of TYPE_ constants
-     * @param numOfRequiredApprovals 
      * @param cAId the related cAId of the request that the approver must be authorized to or ApprovalDataVO.ANY_CA in applicable to any ca
      * @param endEntityProfileId the related profile id that the approver must be authorized to or ApprovalDataVO.ANY_ENDENTITYPROFILE if applicable to any end entity profile
+     * @param executable Exe
+     * @param approvalProfile Profile 
      */
 	public DummyApprovalRequest(AuthenticationToken requestAdmin, String requestSignature, int cAId, int endEntityProfileId, 
 	            boolean executable, final ApprovalProfile approvalProfile) {
@@ -57,6 +57,13 @@ public class DummyApprovalRequest extends ApprovalRequest {
 	
     /**
      * Main constructor of an approval request with step functionality
+     * @param requestAdmin Admin
+     * @param requestSignature Sig
+     * @param cAId CA
+     * @param endEntityProfileId Profile 
+     * @param steps Stepd
+     * @param executable EXE
+     * @param approvalProfile Approval 
      */
 	public DummyApprovalRequest(AuthenticationToken requestAdmin, String requestSignature, int cAId, int endEntityProfileId, 
 	        int steps, boolean executable, final ApprovalProfile approvalProfile) {

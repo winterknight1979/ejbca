@@ -63,7 +63,7 @@ public class GlobalAcmeConfiguration extends ConfigurationBase {
     public boolean isInitialized() {
         return Boolean.valueOf((String)super.data.get(KEY_INITIALIZED));
     }
-    /** Set to true when this global configuration has been initialized */
+    /** @param initialized Set to true when this global configuration has been initialized */
     public void setInitialized(final boolean initialized) {
         super.data.put(KEY_INITIALIZED, String.valueOf(initialized));
     }
@@ -72,7 +72,7 @@ public class GlobalAcmeConfiguration extends ConfigurationBase {
     public String getDefaultAcmeConfigurationId() {
         return (String) data.get(KEY_DEFAULT_ACME_CONFIGURATION_ID);
     }
-    /** Set the default configured AcmeConfiguration IDs that will be used if none is specified in the request path */
+    /** @param defaultAcmeConfigurationId Set the default configured AcmeConfiguration IDs that will be used if none is specified in the request path */
     public void setDefaultAcmeConfigurationId(final String defaultAcmeConfigurationId) {
         data.put(KEY_DEFAULT_ACME_CONFIGURATION_ID, defaultAcmeConfigurationId);
     }
@@ -88,7 +88,8 @@ public class GlobalAcmeConfiguration extends ConfigurationBase {
         return new ArrayList<String>(acmeConfigurationIds);
     }
 
-    /** @return the AcmeConfiguration that will be based on the configurationId specified in the request path */
+    /** @param configurationId ID
+     * @return the AcmeConfiguration that will be based on the configurationId specified in the request path */
     public AcmeConfiguration getAcmeConfiguration(final String configurationId) {
         final Object upgradeableDataHashMapData = data.get(KEY_ACME_CONFIGURATION_PREFIX + configurationId);
         if (upgradeableDataHashMapData==null) {
@@ -98,7 +99,7 @@ public class GlobalAcmeConfiguration extends ConfigurationBase {
         acmeConfiguration.setConfigurationId(configurationId);
         return acmeConfiguration;
     }
-    /** Overwrite and update the persisted AcmeConfiguration */
+    /** @param acmeConfiguration Overwrite and update the persisted AcmeConfiguration */
     public void updateAcmeConfiguration(final AcmeConfiguration acmeConfiguration) {
         data.put(KEY_ACME_CONFIGURATION_PREFIX + acmeConfiguration.getConfigurationId(), acmeConfiguration.saveData());
     }
@@ -112,7 +113,10 @@ public class GlobalAcmeConfiguration extends ConfigurationBase {
         data.put(KEY_REPLAY_NONCE_VALIDITY, replayNonceValidity);
     }
 
-    /** @return all replay-nonce secrets for the specified algorithm that have been configured */
+    /** @param hmacOid OID
+     * @return all replay-nonce secrets for the specified algorithm that have been configured 
+     * @throws IllegalArgumentException Bad arg 
+     * @throws IllegalStateException BAd state */
     @SuppressWarnings("unchecked")
     public ArrayList<String> getReplayNonceSharedSecrets(final String hmacOid) throws IllegalArgumentException, IllegalStateException {
         final ArrayList<String> sharedSecretStrings;
@@ -127,13 +131,20 @@ public class GlobalAcmeConfiguration extends ConfigurationBase {
         return sharedSecretStrings;
     }
 
-    /** @return the latest replay-nonce secret for the specified algorithm that have been configured */
+    /** @param hmacOid OID
+     * @return the latest replay-nonce secret for the specified algorithm that have been configured 
+     * @throws IllegalArgumentException Bad arg 
+     * @throws IllegalStateException  Bad state */
     public byte[] getReplayNonceSharedSecretCurrent(final String hmacOid) throws IllegalArgumentException, IllegalStateException {
         final ArrayList<String> replayNonceSharedSecrets = getReplayNonceSharedSecrets(hmacOid);
         return Hex.decode(replayNonceSharedSecrets.get(replayNonceSharedSecrets.size()-1));
     }
 
-    /** Add a new replay-nonce secret for the specified algorithm to use for all new generated replay-nonces */
+    /** Add a new replay-nonce secret for the specified algorithm to use for all new generated replay-nonces 
+     * @param hmacOid OID
+     * @param secret Secret
+     * @throws IllegalArgumentException BAd arg 
+     * @throws IllegalStateException Bad state*/
     public void addReplayNonceSharedSecret(final String hmacOid, byte[] secret) throws IllegalArgumentException, IllegalStateException {
         // TODO: Use obfuscation during serialized transfer, but StringTools.encrypt when data is at rest
         // TODO: Consider also adding a timestamp to when the new secret was added, to allow smooth purge of old secret during roll-over

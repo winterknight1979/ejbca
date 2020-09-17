@@ -46,7 +46,11 @@ public class JDBCUtil {
     	String getInfoString();
     }
     
-    /** @return the current result as an update count; -1 if the current result is a ResultSet object or there are no more results */
+    /** @param sqlCommandTemplate Command
+     * @param preparer Preparer
+     * @param dataSource  DS
+     * @return the current result as an update count; -1 if the current result is a ResultSet object or there are no more results 
+     * @throws Exception On fail */
     public static int execute(String sqlCommandTemplate, Preparer preparer, String dataSource) throws Exception {
         if ( sqlCommandTemplate!=null ) {
             Connection connection = null;
@@ -91,7 +95,6 @@ public class JDBCUtil {
      * Return the requested datasource name. It assumes that the dsName returns a reference (java.lang.String)
      * to the real datasource instance, otherwise you're likely to get a ClassCastException.
      *
-     * @param dsName the name of the requested datasource
      * @return the requested datasource
      * @throws ServiceLocatorException if there is an error locating the datasource
      */
@@ -106,7 +109,6 @@ public class JDBCUtil {
      * Return the requested datasource name. It assumes that the dsName returns a reference (java.lang.String)
      * to the real datasource instance, otherwise you're likely to get a ClassCastException.
      *
-     * @param dsName the name of the requested datasource
      * @return the requested datasource or null if it could not be located
      */
     public static DataSource getDataSourceOrNull() {
@@ -124,10 +126,9 @@ public class JDBCUtil {
     /**
      * return a requested database connection
      *
-     * @param dsName the name of the datasource
      * @return a database connection
      * @throws ServiceLocatorException if it cannot get the datasource connection
-     * @see #getDataSource(java.lang.String)
+     * @see #getDataSource
      */
     public static Connection getDBConnection() throws ServiceLocatorException {
         try {

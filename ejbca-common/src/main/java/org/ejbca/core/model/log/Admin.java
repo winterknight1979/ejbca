@@ -92,7 +92,7 @@ public class Admin implements Serializable {
     }
 
     /**
-     * @param type
+     * @param type type
      * @param ipOrCertIssuerSerno
      * 		ip address of publib web users etc or certserno and issuerDN for certificate authenticated admins (see other constructor above)
      */
@@ -132,6 +132,7 @@ public class Admin implements Serializable {
     /**
      * Method that returns the caid of the CA, the admin belongs to.
      * Doesn't work properly for public web and special users so use with care.
+     * @return ID
      */
     public int getCaId() {
         int returnval = INTERNALCAID;
@@ -176,7 +177,8 @@ public class Admin implements Serializable {
     	this.authToken = authToken;
     }
 
-    /** Instead of creating a new Admin(TYPE_INTERNALUSER), this can be used to use a shared instance of the object. */
+    /** Instead of creating a new Admin(TYPE_INTERNALUSER), this can be used to use a shared instance of the object. 
+     * @return Admin */
     public static Admin getInternalAdmin() {
     	if (internalAdmin == null) {
     		internalAdmin = new Admin(TYPE_INTERNALUSER);

@@ -106,6 +106,8 @@ public class LimitLengthASN1ReaderTest {
 
 	/**
 	 * Test happy path implementation of readFirstASN1Object.
+	 * @throws MalformedRequestException Fail
+	 * @throws IOException Fail
 	 */
     @Test
 	public void testReadFirstASN1ObjectHappyPath() throws MalformedRequestException, IOException {
@@ -119,6 +121,7 @@ public class LimitLengthASN1ReaderTest {
 
 	/**
 	 * Attempts to process a stream which is incorrectly declared.
+	 * @throws IOException Fail
 	 */
     @Test
 	public void testReadFirstASN1ObjectNotASequence() throws IOException {
@@ -151,6 +154,7 @@ public class LimitLengthASN1ReaderTest {
 	/**
 	 * Test readFirstASN1Object() with a stream that is missing it's last byte.
 	 * Might be due to a broken connection.
+	 * @throws IOException Fail
 	 */
     @Test
 	public void testReadFirstASN1ObjectWithBrokenStream() throws IOException {
@@ -165,6 +169,8 @@ public class LimitLengthASN1ReaderTest {
 
 	/**
 	 * Test readFirstASN1Object() with a stream where there is no defined ASN1 object length  
+	 * @throws MalformedRequestException Fail
+	 * @throws IOException Fail
 	 */
     @Test
 	public void testReadFirstASN1ObjectUndefinedLengthHappyPath() throws MalformedRequestException, IOException {
@@ -179,6 +185,8 @@ public class LimitLengthASN1ReaderTest {
 	/**
 	 * Test readFirstASN1Object() with a stream where there is no defined ASN1 object length and
 	 * content is invalid.  
+	 * @throws MalformedRequestException Fail
+	 * @throws IOException Fail
 	 */
     @Test
 	public void testReadFirstASN1ObjectUndefinedLengthAndInvalidContentLengthHappyPath() throws MalformedRequestException, IOException {

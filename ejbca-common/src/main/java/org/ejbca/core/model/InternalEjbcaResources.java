@@ -61,11 +61,7 @@ public class InternalEjbcaResources extends InternalResources {
 
     /**
      * Method used to setup the Internal Resource management.
-     * 
-     * @param globalConfiguration
-     *            used to retrieve the internal language of the application,
-     *            configured in the System Configuration.
-     * @throws IOException
+   
      */
     protected InternalEjbcaResources() {
     	super();

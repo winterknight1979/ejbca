@@ -67,7 +67,7 @@ public class CustomServiceWorkerProperty {
         return value;
     }
     
-    /** Set the current value of this property (as String) */
+    /** @param value Set the current value of this property (as String) */
     public void setValue(String value) {
         if (value!=null) {
             value = value.trim();
@@ -79,7 +79,7 @@ public class CustomServiceWorkerProperty {
     public boolean getBooleanValue() {
         return Boolean.valueOf(getValue());
     }
-    /** Set the current value of this component as a boolean. */
+    /** @param value Set the current value of this component as a boolean. */
     public void setBooleanValue(final boolean value) {
         setValue(Boolean.valueOf(value).toString());
     }
@@ -87,7 +87,7 @@ public class CustomServiceWorkerProperty {
     public String[] getMultiValue() {
         return getValue().split(";");
     }
-    /** Set the current value of this component as a "select many" component. */
+    /** @param values Set the current value of this component as a "select many" component. */
     public void setMultiValue(final String[] values) {
         final StringBuilder sb = new StringBuilder();
         for (final String value : values) {

@@ -29,22 +29,22 @@ public class NoSuchApprovalStepException extends RuntimeException {
     }
 
     /**
-     * @param message
+     * @param message Message
      */
     public NoSuchApprovalStepException(String message) {
         super(message);
     }
 
     /**
-     * @param cause
+     * @param cause CAuse
      */
     public NoSuchApprovalStepException(Throwable cause) {
         super(cause);
     }
 
     /**
-     * @param message
-     * @param cause
+     * @param message Message
+     * @param cause Cause
      */
     public NoSuchApprovalStepException(String message, Throwable cause) {
         super(message, cause);

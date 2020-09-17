@@ -39,7 +39,11 @@ import org.ejbca.core.model.InternalEjbcaResources;
  * @version $Id: GeneralPurposeCustomPublisher.java 34192 2020-01-07 15:10:21Z aminkh $
  */
 public class GeneralPurposeCustomPublisher extends CustomPublisherUiBase implements ICustomPublisher {
-    private static Logger log = Logger.getLogger(GeneralPurposeCustomPublisher.class);
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 8306182854748381700L;
+	private static Logger log = Logger.getLogger(GeneralPurposeCustomPublisher.class);
     private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();
 
     public static final String CRL_EXTERNAL_COMMAND_PROPERTY_NAME = "crl.application";
@@ -121,9 +125,7 @@ public class GeneralPurposeCustomPublisher extends CustomPublisherUiBase impleme
      * @param type
      *            The certificate type
      * 
-     * @see org.ejbca.core.model.ca.publisher.ICustomPublisher#storeCertificate(org.ejbca.core.model.log.Admin,
-     *      java.security.cert.Certificate, java.lang.String, java.lang.String,
-     *      int, int)
+     * @see org.ejbca.core.model.ca.publisher.ICustomPublisher#storeCertificate
      */
     @Override
     public boolean storeCertificate(AuthenticationToken admin, Certificate incert, String username, String password, String userDN, String cafp, int status, int type, long revocationDate,
@@ -172,8 +174,7 @@ public class GeneralPurposeCustomPublisher extends CustomPublisherUiBase impleme
      * thrown if the external command returns with an errorlevel or outputs to
      * stderr.
      * 
-     * @see org.ejbca.core.model.ca.publisher.ICustomPublisher#storeCRL(org.ejbca.core.model.log.Admin,
-     *      byte[], java.lang.String, int)
+     * @see org.ejbca.core.model.ca.publisher.ICustomPublisher#storeCRL
      */
     @Override
     public boolean storeCRL(AuthenticationToken admin, byte[] incrl, String cafp, int number, String userDN) throws PublisherException {
@@ -217,9 +218,12 @@ public class GeneralPurposeCustomPublisher extends CustomPublisherUiBase impleme
      * with the full pathname of the temporary file as argument. The temporary
      * file is the encoded form of the certificate e.g. X.509 certificates would
      * be encoded as ASN.1 DER. All parameters but cert are ignored.
+     * @param admin Token
      * 
      * @param cert
      *            The certificate
+     * @param reason Reason
+     * @throws PublisherException On error
      * 
      */
     public void revokeCertificate(AuthenticationToken admin, Certificate cert, int reason) throws PublisherException {
@@ -290,7 +294,8 @@ public class GeneralPurposeCustomPublisher extends CustomPublisherUiBase impleme
     /**
      * Does nothing.
      */
-    @Override
+    @SuppressWarnings("deprecation")
+	@Override
     protected void finalize() throws Throwable {
         if (log.isTraceEnabled()) {
         	log.trace("finalize, doing nothing");

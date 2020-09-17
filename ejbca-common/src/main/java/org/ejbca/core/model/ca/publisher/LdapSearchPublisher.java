@@ -215,6 +215,7 @@ public class LdapSearchPublisher extends LdapPublisher {
 	
 	/**
 	 *  Set search base DN.
+	 * @param searchbasedn DN
 	 */
 	public void setSearchBaseDN(String searchbasedn) {
 		data.put(SEARCHBASEDN, searchbasedn);
@@ -229,6 +230,7 @@ public class LdapSearchPublisher extends LdapPublisher {
 	
 	/**
 	 *  Sets LDAP search filter string
+	 * @param searchfilter Filter
 	 */
 	public void setSearchFilter(String searchfilter) {
 		data.put(SEARCHFILTER, searchfilter);

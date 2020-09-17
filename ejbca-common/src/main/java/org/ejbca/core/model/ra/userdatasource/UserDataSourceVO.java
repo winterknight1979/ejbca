@@ -65,7 +65,7 @@ public class UserDataSourceVO implements Serializable {
 	
     /**
 	 * Constructor that should be used from the User Data Source Implementations
-	 * @param endEntityInformation
+	 * @param endEntityInformation info
 	 */
 	public UserDataSourceVO(EndEntityInformation endEntityInformation) {
 		super();
@@ -74,7 +74,7 @@ public class UserDataSourceVO implements Serializable {
 	
 	/**
 	 * Method that should be used by BaseUserDataSource only.
-	 * @param isModifyableSet
+	 * @param isModifyableSet bool
 	 */
 	void setIsModifyableSet(Set<Integer> isModifyableSet){
 		this.isModifyableSet = isModifyableSet;
@@ -82,6 +82,7 @@ public class UserDataSourceVO implements Serializable {
 	
 	/**
 	 * Method that returns the users EndEntityInformation.
+	 * @return info
 	 */
 	public EndEntityInformation getEndEntityInformation(){
 		return endEntityInformation;

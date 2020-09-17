@@ -23,7 +23,7 @@ import org.cesecore.NonSensitiveException;
  * extend Exception and it's not marked with @WebFault.
  *
  * @version $Id: EndEntityProfileValidationRaException.java 24940 2016-12-21 09:43:55Z mikekushner $
- * @see UserDoesntFullfillEndEntityProfile
+ * see org.ejbca.core.model.ra.raadmin.UserDoesntFullfillEndEntityProfile
  */
 @NonSensitiveException
 public class EndEntityProfileValidationRaException extends EjbcaException {

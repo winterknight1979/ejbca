@@ -113,7 +113,8 @@ public class ScepConfiguration extends ConfigurationBase implements Serializable
     }
     
     
-    /** Initializes a new scep configuration with default values. */
+    /** Initializes a new scep configuration with default values. 
+     * @param alias Alias*/
     public void initialize(String alias){
         alias += ".";
         if(StringUtils.isNotEmpty(alias)) {
@@ -209,7 +210,9 @@ public class ScepConfiguration extends ConfigurationBase implements Serializable
         setValue(key, Boolean.toString(allowClientCertificateRenewalWithOldKey), alias);
     }
     
-    /** Method used by the Admin GUI. */
+    /** Method used by the Admin GUI. 
+     * @param alias Alias
+     * @return Mode */
     public boolean getRAMode(String alias) {
         String key = alias + "." + SCEP_OPERATIONMODE;
         String value = getValue(key, alias);

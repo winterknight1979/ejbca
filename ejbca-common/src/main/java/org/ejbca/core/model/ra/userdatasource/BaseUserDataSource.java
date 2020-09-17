@@ -72,11 +72,13 @@ public abstract class BaseUserDataSource extends UpgradeableDataHashMap implemen
     // Public Methods
     /**
      * Returns the description of publisher
+     * @return String
      */
     public String getDescription() { return (String) data.get(DESCRIPTION);}
 
 	/**
 	 * Sets the description. 
+	 * @param description String
 	 */
 	public void setDescription(String description){ data.put(DESCRIPTION, description); }
 
@@ -85,6 +87,7 @@ public abstract class BaseUserDataSource extends UpgradeableDataHashMap implemen
      * be applicable to.
      *
      * If it contains the constant ANYCA then the user data source is applicable to all CAs
+     * @return CA IDs
      */
     @SuppressWarnings("unchecked")
 	public Collection<Integer> getApplicableCAs(){
@@ -111,7 +114,7 @@ public abstract class BaseUserDataSource extends UpgradeableDataHashMap implemen
     } 
     
     /**
-     * Returns a Set of UserDataSourceVO.ISMODIFYABLE_ and DNFIELDExtractor constants (Integer) constants (All definded in the UserDataSourceVO.AVAILABLEMODIFYABLEFIELDS, 
+     * @return a Set of UserDataSourceVO.ISMODIFYABLE_ and DNFIELDExtractor constants (Integer) constants (All definded in the UserDataSourceVO.AVAILABLEMODIFYABLEFIELDS, 
      * indicating if the field should be modifyable by the CA or not.
      *
      */
@@ -123,6 +126,7 @@ public abstract class BaseUserDataSource extends UpgradeableDataHashMap implemen
     /**
      * Saves the set of which fields of the CA that should be modifyable by the RA or not.
      * The set should only contain UserDataSourceVO.ISMODIFYABLE_ and DNFIELDExtractor constants (Integer)
+     * @param modifiableFields Fields
      */
     
     public void setModifiableFields(Set<Integer> modifiableFields){	
@@ -132,6 +136,10 @@ public abstract class BaseUserDataSource extends UpgradeableDataHashMap implemen
     /**
      * Method that returns the fetched UserDataSourceVOs with the isModifyableset set.
      * This method should be used by external UserDataSource callers
+     * @param admin Admin
+     * @param searchstring String
+     * @return VOs
+     * @throws UserDataSourceException On error
      */    
     public  Collection<UserDataSourceVO> fetchUserDataSourceVOs(AuthenticationToken admin, String searchstring) throws UserDataSourceException{
     	Collection<UserDataSourceVO> result = fetch(admin,searchstring);
@@ -149,6 +157,7 @@ public abstract class BaseUserDataSource extends UpgradeableDataHashMap implemen
     
     /**
      * Searches for userdata given the searchstring
+     * @param admin Admin
      *
      * @param searchstring the string the user data source should use to look for the data.
      *
@@ -163,12 +172,14 @@ public abstract class BaseUserDataSource extends UpgradeableDataHashMap implemen
      * It's up to the implementation if it should be supported or not.
      * 
      * Removes user data that matches the given search string.
+     * @param admin Admin
      *
      * @param searchstring the string the user data source that should be removed
      * @param removeMultipleMatch use to indicate if all entries should be removed it the search string
      * @return true if the user was remove successfully from at least one of the user data sources.
      * matches more than one, if false will a UserDataSourceException be thrown if more than one User data
      * matches the search string.  
+     * @throws MultipleMatchException On fail
      *
      *
      * @throws UserDataSourceException if a communication or other error occurs.

@@ -35,7 +35,8 @@ public final class LdapTools {
     private LdapTools() {}
     
     /**
-     * Returns the first component in a DN string, e.g. if the input is
+     * @param dn DN
+     * @return the first component in a DN string, e.g. if the input is
      * "cn=User,dc=example,dc=com" then it would return "cn=User".
      */
     public static String getFirstDNComponent(String dn) {
@@ -45,7 +46,9 @@ public final class LdapTools {
     }
     
     /**
-     * Returns all intermediate DNs in a given DN under a base DN, in the order from the
+     * @param dn DN
+     * @param baseDN Base DN 
+     * @return all intermediate DNs in a given DN under a base DN, in the order from the
      * first one below the base DN and further down.
      */
     public static List<String> getIntermediateDNs(String dn, String baseDN) {

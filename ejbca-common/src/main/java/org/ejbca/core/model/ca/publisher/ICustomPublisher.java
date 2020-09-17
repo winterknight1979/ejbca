@@ -31,10 +31,27 @@ public interface ICustomPublisher {
     /**
      *  Method called to all newly created ICustomPublishers to set it up with
      *  saved configuration.
+     * @param properties Properties
      */
     void init(Properties properties);
 
     /**
+     * @param admin Admin
+     * @param incert Cert
+     * @param username User
+     * @param password PWD
+     * @param userDN DN
+     * @param cafp FP
+     * @param status Ststus
+     * @param type Type
+     * @param revocationDate CRL date
+     * @param revocationReason Reasin
+     * @param tag Tag
+     * @param certificateProfileId Profile
+     * @param lastUpdate Date
+     * @param extendedinformation  Info
+     * @return Cert
+     * @throws PublisherException fail  
      * @see org.ejbca.core.model.ca.publisher.BasePublisher#storeCertificate
      */
     boolean storeCertificate(AuthenticationToken admin, Certificate incert, String username, String password, String userDN, String cafp, int status,
@@ -42,17 +59,27 @@ public interface ICustomPublisher {
             ExtendedInformation extendedinformation) throws PublisherException;
 
     /**
+     * @param admin Admin
+     * @param incrl CRL
+     * @param cafp FP
+     * @param number Number
+     * @param userDN DN
+     * @return CRL
+     * @throws PublisherException fail  
      * @see org.ejbca.core.model.ca.publisher.BasePublisher#storeCRL
      */
     boolean storeCRL(AuthenticationToken admin, byte[] incrl, String cafp, int number, String userDN) throws PublisherException;
 
     /**
+     * @throws PublisherConnectionException Fail
      * @see org.ejbca.core.model.ca.publisher.BasePublisher#testConnection
      */
     void testConnection() throws PublisherConnectionException;
     
     /** Asks the publisher if the certificate with these parameters will be published. Used by the publisher queue to avoid
      * storing things that will never be published in the publisher queue.
+     * @param status Status
+     * @param revocationReason Reason 
      * 
      * @return true if the certificate should be published.
      */

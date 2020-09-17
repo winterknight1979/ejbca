@@ -53,7 +53,7 @@ public interface IAdressLabelSettings {
     public abstract int getAdressLabelType();    
 
 	/**      
-	 * sets the adress label type.
+	 * @param type sets the adress label type.
 	 */
 	public abstract void setAdressLabelType(int type);    
     
@@ -63,18 +63,18 @@ public interface IAdressLabelSettings {
     public abstract String getAdressLabelTemplateFilename();
 
 	/**
-	 * Sets the filename of the current adress label template.
+	 * @param filename Sets the filename of the current adress label template.
 	 */    
 	public abstract void setAdressLabelTemplateFilename(String filename);
     
 	/**
-	 * Returns the image data of the adress label, should be a SVG image.
+	 * @return the image data of the adress label, should be a SVG image.
 	 */
 	public abstract String getAdressLabelData();		
 	 
 
 	/**
-	 * Sets the imagedata of the adress label.
+	 * @param templatedata Sets the imagedata of the adress label.
 	 */
 	public abstract void setAdressLabelData(String templatedata);
 	
@@ -84,7 +84,7 @@ public interface IAdressLabelSettings {
     public abstract int getNumberOfAdressLabelCopies();
 
 	/**
-	 * Sets the number of copies of this PIN Envelope that should be printed.
+	 * @param copies Sets the number of copies of this PIN Envelope that should be printed.
 	 */
 	public abstract void setNumberOfAdressLabelCopies(int copies);
 	
@@ -92,6 +92,14 @@ public interface IAdressLabelSettings {
    /**
     * Method that parses the template, replaces the userdata
     * and returning a printable byte array 
+ * @param userdata Data
+ * @param pincodes PIN
+ * @param pukcodes PUK
+ * @param hardtokensn SN
+ * @param copyoftokensn SN
+ * @return Validity
+ * @throws IOException IO fail 
+ * @throws PrinterException Print fail
     */	
 	public abstract Printable printVisualValidity(EndEntityInformation userdata, 
 	                                        String[] pincodes, String[] pukcodes,

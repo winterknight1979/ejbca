@@ -31,6 +31,8 @@ public class CliTools {
      *   args = argsList.toArray(new String[0]);
      *   ...
      *  }
+     * @param stringArray Strings
+     * @return List of strings
      */
     public static List<String> getAsModifyableList(String[] stringArray) {
     	List<String> list = new ArrayList<String>();
@@ -41,8 +43,11 @@ public class CliTools {
     }
     
     /** 
-     * Returns the next string after the specified parameter if the switch exists and null otherwise.
+     * @return the next string after the specified parameter if the switch exists and null otherwise.
      * The switch and the following value is removed from the supplied list.
+     * @param parameter Param
+     * @param modifyableList List
+     *  
      */
     public static String getAndRemoveParameter(String parameter, List<String> modifyableList) {
         String ret = null;
@@ -55,7 +60,9 @@ public class CliTools {
         return ret;
     }
     
-    /** @return true if the parameter was present and removes it from the list. */
+    /** @param parameter Param
+     * @param modifyableList List
+     * @return true if the parameter was present and removes it from the list. */
     public static boolean getAndRemoveSwitch(final String parameter, List<String> modifyableList) {
         final int index = modifyableList.indexOf(parameter);
         if (index > -1) {
@@ -65,7 +72,8 @@ public class CliTools {
         return false;
     }
     
-    /** @return the remaining list as a regular args[] array */
+    /** @param modifyableList Param
+     * @return the remaining list as a regular args[] array */
     public static String[] getAsArgs(List<String> modifyableList) {
         return modifyableList.toArray(new String[modifyableList.size()]);
     }

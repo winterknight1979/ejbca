@@ -38,6 +38,8 @@ public class AuthLoginException extends EjbcaException {
     }
     
     /** Constructor taking an ErrorCode and the message. Use ErrorCode.LOGIN_ERROR
+     * @param errorCode Code
+     * @param msg Message
      * @see ErrorCode
      */
     public AuthLoginException(ErrorCode errorCode, String msg) {

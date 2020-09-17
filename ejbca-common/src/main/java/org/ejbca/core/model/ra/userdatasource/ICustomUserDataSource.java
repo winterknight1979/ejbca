@@ -34,21 +34,34 @@ public interface ICustomUserDataSource {
 	/**
 	 *  Method called to all newly created IUserDataSource to set it up with
 	 *  saved configuration.
+	 * @param properties Props
 	 */
 	public abstract void init(Properties properties);
 	
 	/**
+	 * @param admin Admin
+	 * @param searchstring String 
+	 * @return VO
+	 * @throws UserDataSourceException FAil
 	 * @see org.ejbca.core.model.ra.userdatasource.BaseUserDataSource#fetch(AuthenticationToken, String)
 	 */   
 	public Collection<UserDataSourceVO> fetch(AuthenticationToken admin, String searchstring) throws UserDataSourceException;
 	
 	/**
+	 * @param admin Admin
+	 * @param searchstring String 
+	 * @param removeMultipleMatch bnool 
+	 * @return Bool
+	 * @throws MultipleMatchException Error
+	 * @throws UserDataSourceException Error
 	 * @see org.ejbca.core.model.ra.userdatasource.BaseUserDataSource#removeUserData(AuthenticationToken, String, boolean)
 	 */   
 	public boolean removeUserData(AuthenticationToken admin, String searchstring, boolean removeMultipleMatch) throws MultipleMatchException, UserDataSourceException;
 	
 	
 	/**
+	 * @param admin Admin
+	 * @throws UserDataSourceConnectionException  Error
 	 * @see org.ejbca.core.model.ra.userdatasource.BaseUserDataSource
 	 */    
 	public abstract void testConnection(AuthenticationToken admin) throws UserDataSourceConnectionException;

@@ -29,12 +29,24 @@ public class CmsCAServiceInfo extends BaseSigningCAServiceInfo implements Serial
        
     private static final long serialVersionUID = 7556251008892332034L;
 
-    /** Used when creating new service. */
+    /** Used when creating new service. 
+     * @param status Status
+     * @param subjectdn DN
+     * @param subjectaltname Name 
+     * @param keyspec Spec
+     * @param keyalgorithm Algo */
     public CmsCAServiceInfo(int status, String subjectdn, String subjectaltname, String keyspec,  String keyalgorithm) {
         super(status, subjectdn, subjectaltname, keyspec, keyalgorithm);                       	
     }
     
-	/** Used when returning information from service. */
+	/** Used when returning information from service. 
+	 * @param status Status
+     * @param subjectdn DN
+     * @param subjectaltname Name 
+     * @param keyspec Spec
+     * @param keyalgorithm Algo
+	 * @param certchain Certs
+	 * */
 	public CmsCAServiceInfo(int status, String subjectdn, String subjectaltname, String keyspec, String keyalgorithm, List<Certificate> certchain) {
 		super(status, subjectdn, subjectaltname, keyspec, keyalgorithm, certchain);                       	
 	}    

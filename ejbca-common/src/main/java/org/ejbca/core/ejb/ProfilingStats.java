@@ -22,7 +22,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @see org.ejbca.core.ejb.ProfileAndTraceInterceptor
+ * see org.ejbca.core.ejb.ProfileAndTraceInterceptor (in ejbca-ejb)
  * 
  * Limitations:
  * - Maximum allowed sum of duration is 292471 years.. :)
@@ -61,6 +61,7 @@ public enum ProfilingStats {
      * Get a shallow copy of the current invocation statistics as a Maps with full method names as keys.
      * The key of the Entry is the sum of durations (µs) and the value is the number of invocations.
      * Since the copy operation is non-locking, this will not be a perfect point in time snapshot.
+     * @return Map
      */
     private Map<String,Entry<Long,Long>> getBestEffortShallowCopyOfStats() {
         return new HashMap<String,Entry<Long,Long>>(sums);
@@ -69,6 +70,7 @@ public enum ProfilingStats {
     /**
      * Get a shallow copy of the current invocation statistics as a list if caller friendly objects.
      * Since the copy operation is non-locking, this will not be a perfect point in time snapshot.
+     * @return List
      */
     public List<ProfilingStat> getEjbInvocationStats() {
         final Map<String,Entry<Long,Long>> sums = getBestEffortShallowCopyOfStats();

@@ -33,6 +33,7 @@ public final class EjbcaConfiguration {
 
     /**
      * Check if EJBCA is running in production
+     * @return bool
      */
     public static boolean getIsInProductionMode() {
         final String value = EjbcaConfigurationHolder.getString("ejbca.productionmode");
@@ -43,14 +44,14 @@ public final class EjbcaConfiguration {
     }
 
     /**
-     * Password used to protect CMS keystores in the database.
+     * @return Password used to protect CMS keystores in the database.
      */
     public static String getCaCmsKeyStorePass() {
         return EjbcaConfigurationHolder.getExpandedString("ca.cmskeystorepass");
     }
 
     /**
-     * How long an request should stay valid. The value is stored in seconds in the configuration, but returned as milliseconds.
+     * @return How long an request should stay valid. The value is stored in seconds in the configuration, but returned as milliseconds.
      */
     public static long getApprovalDefaultRequestValidity() {
         long value = 28800L;
@@ -63,7 +64,7 @@ public final class EjbcaConfiguration {
     }
 
     /**
-     * How long an approved request should stay valid. The value is stored in seconds in the configuration, but returned as milliseconds.
+     * @return How long an approved request should stay valid. The value is stored in seconds in the configuration, but returned as milliseconds.
      */
     public static long getApprovalDefaultApprovalValidity() {
         long value = 28800L;
@@ -76,7 +77,7 @@ public final class EjbcaConfiguration {
     }
     
     /**
-     * How long time an administrator can extend an approval request for, or 0 to forbid extension of request expiration time.
+     * @return How long time an administrator can extend an approval request for, or 0 to forbid extension of request expiration time.
      * The value is stored in seconds in the configuration, but returned as milliseconds.
      */
     public static long getApprovalDefaultMaxExtensionTime() {
@@ -90,14 +91,14 @@ public final class EjbcaConfiguration {
     }
     
     /**
-     * Excluded classes from approval.
+     * @return Excluded classes from approval.
      */
     public static String getApprovalExcludedClasses() {
         return EjbcaConfigurationHolder.getExpandedString("approval.excludedClasses");
     }
 
     /**
-     * Parameter specifying amount of free memory (Mb) before alarming
+     * @return Parameter specifying amount of free memory (Mb) before alarming
      */
     public static long getHealthCheckAmountFreeMem() {
         long value = 1;
@@ -110,42 +111,42 @@ public final class EjbcaConfiguration {
     }
 
     /**
-     * Parameter specifying database test query string. Used to check that the database is operational.
+     * @return Parameter specifying database test query string. Used to check that the database is operational.
      */
     public static String getHealthCheckDbQuery() {
         return EjbcaConfigurationHolder.getExpandedString("healthcheck.dbquery");
     }
 
     /**
-     * Parameter to specify location of file containing information about maintenance
+     * @return Parameter to specify location of file containing information about maintenance
      */
     public static String getHealthCheckAuthorizedIps() {
         return EjbcaConfigurationHolder.getExpandedString("healthcheck.authorizedips");
     }
 
     /**
-     * Parameter to specify if the check of CA tokens should actually perform a signature test on the CA token.
+     * @return Parameter to specify if the check of CA tokens should actually perform a signature test on the CA token.
      */
     public static boolean getHealthCheckCaTokenSignTest() {
         return TRUE.equalsIgnoreCase(EjbcaConfigurationHolder.getString("healthcheck.catokensigntest"));
     }
 
     /**
-     * Parameter to specify if a connection test of publishers should be performed.
+     * @return Parameter to specify if a connection test of publishers should be performed.
      */
     public static boolean getHealthCheckPublisherConnections() {
         return TRUE.equalsIgnoreCase(EjbcaConfigurationHolder.getString("healthcheck.publisherconnections"));
     }
 
     /**
-     * Parameter to specify location of file containing information about maintenance
+     * @return Parameter to specify location of file containing information about maintenance
      */
     public static String getHealthCheckMaintenanceFile() {
         return EjbcaConfigurationHolder.getExpandedString("healthcheck.maintenancefile");
     }
 
     /**
-     * Parameter to configure name of maintenance property.
+     * @return Parameter to configure name of maintenance property.
      */
     public static String getHealthCheckMaintenancePropertyName() {
         return EjbcaConfigurationHolder.getExpandedString("healthcheck.maintenancepropertyname");
@@ -175,14 +176,14 @@ public final class EjbcaConfiguration {
     }
 
     /**
-     * Class performing the healthcheck. Must implement the IHealthCheck interface.
+     *@return Class performing the healthcheck. Must implement the IHealthCheck interface.
      */
     public static String getHealthCheckClassPath() {
         return EjbcaConfigurationHolder.getExpandedString("healthcheck.classpath");
     }
 
     /**
-     * Parameter to specify if retrieving endEntity profiles in EndEntityProfileSessionBean should be cached, and in that case for how long.
+     * @return Parameter to specify if retrieving endEntity profiles in EndEntityProfileSessionBean should be cached, and in that case for how long.
      */
     public static long getCacheEndEntityProfileTime() {
         long time = 1000; // cache 1 second is the default
@@ -195,7 +196,7 @@ public final class EjbcaConfiguration {
     }
     
     /**
-     * Parameter to specify if retrieving approval profiles in ApprovalProfileSessionBean should be cached, and in that case for how long.
+     * @return Parameter to specify if retrieving approval profiles in ApprovalProfileSessionBean should be cached, and in that case for how long.
      */
     public static long getCacheApprovalProfileTime() {
         long time = 1000; // cache 1 second is the default
@@ -208,7 +209,7 @@ public final class EjbcaConfiguration {
     }
     
     /**
-     * Parameter to specify if retrieving Publishers from PublisherSession should be cached, and in that case for how long.
+     * @return Parameter to specify if retrieving Publishers from PublisherSession should be cached, and in that case for how long.
      */
     public static long getCachePublisherTime() {
         final String value = EjbcaConfigurationHolder.getString("publisher.cachetime");
@@ -223,13 +224,13 @@ public final class EjbcaConfiguration {
         return time;
     }
 
-    /** Custom Available Access Rules. */
+    /** @return Custom Available Access Rules. */
     public static String[] getCustomAvailableAccessRules() {
     	return StringUtils.split(EjbcaConfigurationHolder.getString("ejbca.customavailableaccessrules"), ';');
     }
 
     /**
-     * Parameter to specify if how many rounds the BCrypt algorithm should process passwords stored in the database.
+     * @return Parameter to specify if how many rounds the BCrypt algorithm should process passwords stored in the database.
      * 0 means use the old way instead of BCrypt.
      */
     public static int getPasswordLogRounds() {
@@ -313,7 +314,9 @@ public final class EjbcaConfiguration {
         return getLongProperty("peerconnector.cachetime", 60000L);
     }
 
-    /** @return the value as a boolean or the default otherwise. */
+    /** @param key Key
+     * @param defaultValue Default 
+     * @return the value as a boolean or the default otherwise. */
     private static boolean getBooleanProperty(final String key, final boolean defaultValue) {
         final String value = EjbcaConfigurationHolder.getString(key);
         if (defaultValue) {
@@ -323,7 +326,9 @@ public final class EjbcaConfiguration {
         }
     }
     
-    /** @return the value as an int or the default otherwise. */
+    /** @param key Key
+     * @param defaultValue Default 
+     * @return the value as an int or the default otherwise. */
     private static int getIntProperty(final String key, final int defaultValue) {
         final String value = EjbcaConfigurationHolder.getString(key);
         int ret = defaultValue;
@@ -337,7 +342,9 @@ public final class EjbcaConfiguration {
         return ret;
     }
 
-    /** @return the value as an long or the default otherwise. */
+    /** @param key Key
+     * @param defaultValue Default 
+     * @return the value as an long or the default otherwise. */
     private static long getLongProperty(final String key, final long defaultValue) {
         final String value = EjbcaConfigurationHolder.getString(key);
         long ret = defaultValue;

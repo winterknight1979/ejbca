@@ -49,6 +49,7 @@ public class EndEntityProfileTest {
     
     /**
      * Tests the validation system, and the regex validator in particular.
+     * @throws EndEntityFieldValidatorException Fail
      */
     @Test
     public void testRegexValidation() throws EndEntityFieldValidatorException {

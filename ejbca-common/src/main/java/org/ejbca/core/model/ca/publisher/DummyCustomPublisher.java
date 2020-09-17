@@ -53,7 +53,7 @@ public class DummyCustomPublisher implements ICustomPublisher, Serializable {
 	}
 
 	/**
-	 * @see org.ejbca.core.model.ca.publisher.ICustomPublisher#storeCertificate(org.cesecore.authentication.tokens.AuthenticationToken, java.security.cert.Certificate, java.lang.String, java.lang.String, int, int)
+	 * @see org.ejbca.core.model.ca.publisher.ICustomPublisher#storeCertificate
 	 */
 	public boolean storeCertificate(AuthenticationToken admin, Certificate incert, String username, String password, String userDN, String cafp, int status, int type, long revocationDate, int revocationReason, String tag, int certificateProfileId, long lastUpdate, ExtendedInformation extendedinformation) throws PublisherException {
         log.debug("DummyCustomPublisher, Storing Certificate for user: " + username);	
@@ -65,7 +65,7 @@ public class DummyCustomPublisher implements ICustomPublisher, Serializable {
         return EJBTools.unwrap(certificate);
     }
 	/**
-	 * @see org.ejbca.core.model.ca.publisher.ICustomPublisher#storeCRL(org.cesecore.authentication.tokens.AuthenticationToken, byte[], java.lang.String, int)
+	 * @see org.ejbca.core.model.ca.publisher.ICustomPublisher#storeCRL
 	 */
 	public boolean storeCRL(AuthenticationToken admin, byte[] incrl, String cafp, int number, String userDN) throws PublisherException {
         log.debug("DummyCustomPublisher, Storing CRL");

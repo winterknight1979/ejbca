@@ -17,7 +17,7 @@ import org.cesecore.NonSensitiveException;
 import org.ejbca.core.EjbcaException;
 
 /**
- * Wraps the original java.lang.Exception thrown with {@link #KeyStoreCreateSessionBean.generateOrKeyRecoverToken}.
+ * Wraps the original java.lang.Exception thrown with  KeyStoreCreateSessionBean.generateOrKeyRecoverToken (in ejbca-ejb)
  *
  * @version $Id: KeyStoreGeneralRaException.java 25763 2017-04-27 11:01:31Z henriks $
  */

@@ -73,7 +73,7 @@ public class CMS {
      * @param os encrypted data
      * @param cert certificate with the public key to be used for the encryption
      * @param symmAlgOid the symmetric encryption algorithm to use, for example CMSEnvelopedGenerator.AES128_CBC
-     * @throws Exception
+     * @throws Exception Fail
      */
     public static void encrypt(final InputStream is, final OutputStream os, final X509Certificate cert, final String symmAlgOid) throws Exception {
         final InputStream bis = new BufferedInputStream(is, bufferSize);
@@ -91,7 +91,7 @@ public class CMS {
      * @param os decrypted data
      * @param key to be used for the decryption
      * @param providerName the provider that should do the decryption
-     * @throws Exception
+     * @throws Exception Fail
      */
     public static void decrypt(final InputStream is, OutputStream os, PrivateKey key, String providerName) throws Exception  {
         final InputStream bis = new BufferedInputStream(is, bufferSize);
@@ -117,7 +117,8 @@ public class CMS {
      * @param os signed data
      * @param key to do be used for signing
      * @param providerName the provider that should do the signing
-     * @throws Exception
+     * @param cert Cert
+     * @throws Exception fail
      */
     public static void sign(final InputStream is, OutputStream os, PrivateKey key, String providerName, X509Certificate cert) throws Exception {
         final InputStream bis = new BufferedInputStream(is, bufferSize);
@@ -153,7 +154,7 @@ public class CMS {
      * @param os signature removed from signed data
      * @param cert the certificate with the public key that should do the verification
      * @return true if the signing was to with the private key corresponding to the public key in the certificate.
-     * @throws Exception
+     * @throws Exception Fail
      */
     public static VerifyResult verify(final InputStream is, OutputStream os, X509Certificate cert) throws Exception  {
         final InputStream bis = new BufferedInputStream(is, bufferSize);

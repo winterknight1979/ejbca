@@ -37,6 +37,7 @@ public class BlacklistEntry implements Serializable, Cloneable {
 
     /**
      * Creates a new instance, must specify at least type.
+     * @param type Type
      */
     public BlacklistEntry(String type) {
         this.type = type;
@@ -44,6 +45,10 @@ public class BlacklistEntry implements Serializable, Cloneable {
 
     /**
      * Creates a new instance.
+     * @param id ID
+     * @param type Type
+     * @param value Value
+     * @param data Data
      */
     public BlacklistEntry(int id, String type, String value, String data) {
         this.id = id;
@@ -54,7 +59,7 @@ public class BlacklistEntry implements Serializable, Cloneable {
 
     /**
      * Gets the blacklist id.
-     * @return
+     * @return ID
      */
     public int getID() {
         return id;
@@ -62,7 +67,7 @@ public class BlacklistEntry implements Serializable, Cloneable {
 
     /**
      * Sets the blacklist id.
-     * @param id
+     * @param id ID
      */
     public void setID(int id) {
         this.id = id;
@@ -102,7 +107,7 @@ public class BlacklistEntry implements Serializable, Cloneable {
 
     /**
      * Sets the blacklisted value
-     * @param value
+     * @param value value
      */
     public void setValue(String value) {
         this.value = value;

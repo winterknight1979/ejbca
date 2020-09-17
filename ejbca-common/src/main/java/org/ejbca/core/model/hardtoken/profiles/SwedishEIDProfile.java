@@ -108,14 +108,14 @@ public class SwedishEIDProfile extends EIDProfile {
     }
 
     /**
-     * @see org.ejbca.core.model.hardtoken.hardtokenprofiles.HardTokenProfile#isTokenSupported(java.lang.String)
+     * @see org.ejbca.core.model.hardtoken.profiles.HardTokenProfile#isTokenSupported(java.lang.String)
      */
     public boolean isTokenSupported(String tokenidentificationstring) {
         return this.isTokenSupported(SUPPORTEDTOKENS, tokenidentificationstring);
     }
 
-    /* 
-     * @see org.ejbca.core.model.hardtoken.hardtokenprofiles.HardTokenProfile#clone()
+    /**
+     * @see org.ejbca.core.model.hardtoken.profiles.HardTokenProfile#clone()
      */
     public Object clone() throws CloneNotSupportedException {
         SwedishEIDProfile clone = new SwedishEIDProfile();
@@ -124,8 +124,8 @@ public class SwedishEIDProfile extends EIDProfile {
         return clone;
     }
 
-    /* 
-     * @see org.ejbca.core.model.hardtoken.hardtokenprofiles.HardTokenProfile#getLatestVersion()
+    /** 
+     * @see org.ejbca.core.model.hardtoken.profiles.HardTokenProfile#getLatestVersion()
      */
     public float getLatestVersion() {
         return LATEST_VERSION;
@@ -157,7 +157,7 @@ public class SwedishEIDProfile extends EIDProfile {
                 data.put(CERTWRITABLE, certWritable);
             }
 
-            data.put(VERSION, new Float(LATEST_VERSION));
+            data.put(VERSION, Float.valueOf(LATEST_VERSION));
         }
     }
 

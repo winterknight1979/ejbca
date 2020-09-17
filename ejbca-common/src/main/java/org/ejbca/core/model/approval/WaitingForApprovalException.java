@@ -20,11 +20,11 @@ import org.cesecore.NonSensitiveException;
  * Exception thrown from actions that stop to wait for approvals.
  * <p>
  * This exception contains the requestId of the approval request,
- * which can be used together with {@link org.ejbca.core.protocol.ws.common.IEjbcaWS#getRemainingNumberOfApprovals IEjbcaWS.getRemainingNumberOfApprovals}
+ * which can be used together with IEjbcaWS.getRemainingNumberOfApprovals (in ejcba-ws)
  * to check the status.
  * 
  * @version $Id: WaitingForApprovalException.java 30577 2018-11-22 10:08:42Z samuellb $
- * @see org.ejbca.core.protocol.ws.common.IEjbcaWS#getRemainingNumberOfApprovals IEjbcaWS.getRemainingNumberOfApprovals
+ * see org.ejbca.core.protocol.ws.common.IEjbcaWS#getRemainingNumberOfApprovals IEjbcaWS.getRemainingNumberOfApprovals
  */
 @WebFault
 @NonSensitiveException
@@ -39,9 +39,9 @@ public class WaitingForApprovalException extends Exception {
 	}
 	
 	/**
-	 * The requestId of the approval request. It can be used together with
-	 * {@link org.ejbca.core.protocol.ws.common.IEjbcaWS#getRemainingNumberOfApprovals IEjbcaWS.getRemainingNumberOfApprovals}
+	 * The requestId of the approval request. It can be used together with IEjbcaWS.getRemainingNumberOfApprovals (in ejcba-ws)
 	 * to check the status.
+	 * @return int
 	 */
 	public int getRequestId(){
 		return requestId;

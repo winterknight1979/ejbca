@@ -26,7 +26,7 @@ import org.apache.log4j.Logger;
 
 /**
  * A simple implementation of the ServiceLocator/HomeFactory J2EE Pattern.
- * {@link http://developer.java.sun.com/developer/restricted/patterns/ServiceLocator.html}
+ * @see <a href="http://developer.java.sun.com/developer/restricted/patterns/ServiceLocator.html">Service Locator</a>
  *
  * It is used to look up JNDI related resources such as EJB homes, datasources, ...
  * @version $Id: ServiceLocator.java 22117 2015-10-29 10:53:42Z mikekushner $
@@ -69,6 +69,7 @@ public class ServiceLocator {
 
     /**
      * return the datasource object corresponding the the env entry name
+     * @param dataSourceName Name
      * @return the DataSource corresponding to the env entry name parameter
      * @throws ServiceLocatorException if the lookup fails
      */

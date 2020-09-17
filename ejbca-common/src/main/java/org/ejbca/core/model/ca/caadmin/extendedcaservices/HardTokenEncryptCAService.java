@@ -56,7 +56,7 @@ public class HardTokenEncryptCAService extends ExtendedCAService implements Seri
 		data = new LinkedHashMap<Object, Object>();
 		data.put(ExtendedCAServiceInfo.IMPLEMENTATIONCLASS, this.getClass().getName());
 		data.put(EXTENDEDCASERVICETYPE, Integer.valueOf(ExtendedCAServiceTypes.TYPE_HARDTOKENENCEXTENDEDSERVICE));
-		data.put(VERSION, new Float(LATEST_VERSION));
+		data.put(VERSION, Float.valueOf(LATEST_VERSION));
 		setStatus(serviceinfo.getStatus());
 	}
 
@@ -131,9 +131,9 @@ public class HardTokenEncryptCAService extends ExtendedCAService implements Seri
 	@Override
 	public void upgrade() {
 		if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
-			String msg = intres.getLocalizedMessage("caservice.upgrade", new Float(getVersion()));
+			String msg = intres.getLocalizedMessage("caservice.upgrade", Float.valueOf(getVersion()));
 			log.info(msg);
-			data.put(VERSION, new Float(LATEST_VERSION));
+			data.put(VERSION, Float.valueOf(LATEST_VERSION));
 		}  		
 	}
 

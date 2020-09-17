@@ -44,6 +44,7 @@ public class NotificationParamGen {
 
   /**
    * Method used to retrieve the populated parameter HashMap with the notification text.
+ * @return params
    */
   public HashMap<String, String> getParams(){
 	  return params;
@@ -51,8 +52,8 @@ public class NotificationParamGen {
 
   /**
    * method that makes sure that a "" is inserted instead of null
-   * @param key
-   * @param value
+   * @param key key
+   * @param value value
    */
   protected void paramPut(String key, String value){
 	  if(value == null){
@@ -64,8 +65,8 @@ public class NotificationParamGen {
   
   /**
    * method that makes sure that a "" is inserted instead of null
-   * @param key
-   * @param value
+   * @param key key
+   * @param value value
    */
   protected void paramPut(String key, Integer value){
 	  if(value == null){
@@ -87,6 +88,7 @@ public class NotificationParamGen {
 
   /**
    * Interpolate the patterns that exists on the input on the form '${pattern}'.
+ * @param patterns patterns
    * @param input the input content to be interpolated
    * @return the interpolated content
    */

@@ -52,9 +52,12 @@ public interface IWorker {
 
 	/**
 	 * Method that configures this worker and also sets up it's action and interval.
+	 * @param admin Admin
 	 * 
-	 * @param serviceConfiguration
-	 * @param serviceName
+	 * @param serviceConfiguration Config
+	 * @param serviceName Name
+	 * @param runTimeStamp Time
+	 * @param nextRunTimeStamp Time
 	 */
 	void init(AuthenticationToken admin, ServiceConfiguration serviceConfiguration, String serviceName, long runTimeStamp, long nextRunTimeStamp);
 	
@@ -62,6 +65,7 @@ public interface IWorker {
 	 * The main method that is called by the TimeSessionBean each time
 	 * it is time to activate this service
 	 * @param ejbs A map between Local EJB interface classes and their injected stub
+	 * @throws ServiceExecutionFailedException Fail
 	 */
 	void work(Map<Class<?>, Object> ejbs) throws ServiceExecutionFailedException;
 	

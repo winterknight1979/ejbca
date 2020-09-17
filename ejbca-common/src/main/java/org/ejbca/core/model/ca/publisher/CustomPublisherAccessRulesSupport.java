@@ -21,6 +21,7 @@ import org.cesecore.authentication.tokens.AuthenticationToken;
  */
 public interface CustomPublisherAccessRulesSupport {
 
-    /** @return true if admin is authorized to view this publisher. */
+    /** @param authenticationToken Token
+     * @return true if admin is authorized to view this publisher. */
     boolean isAuthorizedToPublisher(AuthenticationToken authenticationToken);
 }

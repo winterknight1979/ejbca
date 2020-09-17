@@ -99,10 +99,10 @@ public abstract class ApprovalRequest implements Externalizable {
     /**
      * Main constructor of an approval request for standard one step approval request.
      * 
-     * @param requestAdminCert the certificate of the requesting admin
+     * @param requestAdmin the certificate of the requesting admit
      * @param requestSignature signature of the requester (OPTIONAL, for future use)
      * @param approvalRequestType one of TYPE_ constants
-     * @param numOfRequiredApprovals
+     * @param approvalProfile Profile
      * @param cAId the related cAId of the request that the approver must be authorized to or ApprovalDataVO.ANY_CA in applicable to any ca
      * @param endEntityProfileId the related profile id that the approver must be authorized to or ApprovalDataVO.ANY_ENDENTITYPROFILE if applicable
      *            to any end entity profile
@@ -121,13 +121,14 @@ public abstract class ApprovalRequest implements Externalizable {
     /**
      * Main constructor of an approval request.
      * 
-     * @param requestAdminCert the certificate of the requesting admin
+     * @param requestAdmin the certificate of the requesting admin
      * @param requestSignature signature of the requester (OPTIONAL, for future use)
      * @param approvalRequestType one of TYPE_ constants
      * @param cAId the related cAId of the request that the approver must be authorized to or ApprovalDataVO.ANY_CA in applicable to any ca
      * @param endEntityProfileId the related profile id that the approver must be authorized to or ApprovalDataVO.ANY_ENDENTITYPROFILE if applicable
      *            to any end entity profile
      * @param numberOfSteps that this type approval request supports.
+     * @param approvalProfile Profile
      */
     protected ApprovalRequest(AuthenticationToken requestAdmin, String requestSignature, int approvalRequestType, int cAId, int endEntityProfileId,
             int numberOfSteps, ApprovalProfile approvalProfile) {
@@ -149,7 +150,7 @@ public abstract class ApprovalRequest implements Externalizable {
     /**
      * Should return true if the request if of the type that should be executed by the last approver.
      * 
-     * False if the request admin should do a polling action to try again.
+     * @return False if the request admin should do a polling action to try again.
      */
     public abstract boolean isExecutable();
 
@@ -157,6 +158,7 @@ public abstract class ApprovalRequest implements Externalizable {
      * A main function of the ApprovalRequest, the execute() method is run when all required approvals have been made.
      * 
      * execute should perform the action or nothing if the requesting admin is supposed to try his action again.
+     * @throws ApprovalRequestExecutionException on fail
      */
     public abstract void execute() throws ApprovalRequestExecutionException;
 
@@ -178,6 +180,8 @@ public abstract class ApprovalRequest implements Externalizable {
      * that performs database queries to fill in the CA and profile names, etc. 
      * 
      * Should return a List of ApprovalDataText, one for each row
+     * @param admin Token
+     * @return a List of ApprovalDataText
      */
     public abstract List<ApprovalDataText> getNewRequestDataAsText(AuthenticationToken admin);
 
@@ -188,6 +192,8 @@ public abstract class ApprovalRequest implements Externalizable {
      * This text is presented for the approving administrator for him to compare of what will be done.
      * 
      * Should return a List of ApprovalDataText, one for each row
+     * @param admin Token
+     * @return a List of ApprovalDataText
      */
     public abstract List<ApprovalDataText> getOldRequestDataAsText(AuthenticationToken admin);
 
@@ -206,6 +212,7 @@ public abstract class ApprovalRequest implements Externalizable {
      * Should return the time in millisecond that the request should be valid or Long.MAX_VALUE if it should never expire
      * 
      * Default if will return the value defined in the ejbca.properties
+     * @return long
      */
     public long getRequestValidity() {
         return getApprovalProfile().getRequestExpirationPeriod();
@@ -215,6 +222,7 @@ public abstract class ApprovalRequest implements Externalizable {
      * Should return the time in millisecond that the approval should be valid or Long.MAX_VALUE if it should never expire
      * 
      * Default if will return the value defined in the ejbca.properties
+     * @return long
      */
     public long getApprovalValidity() {
         return getApprovalProfile().getApprovalExpirationPeriod();
@@ -222,11 +230,13 @@ public abstract class ApprovalRequest implements Externalizable {
 
     /**
      * Should return one of the ApprovalDataVO.APPROVALTYPE_ constants
+     * @return int
      */
     public abstract int getApprovalType();
 
     /**
      * Method returning the number of required approvals in order to execute the request.
+     * @return int
      */
     public int getNumOfRequiredApprovals() {
         return numOfRequiredApprovals;
@@ -243,6 +253,7 @@ public abstract class ApprovalRequest implements Externalizable {
     
     /**
      * The type of request type, one of TYPE_ constants
+     * @return int
      * 
      */
     public int getApprovalRequestType() {
@@ -257,14 +268,14 @@ public abstract class ApprovalRequest implements Externalizable {
     }
 
     /**
-     * Returns the related ca id. The approving administrator must be authorized to this ca in order to approve it.
+     * @return the related ca id. The approving administrator must be authorized to this ca in order to approve it.
      */
     public int getCAId() {
         return cAId;
     }
     
     /**
-     * Returns the related end entity profile id. The approving administrator must be authorized to this profile in order to approve it.
+     * @return the related end entity profile id. The approving administrator must be authorized to this profile in order to approve it.
      */
     public int getEndEntityProfileId() {
         return endEntityProfileId;
@@ -272,8 +283,10 @@ public abstract class ApprovalRequest implements Externalizable {
 
     /**
      * NOTE: This method should never be used publicly except from UpgradeSessionBean
+     * @param requestAdmin admin
      */
     public void setRequestAdmin(AuthenticationToken requestAdmin) {
+    	
         this.requestAdmin = requestAdmin;
     }
 
@@ -333,6 +346,7 @@ public abstract class ApprovalRequest implements Externalizable {
      * Returns true if this step have been executed before.
      * 
      * @param step to query
+     * @return bool
      * 
      * @deprecated this method denotes a outdated feature pertaining to hard tokens, and should not be used. 
      */
@@ -352,6 +366,7 @@ public abstract class ApprovalRequest implements Externalizable {
 
     /**
      * Returns the number of steps that this approval request supports.
+     * @return int
      * 
      * @deprecated this method denotes a outdated feature pertaining to hard tokens, and should not be used. 
      */

@@ -22,7 +22,6 @@ import org.cesecore.certificates.endentity.EndEntityInformation;
  * CertReqHistory Entity Bean. See constructor for details of its fields.
  * 
  * @version $Id: CertReqHistory.java 22117 2015-10-29 10:53:42Z mikekushner $
- * @see org.ejbca.core.ejb.ca.store.CertReqHistoryDataBean  
  */
 
 public class CertReqHistory implements Serializable{

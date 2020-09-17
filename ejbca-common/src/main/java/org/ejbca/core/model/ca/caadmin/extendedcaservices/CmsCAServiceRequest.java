@@ -49,7 +49,7 @@ public class CmsCAServiceRequest extends ExtendedCAServiceRequest implements Ser
     /** Constructor
      * 
      * @param doc the data to process
-     * @param mode, one of the MODE_ constants
+     * @param mode one of the MODE_ constants
      */                   
     public CmsCAServiceRequest(byte[] doc, int mode) {
         this.doc = doc;

@@ -15,6 +15,7 @@ package org.ejbca.core.model.ca.publisher;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.cert.Certificate;
@@ -74,6 +75,7 @@ public class CustomPublisherContainer extends BasePublisher {
     
     /**
      * Copy constructor taking a BasePublisher returning a CustomPublisherContainer based on its values. 
+     * @param basePublisher publisher
      */
 	public CustomPublisherContainer(BasePublisher basePublisher) {
 		super(basePublisher);
@@ -89,13 +91,15 @@ public class CustomPublisherContainer extends BasePublisher {
     // Public Methods    
     /**
      *  Returns the class path of custom publisher used.
+     * @return path
      */    
-    public String getClassPath(){
+    public String getClassPath() {
     	return (String) data.get(CLASSPATH);
     }
 
     /**
      *  Sets the class path of custom publisher used.
+     * @param classpath Path
      */        
 	public void setClassPath(String classpath){
 	  data.put(CLASSPATH, classpath);	
@@ -103,6 +107,7 @@ public class CustomPublisherContainer extends BasePublisher {
 
 	/**
 	 *  Returns the propertydata used to configure this custom publisher.
+	 * @return Data
 	 */    
 	public String getPropertyData(){
 		return (String) data.get(PROPERTYDATA);
@@ -110,6 +115,8 @@ public class CustomPublisherContainer extends BasePublisher {
 
 	/**
 	 *  Sets the propertydata used to configure this custom publisher.
+	 * @param propertydata data
+	 * @throws PublisherException on fail 
 	 */   
 	public void setPropertyData(String propertydata) throws PublisherException {
 	    if(isCustomUiRenderingSupported()) {
@@ -266,14 +273,14 @@ public class CustomPublisherContainer extends BasePublisher {
 			try{
 				@SuppressWarnings("unchecked")
                 Class<? extends ICustomPublisher> implClass = (Class<? extends ICustomPublisher>) Class.forName( classPath );
-				this.custompublisher =  implClass.newInstance();
+				this.custompublisher =  implClass.getConstructor().newInstance();
 				this.custompublisher.init(getProperties());				
             } catch (ClassNotFoundException e) {
                 // Probably means that we have not built in our custom publisher here in EJBCA, or it's an Enterprise only 
                 // publisher configured (Peer publisher for example)
                 log.info("Publisher class "+classPath+" is not available in this version/build of EJBCA.");
                 return null;
-            } catch (IllegalAccessException | InstantiationException iae) {
+            } catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException iae) {
                 throw new IllegalStateException(iae);
             } 
 		}
@@ -308,7 +315,7 @@ public class CustomPublisherContainer extends BasePublisher {
 
 	/**
 	 * Resets the current custom publisher
-	 * @see org.ejbca.core.model.UpgradeableDataHashMap#saveData()
+	 * @see org.cesecore.internal.UpgradeableDataHashMap#saveData()
 	 */
 	public Object saveData() {
 		this.custompublisher = null;

@@ -42,7 +42,6 @@ public interface EndEntityFieldValidator {
      * @param validatorData Validator-specific data (e.g. a regex for the RegexFieldValidator)
      * @param field Name of field that is being checked. Can be a DN component name or another field name.
      * @param value Value of field that is being checked.
-     * @return A language string describing the error, or null if there's no error.
      * @throws EndEntityFieldValidatorException If the value is not valid.
      */
     void validate(String field, Serializable validatorData, String value) throws EndEntityFieldValidatorException;

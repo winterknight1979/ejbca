@@ -25,6 +25,7 @@ public class InternalConfiguration {
 
 	/**
 	 * Lower case application name
+	 * @return String
 	 */
 	public static String getAppNameLower() {
 		return "ejbca";
@@ -32,6 +33,7 @@ public class InternalConfiguration {
 
 	/**
 	 * Dynamic version of getAppNameLower() for use from JSP/JSF
+	 * @return String
 	 */
 	public String getAppNameLowerDynamic() {
 		return InternalConfiguration.getAppNameLower();
@@ -39,6 +41,7 @@ public class InternalConfiguration {
 
 	/**
 	 * Upper case application name
+	 * @return String
 	 */
 	public static String getAppNameCapital() {
 		return EjbcaConfigurationHolder.getExpandedString(CONFIG_APPNAME_CAPITAL);
@@ -46,6 +49,7 @@ public class InternalConfiguration {
 
 	/**
 	 * Application version number
+	 * @return String
 	 */
 	public static String getAppVersionNumber() {
 		return EjbcaConfigurationHolder.getExpandedString("app.version.number");
@@ -53,6 +57,7 @@ public class InternalConfiguration {
 
 	/**
 	 * SVN revision
+	 * @return String
 	 */
 	public static String getSvnRevision() {
 		return EjbcaConfigurationHolder.getExpandedString("svn.revision");
@@ -60,6 +65,7 @@ public class InternalConfiguration {
 
 	/**
 	 * Full application version
+	 * @return String
 	 */
 	public static String getAppVersion() {
 		return EjbcaConfigurationHolder.getExpandedString("app.version");

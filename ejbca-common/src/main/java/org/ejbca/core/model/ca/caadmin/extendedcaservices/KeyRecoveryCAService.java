@@ -62,7 +62,7 @@ public class KeyRecoveryCAService extends ExtendedCAService implements Serializa
 		data = new LinkedHashMap<Object, Object>();
 		data.put(ExtendedCAServiceInfo.IMPLEMENTATIONCLASS, this.getClass().getName());
 		data.put(EXTENDEDCASERVICETYPE, Integer.valueOf(ExtendedCAServiceTypes.TYPE_KEYRECOVERYEXTENDEDSERVICE));
-		data.put(VERSION, new Float(LATEST_VERSION));
+		data.put(VERSION, Float.valueOf(LATEST_VERSION));
 		setStatus(serviceinfo.getStatus());
 	}
 
@@ -187,9 +187,9 @@ public class KeyRecoveryCAService extends ExtendedCAService implements Serializa
 	@Override
 	public void upgrade() {
 		if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
-			String msg = intres.getLocalizedMessage("caservice.upgrade", new Float(getVersion()));
+			String msg = intres.getLocalizedMessage("caservice.upgrade", Float.valueOf(getVersion()));
 			log.info(msg);
-			data.put(VERSION, new Float(LATEST_VERSION));
+			data.put(VERSION, Float.valueOf(LATEST_VERSION));
 		}  		
 	}
 

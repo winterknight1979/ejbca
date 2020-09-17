@@ -76,6 +76,7 @@ public class DummyCustomUserDataSource implements ICustomUserDataSource{
 	}
 
 	
+	@SuppressWarnings("deprecation")
 	protected void finalize() throws Throwable {
         log.debug("DummyCustomUserDataSource, closing connection");
 		// This method closes the communication with the publisher.	

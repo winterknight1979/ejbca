@@ -37,7 +37,7 @@ public class ApprovalPartition implements Serializable {
     
     /**
      * Copy constructor 
-     * @param partition the original 
+     * @param original the original 
      */
     public ApprovalPartition(ApprovalPartition original) {
         for(DynamicUiProperty<? extends Serializable> property : original.getPropertyList().values()) {

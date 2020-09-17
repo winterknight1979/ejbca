@@ -29,6 +29,8 @@ public class TCPTool {
 
 	/**
 	 * Probe a TCP port connection at hostname:port.  
+	 * @param hostname Host
+	 * @param port Port
 	 * @param timeout in milliseconds
 	 * @throws LDAPException if the connection fails
 	 */
@@ -43,6 +45,8 @@ public class TCPTool {
 
 	/**
 	 * Probe a TCP port connection at hostname:port.  
+	 * @param hostname Host
+	 * @param port Port
 	 * @param timeout in milliseconds
 	 * @throws IOException if the connection fails
 	 */

@@ -99,6 +99,8 @@ public class JKStoPEM {
      *
      * @param jksFile jksFile The (path +) name of the input jks file.
      * @param password password The password for the jks file.
+     * @param keypass Key
+     * @param outpath Out
      *
      */
     public JKStoPEM(String jksFile, String password, String keypass, String outpath) {
@@ -113,6 +115,8 @@ public class JKStoPEM {
      *
      * @param keystore the KeyStore to use.
      * @param password password The password for the jks file.
+     * @param keypass Key
+     * @param outpath Out
      * @param overwrite overwrite If existing files should be overwritten.
      */
     public JKStoPEM(KeyStore keystore, String password,  String keypass, String outpath, boolean overwrite) {
@@ -138,6 +142,8 @@ public class JKStoPEM {
      *
      * @param jksFile jksFile The (path +) name of the input jks file.
      * @param password password The password for the jks file.
+     * @param keypass Key
+     * @param outpath Out
      * @param overwrite overwrite If existing files should be overwritten.
      */
     public JKStoPEM(String jksFile, String password,  String keypass, String outpath, boolean overwrite) {

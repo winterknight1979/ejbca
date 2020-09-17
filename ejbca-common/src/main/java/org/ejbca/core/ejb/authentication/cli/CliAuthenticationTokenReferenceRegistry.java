@@ -66,7 +66,7 @@ public enum CliAuthenticationTokenReferenceRegistry {
     /**
      * Register an authentication token to this registry.
      * 
-     * @return the reference number to that token.
+     * @param token the reference number to that token.
      */
     public void registerToken(final CliAuthenticationToken token) {
         CliAuthenticationToken safetyCopy = token.clone();

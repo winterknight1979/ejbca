@@ -47,6 +47,7 @@ public class PasswordGeneratorFactory {
      *  Method returning an instance of the specified IPasswordGenerator class.
      *      
      *  @param type should be on of the PasswordGeneratorFactory constants.
+     * @return generator
      */
     
     public static IPasswordGenerator getInstance(String type){

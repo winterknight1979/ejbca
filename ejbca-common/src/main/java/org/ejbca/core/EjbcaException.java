@@ -105,6 +105,7 @@ public class EjbcaException extends Exception {
      * baseclass <code>Exception</code>.
      *
      * @param message Human readable error message, can not be NULL.
+     * @param cause Caise
      */
     public EjbcaException(String message, Throwable cause) {
 		super(message, cause);

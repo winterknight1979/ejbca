@@ -57,6 +57,8 @@ import org.ejbca.core.model.services.ServiceConfiguration;
  * 
  * @version $Id: CAIdTools.java 28117 2018-01-29 09:58:24Z samuellb $
  */
+
+@SuppressWarnings("deprecation")
 public final class CAIdTools {
 
     /** Static class. Can't be instantiated */ 
@@ -333,6 +335,7 @@ public final class CAIdTools {
     
     /**
      * Rebuilds extended services so the Subject DN gets updated.
+     * @param cainfo Info
      */
     public static void rebuildExtendedServices(final CAInfo cainfo) {
         final List<ExtendedCAServiceInfo> extsvcs = new ArrayList<>();

@@ -406,7 +406,7 @@ public class LdapPublisher extends BasePublisher {
 	 * Creates intermediate nodes to host an LDAP entry at <code>dn</code>.
 	 * @param lc Active LDAP connection
 	 * @param dn Distinguished name
-	 * @throws PublisherException
+	 * @throws PublisherException on fail
 	 */
 	private void createIntermediateNodes(LDAPConnection lc, String dn) throws PublisherException {
 		LDAPAttributeSet attrSet;
@@ -594,11 +594,13 @@ public class LdapPublisher extends BasePublisher {
 
 	/**
 	 * Revokes a certificate, which means for LDAP that we may remove the certificate or the whole user entry.
+	 * @param admin Token
 	 * 
      * @param cert The certificate to be revoked.
      * @param username Username of end entity owning the certificate.
      * @param reason reason for revocation from RevokedCertInfo, RevokedCertInfo.NOT_REVOKED if not revoked.
      * @param userDN if an DN object is not found in the certificate use object from user data instead.
+	 * @throws PublisherException On fail
 	 */    
 	public void revokeCertificate(AuthenticationToken admin, Certificate cert, String username, int reason, String userDN) throws PublisherException {
 		if (log.isTraceEnabled()) {
@@ -753,8 +755,15 @@ public class LdapPublisher extends BasePublisher {
 
 	/** SearchOldEntity is the only method differing between regular ldap and ldap search publishers.
 	 *  Apart from how they find existing users, the publishing works the same.
+	 * @param username Name
+	 * @param ldapVersion Version
+	 * @param lc LC
+	 * @param certDN Certificate DN
+	 * @param userDN User DN
+	 * @param email Email
 	 *  
-	 *  @param dn the DN from the certificate, can be used to extract search information or a LDAP DN
+	 * @return LDAP entry 
+	 * @throws PublisherException On fail
 	 */
 	protected LDAPEntry searchOldEntity(String username, int ldapVersion, LDAPConnection lc, String certDN, String userDN, String email) throws PublisherException {
 		LDAPEntry oldEntry = null; // return value
@@ -922,7 +931,7 @@ public class LdapPublisher extends BasePublisher {
 	}
 
 	/**
-	 *  Returns the hostnames of ldap server.
+	 *  @return the hostnames of ldap server.
 	 */    
 	public List<String> getHostnameList(){
 		List<String> ret = new ArrayList<String>();	
@@ -934,14 +943,14 @@ public class LdapPublisher extends BasePublisher {
 	}
 
 	/**
-	 *  Returns the hostnames of ldap server.
+	 *  @return the hostnames of ldap server.
 	 */    
 	public String getHostnames(){
 		return (String) data.get(HOSTNAMES);
 	}
 
 	/**
-	 *  Sets the hostname of ldap server.
+	 *  @param hostnames the hostname of ldap server.
 	 */        
 	public void setHostnames(String hostnames){
 		data.put(HOSTNAMES, hostnames);	
@@ -949,14 +958,14 @@ public class LdapPublisher extends BasePublisher {
 
 
 	/**
-	 *  Sets the type of security to use for LDAP connection.
+	 * @param connectionsecurity the type of security to use for LDAP connection.
 	 */
 	public void setConnectionSecurity (ConnectionSecurity connectionsecurity){
 		data.put(CONNECTIONSECURITY, connectionsecurity);
 	}
 
 	/**
-	 *  Returns the type of security for the LDAP connection.
+	 *  @return the type of security for the LDAP connection.
 	 */
 	public ConnectionSecurity getConnectionSecurity (){
 		Object o = data.get(CONNECTIONSECURITY);
@@ -978,49 +987,49 @@ public class LdapPublisher extends BasePublisher {
 	}
 	
 	/**
-	 *  Returns the port of ldap server.
+	 *  @return the port of ldap server.
 	 */    
 	public String getPort (){
 		return (String) data.get(PORT);
 	}
 
 	/**
-	 *  Sets the port of ldap server.
+	 *  @param port the port of ldap server.
 	 */        
 	public void setPort(String port){
 		data.put(PORT, port);	
 	}
 
 	/**
-	 *  Returns the basedn of ldap server.
+	 *  @return the basedn of ldap server.
 	 */    
 	public String getBaseDN(){
 		return (String) data.get(BASEDN);
 	}
 
 	/**
-	 *  Sets the basedn of ldap server.
+	 *  @param basedn the basedn of ldap server.
 	 */        
 	public void setBaseDN(String basedn){
 		data.put(BASEDN, basedn);	
 	}
 
 	/**
-	 *  Returns the logindn to the ldap server.
+	 *  @return the logindn to the ldap server.
 	 */    
 	public String getLoginDN(){
 		return (String) data.get(LOGINDN);
 	}
 
 	/**
-	 *  Sets the logindn to the ldap server.
+	 *  @param logindn the logindn to the ldap server.
 	 */        
 	public void setLoginDN(String logindn){
 		data.put(LOGINDN, logindn);	
 	}
 
 	/**
-	 *  Returns the loginpwd to the ldap server.
+	 *  @return the loginpwd to the ldap server.
 	 */    
 	public String getLoginPassword(){
 		String pwd = (String) data.get(LOGINPASSWORD);
@@ -1031,7 +1040,7 @@ public class LdapPublisher extends BasePublisher {
 	}
 
 	/**
-	 *  Sets the loginpwd to the ldap server.
+	 *  @param loginpwd the loginpwd to the ldap server.
 	 */        
 	public void setLoginPassword(String loginpwd){
 	    // Obfuscate password before we store it in the database
@@ -1040,35 +1049,35 @@ public class LdapPublisher extends BasePublisher {
 	}
 
 	/**
-	 *  Returns true if nonexisting users should be created
+	 *  @return true if nonexisting users should be created
 	 */    
 	public boolean getCreateNonExistingUsers (){
 		return ((Boolean) data.get(CREATENONEXISTING)).booleanValue();
 	}
 
 	/**
-	 *  Sets if nonexisting users should be created.
+	 *  @param createnonexistingusers if nonexisting users should be created.
 	 */        
 	public void setCreateNonExistingUsers (boolean createnonexistingusers){
 		data.put(CREATENONEXISTING, Boolean.valueOf(createnonexistingusers));	
 	}
 
 	/**
-	 *  Returns true if existing users should be modified.
+	 *  @return true if existing users should be modified.
 	 */    
 	public boolean getModifyExistingUsers (){
 		return ((Boolean) data.get(MODIFYEXISTING)).booleanValue();
 	}
 
 	/**
-	 *  Sets if existing users should be modified.
+	 *  @param modifyexistingusers if existing users should be modified.
 	 */        
 	public void setModifyExistingUsers (boolean modifyexistingusers){
 		data.put(MODIFYEXISTING, Boolean.valueOf(modifyexistingusers));	
 	}
 
 	/**
-	 *  Returns true if existing user attributes should be modified.
+	 *  @return true if existing user attributes should be modified.
 	 */    
 	public boolean getModifyExistingAttributes (){
 		return ((Boolean) data.get(MODIFYEXISTINGATTR)).booleanValue();
@@ -1076,21 +1085,21 @@ public class LdapPublisher extends BasePublisher {
 	}
 
 	/**
-	 *  Sets if existing user attributes should be modified.
+	 *  @param modifyexistingattributes if existing user attributes should be modified.
 	 */        
 	public void setModifyExistingAttributes (boolean modifyexistingattributes){
 		data.put(MODIFYEXISTINGATTR, Boolean.valueOf(modifyexistingattributes));	
 	}
 
 	/**
-	 *  Returns true if existing user attributes should be added.
+	 *  @return true if existing user attributes should be added.
 	 */    
 	public boolean getAddNonExistingAttributes (){
 		return ((Boolean) data.get(ADDNONEXISTINGATTR)).booleanValue();
 	}
 
 	/**
-	 *  Sets if existing user attributes should be added.
+	 *  @param modifyexistingusers if existing user attributes should be added.
 	 */        
 	public void setAddNonExistingAttributes (boolean modifyexistingusers){
 		data.put(ADDNONEXISTINGATTR, Boolean.valueOf(modifyexistingusers));	
@@ -1098,76 +1107,76 @@ public class LdapPublisher extends BasePublisher {
 
 
 	/**
-	 *  Returns the user object class in the ldap instance
+	 *  @return the user object class in the ldap instance
 	 */    
 	public String getUserObjectClass(){
 		return (String) data.get(USEROBJECTCLASS);
 	}
 
 	/**
-	 *  Sets the user object class in the ldap instance
+	 * @param userobjectclass the user object class in the ldap instance
 	 */        
 	public void setUserObjectClass(String userobjectclass){
 		data.put(USEROBJECTCLASS, userobjectclass);	
 	}
 
 	/**
-	 *  Returns the CA object class in the ldap instance
+	 *  @return the CA object class in the ldap instance
 	 */    
 	public String getCAObjectClass(){
 		return (String) data.get(CAOBJECTCLASS);
 	}
 
 	/**
-	 *  Sets the CA object class in the ldap instance
+	 *  @param caobjectclass the CA object class in the ldap instance
 	 */        
 	public void setCAObjectClass(String caobjectclass){
 		data.put(CAOBJECTCLASS, caobjectclass);	
 	}
 
 	/**
-	 *  Returns the user cert attribute in the ldap instance
+	 *  @return the user cert attribute in the ldap instance
 	 */    
 	public String getUserCertAttribute(){
 		return (String) data.get(USERCERTATTRIBUTE);
 	}
 
 	/**
-	 *  Sets the user cert attribute in the ldap instance
+	 *  @param usercertattribute the user cert attribute in the ldap instance
 	 */        
 	public void setUserCertAttribute(String usercertattribute){
 		data.put(USERCERTATTRIBUTE, usercertattribute);	
 	}
 
 	/**
-	 *  Returns the ca cert attribute in the ldap instance
+	 *  @return the ca cert attribute in the ldap instance
 	 */    
 	public String getCACertAttribute(){
 		return (String) data.get(CACERTATTRIBUTE);
 	}
 
 	/**
-	 *  Sets the ca cert attribute in the ldap instance
+	 *  @param cacertattribute the ca cert attribute in the ldap instance
 	 */        
 	public void setCACertAttribute(String cacertattribute){
 		data.put(CACERTATTRIBUTE, cacertattribute);	
 	}
 
 	/**
-	 *  Returns the CRL attribute in the ldap instance
+	 *  @return the CRL attribute in the ldap instance
 	 */    
 	public String getCRLAttribute(){
 		return (String) data.get(CRLATTRIBUTE);
 	}
 
 	/**
-	 *  Sets the CRL attribute in the ldap instance
+	 *  @param crlattribute the CRL attribute in the ldap instance
 	 */        
 	public void setCRLAttribute(String crlattribute){
 		data.put(CRLATTRIBUTE, crlattribute);	
 	}
 
-	/**  Returns the delta CRL attribute in the ldap instance
+	/**  @return the delta CRL attribute in the ldap instance
 	 */
 	public String getDeltaCRLAttribute(){
 		if(data.get(DELTACRLATTRIBUTE) == null) {
@@ -1179,21 +1188,21 @@ public class LdapPublisher extends BasePublisher {
 	}
 
 	/**
-	 *  Sets the delta CRL attribute in the ldap instance
+	 *  @param deltacrlattribute the delta CRL attribute in the ldap instance
 	 */
 	public void setDeltaCRLAttribute(String deltacrlattribute){
 		data.put(DELTACRLATTRIBUTE, deltacrlattribute);   
 	}
 
 	/**
-	 *  Returns the ARL attribute in the ldap instance
+	 *  @return the ARL attribute in the ldap instance
 	 */    
 	public String getARLAttribute(){
 		return (String) data.get(ARLATTRIBUTE);
 	}
 
 	/**
-	 *  Sets the ARL attribute in the ldap instance
+	 *  @param arlattribute the ARL attribute in the ldap instance
 	 */        
 	public void setARLAttribute(String arlattribute){
 		data.put(ARLATTRIBUTE, arlattribute);	
@@ -1221,21 +1230,20 @@ public class LdapPublisher extends BasePublisher {
 	 * Valid values are  DNFieldExtractor.E, .UID, .CN, .SN, .GIVENNAME, .SURNAME, .T, .OU, .L 
 	 * Other values should be defined in baseDN instead.
 	 * If there exists multiple fields of the same type, then will all fields be mappen to LDAP dn.
-	 * 
-	 * @return Collection of (Integer) containing DNFieldExtractor constants.
+	 * @param usefieldinldapdn values
 	 */
 	public void setUseFieldInLdapDN(Collection<Integer> usefieldinldapdn){
 		data.put(USEFIELDINLDAPDN, usefieldinldapdn);
 	}    
 
 	/**
-	 *  Returns true if multiple certificates should be appended to existing user entries, instead of replacing.
+	 *  @return true if multiple certificates should be appended to existing user entries, instead of replacing.
 	 */    
 	public boolean getAddMultipleCertificates (){
 		return ((Boolean) data.get(ADDMULTIPLECERTIFICATES)).booleanValue();
 	}
 	/**
-	 *  Sets if multiple certificates should be appended to existing user entries, instead of replacing.
+	 *  @param appendcerts if multiple certificates should be appended to existing user entries, instead of replacing.
 	 */        
 	public void setAddMultipleCertificates (boolean appendcerts){
 		data.put(ADDMULTIPLECERTIFICATES, Boolean.valueOf(appendcerts)); 
@@ -1289,7 +1297,7 @@ public class LdapPublisher extends BasePublisher {
 		return userpassword;
 	}
 
-	/** Return timout in milliseconds */
+	/** @return timout in milliseconds */
 	public int getConnectionTimeOut() {
 		int timeout = Integer.parseInt(DEFAULT_TIMEOUT);
 		if ( data.get(TIMEOUT) != null ) {
@@ -1297,7 +1305,7 @@ public class LdapPublisher extends BasePublisher {
 		}
 		return timeout;
 	}
-	/** Return timout in milliseconds */
+	/** @return timout in milliseconds */
 	public int getReadTimeOut() {
 		int timeout = Integer.parseInt(DEFAULT_READTIMEOUT);
 		if ( data.get(READTIMEOUT) != null ) {
@@ -1305,7 +1313,7 @@ public class LdapPublisher extends BasePublisher {
 		}
 		return timeout;
 	}
-	/** Return timout in milliseconds */
+	/** @return timout in milliseconds */
 	public int getStoreTimeOut() {
 		int timeout = Integer.parseInt(DEFAULT_STORETIMEOUT);
 		if ( data.get(STORETIMEOUT) != null ) {
@@ -1314,19 +1322,19 @@ public class LdapPublisher extends BasePublisher {
 		return timeout;
 	}
 	
-	/** Set timout in milliseconds */
+	/** @param timeout timout in milliseconds */
 	public void setConnectionTimeOut(int timeout) {
 		data.put(TIMEOUT, Integer.toString(timeout));  
 		ldapBindConstraints.setTimeLimit(timeout);
 		ldapConnectionConstraints.setTimeLimit(timeout);
 		ldapDisconnectConstraints.setTimeLimit(timeout);
 	}
-	/** Set timout in milliseconds */
+	/** @param timeout timout in milliseconds */
 	public void setReadTimeOut(int timeout) {
 		data.put(READTIMEOUT, Integer.toString(timeout));  
 		ldapSearchConstraints.setTimeLimit(timeout);
 	}
-	/** Set timout in milliseconds */
+	/** @param timeout timout in milliseconds */
 	public void setStoreTimeOut(int timeout) {
 		data.put(STORETIMEOUT, Integer.toString(timeout)); 
 		ldapStoreConstraints.setTimeLimit(timeout);
@@ -1357,7 +1365,7 @@ public class LdapPublisher extends BasePublisher {
 	 * Can only be used when the same attribute string is used in EJBCA and LDAP
 	 * 
 	 * @param dn The DN to search
-	 * @param oldDn the old DN
+	 * @param oldEntry the old DN
 	 * @param attributes Strings to search for in the DN
 	 * @return An ArrayList containing LDAPModification for DN
 	 */
@@ -1393,8 +1401,8 @@ public class LdapPublisher extends BasePublisher {
 	 * @param email email address for entry, or null
 	 * @param extra if we should add extra attributes except the objectclass to the attributeset.
 	 * @param person true if this is a person-entry, false if it is a CA.
-	 * @param password, users password, to be added into SecurityObjects, and AD
-	 * @param extendedinformation, for future use...
+	 * @param password users password, to be added into SecurityObjects, and AD
+	 * @param extendedinformation for future use...
 	 *
 	 * @return LDAPAtributeSet created...
 	 */
@@ -1524,9 +1532,8 @@ public class LdapPublisher extends BasePublisher {
 	 * @param email email address for entry, or null
 	 * @param extra if we should add extra attributes except the objectclass to the
 	 *        modificationset.
-	 * @param pserson true if this is a person-entry, false if it is a CA.
-	 * @param password, users password, to be added into SecurityObjects, and AD
-	 * @param overwrite if true then old attributes in LDAP will be overwritten, otherwise not.
+	 * @param person true if this is a person-entry, false if it is a CA.
+	 * @param password users password, to be added into SecurityObjects, and AD
 	 * @param cert the Certificate we are publishing, or null
 	 *
 	 * @return List of LDAPModification created...
@@ -1698,6 +1705,7 @@ public class LdapPublisher extends BasePublisher {
 
 	/**
 	 * Method to lazy create the fake CRL.
+	 * @return fake CRL
 	 */
 	protected byte[] getFakeCRL(){
 		byte[] fakecrl = null;
@@ -1739,7 +1747,7 @@ public class LdapPublisher extends BasePublisher {
 		log.trace(">upgrade");
 		if(Float.compare(LATEST_VERSION, getVersion()) != 0) {
 			// New version of the class, upgrade
-			String msg = intres.getLocalizedMessage("publisher.upgrade", new Float(getVersion()));
+			String msg = intres.getLocalizedMessage("publisher.upgrade", Float.valueOf(getVersion()));
 			log.info(msg);
 			if(data.get(ADDMULTIPLECERTIFICATES) == null) {
 				setAddMultipleCertificates(false);                
@@ -1778,7 +1786,7 @@ public class LdapPublisher extends BasePublisher {
 				}
 			}
 				
-			data.put(VERSION, new Float(LATEST_VERSION));
+			data.put(VERSION,  Float.valueOf(LATEST_VERSION));
 		}
 		log.trace("<upgrade");
 	}

@@ -79,35 +79,35 @@ public class ActiveDirectoryPublisher extends LdapPublisher{
     
     
     /**
-     *  Returns true if user password should be set when creating users.
+     *  @return true if user password should be set when creating users.
      */    
     public boolean getUseUserPassword (){
     	return ((Boolean) data.get(USEPASSWORD)).booleanValue();
     }
 
     /**
-     *  Sets if user password should be set when creating users.
+     *  @param useuserpassword if user password should be set when creating users.
      */        
     public void setUseUserPassword (boolean useuserpassword){
     	data.put(USEPASSWORD, Boolean.valueOf(useuserpassword));	
     }
 
     /**
-     *  Returns the value of the user account control
+     *  @return the value of the user account control
      */    
     public int getUserAccountControl (){
     	return ((Integer) data.get(USERACCOUNTCONTROL)).intValue();
     }
 
     /**
-     *  Sets the value of the user account control, (mask)
+     *  @param useraccountcontrol the value of the user account control, (mask)
      */        
     public void setUserAccountControl(int useraccountcontrol){
     	data.put(USERACCOUNTCONTROL, Integer.valueOf(useraccountcontrol));	
     }
 
     /**
-     *  Returns a DNFieldExtractor constant indicating which DN field to
+     *  @return a DNFieldExtractor constant indicating which DN field to
      *  use as SAM Account Name.
      */    
     public int getSAMAccountName (){
@@ -125,14 +125,14 @@ public class ActiveDirectoryPublisher extends LdapPublisher{
     }
 
     /**
-     *  Returns the description used for created users
+     *  @return the description used for created users
      */    
     public String getUserDescription (){
     	return (String) data.get(USERDESCRIPTION);
     }
 
     /**
-     *  Sets the value of the user account control, (mask)
+     *  @param userdescription the value of the user account control, (mask)
      */        
     public void setUserDescription(String userdescription){
     	data.put(USERDESCRIPTION, userdescription);	
@@ -145,9 +145,9 @@ public class ActiveDirectoryPublisher extends LdapPublisher{
      * @param objectclass the objectclass the attribute set should be of.
      * @param dn dn of the LDAP entry.
      * @param extra if we should add extra attributes except the objectclass to the attributeset.
-     * @param pserson true if this is a person-entry, false if it is a CA.
+     * @param person true if this is a person-entry, false if it is a CA.
      * @param password to set for the user, if null no password is set.
-     * @param extendedinformation, for future use...
+     * @param extendedinformation for future use...
      *
      * @return LDAPAtributeSet created...
      */

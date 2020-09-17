@@ -71,6 +71,7 @@ public class CertificateSamplerCustomPublisherUnitTest {
     
     /** 
      * Tests that storeCertificate and testConnection throws Exception as the property output folder is missing.  
+     * @throws Exception on fail
      */ 
     @Test
 	public void testNoOutputFolder() throws Exception {
@@ -96,6 +97,7 @@ public class CertificateSamplerCustomPublisherUnitTest {
     
     /** 
      * Tests that storeCertificate and testConnection throws Exception as the property for the default sampling method is missing.  
+     * @throws Exception On fail
      */ 
     @Test
 	public void testNoDefaultSamplingMethod() throws Exception {
@@ -121,6 +123,7 @@ public class CertificateSamplerCustomPublisherUnitTest {
     
     /** 
      * Tests that storeCertificate and testConnection throws Exception as the default pvalue is missing.  
+     * @throws Exception fail
      */ 
     @Test
 	public void testNoPValueForDefaultSamplingMethod() throws Exception {
@@ -147,6 +150,7 @@ public class CertificateSamplerCustomPublisherUnitTest {
     
     /** 
      * Tests that storeCertificate and testConnection throws Exception as the pvalue for a profile is missing.  
+     * @throws Exception fail
      */ 
     @Test
 	public void testNoPValueForProfileSamplingMethod() throws Exception {
@@ -174,6 +178,7 @@ public class CertificateSamplerCustomPublisherUnitTest {
     
     /**
      * Tests that testConnection gives error if pvalue is invalid.
+     * @throws Exception fail
      */
     @Test
 	public void testPvalueNotInInterval() throws Exception {
@@ -208,6 +213,7 @@ public class CertificateSamplerCustomPublisherUnitTest {
     
     /**
      * Tests that testConnection gives error if there is an invalid profile key.
+     * @throws Exception fail
      */
     @Test
 	public void testInvalidProfileKey() throws Exception {
@@ -229,6 +235,7 @@ public class CertificateSamplerCustomPublisherUnitTest {
     
     /**
      * Tests that testConnection and storeCertificate gives error if there is an invalid sampling method.
+     * @throws Exception fail
      */
     @Test
 	public void testInvalidSamplingMethod() throws Exception {
@@ -271,6 +278,7 @@ public class CertificateSamplerCustomPublisherUnitTest {
     
     /**
      * Tests that the method storeCRL always returns true as publishing/sampling of CRLs are currently not supported.
+     * @throws Exception fail
      */
     @Test
 	public void testStoreCRL() throws Exception {
@@ -280,6 +288,7 @@ public class CertificateSamplerCustomPublisherUnitTest {
     
     /**
      * Tests that revoking a certificate does not invoke any sampling.
+     * @throws Exception fail
      */
     @Test
 	public void testStoreCertificateRevoked() throws Exception {
@@ -299,6 +308,7 @@ public class CertificateSamplerCustomPublisherUnitTest {
     
     /** 
      * Tests that publishing with sampling method ALL stores the certificate.
+     * @throws Exception fail
      */
     @Test
 	public void testSampleAll() throws Exception {
@@ -314,6 +324,7 @@ public class CertificateSamplerCustomPublisherUnitTest {
     /**
      * Tests sampling with different probabilities. This method has a change of false positives but with
      * <code>PROBABILISTIC_TRIES</code> number of tries the probability should be small.
+     * @throws Exception fail
      */
     @Test
 	public void testSampleProbabilistic() throws Exception {
@@ -366,6 +377,7 @@ public class CertificateSamplerCustomPublisherUnitTest {
     
     /**
      * Tests that different profiles can have different values for pvalue.
+     * @throws Exception fail
      */
     @Test
 	public void testDifferentProfiles() throws Exception {
@@ -395,6 +407,7 @@ public class CertificateSamplerCustomPublisherUnitTest {
     
     /**
      * Tests that different profiles can have different sampling methods.
+     * @throws Exception fail
      */
     @Test
 	public void testDifferentMethodsForProfiles() throws Exception {
@@ -465,6 +478,7 @@ public class CertificateSamplerCustomPublisherUnitTest {
     
     /**
      * Tests the NONE sample method.
+     * @throws Exception fail
      */
     @Test
 	public void testSampleNone() throws Exception {
@@ -498,6 +512,7 @@ public class CertificateSamplerCustomPublisherUnitTest {
     
     /**
      * Tests that a profile can have a different pvalue than the default but the same method will be used.
+     * @throws Exception fail
      */
     @Test
 	public void testDifferentPvalues() throws Exception {
@@ -518,22 +533,32 @@ public class CertificateSamplerCustomPublisherUnitTest {
         assertTrue("Certificate in profile B should be stored", publisher.isWriteCertificateCalled());
     }
     
-    /** storeCertificate wrapper. */
+    /** storeCertificate wrapper. 
+     * @param publisher Publisher
+     * @param status Statud
+     * @param profileId Profile
+     * @return Bool
+     * @throws PublisherException on Fail */
     private boolean storeCertificate(ICustomPublisher publisher, int status, int profileId) throws PublisherException {
         return publisher.storeCertificate(ANY_ADMIN, NULL_CERTIFICATE, null, null, null, null, 
                 status, 
                 0, System.currentTimeMillis(), 0, null, profileId, System.currentTimeMillis(), null);
     }
     
-    /** Create publisher wrapper. */
+    /** Create publisher wrapper. 
+     * @param properties Props
+     * @return Publisher */
     private CertificateSamplerCustomPublisher createPublisher(Properties properties) {
         CertificateSamplerCustomPublisher result = new CertificateSamplerCustomPublisher();
         result.init(properties);
         return result;
     }
     
-    /** Create mocked publisher wrapper. */
+    /** Create mocked publisher wrapper. 
+     * @param properties Props
+     * @return Publisher */
     private MockedCertificateSamplerCustomPublisher createMockedPublisher(Properties properties) {
+    	
         MockedCertificateSamplerCustomPublisher result = new MockedCertificateSamplerCustomPublisher();
         result.init(properties);
         return result;

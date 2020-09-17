@@ -44,7 +44,10 @@ public class TurkishEIDHardToken extends HardToken {
     public static final String[] FIELDTEXTSWITHOUTPUK = new String[] {};
 
     // Public Methods
-    /** Constructor to use. */
+    /** Constructor to use. 
+     * @param initialpin PIN
+     * @param puk PUK
+     * @param hardtokenprofileid Profile */
     public TurkishEIDHardToken(String initialpin,
                                String puk,
                                int hardtokenprofileid) {
@@ -57,7 +60,8 @@ public class TurkishEIDHardToken extends HardToken {
         data.put(TOKENTYPE, Integer.valueOf(THIS_TOKENTYPE));
     } 
     
-    /** Constructor only to be used internally. */
+    /** Constructor only to be used internally. 
+     * @param includePUK bool */
     public TurkishEIDHardToken(boolean includePUK) {
     	super(includePUK);
     	if(!includePUK){

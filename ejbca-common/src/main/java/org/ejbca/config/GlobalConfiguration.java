@@ -197,7 +197,14 @@ public class GlobalConfiguration extends ConfigurationBase implements ExternalSc
     }
 
 
-    /** Initializes a new global configuration with data used in ra web interface. */
+    /** Initializes a new global configuration with data used in ra web interface. 
+     * @param adminpath Path
+     * @param availablelanguages Langs 
+     * @param availablethemes Themes
+     * @param publicport Port
+     * @param privateport private port
+     * @param publicprotocol Protocol
+     * @param privateprotocol Private protocol */
     public void initialize(String adminpath, String availablelanguages, String availablethemes,
                            String publicport, String privateport, String publicprotocol, String privateprotocol){
 
@@ -242,12 +249,16 @@ public class GlobalConfiguration extends ConfigurationBase implements ExternalSc
                 ""+WebConfiguration.getPublicHttpPort(), ""+WebConfiguration.getPrivateHttpsPort(), "http", "https");
     }
 
-    /** Checks if global datauration have been initialized. */
+    /** Checks if global datauration have been initialized. 
+     * @return bool*/
     public boolean isInitialized(){
       return data.get(AVAILABLELANGUAGES)!=null;
     }
 
-    /** @return The base URL of the application using the supplied values. */
+    /** @param scheme Scheme
+     * @param requestServerName Server 
+     * @param port Port
+     * @return The base URL of the application using the supplied values. */
     public String getBaseUrl(final String scheme, final String requestServerName, final int port) {
         return scheme + "://" + requestServerName + ":" + port + "/" + InternalConfiguration.getAppNameLower() + "/";
     }
@@ -296,7 +307,8 @@ public class GlobalConfiguration extends ConfigurationBase implements ExternalSc
 	}
 
      /** Checks the themes path for css files and returns an array of filenames
-     *  without the ".css" ending. */
+     *  without the ".css" ending. 
+     * @return Themes */
     public   String[] getAvailableThemes() {
        String[] availablethemes;
        availablethemes =  getAvailableThemesAsString().split(",");
@@ -311,7 +323,8 @@ public class GlobalConfiguration extends ConfigurationBase implements ExternalSc
        return availablethemes;
     }
 
-    /** Returns the default available theme used by administrator preferences. */
+    /** Returns the default available theme used by administrator preferences. 
+     * @return Theme*/
     public String getDefaultAvailableTheme(){
       return getAvailableThemes()[0];
     }
@@ -430,6 +443,7 @@ public class GlobalConfiguration extends ConfigurationBase implements ExternalSc
      /**
       * Returns the email address to the administrators that should recieve notification emails
       * should be an alias to all approval administrators default "" never null
+     * @return String
       */
      @Deprecated // Used during upgrade to EJBCA 6.6.0
      public String getApprovalAdminEmailAddress() {
@@ -524,7 +538,8 @@ public class GlobalConfiguration extends ConfigurationBase implements ExternalSc
         return (ret == null ? CTLOGS_DEFAULT : new LinkedHashMap<>(ret));
     }
 
-    /** Sets the available CT logs. NOTE: The order of the is important, so this MUST be called with a LinkedHashMap! */
+    /** Sets the available CT logs. NOTE: The order of the is important, so this MUST be called with a LinkedHashMap! 
+     * @param ctlogs Logs*/
     public void setCTLogs(LinkedHashMap<Integer,CTLogInfo> ctlogs) {
         data.put(CTLOGS, ctlogs);
     }

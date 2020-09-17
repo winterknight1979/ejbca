@@ -91,7 +91,7 @@ public class AdminPreference extends UpgradeableDataHashMap implements Serializa
      * 
      * @param languages available languages as retrieved from EjbcaWebBean.getAvailableLanguages
      * @param languagecode two letter language code (ISO 639-1), e.g. en, sv
-     * @see org.ejbca.ui.web.admin.configuration.EjbcaWebBean#getAvailableLanguages()
+     * org.ejbca.ui.web.admin.configuration.EjbcaWebBean#getAvailableLanguages()
      */
     public void setPreferedLanguage(String[] languages, String languagecode) {
         if (languages != null) {
@@ -115,7 +115,7 @@ public class AdminPreference extends UpgradeableDataHashMap implements Serializa
      * 
      * @param languages available languages as retrieved from EjbcaWebBean.getAvailableLanguages
      * @param languagecode two letter language code (ISO 639-1), e.g. en, sv
-     * @see org.ejbca.ui.web.admin.configuration.EjbcaWebBean#getAvailableLanguages()
+     * see org.ejbca.ui.web.admin.configuration.EjbcaWebBean#getAvailableLanguages()
      */
     public void setSecondaryLanguage(String[] languages, String languagecode) {
         if (languages != null) {
@@ -159,7 +159,8 @@ public class AdminPreference extends UpgradeableDataHashMap implements Serializa
         data.put(LASTPROFILE, Integer.valueOf(lastprofile));
     }
 
-    /** Last filter mode is the admins last mode in the list end entities jsp page. */
+    /** Last filter mode is the admins last mode in the list end entities jsp page. 
+     * @return int */
     public int getLastFilterMode() {
         return ((Integer) data.get(LASTFILTERMODE)).intValue();
     }
@@ -224,7 +225,7 @@ public class AdminPreference extends UpgradeableDataHashMap implements Serializa
                 data.put(FRONTPAGEPUBQSTATUS, DEFAULT_FRONTPAGEPUBQSTATUS);
             }
 
-            data.put(VERSION, new Float(LATEST_VERSION));
+            data.put(VERSION, Float.valueOf(LATEST_VERSION));
         }
     }
 

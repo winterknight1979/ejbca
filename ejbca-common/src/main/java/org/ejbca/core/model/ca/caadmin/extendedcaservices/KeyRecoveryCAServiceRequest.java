@@ -38,6 +38,10 @@ public class KeyRecoveryCAServiceRequest extends ExtendedCAServiceRequest implem
     private String keyAlias;
     
     /** Constructor for KeyRecoveryCAServiceRequest used to decrypt data
+     * @param command Command
+     * @param keydata Data
+     * @param cryptoTokenId ID 
+     * @param keyAlias key
      */                   
     public KeyRecoveryCAServiceRequest(int command, byte[] keydata, int cryptoTokenId, String keyAlias) {
         this.command = command;
@@ -47,6 +51,8 @@ public class KeyRecoveryCAServiceRequest extends ExtendedCAServiceRequest implem
     }
 
     /** Constructor for KeyRecoveryCAServiceRequest used to encrypt data
+     * @param command Command
+     * @param keypair Key
      */                   
     public KeyRecoveryCAServiceRequest(int command, KeyPair keypair) {
     	this.command = command;
@@ -58,7 +64,7 @@ public class KeyRecoveryCAServiceRequest extends ExtendedCAServiceRequest implem
     }
     
     /**
-     *  Returns data belonging to the decrypt keys request, returns null otherwise.
+     *  @return data belonging to the decrypt keys request, returns null otherwise.
      */
     
     public  byte[] getKeyData(){
@@ -70,7 +76,7 @@ public class KeyRecoveryCAServiceRequest extends ExtendedCAServiceRequest implem
     }
 
     /**
-     *  Returns data belonging to the encrypt keys request, returns null otherwise.
+     *  @return data belonging to the encrypt keys request, returns null otherwise.
      */
     public  KeyPair getKeyPair(){
     	KeyPair ret = null;

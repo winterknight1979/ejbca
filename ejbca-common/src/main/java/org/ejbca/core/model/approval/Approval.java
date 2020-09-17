@@ -66,9 +66,9 @@ public class Approval implements Comparable<Approval>, Externalizable {
     private int partitionId; //The identity of the partition which this approval covers.
     
 	/**
-	 * @param approved
-	 * @param apDate
-	 * @param comment
+	 * @param comment Comment
+	 * @param stepId Step
+	 * @param partitionId Partition
 	 */
 	public Approval(String comment, int stepId, int partitionId) {
 		super();

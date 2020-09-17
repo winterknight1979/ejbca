@@ -33,7 +33,7 @@ public class AcmeConfiguration extends UpgradeableDataHashMap implements Seriali
     private static final String KEY_PRE_AUTHORIZATION_ALLOWED = "preAuthorizationAllowed";
     private static final String KEY_END_ENTITY_PROFILE_ID = "endEntityProfileId";
     private static final String KEY_VALIDATION_HTTP_CALLBACK_URL_TEMPLATE = "valiationHttpCallbackUrlTemplate";
-    private static final String KEY_TERMS_OF_SERVICE_VERSION = "termsOfServiceVersion";
+   // private static final String KEY_TERMS_OF_SERVICE_VERSION = "termsOfServiceVersion";
     private static final String KEY_TERMS_OF_SERVICE_URL = "termsOfServiceUrl";
     private static final String KEY_WEB_SITE_URL = "webSiteUrl";
     private static final String KEY_ORDER_VALIDITY = "orderValidity";
@@ -95,6 +95,7 @@ public class AcmeConfiguration extends UpgradeableDataHashMap implements Seriali
      * https://tools.ietf.org/html/draft-ietf-acme-acme-12#section-7.4.1
      * "If a CA wishes to allow pre-authorization within ACME, it can offer a "new authorization" resource in its
      * directory by adding the field "newAuthz" with a URL for the new authorization resource."
+     * @return boolean
      */
     public boolean isPreAuthorizationAllowed() {
         return Boolean.valueOf((String)super.data.get(KEY_PRE_AUTHORIZATION_ALLOWED));
@@ -219,7 +220,8 @@ public class AcmeConfiguration extends UpgradeableDataHashMap implements Seriali
         super.data.put(KEY_USE_DNSSEC_VALIDATION, String.valueOf(useDnsSecValidation));
     }
 
-    /** Initializes a new acme configuration with default values. */
+    /** Initializes a new acme configuration with default values. 
+     * @param alias Alias*/
     public void initialize(String alias) {
         alias += ".";
         setEndEntityProfileId(DEFAULT_END_ENTITY_PROFILE_ID);

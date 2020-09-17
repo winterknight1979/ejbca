@@ -100,7 +100,6 @@ public class ApprovalDataVO implements Serializable {
 	 * @param requestDate   Date the request for approval were added
 	 * @param expireDate    Date the request for action or the approval action will expire, Long.MAX_VALUE
      *                      means that the request/approval never expires
-	 * @param remainingApprovals Indicates the number of approvals that remains in order to execute the action.
 	 */
 	public ApprovalDataVO(int id, int approvalId, int approvalType, int endEntityProfileiId, int cAId, String reqadmincertissuerdn,
 	        String reqadmincertsn, int status, Collection<Approval> approvals, ApprovalRequest approvalRequest, Date requestDate,

@@ -145,7 +145,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap implements java.
     
     /**
      * Set the number of maximum allowed failed login attempts. -1 means unlimited.
-     * @param remainingLoginAttempts The number to set
+     * @param maxLoginAttempts The number to set
      */
     public void setMaxLoginAttempts(int maxLoginAttempts) {
     	data.put(MAXFAILEDLOGINATTEMPTS, Integer.valueOf(maxLoginAttempts));
@@ -175,6 +175,8 @@ public class ExtendedInformation extends UpgradeableDataHashMap implements java.
     }
     
     /** Gets generic string data from the ExtendedInformation map.
+     * @param key Key
+     * @return String
 	 */
     public String getMapData(String key) {
     	String ret = null;
@@ -186,6 +188,8 @@ public class ExtendedInformation extends UpgradeableDataHashMap implements java.
     }
     
     /** Sets generic string data in the ExtendedInformation map.
+     * @param key Key
+     * @param value Value
 	 */
     public void setMapData(String key, String value) {
     	data.put(key,value);
@@ -193,8 +197,9 @@ public class ExtendedInformation extends UpgradeableDataHashMap implements java.
     
     /**
      * Special method used to retrieve custom set userdata
+     * @param key Key
      * 
-     * @returns The data or null if no such data have been set for the user
+     * @return The data or null if no such data have been set for the user
      */
     public String getCustomData(String key){ 
     	String retval = (String) data.get(CUSTOMDATA + key);	
@@ -203,8 +208,8 @@ public class ExtendedInformation extends UpgradeableDataHashMap implements java.
     
     /**
      * 
-     * @param customly defined key to store the data with
-     * @param the string representation of the data
+     * @param key customly defined key to store the data with
+     * @param value the string representation of the data
      */
     public void setCustomData(String key, String value) {        	    	
     	data.put(CUSTOMDATA + key,value);
@@ -225,9 +230,11 @@ public class ExtendedInformation extends UpgradeableDataHashMap implements java.
       return clone;
     }
 
-    /** Function required by XMLEncoder to do a proper serialization. */
+    /** Function required by XMLEncoder to do a proper serialisation. 
+     * @param hmData Data*/
     public void setData( Object hmData ) { loadData(hmData); }
-    /** Function required by XMLEncoder to do a proper serialization. */
+    /** Function required by XMLEncoder to do a proper serialization. 
+     * @return Object */
     public Object getData() {return saveData();}
     
     /** Implementation of UpgradableDataHashMap function getLatestVersion */
@@ -315,7 +322,8 @@ public class ExtendedInformation extends UpgradeableDataHashMap implements java.
     	}
     }
     
-    /** @return true if argument is null, empty or in the relative time format. */
+    /** @param time Time
+     * @return true if argument is null, empty or in the relative time format. */
     private boolean isEmptyOrRelative(final String time) {
     	return (time == null || time.length()==0 || time.matches("^\\d+:\\d?\\d:\\d?\\d$"));
     }
@@ -334,7 +342,7 @@ public class ExtendedInformation extends UpgradeableDataHashMap implements java.
      * 
      * Inheriting class should call 'setClassPath(this) in it's constructor.
      * 
-     * @param object
+     * @param type type
      */
     protected void setType(int type){
        data.put(TYPE,Integer.valueOf(type));	

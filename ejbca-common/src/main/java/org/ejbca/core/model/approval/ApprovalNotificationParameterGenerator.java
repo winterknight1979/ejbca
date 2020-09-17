@@ -36,9 +36,9 @@ public class ApprovalNotificationParameterGenerator extends NotificationParamGen
     /**
      * 
      * @param approvalRequestID approval request ID, is the ID of the ApprovalData
-     * @param approvalStepId
-     * @param approvalPartitionId
-     * @param approvalPartitionName
+     * @param approvalStepId Step
+     * @param approvalPartitionId Partition
+     * @param approvalPartitionName Name
      * @param approvalType one of the ApprovalDataVO.APPROVALTYPENAMES
      * @param workflowState "APPROVAL_WFSTATE_" + approvalPartitionWorkflowState.name(), where approvalPartitionWorkflowState.name() typically is "approved", "rejected"
      * @param requestor AuthenticationToken.toString() of the admin who created the approval request

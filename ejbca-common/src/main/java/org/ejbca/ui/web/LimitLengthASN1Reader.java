@@ -47,7 +47,7 @@ public class LimitLengthASN1Reader extends ASN1InputStream {
 	final private int contentLength; 
 	/**
 	 * 
-	 * @param input
+	 * @param input IS
 	 * @param contentLength the provided contentLength, we do not trust it but will use it if given
 	 */
 	public LimitLengthASN1Reader(final InputStream input, final int contentLength) {
@@ -69,7 +69,7 @@ public class LimitLengthASN1Reader extends ASN1InputStream {
 	 * Read the 'value' of the top ASN1 object and append it to the already read 'tag' and 'value'
 	 * @param length nr of value bytes that we should read
 	 * @return the top ASN1 object
-	 * @throws IOException
+	 * @throws IOException IO fail
 	 * @throws MalformedRequestException if the number of bytes read is less than length, i.e. asn.1 length tag was invalid
 	 */
 	private byte[] readTopASN1(final int length) throws IOException, MalformedRequestException {
@@ -98,7 +98,7 @@ public class LimitLengthASN1Reader extends ASN1InputStream {
 
 	/** Reads all bytes for the first ASN.1 object in the stream. Limits the size that is ever read to MAX_REQUEST_SIZE.
 	 * @return all bytes for the first ASN.1 object in the stream. 
-	 * @throws IOException
+	 * @throws IOException IO fail
 	 * @throws MalformedRequestException if the request is too large or not correctly GET encoded.
 	 */
 	public byte[] readFirstASN1Object() throws IOException, MalformedRequestException {

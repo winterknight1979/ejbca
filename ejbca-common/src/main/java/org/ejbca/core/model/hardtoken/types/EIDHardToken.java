@@ -45,6 +45,7 @@ public class EIDHardToken extends HardToken {
 
     /**
      * Creates a certificate with the characteristics of an end user.
+     * @param includePUK Boolean
      */
     public EIDHardToken(boolean includePUK) {
     	super(includePUK);

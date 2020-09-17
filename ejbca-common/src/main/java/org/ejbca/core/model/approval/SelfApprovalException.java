@@ -29,22 +29,22 @@ public class SelfApprovalException extends Exception {
     }
 
     /**
-     * @param message
+     * @param message Message
      */
     public SelfApprovalException(String message) {
         super(message);
     }
 
     /**
-     * @param cause
+     * @param cause Cause
      */
     public SelfApprovalException(Throwable cause) {
         super(cause);
     }
 
     /**
-     * @param message
-     * @param cause
+     * @param message Message
+     * @param cause Cause
      */
     public SelfApprovalException(String message, Throwable cause) {
         super(message, cause);

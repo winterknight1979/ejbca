@@ -272,13 +272,15 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
     	init(false);
     }
 
-    /** Creates a default empty end entity profile with all standard fields added to it. */
+    /** Creates a default empty end entity profile with all standard fields added to it. 
+     * @param emptyprofile profile */
     public EndEntityProfile(final boolean emptyprofile){
     	super();
     	init(emptyprofile);
     }
 
-    /** Creates a new instance of EndEntity Profile used during cloning or when we load all the data from the database. */
+    /** Creates a new instance of EndEntity Profile used during cloning or when we load all the data from the database. 
+     * @param unused unused */
     public EndEntityProfile(final int unused) {
     }
 
@@ -366,7 +368,8 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
         }
     }
 
-    /** Add a field with value="", required=false, use=true, modifyable=true, if the parameter exists, ignored otherwise */
+    /** Add a field with value="", required=false, use=true, modifyable=true, if the parameter exists, ignored otherwise 
+     * @param parameter param*/
     public void addField(final String parameter){
         final int num = getParameterNumber(parameter);
         if (num > 0) {
@@ -385,7 +388,9 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
     	addField(parameter, getParameter(parameter));
     }
     
-    /** Add a field with value="", required=false, use=true, modifyable=true */
+    /** Add a field with value="", required=false, use=true, modifyable=true 
+     * @param parameter param
+     * @param parameterName name */
     private void addField(final int parameter, final String parameterName) {
     	addFieldWithDefaults(parameter, parameterName, "", Boolean.FALSE, Boolean.TRUE, Boolean.TRUE, null);
     }
@@ -584,6 +589,9 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
      * 
      * <p><b>Note:</b> Consider calling the appropriate getters instead of this method.
      * For example <code>getAvailableCertificateProfileIds()</code> instead of calling <code>getValue(AVAILCERTPROFILES,0)</code>
+     * @param parameter param
+     * @param number number
+     * @return value
      */
     public String getValue(final String parameter, final int number) {
     	return getValue(getParameterNumber(parameter), number);
@@ -598,6 +606,9 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
      * 
      * <p><b>Note:</b> Consider calling the appropriate getters instead of this method.
      * For example <code>getCustomSerialNumberUsed()</code> instead of calling <code>getUse(CERTSERIALNR, 0)</code>
+     * @param parameter param
+     * @param number number
+     * @return bool
      */
     public boolean getUse(final String parameter, final int number){
     	return getUse(getParameterNumber(parameter), number);
@@ -612,6 +623,9 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
      * 
      * <p><b>Note:</b> Consider calling the appropriate getters instead of this method.
      * For example <code>getEmailDomainRequired()</code> instead of calling <code>isRequired(EMAIL, 0)</code>
+     *  @param parameter param
+     * @param number number
+     * @return bool
      */
     public boolean isRequired(final String parameter, final int number) {
     	return isRequired(getParameterNumber(parameter), number);
@@ -626,6 +640,9 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
      * 
      * <p><b>Note:</b> Consider calling the appropriate getters instead of this method.
      * For example <code>getEmailDomainModifiable()</code> instead of calling <code>isModifyable(EMAIL, 0)</code>
+     *  @param parameter param
+     * @param number number
+     * @return bool
      */
     public boolean isModifyable(final String parameter, final int number) {
     	return isModifyable(getParameterNumber(parameter), number);
@@ -669,8 +686,10 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
         }
     }
 
-    /** returns two int : the first is the DN field which is a constant in DN field extractor,
+    /** @return two int : the first is the DN field which is a constant in DN field extractor,
      * the second is in which order the attribute is, 0 is first OU and 1 can mean second OU (if OU is specified in the first value).
+     * @param index index
+     * 
      * 
      */
     public int[] getSubjectDNFieldsInOrder(final int index) {
@@ -734,7 +753,8 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
         return ids;
     }
     
-    /** Like {@link #getAvailableCAs}, but returns the Ids as strings. */
+    /** Like {@link #getAvailableCAs}, but returns the Ids as strings. 
+     * @return IDs*/
     public Collection<String> getAvailableCAsAsStrings(){
         final ArrayList<String> availablecaids = new ArrayList<>();
         availablecaids.addAll(Arrays.asList(getValue(AVAILCAS,0).split(SPLITCHAR)));
@@ -760,6 +780,7 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
     /** Sets available CA ids. These are stored as a ; separated string in the end entity profile
      * 
      * @param ids Collection of CA ids
+     * @throws NumberFormatException on format error
      */
     public void setAvailableCAsIDsAsStrings(Collection<String> ids) throws NumberFormatException {
         StringBuilder builder = new StringBuilder();
@@ -791,7 +812,8 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
         return profiles;
     }
     
-    /** Like {@link #getAvailableCertificateProfileIds}, but returns the Ids as strings. */
+    /** Like {@link #getAvailableCertificateProfileIds}, but returns the Ids as strings. 
+     * @return IDs */
     public Collection<String> getAvailableCertificateProfileIdsAsStrings() {
         final ArrayList<String> profiles = new ArrayList<>();
         final String list = getValue(AVAILCERTPROFILES,0);
@@ -930,7 +952,9 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
     	return getPasswordStrength(numerOfDifferentChars, getAutoGeneratedPasswdLength());
     }
     
-    /** @return strength in bits = log2(possible chars) * number of chars rounded down */
+    /** @param numerOfDifferentChars num
+     * @param passwordLength Length
+     * @return strength in bits = log2(possible chars) * number of chars rounded down */
     private int getPasswordStrength(int numerOfDifferentChars, int passwordLength) {
     	return (int) (Math.floor(Math.log(numerOfDifferentChars)/Math.log(2)) * passwordLength);
     }
@@ -943,7 +967,8 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
     	return Integer.parseInt(getValue(MINPWDSTRENGTH, 0));
     }
     
-    /** Set the minimum strength that a password is allowed to have in bits */
+    /** Set the minimum strength that a password is allowed to have in bits 
+     * @param minPwdStrength strength*/
     public void setMinPwdStrength(int minPwdStrength) {
     	this.setUse(MINPWDSTRENGTH, 0, true);
     	this.setValue(MINPWDSTRENGTH, 0, String.valueOf(minPwdStrength));
@@ -1225,7 +1250,8 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
     	data.put(PRINTINGSVGDATA, new String(Base64.encode(sVGData.getBytes())));
     }
     
-    /** @return the boolean value or false if null. Note: Some keys need translating to integer first (e.g. those with use/value/required flags) */
+    /** @param key key
+     * @return the boolean value or false if null. Note: Some keys need translating to integer first (e.g. those with use/value/required flags) */
     private boolean getValueDefaultFalse(final Object key) {
     	if (data.get(key) == null) {
     		return false;
@@ -1233,7 +1259,8 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
     	return ((Boolean) data.get(key)).booleanValue();
     }
 
-    /** @return the boolean value or false if null. Note: Some keys need translating to integer first (e.g. those with use/value/required flags) */
+    /** @param key key
+     * @return the boolean value or false if null. Note: Some keys need translating to integer first (e.g. those with use/value/required flags) */
     private String getValueDefaultEmpty(final Object key) {
     	if (data.get(key) == null) {
     		return "";
@@ -1595,10 +1622,10 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
      * This function tries to match each field in the profile to a corresponding field in the DN/AN/AD-fields.
      * Can not be used for DNFieldExtractor.TYPE_SUBJECTDIRATTR yet.
      *   
-     * @param fields
+     * @param fields fiewlds
      * @param type One of DNFieldExtractor.TYPE_SUBJECTDN, DNFieldExtractor.TYPE_SUBJECTALTNAME
      * @param email The end entity's email address
-     * @throws EndEntityProfileValidationException
+     * @throws EndEntityProfileValidationException if validation fails
      */
     private void checkIfFieldsMatch(final DNFieldExtractor fields, final int type, final String email) throws EndEntityProfileValidationException {
     	final int REQUIRED_FIELD		= 2;
@@ -1769,7 +1796,7 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
     public void upgrade() {
         log.trace(">upgrade");        
     	if (Float.compare(LATEST_VERSION, getVersion()) != 0) {
-			String msg = intres.getLocalizedMessage("ra.eeprofileupgrade", new Float(getVersion()));
+			String msg = intres.getLocalizedMessage("ra.eeprofileupgrade",  Float.valueOf(getVersion()));
             log.info(msg);
             // New version of the class, upgrade
             if (getVersion() < 1) {
@@ -1976,12 +2003,13 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
     			}
         	}
         	// Finally, update the version stored in the map to the current version
-            data.put(VERSION, new Float(LATEST_VERSION));
+            data.put(VERSION,  Float.valueOf(LATEST_VERSION));
         }
         log.trace("<upgrade");
     }
     
-    /** @return true if argument is null, empty or in the relative time format. */
+    /** @param time time
+     * @return true if argument is null, empty or in the relative time format. */
     private boolean isEmptyOrRelative(final String time) {
     	return (time == null || time.length()==0 || time.matches("^\\d+:\\d?\\d:\\d?\\d$"));
     }
@@ -2026,6 +2054,11 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
     /**
      * Verify that the field contains an address and that data of non-modifyable domain-fields is available in profile 
      * Used for email, upn and rfc822 fields
+     * @param field Field
+     * @param number Number
+     * @param nameAndDomain Name
+     * @param text Text
+     * @throws EndEntityProfileValidationException If validation fails
      */
     private void checkIfDomainFulfillProfile(final String field, final int number, final String nameAndDomain, final String text) throws EndEntityProfileValidationException {
     	if (!nameAndDomain.trim().equals("") && nameAndDomain.indexOf('@') == -1) {
@@ -2067,7 +2100,12 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
     	}    	
     }
 
-    /** Used for iso 3166 country codes. */
+    /** Used for iso 3166 country codes. 
+     * @param field Field
+     * @param number Number
+     * @param country Country
+     * @param text Text
+     * @throws EndEntityProfileValidationException If validation fails */
     private void checkIfISO3166FulfillProfile(final String field, final int number, final String country, final String text) throws EndEntityProfileValidationException {
     	final String countryTrim = country.trim();
     	final int countryTrimLength = countryTrim.length();
@@ -2097,7 +2135,12 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
     	}
     }
     
-    /** Used to check if it is an M or an F */
+    /** Used to check if it is an M or an F 
+     * @param field Field
+     * @param number Number
+     * @param gender Gender
+     * @param text Text
+     * @throws EndEntityProfileValidationException If validation fails */
     private void checkIfGenderFulfillProfile(final String field, final int number, final String gender, final String text) throws EndEntityProfileValidationException {
     	final boolean isGenerEmpty = gender.trim().isEmpty();
     	if (!isGenerEmpty && !(gender.equalsIgnoreCase("m") || gender.equalsIgnoreCase("f"))) {
@@ -2126,7 +2169,13 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
     	}
     }
 
-    /** Used for date strings, should be YYYYMMDD */
+    /** 
+     * @param field Field
+     * @param number Number
+     * @param date date
+     * @param text Text
+     * @throws EndEntityProfileValidationException If validation fails 
+     * Used for date strings, should be YYYYMMDD */
     private void checkIfDateFulfillProfile(final String field, final int number, final String date, final String text) throws EndEntityProfileValidationException {
     	final String dateTrim = date.trim();
     	final boolean isDateEmpty = dateTrim.isEmpty();
@@ -2161,7 +2210,12 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
 
     /**
      * Verifies that non-modifiable data is available in profile.
-     * @throws EndEntityProfileValidationException
+     * @param field Field
+     * @param number Number
+     * @param data Data
+     * @param text Text
+     * @param email Email
+     * @throws EndEntityProfileValidationException If validation fails
      */
     private void checkIfDataFulfillProfile(final String field, final int number, final String data, final String text, final String email) throws EndEntityProfileValidationException {
         //If USERNAME should be autogenerated skip this check
@@ -2369,6 +2423,7 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
     }
 
 	/** methods for mapping the DN, AltName, DirAttr constants from string->number 
+	 * @param parameter Parameter
 	 * @return number from profilemappings.properties, or -1 if the parameter does not exist
 	 */
 	private static int getParameterNumber(final String parameter) {
@@ -2380,7 +2435,9 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
 		return -1;
 	}
 
-	/** methods for mapping the DN, AltName, DirAttr constants from number->string */
+	/** methods for mapping the DN, AltName, DirAttr constants from number->string 
+	 * @param parameterNumber Number
+	 * @return String */
 	private static String getParameter(final int parameterNumber) {
 		String ret = null;
 		for (final Entry<String, Integer> entry : dataConstants.entrySet()) {

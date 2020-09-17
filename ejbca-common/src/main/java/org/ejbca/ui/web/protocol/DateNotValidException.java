@@ -29,7 +29,7 @@ public class DateNotValidException extends EjbcaException {
 	private static final long serialVersionUID = -4557881537494914234L;
 
 	/**
-	 * @param message with more information what is wrong
+	 * @param m with more information what is wrong
 	 */
 	public DateNotValidException(String m) {
 		super(ErrorCode.DATE_NOT_VALID, m);

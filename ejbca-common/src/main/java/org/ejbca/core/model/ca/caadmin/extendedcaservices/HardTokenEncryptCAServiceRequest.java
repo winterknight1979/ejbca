@@ -45,6 +45,7 @@ public class HardTokenEncryptCAServiceRequest extends ExtendedCAServiceRequest i
     
     /**
      *  Returns data beloning to the decrypt keys request, returns null oterwise.
+     * @return data
      */
     
     public  byte[] getData(){

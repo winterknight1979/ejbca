@@ -49,6 +49,7 @@ public class PrinterManager {
 	/**
 	 * Method that returns the names of all the available printers or an empty list if
 	 * no printers were found or an error occurred.
+	 * @return printers
 	 */
 	public static String[] listPrinters(){
 		String[] printerNames = new String[0];

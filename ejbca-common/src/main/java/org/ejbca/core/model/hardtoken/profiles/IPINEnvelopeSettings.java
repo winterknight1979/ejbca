@@ -45,6 +45,7 @@ public interface IPINEnvelopeSettings {
 
 	/**      
 	 * sets the pin envelope type.
+	 * @param pinenvelopetype PIN
 	 */
 	public abstract void setPINEnvelopeType(int pinenvelopetype);    
     
@@ -54,7 +55,7 @@ public interface IPINEnvelopeSettings {
     public abstract String getPINEnvelopeTemplateFilename();
 
 	/**
-	 * Sets the filename of the current PIN envelope template.
+	 * @param filename Sets the filename of the current PIN envelope template.
 	 */    
 	public abstract void setPINEnvelopeTemplateFilename(String filename);
     
@@ -64,7 +65,7 @@ public interface IPINEnvelopeSettings {
     public abstract String getPINEnvelopeData();
     
     /**
-     * Sets the data of the PIN envelope template.
+     * @param data Sets the data of the PIN envelope template.
      */
     public abstract void setPINEnvelopeData(String data);
 
@@ -74,7 +75,7 @@ public interface IPINEnvelopeSettings {
     public abstract int getNumberOfPINEnvelopeCopies();
 
 	/**
-	 * Sets the number of copies of this PIN Envelope that should be printed.
+	 * @param copies Sets the number of copies of this PIN Envelope that should be printed.
 	 */
 	public abstract void setNumberOfPINEnvelopeCopies(int copies);
 
@@ -84,13 +85,21 @@ public interface IPINEnvelopeSettings {
 	public abstract int getVisualValidity();
 
 	/**
-	 * Sets the validity of the visual layout in days.
+	 * @param validity Sets the validity of the visual layout in days.
 	 */
 	public abstract void setVisualValidity(int validity);
 
    /**
     * Method that parses the template, replaces the userdata
     * and returning a printable byte array 
+ * @param userdata User
+ * @param pincodes PIN
+ * @param pukcodes PUK
+ * @param hardtokensn SN
+ * @param copyoftokensn SN copt
+ * @return Envelope
+ * @throws IOException IO fail 
+ * @throws PrinterException Printer fail
     */	
 	public abstract Printable printPINEnvelope(EndEntityInformation userdata, 
 	                                        String[] pincodes, String[] pukcodes,

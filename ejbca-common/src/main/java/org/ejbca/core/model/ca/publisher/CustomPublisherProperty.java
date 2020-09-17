@@ -76,7 +76,8 @@ public class CustomPublisherProperty implements Serializable {
         return value;
     }
     
-    /** Set the current value of this property (as String) */
+    /** Set the current value of this property (as String) 
+     * @param value Value*/
     public void setValue(String value) {
         if (value!=null) {
             value = value.trim();

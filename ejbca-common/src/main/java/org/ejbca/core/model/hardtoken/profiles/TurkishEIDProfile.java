@@ -99,8 +99,8 @@ public class TurkishEIDProfile extends EIDProfile {
     }
 
     /** 
-     * @deprecated
-     * @see org.ejbca.core.model.hardtoken.hardtokenprofiles.HardTokenProfile#isTokenSupported(java.lang.String)
+     * @deprecated deprecated
+     * @see org.ejbca.core.model.hardtoken.profiles.HardTokenProfile#isTokenSupported(java.lang.String)
      */
     public boolean isTokenSupported(String tokenidentificationstring) {
         return false;
@@ -128,7 +128,7 @@ public class TurkishEIDProfile extends EIDProfile {
             // New version of the class, upgrade
             super.upgrade();
 
-            data.put(VERSION, new Float(LATEST_VERSION));
+            data.put(VERSION, Float.valueOf(LATEST_VERSION));
         }
     }
 

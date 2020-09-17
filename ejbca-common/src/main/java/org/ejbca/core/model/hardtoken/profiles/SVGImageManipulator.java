@@ -133,13 +133,8 @@ public class SVGImageManipulator {
      * @param svgdata the xlm data to parse
      * @param validity the validity of the card i days.
      * @param hardtokensnprefix the prefix of all hard tokens generated with this profile.
-     * @param imagex x-position for image, reserved for future use
-     * @param imagey y-position for image, reserved for future use
-     * @param imageheight heigth of image, reserved for future use
-     * @param imagewidth width of image, reserved for future use
-     * @param unit units used, reserved for future use
-     * @throws IOException
-     */
+     * @throws IOException on I/O fail
+     */ 
 	
     public SVGImageManipulator(Reader svgdata, 
 	                    int validity, 
@@ -157,14 +152,22 @@ public class SVGImageManipulator {
 	
     /**
      * Returns the message with userspecific data replaced.
+     * @param userdata Data
+     * @param pincodes PIN
+     * @param pukcodes PUK
+     * @param hardtokensn Token
+     * @param copyoftokensn  Token copy
      *
      *
      * @return A processed notification message.
+     * @throws IOException On IO fail
+     * @throws PrinterException On printer fail
      *     
      */
     public Printable print(EndEntityInformation userdata, 
                       String[] pincodes, String[] pukcodes,
 	                  String hardtokensn, String copyoftokensn) throws IOException, PrinterException {
+    	
       // Initialize
 	  DNFieldExtractor dnfields = new DNFieldExtractor(userdata.getDN(), DNFieldExtractor.TYPE_SUBJECTDN);
 	  // DNFieldExtractor subaltnamefields = new DNFieldExtractor(dn,DNFieldExtractor.TYPE_SUBJECTALTNAME);

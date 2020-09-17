@@ -48,7 +48,7 @@ public interface IReceiptSettings {
     public abstract int getReceiptType();    
 
 	/**      
-	 * sets the receipt type.
+	 * @param type sets the receipt type.
 	 */
 	public abstract void setReceiptType(int type);    
     
@@ -58,18 +58,18 @@ public interface IReceiptSettings {
     public abstract String getReceiptTemplateFilename();
 
 	/**
-	 * Sets the filename of the current visual layout template.
+	 * @param filename Sets the filename of the current visual layout template.
 	 */    
 	public abstract void setReceiptTemplateFilename(String filename);
     
 	/**
-	 * Returns the image data of the receipt, should be a SVG image.
+	 * @return the image data of the receipt, should be a SVG image.
 	 */
 	public abstract String getReceiptData();		
 	 
 
 	/**
-	 * Sets the imagedata of the receipt.
+	 * @param templatedata Sets the imagedata of the receipt.
 	 */
 	public abstract void setReceiptData(String templatedata);
 	
@@ -79,7 +79,7 @@ public interface IReceiptSettings {
     public abstract int getNumberOfReceiptCopies();
 
 	/**
-	 * Sets the number of copies of this receipt that should be printed.
+	 * @param copies Sets the number of copies of this receipt that should be printed.
 	 */
 	public abstract void setNumberOfReceiptCopies(int copies);
 	
@@ -87,6 +87,14 @@ public interface IReceiptSettings {
    /**
     * Method that parses the template, replaces the userdata
     * and returning a printable byte array 
+ * @param userdata User
+ * @param pincodes PIN
+ * @param pukcodes PUK
+ * @param hardtokensn SN
+ * @param copyoftokensn SN
+ * @return Receipt
+ * @throws IOException IO fail
+ * @throws PrinterException Print fail
     */	
 	public abstract Printable printReceipt(EndEntityInformation userdata, 
 	                                        String[] pincodes, String[] pukcodes,

@@ -99,6 +99,7 @@ public class UserDataVO implements Serializable {
      * @param timemodified DOCUMENT ME!
      * @param tokentype DOCUMENT ME!
      * @param hardtokenissuerid DOCUMENT ME!
+     * @param extendedinfo Info
 
      */
     public UserDataVO(String user, String dn, int caid, String subjectaltname, String email, int status, EndEntityType type, int endentityprofileid, int certificateprofileid,
@@ -126,17 +127,17 @@ public class UserDataVO implements Serializable {
      * Creates new UserDataVO. This constructor should only be used from UserDataSource 
      * implementations. Status and dates aren't used in these cases.
      * 
-     * @param user 
-     * @param dn 
+     *  @param user DOCUMENT ME!
+     * @param dn DOCUMENT ME!
      * @param caid CA id of the CA that the user is registered with
-     * @param subjectaltname 
-     * @param email 
+     * @param subjectaltname DOCUMENT ME!
+     * @param email DOCUMENT ME!
      * @param type one of SecConst.ENDUSER || ...
-     * @param endentityprofileid 
-     * @param certificateprofileid 
-     * @param tokentype 
-     * @param hardtokenissuerid 
-     * @param extendedinfo
+     * @param endentityprofileid DOCUMENT ME!
+     * @param certificateprofileid DOCUMENT ME!
+     * @param tokentype DOCUMENT ME!
+     * @param hardtokenissuerid DOCUMENT ME!
+     * @param extendedinfo Info
      */
     public UserDataVO(String user, String dn, int caid, String subjectaltname, String email,  EndEntityType type, int endentityprofileid, int certificateprofileid,
                           int tokentype, int hardtokenissuerid, ExtendedInformation extendedinfo) {
@@ -204,6 +205,7 @@ public class UserDataVO implements Serializable {
     public void setHardTokenIssuerId(int hardtokenissuerid) { this.hardtokenissuerid=hardtokenissuerid;}
 
     /**
+     * @return bool
      * @deprecated from EJBCA 3.8.0. The admin property is no longer used. This method is still used for deserializing objects in CertReqHistoryDataBean. 
      */
     public boolean getAdministrator(){
@@ -211,6 +213,7 @@ public class UserDataVO implements Serializable {
     }
 
     /**
+     * @param administrator admin
      * @deprecated from EJBCA 3.8.0. The admin property is no longer used. This method is still used for deserializing objects in CertReqHistoryDataBean. 
      */
     public void setAdministrator(boolean administrator){
@@ -275,6 +278,8 @@ public class UserDataVO implements Serializable {
     /**
      * Help Method used to create an ExtendedInformation from String representation.
      * Used when creating an ExtendedInformation from queries.
+     * @param extendedinfostring Info
+     * @return Admin
      */
     public static ExtendedInformation getExtendedInformation(String extendedinfostring) {
         ExtendedInformation returnval = null;

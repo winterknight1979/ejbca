@@ -105,6 +105,14 @@ public abstract class HardTokenProfileWithAdressLabel extends HardTokenProfileWi
     /**
      * Method that parses the template, replaces the userdata
      * and returning a printable byte array 
+     * @param userdata User
+     * @param pincodes PIN
+     * @param pukcodes PUK
+     * @param hardtokensn SN
+     * @param copyoftokensn SN copy
+     * @return LAbel
+     * @throws IOException On IO fail
+     * @throws PrinterException On print fail
      */  
     public Printable printAdressLabel(EndEntityInformation userdata, String[] pincodes,
             String[] pukcodes, String hardtokensn, String copyoftokensn) throws IOException, PrinterException {

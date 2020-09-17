@@ -139,6 +139,8 @@ public abstract class EIDProfile extends HardTokenProfileWithAdressLabel {
 
 	/**
 	 * See above
+	 * @param certusage Usage
+	 * @param certprofileid ID
 	 */
 	public void setCertificateProfileId(int certusage, int certprofileid){
 		@SuppressWarnings("unchecked")
@@ -150,6 +152,8 @@ public abstract class EIDProfile extends HardTokenProfileWithAdressLabel {
 	
 	/**
 	 * See above
+	 * @param certusage Usage
+	 * @param certWritable ID
 	 */
     @SuppressWarnings("unchecked")
 	public void setCertWritable(int certusage, boolean certWritable){ 
@@ -160,6 +164,8 @@ public abstract class EIDProfile extends HardTokenProfileWithAdressLabel {
 	
 	/**
 	 * See above
+	 * @param certusage Usage
+	 * @param caid IF
 	 */
 	@SuppressWarnings("unchecked")
 	public void setCAId (int certusage, int caid){
@@ -170,6 +176,8 @@ public abstract class EIDProfile extends HardTokenProfileWithAdressLabel {
 
 	/**
 	 * See above
+	 * @param certusage Usage
+	 * @param iskeyrecoverable bool
 	 */
 	@SuppressWarnings("unchecked")
 	public void setIsKeyRecoverable (int certusage, boolean iskeyrecoverable){		
@@ -180,6 +188,8 @@ public abstract class EIDProfile extends HardTokenProfileWithAdressLabel {
 	
 	/**
 	 * See above
+	 * @param certusage Usage
+	 * @param reuseoldcertificate bool 
 	 */
 	@SuppressWarnings("unchecked")
 	public void setReuseOldCertificate (int certusage, boolean reuseoldcertificate){
@@ -190,6 +200,8 @@ public abstract class EIDProfile extends HardTokenProfileWithAdressLabel {
 
 	/**
 	 * See above
+	 * @param certusage Usage
+	 * @param minimumkeylength length
 	 */
 	@SuppressWarnings("unchecked")
 	public void setMinimumKeyLength (int certusage, int minimumkeylength){		
@@ -200,6 +212,8 @@ public abstract class EIDProfile extends HardTokenProfileWithAdressLabel {
 
 	/**
 	 * See above
+	 * @param certusage Usage
+	 * @param keytype type
 	 */
 	@SuppressWarnings("unchecked")
 	public void setKeyType (int certusage, String keytype){
@@ -210,6 +224,7 @@ public abstract class EIDProfile extends HardTokenProfileWithAdressLabel {
 	
 	/**
 	 * Returns a collection of all defined certificate profiles.
+	 * @return IDs
 	 *
 	 */
 	@SuppressWarnings("unchecked")
@@ -221,7 +236,7 @@ public abstract class EIDProfile extends HardTokenProfileWithAdressLabel {
 	 * Returns all valid CAids, if a certusage have CAID_USEUSERDEFINED defined then
 	 * it will not be among available valus in returned collection.
 	 * 
-	 * @return
+	 * @return IDs
 	 */
 	public Collection<Integer> getAllCAIds(){
 		@SuppressWarnings("unchecked")
@@ -264,7 +279,7 @@ public abstract class EIDProfile extends HardTokenProfileWithAdressLabel {
     
     /**
      * Help Method that should be used 
-     * @param emptyclone
+     * @param emptyclone clone
      */
     
     @SuppressWarnings("rawtypes")

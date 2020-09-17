@@ -68,6 +68,7 @@ public abstract class BasePublisher extends UpgradeableDataHashMap implements Se
     
     /**
      * Copy constructor for BasePublisher
+     * @param publisher publisher
      */
     public BasePublisher(BasePublisher publisher) {
       this.data = new LinkedHashMap<Object, Object>(publisher.data);
@@ -84,18 +85,21 @@ public abstract class BasePublisher extends UpgradeableDataHashMap implements Se
         return (Integer) data.get(TYPE);
     }
     
-    /** Sets the id. Used internally by PublisherSessionBean */ 
+    /** Sets the id. Used internally by PublisherSessionBean 
+     * @param id ID*/ 
     public void setPublisherId(int id) { this.id = id; }
-    /** Sets the name. Used internally by PublisherSessionBean */
+    /** Sets the name. Used internally by PublisherSessionBean 
+     * @param name Name*/
     public void setName(String name) { this.name = name; }
     
     /**
-     * Returns the description of publisher
+     * @return the description of publisher
      */
     public String getDescription() { return (String) data.get(DESCRIPTION);}
 
 	/**
 	 * Sets the description. 
+	 * @param description desc
 	 */
 	public void setDescription(String description){ data.put(DESCRIPTION, description); }
 
@@ -118,7 +122,7 @@ public abstract class BasePublisher extends UpgradeableDataHashMap implements Se
     
     /**
      * Sets whether a successfully published items should remain in the queue (with a different status)
-     * @param keepPublishedInQueue
+     * @param keepPublishedInQueue bool
      */
     public void setKeepPublishedInQueue(boolean keepPublishedInQueue) { data.put(KEEPPUBLISHEDINQUEUE, Boolean.valueOf(keepPublishedInQueue));}
 
@@ -136,7 +140,7 @@ public abstract class BasePublisher extends UpgradeableDataHashMap implements Se
 
     /**
      * Sets whether a CRLs should be put in the publish queue if publish failed
-     * @param useQueueForCRLs
+     * @param useQueueForCRLs bool
      */
     public void setUseQueueForCRLs(boolean useQueueForCRLs) { data.put(USEQUEUEFORCRLS, Boolean.valueOf(useQueueForCRLs));}
 
@@ -154,12 +158,14 @@ public abstract class BasePublisher extends UpgradeableDataHashMap implements Se
 
     /**
      * Sets whether a certificate should be put in the publish queue if publish failed
-     * @param useQueueForCertificates
+     * @param useQueueForCertificates bool
      */
     public void setUseQueueForCertificates(boolean useQueueForCertificates) { data.put(USEQUEUEFORCERTIFICATES, Boolean.valueOf(useQueueForCertificates));}
 
     /** Asks the publisher if the certificate with these parameters will be published. Used by the publisher queue to avoid
      * storing things that will never be published in the publisher queue.
+     * @param status status
+     * @param revocationReason reason  
      * 
      * @return true if the certificate should be published.
      */
@@ -172,16 +178,20 @@ public abstract class BasePublisher extends UpgradeableDataHashMap implements Se
      *
      * To revoke a certificate (already revoked by the CA) call with status=CertificateDataBean.CERT_ACTIVE, the Publisher decides what to do, if
      * anything.
+     * @param admin admin 
      * 
      * @param incert The certificate to be stored.
-     * @param chainfp Fingerprint (hex) of the CAs certificate.
      * @param username Username of end entity owning the certificate.
      * @param password Password given to the user, may be null if no password exists for the user.
      * @param userDN if a DN object is not found in the certificate use object from user data instead, can be null.
+     * @param cafp Fingerprint (hex) of the CAs certificate.
      * @param status Status of the certificate (from CertificateDataBean.CERT_ACTIVE, CERT_REVOKED etc).
      * @param type Type of certificate (from CertificateDataBean.CERTTYPE_ENDENTITY etc).
      * @param revocationDate Date for revocation (of revoked), like System.currentTimeMillis(), or -1 if not revoked.
      * @param revocationReason reason for revocation from RevokedCertInfo, RevokedCertInfo.NOT_REVOKED if not revoked.
+     * @param tag  TAg
+     * @param certificateProfileId Profile
+     * @param lastUpdate Date
      * @param extendedinformation contains extended information about the user, like picture, is null if no extendedinformation exists about the user.
      *
      * @return true if storage was successful.
@@ -198,6 +208,12 @@ public abstract class BasePublisher extends UpgradeableDataHashMap implements Se
     /**
      * Variation of the storeCertificate method which gets the full information needed to call either of the other storeCertificate methods.
      * This is needed for MultiGroupPublisher for example, which can call publishers of either type.
+     * @param authenticationToken token
+     * @param certificateData data
+     * @param base64CertData cert data
+     * @param password pwd
+     * @param userDN DN
+     * @param extendedinformation  Info
      *
      * @see #storeCertificate(AuthenticationToken, Certificate, String, String, String, String, int, int, long, int, String, int, long, ExtendedInformation)
      * @see #storeCertificate(AuthenticationToken, CertificateData, Base64CertData)
@@ -216,9 +232,10 @@ public abstract class BasePublisher extends UpgradeableDataHashMap implements Se
 
     /**
      * Published a CRL to a CRL store.
+     * @param admin token
      *
      * @param incrl The DER coded CRL to be stored.
-     * @param chainfp Fingerprint (hex) of the CAs certificate.
+     * @param cafp Fingerprint (hex) of the CAs certificate.
      * @param number CRL number.
      * @param userDN if an DN object is not found in the certificate use object from user data instead, can be null.
      *
@@ -257,7 +274,7 @@ public abstract class BasePublisher extends UpgradeableDataHashMap implements Se
      * and is used for validating the data source field. 
      * See {@link CustomPublisherContainer#validateDataSource(String)} for a sample validation.
      * 
-     * @param dataSource
+     * @param dataSource source
      * @throws PublisherException in case of invalid data source. 
      * 
      */

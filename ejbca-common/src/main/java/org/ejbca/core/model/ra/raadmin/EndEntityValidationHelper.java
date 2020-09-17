@@ -13,6 +13,7 @@
 package org.ejbca.core.model.ra.raadmin;
 
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -97,10 +98,10 @@ public final class EndEntityValidationHelper {
         }
         
         try {
-            final EndEntityFieldValidator instance = (EndEntityFieldValidator)klass.newInstance();
+            final EndEntityFieldValidator instance = (EndEntityFieldValidator)klass.getConstructor().newInstance();
             validatorCache.put(className, instance);
             return instance;
-        } catch (InstantiationException e) {
+        } catch (InstantiationException | NoSuchMethodException | InvocationTargetException e) {
             log.warn("Failed to instantiate end entity validation class "+className, e);
             nonExistentValidatorsCache.add(className);
             return null;

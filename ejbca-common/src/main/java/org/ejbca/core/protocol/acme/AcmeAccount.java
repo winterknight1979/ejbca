@@ -39,7 +39,7 @@ public interface AcmeAccount extends Serializable, IUpgradeableData {
 
     void setAccountId(String accountId);
 
-    /** The status of this account. Possible values are: "valid", "deactivated", and "revoked". ...*/
+    /** @return The status of this account. Possible values are: "valid", "deactivated", and "revoked". ...*/
     String getStatus();
 
     void setStatus(String status);
@@ -59,11 +59,11 @@ public interface AcmeAccount extends Serializable, IUpgradeableData {
 
     String getConfigurationId();
 
-    /** @return the configurationId of this account  */
+    /** @param configurationId the configurationId of this account  */
     void setConfigurationId(String configurationId);
 
     /** @return the first email address registered under this account or null if none exists (which should not happen since we require one) 
-     * @throws AcmeProblemException */
+     * @throws AcmeProblemException fail */
     String getContactEmail() throws AcmeProblemException;
 
     float getLatestVersion();

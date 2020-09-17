@@ -13,6 +13,7 @@
 package org.ejbca.core.model.approval.profile;
 
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -43,6 +44,7 @@ import org.ejbca.core.model.approval.Approval;
  * @version $Id: ApprovalProfileBase.java 29022 2018-05-24 19:35:09Z bastianf $
  *
  */
+@SuppressWarnings("deprecation")
 public abstract class ApprovalProfileBase extends ProfileBase implements ApprovalProfile, Cloneable {
 
     private static final Logger log = Logger.getLogger(ApprovalProfileBase.class);
@@ -140,8 +142,8 @@ public abstract class ApprovalProfileBase extends ProfileBase implements Approva
         getType();
         ApprovalProfile clone;
         try {
-            clone = (ApprovalProfile) getType().newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
+            clone = (ApprovalProfile) getType().getConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             throw new IllegalStateException("Could not instansiate class of type " + getType().getCanonicalName());
         }
         clone.setProfileName(getProfileName());
@@ -495,6 +497,8 @@ public abstract class ApprovalProfileBase extends ProfileBase implements Approva
     }
 
     /**
+     * @param approvalStep Step
+     * @param approvalsPerformed Approvals 
      * @return true if the list of approvals validates the given step
      * @throws AuthenticationFailedException if the authentication token in the approval doesn't check out
      */

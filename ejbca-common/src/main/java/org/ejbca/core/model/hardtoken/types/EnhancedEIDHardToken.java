@@ -47,7 +47,13 @@ public class EnhancedEIDHardToken extends HardToken {
     public static final String[] FIELDTEXTSWITHOUTPUK = new String[] {ENCKEYRECOVERABLE}; 
         
     // Public Methods
-   /** Constructor to use. */
+   /** Constructor to use. 
+ * @param initialsignaturepin PIN
+ * @param signaturepuk PUK
+ * @param initialauthencpin PIN 
+ * @param authencpuk PUK
+ * @param enckeyrecoverable bool 
+ * @param hardtokenprofileid int */
     public EnhancedEIDHardToken(String initialsignaturepin,
                                 String signaturepuk,
 	                            String initialauthencpin,
@@ -65,7 +71,8 @@ public class EnhancedEIDHardToken extends HardToken {
         data.put(TOKENTYPE, Integer.valueOf(THIS_TOKENTYPE));
     }
 
-    /** Constructor only to be used internally. */
+    /** Constructor only to be used internally. 
+     * @param includePUK  bool */
     public EnhancedEIDHardToken(boolean includePUK) {
     	super(includePUK);   	
     	data.put(TOKENTYPE, Integer.valueOf(THIS_TOKENTYPE));
