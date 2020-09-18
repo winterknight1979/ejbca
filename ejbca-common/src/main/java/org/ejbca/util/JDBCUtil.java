@@ -29,7 +29,7 @@ import org.ejbca.core.ejb.ServiceLocatorException;
 
 /**
  * Utility methods for jdbc calls.
- * <p/>
+ * <p>
  * close() methods do not close quietly but log errors (exceptions) as warning. Closing
  * quietly could mask potential errors that could have no impact depending on GC
  * stress conditions, or simply exhaust database resources, so it is better to have some

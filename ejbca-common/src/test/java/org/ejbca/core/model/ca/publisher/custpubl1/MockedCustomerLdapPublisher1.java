@@ -22,7 +22,7 @@ import org.ejbca.core.model.ca.publisher.PublisherException;
 /**
  * Mocked version of the CustomerLdapPublisher1 used in the unit tests.
  *
- * @version @Id$
+ * @version Id
  */
 public class MockedCustomerLdapPublisher1 extends CustomerLdapPublisher1 {
 

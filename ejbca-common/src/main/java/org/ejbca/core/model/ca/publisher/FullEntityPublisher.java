@@ -26,7 +26,7 @@ public interface FullEntityPublisher {
 
     /**
      * Publishes a CertificateData object in order to retain rowversion and  integrity protection data. Any publisher overriding this method must also override the getPublisherVersion
-     * method and return a value > 1 from there. 
+     * method and return a value &gt; 1 from there. 
      * 
      * @param authenticationToken an authentication token
      * @param certificateData a complete CertificateData object

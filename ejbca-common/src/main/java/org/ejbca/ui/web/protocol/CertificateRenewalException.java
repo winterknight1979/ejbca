@@ -29,6 +29,7 @@ public class CertificateRenewalException extends Exception {
     }
 
     /**
+     * @param message message
      * @see java.lang.Exception#Exception(String)
      */
     public CertificateRenewalException(String message) {
@@ -36,6 +37,7 @@ public class CertificateRenewalException extends Exception {
     }
 
     /**
+     * @param cause cause
      * @see java.lang.Exception#Exception(Throwable)
      */
     public CertificateRenewalException(Throwable cause) {
@@ -43,6 +45,8 @@ public class CertificateRenewalException extends Exception {
     }
 
     /**
+     * @param message message
+     * @param cause cause
      * @see java.lang.Exception#Exception(String, Throwable)
      */
     public CertificateRenewalException(String message, Throwable cause) {

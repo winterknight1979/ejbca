@@ -25,7 +25,7 @@ public class CliTools {
      * 
      * Example usage for parsing argument switches:
      *  public void method(String[] args) {
-     *   List<String> argsList = getAsModifyableList(args);
+     *   List&lt;String&gt; argsList = getAsModifyableList(args);
      *   boolean switch1 = argsList.remove("-switch1");
      *   boolean switch2 = argsList.remove("-switch2");
      *   args = argsList.toArray(new String[0]);

@@ -24,7 +24,7 @@ import com.novell.ldap.LDAPEntry;
  * An additional mocked version of the CustomerLdapPublisher1 used by the unit
  * tests.
  *
- * @version @Id$
+ * @version Id
  */
 public class SecondMockedCustomerLdapPublisher1 extends CustomerLdapPublisher1 {
 

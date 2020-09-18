@@ -185,7 +185,7 @@ public class EnhancedEIDProfile extends EIDProfile {
 	}
 
 	/**
-	 * @Override 
+	 * Override 
 	 */
 	public void reInit() {
 		init();

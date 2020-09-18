@@ -64,7 +64,7 @@ import org.ejbca.util.passgen.PasswordGeneratorFactory;
  *
  * Parsing an exported End Entity Profile XML (or from the getProfile method in the web service):
  * The End Entity Profile XML data is encoded using the standard Java XMLEncoder. To decode it you can use the SecureXMLDecoder class,
- * which is part of CESeCore. The result will be a Map<Object,Object>.
+ * which is part of CESeCore. The result will be a Map&lt;Object,Object&gt;.
  * 
  * In the map there's for example a field SUBJECTDNFIELDORDER which contains a list of defined DN components, as integers. 
  * The algorithm is:
