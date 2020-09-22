@@ -8,6 +8,12 @@
 		<artifactId>ejbca</artifactId>
 		<version>1.0</version>
 	</parent>
+
+	<properties>
+		<config.needed>true</config.needed>
+	</properties>
+
+
 	<artifactId>cesecore-common</artifactId>
 
 	<dependencies>
@@ -91,7 +97,7 @@
 			<artifactId>cert-cvc</artifactId>
 		</dependency>
 
-		
+
 
 		<!-- Shared Resource bundle and Service Manifest generator -->
 
@@ -117,14 +123,101 @@
 					<include>profilemappings_enterprise.properties</include>
 					<include>certextensions.properties</include>
 				</includes>
+				<filtering>true</filtering>
 			</resource>
 		</resources>
 
 
 		<plugins>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-remote-resources-plugin</artifactId>
+				<version>1.7.0</version>
+				<configuration>
+					<resourceBundles>
+						<resourceBundle>${project.groupId}:shared-resources:${project.version}</resourceBundle>
+					</resourceBundles>
+					<outputDirectory>${project.build.directory}/maven-shared-archive-resource</outputDirectory>
+					<attachToMain>false</attachToMain>
+				</configuration>
+				<executions>
+					<execution>
+						<id>unpack-resource-bundle</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>process</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>properties-maven-plugin</artifactId>
+				<version>1.0.0</version>
+				<executions>
+					<execution>
+						<id>load-config-files</id>
+						<phase>initialize</phase>
+						<goals>
+							<goal>read-project-properties</goal>
+						</goals>
+						<configuration>
+							<quiet>true</quiet>
+							<files>
+								<file>${project.build.directory}/maven-shared-archive-resource/internal.properties</file>
+								<file>${project.build.directory}/maven-shared-archive-resource/conf/ejbca.properties </file>
+								<file>${project.build.directory}/maven-shared-archive-resource/conf/install.properties</file>
+								<file>${project.build.directory}/maven-shared-archive-resource/conf/protection.properties</file>
+								<file>${project.build.directory}/maven-shared-archive-resource/conf/database.properties</file>
+								<file>${project.build.directory}/maven-shared-archive-resource/conf/mail.properties</file>
+								<file>${project.build.directory}/maven-shared-archive-resource/conf/ocsp.properties</file>
+								<file>${project.build.directory}/maven-shared-archive-resource/conf/web.properties</file>
+								<file>${project.build.directory}/maven-shared-archive-resource/conf/cmptcp.properties</file>
+								<file>${project.build.directory}/maven-shared-archive-resource/conf/jaxws.properties</file>
+								<file>${project.build.directory}/maven-shared-archive-resource/conf/externalra.properties</file>
+								<file>${project.build.directory}/maven-shared-archive-resource/conf/scepra.properties</file>
+								<file>${project.build.directory}/maven-shared-archive-resource/conf/externalra-gui.properties</file>
+								<file>${project.build.directory}/maven-shared-archive-resource/conf/certstore.properties</file>
+								<file>${project.build.directory}/maven-shared-archive-resource/conf/crlstore.properties</file>
+								<file>${project.build.directory}/maven-shared-archive-resource/conf/va.properties</file>
+								<file>${project.build.directory}/maven-shared-archive-resource/conf/va-publisher.properties</file>
+								<file>${project.build.directory}/maven-shared-archive-resource/conf/systemtests.properties</file>
+							</files>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.8</version>
+				<executions>
+					<execution>
+						<id>load-config</id>
+						<phase>initialize</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<exportAntProperties>true</exportAntProperties>
+							<target name="configure">
+
+								<ant
+									antfile="${project.build.directory}/maven-shared-archive-resource/propertyDefaults.xml"
+									target="load-properties" />
+
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
-				
+
 				<executions>
 					<execution>
 						<id>copy-resources</id>
@@ -158,25 +251,6 @@
 				</executions>
 			</plugin>
 
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-remote-resources-plugin</artifactId>
-				<version>1.7.0</version>
-				<configuration>
-					<resourceBundles>
-						<resourceBundle>${project.groupId}:shared-resources:${project.version}</resourceBundle>
-					</resourceBundles>
-					<outputDirectory>${project.build.directory}/maven-shared-archive-resource</outputDirectory>
-					<attachToMain>false</attachToMain>
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>process</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -202,9 +276,6 @@
 					</execution>
 				</executions>
 			</plugin>
-
-
 		</plugins>
 	</build>
-
 </project>

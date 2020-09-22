@@ -11,11 +11,16 @@
 
 	<build>
 		<plugins>
+    	
+		
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-remote-resources-plugin</artifactId>
 				<version>1.7.0</version>
+				
 				<executions>
 					<execution>
+						<id>create-resource-bundle</id>
 						<goals>
 							<goal>bundle</goal>
 						</goals>
@@ -23,6 +28,12 @@
 							<includes>
 								<include>**/*</include>
 							</includes>
+						</configuration>
+					</execution>
+					<execution>
+						<id>unpack-resource-bundle</id>
+						<configuration>
+							<skip>true</skip>
 						</configuration>
 					</execution>
 				</executions>
