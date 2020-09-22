@@ -374,6 +374,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
         <module>cesecore-ejb-interface</module>
         <module>cesecore-ejb</module>
         <module>ejbca-common</module>
+        <module>ejbca-entity</module>
     </modules>
     <build>
     
@@ -384,6 +385,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
             		<artifactId>maven-resources-plugin</artifactId>
             		<version>3.2.0</version>
             		<configuration>
+            			<fileNameFiltering>true</fileNameFiltering>
             			<propertiesEncoding>ISO-8859-1</propertiesEncoding>
             		</configuration>
             	</plugin>
