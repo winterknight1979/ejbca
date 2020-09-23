@@ -10,6 +10,17 @@
 	<artifactId>ejbca-entity</artifactId>
 
 	<dependencies>
+	<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>cesecore-ejb-interface</artifactId>
+			<version>${project.version}</version>
+			</dependency>
+			<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>ejbca-common</artifactId>
+			<version>${project.version}</version>
+			</dependency>
+	
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>shared-resources</artifactId>
