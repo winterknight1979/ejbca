@@ -219,7 +219,7 @@ public class HardTokenData extends ProtectedData implements Serializable {
 	/** @param entityManager EM
 	 * @param searchPattern Pattern
 	 * @param maxResults Max results
-	 * @return return a List<String> of all usernames where the searchPattern matches the token serial number. */
+	 * @return return a List&lt;String&gt; of all usernames where the searchPattern matches the token serial number. */
     @SuppressWarnings("unchecked")
     public static List<String> findUsernamesByHardTokenSerialNumber(EntityManager entityManager, String searchPattern, int maxResults) {
         Query query = entityManager.createNativeQuery("SELECT DISTINCT a.username FROM HardTokenData a WHERE tokenSN LIKE :search");

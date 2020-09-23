@@ -299,7 +299,7 @@ public class PublisherQueueData extends ProtectedData implements Serializable {
      * @param entityManager EM
      * @param publisherId ID
      * @param publishStatus Status
-     * @param maxRows If set > 0, limits the number of rows fetched.
+     * @param maxRows If set &gt; 0, limits the number of rows fetched.
      *
      * @return return the query results as a List. */
     @SuppressWarnings("unchecked")

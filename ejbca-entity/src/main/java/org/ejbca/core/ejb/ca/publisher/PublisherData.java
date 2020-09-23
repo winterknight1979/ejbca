@@ -60,7 +60,7 @@ public class PublisherData extends ProtectedData implements Serializable {
 	 * @param name Name
 	 * @param publisher Pub 
 	 *
-	 * @ejb.create-method view-type="local"
+	 * ejb.create-method view-type="local"
 	 */
 	public PublisherData(int id, String name, BasePublisher publisher) {
         if (log.isDebugEnabled()) {

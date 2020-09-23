@@ -404,51 +404,48 @@
 
 								<property name="unidfnr.enabled" value="false" />
 								<!-- by default unidfnr is not enabled, but can be in ocsp.properties -->
-								<ant
-									antfile="${project.build.directory}/maven-shared-archive-resource/bin/${appserver.type}.xml"
-									target="set-paths" />
+								
 
 								<echo>
-									---------- ${app.version} CONFIGURATION PROPERTIES ----------
-									appserver.type = ${appserver.type}
-									appserver.subtype = ${appserver.subtype}
-									appserver.home = ${appserver.home}
-									java.version(ant.java) = ${java.version} (${ant.java.version})
-									ocsp.signaturealgorithm = ${ocsp.signaturealgorithm}
-									datasource.jndi-name = ${datasource.jndi-name}
-									datasource.jndi-name-prefix = ${datasource.jndi-name-prefix}
-									database.name = ${database.name}
-									database.url = ${database.url}
-									database.driver = ${database.driver}
-									database.username = ${database.username}
-									database.password = ***
-									database.useSeparateCertificateTable = ${database.useSeparateCertificateTable}
-									database.valid.connection.sql =
-									${database.valid.connection.sql}
-									mail.jndi-name = ${mail.jndi-name}
-									mail.from = ${mail.from}
-									mail.user = ${mail.user}
-									mail.password = ***
-									mail.smtp.host = ${mail.smtp.host}
-									mail.smtp.port = ${mail.smtp.port}
-									mail.smtp.auth = ${mail.smtp.auth}
-									mail.debug = ${mail.debug}
-									httpserver.pubhttp = ${httpserver.pubhttp}
-									httpserver.pubhttps = ${httpserver.pubhttps}
-									httpserver.privhttps = ${httpserver.privhttps}
-									httpserver.external.privhttps = ${httpserver.external.privhttps}
-									httpsserver.hostname = ${httpsserver.hostname}
-									httpsserver.password = ***
-									httpserver.external.fqdn = ${httpserver.external.fqdn}
-									web.contentencoding = ${web.contentencoding}
-									web.renewalenabled = ${web.renewalenabled}
-									ejbcaws.enabled = ${ejbcaws.enabled}
-									cmp.tcp.enabled = ${cmp.tcp.enabled}
-									cmp.tcp.portno = ${cmp.tcp.portno}
-									cmp.tcp.logdir = ${cmp.tcp.logdir}
-									cmp.tcp.conffile = ${cmp.tcp.conffile}
-									unidfnr.enabled = ${unidfnr.enabled}
-
+---------- ${app.version} CONFIGURATION PROPERTIES ----------
+appserver.type = ${appserver.type}
+appserver.subtype = ${appserver.subtype}
+appserver.home = ${appserver.home}
+java.version(ant.java) = ${java.version} (${ant.java.version})
+ocsp.signaturealgorithm = ${ocsp.signaturealgorithm}
+datasource.jndi-name = ${datasource.jndi-name}
+datasource.jndi-name-prefix = ${datasource.jndi-name-prefix}
+database.name = ${database.name}
+database.url = ${database.url}
+database.driver = ${database.driver}
+database.username = ${database.username}
+database.password = ***
+database.useSeparateCertificateTable = ${database.useSeparateCertificateTable}
+database.valid.connection.sql =
+${database.valid.connection.sql}
+mail.jndi-name = ${mail.jndi-name}
+mail.from = ${mail.from}
+mail.user = ${mail.user}
+mail.password = ***
+mail.smtp.host = ${mail.smtp.host}
+mail.smtp.port = ${mail.smtp.port}
+mail.smtp.auth = ${mail.smtp.auth}
+mail.debug = ${mail.debug}
+httpserver.pubhttp = ${httpserver.pubhttp}
+httpserver.pubhttps = ${httpserver.pubhttps}
+httpserver.privhttps = ${httpserver.privhttps}
+httpserver.external.privhttps = ${httpserver.external.privhttps}
+httpsserver.hostname = ${httpsserver.hostname}
+httpsserver.password = ***
+httpserver.external.fqdn = ${httpserver.external.fqdn}
+web.contentencoding = ${web.contentencoding}
+web.renewalenabled = ${web.renewalenabled}
+ejbcaws.enabled = ${ejbcaws.enabled}
+cmp.tcp.enabled = ${cmp.tcp.enabled}
+cmp.tcp.portno = ${cmp.tcp.portno}
+cmp.tcp.logdir = ${cmp.tcp.logdir}
+cmp.tcp.conffile = ${cmp.tcp.conffile}
+unidfnr.enabled = ${unidfnr.enabled}
 								</echo>
 
 							</target>
