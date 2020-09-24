@@ -381,6 +381,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
         <module>cesecore-ejb</module>
         <module>ejbca-common</module>
         <module>ejbca-entity</module>
+        <module>ejbca-ws-common</module>
     </modules>
     <build>
     
