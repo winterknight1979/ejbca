@@ -26,7 +26,8 @@ public interface AuthorizationSystemSessionLocal extends AuthorizationSystemSess
     /** @return a Map<category name, Map<resource,resourceName>> */
     Map<String, Map<String, String>> getAllResourceAndResourceNamesByCategory();
 
-    /** @return a Map of all <resource,resourceName>, on this installation (optionally ignoring if certain resources is not in use) */
+    /** @param ignoreLimitations limit
+     * @return a Map of all <resource,resourceName>, on this installation (optionally ignoring if certain resources is not in use) */
     Map<String,String> getAllResources(boolean ignoreLimitations);
 
     /**

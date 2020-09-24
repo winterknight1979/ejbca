@@ -43,7 +43,7 @@ public interface RevocationSession {
      * @param publishers and array of publisher ids (Integer) of publishers to revoke the certificate in.
      * @param reason     the reason of the revocation. (One of the RevokedCertInfo.REVOCATION_REASON constants.)
      * @param userDataDN if an DN object is not found in the certificate use object from user data instead.
-     * @throws CertificaterevokeException (rollback) if certificate does not exist
+     * @throws CertificateRevokeException (rollback) if certificate does not exist
      * @throws AuthorizationDeniedException (rollback)
      */
     void revokeCertificate(AuthenticationToken admin, Certificate cert, Collection<Integer> publishers, int reason, String userDataDN) throws CertificateRevokeException, AuthorizationDeniedException;

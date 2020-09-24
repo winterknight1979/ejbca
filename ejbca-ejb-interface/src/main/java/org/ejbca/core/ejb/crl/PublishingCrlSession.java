@@ -30,6 +30,8 @@ public interface PublishingCrlSession {
      * scheduler or a service.
      * 
      * @param admin administrator performing the task
+     * @return crl
+     * @throws AuthorizationDeniedException fail
      */
     int createCRLs(AuthenticationToken admin) throws AuthorizationDeniedException;
 
@@ -39,6 +41,8 @@ public interface PublishingCrlSession {
      * called by a scheduler or a service.
      * 
      * @param admin administrator performing the task
+     * @return crl
+     * @throws AuthorizationDeniedException fail
      */
     int createDeltaCRLs(AuthenticationToken admin) throws AuthorizationDeniedException;
 
@@ -59,6 +63,10 @@ public interface PublishingCrlSession {
      *            used CRL overlap time will be (crloverlaptime +
      *            addtocrloverlaptime)
      * @return true if a CRL was created
+     * @throws CryptoTokenOfflineException fail
+     * @throws CAOfflineException fail
+     * @throws CADoesntExistsException fail 
+     * @throws AuthorizationDeniedException fail 
      * @throws javax.ejb.EJBException if communication or system error occurs
      */
     boolean createCRLNewTransactionConditioned(AuthenticationToken admin, int caid, long addtocrloverlaptime) throws CryptoTokenOfflineException,
@@ -69,6 +77,10 @@ public interface PublishingCrlSession {
      * @param admin administrator performing the task
      * @param caid the id of the CA this operation regards
      * @return true if a CRL was generated
+     * @throws CADoesntExistsException fail
+     * @throws AuthorizationDeniedException fail 
+     * @throws CryptoTokenOfflineException fail
+     * @throws CAOfflineException fail
      */
     boolean forceCRL(AuthenticationToken admin, int caid) throws CADoesntExistsException, AuthorizationDeniedException, CryptoTokenOfflineException,
             CAOfflineException;
@@ -78,6 +90,10 @@ public interface PublishingCrlSession {
      * @param admin administrator performing the task
      * @param caid the id of the CA this operation regards
      * @return true if a CRL was generated
+     * @throws CADoesntExistsException fail
+     * @throws AuthorizationDeniedException fail 
+     * @throws CryptoTokenOfflineException fail
+     * @throws CAOfflineException fail
      */
     boolean forceDeltaCRL(AuthenticationToken admin, int caid) throws CADoesntExistsException, AuthorizationDeniedException,
             CryptoTokenOfflineException, CAOfflineException;

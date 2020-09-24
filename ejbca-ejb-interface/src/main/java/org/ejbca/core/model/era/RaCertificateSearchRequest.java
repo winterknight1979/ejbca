@@ -55,7 +55,8 @@ public class RaCertificateSearchRequest implements Serializable, Comparable<RaCe
     /** Default constructor */
     public RaCertificateSearchRequest() {}
 
-    /** Copy constructor */
+    /** Copy constructor 
+     * @param request req*/
     public RaCertificateSearchRequest(final RaCertificateSearchRequest request) {
         maxResults = request.maxResults;
         pageNumber = request.pageNumber;
@@ -112,7 +113,8 @@ public class RaCertificateSearchRequest implements Serializable, Comparable<RaCe
     public boolean isUsernameSearchExact() { return usernameSearchExact; }
     public void setUsernameSearchExact(final boolean usernameSearchExact) { this.usernameSearchExact = usernameSearchExact; }
     public String getSerialNumberSearchStringFromDec() { return serialNumberSearchStringFromDec; }
-    /** Set the serialNumber search string as a decimal String if it has potential to be a decimal certificate serial number. */
+    /** Set the serialNumber search string as a decimal String if it has potential to be a decimal certificate serial number. 
+     * @param serialNumberSearchStringFromDec sn */
     public void setSerialNumberSearchStringFromDec(final String serialNumberSearchStringFromDec) {
         // Assuming 8 octets and some leading zeroes
         String value = "";
@@ -126,7 +128,8 @@ public class RaCertificateSearchRequest implements Serializable, Comparable<RaCe
 
     }
     public String getSerialNumberSearchStringFromHex() { return serialNumberSearchStringFromHex; }
-    /** Set the serialNumber search string as a decimal String if it has potential to be a hex certificate serial number. */
+    /** Set the serialNumber search string as a decimal String if it has potential to be a hex certificate serial number. 
+     * @param serialNumberSearchStringFromHex sn*/
     public void setSerialNumberSearchStringFromHex(final String serialNumberSearchStringFromHex) {
         // Assuming 8 octets and some leading zeroes
         String value = "";
@@ -235,39 +238,55 @@ public class RaCertificateSearchRequest implements Serializable, Comparable<RaCe
         return 0;
     }
 
-    /** @return true if thisObject does contain whole other, but other does not contain whole this → more narrow */
+    /** @param thisObject obj
+     * @param otherObject obj
+     * @return true if thisObject does contain whole other, but other does not contain whole this → more narrow */
     private boolean isMoreNarrow(final List<Integer> thisObject, final List<Integer> otherObject) {
         return thisObject.containsAll(otherObject) && !otherObject.containsAll(thisObject);
     }
-    /** @return true if thisObject does contain whole other, but other does not contain whole this → more narrow */
+    /** @param thisObject obj
+     * @param otherObject obj
+     * @return true if thisObject does contain whole other, but other does not contain whole this → more narrow */
     private boolean isMoreNarrow(final String thisObject, final String otherObject) {
         return thisObject.contains(otherObject) && !otherObject.contains(thisObject);
     }
-    /** @return true if thisObject does contain whole other, but other does not contain whole this → more narrow */
+    /** @param thisObjectExact obj
+     * @param otherObjectExact ong
+     * @return true if thisObject does contain whole other, but other does not contain whole this → more narrow */
     private boolean isMoreNarrow(final boolean thisObjectExact, final boolean otherObjectExact) {
         return thisObjectExact && !otherObjectExact;
     }
-    /** @return true if thisObject does not contain whole other → wider */
+    /** @param thisObject obj
+     * @param otherObject obj
+     * @return true if thisObject does not contain whole other → wider */
     private boolean isWider(final List<Integer> thisObject, final List<Integer> otherObject) {
         return !thisObject.containsAll(otherObject);
     }
-    /** @return true if thisObject does not contain whole other → wider */
+    /** @param thisObject obj
+     * @param otherObject obj
+     * @return true if thisObject does not contain whole other → wider */
     private boolean isWider(final String thisObject, final String otherObject) {
         return !thisObject.contains(otherObject);
     }
-    /** @return true if thisObject does not contain whole other → wider */
+    /** @param thisObjectExact obj
+     * @param otherObjectExact obj
+     * @return true if thisObject does not contain whole other → wider */
     private boolean isWider(final boolean thisObjectExact, final boolean otherObjectExact) {
         return !thisObjectExact && otherObjectExact;
     }
 
-    /** @return true if the endEntityProfileId is matched by this search. */
+    /** @param endEntityProfileId ID
+     * @return true if the endEntityProfileId is matched by this search. */
     public boolean matchEep(final int endEntityProfileId) { return eepIds.isEmpty() || eepIds.contains(Integer.valueOf(endEntityProfileId)); }
-    /** @return true if the certificateId is matched by this search. */
+    /** @param certificateProfileId ID
+     * @return true if the certificateId is matched by this search. */
     public boolean matchCp(final int certificateProfileId) { return cpIds.isEmpty() || cpIds.contains(Integer.valueOf(certificateProfileId)); }
-    /** @return true if the endEntityProfileId is matched by this search. */
+    /** @param caId ID
+     * @return true if the endEntityProfileId is matched by this search. */
     public boolean matchCa(final int caId) { return caIds.isEmpty() || caIds.contains(Integer.valueOf(caId)); }
 
-    /** @return true if the notBefore is matched by this search. */
+    /** @param notBefore long
+     * @return true if the notBefore is matched by this search. */
     public boolean matchIssuedInterval(final Long notBefore) {
         if (isIssuedAfterUsed() && (notBefore==null || notBefore.longValue()<issuedAfter)) {
             return false;
@@ -278,7 +297,8 @@ public class RaCertificateSearchRequest implements Serializable, Comparable<RaCe
         return true;
     }
 
-    /** @return true if the expireDate is matched by this search. */
+    /** @param expireDate date
+     * @return true if the expireDate is matched by this search. */
     public boolean matchExpiresInterval(final long expireDate) {
         if (isExpiresAfterUsed() && expireDate<expiresAfter) {
             return false;
@@ -289,7 +309,8 @@ public class RaCertificateSearchRequest implements Serializable, Comparable<RaCe
         return true;
     }
 
-    /** @return true if the expireDate is matched by this search. */
+    /** @param revocationDate date
+     * @return true if the expireDate is matched by this search. */
     public boolean matchRevokedInterval(long revocationDate) {
         if (isRevokedAfterUsed() && revocationDate<revokedAfter) {
             return false;
@@ -300,27 +321,33 @@ public class RaCertificateSearchRequest implements Serializable, Comparable<RaCe
         return true;
     }
 
-    /** @return true if the serialNumber is matched by this search (either as decimal or hexadecimal). */
+    /** @param serialNumber SN
+     * @return true if the serialNumber is matched by this search (either as decimal or hexadecimal). */
     public boolean matchSerialNumber(final String serialNumber) {
         return serialNumber.equals(getSerialNumberSearchStringFromDec()) || serialNumber.equals(getSerialNumberSearchStringFromHex());
     }
 
-    /** @return true if the username is matched by this search. */
+    /** @param username User
+     * @return true if the username is matched by this search. */
     public boolean matchUsername(final String username) {
         return username != null && ((!usernameSearchExact && username.toUpperCase().contains(usernameSearchString.toUpperCase())) ||
                                     (usernameSearchExact && username.equalsIgnoreCase(usernameSearchString)));
     }
-    /** @return true if the subjectDn is matched by this search. */
+    /** @param subjectDn DN
+     * @return true if the subjectDn is matched by this search. */
     public boolean matchSubjectDn(final String subjectDn) {
         return subjectDn != null && ((!subjectDnSearchExact && subjectDn.toUpperCase().contains(subjectDnSearchString.toUpperCase())) ||
                                     (subjectDnSearchExact && subjectDn.equalsIgnoreCase(subjectDnSearchString)));
     }
-    /** @return true if the subjectAn is matched by this search. */
+    /** @param subjectAn An
+     * @return true if the subjectAn is matched by this search. */
     public boolean matchSubjectAn(final String subjectAn) {
         return subjectAn != null && ((!subjectAnSearchExact && subjectAn.contains(subjectAnSearchString)) || (subjectAnSearchExact && subjectAn.equals(subjectAnSearchString)));
     }
 
-    /** @return true if the certicate status and revocation reason is matched by this search. */
+    /** @param status status
+     * @param revocationReason rev
+     * @return true if the certicate status and revocation reason is matched by this search. */
     public boolean matchStatusAndReason(final int status, final int revocationReason) {
         if (!statuses.isEmpty() && !statuses.contains(status)) {
             return false;

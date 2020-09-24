@@ -73,6 +73,9 @@ public interface EndEntityManagementSession {
      * @param hardwaretokenissuerid if token should be hard, the id of the hard
      *            token issuer, else 0.
      * @param caid the CA the user should be issued from.
+     * @throws AuthorizationDeniedException fail
+     * @throws EndEntityProfileValidationException fail
+     * @throws WaitingForApprovalException fail
      * @throws CADoesntExistsException if the caid of the user does not exist
      * @throws CertificateSerialNumberException if SubjectDN serial number already exists.
      * @throws ApprovalException if an approval already exists for this request.
@@ -125,6 +128,7 @@ public interface EndEntityManagementSession {
      * @throws EndEntityProfileValidationException if data doesn't fulfill requirements of the end entity profile
      * @throws EndEntityExistsException if user already exists or some other database error occurs during commit
      * @throws WaitingForApprovalException if approval is required and the action has been added in the approval queue.
+     * @throws CADoesntExistsException fail
      * @throws IllegalNameException if the Subject DN or SAN failed constraints
      * @throws CustomFieldException if the end entity was not validated by a locally defined field validator
      * @throws ApprovalException if an approval already exists for this request.
@@ -142,7 +146,6 @@ public interface EndEntityManagementSession {
      *            timemodified will not be used.
      * @param clearpwd true if the password will be stored in clear form in the
      *            db, otherwise it is hashed.
-     * @param approvalRequestID the unique ID of the approval request (not the hash)
      * @param lastApprovingAdmin The last administrator to have approved the request
      * @throws AuthorizationDeniedException
      *             if administrator isn't authorized to add user
@@ -153,7 +156,8 @@ public interface EndEntityManagementSession {
      * @throws WaitingForApprovalException
      *             if approval is required and the action have been added in the
      *             approval queue.
-     * @throws WaitingForApprovalException
+     * @throws WaitingForApprovalException fail
+     * @throws CADoesntExistsException fail
      * @throws CustomFieldException if the end entity was not validated by a locally defined field validator
      * @throws IllegalNameException if the Subject DN failed constraints
      * @throws ApprovalException if an approval already exists for this request.
@@ -313,6 +317,7 @@ public interface EndEntityManagementSession {
     /**
      * Deletes a user from the database. The users certificates must be revoked
      * BEFORE this method is called.
+     * @param admin admin
      * 
      * @param username the unique username.
      * @throws AuthorizationDeniedException if admin was not authorized to remove end entities
@@ -327,6 +332,8 @@ public interface EndEntityManagementSession {
      * @param admin An authentication token 
      * @param username the unique username.
      * @param status the new status, from 'UserData'.
+     * @throws AuthorizationDeniedException fail
+     * @throws NoSuchEndEntityException fail
      * 
      * @throws ApprovalException if an approval already is waiting for specified action
      * @throws WaitingForApprovalException if approval is required and the action have been added in the approval queue.
@@ -339,8 +346,9 @@ public interface EndEntityManagementSession {
      * @param admin An authentication token 
      * @param username the unique username.
      * @param status the new status, from 'UserData'.
-     * @param approvalRequestId The ID of the approval request submitted to change the status
+     * @param approvalRequestID The ID of the approval request submitted to change the status
      * @param lastApprovingAdmin the last administrator to have approved the request
+     * @throws AuthorizationDeniedException fail
      * 
      * @throws ApprovalException if an approval already is waiting for specified action
      * @throws WaitingForApprovalException if approval is required and the action have been added in the approval queue.
@@ -357,6 +365,8 @@ public interface EndEntityManagementSession {
      * @param admin the administrator performing the action
      * @param username the unique username.
      * @param password the new password for the user, NOT null.
+     * @throws EndEntityProfileValidationException fail
+     * @throws AuthorizationDeniedException fail
      * 
      * @throws NoSuchEndEntityException if the end entity was not found
      */
@@ -370,6 +380,8 @@ public interface EndEntityManagementSession {
      * @param password the new password to be stored in clear text. Setting
      *            password to 'null' effectively deletes any previous clear
      *            text password.
+     * @throws EndEntityProfileValidationException fail
+     * @throws AuthorizationDeniedException fail
      * 
      * @throws NoSuchEndEntityException if the end entity was not found
      */
@@ -383,6 +395,8 @@ public interface EndEntityManagementSession {
      * @param password the password to be verified.
      * @param decRemainingLoginAttemptsOnFailure if true and password verification fails, will try to decrease remaining login attempts (which can be unlimited)
      * @return true if password was correct, false otherwise
+     * @throws EndEntityProfileValidationException fail
+     * @throws AuthorizationDeniedException fail
      * 
      * @throws NoSuchEndEntityException if the end entity was not found
      */
@@ -391,7 +405,12 @@ public interface EndEntityManagementSession {
     
     /** 
      * Revoke and then delete a user. 
+     * @param admin admin
+     * @param username user
+     * @param reason reason
+     * @throws AuthorizationDeniedException fail
      * @throws ApprovalException if an approval already exists for this request.
+     * @throws WaitingForApprovalException fail
      * @throws NoSuchEndEntityException if the end entity was not found.
      * @throws CouldNotRemoveEndEntityException if the user could not be deleted.
      */
@@ -401,11 +420,15 @@ public interface EndEntityManagementSession {
     /**
      * Method that revokes a user. Revokes all users certificates and then sets user status to revoked.
      * If user status is already revoked it still revokes all users certificates, ignoring the ones that are already revoked.
+     * @param admin admin
      * 
      * @param username the username to revoke.
      * @param reason revocation reason to use in certificate revocations
+     * @throws AuthorizationDeniedException fail 
+     * @throws NoSuchEndEntityException fail
      * @throws AlreadyRevokedException if user is revoked and unrevocation is attempted by sending revocation reason NOTREVOKED or REMOVEFROMCRL
      * @throws ApprovalException if revocation has been requested and is waiting for approval.
+     * @throws WaitingForApprovalException fail
      * 
      */
     void revokeUser(AuthenticationToken admin, String username, int reason)
@@ -444,13 +467,17 @@ public interface EndEntityManagementSession {
      * Method that revokes a user. Revokes all users certificates and then sets user status to revoked.
      * If user status is already revoked it still revokes all users certificates, ignoring the ones that are already revoked.
      * This method is called mainly when executing a RevocationApprovalRequest
+     * @param admin admin
      * 
      * @param username the username to revoke.
      * @param reason revocation reason to use in certificate revocations
-     * @param approvalRequestId the ID of the approval request submitted to revoke the user
+     * @param approvalRequestID the ID of the approval request submitted to revoke the user
      * @param lastApprovingAdmin the last administrator to have approved the request
+     * @throws AuthorizationDeniedException fail
+     * @throws NoSuchEndEntityException fail
      * @throws AlreadyRevokedException if user is revoked and unrevocation is attempted by sending revocation reason NOTREVOKED or REMOVEFROMCRL
      * @throws ApprovalException if revocation has been requested and is waiting for approval.
+     * @throws WaitingForApprovalException fail
      * 
      */
     void revokeUserAfterApproval(AuthenticationToken admin, String username, int reason, int approvalRequestID, AuthenticationToken lastApprovingAdmin) 
@@ -459,19 +486,19 @@ public interface EndEntityManagementSession {
     /**
      * Same as {@link #revokeCert(AuthenticationToken, BigInteger, String, int)} but also sets the revocation date.
      * 
-     * @param admin
-     * @param certserno
+     * @param admin admin
+     * @param certserno sn
      * @param revocationdate after this the the certificate is not valid
-     * @param issuerdn
-     * @param reason
+     * @param issuerdn dn
+     * @param reason reason
      * @param checkPermission if true and if 'revocationdate' is not null then the certificate profile must allow back dating otherwise a {@link RevokeBackDateNotAllowedForProfileException} is thrown.
      * 
-     * @throws AuthorizationDeniedException
+     * @throws AuthorizationDeniedException fail
      * @throws NoSuchEndEntityException if certificate to revoke can not be found
      * @throws ApprovalException if revocation has been requested and is waiting for approval.
-     * @throws WaitingForApprovalException
-     * @throws AlreadyRevokedException
-     * @throws RevokeBackDateNotAllowedForProfileException
+     * @throws WaitingForApprovalException fail
+     * @throws AlreadyRevokedException fail
+     * @throws RevokeBackDateNotAllowedForProfileException fail
      */
     void revokeCert(AuthenticationToken admin, BigInteger certserno, Date revocationdate, String issuerdn, int reason, boolean checkPermission)
             throws AuthorizationDeniedException, NoSuchEndEntityException, ApprovalException, WaitingForApprovalException, AlreadyRevokedException,
@@ -485,15 +512,16 @@ public interface EndEntityManagementSession {
      * 
      * @param admin the administrator performing the action
      * @param certserno the serno of certificate to revoke.
-     * @param issuerdn
+     * @param issuerdn DN
      * @param reason the reason of revocation, one of the RevokedCertInfo.XX
      *            constants. Use RevokedCertInfo.NOT_REVOKED to re-activate a
      *            certificate on hold.
+     * @throws AuthorizationDeniedException fail
      * @throws AlreadyRevokedException if the certificate was already revoked
      * @throws NoSuchEndEntityException if certificate to revoke can not be found
      * @throws ApprovalException if an approval already exists for this request.
-     * @throws WaitingForApprovalException
-     * @throws AlreadyRevokedException
+     * @throws WaitingForApprovalException fail
+     * @throws AlreadyRevokedException fail
      */
     void revokeCert(AuthenticationToken admin, BigInteger certserno, String issuerdn, int reason)
             throws AuthorizationDeniedException, NoSuchEndEntityException, ApprovalException, WaitingForApprovalException, AlreadyRevokedException;
@@ -510,12 +538,14 @@ public interface EndEntityManagementSession {
      * 
      * @param admin token of the administrator performing the action
      * @param certRevocationDto wrapper object of the input parameters for the revoke.
+     * @throws AuthorizationDeniedException fail
      * 
      * @throws AlreadyRevokedException if the certificate was already revoked
      * @throws NoSuchEndEntityException if certificate to revoke can not be found
      * @throws ApprovalException if an approval already exists for this request.
-     * @throws WaitingForApprovalException
-     * @throws AlreadyRevokedException
+     * @throws WaitingForApprovalException fail
+     * @throws AlreadyRevokedException fail
+     * @throws RevokeBackDateNotAllowedForProfileException fail
      * @throws CertificateProfileDoesNotExistException if no profile was found with certRevocationDto.certificateProfileId input parameter.
      */
     void revokeCertWithMetadata(AuthenticationToken admin, CertRevocationDto certRevocationDto)
@@ -532,17 +562,18 @@ public interface EndEntityManagementSession {
      * 
      * @param admin the administrator performing the action
      * @param certserno the serno of certificate to revoke.
-     * @param issuerdn
+     * @param issuerdn DN
      * @param reason the reason of revocation, one of the RevokedCertInfo.XX
      *            constants. Use RevokedCertInfo.NOT_REVOKED to re-activate a
      *            certificate on hold.
-     * @param approvalRequestId the ID of the approval request submitted to revoke the certificate
+     * @param approvalRequestID the ID of the approval request submitted to revoke the certificate
      * @param lastApprovingAdmin the last administrator to have approved the request
+     * @throws AuthorizationDeniedException fail
      * @throws AlreadyRevokedException if the certificate was already revoked
-     * @throws NoSuchEndEntityException
+     * @throws NoSuchEndEntityException fai;
      * @throws ApprovalException if an approval already exists for this request.
-     * @throws WaitingForApprovalException
-     * @throws AlreadyRevokedException
+     * @throws WaitingForApprovalException fail
+     * @throws AlreadyRevokedException fail
      */
     void revokeCertAfterApproval(AuthenticationToken admin, BigInteger certserno, String issuerdn, int reason, int approvalRequestID,
             AuthenticationToken lastApprovingAdmin)
@@ -562,6 +593,7 @@ public interface EndEntityManagementSession {
      * Method checking if username already exists in database. WARNING: do not
      * use this method where an authorization check is needed, use findUser
      * there instead.
+     * @param username user
      * 
      * @return true if username already exists.
      */
@@ -573,12 +605,16 @@ public interface EndEntityManagementSession {
      * 
      * @param admin used to authorize this action
      * @param username is the user to key recover a certificate for
+     * @param endEntityProfileId ID
      * @param certificate is the certificate to recover the keys for. Use
      *            'null' to recovery the certificate with latest not before
      *            date.
      * @return true if the operation was successful
+     * @throws AuthorizationDeniedException fail
+     * @throws ApprovalException fail
+     * @throws WaitingForApprovalException fail 
+     * @throws CADoesntExistsException fail
      * 
-     * @throws if an approval already exists for this request.
      */
     boolean prepareForKeyRecovery(AuthenticationToken admin, String username, int endEntityProfileId, Certificate certificate)
     		throws AuthorizationDeniedException, ApprovalException, WaitingForApprovalException, CADoesntExistsException;
@@ -610,7 +646,7 @@ public interface EndEntityManagementSession {
      * @param timeModified Not modified since this date, as expressed by a Long
      *            value 
      * @param status Status of the requested CAIDs
-     * @return
+     * @return list
      */
     List<EndEntityInformation> findUsers(List<Integer> caIds, long timeModified, int status);
 
@@ -621,8 +657,8 @@ public interface EndEntityManagementSession {
      * No re-publishing with updated username will take place.
      * 
      * @param admin administrator that 
-     * @param currentUsername
-     * @param newUsername
+     * @param currentUsername user
+     * @param newUsername user
      * @return true if an end entity with such name existed
      * @throws AuthorizationDeniedException if the user was not authorized to edit this end entity
      * @throws EndEntityExistsException the newUsername is already taken by another end entity

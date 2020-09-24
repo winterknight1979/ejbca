@@ -50,7 +50,7 @@ public interface KeyRecoverySession {
      * @param certificate to recover
      * @param username of the end entity related to the certificate
      * @param endEntityProfileId used by the end entity
-     * @param checkNewest 
+     * @param checkNewest bool
      * @throws ApprovalException if approval already exists
      * @throws WaitingForApprovalException if approval is required. Expected to be thrown in this case
      * @throws CADoesntExistsException if the issuer of the certificate doesn't exist
@@ -80,14 +80,17 @@ public interface KeyRecoverySession {
      */
     void removeKeyRecoveryData(AuthenticationToken admin, CertificateWrapper certificate) throws AuthorizationDeniedException;
 
-    /** Removes a all keyrecovery data saved for a user from the database. */
+    /** Removes a all keyrecovery data saved for a user from the database. 
+     * @param admin admin
+     * @param username user */
     void removeAllKeyRecoveryData(AuthenticationToken admin, String username);
 
     /**
      * Returns the keyrecovery data for a user. Observe only one certificates
      * key can be recovered for every user at the time.
-     * 
-     * @param endentityprofileid the end entity profile id the user belongs to.
+     * @param admin admin
+     * @param username user
+     * @param endEntityProfileId the end entity profile id the user belongs to.
      * @return the marked keyrecovery data or null if none can be found.
      * 
      * @throws AuthorizationDeniedException if not authorized to recover keys
@@ -101,9 +104,12 @@ public interface KeyRecoverySession {
      *
      * @param admin the administrator calling the function
      * @param username or the user.
-     * @param the end entity profile of the user, used for access control
+     * @param endEntityProfileId the end entity profile of the user, used for access control
      * @return true if operation went successful or false if no certificates could be found for
      *         user, or user already marked.
+     * @throws AuthorizationDeniedException fail
+     * @throws ApprovalException fail
+     * @throws WaitingForApprovalException fail
      *         
      * @throws CADoesntExistsException if the issuer of the certificate doesn't exist
      */
@@ -115,17 +121,24 @@ public interface KeyRecoverySession {
      *
      * @param admin the administrator calling the function
      * @param certificate the certificate used with the keys about to be removed.
+     * @param endEntityProfileId ID
      * @return true if operation went successful or false if  certificate couldn't be found.
+     * @throws AuthorizationDeniedException fail
+     * @throws WaitingForApprovalException fail
+     * @throws ApprovalException fail
      * 
      * @throws CADoesntExistsException if the issuer of the certificate doesn't exist
      */
     boolean markAsRecoverable(AuthenticationToken admin, Certificate certificate, int endEntityProfileId)
             throws AuthorizationDeniedException, WaitingForApprovalException, ApprovalException, CADoesntExistsException;
     
-    /** Resets keyrecovery mark for a user. */
+    /** Resets keyrecovery mark for a user. 
+     * @param admin admin
+     * @param username user */
     void unmarkUser(AuthenticationToken admin, String username);
 
-    /** @return true if user is already marked for key recovery. */
+    /** @param username user
+     * @return true if user is already marked for key recovery. */
     boolean isUserMarked(String username);
 
     /**

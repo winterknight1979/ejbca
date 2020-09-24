@@ -22,13 +22,16 @@ import javax.ejb.Local;
 @Local
 public interface UpgradeSessionLocal  extends UpgradeSession{
     
-    /** Performs operations before the upgrade, and can handle fresh installations specially */
+    /** Performs operations before the upgrade, and can handle fresh installations specially 
+     * @param isFreshInstallation bool*/
     void performPreUpgrade(final boolean isFreshInstallation);
 
-	/** Perform upgrades that can run side by side with older EJBCA versions. */
-	boolean performUpgrade();
+	/** Perform upgrades that can run side by side with older EJBCA versions. 
+	 * @return bool*/
+	boolean performUpgrade(); 
 
-	/** Perform upgrades that require all nodes connected to the same database to run the current EJBCA version. */
+	/** Perform upgrades that require all nodes connected to the same database to run the current EJBCA version. 
+	 * @return bool*/
     Future<Boolean> startPostUpgrade();
 
     /** @return true if post upgrade is required */
@@ -49,31 +52,44 @@ public interface UpgradeSessionLocal  extends UpgradeSession{
     /** @return true if the AdminGroupData.cAId column still exists which indicates that this is EJBCA 4.0 or earlier. */
     boolean checkColumnExists500();
 
-    /** For internal user from UpgradeSessionBean only! */
-    void migrateDatabase624() throws UpgradeFailedException;
-    /** For internal user from UpgradeSessionBean only! */
+    /** For internal user from UpgradeSessionBean only! 
+     * @throws UpgradeFailedException fail*/
+    void migrateDatabase624() throws UpgradeFailedException;    
+    /** For internal user from UpgradeSessionBean only! 
+     * @throws UpgradeFailedException fail*/
     void migrateDatabase640() throws UpgradeFailedException;	
-    /** For internal user from UpgradeSessionBean only! */
+    /** For internal user from UpgradeSessionBean only! 
+     * @throws UpgradeFailedException fail*/
     void migrateDatabase642() throws UpgradeFailedException;
-    /** For internal user from UpgradeSessionBean only! */
+    /** For internal user from UpgradeSessionBean only! 
+     * @throws UpgradeFailedException fail*/
     void migrateDatabase651() throws UpgradeFailedException;
-    /** For internal user from UpgradeSessionBean only! */
+    /** For internal user from UpgradeSessionBean only! 
+     * @throws UpgradeFailedException fail*/
     void migrateDatabase660() throws UpgradeFailedException;
-    /** For internal user from UpgradeSessionBean only! */
+    /** For internal user from UpgradeSessionBean only! 
+     * @throws UpgradeFailedException fail*/
     void migrateDatabase680() throws UpgradeFailedException;
-    /** For internal user from UpgradeSessionBean only! */
+    /** For internal user from UpgradeSessionBean only! 
+     * @throws UpgradeFailedException fail*/
     void migrateDatabase6101() throws UpgradeFailedException;
-    /** For internal user from UpgradeSessionBean only! */
+    /** For internal user from UpgradeSessionBean only! 
+     * @throws UpgradeFailedException fail*/
     void migrateDatabase6110() throws UpgradeFailedException;
-    /** For internal user from UpgradeSessionBean only! */
+    /** For internal user from UpgradeSessionBean only! 
+     * @throws UpgradeFailedException fail*/
     void migrateDatabase6120() throws UpgradeFailedException;
-    /** For internal user from UpgradeSessionBean only! */
+    /** For internal user from UpgradeSessionBean only! 
+     * @throws UpgradeFailedException fail*/
     void migrateDatabase6140() throws UpgradeFailedException;
-    /** For internal user from UpgradeSessionBean only! */
+    /** For internal user from UpgradeSessionBean only! 
+     * @throws UpgradeFailedException fail*/
     void migrateDatabase6150() throws UpgradeFailedException;
 
     
-    /** Persist the time when the post-upgrade starts or 0L when it is no longer running. */
+    /** Persist the time when the post-upgrade starts or 0L when it is no longer running. 
+     * @param startTimeMs time
+     * @return bool */
     boolean setPostUpgradeStarted(long startTimeMs);
 
     /**

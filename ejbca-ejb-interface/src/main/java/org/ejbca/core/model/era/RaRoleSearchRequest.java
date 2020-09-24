@@ -31,7 +31,8 @@ public class RaRoleSearchRequest implements Serializable {
     /** Default constructor */
     public RaRoleSearchRequest() {}
     
-    /** Copy constructor */
+    /** Copy constructor 
+     * @param request req*/
     public RaRoleSearchRequest(final RaRoleSearchRequest request) {
         genericSearchString = request.genericSearchString;
     }

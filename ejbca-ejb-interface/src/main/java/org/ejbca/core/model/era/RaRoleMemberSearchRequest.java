@@ -36,7 +36,8 @@ public class RaRoleMemberSearchRequest implements Serializable {
     /** Default constructor */
     public RaRoleMemberSearchRequest() {}
     
-    /** Copy constructor */
+    /** Copy constructor 
+     * @param request req*/
     public RaRoleMemberSearchRequest(final RaRoleMemberSearchRequest request) {
         roleIds.addAll(request.roleIds);
         caIds.addAll(request.caIds);
@@ -51,7 +52,8 @@ public class RaRoleMemberSearchRequest implements Serializable {
     public List<String> getTokenTypes() { return tokenTypes; }
     public void setTokenTypes(final List<String> tokenTypes) { this.tokenTypes = tokenTypes; }
     public String getGenericSearchString() { return genericSearchString; }
-    /** Prefix string to search for in the subject DN, or full serial number. */
+    /** Prefix string to search for in the subject DN, or full serial number. 
+     * @param genericSearchString string*/
     public void setGenericSearchString(final String genericSearchString) { this.genericSearchString = genericSearchString; }
 //    public boolean isGenericSearchString() { return genericSearchExact; }
 //    public void setGenericSearchString(final boolean genericSearchExact) { this.genericSearchExact = genericSearchExact; }

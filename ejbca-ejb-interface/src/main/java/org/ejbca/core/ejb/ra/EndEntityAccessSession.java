@@ -37,6 +37,7 @@ public interface EndEntityAccessSession {
      * Finds a user by username.
      * 
      * @param admin the administrator performing the action
+     * @param username user
      * @return EndEntityInformation or null if the user is not found.
      * 
      * @throws AuthorizationDeniedException if the admin was not authorized to the end entity profile or issuing CA
@@ -45,12 +46,18 @@ public interface EndEntityAccessSession {
 
     /**
      * Find users by their subject and issuer DN.
+     * @param admin admin
+     * @param subjectdn DN
+     * @param issuerdn DN
      * @return A list of all EndEntityInformations found matching those DNs, or an empty list
+     * @throws AuthorizationDeniedException fail 
      */
      List<EndEntityInformation> findUserBySubjectAndIssuerDN(AuthenticationToken admin, String subjectdn, String issuerdn) throws AuthorizationDeniedException;
 
     /**
      * Find users by their subject DN.
+     * @param admin admin
+     * @param subjectdn DN
      * @return A list of all EndEntityInformations matching the given DN, or an empty list
      * 
      * @throws AuthorizationDeniedException if the admin was not authorized to the end entity profile or issuing CA
@@ -59,6 +66,8 @@ public interface EndEntityAccessSession {
 
     /**
      * Finds a users by subject email.
+     * @param admin admin
+     * @param email email
      * @return List of all matching EndEntityInformation, never null
      * 
      * @throws AuthorizationDeniedException if the admin was not authorized to the end entity profile or issuing CA
@@ -67,6 +76,7 @@ public interface EndEntityAccessSession {
     
      /**
       * Finds all users with a specified status.
+     * @param admin admin
       * 
       * @param status the status to look for, from 'UserData'.
       * @return Collection of EndEntityInformation
@@ -75,6 +85,7 @@ public interface EndEntityAccessSession {
 
      /**
       * Finds all users registered to a specified CA.
+     * @param admin admin
       * 
       * @param caid the caid of the CA, from 'UserData'.
       * @return Collection of EndEntityInformation, or empty collection if the query is
@@ -93,6 +104,7 @@ public interface EndEntityAccessSession {
      /**
       * Method to execute a customized query on the ra user data. The parameter
       * query should be a legal Query object.
+     * @param admin admin
       * 
       * @param query a number of statements compiled by query class to a SQL
       *            'WHERE'-clause statement.
@@ -122,6 +134,7 @@ public interface EndEntityAccessSession {
       * - /endentityprofilesrules/&lt;end entity profile&gt;/view_end_entity
       * - /ca/&lt;ca of user&gt;
       * </pre>
+     * @param authenticationToken admin
       *
       * @param username a unique username.
       * @param onlyValid only return valid certificates not revoked or expired ones.

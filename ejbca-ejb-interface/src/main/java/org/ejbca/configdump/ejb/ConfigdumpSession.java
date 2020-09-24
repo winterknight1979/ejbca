@@ -37,7 +37,7 @@ public interface ConfigdumpSession {
      * @return Result object. In case errors are set to be ignored, then this contains a list of errors.
      * @throws ConfigdumpException If an error occurs, which was not ignored.
      * @throws IOException On failure to create the YAML files etc.
-     * @throws AuthorizationDeniedException 
+     * @throws AuthorizationDeniedException fail 
      */
     ConfigdumpExportResult performExport(final AuthenticationToken admin, final ConfigDumpSetting setting) throws ConfigdumpException, IOException, AuthorizationDeniedException;
 

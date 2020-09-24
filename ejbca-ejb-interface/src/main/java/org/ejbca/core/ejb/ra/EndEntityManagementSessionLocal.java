@@ -30,6 +30,7 @@ public interface EndEntityManagementSessionLocal extends EndEntityManagementSess
     /**
      * Validates the name and DN in an end entity and canonicalizes/strips
      * the attributes. This method is called by addUser.
+     * @param endEntity entity
      * 
      * @return a copy of endEntity with the canonicalized changes. Does not modify its parameter.
      * 
@@ -63,6 +64,7 @@ public interface EndEntityManagementSessionLocal extends EndEntityManagementSess
     /**
      * Cleans the certificate serial number from the user data. Should be called
      * after the data has been used.
+     * @param data data
      * @throws NoSuchEndEntityException if no end entity was found
      * 
      */
@@ -71,6 +73,8 @@ public interface EndEntityManagementSessionLocal extends EndEntityManagementSess
     /**
      * Removes the certificate serial number from the user data.
      * @param username the unique username.
+     * @throws ApprovalException approval
+     * @throws WaitingForApprovalException approval
      * @throws NoSuchEndEntityException if the end entity was not found
      */
     void cleanUserCertDataSN(String username) throws ApprovalException, WaitingForApprovalException, NoSuchEndEntityException;
@@ -82,8 +86,10 @@ public interface EndEntityManagementSessionLocal extends EndEntityManagementSess
      * once the request counter reaches zero.
      * 
      * @param username the unique username.
-     * @param status the new status, from 'UserData'.
+     * @return counter
      * @throws NoSuchEndEntityException if user does not exist
+     * @throws ApprovalException fail
+     * @throws WaitingForApprovalException fail
      */
     int decRequestCounter(String username) throws NoSuchEndEntityException, ApprovalException, WaitingForApprovalException;
         
@@ -94,6 +100,8 @@ public interface EndEntityManagementSessionLocal extends EndEntityManagementSess
      * @param admin Authentication token
      * @param username End-entity to change CAId of
      * @param newCAId CA id to change to.
+     * @throws AuthorizationDeniedException fail
+     * @throws NoSuchEndEntityException fail
      */
     void updateCAId(final AuthenticationToken admin, final String username, int newCAId) throws AuthorizationDeniedException, NoSuchEndEntityException;
 }

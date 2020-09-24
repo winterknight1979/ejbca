@@ -54,8 +54,8 @@ public interface SignSessionLocal extends SignSession {
      * @param req the request
      * @param doLog if this operation should log in the audit log.
      * @return CA object
-     * @throws CADoesntExistsException
-     * @throws AuthorizationDeniedException
+     * @throws CADoesntExistsException fail
+     * @throws AuthorizationDeniedException fail
      */
     CA getCAFromRequest(AuthenticationToken admin, RequestMessage req, boolean doLog) throws CADoesntExistsException, AuthorizationDeniedException;
     
@@ -71,15 +71,7 @@ public interface SignSessionLocal extends SignSession {
      * @param admin         Information about the administrator or admin performing the event.
      * @param req           a Certification Request message, containing the public key to be put in the
      *                      created certificate. Currently no additional parameters in requests are considered!
-     * @param keyUsage      integer with bit mask describing desired keys usage. Bit mask is packed in
-     *                      in integer using constants from CertificateDataBean. ex. int keyusage =
-     *                      CertificateDataBean.digitalSignature | CertificateDataBean.nonRepudiation; gives
-     *                      digitalSignature and nonRepudiation. ex. int keyusage = CertificateDataBean.keyCertSign
-     *                      | CertificateDataBean.cRLSign; gives keyCertSign and cRLSign. Keyusage < 0 means that default
-     *                      keyUsage should be used, or should be taken from extensions in the request.
      * @param responseClass The implementation class that will be used as the response message.
-     * @param suppliedUserData Optional (can be null) supplied user data, if we are running without storing UserData this will be used. Should only 
-     *  be supplied when we issue certificates in a single transaction.
      * @param ignorePassword set to true if password authentication isn't available (for example during SCEP certificate renewal). Password will be set from the request.
      *  
      * @return The newly created response
@@ -88,6 +80,7 @@ public interface SignSessionLocal extends SignSession {
      * @throws CertificateRevokeException if certificate was meant to be issued revoked, but could not.  (rollback)
      * @throws CertificateCreateException if certificate couldn't be created.  (rollback)
      * @throws AuthorizationDeniedException if the authentication token wasn't authorized to the CA defined in the request  (rollback)
+     * @throws InvalidAlgorithmException fail
      * @throws ApprovalException if changing the end entity status requires approval (does not require rollback)
      * @throws WaitingForApprovalException if an approval is already waiting for the status to be changed (does not require rollback)
      */
@@ -142,6 +135,7 @@ public interface SignSessionLocal extends SignSession {
      *                 keyusage = CertificateData.digitalSignature | CertificateData.nonRepudiation; gives
      *                 digitalSignature and nonRepudiation. ex. int keyusage = CertificateData.keyCertSign
      *                 | CertificateData.cRLSign; gives keyCertSign and cRLSign
+     * @param notBefore daye
      * @param notAfter an optional validity to set in the created certificate, if the profile allows validity override, null if the profiles default validity should be used.
      * @return The newly created certificate or null.
      * 
@@ -224,7 +218,7 @@ public interface SignSessionLocal extends SignSession {
       * Signs the provided payload using the given CA's signing keys. 
       * 
       * @param data a byte array of the data to be signed
-      * @param signingCaName the name of the CA 
+      * @param signingCaId the name of the CA 
       * @return an encoded CMSSignedData of the original payload
       * @throws AuthorizationDeniedException if the authentication token was not authorized to the given CA
       * @throws CryptoTokenOfflineException if the crypto token was offline 

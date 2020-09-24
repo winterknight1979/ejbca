@@ -34,6 +34,7 @@ public interface ApprovalProfileSessionLocal extends ApprovalProfileSession {
     
     
     /**
+     * @param profileName profile
      * @return the found entity instance or null if the entity does not exist
      */
     List<ProfileData> findByApprovalProfileName(String profileName);

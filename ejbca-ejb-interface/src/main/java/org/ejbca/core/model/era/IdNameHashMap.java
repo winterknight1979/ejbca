@@ -22,6 +22,7 @@ import java.util.Set;
  * Provides looking up operation with two separate keys (id or name) over a map.
  * 
  * @version $Id: IdNameHashMap.java 25899 2017-05-25 00:02:09Z jeklund $
+ * @param <T> type
  */
 public class IdNameHashMap<T extends Serializable> implements Serializable{
 	

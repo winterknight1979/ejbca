@@ -30,16 +30,19 @@ public interface UpgradeStatusSingletonLocal {
     /** @return Log4J logging events from UpgradeSessionBean while post-upgrade background task is running */
     List<org.apache.log4j.spi.LoggingEvent> getLogged();
 
-    /** @return true if successfully claimed the node-local post-upgrade lock */
+    /** @param newValue value
+     * @return true if successfully claimed the node-local post-upgrade lock */
     boolean setPostUpgradeInProgressIfDifferent(boolean newValue);
 
     /** Reset the node-local post-upgrade lock */
     void resetPostUpgradeInProgress();
 
-    /** Start listen to Log4J log events */
+    /** Start listen to Log4J log events 
+     * @param log log*/
     void logAppenderAttach(org.apache.log4j.Logger log);
 
-    /** Stop listen to Log4J log events */
+    /** Stop listen to Log4J log events 
+     * @param log log*/
     void logAppenderDetach(org.apache.log4j.Logger log);
 
 }

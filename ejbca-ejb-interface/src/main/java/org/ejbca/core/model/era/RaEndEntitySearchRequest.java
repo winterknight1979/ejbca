@@ -47,7 +47,8 @@ public class RaEndEntitySearchRequest implements Serializable, Comparable<RaEndE
     /** Default constructor */
     public RaEndEntitySearchRequest() {}
 
-    /** Copy constructor */
+    /** Copy constructor 
+     * @param request req */
     public RaEndEntitySearchRequest(final RaEndEntitySearchRequest request) {
         maxResults = request.maxResults;
         pageNumber = request.pageNumber;
@@ -161,39 +162,55 @@ public class RaEndEntitySearchRequest implements Serializable, Comparable<RaEndE
         return 0;
     }
 
-    /** @return true if thisObject does contain whole other, but other does not contain whole this → more narrow */
+    /** @param thisObject obj
+     * @param otherObject obj
+     * @return true if thisObject does contain whole other, but other does not contain whole this → more narrow */
     private boolean isMoreNarrow(final List<Integer> thisObject, final List<Integer> otherObject) {
         return thisObject.containsAll(otherObject) && !otherObject.containsAll(thisObject);
     }
-    /** @return true if thisObject does contain whole other, but other does not contain whole this → more narrow */
+    /** @param thisObject obj
+     * @param otherObject obj
+     * @return true if thisObject does contain whole other, but other does not contain whole this → more narrow */
     private boolean isMoreNarrow(final String thisObject, final String otherObject) {
         return thisObject.contains(otherObject) && !otherObject.contains(thisObject);
     }
-    /** @return true if thisObject does contain whole other, but other does not contain whole this → more narrow */
+    /** @param thisObjectExact obj
+     * @param otherObjectExact obj
+     * @return true if thisObject does contain whole other, but other does not contain whole this → more narrow */
     private boolean isMoreNarrow(final boolean thisObjectExact, final boolean otherObjectExact) {
         return thisObjectExact && !otherObjectExact;
     }
-    /** @return true if thisObject does not contain whole other → wider */
+    /** @param thisObject obj
+     * @param otherObject obj
+     * @return true if thisObject does not contain whole other → wider */
     private boolean isWider(final List<Integer> thisObject, final List<Integer> otherObject) {
         return !thisObject.containsAll(otherObject);
     }
-    /** @return true if thisObject does not contain whole other → wider */
+    /** @param thisObject obj
+     * @param otherObject obj
+     * @return true if thisObject does not contain whole other → wider */
     private boolean isWider(final String thisObject, final String otherObject) {
         return !thisObject.contains(otherObject);
     }
-    /** @return true if thisObject does not contain whole other → wider */
+    /** @param thisObjectExact obj
+     * @param otherObjectExact obj
+     * @return true if thisObject does not contain whole other → wider */
     private boolean isWider(final boolean thisObjectExact, final boolean otherObjectExact) {
         return !thisObjectExact && otherObjectExact;
     }
 
-    /** @return true if the endEntityProfileId is matched by this search. */
+    /** @param endEntityProfileId ID
+     * @return true if the endEntityProfileId is matched by this search. */
     public boolean matchEep(final int endEntityProfileId) { return eepIds.isEmpty() || eepIds.contains(Integer.valueOf(endEntityProfileId)); }
-    /** @return true if the certificateId is matched by this search. */
+    /** @param certificateProfileId ID
+     * @return true if the certificateId is matched by this search. */
     public boolean matchCp(final int certificateProfileId) { return cpIds.isEmpty() || cpIds.contains(Integer.valueOf(certificateProfileId)); }
-    /** @return true if the endEntityProfileId is matched by this search. */
+    /** @param caId ID
+     * @return true if the endEntityProfileId is matched by this search. */
     public boolean matchCa(final int caId) { return caIds.isEmpty() || caIds.contains(Integer.valueOf(caId)); }
 
-    /** @return true if the notBefore is matched by this search. */
+    /** @param modified mod
+     * @return true if the notBefore is matched by this search. */
     public boolean matchModifiedInterval(final Long modified) {
         if (isModifiedAfterUsed() && (modified==null || modified.longValue()<modifiedAfter)) {
             return false;
@@ -204,22 +221,26 @@ public class RaEndEntitySearchRequest implements Serializable, Comparable<RaEndE
         return true;
     }
 
-    /** @return true if the username is matched by this search. */
+    /** @param username user
+     * @return true if the username is matched by this search. */
     public boolean matchUsername(final String username) {
         return username != null && ((!usernameSearchExact && username.toUpperCase().contains(usernameSearchString.toUpperCase())) ||
                                     (usernameSearchExact && username.equalsIgnoreCase(usernameSearchString)));
     }
-    /** @return true if the subjectDn is matched by this search. */
+    /** @param subjectDn DN
+     * @return true if the subjectDn is matched by this search. */
     public boolean matchSubjectDn(final String subjectDn) {
         return subjectDn != null && ((!subjectDnSearchExact && subjectDn.toUpperCase().contains(subjectDnSearchString.toUpperCase())) ||
                                     (subjectDnSearchExact && subjectDn.equalsIgnoreCase(subjectDnSearchString)));
     }
-    /** @return true if the subjectAn is matched by this search. */
+    /** @param subjectAn An
+     * @return true if the subjectAn is matched by this search. */
     public boolean matchSubjectAn(final String subjectAn) {
         return subjectAn != null && ((!subjectAnSearchExact && subjectAn.contains(subjectAnSearchString)) || (subjectAnSearchExact && subjectAn.equals(subjectAnSearchString)));
     }
 
-    /** @return true if the EE status is matched by this search. */
+    /** @param status Status
+     * @return true if the EE status is matched by this search. */
     public boolean matchStatus(final int status) {
         if (!statuses.isEmpty() && !statuses.contains(status)) {
             return false;

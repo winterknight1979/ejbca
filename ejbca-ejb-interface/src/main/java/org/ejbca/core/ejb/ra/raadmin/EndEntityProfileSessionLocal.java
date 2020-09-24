@@ -50,6 +50,7 @@ public interface EndEntityProfileSessionLocal extends EndEntityProfileSession {
      * This method exists only for speed purposes since a clone() done by the proper getEndEntityProfile method is slightly expensive.
      * 
      * Finds a end entity profile by id.
+     * @param id ID
      * @return EndEntityProfile (shared in cache) or null if it does not exist
      */
     EndEntityProfile getEndEntityProfileNoClone(int id);
@@ -63,6 +64,7 @@ public interface EndEntityProfileSessionLocal extends EndEntityProfileSession {
      * This method exists only for speed purposes since a clone() done by the proper getEndEntityProfile method is slightly expensive.
      * 
      * Finds an EndEntityProfile by name.
+     * @param profilename provile
      * @return EndEntityProfile (shared in cache) or null if it does not exist
      */
     EndEntityProfile getEndEntityProfileNoClone(java.lang.String profilename);

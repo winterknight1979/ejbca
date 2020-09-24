@@ -27,7 +27,9 @@ public class StatedumpOverride {
     private final Type type;
     private final Object value; // depends on value of type
     
-    /** Used inside StatedumpImportOptions */
+    /** Used inside StatedumpImportOptions 
+     * @param type type
+     * @param value value */
     StatedumpOverride(Type type, Object value) {
         super();
         this.type = type;

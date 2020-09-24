@@ -26,6 +26,9 @@ public interface ServiceSession {
 
     /**
      * Adds a Service to the database.
+     * @param admin admin
+     * @param name name
+     * @param serviceConfiguration config 
      * @throws ServiceExistsException if service already exists.
      */
     void addService(AuthenticationToken admin, String name, ServiceConfiguration serviceConfiguration) throws ServiceExistsException;
@@ -33,6 +36,10 @@ public interface ServiceSession {
     /**
      * Adds a service to the database. Used for importing and exporting profiles
      * from xml-files.
+     * @param admin admin
+     * @param id id
+     * @param name name
+     * @param serviceConfiguration config 
      * 
      * @throws ServiceExistsException if service already exists.
      */
@@ -40,15 +47,24 @@ public interface ServiceSession {
 
     /**
      * Adds a service with the same content as the original.
+     * @param admin admin
+     * @param oldname name
+     * @param newname name
      * @throws ServiceExistsException if service already exists.
      */
     void cloneService(AuthenticationToken admin, String oldname, String newname) throws ServiceExistsException;
 
-    /** Removes a service from the database. */
+    /** Removes a service from the database. 
+     * @param admin admin
+     * @param name name
+     * @return bool */
     boolean removeService(AuthenticationToken admin, String name);
 
     /**
      * Renames a service.
+     * @param admin admin
+     * @param oldname name
+     * @param newname name
      * @throws ServiceExistsException if service already exists.
      */
      void renameService(AuthenticationToken admin, String oldname, String newname) throws ServiceExistsException;
@@ -62,12 +78,14 @@ public interface ServiceSession {
 
     /**
      * Retrieves a named service.
-     * @returns the service configuration or null if it doesn't exist.
+     * @param name name
+     * @return the service configuration or null if it doesn't exist.
      */
     ServiceConfiguration getService(String name);
 
     /**
      * Returns a service id, given it's service name
+     * @param name name
      * @return the id or 0 if the service cannot be found.
      */
     int getServiceId(String name);
@@ -83,6 +101,7 @@ public interface ServiceSession {
 
     /**
      * Returns a Service name given its id.
+     * @param id id
      * @return the name or null if id does not exist
      */
     String getServiceName(int id);
@@ -103,12 +122,17 @@ public interface ServiceSession {
     
     /**
      * Updates service configuration, but does not re-set the timer
+     * @param admin admin
+     * @param name name
+     * @param serviceConfiguration config
      * @param noLogging if true no logging to the database will be done
      */
     void changeService(AuthenticationToken admin, String name, ServiceConfiguration serviceConfiguration, boolean noLogging);
     
     /**
      * Finds a service configuration by id.
+     * @param id id
+     * @return config
      * 
      * @returns the service configuration or null if it doesn't exist.
      */

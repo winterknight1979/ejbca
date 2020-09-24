@@ -51,7 +51,8 @@ public interface EndEntityProfileSession {
      *            right.
      * @param profilename readable profile name
      * @param profile profile to be added
-     * @throws AuthorizationDeniedException 
+     * @throws EndEntityProfileExistsException fail
+     * @throws AuthorizationDeniedException fail
      */
     void addEndEntityProfile(AuthenticationToken admin, int profileid, String profilename, EndEntityProfile profile)
             throws EndEntityProfileExistsException, AuthorizationDeniedException;
@@ -59,7 +60,11 @@ public interface EndEntityProfileSession {
     /**
      * Adds a end entity profile to a group with the same content as the
      * original profile.
-     * @throws AuthorizationDeniedException 
+     * @param admin admin
+     * @param originalprofilename name 
+     * @param newprofilename name
+     * @throws EndEntityProfileExistsException fail 
+     * @throws AuthorizationDeniedException fail
      */
     void cloneEndEntityProfile(AuthenticationToken admin, String originalprofilename, String newprofilename) throws EndEntityProfileExistsException,
             AuthorizationDeniedException;
@@ -70,17 +75,26 @@ public interface EndEntityProfileSession {
     /**
      * Removes an end entity profile from the database, does not throw any
      * errors if the profile does not exist.
-     * @throws AuthorizationDeniedException 
+     * @param admin admin
+     * @param profilename name 
+     * @throws AuthorizationDeniedException fail
      */
     void removeEndEntityProfile(AuthenticationToken admin, String profilename) throws AuthorizationDeniedException;
 
     /** Renames a end entity profile. 
-     * @throws AuthorizationDeniedException */
+     * @param admin admin
+     * @param oldprofilename name 
+     * @param newprofilename name
+     * @throws EndEntityProfileExistsException fail 
+     * @throws AuthorizationDeniedException fail */
     void renameEndEntityProfile(AuthenticationToken admin, String oldprofilename, String newprofilename) throws EndEntityProfileExistsException,
             AuthorizationDeniedException;
 
     /** Updates profile data. 
-     * @throws AuthorizationDeniedException 
+     * @param admin admin
+     * @param profilename name 
+     * @param profile profile
+     * @throws AuthorizationDeniedException fail 
      * @throws EndEntityProfileNotFoundException if sought end entity profile was not found.
      */
     void changeEndEntityProfile(AuthenticationToken admin, String profilename, EndEntityProfile profile) throws AuthorizationDeniedException, EndEntityProfileNotFoundException;
@@ -90,8 +104,11 @@ public interface EndEntityProfileSession {
      * testing only. Updates a profile without flushing caches.
      * 
      * TODO: Move this method out of production code.
+     * @param admin admin
+     * @param profilename profila 
+     * @param profile profile
      * 
-     * @throws AuthorizationDeniedException 
+     * @throws AuthorizationDeniedException fail 
      * @throws EndEntityProfileNotFoundException if sought end entity profile was not found.
      */
     void internalChangeEndEntityProfileNoFlushCache(AuthenticationToken admin, String profilename, EndEntityProfile profile)
@@ -107,6 +124,8 @@ public interface EndEntityProfileSession {
     /**
      * Retrives a list of ids to profiles with non-existent CA ids, if the admin has root rule access.
      * Otherwise an empty list is returned.
+     * @param admin admin
+     * @return list
      */
     List<Integer> getAuthorizedEndEntityProfileIdsWithMissingCAs(final AuthenticationToken admin);
 
@@ -118,18 +137,21 @@ public interface EndEntityProfileSession {
 
     /**
      * Finds a end entity profile by id.
+     * @param id ID
      * @return EndEntityProfile (cloned) or null if it does not exist
      */
     EndEntityProfile getEndEntityProfile(int id);
 
     /**
      * Get a copy of an EndEntityProfile.
+     * @param profilename profile
      * @return EndEntityProfile (cloned) or null if it does not exist
      */
     EndEntityProfile getEndEntityProfile(String profilename);
 
     /**
      * Returns a end entity profile's ID, given its name
+     * @param profilename profile
      * @return the id
      * @throws EndEntityProfileNotFoundException if profile wasn't found
      */
@@ -137,6 +159,7 @@ public interface EndEntityProfileSession {
 
     /**
      * Returns a end entity profiles name given it's id.
+     * @param id ID
      * @return profile's name or null if profile id does not exist.
      */
     String getEndEntityProfileName(int id);
@@ -159,7 +182,6 @@ public interface EndEntityProfileSession {
      * @param entityProfileId id of the end entity profile.
      * @return a map of available certificate profiles names and IDs or an empty map.
      * @throws EndEntityProfileNotFoundException if a profile with the ID entityProfileId could not be found
-     * @throws AuthorizationDeniedException if the authorization was denied (still not thrown).
      */
     Map<String, Integer> getAvailableCertificateProfiles(AuthenticationToken admin, int entityProfileId) throws EndEntityProfileNotFoundException;
     
@@ -198,6 +220,7 @@ public interface EndEntityProfileSession {
      * </pre>
      *
      * For detailed documentation for how to parse an End Entity Profile XML, see the org.ejbca.core.model.ra.raadmin.EndEntity class.
+     * @param authenticationToken token
      *
      * @param profileId ID of the profile we want to retrieve.
      * @return a byte array containing the specified profile in XML format.

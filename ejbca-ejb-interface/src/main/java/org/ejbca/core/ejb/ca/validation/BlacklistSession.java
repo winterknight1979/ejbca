@@ -73,7 +73,8 @@ public interface BlacklistSession {
     
     /**
      * Gets a public key blacklist entry by cache or database.
-     * @param a fingerprint of the public key blacklist entry, BlacklistEntry.createFingerprint 
+     * @param type type
+     * @param value fingerprint of the public key blacklist entry, BlacklistEntry.createFingerprint 
      * @return a BlacklistEntry or null if a public key blacklist entry with the given fingerprint does not exist. Uses cache to get the object as quickly as possible.
      */
     BlacklistEntry getBlacklistEntry(String type, String value);

@@ -35,12 +35,16 @@ public interface ServiceSessionLocal extends ServiceSession {
     /**
      * Internal method used from load() to separate timer access from database
      * access transactions.
+     * @param existingTimers timer
+     * @return map
      */
 	Map<Integer, Long> getNewServiceTimeouts(final HashSet<Serializable> existingTimers);
    
     /**
      * Return the configured interval for the specified worker or
      * IInterval.DONT_EXECUTE if it could not be found.
+     * @param serviceId id
+     * @return interval
      */
 	long getServiceInterval(final Integer serviceId);
 
@@ -58,18 +62,25 @@ public interface ServiceSessionLocal extends ServiceSession {
 
 	/** As above but used to JUnit testing to be able to "fake" that the service was running on another node 
 	 * Should only be used for testing the logic 
+	 * @param serviceId ID
+	 * @param nextTimeout timeout
 	 * @param testRunOnOtherNode set to true to force the service to believe it has been running on another node
+	 * @return worker
 	 * @see #getWorkerIfItShouldRun(Integer, long)
 	 */
     IWorker getWorkerIfItShouldRun(Integer serviceId, long nextTimeout, boolean testRunOnOtherNode);
 
-	/** Executes a the service in a separate in no transaction. */
+	/** Executes a the service in a separate in no transaction. 
+	 * @param worker worker
+	 * @param serviceName name */
 	void executeServiceInNoTransaction(final IWorker worker, final String serviceName);
 	
-    /** Cancels a timer with the given Id. */
+    /** Cancels a timer with the given Id. 
+     * @param id id*/
 	void cancelTimer(final Integer id);
 	
-	/** The timeout method */
+	/** The timeout method 
+	 * @param timer timer*/
     void timeoutHandler(final Timer timer);
 
 }

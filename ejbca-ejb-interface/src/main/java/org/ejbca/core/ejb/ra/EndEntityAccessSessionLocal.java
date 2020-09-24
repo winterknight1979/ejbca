@@ -32,6 +32,7 @@ public interface EndEntityAccessSessionLocal extends EndEntityAccessSession {
 
     /**
      * Finds a user by username, performs no authorization
+     * @param username user
      * 
      * @return EndEntityInformation or null if the user is not found.
      */
@@ -42,9 +43,9 @@ public interface EndEntityAccessSessionLocal extends EndEntityAccessSession {
      * 
      * @param username the user name of the sought user.
      * @return the password and algorithm for the sought user. If algorithm is hashed, so will the password be, otherwise cleartext. Null if user was not found.
-     * @throws NotFoundException 
+     * @throws NotFoundException fail
      */
-    AbstractMap.SimpleEntry<String, SupportedPasswordHashAlgorithm> getPasswordAndHashAlgorithmForUser(String username) throws NotFoundException;
+	AbstractMap.SimpleEntry<String, SupportedPasswordHashAlgorithm> getPasswordAndHashAlgorithmForUser(String username) throws NotFoundException;
     
     /**
      * Method that checks if a user exists in the database having the given
@@ -69,38 +70,52 @@ public interface EndEntityAccessSessionLocal extends EndEntityAccessSession {
     
     /**
      * 
+     * @param caId ca
      * @return a count of UserDatas with the specified CA.
      */
     long countByCaId(int caId);
     
-    /** @return return a count of UserDatas with the specified Certificate Profile. */
+    /** @param certificateProfileId id
+     * @return return a count of UserDatas with the specified Certificate Profile. */
     long countByCertificateProfileId(int certificateProfileId);
     
-    /** @return return a count of UserDatas with tokenType TOKEN_HARD_DEFAULT and status NEW or KEYRECOVERY. */
+    /** @param hardTokenIssuerId id
+     * @return return a count of UserDatas with tokenType TOKEN_HARD_DEFAULT and status NEW or KEYRECOVERY. */
     long countByHardTokenIssuerId(int hardTokenIssuerId);
     
-    /** @return return a count of UserDatas with the specified Hard Token Profile. */
+    /** @param hardTokenProfileId id
+     * @return return a count of UserDatas with the specified Hard Token Profile. */
     long countByHardTokenProfileId(int hardTokenProfileId);
     
-    /** @return return a count of UserDatas with tokenType TOKEN_HARD_DEFAULT and status NEW or KEYRECOVERY. */
+    /** @param hardTokenIssuerId id
+     * @return return a count of UserDatas with tokenType TOKEN_HARD_DEFAULT and status NEW or KEYRECOVERY. */
     long countNewOrKeyrecByHardTokenIssuerId(int hardTokenIssuerId);
     
-    /** @return the found entity instance or null if the entity does not exist */
+    /** @param username id
+     * @return the found entity instance or null if the entity does not exist */
     UserData findByUsername(String username);
     
-    /** @return return a List<UserData> with tokenType TOKEN_HARD_DEFAULT and status NEW or KEYRECOVERY. */
+    /** @param hardTokenIssuerId id
+     * @param maxResults max
+     * @return return a List<UserData> with tokenType TOKEN_HARD_DEFAULT and status NEW or KEYRECOVERY. */
     List<UserData> findNewOrKeyrecByHardTokenIssuerId(int hardTokenIssuerId, int maxResults);
     
-    /** @return a list of subjectDNs that contain SN=serialnumber* for a CA and excludes a username. */
+    /** @param caId id
+     * @param username user
+     * @param serialnumber sn
+     * @return a list of subjectDNs that contain SN=serialnumber* for a CA and excludes a username. */
     List<String> findSubjectDNsByCaIdAndNotUsername(final int caId, final String username, final String serialnumber);
     
     /**
-     * Like {@link EndEntityManagementSession#findAllUsersByCaId}, but performs no auth check.
+     * Like EndEntityManagementSession#findAllUsersByCaId, but performs no auth check.
+     * @param caid id
+     * @return info
      */
     Collection<EndEntityInformation> findAllUsersByCaIdNoAuth(int caid);
     
     /**
      * Finds all users, limited by the maximum query count defined in the global configuration.
+     * @param admin admin
      * 
      * @return Collection of EndEntityInformation
      */

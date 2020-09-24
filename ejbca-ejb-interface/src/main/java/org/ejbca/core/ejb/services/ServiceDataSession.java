@@ -19,7 +19,8 @@ package org.ejbca.core.ejb.services;
  */
 public interface ServiceDataSession {
 
-    /** @return the found entity instance or null if the entity does not exist */
+    /** @param id ID
+     * @return the found entity instance or null if the entity does not exist */
     ServiceData findById(Integer id);
     
 }

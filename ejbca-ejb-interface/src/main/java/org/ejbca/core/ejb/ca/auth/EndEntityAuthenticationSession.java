@@ -27,6 +27,7 @@ public interface EndEntityAuthenticationSession {
 
     /**
      * Authenticates a user to the user database and returns the user DN.
+     * @param admin admin
      *
      * @param username unique username within the instance
      * @param password password for the user
@@ -48,6 +49,7 @@ public interface EndEntityAuthenticationSession {
      * remote. User data may contain a counter with nr of requests before used
      * should be set to generated. In this case this counter will be decreased,
      * and if it reaches 0 status will be generated.
+     * @param data dta
      * 
      * @throws NoSuchEndEntityException if the user does not exist.
      */

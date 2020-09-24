@@ -56,17 +56,21 @@ public interface PublisherSessionLocal extends PublisherSession {
     
     /**
      * Returns a Map of all Publishers. This method does not take into account if external scripts are disabled.
+     * @return map
      */
     Map<Integer, BasePublisher> getAllPublishersInternal();
 
     /**
      * Help method used by publisher proxys to indicate if it is time to update
      * it's data.
+     * @param publisherid id
+     * @return int
      */
     int getPublisherUpdateCount(int publisherid);
 
     /**
      * Returns a publisher id, given it's publishers name
+     * @param name name
      * @return the id or 0 if the publisher cannot be found.
      */
     int getPublisherId(String name);

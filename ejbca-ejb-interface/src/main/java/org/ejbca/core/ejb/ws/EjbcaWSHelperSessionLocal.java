@@ -66,7 +66,7 @@ public interface EjbcaWSHelperSessionLocal extends EjbcaWSHelperSession {
     
     /**
      * Method that converts profile names etc to corresponding ID's
-     * @param admin
+     * @param admin admin
      * @param usermatch a usermatch containing names of profiles
      * @return a query containing id's of profiles.
      * @throws AuthorizationDeniedException if searching by a CA which the admin is not authorized to.
@@ -88,7 +88,7 @@ public interface EjbcaWSHelperSessionLocal extends EjbcaWSHelperSession {
 
     /**
      * Verifies that the given certificate has a correct signature and is currently valid, and
-     * if so, sets the end entity status to NEW and sets its password. Used from {@link org.ejbca.core.protocol.ws.EjbcaWS#cvcRequest EjbcaWS.cvcRequest} during renewals.
+     * if so, sets the end entity status to NEW and sets its password. Used from  EjbcaWS.cvcRequest during renewals.
      * @param admin authentication token
      * @param cert certificate to check validity and signature of.
      * @param username username of end entity to update.
@@ -116,45 +116,75 @@ public interface EjbcaWSHelperSessionLocal extends EjbcaWSHelperSession {
     void resetUserPasswordAndStatus(AuthenticationToken admin, String username, int status);
     
     /**
+     * @param admin admin
+     * @param caname name
+     * @param cachain cert
+     * @param regenerateKeys keys 
+     * @param usenextkey bool
+     * @param activatekey bool
+     * @param keystorepwd krys
+     * @return req
+     * @throws CADoesntExistsException fail 
+     * @throws AuthorizationDeniedException fai; 
+     * @throws CertPathValidatorException fail
+     * @throws CryptoTokenOfflineException fail
+     * @throws CryptoTokenAuthenticationFailedException fail 
      * @see org.ejbca.core.protocol.ws.common.IEjbcaWS#caRenewCertRequest 
      */
     byte[] caRenewCertRequest(AuthenticationToken admin, String caname, List<byte[]> cachain, boolean regenerateKeys, boolean usenextkey, boolean activatekey, String keystorepwd) 
         throws CADoesntExistsException, AuthorizationDeniedException, CertPathValidatorException, CryptoTokenOfflineException, CryptoTokenAuthenticationFailedException;
 
     /**
-     * @throws AuthorizationDeniedException
-     * @throws CAExistsException
-     * @throws CertificateImportException
-     * @throws EjbcaException
-     * @throws CertificateParsingException
-     * @throws IllegalCryptoTokenException
+     * @param admin admin
+     * @param caname ca
+     * @param certbytes certs
+     * @throws AuthorizationDeniedException fail
+     * @throws CAExistsException fail
+     * @throws CertificateImportException fail
+     * @throws EjbcaException fail
+     * @throws CertificateParsingException fail
+     * @throws IllegalCryptoTokenException fail
      * @see org.ejbca.core.protocol.ws.common.IEjbcaWS#importCaCert
      */
     void importCaCert(AuthenticationToken admin, String caname, byte[] certbytes) throws AuthorizationDeniedException, 
         CAExistsException, IllegalCryptoTokenException, CertificateImportException, EjbcaException, CertificateParsingException;
     
     /**
-     * @throws AuthorizationDeniedException
-     * @throws CADoesntExistsException
-     * @throws CertificateImportException
-     * @throws EjbcaException
-     * @throws CertificateParsingException
+     * @param admin admin
+     * @param caname ca
+     * @param certbytes cert 
+     * @throws AuthorizationDeniedException fail
+     * @throws CADoesntExistsException fail
+     * @throws CertificateImportException fail
+     * @throws EjbcaException fail
+     * @throws CertificateParsingException fail
      * @see org.ejbca.core.protocol.ws.common.IEjbcaWS#updateCaCert
      */
      void updateCaCert(AuthenticationToken admin, String caname, byte[] certbytes) throws AuthorizationDeniedException, 
          CADoesntExistsException, CertificateImportException, EjbcaException, CertificateParsingException; 
 
-     /** Makes a CA certificate that has been created prior to its "not before" date active (CA rollover) */
+     /** Makes a CA certificate that has been created prior to its "not before" date active (CA rollover) 
+     * @param admin admin
+     * @param caname ca
+     * @throws AuthorizationDeniedException fail 
+     * @throws CADoesntExistsException fail
+     * @throws CryptoTokenOfflineException fail*/
      void rolloverCACert(AuthenticationToken admin, String caname) throws AuthorizationDeniedException, CADoesntExistsException, CryptoTokenOfflineException;
      
      /**
-      * @throws AuthorizationDeniedException
-      * @throws EjbcaException
-      * @throws ApprovalException
-      * @throws WaitingForApprovalException
-      * @throws CertPathValidatorException
-      * @throws CesecoreException
-      * @throws CertificateParsingException 
+      * @param admin admin
+     * @param caname ca
+     * @param cert cart
+     * @param cachain chain
+     * @param keystorepwd pwd
+     * @param futureRollover bool
+     * @throws AuthorizationDeniedException fail
+      * @throws EjbcaException fail
+      * @throws ApprovalException fail
+      * @throws WaitingForApprovalException fail
+      * @throws CertPathValidatorException fail
+      * @throws CesecoreException fail
+      * @throws CertificateParsingException fail 
       * @see org.ejbca.core.protocol.ws.common.IEjbcaWS#caRenewCertRequest 
       */
      void caCertResponse(AuthenticationToken admin, String caname, byte[] cert, List<byte[]> cachain, String keystorepwd, boolean futureRollover) 
@@ -165,14 +195,20 @@ public interface EjbcaWSHelperSessionLocal extends EjbcaWSHelperSession {
      /**
       * Help method returning a subset of certificates containing only valid certificates
       * expiredate and revocation status is checked.
-      * @throws ClassCastException 
+     * @param admin admin
+     * @param certs carts
+     * @return valid certs
+      * @throws ClassCastException fasil
       */
      Collection<java.security.cert.Certificate> returnOnlyValidCertificates(AuthenticationToken admin, Collection<java.security.cert.Certificate> certs);
      
      /**
       * Method used to convert a HardToken data to a WS version
-      * @param data
-      * @throws EjbcaException 
+      * @param data data
+     * @param certificates certs
+     * @param includePUK bool
+     * @return ws
+      * @throws EjbcaException fail 
       */
      HardTokenDataWS convertHardTokenToWS(HardTokenInformation data, Collection<java.security.cert.Certificate> certificates, boolean includePUK) throws EjbcaException;
      

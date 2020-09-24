@@ -46,6 +46,7 @@ public interface ApprovalProfileSession {
      * Updates approval profile data
      * 
      * @param admin Administrator performing the operation
+     * @param profile profile
      * @throws AuthorizationDeniedException if current administrator is not authorized to modify profiles
      */
     void changeApprovalProfile(final AuthenticationToken admin, final ApprovalProfile profile) throws AuthorizationDeniedException;
@@ -54,7 +55,7 @@ public interface ApprovalProfileSession {
      * Adds an approval profile with the same content as the original approval profile.
      * 
      * @param admin Administrator performing the operation
-     * @param orgname name of original approval profile
+     * @param profile name of original approval profile
      * @param newname name of new approval profile
      * @throws ApprovalProfileExistsException if a profile with newname already exists
      * @throws ApprovalProfileDoesNotExistException if a profile with orgname does not exist

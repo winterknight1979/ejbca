@@ -54,7 +54,20 @@ public interface CertificateRequestSession {
 	 * @param hardTokenSN is the hard token to associate this or null
 	 * @param responseType is one of SecConst.CERT_RES_TYPE_...
      * @return a encoded certificate of the type specified in responseType 
-	 * @throws CesecoreException 
+	 * @throws CADoesntExistsException fai;
+	 * @throws AuthorizationDeniedException  fail
+	 * @throws NotFoundException fail
+	 * @throws InvalidKeyException fail
+	 * @throws NoSuchAlgorithmException fail 
+	 * @throws InvalidKeySpecException fail
+	 * @throws NoSuchProviderException fail
+	 * @throws SignatureException fail
+	 * @throws IOException fail
+	 * @throws CertificateException fail 
+	 * @throws EndEntityProfileValidationException fail 
+	 * @throws ApprovalException fail
+	 * @throws EjbcaException fail
+	 * @throws CesecoreException fail
 	 * @throws CertificateExtensionException if the request contained invalid extensions
 	 */
     public byte[] processCertReq(AuthenticationToken admin, EndEntityInformation userdata, String req, int reqType, String hardTokenSN, int responseType) throws CADoesntExistsException,
@@ -71,7 +84,11 @@ public interface CertificateRequestSession {
 	 * @param req is the certificate request
 	 * @param responseClass the class of the response message that should be returned back
      * @return a response message of the type specified in responseClass 
-	 * @throws CesecoreException 
+	 * @throws EndEntityExistsException fail
+	 * @throws AuthorizationDeniedException fail
+	 * @throws EndEntityProfileValidationException fail
+	 * @throws EjbcaException fail
+	 * @throws CesecoreException fail
 	 * @throws CertificateExtensionException (rollback) if an error exists in the exensions specified in the request
 	 */
     public ResponseMessage processCertReq(AuthenticationToken admin, EndEntityInformation userdata, RequestMessage req, Class<? extends CertificateResponseMessage> responseClass) throws EndEntityExistsException,
@@ -88,19 +105,19 @@ public interface CertificateRequestSession {
      * @param keyalg AlgorithmConstants.KEYALGORITHM_RSA, AlgorithmConstants.KEYALGORITHM_DSA or AlgorithmConstants.KEYALGORITHM_ECDSA
      * @param createJKS true to create a JKS, false to create a PKCS12
      * @return an encoded keystore of the type specified in responseType 
-	 * @throws EndEntityProfileValidationException 
-	 * @throws AuthorizationDeniedException 
-	 * @throws CustomFieldException 
-	 * @throws CADoesntExistsException 
-	 * @throws EndEntityExistsException 
-	 * @throws ApprovalException 
+	 * @throws EndEntityProfileValidationException fail
+	 * @throws AuthorizationDeniedException fail
+	 * @throws CustomFieldException fail
+	 * @throws CADoesntExistsException fail
+	 * @throws EndEntityExistsException fail
+	 * @throws ApprovalException fail
 	 * @throws IllegalNameException if the Subject DN failed constraints
 	 * @throws CertificateSerialNumberException if SubjectDN serial number already exists.
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeySpecException 
-	 * @throws CertificateException 
-	 * @throws InvalidAlgorithmParameterException 
-	 * @throws KeyStoreException 
+	 * @throws NoSuchAlgorithmException fail
+	 * @throws InvalidKeySpecException fail
+	 * @throws CertificateException fail
+	 * @throws InvalidAlgorithmParameterException fail
+	 * @throws KeyStoreException fail
 	 * @throws NoSuchEndEntityException if the end entity was not found
      */
     public byte[] processSoftTokenReq(AuthenticationToken admin, EndEntityInformation userdata, String hardTokenSN, String keyspec, String keyalg,

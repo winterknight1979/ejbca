@@ -65,6 +65,7 @@ import org.ejbca.cvc.exception.ParseException;
 /**
  * @version $Id: SignSession.java 32628 2019-06-27 09:17:20Z mikekushner $
  */
+@SuppressWarnings("deprecation")
 public interface SignSession {
 
     /**
@@ -83,10 +84,11 @@ public interface SignSession {
      * @param admin Information about the administrator or admin performing the event.
      * @param cert  client certificate which we want encapsulated in a PKCS7 together with
      *              certificate chain.
+     * @param includeChain chain
      * @return The DER-encoded PKCS7 message.
      * @throws CADoesntExistsException       if the CA does not exist or is expired, or has an invalid cert
      * @throws SignRequestSignatureException if the certificate is not signed by the CA
-     * @throws AuthorizationDeniedException
+     * @throws AuthorizationDeniedException fail
      */
     byte[] createPKCS7(AuthenticationToken admin, X509Certificate cert, boolean includeChain) throws CADoesntExistsException,
             SignRequestSignatureException, AuthorizationDeniedException;
@@ -96,15 +98,20 @@ public interface SignSession {
      *
      * @param admin Information about the administrator or admin performing the event.
      * @param caId  CA for which we want a PKCS7 certificate chain.
+     * @param includeChain chain 
      * @return The DER-encoded PKCS7 message.
      * @throws CADoesntExistsException if the CA does not exist or is expired, or has an invalid cert
-     * @throws AuthorizationDeniedException
+     * @throws AuthorizationDeniedException fail
      */
     byte[] createPKCS7(AuthenticationToken admin, int caId, boolean includeChain) throws CADoesntExistsException, AuthorizationDeniedException;
 
     /**
      * Creates a roll over PKCS7 for the next CA certificate, signed by the current CA key. Used by ScepServlet.
+     * @param admin admin
+     * @param caId CA
      * @return A DER-encoded PKCS7 message, or null if there's no next CA certificate.
+     * @throws CADoesntExistsException fail
+     * @throws AuthorizationDeniedException fail 
      */
     byte[] createPKCS7Rollover(AuthenticationToken admin, int caId) throws CADoesntExistsException, AuthorizationDeniedException;
 
@@ -212,6 +219,7 @@ public interface SignSession {
      * @throws IllegalNameException if the certificate request contained an illegal name
      * @throws CertificateCreateException (rollback) if certificate couldn't be created.
      * @throws CADoesntExistsException if the CA defined by caId doesn't exist.
+     * @throws InvalidAlgorithmException fail
      *
      */
     Certificate createCertificate(AuthenticationToken admin, String username, String password, Certificate incert) throws NoSuchEndEntityException,
@@ -333,7 +341,8 @@ public interface SignSession {
       * @throws CertificateExpiredException if the users old certificate has expired.
       * @throws CesecoreException any CesecoreException.
       */
-     Collection<CertificateWrapper> createCardVerifiableCertificateWS(AuthenticationToken authenticationToken, String username, String password, String cvcreq) throws 
+     @SuppressWarnings("javadoc")
+	Collection<CertificateWrapper> createCardVerifiableCertificateWS(AuthenticationToken authenticationToken, String username, String password, String cvcreq) throws 
             AuthorizationDeniedException, CADoesntExistsException, UserDoesntFullfillEndEntityProfile, NotFoundException,
             ApprovalException, EjbcaException, WaitingForApprovalException, SignRequestException, CertificateExpiredException, CesecoreException;
      
@@ -358,6 +367,7 @@ public interface SignSession {
       * @throws InvalidKeySpecException if the key specification is not available.
       * @throws NoSuchAlgorithmException if the key algorithm is not available.
       * @throws NoSuchProviderException if the required crypto provider is not installed.
+     * @throws CertificateException fail
       * @throws IOException if the certificate could not be encoded.
       * @throws ParseException if a CVC certificate could not be parsed.
       * @throws ConstructionException if a CVC could not be assembled.
@@ -386,8 +396,6 @@ public interface SignSession {
      * @return A decrypted and verified ResponseMessage message
      *
      * @throws CryptoTokenOfflineException if the cryptotoken use by the CA defined in the request is unavailable
-     * @throws AuthStatusException           If the users status is incorrect.
-     * @throws AuthLoginException            If the password is incorrect.
      * @throws CADoesntExistsException       if the targeted CA does not exist
      * @throws AuthorizationDeniedException if the authentication token wasn't authorized to the CA defined in the request
      *
@@ -407,8 +415,8 @@ public interface SignSession {
      * 
      * @throws CADoesntExistsException       if the targeted CA does not exist
      * @throws SignRequestSignatureException if the the request couldn't be verified.
-     * @throws CryptoTokenOfflineException
-     * @throws AuthorizationDeniedException
+     * @throws CryptoTokenOfflineException fail
+     * @throws AuthorizationDeniedException fail
      * 
      * @see org.cesecore.certificates.certificate.request.RequestMessage
      * @see org.cesecore.certificates.certificate.request.ResponseMessage
@@ -423,13 +431,16 @@ public interface SignSession {
      * @param req           a CRL Request message
      * @param responseClass the implementation class of the desired response
      * @return The newly created certificate or null.
+     * @throws AuthStatusException fail
+     * @throws AuthLoginException fail
      * @throws IllegalKeyException           if the public key is of wrong type.
      * @throws CADoesntExistsException       if the targeted CA does not exist
      * @throws SignRequestException          if the provided request is invalid.
      * @throws SignRequestSignatureException if the provided client certificate was not signed by
      *                                       the CA.
-     * @throws CryptoTokenOfflineException
-     * @throws AuthorizationDeniedException
+     * @throws UnsupportedEncodingException fail
+     * @throws CryptoTokenOfflineException fail
+     * @throws AuthorizationDeniedException fail
      */
     ResponseMessage getCRL(AuthenticationToken admin, RequestMessage req, Class<? extends ResponseMessage> responseClass)
             throws AuthStatusException, AuthLoginException, IllegalKeyException, CADoesntExistsException, SignRequestException,
@@ -443,6 +454,7 @@ public interface SignSession {
      *
      * The return value should only be passed directly into one of the CeSECore methods that use it.
      * There's no point in accessing it from EJBCA code.
+     * @return params
      */
     CertificateGenerationParams fetchCertGenParams();
     

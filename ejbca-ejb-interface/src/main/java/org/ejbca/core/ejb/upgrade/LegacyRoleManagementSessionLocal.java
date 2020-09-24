@@ -35,7 +35,7 @@ import org.cesecore.roles.RoleExistsException;
  * managing subjects, which makes users part of the role thus giving them the access rights defined by the access rules of the role.</li>
  * </ul>
  * 
- * See {@link https://www.cesecore.eu/mediawiki/index.php/Functional_Specifications_(ADV_FSP)#Roles_Management}
+ * @see <a href="https://www.cesecore.eu/mediawiki/index.php/Functional_Specifications_(ADV_FSP)#Roles_Management">specs</a>
  * 
  * @version $Id: LegacyRoleManagementSessionLocal.java 25569 2017-03-21 23:28:38Z jeklund $
  */

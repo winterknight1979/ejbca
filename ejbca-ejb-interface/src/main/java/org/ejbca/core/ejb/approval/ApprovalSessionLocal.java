@@ -48,6 +48,7 @@ public interface ApprovalSessionLocal extends ApprovalSession {
 
 	/**
 	 * Encode a Collection of Approval and set it in ApprovalData object.
+	 * @param approvalData data
 	 * @param approvals cannot be null.
 	 */
 	void setApprovals(ApprovalData approvalData, Collection<Approval> approvals);
@@ -102,7 +103,7 @@ public interface ApprovalSessionLocal extends ApprovalSession {
       *            '(endEntityProfileId=... OR endEntityProfileId=...) objects
       *            only
       * @return a List of ApprovalDataVO, never null
-      * @throws IllegalQueryException
+      * @throws IllegalQueryException fail
       */
      List<ApprovalDataVO> query(final Query query, int index, int numberofrows, String caAuthorizationString,
              String endEntityProfileAuthorizationString) throws IllegalQueryException;

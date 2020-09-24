@@ -48,6 +48,8 @@ public interface PublishingCrlSessionLocal extends PublishingCrlSession {
      *            CRL overlap time (configured in CA) and the poll time. The
      *            used CRL overlap time will be (crloverlaptime +
      *            addtocrloverlaptime)
+     * @return int
+     * @throws AuthorizationDeniedException fail
      */
     int createCRLs(AuthenticationToken admin, Collection<Integer> caids, long addtocrloverlaptime) throws AuthorizationDeniedException;
 
@@ -61,6 +63,8 @@ public interface PublishingCrlSessionLocal extends PublishingCrlSession {
      * @param crloverlaptime
      *            A new delta CRL is created if the current one expires within
      *            the crloverlaptime given in milliseconds
+     * @return int
+     * @throws AuthorizationDeniedException fail
      */
     int createDeltaCRLs(AuthenticationToken admin, Collection<Integer> caids, long crloverlaptime) throws AuthorizationDeniedException;
     
@@ -74,6 +78,10 @@ public interface PublishingCrlSessionLocal extends PublishingCrlSession {
      *            A new delta CRL is created if the current one expires within
      *            the crloverlaptime given in milliseconds
      * @return true if a Delta CRL was created
+     * @throws CryptoTokenOfflineException fail
+     * @throws CAOfflineException fail
+     * @throws CADoesntExistsException fail 
+     * @throws AuthorizationDeniedException fail 
      * @throws javax.ejb.EJBException if communication or system error occurs
      */
     boolean createDeltaCRLnewTransactionConditioned(AuthenticationToken admin, int caid, long crloverlaptime) throws CryptoTokenOfflineException, CAOfflineException, CADoesntExistsException, AuthorizationDeniedException;

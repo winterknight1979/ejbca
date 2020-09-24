@@ -43,8 +43,8 @@ public class RaAcmeResponse implements Serializable {
     /**
      * Sets the operation, and the result. since the acme method on the RA contains multiple operations we setup the computed
      * result and operation inside the ACMERESPONSE
-     * @param operation
-     * @param result
+     * @param operation operatioon
+     * @param result result
      */
     public void setOperation(int operation, Map<String, Object> result){
         this.operation = operation;
@@ -52,7 +52,7 @@ public class RaAcmeResponse implements Serializable {
     }
     /**
      * This returns an object with information about the response operation and the type of object related to it.
-     * @return
+     * @return map
      */
     public Map<String, Object> getResult(){
         HashMap<String, Object> result = new HashMap<>();

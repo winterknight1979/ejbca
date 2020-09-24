@@ -37,6 +37,8 @@ public interface RaMasterApiProxyBeanLocal extends RaMasterApi {
      */
     void deferLocalForTest();
 
-    /** @return a RaCertificateSearchResponse from a search with a given username */
+    /** @param authenticationToken token
+     * @param username user
+     * @return a RaCertificateSearchResponse from a search with a given username */
     RaCertificateSearchResponse searchForCertificatesByUsername(final AuthenticationToken authenticationToken, final String username);
 }

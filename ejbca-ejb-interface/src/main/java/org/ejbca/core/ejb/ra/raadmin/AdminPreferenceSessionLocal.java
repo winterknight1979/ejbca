@@ -32,7 +32,7 @@ public interface AdminPreferenceSessionLocal extends AdminPreferenceSession {
      * Returns custom RA Styles associated with the role of the requesting administrator. If the administrator has requested
      * styles very recently, the same content will be returned to prevent requests via Peers for for every resource request
      * e.g. in a page load in the RA web.
-     * @param authenticationToken of the requesting administrator
+     * @param admin authenticationToken of the requesting administrator
      * @return List of custom RA styles available for the requesting administrator
      */
     List<RaStyleInfo> getAvailableRaStyleInfos(AuthenticationToken admin);
@@ -46,7 +46,7 @@ public interface AdminPreferenceSessionLocal extends AdminPreferenceSession {
     
     /**
      * Sets the current RA Style id the requesting administrator.
-     * @param current style id for the admin.
+     * @param currentStyleId current style id for the admin.
      * @param admin is the admin who is saving its preferences in database.
      */
     void setCurrentRaStyleId(int currentStyleId, AuthenticationToken admin);
@@ -60,7 +60,7 @@ public interface AdminPreferenceSessionLocal extends AdminPreferenceSession {
     
     /**
      * Sets the current locale for the requesting administrator.
-     * @param current locale for this admin.
+     * @param locale current locale for this admin.
      * @param admin is the admin who is saving its preferences in database.
      */
     void setCurrentRaLocale(Locale locale, AuthenticationToken admin);

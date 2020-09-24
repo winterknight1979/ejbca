@@ -24,32 +24,39 @@ public interface HardTokenBatchJobSession {
 
 	/**
      * Returns the next user scheduled for batch generation for the given issuer.
+	 * @param alias alias
      * 
      * @return The next user to generate or NULL if there are no users i queue.
+	 * @throws UnavailableTokenException fail 
      */
     public EndEntityInformation getNextHardTokenToGenerate(String alias) throws UnavailableTokenException;
 
     /**
      * Returns a Collection of users scheduled for batch generation for the given issuer.
      * A maximum of MAX_RETURNED_QUEUE_SIZE users will be returned by call.
+     * @param alias alias
      *
      *
      * @return A Collection of users to generate or NULL if there are no users i queue.
+     * @throws UnavailableTokenException fail
      * @throws javax.ejb.EJBException if a communication or other error occurs.
      */
     public Collection<EndEntityInformation> getNextHardTokensToGenerate(String alias) throws UnavailableTokenException;
 
     /**
      * Returns the indexed user in queue scheduled for batch generation for the given issuer.
+     * @param alias alias
      *
      * @param index index in queue of user to retrieve. (First position is 1 according to old JDBC implementation.)
      * @return The next token to generate or NULL if the given user doesn't exist in queue.
+     * @throws UnavailableTokenException  fail
      * @throws javax.ejb.EJBException if a communication or other error occurs.
      */
     public EndEntityInformation getNextHardTokenToGenerateInQueue(String alias, int index) throws UnavailableTokenException;
 
     /**
      * Returns the number of users scheduled for batch generation for the given issuer.
+     * @param alias fail
      *
      *
      * @return the number of users to generate.

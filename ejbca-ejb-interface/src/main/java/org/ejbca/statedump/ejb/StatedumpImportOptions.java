@@ -45,7 +45,8 @@ public final class StatedumpImportOptions implements Serializable {
         // Does nothing
     }
     
-    /** Sets the directory to import from. Should be an absolute path. */
+    /** Sets the directory to import from. Should be an absolute path. 
+     * @param location location*/
     public void setLocation(final File location) {
         this.location = location;
     }
@@ -54,7 +55,8 @@ public final class StatedumpImportOptions implements Serializable {
         return location;
     }
     
-    /** Sets the file to read overrides from. By default, no overrides are read. */
+    /** Sets the file to read overrides from. By default, no overrides are read. 
+     * @param overridesFile file*/
     public void setOverridesFile(final File overridesFile) {
         this.overridesFile = overridesFile;
     }
@@ -75,7 +77,9 @@ public final class StatedumpImportOptions implements Serializable {
         resolutions.put(key, resolution);
     }
     
-    /** Internal method, but EJBs can't call package internal methods, so it must be public */
+    /** Internal method, but EJBs can't call package internal methods, so it must be public 
+     * @param key key
+     * @return resolution */
     public StatedumpResolution _lookupConflictResolution(final StatedumpObjectKey key) {
         return resolutions.get(key);
     }
@@ -84,7 +88,9 @@ public final class StatedumpImportOptions implements Serializable {
         passwords.put(key, password);
     }
     
-    /** Internal method, but EJBs can't call package internal methods, so it must be public */
+    /** Internal method, but EJBs can't call package internal methods, so it must be public 
+     * @param key key
+     * @return pwd */
     public String _lookupPassword(final StatedumpObjectKey key) {
         return passwords.get(key);
     }
@@ -99,25 +105,32 @@ public final class StatedumpImportOptions implements Serializable {
         caIdChanges.add(new StatedumpCAIdChange(fromId, toId, toSubjectDN));
     }
     
-    /** Internal method, but EJBs can't call package internal methods, so it must be public */
+    /** Internal method, but EJBs can't call package internal methods, so it must be public 
+     * @return list*/
     public List<StatedumpCAIdChange> _getCASubjectDNChanges() {
         return caIdChanges;
     }
     
     /**
      * Adds a translation of a CryptoToken Id.
+     * @param fromId ID
+     * @param toId ID
      */
     public void addCryptoTokenIdChange(final int fromId, final int toId) {
         cryptoTokenIdChanges.put(fromId, toId);
     }
     
-    /** Internal method, but EJBs can't call package internal methods, so it must be public */
+    /** Internal method, but EJBs can't call package internal methods, so it must be public 
+     * @return map*/
     public Map<Integer,Integer> _getCryptoTokenIdChanges() {
         return cryptoTokenIdChanges;
     }
     
     /**
      * Adds an override of a field. See StatedumpFieldOverrider
+     * @param key key
+     * @param type type
+     * @param value value
      */
     public void addOverride(final String[] key, final StatedumpOverride.Type type, final Object value) {
         final String keyStr = StringUtils.join(key, '.');
@@ -129,7 +142,9 @@ public final class StatedumpImportOptions implements Serializable {
         list.add(new StatedumpOverride(type, value));
     }
     
-    /** Internal method, but EJBs can't call package internal methods, so it must be public */
+    /** Internal method, but EJBs can't call package internal methods, so it must be public 
+     * @param key key
+     * @return list */
     public List<StatedumpOverride> _getOverrides(final String[] key) {
         final String keyStr = StringUtils.join(key, '.');
         return overrides.get(keyStr);

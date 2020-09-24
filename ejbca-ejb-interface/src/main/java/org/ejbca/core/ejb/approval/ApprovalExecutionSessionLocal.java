@@ -24,6 +24,8 @@ public interface ApprovalExecutionSessionLocal extends ApprovalExecutionSession 
 
     /**
      * Asserts general authorization to approve 
+     * @param admin admin
+     * @param approvalData data
      * @throws AuthorizationDeniedException if any authorization error occurred  
      */
     void assertAuthorizedToApprove(AuthenticationToken admin, ApprovalDataVO approvalData) throws AuthorizationDeniedException;

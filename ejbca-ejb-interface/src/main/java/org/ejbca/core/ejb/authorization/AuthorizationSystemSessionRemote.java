@@ -26,10 +26,17 @@ import org.cesecore.authorization.AuthorizationDeniedException;
 @Remote
 public interface AuthorizationSystemSessionRemote extends AuthorizationSystemSession {
 
-    /** @return a Map of all authorized <resource,resourceName> on this installation (optionally ignoring if certain resources is not in use) */
+    /** @param authenticationToken auth
+     * @param ignoreLimitations limits
+     * @return a Map of all authorized <resource,resourceName> on this installation (optionally ignoring if certain resources is not in use) */
     Map<String,String> getAllResources(AuthenticationToken authenticationToken, boolean ignoreLimitations);
 
-    /** Configure the provided CN as a RoleMember of the Super Administrator Role if the caller has sufficient privileges. */
+    /** Configure the provided CN as a RoleMember of the Super Administrator Role if the caller has sufficient privileges. 
+     * @param authenticationToken auth
+     * @param caId CA
+     * @param superAdminCN CN 
+     * @return mod
+     * @throws AuthorizationDeniedException fail */
     boolean initializeAuthorizationModuleWithSuperAdmin(AuthenticationToken authenticationToken, int caId, String superAdminCN)
             throws AuthorizationDeniedException;
 }

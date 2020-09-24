@@ -29,6 +29,7 @@ public interface BlacklistSessionLocal extends BlacklistSession {
 
     /**
      * Gets a public key blacklist entry by cache or database.
+     * @param id ID
      * @return a Blacklist or null if a public key blacklist with the given id does not exist. Uses cache to get the object as quickly as possible.
      *         
      */
@@ -36,14 +37,15 @@ public interface BlacklistSessionLocal extends BlacklistSession {
 
     /**
      * Returns the id of the public key blacklist entry with the given fingerprint.
+     * @param type type
+     * @param value value
      * @return the id or 0 if the public key blacklist cannot be found.
-     * 
-     * @throws BlacklistDoesntExistsException if a custom public key blacklist does not exist.
      */
     int getBlacklistEntryId(String type, String value);
 
     /**
      * Gets the fingerprint of the public key blacklist entry with the given id.
+     * @param id ID
      * 
      * @return the fingerprint of the public key blacklist with the given id or null if none was found.
      */

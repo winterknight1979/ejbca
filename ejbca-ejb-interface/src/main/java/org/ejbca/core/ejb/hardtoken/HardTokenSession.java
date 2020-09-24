@@ -41,39 +41,57 @@ public interface HardTokenSession {
 
 	/**
      * Adds a hard token profile to the database.
+	 * @param admin admin
+	 * @param name name
+	 * @param profile profile
      * @throws HardTokenProfileExistsException if hard token already exists.
-	 * @throws AuthorizationDeniedException 
+	 * @throws AuthorizationDeniedException faol 
      */
     void addHardTokenProfile(AuthenticationToken admin, String name, HardTokenProfile profile) throws HardTokenProfileExistsException, AuthorizationDeniedException;
 
     /**
      * Adds a hard token profile to the database. Used for importing and
      * exporting profiles from xml-files.
+     * @param admin admin
+     * @param profileid id
+     * @param name name
+     * @param profile profile
      * 
      * @throws HardTokenProfileExistsException if hard token already exists.
-     * @throws AuthorizationDeniedException 
+     * @throws AuthorizationDeniedException fail 
      */
     void addHardTokenProfile(AuthenticationToken admin, int profileid, String name, HardTokenProfile profile) throws HardTokenProfileExistsException, AuthorizationDeniedException;
 
     /** Updates hard token profile data. 
-     * @throws AuthorizationDeniedException */
+     * @param admin admin
+     * @param name name
+     * @param profile profile
+     * @throws AuthorizationDeniedException fail */
     void changeHardTokenProfile(AuthenticationToken admin, String name, HardTokenProfile profile) throws AuthorizationDeniedException;
 
     /**
      * Adds a hard token profile with the same content as the original profile,
+     * @param admin admin
+     * @param oldname name
+     * @param newname name
      * @throws HardTokenProfileExistsException if hard token already exists.
-     * @throws AuthorizationDeniedException 
+     * @throws AuthorizationDeniedException fail 
      */
     void cloneHardTokenProfile(AuthenticationToken admin, String oldname, String newname) throws HardTokenProfileExistsException, AuthorizationDeniedException;
 
     /** Removes a hard token profile from the database. 
-     * @throws AuthorizationDeniedException */
+     * @param admin admin
+     * @param name name
+     * @throws AuthorizationDeniedException fail */
     void removeHardTokenProfile(AuthenticationToken admin, String name) throws AuthorizationDeniedException;
 
     /**
      * Renames a hard token profile
+     * @param admin admin
+     * @param oldname name
+     * @param newname name
      * @throws HardTokenProfileExistsException if hard token already exists.
-     * @throws AuthorizationDeniedException 
+     * @throws AuthorizationDeniedException fail 
      */
     void renameHardTokenProfile(AuthenticationToken admin, String oldname, String newname) throws HardTokenProfileExistsException, AuthorizationDeniedException;
 
@@ -81,6 +99,7 @@ public interface HardTokenSession {
      * Retrieves a Collection of id:s (Integer) to authorized profiles.
      * Authorized hard token profiles are profiles containing only authorized
      * certificate profiles and caids.
+     * @param admin admin
      * 
      * @return Collection of id:s (Integer)
      */
@@ -89,56 +108,81 @@ public interface HardTokenSession {
     /** @return a mapping of profile id (Integer) to profile name (String). */
     HashMap<Integer, String> getHardTokenProfileIdToNameMap();
 
-    /** Retrieves a named hard token profile. */
+    /** Retrieves a named hard token profile. 
+     * @param name name
+     * @return profile */
     HardTokenProfile getHardTokenProfile(String name);
 
-    /** Finds a hard token profile by id. */
+    /** Finds a hard token profile by id. 
+     * @param id id
+     * @return profile */
     HardTokenProfile getHardTokenProfile(int id);
 
     /**
      * Help method used by hard token profile proxys to indicate if it is time
      * to update it's profile data.
+     * @param hardtokenprofileid id
+     * @return count
      */
     int getHardTokenProfileUpdateCount(int hardtokenprofileid);
 
-    /** @return a hard token profile id from it's name or 0 if it can't be found. */
+    /** @param name name
+     * @return a hard token profile id from it's name or 0 if it can't be found. */
     int getHardTokenProfileId(String name);
 
     /**
      * Returns a hard token profile name given its id.
+     * @param id id
      * @return the name or null if id doesn't exist
      */
     String getHardTokenProfileName(int id);
 
     /**
      * Adds a hard token issuer to the database.
+     * @param admin admin
+     * @param alias alias
+     * @param roleId id
+     * @param issuerdata data 
      * @return false if hard token issuer already exists.
-     * @throws AuthorizationDeniedException 
+     * @throws AuthorizationDeniedException fail
      */
     boolean addHardTokenIssuer(AuthenticationToken admin, String alias, int roleId, HardTokenIssuer issuerdata) throws AuthorizationDeniedException;
 
     /**
      * Updates hard token issuer data
+     * @param admin admin
+     * @param alias alias
+     * @param issuerdata data
      * @return false if alias does not exist
-     * @throws AuthorizationDeniedException 
+     * @throws AuthorizationDeniedException fil
      */
     boolean changeHardTokenIssuer(AuthenticationToken admin, String alias, HardTokenIssuer issuerdata) throws AuthorizationDeniedException;
 
     /**
      * Adds a hard token issuer with the same content as the original issuer,
+     * @param admin admin
+     * @param oldalias alias
+     * @param newalias alias
+     * @param roleId ID
      * @return false if the new alias or certificatesn already exists (???)
-     * @throws AuthorizationDeniedException 
+     * @throws AuthorizationDeniedException fail
      */
     boolean cloneHardTokenIssuer(AuthenticationToken admin, String oldalias, String newalias, int roleId) throws AuthorizationDeniedException;
 
     /** Removes a hard token issuer from the database. 
-     * @throws AuthorizationDeniedException */
+     * @param admin admin
+     * @param alias alias
+     * @throws AuthorizationDeniedException fail */
     void removeHardTokenIssuer(AuthenticationToken admin, String alias) throws AuthorizationDeniedException;
 
     /**
      * Renames a hard token issuer
+     * @param admin admin
+     * @param oldalias alias
+     * @param newalias alias
+     * @param roleId ID
      * @return false if new alias or certificatesn already exists (???)
-     * @throws AuthorizationDeniedException 
+     * @throws AuthorizationDeniedException fail
      */
     boolean renameHardTokenIssuer(AuthenticationToken admin, String oldalias, String newalias, int roleId) throws AuthorizationDeniedException;
 
@@ -165,6 +209,7 @@ public interface HardTokenSession {
 
     /**
      * Returns the available hard token issuers authorized to the administrator.
+     * @param admin admin
      * @return A collection of available HardTokenIssuerData.
      */
     Collection<HardTokenIssuerInformation> getHardTokenIssuerDatas(AuthenticationToken admin);
@@ -172,6 +217,7 @@ public interface HardTokenSession {
     /**
      * Returns the available hard token issuer aliases authorized to the
      * administrator.
+     * @param admin admin
      * 
      * @return A collection of available hard token issuer aliases.
      */
@@ -179,30 +225,35 @@ public interface HardTokenSession {
 
     /**
      * Returns the available hard token issuers authorized to the administrator.
+     * @param admin admin
      * @return A TreeMap of available hard token issuers.
      */
     TreeMap<String, HardTokenIssuerInformation> getHardTokenIssuers(AuthenticationToken admin);
 
-    /** @return the hard token issuer data or null if it doesn't exist. */
+    /** @param alias alias
+     * @return the hard token issuer data or null if it doesn't exist. */
     org.ejbca.core.model.hardtoken.HardTokenIssuerInformation getHardTokenIssuerInformation(String alias);
 
-    /** @return the hard token issuer data or null if it doesn't exist. */
+    /** @param id id
+     * @return the hard token issuer data or null if it doesn't exist. */
     org.ejbca.core.model.hardtoken.HardTokenIssuerInformation getHardTokenIssuerInformation(int id);
 
-    /** @return the number of available hard token issuers. */
+    /** @param admin admin
+     * @return the number of available hard token issuers. */
     int getNumberOfHardTokenIssuers(AuthenticationToken admin);
 
-    /** @return a hard token issuer id given its alias. */
+    /** @param alias alias
+     * @return a hard token issuer id given its alias. */
     int getHardTokenIssuerId(String alias);
 
-    /** @return the alias or null if id doesn't exist. */
+    /** @param id ID
+     * @return the alias or null if id doesn't exist. */
     String getHardTokenIssuerAlias(int id);
 
     /**
      * Checks if a hard token profile is among a hard tokens issuers available
      * token types.
      * 
-     * @param admin the administrator calling the function
      * @param issuerid the id of the issuer to check.
      * @param userdata the data of user about to be generated
      * @throws UnavailableTokenException
@@ -218,6 +269,7 @@ public interface HardTokenSession {
      * @param tokensn The serial number of token.
      * @param username the user owning the token.
      * @param significantissuerdn indicates which CA the hard token should belong to.
+     * @param tokentype tyype
      * @param hardtokendata the hard token data
      * @param certificates a collection of certificates places in the hard token
      * @param copyof indicates if the newly created token is a copy of an existing
@@ -233,6 +285,7 @@ public interface HardTokenSession {
      * 
      * @param admin the administrator calling the function
      * @param tokensn The serial number of token.
+     * @param tokentype type
      * @param hardtokendata the hard token data
      * @throws HardTokenDoesntExistsException
      *             if tokensn does not exist in database.
@@ -262,7 +315,9 @@ public interface HardTokenSession {
      * 
      * @param admin the administrator calling the function
      * @param tokensn The serial number of token.
+     * @param includePUK puk
      * @return the hard token data or null if tokensn does not exist in database.
+     * @throws AuthorizationDeniedException fail
      */
     HardTokenInformation getHardToken(AuthenticationToken admin, String tokensn, boolean includePUK) throws AuthorizationDeniedException;
 
@@ -271,6 +326,7 @@ public interface HardTokenSession {
      * 
      * @param admin the administrator calling the function
      * @param username The username owning the tokens.
+     * @param includePUK puk
      * @return a Collection of all hard token user data.
      */
     Collection<HardTokenInformation> getHardTokens(AuthenticationToken admin, String username, boolean includePUK);

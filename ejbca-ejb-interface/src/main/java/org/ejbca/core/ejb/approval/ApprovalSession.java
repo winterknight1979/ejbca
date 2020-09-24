@@ -34,6 +34,8 @@ public interface ApprovalSession {
      * action twice should result in the same approvalId
      * 
      * If the approvalId already exists, with a non expired approval, a new approval request is added to the database. An approvalException is thrown otherwise
+     * @param admin admin
+     * @param approvalRequest req 
      * 
      * @return the database identifier of the created request
      * 
@@ -55,7 +57,7 @@ public interface ApprovalSession {
       * <0   the request has any other status 
       * 
       * @param approvalId the approval ID of the request
-      * @param the given step 
+      * @param step the given step 
       * @return the number of approvals left if still waiting for approval, 0 (ApprovalDataVO.STATUS_APROVED) 
       * if approved otherwise the ApprovalDataVO.STATUS constants returned indicating the status.
       * @throws ApprovalException if approvalId does not exist
@@ -76,8 +78,7 @@ public interface ApprovalSession {
      * >0   the request requires so many more approvals left 
      * <0   the request has any other status 
      * 
-     * @param admin an authentication token
-     * @param approval the ID of the request
+     * @param approvalId the ID of the request
      * @return the number of approvals left if still waiting for approval, 0 (ApprovalDataVO.STATUS_APROVED) 
      * if approved otherwise the ApprovalDataVO.STATUS constants returned indicating the status.
      * @throws ApprovalException if approvalId does not exist
@@ -109,9 +110,10 @@ public interface ApprovalSession {
      * Method that marks a certain step of a a non-executable approval as done.
      * When the last step is performed the approval is marked as EXPRIED.
      * 
-     * @param approvalId
+     * @param approvalId ID
      * @param step in approval to mark
      * @throws ApprovalException if approvalId does not exist,
+     * @throws ApprovalRequestExpiredException Fail
      * 
      * @deprecated Used for the old hard token era steps. 
      */
@@ -120,6 +122,7 @@ public interface ApprovalSession {
 
     /**
      * Method used to remove an approval from database.
+     * @param admin admin
      * 
      * @param id the unique id of the approvalrequest, not the same as approvalId
      */
@@ -139,13 +142,15 @@ public interface ApprovalSession {
     /**
      * Method returning an approval requests with status 'waiting', 'Approved'
      * or 'Reject' returns null if no non expired exists
+     * @param approvalId ID
+     * @return req
      */
     ApprovalDataVO findNonExpiredApprovalRequest(int approvalId);
 
     /**
      * Method that takes an approvalId and returns all approval requests for this.
      * 
-     * @param approvalId
+     * @param approvalId ID
      * @return and list of ApprovalDataVO, empty if no approvals exists.
      */
     List<ApprovalDataVO> findApprovalDataVO(int approvalId);

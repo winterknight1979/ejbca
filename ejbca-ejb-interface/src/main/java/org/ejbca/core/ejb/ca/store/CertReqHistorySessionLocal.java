@@ -54,7 +54,7 @@ public interface CertReqHistorySessionLocal extends CertReqHistorySession {
      * transaction! 
      * 
      * @param certificateSN serial number of the certificate
-     * @param issuerDN
+     * @param issuerDN DN
      * @return the CertReqHistory or null if no data is stored with the certificate.
      */
     CertReqHistory retrieveCertReqHistory(BigInteger certificateSN, String issuerDN);
@@ -63,6 +63,7 @@ public interface CertReqHistorySessionLocal extends CertReqHistorySession {
      * NOTE: This method will try to repair broken XML and will in that case
      * update the database. This means that this method must always run in a
      * transaction! 
+     * @param username User
      * 
      * @return all certificate request data belonging to a user.
      */

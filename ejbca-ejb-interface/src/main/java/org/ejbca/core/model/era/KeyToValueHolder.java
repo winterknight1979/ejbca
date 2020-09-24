@@ -18,6 +18,7 @@ import java.io.Serializable;
  * Generic implementation which will hold any serializable object, as well as its ID and name.
  * 
  * @version $Id: KeyToValueHolder.java 24056 2016-07-29 10:10:23Z mikekushner $
+ * @param <T> Type
  */
 public class KeyToValueHolder<T extends Serializable> implements Serializable {
 

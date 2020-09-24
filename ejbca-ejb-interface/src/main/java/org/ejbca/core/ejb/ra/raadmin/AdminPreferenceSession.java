@@ -81,7 +81,7 @@ public interface AdminPreferenceSession {
 
     /** Function that saves the default admin preference. 
      * @param admin An {@link AuthenticationToken} for authorization.
-     * @param adminpreference The {@link AdminPreference} to save as default.
+     * @param defaultadminpreference The {@link AdminPreference} to save as default.
      * @throws AuthorizationDeniedException if the local {@link AuthenticationToken} wasn't authorized to /system_functionality/edit_systemconfiguration
      */
     void saveDefaultAdminPreference(AuthenticationToken admin, AdminPreference defaultadminpreference) throws AuthorizationDeniedException;

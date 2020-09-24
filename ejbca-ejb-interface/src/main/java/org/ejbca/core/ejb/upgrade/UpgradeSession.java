@@ -16,6 +16,9 @@ public interface UpgradeSession {
 
     /**
      * Upgrades the database
+     * @param dbtype db
+     * @param sOldVersion version
+     * @param isPost bool
      * 
      * @return true or false if upgrade was done or not
      */

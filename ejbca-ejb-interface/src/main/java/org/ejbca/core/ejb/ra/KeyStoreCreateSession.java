@@ -53,7 +53,7 @@ public interface KeyStoreCreateSession {
      *
      * The method must be preceded by
      * a editUser call, either to set the userstatus to 'new' or to add non-existing users and
-     * the user's token must be set to {@link org.ejbca.core.protocol.ws.client.gen.UserDataVOWS}.TOKEN_TYPE_P12.<br>
+     * the user's token must be set to org.ejbca.core.protocol.ws.client.gen.UserDataVOWS.TOKEN_TYPE_P12.<br>
      *
      * Authorization requirements: <pre>
      * - /administrator
@@ -100,7 +100,7 @@ public interface KeyStoreCreateSession {
      * @param keyspec name of ECDSA key or length of RSA and DSA keys (endEntityInformation.extendedInformation.keyStoreAlgorithmSubType has priority over this value)
      * @param keyalg AlgorithmConstants.KEYALGORITHM_RSA, AlgorithmConstants.KEYALGORITHM_DSA or AlgorithmConstants.KEYALGORITHM_ECDSA (endEntityInformation.extendedInformation.keyStoreAlgorithmType has priority over this value)
      * @param notBefore The date at which the private key starts to be valid, or null
-     * @param notAfer The date at which the private key should be considered expired, or null
+     * @param notAfter The date at which the private key should be considered expired, or null
      * @param createJKS true to create a JKS, false to create a PKCS12
      * @param loadkeys true if keys should be recovered
      * @param savekeys true if generated keys should be stored for keyrecovery

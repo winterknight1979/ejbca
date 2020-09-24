@@ -262,7 +262,8 @@ public class RaApprovalRequestInfo implements Serializable {
         return approvalProfile;
     }
 
-    /** @since EJBCA 6.7.0. If the response comes from an earlier version, it will return 0 (=extension of requests not allowed) */
+    /** @return long
+     * @since EJBCA 6.7.0. If the response comes from an earlier version, it will return 0 (=extension of requests not allowed) */
     public long getMaxExtensionTime() {
         return maxExtensionTime;
     }
@@ -299,7 +300,9 @@ public class RaApprovalRequestInfo implements Serializable {
         return isVisibleByMe;
     }
     
-    /** Is waiting for the given admin to do something */
+    /** Is waiting for the given admin to do something 
+     * @param admin admin
+     * @return fail */
     public boolean isWaitingForMe(final AuthenticationToken admin) {
         if (requestedByMe) {
             // There are approval types that do not get executed automatically on approval.
@@ -319,7 +322,9 @@ public class RaApprovalRequestInfo implements Serializable {
         return false;
     }
 
-    /** Is waiting for someone else to do something */
+    /** Is waiting for someone else to do something 
+     * @param admin admin
+     * @return fail */
     public boolean isPending(final AuthenticationToken admin) {
         return !isWaitingForMe(admin) && !isProcessed();
     }

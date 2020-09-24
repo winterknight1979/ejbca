@@ -52,29 +52,29 @@ public interface ScepMessageDispatcherSessionLocal extends ScepMessageDispatcher
      * @param message to dispatch
      * @param scepConfigurationAlias name of alias containing SCEP configuration
      * @return byte array containing dispatch response. Content depends on operation
-     * @throws NoSuchAliasException 
-     * @throws CertificateEncodingException 
-     * @throws AuthorizationDeniedException 
-     * @throws CADoesntExistsException 
-     * @throws CertificateRenewalException 
-     * @throws CertificateExtensionException 
-     * @throws CertificateException 
-     * @throws SignatureException 
-     * @throws InvalidAlgorithmException 
-     * @throws CAOfflineException 
-     * @throws IllegalValidityException 
-     * @throws CertificateSerialNumberException 
-     * @throws CertificateRevokeException 
-     * @throws CertificateCreateException 
-     * @throws IllegalNameException 
-     * @throws AuthLoginException 
-     * @throws AuthStatusException 
-     * @throws SignRequestSignatureException 
-     * @throws SignRequestException 
-     * @throws IllegalKeyException 
-     * @throws CryptoTokenOfflineException 
-     * @throws CustomCertificateSerialNumberException 
-     * @throws NoSuchEndEntityException 
+     * @throws NoSuchAliasException fail
+     * @throws CertificateEncodingException fail
+     * @throws AuthorizationDeniedException fail
+     * @throws CADoesntExistsException fail
+     * @throws CertificateRenewalException fail
+     * @throws CertificateExtensionException fail
+     * @throws CertificateException fail
+     * @throws SignatureException fail
+     * @throws InvalidAlgorithmException fail
+     * @throws CAOfflineException fail
+     * @throws IllegalValidityException fail
+     * @throws CertificateSerialNumberException fail
+     * @throws CertificateRevokeException fail
+     * @throws CertificateCreateException fail
+     * @throws IllegalNameException fail
+     * @throws AuthLoginException fail
+     * @throws AuthStatusException fail
+     * @throws SignRequestSignatureException fail
+     * @throws SignRequestException fail
+     * @throws IllegalKeyException fail
+     * @throws CryptoTokenOfflineException fail
+     * @throws CustomCertificateSerialNumberException fail
+     * @throws NoSuchEndEntityException fail
      */
     byte[] dispatchRequest(AuthenticationToken authenticationToken, String operation, String message, String scepConfigurationAlias) throws NoSuchAliasException, 
         CertificateEncodingException, CADoesntExistsException, AuthorizationDeniedException, NoSuchEndEntityException, CustomCertificateSerialNumberException, 

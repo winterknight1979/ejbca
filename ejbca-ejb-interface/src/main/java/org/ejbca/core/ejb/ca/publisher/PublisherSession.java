@@ -35,6 +35,7 @@ import org.ejbca.core.model.ca.publisher.PublisherExistsException;
 public interface PublisherSession {
 
     /**
+     * @param id id
      * @return a BasePublisher or null if a publisher with the given id does not
      *         exist. Uses cache to get the object as quickly as possible.
      *         
@@ -42,17 +43,20 @@ public interface PublisherSession {
     BasePublisher getPublisher(int id);
     
     /**
+     * @param name name
      * @return a BasePublisher or null if a publisher with the given name does
      *         not exist. Uses cache to get the object as quickly as possible.
      */
     BasePublisher getPublisher(String name);
     
     /**
+     * @param id id
      * @return the name of the publisher with the given id, null if none was found.
      */
     String getPublisherName(int id);
     
     /**
+     * @param id id
      * @return the data hashmap of the publisher with the given id.
      * @throws PublisherDoesntExistsException if there's no publisher with the given id.
      */
@@ -81,6 +85,10 @@ public interface PublisherSession {
     /**
      * Adds a publisher to the database. Used where it's not possible to pass a BasePublisher object,
      * such as in the CLI tools (e.g. statedump).
+     * @param admin admin
+     * @param id id
+     * @param name name
+     * @param data data
      * 
      * @throws PublisherExistsException if publisher already exists.
      * @throws AuthorizationDeniedException required access rights are ca_functionality/edit_publisher
@@ -102,6 +110,9 @@ public interface PublisherSession {
 
     /**
      * Adds a publisher with the same content as the original.
+     * @param admin admin
+     * @param oldname name
+     * @param newname name
      * @throws PublisherDoesntExistsException if publisher does not exist
      * @throws AuthorizationDeniedException required access rights are ca_functionality/edit_publisher
      * @throws PublisherExistsException if publisher already exists.
@@ -110,6 +121,9 @@ public interface PublisherSession {
 
     /**
      * Renames a publisher.
+     * @param admin admin
+     * @param oldname name
+     * @param newname name
      * @throws PublisherExistsException if publisher already exists.
      * @throws AuthorizationDeniedException required access rights are ca_functionality/edit_publisher
      */
@@ -121,7 +135,7 @@ public interface PublisherSession {
      * @param name the name of the publisher to change.
      * @param publisher the publisher to be added.
      * 
-     * @throws AuthorizationDeniedException */
+     * @throws AuthorizationDeniedException fail */
     void changePublisher(AuthenticationToken admin, String name, BasePublisher publisher) throws AuthorizationDeniedException;
 
     /**
@@ -139,9 +153,14 @@ public interface PublisherSession {
     /**
      * Stores the certificate to the given collection of publishers. See
      * BasePublisher class for further documentation about function
+     * @param admin admin
      * 
      * @param publisherids
      *            a Collection (Integer) of publisher IDs.
+     * @param certWrapper cart 
+     * @param password pwd
+     * @param userDN dn
+     * @param extendedinformation info
      * @return true if successful result on all given publishers, if the publisher is configured to not publish the certificate 
      * (for example publishing an active certificate when the publisher only publishes revoked), true is still returned because 
      * the publishing operation succeeded even though the publisher did not publish the certificate.
@@ -155,6 +174,14 @@ public interface PublisherSession {
      * Performs the same operation as the other storeCertificate method in this class, but performs a lookup for a CertificateData and Base64CertData object.
      * 
      * To avoid unnecessary database lookups, only use this method where the CertificateData object isn't immediately available. 
+     * @param admin admin
+     * @param publisherids ID 
+     * @param fingerprint fp
+     * @param password pwd
+     * @param userDN DN
+     * @param extendedinformation info 
+     * @return bool
+     * @throws AuthorizationDeniedException fail
      */
     boolean storeCertificate(AuthenticationToken admin, Collection<Integer> publisherids, String fingerprint,
             String password, String userDN, ExtendedInformation extendedinformation) throws AuthorizationDeniedException; 
@@ -162,8 +189,12 @@ public interface PublisherSession {
     /**
      * Stores the CRL to the given collection of publishers. See BasePublisher
      * class for further documentation about function
+     * @param admin admin
      * 
      * @param publisherids a Collection (Integer) of publisherids.
+     * @param incrl crl
+     * @param cafp fp
+     * @param number num 
      * @param issuerDn the issuer of this CRL
      * @return true if successful result on all given publishers
      * @throws AuthorizationDeniedException if access was denied to the CA matching userDN

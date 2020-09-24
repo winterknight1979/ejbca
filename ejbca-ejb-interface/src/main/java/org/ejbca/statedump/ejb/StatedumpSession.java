@@ -34,7 +34,7 @@ public interface StatedumpSession {
      * @param admin The authentication token. Must have / access, and of course access to create each item to import.
      * @param options Options. Must specify a location.
      * @return Result object with lists of conflicts and items that need a password.
-     * @throws AuthorizationDeniedException
+     * @throws AuthorizationDeniedException fail
      * @throws IOException If the files in the dump are malformed.
      */
     StatedumpImportResult performDryRun(AuthenticationToken admin, StatedumpImportOptions options) throws AuthorizationDeniedException, IOException;
@@ -45,7 +45,7 @@ public interface StatedumpSession {
      * @param admin The authentication token. Must have / access, and of course access to create each item to import.
      * @param options Options. Specifies location, lists of items to overwrite / not overwrite, passwords and other options.
      * @return Result object with lists of conflicts and items that need a password.
-     * @throws AuthorizationDeniedException
+     * @throws AuthorizationDeniedException fail
      * @throws IOException If the files in the dump are malformed.
      */
     StatedumpImportResult performImport(AuthenticationToken admin, StatedumpImportOptions options) throws AuthorizationDeniedException, IOException;
@@ -55,8 +55,10 @@ public interface StatedumpSession {
 
     /**
      * Lists all available statedumps in the configured statedump templates directory.
+     * @param admin admin
      * 
      * @return A map from the directory names (not full path) to language strings to be used as descriptions.
+     * @throws AuthorizationDeniedException fail
      */
     Map<String, String> getAvailableTemplates(AuthenticationToken admin) throws AuthorizationDeniedException;
 

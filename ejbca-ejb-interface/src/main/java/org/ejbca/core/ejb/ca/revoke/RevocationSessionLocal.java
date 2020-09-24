@@ -44,7 +44,7 @@ public interface RevocationSessionLocal extends RevocationSession {
      * @param revocationDate from when the certificates has been revoked
      * @param reason     the reason of the revocation. (One of the RevokedCertInfo.REVOCATION_REASON constants.)
      * @param userDataDN if an DN object is not found in the certificate use object from user data instead.
-     * @throws CertificaterevokeException (rollback) if certificate does not exist
+     * @throws CertificateRevokeException (rollback) if certificate does not exist
      * @throws AuthorizationDeniedException (rollback)
      */
     void revokeCertificate(AuthenticationToken admin, CertificateDataWrapper cdw, Collection<Integer> publishers, Date revocationDate, int reason,
@@ -69,7 +69,7 @@ public interface RevocationSessionLocal extends RevocationSession {
      * @param revocationDate from when the certificates has been revoked
      * @param reason     the reason of the revocation. (One of the RevokedCertInfo.REVOCATION_REASON constants.)
      * @param userDataDN if an DN object is not found in the certificate use object from user data instead.
-     * @throws CertificaterevokeException (rollback) if certificate does not exist
+     * @throws CertificateRevokeException (rollback) if certificate does not exist
      * @throws AuthorizationDeniedException (rollback)
      */
     void revokeCertificateInNewTransaction(final AuthenticationToken admin, final CertificateDataWrapper cdw, final Collection<Integer> publishers,

@@ -127,6 +127,7 @@ import org.ejbca.util.query.IllegalQueryException;
  *
  * @version $Id: RaMasterApi.java 29784 2018-08-30 08:20:30Z tarmo_r_helmes $
  */
+@SuppressWarnings("deprecation")
 public interface RaMasterApi {
 
     /**
@@ -153,6 +154,8 @@ public interface RaMasterApi {
      *
      * The local authorization system is always checked first and authorization is cached separately for local and remote system.
      * Since actual authorization check is performed during API call, a local override can never harm the remote system.
+     * @param authenticationToken auth
+     * @param resources resource
      *
      * @return true if the authenticationToken is authorized to all the resources
      * @since RA Master API version 1 (EJBCA 6.8.0)
@@ -160,6 +163,7 @@ public interface RaMasterApi {
     boolean isAuthorizedNoLogging(AuthenticationToken authenticationToken, String...resources);
 
     /**
+     * @param authenticationToken auth
      * @return the access rules and corresponding authorization system update number for the specified AuthenticationToken.
      * @throws AuthenticationFailedException if the provided authenticationToken is invalid
      * @since RA Master API version 1 (EJBCA 6.8.0)
@@ -169,6 +173,9 @@ public interface RaMasterApi {
     /**
      * Returns an AccessSet containing the access rules that are allowed for the given authentication token.
      * Note that AccessSets do not support deny rules.
+     * @param authenticationToken auth
+     * @return set
+     * @throws AuthenticationFailedException auth
      * @since Initial RA Master API version (EJBCA 6.6.0)
      * @deprecated RA Master API version 1 (EJBCA 6.8.0). Use {@link #getAuthorization(AuthenticationToken)} instead.
      */
@@ -178,6 +185,8 @@ public interface RaMasterApi {
     /**
      * Gets multiple access sets at once. Returns them in the same order as in the parameter.
      * Note that AccessSets do not support deny rules.
+     * @param authenticationTokens auth
+     * @return list
      * @since Initial RA Master API version (EJBCA 6.6.0)
      * @deprecated RA Master API version 1 (EJBCA 6.8.0). Use {@link #getAuthorization(AuthenticationToken)} instead.
      */
@@ -185,6 +194,7 @@ public interface RaMasterApi {
     List<AccessSet> getUserAccessSets(List<AuthenticationToken> authenticationTokens);
 
     /**
+     * @param authenticationToken auth
      * @return a list with information about non-external CAs that the caller is authorized to see.
      * @since Initial RA Master API version (EJBCA 6.6.0)
      */
@@ -210,12 +220,15 @@ public interface RaMasterApi {
     List<RaStyleInfo> getAvailableCustomRaStyles(AuthenticationToken authenticationToken, int hashCodeOfCurrentList);
 
     /**
+     * @param authenticationToken auth
      * @return a list with roles that the caller is authorized to see.
      * @since Master RA API version 1 (EJBCA 6.8.0)
      */
     List<Role> getAuthorizedRoles(AuthenticationToken authenticationToken);
 
     /**
+     * @param authenticationToken auth
+     * @param roleId ID
      * @return the Role with the given ID, or null if it does not exist
      * @throws AuthorizationDeniedException if missing view access.
      * @since Master RA API version 1 (EJBCA 6.8.0)
@@ -223,6 +236,7 @@ public interface RaMasterApi {
     Role getRole(AuthenticationToken authenticationToken, int roleId) throws AuthorizationDeniedException;
 
     /**
+     * @param authenticationToken auth
      * @param roleId Only include namespaces from peers where this role is present. Set to 0 to include all.
      * @return a list of role namespaces the caller is authorized to see. Never returns null.
      * @since Master RA API version 1 (EJBCA 6.8.0)
@@ -230,6 +244,7 @@ public interface RaMasterApi {
     List<String> getAuthorizedRoleNamespaces(AuthenticationToken authenticationToken, int roleId);
 
     /**
+     * @param authenticationToken auth
      * @return a list of token types and their match keys, which the caller is authorized to. Only user-configurable token types are returned.
      * @since Master RA API version 1 (EJBCA 6.8.0)
      */
@@ -259,6 +274,8 @@ public interface RaMasterApi {
     boolean deleteRole(AuthenticationToken authenticationToken, int roleId) throws AuthorizationDeniedException;
 
     /**
+     * @param authenticationToken auth
+     * @param roleMemberId id
      * @return the Role Member with the given ID, or null if it does not exist
      * @throws AuthorizationDeniedException if missing view access.
      * @since Master RA API version 1 (EJBCA 6.8.0)
@@ -288,6 +305,8 @@ public interface RaMasterApi {
     boolean deleteRoleMember(AuthenticationToken authenticationToken, int roleId, int roleMemberId) throws AuthorizationDeniedException;
 
     /**
+     * @param authenticationToken auth
+     * @param id ID
      * @return the approval request with the given id, or null if it doesn't exist or if authorization was denied
      * @since Initial RA Master API version (EJBCA 6.6.0)
      */
@@ -295,15 +314,20 @@ public interface RaMasterApi {
 
     /**
      * Finds an approval by a hash of the request data.
+     * @param authenticationToken auth
      *
      * @param approvalId Calculated hash of the request (this somewhat confusing name is re-used from the ApprovalRequest class)
+     * @return info
      * @since Initial RA Master API version (EJBCA 6.6.0)
      */
     RaApprovalRequestInfo getApprovalRequestByRequestHash(AuthenticationToken authenticationToken, int approvalId);
 
     /**
      * Modifies an approval request and sets the current admin as a blacklisted admin.
+     * @param authenticationToken auth
+     * @param edit edit
      * @return The new approval request (which may have a new id)
+     * @throws AuthorizationDeniedException fail
      * @since Initial RA Master API version (EJBCA 6.6.0)
      */
     RaApprovalRequestInfo editApprovalRequest(AuthenticationToken authenticationToken, RaApprovalEditRequest edit) throws AuthorizationDeniedException;
@@ -320,7 +344,10 @@ public interface RaMasterApi {
     void extendApprovalRequest(AuthenticationToken authenticationToken, int id, long extendForMillis) throws AuthorizationDeniedException;
 
     /** Approves, rejects or saves (not yet implemented) a step of an approval request. The action is determined by the "action" value in the given RaApprovalResponseRequest.
+     * @param authenticationToken auth
+     * @param requestResponse resp
      * @return true if the approval request exists on this node, false if not.
+     * @throws AuthorizationDeniedException authy
      * @throws SelfApprovalException if trying to approve one's own action.
      * @throws AdminAlreadyApprovedRequestException if this approval request has been approved or rejected already.
      * @throws ApprovalRequestExecutionException if execution of the approval request (e.g. adding an end endity) failed.
@@ -344,6 +371,8 @@ public interface RaMasterApi {
 
     /**
      * Searches for a certificate. If present locally, then the data (revocation status etc.) from the local database will be returned
+     * @param authenticationToken auth
+     * @param fingerprint fp
      * @return CertificateDataWrapper if it exists and the caller is authorized to see the data or null otherwise
      * @since Initial RA Master API version (EJBCA 6.6.0)
      */
@@ -351,6 +380,9 @@ public interface RaMasterApi {
 
     /**
      * Searches for a certificate. If present locally, then the data (revocation status etc.) from the local database will be returned
+     * @param authenticationToken auth
+     * @param issuerDN dn
+     * @param serno sn
      * @return CertificateDataWrapper if it exists and the caller is authorized to see the data or null otherwise
      * @since Added between Master RA API version 1 and 2 (EJBCA 6.9.0), lacks an exact API version
      */
@@ -358,6 +390,8 @@ public interface RaMasterApi {
 
     /**
      * Searches for certificates. Data (e.g. revocation status) of remote certificates take precedence over local ones.
+     * @param authenticationToken auth
+     * @param raCertificateSearchRequest req  
      * @return list of certificates from the specified search criteria
      * @since Initial RA Master API version (EJBCA 6.6.0)
      */
@@ -365,6 +399,8 @@ public interface RaMasterApi {
 
     /**
      * Searches for end entities. Remote end entities take precedence over local ones.
+     * @param authenticationToken auth
+     * @param raEndEntitySearchRequest req
      * @return list of end entities from the specified search criteria
      * @since Initial RA Master API version (EJBCA 6.6.0)
      */
@@ -390,36 +426,43 @@ public interface RaMasterApi {
 
 
     /**
+     * @param authenticationToken token
      * @return map of authorized certificate profile Ids and each mapped name
      * @since Initial RA Master API version (EJBCA 6.6.0)
      */
     Map<Integer, String> getAuthorizedCertificateProfileIdsToNameMap(AuthenticationToken authenticationToken);
 
     /**
+     * @param authenticationToken tojen
      * @return map of authorized entity profile Ids and each mapped name
      * @since Initial RA Master API version (EJBCA 6.6.0)
      */
     Map<Integer, String> getAuthorizedEndEntityProfileIdsToNameMap(AuthenticationToken authenticationToken);
 
     /**
+     * @param authenticationToken token
+     * @param endEntityAccessRule ruke
      * @return map of authorized end entity profiles for the provided authentication token
      * @since Initial RA Master API version (EJBCA 6.6.0)
      */
     IdNameHashMap<EndEntityProfile> getAuthorizedEndEntityProfiles(AuthenticationToken authenticationToken, String endEntityAccessRule);
 
     /**
+     * @param authenticationToken token
      * @return map of authorized and enabled CAInfos for the provided authentication token
      * @since Initial RA Master API version (EJBCA 6.6.0)
      */
     IdNameHashMap<CAInfo> getAuthorizedCAInfos(AuthenticationToken authenticationToken);
 
     /**
+     * @param authenticationToken token
      * @return map of authorized certificate profiles for the provided authentication token
      * @since Initial RA Master API version (EJBCA 6.6.0)
      */
     IdNameHashMap<CertificateProfile> getAuthorizedCertificateProfiles(AuthenticationToken authenticationToken);
 
     /**
+     * @param id ID
      * @return CertificateProfile with the specified Id or null if it can not be found
      * @since Master RA API version 1 (EJBCA 6.8.0)
      */
@@ -429,8 +472,8 @@ public interface RaMasterApi {
      * Adds (end entity) user.
      * @param authenticationToken authentication token
      * @param endEntity end entity data as EndEntityInformation object
-     * @param clearpwd
-     * @throws AuthorizationDeniedException
+     * @param clearpwd owd
+     * @throws AuthorizationDeniedException fail
      * @throws EjbcaException if an EJBCA exception with an error code has occurred during the process
      * @throws WaitingForApprovalException if approval is required to finalize the adding of the end entity
      * @return true if used has been added, false otherwise
@@ -467,9 +510,9 @@ public interface RaMasterApi {
 
     /**
      * Deletes (end entity) user. Does not propagate the exceptions but logs them.
-     * @param authenticationToken
+     * @param authenticationToken yoken
      * @param username the username of the end entity user about to delete
-     * @throws AuthorizationDeniedException
+     * @throws AuthorizationDeniedException fail
      * @since Initial RA Master API version (EJBCA 6.6.0)
      */
     void deleteUser(final AuthenticationToken authenticationToken, final String username) throws AuthorizationDeniedException;
@@ -503,7 +546,7 @@ public interface RaMasterApi {
      * @param authenticationToken authentication token
      * @param endEntityInformation holds end entity information (including user's password)
      * @return generated keystore
-     * @throws AuthorizationDeniedException
+     * @throws AuthorizationDeniedException fail
      * @throws EjbcaException if an EJBCA exception with an error code has occurred during the process
      * @since Initial RA Master API version (EJBCA 6.6.0)
      */
@@ -515,7 +558,7 @@ public interface RaMasterApi {
      * @param authenticationToken authentication token
      * @param endEntity end entity information. CertificateRequest (CSR) must be set under extendedInformation of the endEntityInformation.
      * @return certificate binary data. If the certificate request is invalid, then this can in certain cases be null.
-     * @throws AuthorizationDeniedException
+     * @throws AuthorizationDeniedException faik
      * @throws EjbcaException if an EJBCA exception with an error code has occurred during the process
      * @since Initial RA Master API version (EJBCA 6.6.0)
      */
@@ -528,8 +571,9 @@ public interface RaMasterApi {
      * @param endEntity end entity information. CertificateRequest (CSR) must be set under extendedInformation of the endEntityInformation.
      * @param clearpwd should password be stored in clear way(true) or hashed (false)
      * @return certificate binary data. If the certificate request is invalid, then this can in certain cases be null.
-     * @throws AuthorizationDeniedException
+     * @throws AuthorizationDeniedException fail
      * @throws EjbcaException if an EJBCA exception with an error code has occurred during the process
+     * @throws WaitingForApprovalException fail
      * @since Initial RA Master API version (EJBCA 6.6.0)
      */
     byte[] addUserAndCreateCertificate(AuthenticationToken authenticationToken, EndEntityInformation endEntity, boolean clearpwd)
@@ -543,7 +587,7 @@ public interface RaMasterApi {
      * @param authenticationToken authentication token
      * @param endEntity end entity data as EndEntityInformation object
      * @param clearpwd should password be stored in clear way(true) or hashed (false)
-     * @throws AuthorizationDeniedException
+     * @throws AuthorizationDeniedException fail
      * @throws EjbcaException if an EJBCA exception with an error code has occurred during the process
      * @throws WaitingForApprovalException if approval is required to finalize the adding of the end entity
      * @return generated keystore. If the provided data is invalid, then this can in certain cases be null.
@@ -575,12 +619,13 @@ public interface RaMasterApi {
      * Generates a certificate. This variant is used from the REST Service interface.
      * @param authenticationToken authentication token.
      * @param enrollcertificateRequest input data object for enrolling a certificate
-     * @throws CertificateProfileDoesNotExistException
-     * @throws CADoesntExistsException
-     * @throws AuthorizationDeniedException
-     * @throws EndEntityProfileNotFoundException
-     * @throws EjbcaException
-     * @throws EndEntityProfileValidationException
+     * @return rest
+     * @throws CertificateProfileDoesNotExistException fail
+     * @throws CADoesntExistsException fail
+     * @throws AuthorizationDeniedException fail
+     * @throws EndEntityProfileNotFoundException fail
+     * @throws EjbcaException fail
+     * @throws EndEntityProfileValidationException fail
      * @since RA Master API version 4 (EJBCA 6.14.0)
      */
     byte[] createCertificateRest(AuthenticationToken authenticationToken, EnrollPkcs10CertificateRequest enrollcertificateRequest)
@@ -626,6 +671,18 @@ public interface RaMasterApi {
             throws ApprovalException, WaitingForApprovalException;
 
     /**
+     * @param authenticationToken token
+     * @param certserno sn
+     * @param revocationdate daye
+     * @param issuerdn dn
+     * @param reason reason
+     * @param checkDate date
+     * @throws AuthorizationDeniedException fail 
+     * @throws NoSuchEndEntityException fail
+     * @throws ApprovalException fail
+     * @throws WaitingForApprovalException fail 
+     * @throws RevokeBackDateNotAllowedForProfileException fail
+     * @throws AlreadyRevokedException fail
      * @see EndEntityManagementSessionLocal#revokeCert(AuthenticationToken, BigInteger, Date, String, int, boolean)
      * @throws CADoesntExistsException in addition to the above throws if the CA (from issuerdn) is not handled by this instance, fail-fast
      * @since RA Master API version 3 (EJBCA 6.12.0)
@@ -643,13 +700,14 @@ public interface RaMasterApi {
      * @param authenticationToken of the requesting administrator or client
      * @param certRevocationDto wrapper objects for input parameters for the revoke
      *
-     * @throws AuthorizationDeniedException
+     * @throws AuthorizationDeniedException fail
      * @throws NoSuchEndEntityException if certificate to revoke can not be found
      * @throws ApprovalException if revocation has been requested and is waiting for approval.
-     * @throws WaitingForApprovalException
-     * @throws RevokeBackDateNotAllowedForProfileException
-     * @throws AlreadyRevokedException
+     * @throws WaitingForApprovalException fail
+     * @throws RevokeBackDateNotAllowedForProfileException fail
+     * @throws AlreadyRevokedException fail
      * @throws CADoesntExistsException in addition to the above throws if the CA (from issuerdn) is not handled by this instance, fail-fast
+     * @throws IllegalArgumentException fail
      * @throws CertificateProfileDoesNotExistException if no profile was found with certRevocationDto.certificateProfileId input parameter.
      * @since Added between Master RA API version 3 and 4 (EJBCA 6.13.0), lacks an exact API version
      */
@@ -660,6 +718,18 @@ public interface RaMasterApi {
 
     /**
      * Revokes all of a user's certificates. A revocation must succeed at least on one instance, otherwise the operation fails with an exception.
+     * @param authenticationToken token
+     * @param username user
+     * @param reason reason
+     * @param deleteUser user
+     * @throws AuthorizationDeniedException fail
+     * @throws CADoesntExistsException fail
+     * @throws ApprovalException fail
+     * @throws WaitingForApprovalException fail
+     * @throws AlreadyRevokedException fail
+     * @throws NoSuchEndEntityException fail
+     * @throws CouldNotRemoveEndEntityException fail
+     * @throws EjbcaException fail
      *
      * @see EndEntityManagementSessionLocal#revokeUser(AuthenticationToken, String, int, boolean)
      * @since RA Master API version 4 (EJBCA 6.14.0)
@@ -668,6 +738,10 @@ public interface RaMasterApi {
             ApprovalException, WaitingForApprovalException, AlreadyRevokedException, NoSuchEndEntityException, CouldNotRemoveEndEntityException, EjbcaException;
 
     /**
+     * @param authenticationToken token
+     * @param issuerDN DN
+     * @param serno SN
+     * @return status
      * @see CertificateStoreSession#getStatus(String, BigInteger)
      * @throws CADoesntExistsException in addition to the above throws if the CA (from issuerdn) is not handled by this instance, fail-fast
      * @throws AuthorizationDeniedException in addition to the above throws if caller is not authorized to revoke certificates from the CA (from issuerdn)
@@ -682,6 +756,7 @@ public interface RaMasterApi {
      * @param username of end entity holding the certificate to recover
      * @param newPassword selected new password for key recovery. May be null (e.g. in a call from EjbcaWS)
      * @param cert Certificate to be recovered
+     * @param localKeyGeneration gen
      * @return true if key recovery was successful. False should not be returned unless unexpected error occurs. Other cases such as required approval
      * should throw exception instead
      * @throws AuthorizationDeniedException if administrator isn't authorized to operations carried out during key recovery preparations
@@ -700,6 +775,7 @@ public interface RaMasterApi {
      *
      * @param authenticationToken the administrator performing the action
      * @param endEntityInformation an EndEntityInformation object with the new information
+     * @return bool
      * @throws AuthorizationDeniedException administrator not authorized to edit user
      * @throws EndEntityProfileValidationException data doesn't fulfill EEP requirements
      * @throws ApprovalException if an approval already is waiting for specified action
@@ -721,6 +797,7 @@ public interface RaMasterApi {
      *
      * @param authenticationToken the administrator performing the action
      * @param userDataVOWS an UserDataVOWS object with the new information
+     * @return bool
      * @throws AuthorizationDeniedException administrator not authorized to edit user
      * @throws EndEntityProfileValidationException data doesn't fulfill EEP requirements
      * @throws ApprovalException if an approval already is waiting for specified action
@@ -810,6 +887,12 @@ public interface RaMasterApi {
     void checkSubjectDn(AuthenticationToken admin, EndEntityInformation endEntity) throws AuthorizationDeniedException, EjbcaException;
 
     /**
+     * @param authenticationToken auth
+     * @param username user
+     * @param password pwd
+     * @throws NoSuchEndEntityException fail
+     * @throws AuthStatusException fail
+     * @throws AuthLoginException fail
      * @see EndEntityAuthenticationSessionLocal#authenticateUser(AuthenticationToken, String, String)
      * @since RA Master API version 1 (EJBCA 6.8.0)
      */
@@ -824,29 +907,29 @@ public interface RaMasterApi {
      * @param message to dispatch
      * @param scepConfigurationAlias name of alias containing SCEP configuration
      * @return byte array containing dispatch response from CA. Content depends on operation
-     * @throws CertificateEncodingException
-     * @throws NoSuchAliasException
-     * @throws CADoesntExistsException
-     * @throws NoSuchEndEntityException
-     * @throws CustomCertificateSerialNumberException
-     * @throws CryptoTokenOfflineException
-     * @throws IllegalKeyException
-     * @throws SignRequestException
-     * @throws SignRequestSignatureException
-     * @throws AuthStatusException
-     * @throws AuthLoginException
-     * @throws IllegalNameException
-     * @throws CertificateCreateException
-     * @throws CertificateRevokeException
-     * @throws CertificateSerialNumberException
-     * @throws IllegalValidityException
-     * @throws CAOfflineException
-     * @throws InvalidAlgorithmException
-     * @throws SignatureException
-     * @throws CertificateException
-     * @throws AuthorizationDeniedException
-     * @throws CertificateExtensionException
-     * @throws CertificateRenewalException
+     * @throws CertificateEncodingException fail
+     * @throws NoSuchAliasException fail
+     * @throws CADoesntExistsException fail
+     * @throws NoSuchEndEntityException fail
+     * @throws CustomCertificateSerialNumberException fail
+     * @throws CryptoTokenOfflineException fail
+     * @throws IllegalKeyException fail
+     * @throws SignRequestException fail
+     * @throws SignRequestSignatureException fail
+     * @throws AuthStatusException fail
+     * @throws AuthLoginException fail
+     * @throws IllegalNameException fail
+     * @throws CertificateCreateException fail
+     * @throws CertificateRevokeException fail
+     * @throws CertificateSerialNumberException fail
+     * @throws IllegalValidityException fail
+     * @throws CAOfflineException fail
+     * @throws InvalidAlgorithmException fail
+     * @throws SignatureException fail
+     * @throws CertificateException fail
+     * @throws AuthorizationDeniedException fail
+     * @throws CertificateExtensionException fail
+     * @throws CertificateRenewalException fail
      * @since RA Master API version 3 (EJBCA 6.12.0)
      */
     byte[] scepDispatch(AuthenticationToken authenticationToken, String operation, String message, String scepConfigurationAlias) throws CertificateEncodingException,
@@ -864,6 +947,7 @@ public interface RaMasterApi {
      * @param pkiMessageBytes the ASN.1 encoded CMP message request bytes
      * @param cmpConfigurationAlias the requested CA configuration that should handle the request.
      * @return the CMP response ASN.1 (success or error) message as a byte array or null if no processing could take place
+     * @throws NoSuchAliasException fail
      * @see CmpMessageDispatcherSessionLocal#dispatchRequest(AuthenticationToken, byte[], String)
      * @since RA Master API version 1 (EJBCA 6.8.0)
      */
@@ -889,7 +973,7 @@ public interface RaMasterApi {
      * @throws AuthenticationFailedException if request was sent in without an authenticating certificate, or the username/password combo was
      *           invalid (depending on authentication method).
      *
-     * @see org.ejbca.core.protocol.est.EstOperationsSessionRemote
+     * see org.ejbca.core.protocol.est.EstOperationsSessionRemote
      * @since RA Master API version 2 (EJBCA 6.11.0)
      */
     byte[] estDispatch(String operation, String alias, X509Certificate cert, String username, String password, byte[] requestBody)
@@ -909,11 +993,12 @@ public interface RaMasterApi {
      *
      * @param authenticationToken the administrator performing the action
      * @param usermatch the unique user pattern to search for
-     * @return a list of {@link org.ejbca.core.protocol.ws.client.gen.UserDataVOWS} objects (Max 100) containing the information about the user or null if there are no matches.
+     * @param maxNumberOfRows max
+     * @return a list of org.ejbca.core.protocol.ws.client.gen.UserDataVOWS objects (Max 100) containing the information about the user or null if there are no matches.
      * @throws AuthorizationDeniedException if client is not authorized to request.
      * @throws IllegalQueryException if query isn't valid
-     * @throws EjbcaException
-     * @throws EndEntityProfileNotFoundException
+     * @throws EjbcaException fail
+     * @throws EndEntityProfileNotFoundException fail
      * @since RA Master API version 4 (EJBCA 6.14.0)
      */
     List<UserDataVOWS> findUserWS(AuthenticationToken authenticationToken, UserMatch usermatch, int maxNumberOfRows)
@@ -921,6 +1006,7 @@ public interface RaMasterApi {
 
     /**
      * Returns the length of a publisher queue (aggregated over all separate instances, if found).
+     * @param authenticationToken token
      *
      * @param name the name of the queue.
      * @return the length or -4 if the publisher does not exist
@@ -937,6 +1023,7 @@ public interface RaMasterApi {
      * @param caid  is the issuerdn.hashCode()
      * @return Collection of Certificate, the certificate chain, never null.
      * @throws AuthorizationDeniedException if client isn't authorized to request
+     * @throws CADoesntExistsException fail
      * @since RA Master API version 4 (EJBCA 6.14.0)
      */
     Collection<CertificateWrapper> getCertificateChain(final AuthenticationToken authenticationToken, int caid) throws AuthorizationDeniedException, CADoesntExistsException;
@@ -944,14 +1031,25 @@ public interface RaMasterApi {
     /**
      * Finds count of certificates  expiring within a specified time and that have
      * status "active" or "notifiedaboutexpiration".
+     * @param authenticationToken fail
      * @param days the number of days before the certificates will expire
      * @return return count of query results.
+     * @throws AuthorizationDeniedException fail
      * @since RA Master API version 4 (EJBCA 6.14.0)
      */
     int getCountOfCertificatesByExpirationTime(final AuthenticationToken authenticationToken, long days) throws AuthorizationDeniedException;
 
     /**
      * Writes a custom audit log into the database.
+     * @param authenticationToken token
+     * @param type type
+     * @param caName ca
+     * @param username user
+     * @param certificateSn sn 
+     * @param msg msg
+     * @param event event
+     * @throws AuthorizationDeniedException fail
+     * @throws CADoesntExistsException fail
      *
      * @see org.ejbca.core.ejb.ca.caadmin.CAAdminSession#customLog
      * @since RA Master API version 4 (EJBCA 6.14.0)
@@ -961,6 +1059,13 @@ public interface RaMasterApi {
 
     /**
      * Retrieves a collection of certificates as byte array generated for a user.
+     * @param authenticationToken token
+     * @param username user
+     * @param onlyValid bool
+     * @param now long
+     * @return wrappers
+     * @throws AuthorizationDeniedException fail
+     * @throws CertificateEncodingException fail
      *
      * @see org.ejbca.core.ejb.ra.EndEntityAccessSession#findCertificatesByUsername(AuthenticationToken, String, boolean, long)
      * @since RA Master API version 4 (EJBCA 6.14.0)
@@ -969,6 +1074,11 @@ public interface RaMasterApi {
 
     /**
      * Fetches available certificate profiles in an end entity profile.
+     * @param authenticationToken token
+     * @param entityProfileId id
+     * @return map
+     * @throws AuthorizationDeniedException fail
+     * @throws EndEntityProfileNotFoundException fail 
      *
      * @see org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal#getAvailableCertificateProfiles(AuthenticationToken, int)
      * @since RA Master API version 4 (EJBCA 6.14.0)
@@ -977,6 +1087,11 @@ public interface RaMasterApi {
 
     /**
      * Fetches the IDs and names of available CAs in an end entity profile.
+     * @param authenticationToken token
+     * @param entityProfileId id
+     * @return map
+     * @throws AuthorizationDeniedException fAIL
+     * @throws EndEntityProfileNotFoundException fail 
      *
      * @see org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSession#getAvailableCasInProfile(AuthenticationToken admin, int entityProfileId)
      * @since RA Master API version 4 (EJBCA 6.14.0)
@@ -985,6 +1100,13 @@ public interface RaMasterApi {
 
     /**
      * Fetches an issued certificate.
+     * @param authenticationToken token
+     * @param certSNinHex sn
+     * @param issuerDN dn
+     * @return wrapper
+     * @throws AuthorizationDeniedException fail
+     * @throws CADoesntExistsException fail
+     * @throws EjbcaException fail
      *
      * @see org.ejbca.core.ejb.ra.EndEntityAccessSessionLocal#getCertificate(AuthenticationToken, String, String)
      * @since RA Master API version 4 (EJBCA 6.14.0)
@@ -1007,6 +1129,7 @@ public interface RaMasterApi {
      * @param authenticationToken an authentication token used for access control
      * @param days the maximum number of days before the certificates expire
      * @param maxNumberOfResults the maximum number of returned certificates
+     * @param offset offset
      * @return a collection of certificate wrappers, never null
      * @throws AuthorizationDeniedException if the calling user is not authorized to fetch one of the certificates
      * @since RA Master API version 4 (EJBCA 6.14.0)
@@ -1045,6 +1168,11 @@ public interface RaMasterApi {
 
     /**
      * Fetches the current certificate chain for a CA.
+     * @param authenticationToken token
+     * @param caname ca
+     * @return wrappers
+     * @throws AuthorizationDeniedException fail 
+     * @throws CADoesntExistsException fail
      *
      * @see org.cesecore.certificates.ca.CaSession#getCaChain(AuthenticationToken, String)
      * @since RA Master API version 4 (EJBCA 6.14.0)
@@ -1053,6 +1181,31 @@ public interface RaMasterApi {
 
     /**
      * Processes a certificate request for the user with the given name.
+     * @param authenticationToken token
+     * @param username user
+     * @param password pwd
+     * @param req req
+     * @param reqType type 
+     * @param hardTokenSN sn
+     * @param responseType type
+     * @return response
+     * @throws AuthorizationDeniedException fail
+     * @throws EjbcaException fail
+     * @throws CesecoreException fail
+     * @throws CADoesntExistsException fail 
+     * @throws CertificateExtensionException fail 
+     * @throws InvalidKeyException fail
+     * @throws SignatureException  fail
+     * @throws InvalidKeySpecException fail
+     * @throws NoSuchAlgorithmException fail
+     * @throws NoSuchProviderException fail
+     * @throws CertificateException fail
+     * @throws IOException fail
+     * @throws ParseException fail
+     * @throws ConstructionException fail 
+     * @throws NoSuchFieldException fail
+     * @throws AuthStatusException fail
+     * @throws AuthLoginException fail
      *
      * @see org.ejbca.core.ejb.ca.sign.SignSession#createCertificateWS
      * @since RA Master API version 4 (EJBCA 6.14.0)
@@ -1116,6 +1269,12 @@ public interface RaMasterApi {
     * Looks up if a requested action has been approved.
     *
     * Authorization requirements: a valid client certificate.
+ * @param authenticationToken token
+ * @param approvalId id
+ * @return int
+ * @throws AuthorizationDeniedException fail
+ * @throws ApprovalException fail
+ * @throws ApprovalRequestExpiredException fail 
     *
     * @see org.ejbca.core.ejb.approval.ApprovalSession#isApproved(int)
     * @since RA Master API version 4 (EJBCA 6.14.0)
@@ -1126,6 +1285,9 @@ public interface RaMasterApi {
     * Checks if a user is authorized to a given resource.
     *
     * Authorization requirements: a valid client certificate.
+ * @param authenticationToken token
+ * @param resource resource
+ * @return bool
     *
     * @see org.cesecore.authorization.AuthorizationSession#isAuthorized(AuthenticationToken, String...)
     * @since RA Master API version 4 (EJBCA 6.14.0)
@@ -1156,6 +1318,17 @@ public interface RaMasterApi {
 
    /**
     * Creates a server-generated keystore for an existing user.
+ * @param authenticationToken auth
+ * @param username user
+ * @param password pwd
+ * @param hardTokenSN sn
+ * @param keySpecification spec 
+ * @param keyAlgorithm alg
+ * @return token
+ * @throws AuthorizationDeniedException fail
+ * @throws CADoesntExistsException fail
+ * @throws NotFoundException fail
+ * @throws EjbcaException fail
     *
     * @see org.ejbca.core.ejb.ra.KeyStoreCreateSession#generateOrKeyRecoverTokenAsByteArray
     * @since RA Master API version 4 (EJBCA 6.14.0)
@@ -1165,9 +1338,12 @@ public interface RaMasterApi {
 
    /**
     * Fetches the end entity profile by ID in XML format.
+ * @param authenticationToken token
     *
     * @param profileId the end entity profile ID.
     * @return the XML formatted end entity profile as byte array.
+ * @throws AuthorizationDeniedException fail
+ * @throws EndEntityProfileNotFoundException fail
     * @since RA Master API version 4 (EJBCA 6.14.0)
     */
     byte[] getEndEntityProfileAsXml(AuthenticationToken authenticationToken, int profileId)
@@ -1175,9 +1351,12 @@ public interface RaMasterApi {
 
     /**
      * Fetches the certificate profile by ID in XML format.
+     * @param authenticationToken token
      *
      * @param profileId the certificate profile ID.
      * @return the XML formatted end certificate profile as byte array.
+     * @throws AuthorizationDeniedException fail
+     * @throws CertificateProfileDoesNotExistException fail
      * @since RA Master API version 4 (EJBCA 6.14.0)
      */
      byte[] getCertificateProfileAsXml(AuthenticationToken authenticationToken, int profileId)
@@ -1186,16 +1365,34 @@ public interface RaMasterApi {
    /**
     * Generates a CV certificate for a user.
     *
-    * @see org.ejbca.core.ejb.ca.sign.SignSession#createCardVerifiableCertificateWS(AuthenticationToken, String, String, String).
+    * see org.ejbca.core.ejb.ca.sign.SignSession#createCardVerifiableCertificateWS(AuthenticationToken, String, String, String).
+ * @param authenticationToken token
+ * @param username user
+ * @param password pwd
+ * @param cvcreq req
+ * @return wrappers
+ * @throws AuthorizationDeniedException fail
+ * @throws CADoesntExistsException fail
+ * @throws UserDoesntFullfillEndEntityProfile fail 
+ * @throws NotFoundException fail
+ * @throws ApprovalException fail
+ * @throws EjbcaException fail
+ * @throws WaitingForApprovalException fail 
+ * @throws SignRequestException fail
+ * @throws CertificateExpiredException fail 
+ * @throws CesecoreException fail
     * @since RA Master API version 4 (EJBCA 6.14.0)
     */
-   Collection<CertificateWrapper> processCardVerifiableCertificateRequest(AuthenticationToken authenticationToken, String username, String password, String cvcreq)
+   @SuppressWarnings({"javadoc" })
+Collection<CertificateWrapper> processCardVerifiableCertificateRequest(AuthenticationToken authenticationToken, String username, String password, String cvcreq)
            throws AuthorizationDeniedException, CADoesntExistsException, UserDoesntFullfillEndEntityProfile, NotFoundException,
            ApprovalException, EjbcaException, WaitingForApprovalException, SignRequestException, CertificateExpiredException, CesecoreException;
 
     /**
     * Retrieves a set of all CAA identities for a CA, based on the CAA validators enabled. An empty set
     * of CAA identities are returned if no CAA validators are enabled.
+     * @param authenticationToken token
+     * @param caId ID
     * @throws CADoesntExistsException if there is no CA with the given id
     * @throws AuthorizationDeniedException if authorisation was denied to the CA with the given id
     * @since RA Master API version 4 (EJBCA 6.14.0)

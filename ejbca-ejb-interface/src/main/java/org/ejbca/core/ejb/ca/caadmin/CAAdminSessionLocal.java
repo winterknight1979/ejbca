@@ -51,6 +51,12 @@ public interface CAAdminSessionLocal extends CAAdminSession {
 
     /**
      * Regenerates the CMS certificate for a CA.
+     * @param admin admin
+     * @param caid ca
+     * @throws AuthorizationDeniedException fail
+     * @throws CADoesntExistsException fail
+     * @throws CAOfflineException fail
+     * @throws CertificateRevokeException fail 
      */
     void renewAndRevokeCmsCertificate(AuthenticationToken admin, int caid) throws AuthorizationDeniedException, CADoesntExistsException,
             CAOfflineException, CertificateRevokeException;
@@ -69,6 +75,7 @@ public interface CAAdminSessionLocal extends CAAdminSession {
      * 
      * * Unassigned key validators
      * * Key validators assigned to CAs that the administrator has access to.
+     * @param admin admin
      * 
      * @return a Set of IDs of authorized key validators. 
      */

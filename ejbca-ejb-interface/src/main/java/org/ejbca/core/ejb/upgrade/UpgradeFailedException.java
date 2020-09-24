@@ -32,32 +32,32 @@ public class UpgradeFailedException extends Exception {
     }
 
     /**
-     * @param message
+     * @param message msg
      */
     public UpgradeFailedException(String message) {
         super(message);
     }
 
     /**
-     * @param cause
+     * @param cause cause
      */
     public UpgradeFailedException(Throwable cause) {
         super(cause);
     }
 
     /**
-     * @param message
-     * @param cause
+     * @param message msh
+     * @param cause cause
      */
     public UpgradeFailedException(String message, Throwable cause) {
         super(message, cause);
     }
 
     /**
-     * @param message
-     * @param cause
-     * @param enableSuppression
-     * @param writableStackTrace
+     * @param message msg
+     * @param cause cause
+     * @param enableSuppression bool
+     * @param writableStackTrace bool
      */
     public UpgradeFailedException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
