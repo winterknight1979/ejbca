@@ -86,12 +86,12 @@ public class UserDataVOWS implements Serializable{
 	 * @param clearPwd true if password should be in clear
 	 * @param subjectDN of 
 	 * @param caName the name of the CA used in the EJBCA web gui.
-	 * @param subjectAltName
-	 * @param email 
+	 * @param subjectAltName Name
+	 * @param email Email
 	 * @param status one of the STATUS_ constants
 	 * @param tokenType type of token, one of TOKEN_TYPE constants for soft tokens, for hard ones  use hardtokenprofilename
-	 * @param endEntityProfileName
-	 * @param certificateProfileName
+	 * @param endEntityProfileName Profile
+	 * @param certificateProfileName Profile
 	 * @param hardTokenIssuerName if no hardTokenIssuer should be used then use null.
 	 */
 	public UserDataVOWS(String username, String password, boolean clearPwd, String subjectDN, String caName, String subjectAltName, String email, int status, String tokenType, String endEntityProfileName, String certificateProfileName, String hardTokenIssuerName) {
@@ -121,7 +121,7 @@ public class UserDataVOWS implements Serializable{
     
     /**
      * indicates if the users keys should be keyrecoverable
-     * @param keyrecoverable
+     * @param keyrecoverable bool
      */
     public void setKeyRecoverable(boolean keyrecoverable){
       this.keyRecoverable = keyrecoverable;
@@ -129,13 +129,15 @@ public class UserDataVOWS implements Serializable{
     
     /**
      * If true notifications will be sent to the user
+     * @return bool
      */
-	public boolean isSendNotification(){
+	public boolean isSendNotification(){ 
     	return sendNotification;
     }
     
 	/**
 	 * set to true if notifications should be sent to the user.
+	 * @param sendnotification bool
 	 */
     public void setSendNotification(boolean sendnotification){
     	this.sendNotification = sendnotification;
@@ -396,7 +398,7 @@ public class UserDataVOWS implements Serializable{
     /**
      * Generic setter for extendedInformation. Set with values from ExtendedInformation such as:
      * ExtendedInformation.CUSTOM_REVOCATIONREASON, Integer.toString(RevokeStatus.REVOCATION_REASON_CERTIFICATEHOLD)
-     * @param extendedInformation
+     * @param extendedInformation info
      */
 	public void setExtendedInformation(List<ExtendedInformationWS> extendedInformation) {
 		this.extendedInformation = extendedInformation;

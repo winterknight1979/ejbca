@@ -16,7 +16,6 @@ import java.security.cert.CertificateExpiredException;
 import java.util.List;
 
 import org.cesecore.CesecoreException;
-import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.certificates.ca.CADoesntExistsException;
 import org.cesecore.certificates.ca.CAExistsException;
@@ -89,13 +88,14 @@ public interface IEjbcaWS {
 	 * clearPwd indicates it the password should be stored in clear text, required
 	 * when creating server generated keystores.
 	 * @throws CADoesntExistsException if a referenced CA does not exist
-	 * @throws ApprovalException
-	 * @throws AuthorizationDeniedException
-	 * @throws UserDoesntFullfillEndEntityProfile
-	 * @throws WaitingForApprovalException
-	 * @throws EjbcaException
+	 * @throws ApprovalException On aapproval fail
+	 * @throws AuthorizationDeniedException if access denied
+	 * @throws UserDoesntFullfillEndEntityProfile on fulfillment fail
+	 * @throws WaitingForApprovalException if timeout
+	 * @throws EjbcaException other
 	 */
-    void editUser(UserDataVOWS userdata) throws CADoesntExistsException, AuthorizationDeniedException, UserDoesntFullfillEndEntityProfile,
+    @SuppressWarnings("javadoc")
+	void editUser(UserDataVOWS userdata) throws CADoesntExistsException, AuthorizationDeniedException, UserDoesntFullfillEndEntityProfile,
             EjbcaException, ApprovalException, WaitingForApprovalException;
 
 	/**
@@ -109,11 +109,11 @@ public interface IEjbcaWS {
 	 * </pre>
 	 *
 	 * @param usermatch the unique user pattern to search for
-	 * @return a array of {@link org.ejbca.core.protocol.ws.client.gen.UserDataVOWS} objects (Max 100) containing the information about the user or null if there are no matches.
+	 * @return a array of {@link org.ejbca.core.protocol.ws.objects.UserDataVOWS} objects (Max 100) containing the information about the user or null if there are no matches.
 	 * @throws AuthorizationDeniedException if client isn't authorized to request
 	 * @throws IllegalQueryException if query isn't valid
-	 * @throws EjbcaException
-	 * @throws EndEntityProfileNotFoundException
+	 * @throws EjbcaException fail
+	 * @throws EndEntityProfileNotFoundException fail
 	 */
 	List<UserDataVOWS> findUser(UserMatch usermatch)
 			throws AuthorizationDeniedException, IllegalQueryException, EjbcaException, EndEntityProfileNotFoundException;
@@ -136,7 +136,7 @@ public interface IEjbcaWS {
 	 * @param onlyValid only return valid certs not revoked or expired ones.
 	 * @return a collection of Certificates or an empty list if no certificates, or no user, could be found
 	 * @throws AuthorizationDeniedException if client isn't authorized to request
-	 * @throws EjbcaException
+	 * @throws EjbcaException Fail
 	 */
 	List<Certificate> findCerts(String username,
 			boolean onlyValid) throws AuthorizationDeniedException, EjbcaException;
@@ -194,10 +194,10 @@ public interface IEjbcaWS {
 	 * @param tokenType The type of the cryptotoken. Available types: SoftCryptoToken, PKCS11CryptoToken
 	 * @param activationPin Pin code for the cryptotoken
 	 * @param autoActivate Set to true|false to allow|disallow whether cryptotoken should be autoactivated or not
-	 * @param cryptotokenProperties as a List of KeyValuePair objects. See {@link org.ejbca.core.protocol.ws.objects.CryptoTokenConstantsWS}
-	 * @throws EjbcaException
-	 * @throws AuthorizationDeniedException
-	 * @see org.ejbca.core.protocol.ws.objects.CryptoTokenConstantsWS
+	 * @param cryptotokenProperties as a List of KeyValuePair objects. See org.ejbca.core.protocol.ws.objects.CryptoTokenConstantsWS
+	 * @throws EjbcaException Fail
+	 * @throws AuthorizationDeniedException Access denied
+	 * @see "org.ejbca.core.protocol.ws.objects.CryptoTokenConstantsWS"
 	 */
 	 void createCryptoToken(String tokenName, String tokenType, String activationPin, boolean autoActivate,
 	        List<KeyValuePair> cryptotokenProperties) throws AuthorizationDeniedException, EjbcaException;
@@ -208,8 +208,8 @@ public interface IEjbcaWS {
 	 * @param cryptoTokenName The name of the cryptotoken
 	 * @param keyPairAlias Key pair alias
 	 * @param keySpecification Key specification, for example RSA2048, secp256r1, DSA1024, gost3410, dstu4145
-	 * @throws AuthorizationDeniedException
-	 * @throws EjbcaException
+	 * @throws AuthorizationDeniedException access denied
+	 * @throws EjbcaException Fail
 	 */
 	 void generateCryptoTokenKeys(String cryptoTokenName, String keyPairAlias, String keySpecification)
 	        throws AuthorizationDeniedException, EjbcaException;
@@ -228,11 +228,11 @@ public interface IEjbcaWS {
      * @param signedByCAId The ID of a CA that will sign this CA. Use '1' for self signed CA (i.e. a root CA).
      * CAs created using the WS cannot be signed by external CAs.
      * @param cryptoTokenName The name of the cryptotoken associated with the CA
-     * @param purposeKeyMapping The mapping the the cryptotoken keys and their purpose. See {@link org.ejbca.core.protocol.ws.objects.CAConstantsWS}
-     * @param caProperties Optional CA properties. See {@link org.ejbca.core.protocol.ws.objects.CAConstantsWS}
-	 * @throws EjbcaException
-	 * @throws AuthorizationDeniedException
-     * @see org.ejbca.core.protocol.ws.objects.CAConstantsWS
+     * @param purposeKeyMapping The mapping the the cryptotoken keys and their purpose. See org.ejbca.core.protocol.ws.objects.CAConstantsWS
+     * @param caProperties Optional CA properties. See  org.ejbca.core.protocol.ws.objects.CAConstantsWS
+	 * @throws EjbcaException Fail
+	 * @throws AuthorizationDeniedException Access denied
+     * @see "org.ejbca.core.protocol.ws.objects.CAConstantsWS"
 	 */
 	 void createCA(String caname, String cadn, String catype, long validityInDays, String certprofile,
 	        String signAlg, int signedByCAId, String cryptoTokenName, List<KeyValuePair> purposeKeyMapping,
@@ -248,8 +248,8 @@ public interface IEjbcaWS {
               WITH_DNEMAILADDRESS, WITH_RFC822NAME, WITH_UPN, WITH_FULLDN
 	 * @param matchType Could be one of: TYPE_EQUALCASE, TYPE_EQUALCASEINS, TYPE_NOT_EQUALCASE, TYPE_NOT_EQUALCASEINS, TYPE_NONE
 	 * @param matchValue That value to match against
-	 * @throws EjbcaException
-	 * @throws AuthorizationDeniedException
+	 * @throws EjbcaException Fail
+	 * @throws AuthorizationDeniedException Access denied
 	 */
 	 void addSubjectToRole(String roleName, String caName, String matchWith, String matchType, String matchValue)
 	        throws EjbcaException, AuthorizationDeniedException;
@@ -264,8 +264,8 @@ public interface IEjbcaWS {
               WITH_DNEMAILADDRESS, WITH_RFC822NAME, WITH_UPN, WITH_FULLDN
 	 * @param matchType Could be one of: TYPE_EQUALCASE, TYPE_EQUALCASEINS, TYPE_NOT_EQUALCASE, TYPE_NOT_EQUALCASEINS, TYPE_NONE
 	 * @param matchValue The value to match against
-	 * @throws EjbcaException
-	 * @throws AuthorizationDeniedException
+	 * @throws EjbcaException Fail
+	 * @throws AuthorizationDeniedException Access denied 
 	 */
 	void removeSubjectFromRole(String roleName, String caName, String matchWith, String matchType, String matchValue)
 	        throws EjbcaException, AuthorizationDeniedException;
@@ -287,11 +287,12 @@ public interface IEjbcaWS {
      * certificates. Use null if no hardtokenSN should be associated with the certificate.
 	 * @param responseType indicating which type of answer that should be returned, on of the
 	 *                     {@link org.ejbca.core.protocol.ws.common.CertificateHelper}.RESPONSETYPE_ parameters.
+	 * @return response
 	 * @throws CADoesntExistsException if a referenced CA does not exist
-	 * @throws AuthorizationDeniedException
-	 * @throws NotFoundException
-	 * @throws EjbcaException
-	 * @throws CesecoreException
+	 * @throws AuthorizationDeniedException Access dened
+	 * @throws NotFoundException not found
+	 * @throws EjbcaException Fail
+	 * @throws CesecoreException Fail
 	 */
 	CertificateResponse crmfRequest(String username, String password,
 			String crmf, String hardTokenSN, String responseType)
@@ -313,11 +314,12 @@ public interface IEjbcaWS {
      * certificates. Use null if no hardtokenSN should be associated with the certificate.
 	 * @param responseType indicating which type of answer that should be returned, on of the
 	 *                     {@link org.ejbca.core.protocol.ws.common.CertificateHelper}.RESPONSETYPE_ parameters.
+	 * @return Response
 	 * @throws CADoesntExistsException if a referenced CA does not exist
-	 * @throws AuthorizationDeniedException
-	 * @throws NotFoundException
-	 * @throws EjbcaException
-	 * @throws CesecoreException
+	 * @throws AuthorizationDeniedException Access denied
+	 * @throws NotFoundException Fail
+	 * @throws EjbcaException Fail
+	 * @throws CesecoreException Fail
 	 */
 	CertificateResponse spkacRequest(String username, String password,
 			String spkac, String hardTokenSN, String responseType)
@@ -343,16 +345,17 @@ public interface IEjbcaWS {
 	 * @throws CADoesntExistsException if a referenced CA does not exist
 	 * @throws AuthorizationDeniedException if administrator is not authorized to edit end entity or if an authenticated request can not be verified
 	 * @throws SignRequestException if the provided request is invalid, for example not containing a username or password
-	 * @throws UserDoesntFullfillEndEntityProfile
-	 * @throws NotFoundException
+	 * @throws UserDoesntFullfillEndEntityProfile Fail
+	 * @throws NotFoundException Fail
 	 * @throws EjbcaException for other errors, an error code like ErrorCode.SIGNATURE_ERROR (popo/inner signature verification failed) is set.
-	 * @throws ApprovalException
-	 * @throws WaitingForApprovalException
-	 * @throws CertificateExpiredException
-	 * @throws CesecoreException
+	 * @throws ApprovalException Fail
+	 * @throws WaitingForApprovalException Fail
+	 * @throws CertificateExpiredException Fail
+	 * @throws CesecoreException Fail
 	 * @see org.cesecore.ErrorCode
 	 */
-    List<Certificate> cvcRequest(String username, String password, String cvcreq)
+    @SuppressWarnings("javadoc")
+	List<Certificate> cvcRequest(String username, String password, String cvcreq)
 	throws CADoesntExistsException, AuthorizationDeniedException, UserDoesntFullfillEndEntityProfile, NotFoundException,
 	EjbcaException, ApprovalException, WaitingForApprovalException, SignRequestException, CertificateExpiredException, CesecoreException;
 
@@ -405,7 +408,7 @@ public interface IEjbcaWS {
 	 * @throws ApprovalException if the operation requires approval from another CA administrator, in this case an approval request is created for another administrator to approve
 	 * @throws WaitingForApprovalException if there is already a request waiting for approval
 	 * @throws EjbcaException other errors in which case an org.ejbca.core.ErrorCade is set in the EjbcaException
-	 * @throws CesecoreException
+	 * @throws CesecoreException Fail
 	 */
 	void caCertResponse(String caname, byte[] cert, List<byte[]> cachain, String keystorepwd) throws CADoesntExistsException, AuthorizationDeniedException, EjbcaException, ApprovalException, WaitingForApprovalException, CesecoreException;
 
@@ -419,12 +422,12 @@ public interface IEjbcaWS {
      * @param cachain the certificate chain for the CA this request is targeted for, the signing CA is in pos 0, it's CA (if it exists) in pos 1 etc. Certificate format is the binary certificate bytes.
      * @param keystorepwd If there is a new CA key that must be activates the keystore password is needed. Set to null if the request was generated using the existing CA keys.
      *
-     * @throws CADoesntExistsException
-     * @throws AuthorizationDeniedException
-     * @throws EjbcaException
-     * @throws ApprovalException
-     * @throws WaitingForApprovalException
-     * @throws CesecoreException
+     * @throws CADoesntExistsException Fail
+     * @throws AuthorizationDeniedException Fail
+     * @throws EjbcaException Fail
+     * @throws ApprovalException Fail
+     * @throws WaitingForApprovalException Fail
+     * @throws CesecoreException Fail
 	 */
 	void caCertResponseForRollover(String caname, byte[] cert, List<byte[]> cachain, String keystorepwd) throws CADoesntExistsException, AuthorizationDeniedException, EjbcaException, ApprovalException, WaitingForApprovalException, CesecoreException;
 
@@ -434,7 +437,7 @@ public interface IEjbcaWS {
 	 * @param caname the logical name of the CA in EJBCA.
 	 * @param certbytes a byte array containing the CA certificate, and optional it's CA certificate chain.
 	 *
-	 * @throws AuthorizationDeniedException
+	 * @throws AuthorizationDeniedException Fail
 	 * @throws CAExistsException if a CA with that logical name or CA certificate subject DN already exists.
 	 * @throws EjbcaException if an other exception occurs.
 	 */
@@ -446,7 +449,7 @@ public interface IEjbcaWS {
 	 * @param caname the logical name of the CA in EJBCA
 	 * @param certbytes a byte array containing the CA certificate, and optional it's CA certificate chain.
 	 *
-	 * @throws AuthorizationDeniedException
+	 * @throws AuthorizationDeniedException Fail
 	 * @throws CADoesntExistsException if a CA with that logical name does not exists in EJBCA.
 	 * @throws EjbcaException if an other exception occurs.
 	 */
@@ -454,6 +457,7 @@ public interface IEjbcaWS {
 
 	/**
 	 * Performs a certificate rollover for a CA with a rollover certificate previously added with caCertResponseForRollover.
+	 * @param caname Name
      * @throws AuthorizationDeniedException if administrator is not authorized to import certificate.
      * @throws CADoesntExistsException if caname does not exist
      * @throws EjbcaException other errors in which case an org.ejbca.core.ErrorCode is set in the EjbcaException
@@ -488,8 +492,8 @@ public interface IEjbcaWS {
 	 * @throws CADoesntExistsException if a referenced CA does not exist
 	 * @throws AuthorizationDeniedException if client isn't authorized to request
 	 * @throws NotFoundException if user cannot be found
-	 * @throws EjbcaException
-	 * @throws CesecoreException
+	 * @throws EjbcaException Fail
+	 * @throws CesecoreException Fail
 	 */
     CertificateResponse pkcs10Request(String username, String password, String pkcs10, String hardTokenSN, String responseType)
             throws CADoesntExistsException, AuthorizationDeniedException, NotFoundException, EjbcaException, CesecoreException;
@@ -499,7 +503,7 @@ public interface IEjbcaWS {
 	 *
 	 * The method must be preceded by
 	 * a editUser call, either to set the userstatus to 'new' or to add non-existing users and
-	 * the user's token must be set to {@link org.ejbca.core.protocol.ws.client.gen.UserDataVOWS}.TOKEN_TYPE_P12.<br>
+	 * the user's token must be set to org.ejbca.core.protocol.ws.client.gen.UserDataVOWS.TOKEN_TYPE_P12.<br>
 	 *
 	 * Authorization requirements: <pre>
 	 * - /administrator
@@ -534,7 +538,7 @@ public interface IEjbcaWS {
 	 * @throws CADoesntExistsException if a referenced CA does not exist
 	 * @throws AuthorizationDeniedException if client isn't authorized to request
 	 * @throws NotFoundException if user cannot be found
-	 * @throws EjbcaException
+	 * @throws EjbcaException Fail
 	 */
 	KeyStore pkcs12Req(String username, String password,
 			String hardTokenSN, String keyspec, String keyalg)
@@ -564,8 +568,8 @@ public interface IEjbcaWS {
 	 * 
 	 * @param issuerDN of the certificate to revoke
 	 * @param certificateSN Certificate serial number in hex format of the certificate to revoke (without any "0x", "h" or similar)
-	 * @param reason for revocation, one of {@link org.ejbca.core.protocol.ws.client.gen.RevokeStatus}.REVOKATION_REASON_ constants,
-	 * or use {@link org.ejbca.core.protocol.ws.client.gen.RevokeStatus}.NOT_REVOKED to un-revoke a certificate on hold.
+	 * @param reason for revocation, one of org.ejbca.core.protocol.ws.client.gen.RevokeStatus.REVOKATION_REASON_ constants,
+	 * or use org.ejbca.core.protocol.ws.client.gen.RevokeStatus.NOT_REVOKED to un-revoke a certificate on hold.
 	 * @param sDate The revocation date. If null then the current date is used. If specified then the profile of the certificate must allow
 	 * "back dating" and the date must be i the past. The parameter is specified as an
 	 * <a href="http://en.wikipedia.org/wiki/ISO8601">ISO 8601 string</a>.
@@ -591,16 +595,16 @@ public interface IEjbcaWS {
 	 *
 	 * <p>If the CA does not exist on the local system, then the request will be forwarded to upstream peer systems (if any).</p>
 	 *
-	 * @param issuerDN
-	 * @param certificateSN
-	 * @param reason
-	 * @throws CADoesntExistsException
-	 * @throws AuthorizationDeniedException
-	 * @throws NotFoundException
-	 * @throws EjbcaException
-	 * @throws ApprovalException
-	 * @throws WaitingForApprovalException
-	 * @throws AlreadyRevokedException
+	 * @param issuerDN DN
+	 * @param certificateSN SN
+	 * @param reason Reason
+	 * @throws CADoesntExistsException Fail
+	 * @throws AuthorizationDeniedException Fail
+	 * @throws NotFoundException Fail
+	 * @throws EjbcaException FAil
+	 * @throws ApprovalException FAil
+	 * @throws WaitingForApprovalException FAil
+	 * @throws AlreadyRevokedException Fail
 	 */
 	void revokeCert(String issuerDN, String certificateSN, int reason) throws CADoesntExistsException, AuthorizationDeniedException, 
 	        NotFoundException, EjbcaException, ApprovalException, WaitingForApprovalException, AlreadyRevokedException;
@@ -610,6 +614,9 @@ public interface IEjbcaWS {
      * Metadata is a list of key-value pairs, keys can be for example: certificateProfileId, reason, revocationdate
      * 
      * <p>If the CA does not exist on the local system, then the request will be forwarded to upstream peer systems (if any).</p>
+	 * @param issuerDN DN
+	 * @param certificateSN SN
+	 * @param metadata Data
      * 
      * @throws CADoesntExistsException if a referenced CA does not exist
      * @throws AuthorizationDeniedException if client isn't authorized.
@@ -646,8 +653,8 @@ public interface IEjbcaWS {
 	 *    The requested is processed on all instances available.</p>
      *     
 	 * @param username unique username in EJBCA.
-	 * @param reason for revocation, one of {@link org.ejbca.core.protocol.ws.client.gen.RevokeStatus}.REVOKATION_REASON_ constants
-	 * or use {@link org.ejbca.core.protocol.ws.client.gen.RevokeStatus}.NOT_REVOKED to un-revoke a certificate on hold.
+	 * @param reason for revocation, one of org.ejbca.core.protocol.ws.client.gen.RevokeStatus.REVOKATION_REASON_ constants
+	 * or use @link org.ejbca.core.protocol.ws.client.gen.RevokeStatus.NOT_REVOKED to un-revoke a certificate on hold.
 	 * @param deleteUser deletes the users after all the certificates have been revoked.
 	 * @throws CADoesntExistsException if a referenced CA does not exist.
 	 * @throws AuthorizationDeniedException if client isn't authorized.
@@ -657,7 +664,7 @@ public interface IEjbcaWS {
 	 * @throws AlreadyRevokedException if the user already was revoked.
 	 * @throws EjbcaException any EjbcaException.
 	 * @see RevokeStatus
-	 * @see RaMasterApi#revokeUser(AuthenticationToken authenticationToken, String username, int reason, boolean deleteUser)
+	 * @see "RaMasterApi#revokeUser(AuthenticationToken authenticationToken, String username, int reason, boolean deleteUser)"
 	 */
 	void revokeUser(String username, int reason,
 			boolean deleteUser) throws CADoesntExistsException, AuthorizationDeniedException,
@@ -756,14 +763,14 @@ public interface IEjbcaWS {
 	 * </pre>
 	 *
 	 * @param hardTokenSN of the hardTokenSN
-	 * @param reason for revocation, one of {@link org.ejbca.core.protocol.ws.client.gen.RevokeStatus}.REVOKATION_REASON_ constants
+	 * @param reason for revocation, one of  org.ejbca.core.protocol.ws.client.gen.RevokeStatus.REVOKATION_REASON_ constants
 	 * @throws CADoesntExistsException if a referenced CA does not exist
 	 * @throws AuthorizationDeniedException if client isn't authorized.
 	 * @throws NotFoundException if token doesn't exist
 	 * @throws WaitingForApprovalException If request has bean added to list of tasks to be approved
 	 * @throws ApprovalException There already exists an approval request for this task
 	 * @throws AlreadyRevokedException The token was already revoked.
-	 * @throws EjbcaException
+	 * @throws EjbcaException Fail
 	 */
 	void revokeToken(String hardTokenSN, int reason)
 			throws CADoesntExistsException, AuthorizationDeniedException,
@@ -778,14 +785,14 @@ public interface IEjbcaWS {
 	 * - /ca/&lt;ca of certificate&gt;
 	 * </pre>
 	 *
-	 * @param issuerDN
+	 * @param issuerDN DN
 	 * @param certificateSN a hexa decimal string
 	 * @return the revocation status or null if certificate does not exist.
 	 *         For CAs in throw-away mode and with the option "accept revocation of
 	 *         non-existing entries", this function returns OK for non-existing entries.
 	 * @throws CADoesntExistsException if a referenced CA does not exist
 	 * @throws AuthorizationDeniedException if client isn't authorized.
-	 * @throws EjbcaException
+	 * @throws EjbcaException FAil
 	 * @see RevokeStatus
 	 */
 	RevokeStatus checkRevokationStatus(String issuerDN,
@@ -802,7 +809,7 @@ public interface IEjbcaWS {
      * 
 	 * @param resource the access rule to test
 	 * @return true if the user is authorized to the resource otherwise false.
-	 * @throws EjbcaException
+	 * @throws EjbcaException Fail
 	 * @see RevokeStatus
 	 */
 	boolean isAuthorized(String resource) throws EjbcaException;
@@ -823,8 +830,8 @@ public interface IEjbcaWS {
 	 * @param searchString to identify the userdata.
 	 * @return a List of UserDataSourceVOWS of the data in the specified UserDataSources, if no user data is found will an empty list be returned.
 	 * @throws UserDataSourceException if an error occurred connecting to one of UserDataSources
-	 * @throws AuthorizationDeniedException
-	 * @throws EjbcaException
+	 * @throws AuthorizationDeniedException FAil
+	 * @throws EjbcaException Fail
 	 */
 	List<UserDataSourceVOWS> fetchUserData(
 			List<String> userDataSourceNames, String searchString)
@@ -863,10 +870,11 @@ public interface IEjbcaWS {
 	 * @throws ApprovalException  if error happened with the approval mechanisms
 	 * @throws WaitingForApprovalException if the request haven't been processed yet.
 	 * @throws ApprovalRequestExecutionException if the approval request was rejected
-	 * @throws UserDoesntFullfillEndEntityProfile
-	 * @throws EjbcaException
+	 * @throws UserDoesntFullfillEndEntityProfile Fail
+	 * @throws EjbcaException Fail
 	 */
-    List<TokenCertificateResponseWS> genTokenCertificates(
+    @SuppressWarnings("javadoc")
+	List<TokenCertificateResponseWS> genTokenCertificates(
 			UserDataVOWS userData,
 			List<TokenCertificateRequestWS> tokenRequests,
 			HardTokenDataWS hardTokenData,
@@ -912,7 +920,7 @@ public interface IEjbcaWS {
 	 * @throws ApprovalException  if error happened with the approval mechanisms
 	 * @throws WaitingForApprovalException if the request haven't been processed yet.
 	 * @throws ApprovalRequestExecutionException if the approval request was rejected
-	 * @throws AuthorizationDeniedException
+	 * @throws AuthorizationDeniedException Fail
 	 * @throws EjbcaException if an exception occurred on server side.
 	 */
 	HardTokenDataWS getHardTokenData(String hardTokenSN, boolean viewPUKData, boolean onlyValidCertificates)
@@ -934,8 +942,8 @@ public interface IEjbcaWS {
 	 * @param onlyValidCertificates of all revoked and expired certificates should be filtered.
 	 * @return a list of the HardTokenData generated for the user never null.
 	 * @throws EjbcaException if an exception occurred on server side.
-	 * @throws CADoesntExistsException
-	 * @throws AuthorizationDeniedException
+	 * @throws CADoesntExistsException fail
+	 * @throws AuthorizationDeniedException fail
 	 */
 	List<HardTokenDataWS> getHardTokenDatas(String username, boolean viewPUKData, boolean onlyValidCertificates)
 			throws CADoesntExistsException, AuthorizationDeniedException, EjbcaException;
@@ -1092,7 +1100,7 @@ public interface IEjbcaWS {
 	 *
 	 * @return array of NameAndId of available CAs, if no CAs are found will an empty array be returned of size 0, never null.
 	 * @throws EjbcaException if an error occured
-	 * @throws AuthorizationDeniedException
+	 * @throws AuthorizationDeniedException fail
 	 * @see "ICAAdminSessionLocal#getAvailableCAs()"
 	 */
 	NameAndId[] getAvailableCAs()
@@ -1110,7 +1118,7 @@ public interface IEjbcaWS {
 
 	 * @return array of NameAndId of available end entity profiles, if no profiles are found will an empty array be returned of size 0, never null.
 	 * @throws EjbcaException if an error occured
-	 * @throws AuthorizationDeniedException
+	 * @throws AuthorizationDeniedException fail
 	 * @see "IRaAdminSessionLocal#getAuthorizedEndEntityProfileIds()"
 	 */
 	NameAndId[] getAuthorizedEndEntityProfiles()
@@ -1129,7 +1137,7 @@ public interface IEjbcaWS {
 	 * @param entityProfileId id of an end entity profile where we want to find which certificate profiles are available
 	 * @return array of NameAndId of available certificate profiles, if no profiles are found will an empty array be returned of size 0, never null.
 	 * @throws EjbcaException if an error occured
-	 * @throws AuthorizationDeniedException
+	 * @throws AuthorizationDeniedException fail
 	 */
 	NameAndId[] getAvailableCertificateProfiles(int entityProfileId)
 			throws AuthorizationDeniedException, EjbcaException;
@@ -1152,7 +1160,7 @@ public interface IEjbcaWS {
 	 * @param entityProfileId id of an end entity profile where we want to find which CAs are available
 	 * @return array of NameAndId of available CAs in the specified end entity profile, if no CAs are found will an empty array be returned of size 0, never null.
 	 * @throws EjbcaException if an error occured
-	 * @throws AuthorizationDeniedException
+	 * @throws AuthorizationDeniedException fail
 	 */
 	NameAndId[] getAvailableCAsInProfile(int entityProfileId)
 			throws AuthorizationDeniedException, EjbcaException;
@@ -1196,11 +1204,11 @@ public interface IEjbcaWS {
 	 *
 	 * @param caname the name in EJBCA of the CA that should have a new CRL generated
 	 * @throws CADoesntExistsException if a referenced CA does not exist
-	 * @throws ApprovalException
+	 * @throws ApprovalException fail
 	 * @throws EjbcaException if an error occured, for example authorization denied
-	 * @throws ApprovalRequestExpiredException
-	 * @throws CAOfflineException
-	 * @throws CryptoTokenOfflineException
+	 * @throws ApprovalRequestExpiredException fail
+	 * @throws CAOfflineException fail
+	 * @throws CryptoTokenOfflineException fail
 	 */
 	void createCRL(String caname)
 			throws CADoesntExistsException, ApprovalException, EjbcaException, ApprovalRequestExpiredException, CryptoTokenOfflineException, CAOfflineException;
@@ -1237,7 +1245,7 @@ public interface IEjbcaWS {
 	 * Generates a soft token certificate for a user.
 	 * If the user is not already present in the database, the user is added.<br>
 	 * Status is automatically set to STATUS_NEW.<br>
-	 * The user's token type must be set to {@link org.ejbca.core.protocol.ws.client.gen.UserDataVOWS}.TOKEN_TYPE_ (JKS or P12).
+	 * The user's token type must be set to org.ejbca.core.protocol.ws.client.gen.UserDataVOWS.TOKEN_TYPE_ (JKS or P12).
 	 * A token password must also be defined.<p>
 	 * Authorization requirements:<pre>
 	 * - /administrator
@@ -1257,12 +1265,13 @@ public interface IEjbcaWS {
 	 * @throws CADoesntExistsException if a referenced CA does not exist
 	 * @throws AuthorizationDeniedException if client isn't authorized to request
 	 * @throws NotFoundException if user cannot be found
-	 * @throws UserDoesntFullfillEndEntityProfile
-	 * @throws ApprovalException
-	 * @throws WaitingForApprovalException
-	 * @throws EjbcaException
+	 * @throws UserDoesntFullfillEndEntityProfile fail
+	 * @throws ApprovalException fail
+	 * @throws WaitingForApprovalException fail
+	 * @throws EjbcaException fail
 	 * @see #editUser(UserDataVOWS)
 	 */
+	@SuppressWarnings("javadoc")
 	KeyStore softTokenRequest(UserDataVOWS userData, String hardTokenSN, String keyspec, String keyalg)
 	throws CADoesntExistsException, AuthorizationDeniedException, NotFoundException, UserDoesntFullfillEndEntityProfile,
 	ApprovalException, WaitingForApprovalException, EjbcaException;
@@ -1301,12 +1310,13 @@ public interface IEjbcaWS {
 	 * @throws CADoesntExistsException if a referenced CA does not exist
 	 * @throws AuthorizationDeniedException if client isn't authorized to request
 	 * @throws NotFoundException if user cannot be found
-	 * @throws UserDoesntFullfillEndEntityProfile
+	 * @throws UserDoesntFullfillEndEntityProfile fail
 	 * @throws ApprovalException thrown if a end needs to be created as part of this request, but that action requires approvals.
 	 * @throws WaitingForApprovalException never thrown, but remains for legacy reasons
-	 * @throws EjbcaException
+	 * @throws EjbcaException fail 
 	 * @see #editUser(UserDataVOWS)
 	 */
+	@SuppressWarnings("javadoc")
 	CertificateResponse certificateRequest(UserDataVOWS userData, String requestData, int requestType, String hardTokenSN, String responseType)
 	throws CADoesntExistsException, AuthorizationDeniedException, NotFoundException, UserDoesntFullfillEndEntityProfile,
 	ApprovalException, WaitingForApprovalException, EjbcaException;
@@ -1325,7 +1335,7 @@ public interface IEjbcaWS {
      *     
      * @param name of the queue
      * @return the length or -4 if the publisher does not exist.
-     * @throws EjbcaException
+     * @throws EjbcaException fail
      */
     int getPublisherQueueLength(String name) throws EjbcaException;
 

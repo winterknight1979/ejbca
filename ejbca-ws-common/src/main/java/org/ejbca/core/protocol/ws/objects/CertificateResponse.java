@@ -79,6 +79,8 @@ public class CertificateResponse  {
 
 	/**
 	 * Returns a certificate from the data in the WS response.
+	 * @return X.509
+	 * @throws CertificateException fail
 	 */
 	public X509Certificate getCertificate() throws CertificateException{
         return CertTools.getCertfromByteArray(getRawData(), X509Certificate.class); 
@@ -87,6 +89,7 @@ public class CertificateResponse  {
 	/**
 	 * Returns raw PKCS #7 or X509 data instead of the Base64 contained in
 	 * the WS response
+	 * @return fail
 	 */
 	public byte[] getRawData() {
 		return Base64.decode(data);

@@ -34,14 +34,15 @@ public class KeyStoreHelper {
 
 	/**
 	 * Retrieves the keystore from the encoded data.
+	 * @param keystoreData Data
 	 * @param type "PKCS12" or "JKS"
 	 * @param password to lock the keystore
 	 * @return the loaded and unlocked keystore.
-	 * @throws CertificateException
-	 * @throws IOException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws NoSuchProviderException 
-	 * @throws KeyStoreException 
+	 * @throws CertificateException Fail
+	 * @throws IOException Fail
+	 * @throws NoSuchAlgorithmException Fail 
+	 * @throws NoSuchProviderException Fail
+	 * @throws KeyStoreException Fail
 	 */
 	public static java.security.KeyStore getKeyStore(byte[] keystoreData, String type, String password) throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, NoSuchProviderException{
 		java.security.KeyStore ks = type.equalsIgnoreCase("JKS") ? java.security.KeyStore.getInstance("JKS") : java.security.KeyStore.getInstance(type, "BC");

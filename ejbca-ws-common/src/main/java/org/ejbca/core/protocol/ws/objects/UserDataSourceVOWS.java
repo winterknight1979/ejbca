@@ -51,6 +51,7 @@ public class UserDataSourceVOWS implements Serializable{
 	 * DNFieldExtractor constants defined in the AVAILABLEMODIFYABLEFIELDS array.
 	 * 
 	 * use the contains(Object) method do find out if a field should be modifyable or not.
+	 * @return data
 	 */
 	public List<Integer> getIsModifyable() {
 		return isModifyable;
@@ -58,6 +59,7 @@ public class UserDataSourceVOWS implements Serializable{
 
 	/**
 	 * Method that shouldn't be used outside the WS framework.
+	 * @param isModifyable data
 	 */
 	public void setIsModifyable(List<Integer> isModifyable) {
 		this.isModifyable = isModifyable;
@@ -73,6 +75,7 @@ public class UserDataSourceVOWS implements Serializable{
 
 	/**
 	 * Method that shouldn't be used outside the WS framework.
+	 * @param userDataVOWS data
 	 */
 	public void setUserDataVOWS(UserDataVOWS userDataVOWS) {
 		this.userDataVOWS = userDataVOWS;
