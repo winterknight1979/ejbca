@@ -17,4 +17,5 @@ the most recent CERT-CVC in Central is v1.4.6, and I have been unable to locate 
 The V1.4.9 Jar from the original download is therefore included and installed to the local repo by the build.
 Should PrimeKey release v1.4.9 with source, it will be included here and built as a module.
 
+![Java CI with Maven](https://github.com/winterknight1979/ejbca/workflows/Java%20CI%20with%20Maven/badge.svg)
 ![Maven Package](https://github.com/winterknight1979/ejbca/workflows/Maven%20Package/badge.svg)
