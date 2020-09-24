@@ -52,6 +52,9 @@ public class CertificateHelper {
 	
 	/**
 	 * Method that builds a certificate from the data in the WS response.
+	 * @param certificateData Data
+	 * @return Cert
+	 * @throws CertificateException On fail
 	 */
 	public static Certificate getCertificate(byte[] certificateData) throws CertificateException{
         Certificate retval = CertTools.getCertfromByteArray(Base64.decode(certificateData), Certificate.class); 
@@ -61,6 +64,8 @@ public class CertificateHelper {
 	/**
 	 * Simple method that just returns raw PKCS7 data instead of the BASE64 encoded contained in
 	 * the WS response
+	 * @param pkcs7Data Data
+	 * @return PKCS7
 	 */
 	public static byte[] getPKCS7(byte[] pkcs7Data) {
 		return Base64.decode(pkcs7Data);

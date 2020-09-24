@@ -31,7 +31,7 @@ public class UnknownProfileTypeException extends EjbcaException {
     private static final long serialVersionUID = 1L;
 
     /**
-     * @param message with more information what is wrong
+     * @param m with more information what is wrong
      */
     public UnknownProfileTypeException(String m) {
         super(ErrorCode.UNKNOWN_PROFILE_TYPE, m);
