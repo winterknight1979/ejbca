@@ -648,7 +648,23 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
 				</pluginManagement>
 			</build>
 		</profile>
-        
+        <profile>
+        	<id>lint</id>
+        	<build>
+        		<plugins>
+        			<plugin>
+        				<artifactId>
+        				maven-compiler-plugin
+        				</artifactId>
+        				<configuration>
+        					<compilerArgs>
+        						<compilerArg>-Xlint</compilerArg>
+        					</compilerArgs>
+        				</configuration>
+        			</plugin>
+        		</plugins>
+        	</build>
+        </profile>
     </profiles>
     <scm>
         <connection>scm:git:https://github.com/winterknight1979/ejbca.git</connection>
