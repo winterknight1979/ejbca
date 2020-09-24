@@ -36,7 +36,7 @@ import org.cesecore.certificates.endentity.EndEntityTypes;
  *   user.setEndEntityProfileName ("EMPTY");
  *   user.setCertificateProfileName ("ENDUSER");
  *   
- *   List<ExtendedInformationWS> ei = new ArrayList<ExtendedInformationWS> ();
+ *   List&lt;ExtendedInformationWS&gt; ei = new ArrayList&lt;ExtendedInformationWS&gt; ();
  *   ei.add(new ExtendedInformationWS (ExtendedInformation.CUSTOMDATA+ExtendedInformation.CUSTOM_REVOCATIONREASON,
  *                                     Integer.toString(RevokeStatus.REVOKATION_REASON_CERTIFICATEHOLD)));
  *   ei.add(new ExtendedInformationWS (ExtendedInformation.SUBJECTDIRATTRIBUTES, "DATEOFBIRTH=19761123"));
