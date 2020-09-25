@@ -53,8 +53,8 @@ public interface ApprovalSession {
       * 
       * If the return value is:
       * 0    the request is approved (ApprovalDataVO.STATUS_APROVED) 
-      * >0   the request requires so many more approvals left 
-      * <0   the request has any other status 
+      * &gt;0   the request requires so many more approvals left 
+      * &lt;0   the request has any other status 
       * 
       * @param approvalId the approval ID of the request
       * @param step the given step 
@@ -75,8 +75,8 @@ public interface ApprovalSession {
      * 
      * If the return value is:
      * 0    the request is approved (ApprovalDataVO.STATUS_APROVED) 
-     * >0   the request requires so many more approvals left 
-     * <0   the request has any other status 
+     * &gt;0   the request requires so many more approvals left 
+     * &lt;0   the request has any other status 
      * 
      * @param approvalId the ID of the request
      * @return the number of approvals left if still waiting for approval, 0 (ApprovalDataVO.STATUS_APROVED) 

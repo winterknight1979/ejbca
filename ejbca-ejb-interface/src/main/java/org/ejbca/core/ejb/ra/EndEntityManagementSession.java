@@ -443,7 +443,7 @@ public interface EndEntityManagementSession {
      * - /administrator
      * - /ra_functionality/revoke_end_entity
      * - /endentityprofilesrules/&lt;end entity profile&gt;/revoke_end_entity
-     * - /ca/<ca of users certificate>
+     * - /ca/&lt;ca of users certificate&gt;
      * </pre>
      *
      * @param authenticationToken of the requesting administrator or client.

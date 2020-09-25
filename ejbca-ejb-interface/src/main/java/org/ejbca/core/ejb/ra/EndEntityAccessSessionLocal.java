@@ -97,7 +97,7 @@ public interface EndEntityAccessSessionLocal extends EndEntityAccessSession {
     
     /** @param hardTokenIssuerId id
      * @param maxResults max
-     * @return return a List<UserData> with tokenType TOKEN_HARD_DEFAULT and status NEW or KEYRECOVERY. */
+     * @return return a List&lt;UserData&gt; with tokenType TOKEN_HARD_DEFAULT and status NEW or KEYRECOVERY. */
     List<UserData> findNewOrKeyrecByHardTokenIssuerId(int hardTokenIssuerId, int maxResults);
     
     /** @param caId id

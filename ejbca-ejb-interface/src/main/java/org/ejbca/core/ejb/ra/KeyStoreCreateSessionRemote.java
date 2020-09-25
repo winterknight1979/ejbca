@@ -34,7 +34,6 @@ import org.cesecore.certificates.certificate.IllegalKeyException;
 import org.cesecore.certificates.certificate.exception.CertificateSerialNumberException;
 import org.cesecore.certificates.certificate.exception.CustomCertificateSerialNumberException;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
-import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
 import org.ejbca.core.model.CertificateSignatureException;
 import org.ejbca.core.model.ca.AuthLoginException;
 import org.ejbca.core.model.ca.AuthStatusException;

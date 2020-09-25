@@ -132,9 +132,7 @@ public interface ServiceSession {
     /**
      * Finds a service configuration by id.
      * @param id id
-     * @return config
-     * 
-     * @returns the service configuration or null if it doesn't exist.
+     * @return  the service configuration or null if it doesn't exist.
      */
     ServiceConfiguration getServiceConfiguration(int id);
 

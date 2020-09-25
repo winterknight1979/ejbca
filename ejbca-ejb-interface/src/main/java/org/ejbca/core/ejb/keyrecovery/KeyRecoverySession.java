@@ -31,12 +31,12 @@ public interface KeyRecoverySession {
      /**
      * Method checking the following authorizations:
      * 
-     * If /superadmin -> true
+     * If /superadmin -&gt; true
      * 
      * Other must have both
      * AccessRulesConstants.
      *  /ra_functionality/keyrecovery
-     *  and /endentityprofilesrules/<endentityprofile>/keyrecovery
+     *  and /endentityprofilesrules/&lt;endentityprofile&gt;/keyrecovery
      * 
      * @param admin authentication token of requesting administrator
      * @param profileid end entity profile

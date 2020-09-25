@@ -33,7 +33,7 @@ public interface PublishingCrlSessionLocal extends PublishingCrlSession {
      * Method that checks if there are any CRLs needed to be updated and then
      * creates their CRLs. A CRL is created: 1. if the current CRL expires
      * within the crloverlaptime (milliseconds) 2. if a crl issue interval is
-     * defined (>0) a CRL is issued when this interval has passed, even if the
+     * defined (&gt;0) a CRL is issued when this interval has passed, even if the
      * current CRL is still valid
      * 
      * This method can be called by a scheduler or a service.

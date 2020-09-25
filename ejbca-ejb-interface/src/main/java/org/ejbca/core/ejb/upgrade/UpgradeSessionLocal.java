@@ -98,7 +98,7 @@ public interface UpgradeSessionLocal  extends UpgradeSession{
      * 
      * @param first a version number
      * @param second a version number
-     * @return true of the first version is lower (1.0 < 2.0) than the second, false otherwise. 
+     * @return true of the first version is lower (1.0 &lt; 2.0) than the second, false otherwise. 
      */
     boolean isLesserThan(String first, String second);
 

@@ -23,11 +23,11 @@ import javax.ejb.Local;
 @Local
 public interface AuthorizationSystemSessionLocal extends AuthorizationSystemSession {
 
-    /** @return a Map<category name, Map<resource,resourceName>> */
+    /** @return a Map&lt;category name, Map&lt;resource,resourceName&gt;&gt; */
     Map<String, Map<String, String>> getAllResourceAndResourceNamesByCategory();
 
     /** @param ignoreLimitations limit
-     * @return a Map of all <resource,resourceName>, on this installation (optionally ignoring if certain resources is not in use) */
+     * @return a Map of all &lt;resource,resourceName&gt;, on this installation (optionally ignoring if certain resources is not in use) */
     Map<String,String> getAllResources(boolean ignoreLimitations);
 
     /**

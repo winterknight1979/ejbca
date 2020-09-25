@@ -50,7 +50,7 @@ public interface PublishingCrlSession {
      * Method that checks if the CRL is needed to be updated for the CA and
      * creates the CRL, if necessary. A CRL is created: 1. if the current CRL
      * expires within the crloverlaptime (milliseconds) 2. if a CRL issue
-     * interval is defined (>0) a CRL is issued when this interval has passed,
+     * interval is defined (&gt;0) a CRL is issued when this interval has passed,
      * even if the current CRL is still valid
      * 
      * @param admin administrator performing the task
