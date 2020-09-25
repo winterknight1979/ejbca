@@ -121,7 +121,7 @@ These tests have therefore been folded out into their own module.</description>
 			</plugin>
 		</plugins>
 	</build>
- <profiles>
+  <profiles>
         <profile>
             <id>coverage</id>
             <build>
@@ -156,7 +156,9 @@ These tests have therefore been folded out into their own module.</description>
                             <reportSet>
                                 <reports>
 <!-- select non-aggregate reports -->
+									<report>report</report>
                                     <report>report-aggregate</report>
+                                    
                                 </reports>
                             </reportSet>
                         </reportSets>

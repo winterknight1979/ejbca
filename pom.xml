@@ -471,6 +471,27 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
             </plugins>
         </pluginManagement>
         
+        <plugins>
+        	<plugin>
+        		<groupId>com.github.github</groupId>
+        		<artifactId>site-maven-plugin</artifactId>
+        		<version>0.12</version>
+        		<executions>
+					<execution>
+						<id>push site to GH</id>
+						<phase>site</phase>
+						<goals>
+							<goal>site</goal>
+						</goals>
+						<configuration>
+							<repositoryOwner>winterknight1979</repositoryOwner>
+							<repositoryName>ejbca-site</repositoryName>
+						</configuration>
+					</execution>
+        		</executions>
+        	</plugin>
+        </plugins>
+        
         </build>
     <reporting>
         <plugins>
@@ -676,4 +697,6 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
         <url>https://github.com/winterknight1979/ejbca</url>
     </scm>
     <url>https://github.com/winterknight1979/ejbca</url>
+    
+    
 </project>
