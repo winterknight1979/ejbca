@@ -15,6 +15,7 @@ package org.ejbca.core.model.ra.userdatasource;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -56,7 +57,7 @@ public class CustomUserDataSourceContainer extends BaseUserDataSource{
     
     // Public Methods    
     /**
-     *  Returns the class path of custom publisher used.
+     *  @return the class path of custom publisher used.
      */    
     public String getClassPath(){
     	return (String) data.get(CLASSPATH);
@@ -64,20 +65,21 @@ public class CustomUserDataSourceContainer extends BaseUserDataSource{
 
     /**
      *  Sets the class path of custom publisher used.
+     * @param classpath classpath
      */        
 	public void setClassPath(String classpath){
 	  data.put(CLASSPATH, classpath);	
 	}
 
 	/**
-	 *  Returns the propertydata used to configure this custom publisher.
+	 *  @return the propertydata used to configure this custom publisher.
 	 */    
 	public String getPropertyData(){
 		return (String) data.get(PROPERTYDATA);
 	}
 
 	/**
-	 *  Sets the propertydata used to configure this custom publisher.
+	 *  @param propertydata Sets the propertydata used to configure this custom publisher.
 	 */   
 	public void setPropertyData(String propertydata){
 		data.put(PROPERTYDATA, propertydata);	
@@ -98,9 +100,9 @@ public class CustomUserDataSourceContainer extends BaseUserDataSource{
 			try{
 				@SuppressWarnings("unchecked")
                 Class<? extends ICustomUserDataSource> implClass = (Class<? extends ICustomUserDataSource>) Class.forName( getClassPath() );
-				this.customuserdatasource = implClass.newInstance();
+				this.customuserdatasource = implClass.getConstructor().newInstance();
 				this.customuserdatasource.init(getProperties());				
-			}catch(ClassNotFoundException e){
+			}catch(ClassNotFoundException | NoSuchMethodException e){
 				throw new EJBException(e);
 			}
 			catch(IllegalAccessException iae){
@@ -109,7 +111,7 @@ public class CustomUserDataSourceContainer extends BaseUserDataSource{
 			catch(IOException ioe){
 				throw new EJBException(ioe);
 			}
-			catch(InstantiationException ie){
+			catch(InstantiationException | InvocationTargetException ie){
 				throw new EJBException(ie);
 			}
 		}
@@ -148,7 +150,7 @@ public class CustomUserDataSourceContainer extends BaseUserDataSource{
 	}
 	
 	/** 
-	 * @throws MultipleMatchException 
+	 * @throws MultipleMatchException  fail
 	 * @see org.ejbca.core.model.ra.userdatasource.BaseUserDataSource#removeUserData(AuthenticationToken, String, boolean)
 	 */
 	
@@ -165,7 +167,7 @@ public class CustomUserDataSourceContainer extends BaseUserDataSource{
 	
 	/**
 	 * Resets the current custom user data source
-	 * @see org.ejbca.core.model.UpgradeableDataHashMap#saveData()
+	 * @see org.cesecore.internal.UpgradeableDataHashMap#saveData()
 	 */
 	public Object saveData() {
 		this.customuserdatasource = null;

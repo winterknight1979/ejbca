@@ -239,7 +239,8 @@ public class CmpResponseMessage implements CertificateResponseMessage {
         return this.failText;
     }
 
-    @Override
+    @SuppressWarnings("deprecation")
+	@Override
     public boolean create() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException {
         boolean ret = false;
         // Some general stuff, common for all types of messages

@@ -49,7 +49,7 @@ public abstract class BaseWorker implements IWorker {
 	private transient long timeBeforeExpire = -1;
 
 	/**
-	 * @see org.ejbca.core.model.services.IWorker#init(org.ejbca.core.model.services.ServiceConfiguration, java.lang.String)
+	 * @see org.ejbca.core.model.services.IWorker#init
 	 */
 	@Override
 	public void init(AuthenticationToken admin, ServiceConfiguration serviceConfiguration,
@@ -64,7 +64,7 @@ public abstract class BaseWorker implements IWorker {
 		String actionClassPath = serviceConfiguration.getActionClassPath();
 		if(actionClassPath != null){
 			try {
-				action = (IAction) Thread.currentThread().getContextClassLoader().loadClass(actionClassPath).newInstance();
+				action = (IAction) Thread.currentThread().getContextClassLoader().loadClass(actionClassPath).getConstructor().newInstance();
 				action.init(serviceConfiguration.getActionProperties(), serviceName);
 			} catch (Exception e) {
 				String msg = intres.getLocalizedMessage("services.erroractionclasspath", serviceName);
@@ -77,7 +77,7 @@ public abstract class BaseWorker implements IWorker {
 		String intervalClassPath = serviceConfiguration.getIntervalClassPath();
 		if(intervalClassPath != null){
 			try {
-				interval = (IInterval) Thread.currentThread().getContextClassLoader().loadClass(intervalClassPath).newInstance();
+				interval = (IInterval) Thread.currentThread().getContextClassLoader().loadClass(intervalClassPath).getConstructor().newInstance();
 				interval.init(serviceConfiguration.getIntervalProperties(), serviceName);
 			} catch (Exception e) {
 				String msg = intres.getLocalizedMessage("services.errorintervalclasspath", serviceName);
@@ -113,6 +113,7 @@ public abstract class BaseWorker implements IWorker {
 	
 	/**
 	 * Returns the admin that should be used for other calls.
+	 * @return token
 	 */
 	protected AuthenticationToken getAdmin(){
 		return admin;
@@ -121,6 +122,8 @@ public abstract class BaseWorker implements IWorker {
     /**
      * Returns the amount of time, in milliseconds that the expire time of
      * configured for
+     * @return timw
+     * @throws ServiceExecutionFailedException fail
      */
     protected long getTimeBeforeExpire() throws ServiceExecutionFailedException {
         if (timeBeforeExpire == -1) {
@@ -165,6 +168,7 @@ public abstract class BaseWorker implements IWorker {
      * This is due to that the feature of selecting CAs was enabled in EJBCA 3.9.1, and we want the service to keep working even after an upgrade from an earlier version.
 	 * 
 	 * @return Collection<String> of integer CA ids in String form, use Integer.valueOf to convert to int.
+	 * @throws ServiceExecutionFailedException fail
 	 */
 	protected Collection<Integer> getCAIdsToCheck(boolean includeAllCAsIfNull) throws ServiceExecutionFailedException {
 		if(cAIdsToCheck == null){

@@ -123,7 +123,7 @@ public class CmpMessageHelper {
      * @see org.bouncycastle.asn1.cmp.PKIFailureInfo
      * @see org.cesecore.certificates.certificate.request.FailInfo
      * 
-     * @param failInfo
+     * @param  failInfo info
      * @return PKIFailureInfo for use in CMP error messages
      */
     public static PKIFailureInfo getPKIFailureInfo(int failInfo) {
@@ -312,7 +312,8 @@ public class CmpMessageHelper {
         return pkiMessageToByteArray(new PKIMessage(pkiHeader, msg.getBody(), bs, msg.getExtraCerts()));
     }
 
-    /** @return response as byte array */ 
+    /** @param pkiMessage message
+     * @return response as byte array */ 
     public static byte[] pkiMessageToByteArray(final PKIMessage pkiMessage) {
         try {
             return pkiMessage.getEncoded();
@@ -332,7 +333,11 @@ public class CmpMessageHelper {
         return senderNonce;
     }
 
-    /** Creates a very simple error message in response to msg (that's why we switch sender and recipient) */
+    /** Creates a very simple error message in response to msg (that's why we switch sender and recipient) 
+     * @param cmpRequestMessage req
+     * @param failInfo info
+     * @param failText text
+     * @return response */
     public static ResponseMessage createUnprotectedErrorMessage(BaseCmpMessage cmpRequestMessage, FailInfo failInfo, String failText) {
         return createUnprotectedErrorMessage(cmpRequestMessage.getHeader(), failInfo, failText);
     }
@@ -341,6 +346,7 @@ public class CmpMessageHelper {
      * Create a standard unprotected error message with PKIStatus.rejection and PKIFailureInfo.badRequest.
      * The generated message should be sent as a response to an unparsable CMP request only, since the sender nonce
      * is not copied from the client's CMP request and a new transaction ID is generated.
+     * @param errorDescription error
      * @return The byte representation of the error message
      */
     public static byte[] createUnprotectedErrorMessage(final String errorDescription) {
@@ -402,6 +408,14 @@ public class CmpMessageHelper {
      * creates a simple error message in response to msg.
      * 
      * The protection parameters can be null to create an unprotected message
+     * @param msg msg
+     * @param failInfo info
+     * @param failText text
+     * @param requestId ID
+     * @param requestType type
+     * @param verifyer verifier
+     * @param keyId key
+     * @param responseProt protocol 
      * 
      * @return IResponseMessage that can be sent to user
      */
@@ -443,6 +457,10 @@ public class CmpMessageHelper {
 
     /**
      * creates a very simple error message in response to msg (that's why we switch sender and recipient)
+     * @param pkiStatusInfo Info
+     * @param requestId ID
+     * @param requestType Type
+     * @return body
      */
     public static PKIBody createCertRequestRejectBody(PKIStatusInfo pkiStatusInfo, int requestId, int requestType) {
         // Create a failure message
@@ -462,7 +480,7 @@ public class CmpMessageHelper {
      * Converts the header and the body of a PKIMessage to an ASN1Encodable and 
      * returns the as a byte array
      * 
-     * @param msg
+     * @param msg es
      * @return the PKIMessage's header and body in byte array
      */
     public static byte[] getProtectedBytes(PKIMessage msg) {
@@ -473,8 +491,8 @@ public class CmpMessageHelper {
      * Converts the header and the body of a PKIMessage to an ASN1Encodable and 
      * returns the as a byte array
      *  
-     * @param header
-     * @param body
+     * @param header header
+     * @param body body
      * @return the PKIMessage's header and body in byte array
      */
     public static byte[] getProtectedBytes(PKIHeader header, PKIBody body) {
@@ -497,8 +515,8 @@ public class CmpMessageHelper {
     /**
      * Parses a CRMF request created with novosec library classes and return a bouncycastle CertReqMsg object
      * 
-     * @param messages
-     * @return
+     * @param messages msg
+     * @return req
      */
     public static CertReqMsg getNovosecCertReqMsg(CertReqMessages messages) {
         // The encoding of the ProofOfPosession in bouncycastle and novosec is different.
@@ -622,7 +640,8 @@ public class CmpMessageHelper {
         return res;
     }
 
-    /** @return SenderKeyId of in the header or null none was found. */
+    /** @param octets ASN.1
+     * @return SenderKeyId of in the header or null none was found. */
     public static String getStringFromOctets(final ASN1OctetString octets) {
         String str = null;
         if (octets != null) {
@@ -647,7 +666,9 @@ public class CmpMessageHelper {
         return str;
     }
 
-    /** @return the PKIMessage if the bytes can be interpreted as a valid ASN.1 encoded CMP request message or null otherwise */
+    /** @param pkiMessageBytes bytes
+     * @param sanityCheckMaxLevelOfNesting bool 
+     * @return the PKIMessage if the bytes can be interpreted as a valid ASN.1 encoded CMP request message or null otherwise */
     public static PKIMessage getPkiMessageFromBytes(final byte[] pkiMessageBytes, final boolean sanityCheckMaxLevelOfNesting) {
         try {
             if (pkiMessageBytes!=null) {

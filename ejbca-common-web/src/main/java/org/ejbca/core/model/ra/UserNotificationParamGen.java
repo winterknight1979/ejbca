@@ -78,7 +78,7 @@ public class UserNotificationParamGen extends NotificationParamGen {
 	 * @param approvalAdminDN The DN of the administrator that approved the request, if approvals were used. Populates approvalAdmin variables.
 	 * @param requestAdmin The end entity that requested the event from the beginning, either the admin that adds an end entity if no approvals 
 	 *         are used, of if approvals were used the admin requesting (creating the approval request) to add an end entity. Populates requestAdmin variables
-	 * @param approvalRequestID
+	 * @param approvalRequestID ID
 	 * @param revokedCertificate the certificate that is revoked, in case of a revocation event. Populates revokedCertificate variables
 	 */
 	public UserNotificationParamGen(EndEntityInformation userData, String approvalAdminDN, EndEntityInformation requestAdmin, int approvalRequestID, 

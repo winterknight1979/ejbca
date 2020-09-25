@@ -42,6 +42,7 @@ public class RevokedInfoView implements Serializable {
      * Creates a new instance of RevokedInfoView
      *
      * @param revokedcertinfo DOCUMENT ME!
+     * @param certSerno SN
      */
     public RevokedInfoView(CertificateStatus revokedcertinfo, BigInteger certSerno) {
         this.revokedcertinfo = revokedcertinfo;

@@ -34,6 +34,8 @@ public interface IInterval {
 	 * configured properties.
 	 * 
 	 * This method should be called before the any action calls are made.
+	 * @param properties Props
+	 * @param serviceName Name
 	 */
 	void init(Properties properties, String serviceName);
 	

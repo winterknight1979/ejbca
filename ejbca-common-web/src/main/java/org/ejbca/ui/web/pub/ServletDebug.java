@@ -48,8 +48,8 @@ public class ServletDebug {
     /**
      * Empties the buffer to the page.
      * 
-     * @throws IOException
-     * @throws ServletException
+     * @throws IOException fail
+     * @throws ServletException fail
      */
     public void printDebugInfo() throws IOException, ServletException {
     	String errorform = request.getParameter ("errorform");

@@ -21,14 +21,15 @@ package org.ejbca.config;
 public class MailConfiguration {
 
 	/**
-	 * The JNDI-name used to send email notifications from EJBCA.
+	 * @return The JNDI-name used to send email notifications from EJBCA.
+	 * 
 	 */
 	public static String getMailJndiName() {
 		return EjbcaConfigurationHolder.getExpandedString("mail.jndi-name");
 	}
 
 	/**
-	 * Content encoding for the email message body.
+	 * @return Content encoding for the email message body.
 	 */
 	public static String getMailMimeType() {
 		return "text/plain;charset=" + EjbcaConfigurationHolder.getExpandedString("mail.contentencoding");

@@ -49,7 +49,7 @@ public class CertificateExpirationNotifierWorker extends EmailSendingWorker {
     /**
      * Worker that makes a query to the Certificate Store about expiring certificates.
      * 
-     * @see org.ejbca.core.model.services.IWorker#work()
+     * @see org.ejbca.core.model.services.IWorker#work
      */
     @Override
     public void work(Map<Class<?>, Object> ejbs) throws ServiceExecutionFailedException {
@@ -229,7 +229,7 @@ public class CertificateExpirationNotifierWorker extends EmailSendingWorker {
      * Returns the Set of Certificate Profile IDs. For performance reasons cached as a 
      * transient class variable.
      * 
-     * @return
+     * @return collection
      */
     private Collection<Integer>getCertificateProfileIdsToCheck() {
         if (this.certificateProfileIds == null) {

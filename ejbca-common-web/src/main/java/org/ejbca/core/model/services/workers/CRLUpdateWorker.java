@@ -40,7 +40,7 @@ public class CRLUpdateWorker extends BaseWorker {
 	/**
 	 * Checks if there are any CRL that needs to be updated, and then does the creation.
 	 * 
-	 * @see org.ejbca.core.model.services.IWorker#work()
+	 * @see org.ejbca.core.model.services.IWorker#work
 	 */
     @Override
 	public void work(Map<Class<?>, Object> ejbs) throws ServiceExecutionFailedException {

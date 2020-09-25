@@ -48,6 +48,8 @@ public class CmpMessageHelperTest {
     /**
      * Asserts that the transactionID is present in the CMP response when the helper answers 
      * with an error even when the transaction ID was not set by the client. See RFC 4210 page 25.
+     * @throws IOException Fal
+     * @throws CertificateEncodingException Fail 
      */
     @Test
     public void testTransactionIdSetOnError() throws IOException, CertificateEncodingException {
@@ -106,6 +108,8 @@ public class CmpMessageHelperTest {
     /**
      * Asserts recipNonce has been properly copied from the senderNonce field when the helper answers with
      * an error.
+     * @throws IOException Fail
+     * @throws CertificateEncodingException Fail 
      */
     @Test
     public void testRecipNonceCopiedCorrectly() throws IOException, CertificateEncodingException {

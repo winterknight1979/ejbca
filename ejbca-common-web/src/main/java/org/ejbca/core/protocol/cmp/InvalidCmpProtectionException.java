@@ -29,22 +29,22 @@ public class InvalidCmpProtectionException extends Exception {
     }
 
     /**
-     * @param message
+     * @param message message
      */
     public InvalidCmpProtectionException(String message) {
         super(message);
     }
 
     /**
-     * @param cause
+     * @param cause cause
      */
     public InvalidCmpProtectionException(Throwable cause) {
         super(cause);
     }
 
     /**
-     * @param message
-     * @param cause
+     * @param message message
+     * @param cause cause
      */
     public InvalidCmpProtectionException(String message, Throwable cause) {
         super(message, cause);

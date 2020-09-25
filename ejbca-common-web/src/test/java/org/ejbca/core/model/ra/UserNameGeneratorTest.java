@@ -28,6 +28,7 @@ public class UserNameGeneratorTest {
 
     /**
      * Test user generation based on both SN and CN.
+     * @throws Exception Fail
      */
 	@Test
 	public void test01() throws Exception {

@@ -69,7 +69,8 @@ public class CertificateView implements Serializable {
     public static final String[] KEYUSAGETEXTS = {"KU_DIGITALSIGNATURE","KU_NONREPUDIATION", "KU_KEYENCIPHERMENT", "KU_DATAENCIPHERMENT", "KU_KEYAGREEMENT", "KU_KEYCERTSIGN", "KU_CRLSIGN", "KU_ENCIPHERONLY", "KU_DECIPHERONLY" };
     public static final String UNKNOWN = "-";
 
-    /** Creates a new instance of CertificateView */
+    /** Creates a new instance of CertificateView 
+     * @param cdw CDW*/
     public CertificateView(final CertificateDataWrapper cdw) {
         certificateData = cdw.getCertificateData();
         revokedinfo = new RevokedInfoView(CertificateStatusHelper.getCertificateStatus(certificateData), getSerialNumberBigInt(certificate, certificateData));
@@ -79,7 +80,9 @@ public class CertificateView implements Serializable {
         issuerDnFieldExtractor = new DNFieldExtractor(certificateData.getIssuerDN(), DNFieldExtractor.TYPE_SUBJECTDN);
     }
 
-    /** Creates a new instance of CertificateView for CA certificates */
+    /** Creates a new instance of CertificateView for CA certificates 
+     * @param certificate Cert
+     * @param revokedinfo Info */
     public CertificateView(Certificate certificate, RevokedInfoView revokedinfo) {
         this.certificate=certificate;
         this.revokedinfo= revokedinfo;
@@ -88,7 +91,8 @@ public class CertificateView implements Serializable {
         subjectDnFieldExtractor = new DNFieldExtractor(CertTools.getIssuerDN(certificate), DNFieldExtractor.TYPE_SUBJECTDN);
     }
 
-    /** Method that returns the version number of the X509 certificate. */
+    /** Method that returns the version number of the X509 certificate. 
+     * @return String*/
     public String getVersion() {
         if (certificate==null) {
             return UNKNOWN;
@@ -307,7 +311,9 @@ public class CertificateView implements Serializable {
     	return AlgorithmTools.getCertSignatureAlgorithmNameAsString(certificate);
     }
 
-    /** Method that returns if key is allowed for given usage. Usage must be one of this class key usage constants. */
+    /** Method that returns if key is allowed for given usage. Usage must be one of this class key usage constants. 
+     * @param usage Usage
+     * @return bool */
     public boolean getKeyUsage(int usage) {
         if (certificate==null) {
             return false;

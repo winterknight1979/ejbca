@@ -20,8 +20,8 @@ import java.io.IOException;
 
 import javax.activation.DataHandler;
 import javax.activation.FileDataSource;
-import javax.security.cert.Certificate;
-import javax.security.cert.CertificateEncodingException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 
 /**
  * Representation of an email attachment.
@@ -46,8 +46,8 @@ public class MailAttachment {
 	 * Write's the object to a temporary file that is then attached.
 	 * TODO: In later versions of JavaMail we can use ByteArrayDataSource directly in getDataHandler instead.
 	 * 
-	 * @param filename
-	 * @param attachedObject
+	 * @param filename name
+	 * @param attachedObject object
 	 */
 	public MailAttachment(String filename, Object attachedObject) {
 		this.filename = filename;

@@ -42,22 +42,22 @@ public interface IPatternLogger {
 	/**
 	 * Hex-encodes the bytes.
 	 * method that makes sure that a "" is inserted instead of null
-	 * @param key
-	 * @param value
+	 * @param key Key
+	 * @param value Value
 	 */
 	void paramPut(String key, byte[] value);
 
 	/**
 	 * method that makes sure that a "" is inserted instead of null
-	 * @param key
-	 * @param value
+	 * @param key Key
+	 * @param value Value
 	 */
 	void paramPut(String key, String value);
 
 	/**
 	 * method that makes sure that a "" is inserted instead of null
-	 * @param key
-	 * @param value
+	 * @param key Key
+	 * @param value Value
 	 */
 	void paramPut(String key, Integer value);
 	

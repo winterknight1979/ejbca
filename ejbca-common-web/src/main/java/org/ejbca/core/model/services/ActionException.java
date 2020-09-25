@@ -24,8 +24,8 @@ public class ActionException extends Exception {
 
 	/**
 	 * Exception generated if a IAction.performAction calls failed
-	 * @param message
-	 * @param cause
+	 * @param  message message
+	 * @param cause cause
 	 */
 	public ActionException(String message, Throwable cause) {
 		super(message, cause);		
@@ -33,7 +33,7 @@ public class ActionException extends Exception {
 
 	/**
 	 * Exception generated if a IAction.performAction calls failed
-	 * @param message
+	 * @param message message
 	 */
 	public ActionException(String message) {
 		super(message);

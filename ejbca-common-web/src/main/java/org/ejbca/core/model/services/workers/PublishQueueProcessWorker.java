@@ -46,7 +46,7 @@ public class PublishQueueProcessWorker extends EmailSendingWorker {
      * Checks if there are any publishings in the publisher queue that should be
      * published.
      * 
-     * @see org.ejbca.core.model.services.IWorker#work()
+     * @see org.ejbca.core.model.services.IWorker#work
      */
     @Override
     public void work(Map<Class<?>, Object> ejbs) throws ServiceExecutionFailedException {

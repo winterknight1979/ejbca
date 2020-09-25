@@ -134,16 +134,16 @@ public class RequestHelper {
      *
      * @return byte[] containing DER-encoded certificate.
      *
-     * @throws CesecoreException 
-     * @throws AuthorizationDeniedException 
-     * @throws EjbcaException 
-     * @throws CADoesntExistsException 
-     * @throws ObjectNotFoundException 
-     * @throws CertificateEncodingException 
-     * @throws NoSuchProviderException 
-     * @throws SignatureException 
-     * @throws NoSuchAlgorithmException 
-     * @throws InvalidKeyException 
+     * @throws CesecoreException fail 
+     * @throws AuthorizationDeniedException  fail
+     * @throws EjbcaException fail
+     * @throws CADoesntExistsException fail 
+     * @throws ObjectNotFoundException fail
+     * @throws CertificateEncodingException fail 
+     * @throws NoSuchProviderException fail
+     * @throws SignatureException fail
+     * @throws NoSuchAlgorithmException fail 
+     * @throws InvalidKeyException fail
      */
     public byte[] nsCertRequest(SignSessionLocal signsession, byte[] reqBytes, String username, String password) throws 
             ObjectNotFoundException, CADoesntExistsException, EjbcaException, AuthorizationDeniedException, CesecoreException,
@@ -226,13 +226,13 @@ public class RequestHelper {
      * @param username username of requesting user
      * @param password password of requesting user
      * @param resulttype should indicate if a PKCS7 or just the certificate is wanted.
-     * @param doSplitLines
+     * @param doSplitLines bool
      * @return Base64 encoded byte[] 
-     * @throws AuthorizationDeniedException 
-     * @throws CesecoreException 
-     * @throws EjbcaException 
-     * @throws CertificateException 
-     * @throws CertificateEncodingException 
+     * @throws AuthorizationDeniedException fail 
+     * @throws CesecoreException fail
+     * @throws EjbcaException fail
+     * @throws CertificateException fail 
+     * @throws CertificateEncodingException fail 
      * @throws CertificateExtensionException if b64Encoded specified invalid extensions
      */
     public CertificateRequestResponse pkcs10CertRequest(SignSessionLocal signsession, CaSessionLocal caSession, byte[] b64Encoded, String username, String password,
@@ -270,6 +270,20 @@ public class RequestHelper {
     } //pkcs10CertReq
     
     /**
+     * @param signsession session
+     * @param caSession CA
+     * @param b64Encoded bytes
+     * @param username user
+     * @param password pwd
+     * @param resulttype type
+     * @param doSplitLines bool
+     * @return req
+     * @throws EjbcaException fail
+     * @throws CesecoreException fail
+     * @throws AuthorizationDeniedException fail 
+     * @throws CertificateEncodingException fail
+     * @throws CertificateException dail
+     * @throws CertificateExtensionException fail 
      * @deprecated Since 6.1.0, remove in 7.0.0. Use the other overloaded version taking a CertificateResponseType in the resulttype parameter.
      */
     @Deprecated
@@ -286,6 +300,19 @@ public class RequestHelper {
     }
     
     /**
+     *  @param signsession session
+     * @param caSession CA
+     * @param b64Encoded bytes
+     * @param username user
+     * @param password pwd
+     * @param resulttype type
+     * @return req
+     * @throws EjbcaException fail
+     * @throws CesecoreException fail
+     * @throws AuthorizationDeniedException fail 
+     * @throws CertificateEncodingException fail
+     * @throws CertificateException dail
+     * @throws CertificateExtensionException fail 
      * @deprecated Since 6.1.0, remove in 7.0.0. Use the other overloaded version taking a CertificateResponseType in the resulttype parameter.
      */
     @Deprecated
@@ -302,7 +329,7 @@ public class RequestHelper {
      * @param username username of requesting user
      * @param password password of requesting user
      * @return Base64 encoded byte[] 
-     * @throws Exception
+     * @throws Exception fail
      */
     public byte[] cvcCertRequest(SignSessionLocal signsession, byte[] b64Encoded, String username, String password) throws Exception {            
 			CVCRequestMessage req = RequestMessageUtils.genCVCRequestMessage(b64Encoded);
@@ -330,6 +357,7 @@ public class RequestHelper {
      *
      * @param bA input
      * @param out Output
+     * @throws Exception fail
      */
     public static void ieCertFormat(byte[] bA, PrintStream out)
         throws Exception {
@@ -574,7 +602,7 @@ public class RequestHelper {
      * @param out output stream to send to
      * @param hidemenu whether the menu should be hidden (translates to the "hidemenu" URL parameter)
      * @param resulttype type of desired result, e.g. cert, certchain, pkcs7...
-     * @throws Exception
+     * @throws Exception fail
      */
     public static void sendResultPage(byte[] certbytes, HttpServletResponse out, boolean hidemenu, CertificateResponseType resulttype) throws Exception {
         Certificate cert = CertTools.getCertfromByteArray(certbytes, Certificate.class);
@@ -589,9 +617,13 @@ public class RequestHelper {
      * Sends a page with certificate information and an automatic redirect to the
      * download page. The issuer must not be a "throw away" CA. The certificate
      * is automatically installed in the browser.
+     * @param certbytes bytes
+     * @param out response
+     * @param hidemenu bool
      * 
      * @param installToBrowser Browser type. Only "netscape" is supported,
      *                         which means "most browsers except IE".
+     * @throws Exception fail
      */
     public static void sendResultPage(byte[] certbytes, HttpServletResponse out, boolean hidemenu, String installToBrowser) throws Exception {
         Certificate cert = CertTools.getCertfromByteArray(certbytes, Certificate.class);
@@ -607,7 +639,7 @@ public class RequestHelper {
      * Otherwise, when the browser is silent, it sets the character encoding to the same encoding that we use to display the pages.
      * 
      * @param request HttpServletRequest   
-     * @throws UnsupportedEncodingException 
+     * @throws UnsupportedEncodingException fail
      * 
      */
     public static void setDefaultCharacterEncoding(HttpServletRequest request) throws UnsupportedEncodingException {
@@ -679,6 +711,7 @@ public class RequestHelper {
     private static java.util.regex.Pattern reg = java.util.regex.Pattern.compile("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?");
     /**
      * Method that returns the servername including port, extracted from the HTTPServlet Request, no protocol or application path is returned
+     * @param request req
      *
      * @return the server name and port requested, i.e. localhost:8443
      */

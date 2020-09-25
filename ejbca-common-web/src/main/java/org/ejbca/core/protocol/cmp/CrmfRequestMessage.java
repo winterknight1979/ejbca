@@ -112,7 +112,8 @@ public class CrmfRequestMessage extends BaseCmpMessage implements ICrmfRequestMe
     private byte[] pkimsgbytes = null;
     private transient CertReqMsg req = null;
 
-    /** Because CertReqMsg is not serializable we may need to encode/decode bytes if the object is lost during deserialization. */
+    /** Because CertReqMsg is not serializable we may need to encode/decode bytes if the object is lost during deserialization. 
+     * @return message*/
     private CertReqMsg getReq() {
         if (req == null) {
             init();
@@ -128,7 +129,7 @@ public class CrmfRequestMessage extends BaseCmpMessage implements ICrmfRequestMe
     /**
      * 
      * @param pkiMessage PKIMessage
-     * @param defaultCA possibility to enforce a certain CA, instead of taking the CA subject DN from the request, if set to null the CA subject DN is taken from the request
+     * @param defaultCADN possibility to enforce a certain CA, instead of taking the CA subject DN from the request, if set to null the CA subject DN is taken from the request
      * @param allowRaVerifyPopo true if we allows the user/RA to specify the POP should not be verified
      * @param extractUsernameComponent Defines which component from the DN should be used as username in EJBCA. Can be CN, UID or nothing. Null means that the username should have been pre-set, or that here it is the same as CN.
      */
@@ -203,7 +204,8 @@ public class CrmfRequestMessage extends BaseCmpMessage implements ICrmfRequestMe
         return keyInfo;
     }
 
-    private PublicKey getPublicKey(final SubjectPublicKeyInfo subjectPKInfo, final String provider) throws NoSuchAlgorithmException,
+    @SuppressWarnings("unlikely-arg-type")
+	private PublicKey getPublicKey(final SubjectPublicKeyInfo subjectPKInfo, final String provider) throws NoSuchAlgorithmException,
             NoSuchProviderException, InvalidKeyException {
         // If there is no public key here, but only an empty bit string, it means we have called for server generated keys
         // i.e. no public key to see here...
@@ -254,7 +256,8 @@ public class CrmfRequestMessage extends BaseCmpMessage implements ICrmfRequestMe
         this.serverGenKeyPair = serverGenKeyPair;
     }
 
-    /** force a password, i.e. ignore the password in the request */
+    /** force a password, i.e. ignore the password in the request 
+     * @param pwd PWD*/
     public void setPassword(final String pwd) {
         this.password = pwd;
     }
@@ -277,7 +280,8 @@ public class CrmfRequestMessage extends BaseCmpMessage implements ICrmfRequestMe
         return this.password;
     }
 
-    /** force a username, i.e. ignore the DN/username in the request */
+    /** force a username, i.e. ignore the DN/username in the request 
+     * @param username User*/
     public void setUsername(final String username) {
         this.username = username;
     }

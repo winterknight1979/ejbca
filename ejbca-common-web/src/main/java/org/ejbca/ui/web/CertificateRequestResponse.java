@@ -24,15 +24,19 @@ public class CertificateRequestResponse {
     private final Certificate certificate;
     private final byte[] encoded;
     
-    /** Object is created internally only */
+    /** Object is created internally only 
+     * @param certificate Cert
+     * @param encoded bool */
     CertificateRequestResponse(Certificate certificate, byte[] encoded) {
         this.certificate = certificate;
         this.encoded = encoded;
     }
     
-    /** Returns the signed certificate. */
+    /** Returns the signed certificate. 
+     * @return Cert*/
     public Certificate getCertificate() { return certificate; }
-    /** Returns the encoded form of the certificate. Might be a certificate or chain in PEM or DER format, or a PKCS7 in PEM format */
+    /** Returns the encoded form of the certificate. Might be a certificate or chain in PEM or DER format, or a PKCS7 in PEM format 
+     * @return enc*/
     public byte[] getEncoded() { return encoded; }
 
 }

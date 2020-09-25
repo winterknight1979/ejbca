@@ -22,7 +22,6 @@ import org.cesecore.certificates.certificate.CertificateConstants;
 import org.ejbca.core.model.services.BaseWorker;
 import org.ejbca.core.model.services.ServiceExecutionFailedException;
 import org.ejbca.core.model.services.actions.MailActionInfo;
-import org.ejbca.core.model.services.workers.EmailSendingWorkerConstants;
 
 /**
  * @version $Id: EmailSendingWorker.java 22117 2015-10-29 10:53:42Z mikekushner $

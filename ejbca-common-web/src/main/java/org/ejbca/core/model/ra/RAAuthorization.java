@@ -47,7 +47,12 @@ public class RAAuthorization implements Serializable {
     private CaSession caSession;
     private EndEntityProfileSession endEntityProfileSession;
 
-    /** Creates a new instance of RAAuthorization. */
+    /** Creates a new instance of RAAuthorization. 
+     * @param admin Admin
+     * @param globalConfigurationSession  session
+     * @param authorizationSession auth session
+     * @param caSession CA sessiom
+     * @param endEntityProfileSession profile session */
     public RAAuthorization(AuthenticationToken admin, GlobalConfigurationSession globalConfigurationSession, AuthorizationSessionLocal authorizationSession,
                     CaSession caSession, EndEntityProfileSession endEntityProfileSession) {
     	this.admin = admin;
@@ -88,6 +93,7 @@ public class RAAuthorization implements Serializable {
     }
 
     /**
+     * @param endentityAccessRule Rule
      * @return a string of end entity profile privileges that should be used in the where clause of SQL queries, or null if no authorized end entity profiles exist.
      * @throws AuthorizationDeniedException if the current requester isn't authorized to query for approvals
      */
@@ -124,6 +130,8 @@ public class RAAuthorization implements Serializable {
 
     /**
      * Method that checks the administrators end entity profile privileges and returns a string that should be used in where clause of userdata SQL queries.
+     * @param includeparanteses bool
+     * @param endentityAccessRule Rle
      *
      * @return a string of end entity profile privileges that should be used in the where clause of SQL queries, or null if no authorized end entity profiles exist.
      */

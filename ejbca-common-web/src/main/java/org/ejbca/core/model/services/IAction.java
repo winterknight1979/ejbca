@@ -31,6 +31,8 @@ public interface IAction {
 	 * configured properties.
 	 * 
 	 * This method should be called before the any action calls are made.
+	 * @param properties Props
+	 * @param serviceName SN
 	 */
 	void init(Properties properties, String serviceName);
 	
@@ -39,7 +41,7 @@ public interface IAction {
 	 * The main method used to signal that it's time to perform an action according
 	 * to the data sent in the parameter IActionInfo
 	 * 
-	 * @param optional parameter used to send data to the action
+	 * @param actionInfo optional parameter used to send data to the action
 	 * @param ejbs A map between Local EJB interface classes and their injected stub
 	 * @throws ActionException if the action failed in any way.
 	 */

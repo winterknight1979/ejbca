@@ -29,22 +29,22 @@ public class MailException extends Exception {
     }
 
     /**
-     * @param message
+     * @param message message
      */
     public MailException(String message) {
         super(message);
     }
 
     /**
-     * @param cause
+     * @param cause cause
      */
     public MailException(Throwable cause) {
         super(cause);
     }
 
     /**
-     * @param message
-     * @param cause
+     * @param message message
+     * @param cause cause
      */
     public MailException(String message, Throwable cause) {
         super(message, cause);

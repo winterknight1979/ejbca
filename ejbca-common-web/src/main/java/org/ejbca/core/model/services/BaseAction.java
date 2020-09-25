@@ -27,7 +27,7 @@ public abstract class BaseAction implements IAction {
 	protected String serviceName = null;
 	
 	/**
-	 * @see org.ejbca.core.model.services.IAction#init(Properties)
+	 * @see org.ejbca.core.model.services.IAction#init(Properties, String)
 	 */
 	public void init(Properties properties, String serviceName) {
        this.properties = properties;

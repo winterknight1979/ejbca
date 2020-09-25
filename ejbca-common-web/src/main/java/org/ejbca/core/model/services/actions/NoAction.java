@@ -26,7 +26,7 @@ import org.ejbca.core.model.services.BaseAction;
 public class NoAction extends BaseAction {
 
 	/**
-	 * @see org.ejbca.core.model.services.IAction#performAction(org.ejbca.core.model.services.ActionInfo)
+	 * @see org.ejbca.core.model.services.IAction#performAction
 	 */
 	public void performAction(ActionInfo actionInfo, Map<Class<?>, Object> ejbs) throws ActionException {
 		// Do nothing

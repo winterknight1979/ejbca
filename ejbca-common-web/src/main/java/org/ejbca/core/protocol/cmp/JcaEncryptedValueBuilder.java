@@ -29,6 +29,7 @@ public class JcaEncryptedValueBuilder
      *
      * @param certificate the certificate to be encrypted.
      * @return an EncryptedValue containing the encrypted certificate.
+     * @throws CertificateEncodingException fail
      * @throws CRMFException on a failure to encrypt the data, or wrap the symmetric key for this value.
      */
     public EncryptedValue build(X509Certificate certificate)
@@ -43,6 +44,7 @@ public class JcaEncryptedValueBuilder
      *
      * @param privateKey  a PKCS#8 private key info structure.
      * @return an EncryptedValue containing an EncryptedPrivateKeyInfo structure.
+     * @throws CertificateEncodingException fail
      * @throws CRMFException on a failure to encrypt the data, or wrap the symmetric key for this value.
      */
     public EncryptedValue build(PrivateKey privateKey)

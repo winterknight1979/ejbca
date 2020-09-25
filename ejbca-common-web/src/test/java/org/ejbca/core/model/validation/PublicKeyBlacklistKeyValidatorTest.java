@@ -29,7 +29,6 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.cesecore.certificates.util.AlgorithmConstants;
 import org.cesecore.keys.util.KeyTools;
-import org.cesecore.keys.validation.ValidatorBase;
 import org.cesecore.util.CryptoProviderTools;
 import org.ejbca.core.ejb.ca.validation.BlacklistData;
 import org.junit.BeforeClass;
@@ -149,6 +148,7 @@ public class PublicKeyBlacklistKeyValidatorTest {
     }
     /**
      * Same as testMatchBlacklistedPublicKeyEC, but specifies he algorithm as ECDSA instead of EC
+     * @throws Exception Fail
      */
     @Test
     public void testMatchBlacklistedPublicKeyECDSA() throws Exception {
@@ -195,7 +195,6 @@ public class PublicKeyBlacklistKeyValidatorTest {
     /**
      * Factory method to create key validators.
      * 
-     * @param type the key validator type (see {@link ValidatorBase#KEY_VALIDATOR_TYPE}
      * @param name the logical name
      * @param description the description text
      * @param notBefore the certificates validity not before

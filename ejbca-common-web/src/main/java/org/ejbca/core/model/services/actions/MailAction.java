@@ -42,7 +42,7 @@ public class MailAction extends BaseAction {
      * 
      * Only supports the MailActionInfo otherwise is ActionException thrown.
      * 
-     * @see org.ejbca.core.model.services.IAction#performAction(org.ejbca.core.model.services.ActionInfo)
+     * @see org.ejbca.core.model.services.IAction#performAction
      */
     public void performAction(ActionInfo actionInfo, Map<Class<?>, Object> ejbs) throws ActionException {
         checkConfig(actionInfo);
@@ -76,8 +76,8 @@ public class MailAction extends BaseAction {
     /**
      * Method that checks the configuration sets the variables and throws an exception if it's invalid
      * 
-     * @param actionInfo
-     * @throws ActionException
+     * @param actionInfo info
+     * @throws ActionException fail
      */
     private void checkConfig(ActionInfo actionInfo) throws ActionException {
         if (!(actionInfo instanceof MailActionInfo)) {

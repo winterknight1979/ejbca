@@ -55,7 +55,8 @@ public abstract class BaseCmpMessage implements Serializable {
 
 	private List<Certificate> additionalExtraCerts = new ArrayList<Certificate>();
 	
-	/** @return the ASN.1 encoded octets as a bas64 encoded String or null if no such data is available */
+	/** @param asn1OctetString Octets
+	 * @return the ASN.1 encoded octets as a bas64 encoded String or null if no such data is available */
 	protected String getBase64FromAsn1OctetString(final ASN1OctetString asn1OctetString) {
         if (asn1OctetString != null) {
             final byte[] val = asn1OctetString.getOctets();
@@ -65,7 +66,9 @@ public abstract class BaseCmpMessage implements Serializable {
         }
         return null;
 	}
-	/** @return the byte array representation of the ASN.1 object */
+	/** @param asn1Encodable ASN.1
+	 * @return the byte array representation of the ASN.1 object 
+	 * @throws IllegalStateException fail*/
     private byte[] getByteArrayFromAsn1Encodable(final ASN1Encodable asn1Encodable) throws IllegalStateException {
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {

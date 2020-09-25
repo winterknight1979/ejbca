@@ -54,13 +54,13 @@ public class ActivateCATokenApprovalRequest extends ApprovalRequest {
 
 	/**
 	 * Construct an approval request for the activation of a CA Token
-	 * @param certificateSerialNumber
-	 * @param issuerDN
-	 * @param username
-	 * @param reason
-	 * @param requestAdmin
-	 * @param cAId
-	 * @param endEntityProfileId
+	 * @param cAName CA
+	 * @param authenticationCode Auth
+	 * @param requestAdmin admin
+	 * @param cAId CA
+	 * @param endEntityProfileId Profile
+	 * @param approvalProfile Profile
+	 * @param certificateProfileId  Cert
 	 */
     public ActivateCATokenApprovalRequest(String cAName, String authenticationCode, AuthenticationToken requestAdmin, int cAId,
             int endEntityProfileId, ApprovalProfile approvalProfile, int certificateProfileId) {
@@ -79,6 +79,8 @@ public class ActivateCATokenApprovalRequest extends ApprovalRequest {
 	 * 
 	 * execute should perform the action or nothing if the requesting admin
 	 * is supposed to try this action again.
+	 * @param caAdminSession Session
+	 * @throws ApprovalRequestExecutionException Fail
 	 */
 	public void execute(CAAdminSession caAdminSession) throws ApprovalRequestExecutionException {
 		log.debug("Executing " + ApprovalDataVO.APPROVALTYPENAMES[getApprovalType()] + " (" + getApprovalType() + ").");

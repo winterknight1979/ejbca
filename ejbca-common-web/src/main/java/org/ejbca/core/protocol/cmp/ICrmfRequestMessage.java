@@ -23,7 +23,7 @@ import org.cesecore.certificates.certificate.request.RequestMessage;
 
 
 /**
- * The {link IRequestMessage} parameter must implement this to when calling {@link CrmfRequestMessage#createResponseMessage(Class, IRequestMessage, java.security.cert.Certificate, java.security.PrivateKey, String)}
+ * The {link IRequestMessage} parameter must implement this to when calling {link CrmfRequestMessage#createResponseMessage(Class, IRequestMessage, java.security.cert.Certificate, java.security.PrivateKey, String)}
  * 
  * @version $Id: ICrmfRequestMessage.java 26542 2017-09-14 10:36:30Z anatom $
  */
@@ -44,6 +44,9 @@ public interface ICrmfRequestMessage extends RequestMessage {
 	/** 
 	 * Returns the protocolEncrKey, as sent by the client to encrypt server generated private keys with 
 	 * @return PublicKey to be used to encrypt a private key set by {@link #setServerGenKeyPair(KeyPair)}
+	 * @throws InvalidKeyException Fail
+	 * @throws NoSuchAlgorithmException Fail 
+	 * @throws NoSuchProviderException Fail
 	 */
     PublicKey getProtocolEncrKey() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException;
 

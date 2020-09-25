@@ -144,6 +144,8 @@ public class HTMLTools {
      * Turns funky characters into HTML entity equivalents<p>
      * e.g. <tt>"bread" & "butter"</tt> => <tt>&amp;quot;bread&amp;quot; &amp;amp; &amp;quot;butter&amp;quot;</tt>.
      * Update: supports nearly all HTML entities, including funky accents. See the source code for more detail.
+     * @param s1 Sq
+     * @return escape
      * @see #htmlunescape(String)
      **/
     public static String htmlescape(String s1) {
@@ -178,6 +180,8 @@ public class HTMLTools {
      * Note: nasty bug fixed by Helge Tesgaard (and, in parallel, by
      * Alex, but Helge deserves major props for emailing me the fix).
      * 15-Feb-2002 Another bug fixed by Sean Brown <sean@boohai.com>
+     * @param s1 String
+     * @return html
      *
      * @see #htmlescape(String)
      **/

@@ -62,6 +62,14 @@ public class RevocationApprovalRequest extends ApprovalRequest {
 
 	/**
 	 * Construct an ApprovalRequest for the revocation of a certificate.
+	 * @param certificateSerialNumber SN
+	 * @param issuerDN DN
+	 * @param username Name
+	 * @param reason reason
+	 * @param requestAdmin Admin
+	 * @param cAId CA
+	 * @param endEntityProfileId Entity
+	 * @param approvalProfile Approval
 	 */
     public RevocationApprovalRequest(BigInteger certificateSerialNumber, String issuerDN, String username, int reason,
             AuthenticationToken requestAdmin, int cAId, int endEntityProfileId, ApprovalProfile approvalProfile) {
@@ -75,6 +83,13 @@ public class RevocationApprovalRequest extends ApprovalRequest {
 
 	/**
 	 * Constructs an ApprovalRequest for the revocation and optional removal of an end entity.
+	 * @param deleteAfterRevoke bool
+	 * @param username Name
+	 * @param reason reason
+	 * @param requestAdmin Admin
+	 * @param cAId CA
+	 * @param endEntityProfileId Entity
+	 * @param approvalProfile Approval
 	 */
     public RevocationApprovalRequest(boolean deleteAfterRevoke, String username, int reason, AuthenticationToken requestAdmin, int cAId,
             int endEntityProfileId, ApprovalProfile approvalProfile) {
