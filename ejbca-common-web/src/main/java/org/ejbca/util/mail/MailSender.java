@@ -48,11 +48,11 @@ public class MailSender {
 	 * Helper method for sending mail using the mail service configured in mail.properties.
 	 * 
 	 * @param fromAddress The "From" address
-	 * @param toList List<String> of addresses that will end up in the "To"-field or null to disable
-	 * @param ccList List<String> of addresses that will end up in the "Cc"-field or null to disable
+	 * @param toList List&lt;String&gt; of addresses that will end up in the "To"-field or null to disable
+	 * @param ccList List&lt;String&gt; of addresses that will end up in the "Cc"-field or null to disable
 	 * @param subject The email subject
 	 * @param content The text message body
-	 * @param attachments List<MailAttachment> of files and objects to attach to the email or null to disable multipart messages
+	 * @param attachments List&lt;MailAttachment&gt; of files and objects to attach to the email or null to disable multipart messages
 	 * @throws MailException if the message could not be successfully handed over to JavaMail
 	 */
 	public static void sendMailOrThrow(String fromAddress, List<String> toList, List<String> ccList, String subject, String content, List<MailAttachment> attachments) throws MailException {
@@ -65,11 +65,11 @@ public class MailSender {
 	 * Helper method for sending mail using the mail service configured in mail.properties.
 	 * 
 	 * @param fromAddress The "From" address
-	 * @param toList List<String> of addresses that will end up in the "To"-field or null to disable
-	 * @param ccList List<String> of addresses that will end up in the "Cc"-field or null to disable
+	 * @param toList List&lt;String&gt; of addresses that will end up in the "To"-field or null to disable
+	 * @param ccList List&lt;String&gt; of addresses that will end up in the "Cc"-field or null to disable
 	 * @param subject The email subject
 	 * @param content The text message body
-	 * @param attachments List<MailAttachment> of files and objects to attach to the email or null to disable multipart messages
+	 * @param attachments List&lt;MailAttachment&gt; of files and objects to attach to the email or null to disable multipart messages
 	 * @return true if the message was successfully handed over to JavaMail
 	 */
 	public static boolean sendMail(String fromAddress, List<String> toList, List<String> ccList, String subject, String content, List<MailAttachment> attachments) {

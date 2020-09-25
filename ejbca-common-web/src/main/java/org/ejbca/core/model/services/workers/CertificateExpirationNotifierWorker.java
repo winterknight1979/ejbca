@@ -37,7 +37,7 @@ import org.ejbca.core.model.services.actions.MailActionInfo;
  * Makes queries about which certificates that is about to expire in a given number of days and creates a 
  * notification sent to either the end user or the administrator.
  * 
- * @version: $Id: CertificateExpirationNotifierWorker.java 29010 2018-05-23 13:09:53Z jekaterina_b_helmes $
+ * version: $Id: CertificateExpirationNotifierWorker.java 29010 2018-05-23 13:09:53Z jekaterina_b_helmes $
  */
 public class CertificateExpirationNotifierWorker extends EmailSendingWorker {
 

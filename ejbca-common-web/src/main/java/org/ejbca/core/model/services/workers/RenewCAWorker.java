@@ -32,7 +32,7 @@ import org.ejbca.core.model.services.ServiceExecutionFailedException;
  * Worker renewing CA that is about to expire.
  * 
  *
- * @version: $Id: RenewCAWorker.java 24487 2016-10-10 09:10:53Z anatom $
+ * version: $Id: RenewCAWorker.java 24487 2016-10-10 09:10:53Z anatom $
  */
 public class RenewCAWorker extends BaseWorker {
 

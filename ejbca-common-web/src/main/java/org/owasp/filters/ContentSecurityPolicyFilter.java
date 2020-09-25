@@ -20,14 +20,14 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Sample filter implementation to define a set of Content Security Policies, and other security headers.<br/>
+ * Sample filter implementation to define a set of Content Security Policies, and other security headers.<br>
  * 
- * This implementation has a dependency on Commons Codec API.<br/>
+ * This implementation has a dependency on Commons Codec API.<br>
  * 
- * This filter set CSP policies using all HTTP headers defined into W3C specification.<br/>
+ * This filter set CSP policies using all HTTP headers defined into W3C specification.<br>
  * and X-XSS-Protection, X-Content-Type-Options, X-FRAME-OPTIONS
- * <br/>
- * This implementation is oriented to be easily understandable and easily adapted.<br/>
+ * <br>
+ * This implementation is oriented to be easily understandable and easily adapted.<br>
  * 
  * @version $Id: ContentSecurityPolicyFilter.java 34257 2020-01-13 09:37:53Z anatom $
  */

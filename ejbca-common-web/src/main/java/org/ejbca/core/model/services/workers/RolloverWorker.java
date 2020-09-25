@@ -33,7 +33,7 @@ import org.ejbca.core.model.services.ServiceExecutionFailedException;
 /**
  * Replaces CA certificate chains with a pending new rollover certificate chain once the new certificate chain becomes valid.
  *
- * @version: $Id: RolloverWorker.java 27740 2018-01-05 07:24:53Z mikekushner $
+ * version: $Id: RolloverWorker.java 27740 2018-01-05 07:24:53Z mikekushner $
  */
 public class RolloverWorker extends BaseWorker {
 

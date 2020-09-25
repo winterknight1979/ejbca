@@ -36,7 +36,7 @@ import org.ejbca.core.model.services.actions.MailActionInfo;
  * 
  * @author Tomas Gustavsson based on code by Philip Vendil
  *
- * @version: $Id: UserPasswordExpireWorker.java 24487 2016-10-10 09:10:53Z anatom $
+ * version: $Id: UserPasswordExpireWorker.java 24487 2016-10-10 09:10:53Z anatom $
  */
 public class UserPasswordExpireWorker extends EmailSendingWorker {
 
