@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OID.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util.cert</a> &gt; <span class="el_source">OID.java</span></div><h1>OID.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.util.cert;
+
+import java.util.StringTokenizer;
+
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+
+/**
+ * Utilities for to be used on an Object Identifier (OID).
+ * 
+ * @author Lars Silvén
+ * @version $Id: OID.java 22117 2015-10-29 10:53:42Z mikekushner $
+ */
+<span class="nc" id="L25">public class OID {</span>
+	/**
+	 * Tests if the beginning of a string identifies an OID.
+	 * @param s the string to be tested.
+	 * @return true if s is a OID or if first part of s is a OID and the first character after the OID is '.' in s.
+	 */
+	public static boolean isStartingWithValidOID(String s) {
+<span class="nc bnc" id="L32" title="All 4 branches missed.">		if ( s==null || s.length()&lt;1 ) {</span>
+<span class="nc" id="L33">			return false;</span>
+		}
+<span class="nc" id="L35">		final StringTokenizer st = new StringTokenizer(s, &quot;.&quot;);</span>
+<span class="nc" id="L36">		String sOID = &quot;&quot;;</span>
+<span class="nc bnc" id="L37" title="All 2 branches missed.">		while( st.hasMoreTokens() ) {</span>
+<span class="nc" id="L38">			final String token = st.nextToken();</span>
+			try {
+<span class="nc" id="L40">				Integer.parseInt(token);</span>
+<span class="nc" id="L41">			} catch ( NumberFormatException e ) {</span>
+<span class="nc" id="L42">				break;</span>
+<span class="nc" id="L43">			}</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">			if ( sOID.length()&gt;0 ) {</span>
+<span class="nc" id="L45">				sOID += &quot;.&quot;;</span>
+			}
+<span class="nc" id="L47">			sOID+=token;</span>
+<span class="nc" id="L48">		}</span>
+		try {
+<span class="nc" id="L50">			new ASN1ObjectIdentifier(sOID);</span>
+<span class="nc" id="L51">		} catch ( IllegalArgumentException e ) {</span>
+<span class="nc" id="L52">			return false;</span>
+<span class="nc" id="L53">		}</span>
+<span class="nc" id="L54">		return true;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

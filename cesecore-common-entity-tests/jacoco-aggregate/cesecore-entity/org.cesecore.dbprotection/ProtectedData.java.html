@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ProtectedData.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-common-entity-tests</a> &gt; <a href="../index.html" class="el_bundle">cesecore-entity</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.dbprotection</a> &gt; <span class="el_source">ProtectedData.java</span></div><h1>ProtectedData.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.dbprotection;
+
+import java.lang.reflect.InvocationTargetException;
+
+import org.apache.log4j.Logger;
+
+
+/**
+ * Used as base class for JPA data beans that has a rowProtection column. The JPA class should extend this class and implement the simple methods:
+ *
+ * &lt;pre&gt;
+ * &amp;#064;Transient
+ * &amp;#064;Override
+ * String getProtectString(int version) {
+ *   return &amp;quot;concatenation of fields to be integrity protected. Must be deterministic and can change with different version of rowprotection.&amp;quot;;
+ *   // Example from CertificateProfileData
+ *   // StringBuilder build = new StringBuilder();
+ *   // What is important to protect here is the data that we define, id, name and certificate profile data
+ *   // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
+ *   // build.append(getId()).append(getCertificateProfileName()).append(getData());
+ *   // return build.toString();
+ * }
+ *
+ * &amp;#064;Transient
+ * &amp;#064;Override
+ * int getProtectVersion() {
+ *   return 1;
+ * }
+ *
+ * &amp;#064;PrePersist
+ * &amp;#064;PreUpdate
+ * &amp;#064;Transient
+ * &amp;#064;Override
+ * void protectData() {
+ *   super.protectData();
+ * }
+ * 
+ * &amp;#064;PostLoad
+ * &amp;#064;Transient
+ * &amp;#064;Override
+ * void verifyData() {
+ *   super.verifyData();
+ * }
+ * 
+ * &amp;#064;Override
+ * &amp;#064;Transient
+ * protected String getRowId() {
+ *   return String.valueOf(getPrimaryKey());
+ * }
+ * &lt;/pre&gt;
+ * 
+ * @version $Id: ProtectedData.java 29874 2018-09-13 09:38:35Z samuellb $
+ */
+public abstract class ProtectedData {
+
+<span class="fc" id="L68">    private static final Logger log = Logger.getLogger(ProtectedData.class);</span>
+
+    /** Implementation for the database protection method used */
+    protected ProtectedDataImpl impl;
+
+    /** Definition of the optional database integrity protection implementation */
+    private static final String implClassName = &quot;org.cesecore.dbprotection.ProtectedDataIntegrityImpl&quot;;
+    /** Cache class so we don't have to do Class.forName for every entity object created */
+<span class="fc" id="L76">    private static volatile Class&lt;?&gt; implClass = null;</span>
+
+    /** Optimization variable so we don't have to check for existence of implClass for every construction of an entity object */
+<span class="fc" id="L79">    private static volatile boolean integrityExists = true;</span>
+
+    /** A default constructor is needed by JPA.
+     * This constructor initializes the available database integrity protection module, if any is available
+     */
+<span class="fc" id="L84">    public ProtectedData() {</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">        if (integrityExists) {</span>
+            try {
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">                if (implClass == null) {</span>
+                    // We only end up here once, if the class does not exist, we will never end up here again (ClassNotFoundException)
+                    // and if the class exists we will never end up here again (it will not be null)
+<span class="nc" id="L90">                    implClass = Class.forName(implClassName);</span>
+<span class="nc" id="L91">                    log.debug(&quot;ProtectedDataIntegrityImpl is available, and used, in this version of EJBCA.&quot;);</span>
+                }
+<span class="nc" id="L93">                impl = (ProtectedDataImpl)implClass.getConstructor().newInstance();</span>
+<span class="nc" id="L94">                impl.setTableName(getTableName());</span>
+<span class="fc" id="L95">            } catch (ClassNotFoundException | NoSuchMethodException e) {</span>
+                // We only end up here once, if the class does not exist, we will never end up here again
+<span class="fc" id="L97">                integrityExists = false;</span>
+<span class="fc" id="L98">                log.info(&quot;No database integrity protection available in this version of EJBCA.&quot;);</span>
+<span class="fc" id="L99">                impl = new ProtectedDataNoopImpl();</span>
+<span class="nc" id="L100">            } catch (InstantiationException | InvocationTargetException e ) {</span>
+<span class="nc" id="L101">                log.error(&quot;Error intitilizing database integrity protection: &quot;, e);</span>
+<span class="nc" id="L102">            } catch (IllegalAccessException e) {</span>
+<span class="nc" id="L103">                log.error(&quot;Error intitilizing database integrity protection: &quot;, e);</span>
+<span class="pc" id="L104">            }</span>
+        } else {
+<span class="fc" id="L106">            impl = new ProtectedDataNoopImpl();</span>
+        }
+<span class="fc" id="L108">    }</span>
+
+    /**
+     * asks the data class for the string to be protected. Version is -1 for a new row to be protected, and otherwise a version given earlier from the
+     * data class when storing the row.
+     *
+     * @param rowversion the version of the string that is protected, used as input when verifying data. -1 when getting protection string for data to be
+     *          inserted or updated. -1 means that the data class should use it's latest version of protect string
+     * @return String to be integrity protected, i.e. input to hmac.
+     */
+    protected abstract String getProtectString(int rowversion);
+
+    /**
+     * asks the data class for the version of the string that is protected, used as input to getProtectString() when verifying data. This is used so
+     * that the data class can alter itself with new fields, but still be backwards compatible and verify older database data. Called when getting the
+     * version for inserts or updates.
+     *
+     * @return int version the latest version of protection string.
+     */
+    protected abstract int getProtectVersion();
+
+    /**
+     * The extending class must have a database column &quot;rowProtection&quot; that can be read and set.
+     * @param rowProtection protect
+     */
+    abstract public void setRowProtection(final String rowProtection); 
+
+    abstract public String getRowProtection();
+
+    /**
+     * Returns id of the row in the database, in case of failure we can see in the log which row failed to verify
+     *
+     * @return id of database row, specific for implementing class.
+     */
+    protected abstract String getRowId();
+
+    /** @return the database table name. Should be overridden by classes that does not share the same name as the database table it maps to (for example by subclassing). */
+    protected String getTableName() {
+<span class="nc" id="L146">        return this.getClass().getSimpleName();</span>
+    }
+
+    /** Overridden by extending class to be able to use @PrePersist, overriding class calls super.protectData().
+     * This method creates integrity protection for the specific entity in the database.
+     *
+     * @throws DatabaseProtectionException (RuntimeException) on error creating integrity protection.
+     */
+    protected void protectData() {
+<span class="nc" id="L155">        impl.protectData(this);</span>
+<span class="nc" id="L156">    }</span>
+
+    /**
+     * Overridden by extending class to be able to use @PostLoad, overriding class calls super.verifyData().
+     * This method verifies integrity protection for the specific entity in the database. If the data verification
+     * failed, it invokes {@link #onDataVerificationError(DatabaseProtectionException)}.
+     */
+    protected void verifyData() {
+        try {
+<span class="nc" id="L165">            impl.verifyData(this);</span>
+<span class="nc" id="L166">        } catch (final DatabaseProtectionException e) {</span>
+<span class="nc" id="L167">            onDataVerificationError(e);</span>
+<span class="nc" id="L168">        }</span>
+<span class="nc" id="L169">    }</span>
+
+    /** Method that calculates integrity protection of an entity, but does not store it anywhere. Used primarily to make test protection
+     * in order to exercise the CryptoToken.
+     * @return the calculated protection string
+     */
+    public String calculateProtection() {
+<span class="nc" id="L176">        return impl.calculateProtection(this);</span>
+    }
+
+    /**
+     * Throws DatabaseProtectionException if erroronverifyfail is enabled in databaseprotection.properties
+     * and logs a &quot;row protection failed&quot; message on ERROR level.
+     * @param e exception
+     * @throws DatabaseProtectionException the exception given as parameter if erroronverifyfail is enabled
+     */
+    protected void onDataVerificationError(final DatabaseProtectionException e) {
+<span class="nc" id="L186">        impl.onDataVerificationError(e);</span>
+<span class="nc" id="L187">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

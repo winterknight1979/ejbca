@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>PKCS11CryptoToken.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-common</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.keys.token</a> &gt; <span class="el_source">PKCS11CryptoToken.java</span></div><h1>PKCS11CryptoToken.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.keys.token;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.Provider;
+import java.security.cert.CertificateException;
+import java.security.spec.AlgorithmParameterSpec;
+import java.util.Properties;
+
+import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.internal.InternalResources;
+import org.cesecore.keys.token.p11.P11Slot;
+import org.cesecore.keys.token.p11.P11SlotUser;
+import org.cesecore.keys.token.p11.Pkcs11SlotLabel;
+import org.cesecore.keys.token.p11.Pkcs11SlotLabelType;
+import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
+import org.cesecore.keys.util.KeyStoreTools;
+
+/**
+ * Class implementing a keystore on PKCS11 tokens.
+ * 
+ * @version $Id: PKCS11CryptoToken.java 30548 2018-11-19 16:04:50Z anatom $
+ */
+public class PKCS11CryptoToken extends BaseCryptoToken implements P11SlotUser {
+
+    private static final long serialVersionUID = 7719014139640717867L;
+
+    /** Log4j instance */
+<span class="fc" id="L49">    private static final Logger log = Logger.getLogger(PKCS11CryptoToken.class);</span>
+    /** Internal localization of logs and errors */
+<span class="fc" id="L51">    private static final InternalResources intres = InternalResources.getInstance();</span>
+
+    /** Keys, specific to PKCS#11, that can be defined in CA token properties */
+    public static final String SLOT_LABEL_VALUE = &quot;slotLabelValue&quot;;
+    public static final String SLOT_LABEL_TYPE = &quot;slotLabelType&quot;;
+    public static final String SHLIB_LABEL_KEY = &quot;sharedLibrary&quot;;
+    public static final String ATTRIB_LABEL_KEY = &quot;attributesFile&quot;;
+    public static final String PASSWORD_LABEL_KEY = &quot;pin&quot;;
+    /** Flag that if set, prevent adding the P11 provider with Security.addProvider.
+     * Can be used to create a crypto token without actually installing it in Java Security, so it
+     * can be created temporarily */
+    public static final String DO_NOT_ADD_P11_PROVIDER = &quot;doNotAddP11Provider&quot;;
+    
+    @Deprecated //Remove once upgrading from 5.0-&gt;6.0 is no longer supported
+    public static final String SLOT_LIST_INDEX_KEY = &quot;slotListIndex&quot;;
+    @Deprecated //Remove once upgrading from 5.0-&gt;6.0 is no longer supported
+    public static final String SLOT_LABEL_KEY = &quot;slot&quot;;
+
+    
+    /** A user defined name of the slot provider. Used in order to be able to have two different providers
+     * (with different PKCS#11 attributes) for the same slot. If this is not set (null), the default
+     * java provider name is used (SunPKCS11-pkcs11LibName-slotNr for example SunPKCS11-libcryptoki.so-slot1).
+     */
+    public final static String TOKEN_FRIENDLY_NAME = &quot;tokenFriendlyName&quot;;
+    
+    private transient P11Slot p11slot;
+
+<span class="fc" id="L78">    private String sSlotLabel = null;</span>
+    
+    /**
+     * @throws InstantiationException on error
+     */
+    public PKCS11CryptoToken() throws InstantiationException {
+<span class="fc" id="L84">        super();</span>
+        try {
+<span class="fc" id="L86">            Thread.currentThread().getContextClassLoader().loadClass(Pkcs11SlotLabel.SUN_PKCS11_CLASS);</span>
+<span class="nc" id="L87">        } catch (ClassNotFoundException t) {</span>
+<span class="nc" id="L88">            throw new InstantiationException(&quot;PKCS11 provider class &quot; + Pkcs11SlotLabel.SUN_PKCS11_CLASS + &quot; not found.&quot;);</span>
+<span class="fc" id="L89">        }</span>
+<span class="fc" id="L90">    }</span>
+
+    @Override
+    public void init(final Properties properties, final byte[] data, final int id) throws CryptoTokenOfflineException, NoSuchSlotException {
+<span class="nc bnc" id="L94" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L95">            log.debug(&quot;&gt;init: id=&quot; + id);</span>
+        }
+        // Don't autoactivate this right away, we must dynamically create the auth-provider with a slot
+<span class="nc" id="L98">        setProperties(properties);</span>
+<span class="nc" id="L99">        init(properties, false, id);</span>
+<span class="nc" id="L100">        sSlotLabel = getSlotLabel(SLOT_LABEL_VALUE, properties);</span>
+<span class="nc" id="L101">        Pkcs11SlotLabelType type = Pkcs11SlotLabelType.getFromKey(getSlotLabel(SLOT_LABEL_TYPE, properties));</span>
+<span class="nc" id="L102">        String sharedLibrary = properties.getProperty(PKCS11CryptoToken.SHLIB_LABEL_KEY);</span>
+<span class="nc" id="L103">        String attributesFile = properties.getProperty(PKCS11CryptoToken.ATTRIB_LABEL_KEY);</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        Boolean addProvider = !BooleanUtils.toBoolean(properties.getProperty(PKCS11CryptoToken.DO_NOT_ADD_P11_PROVIDER));</span>
+
+<span class="nc" id="L106">        String friendlyName = properties.getProperty(TOKEN_FRIENDLY_NAME);</span>
+
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        if(friendlyName != null){</span>
+<span class="nc" id="L109">            p11slot = P11Slot.getInstance(friendlyName, sSlotLabel, sharedLibrary, type, attributesFile, this, id, addProvider);</span>
+        } else {
+            // getInstance will run autoActivate()
+<span class="nc" id="L112">            p11slot = P11Slot.getInstance(sSlotLabel, sharedLibrary, type, attributesFile, this, id, addProvider);</span>
+            
+        }
+<span class="nc" id="L115">        final Provider provider = p11slot.getProvider();</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        if (addProvider) {</span>
+<span class="nc" id="L117">            setJCAProvider(provider);</span>
+        } else {
+<span class="nc" id="L119">            setJCAProviderName(provider.getName());</span>
+<span class="nc" id="L120">            log.info(&quot;Configured to not add PKCS#11 Provider: &quot;+provider.getName());</span>
+        }
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L123">            log.debug(&quot;&lt;init: id=&quot; + id);</span>
+        }
+<span class="nc" id="L125">    }</span>
+
+    @Override
+    public boolean isActive() {
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        return getTokenStatus() == CryptoToken.STATUS_ACTIVE;</span>
+    }
+
+    @Override
+    public void activate(final char[] authCode) throws CryptoTokenOfflineException, CryptoTokenAuthenticationFailedException {
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        if (this.p11slot == null) {</span>
+<span class="nc" id="L135">            throw new CryptoTokenOfflineException(&quot;Slot not initialized.&quot;);</span>
+        }
+        try {
+<span class="nc" id="L138">            final KeyStore keyStore = createKeyStore(authCode);</span>
+<span class="nc" id="L139">            setKeyStore(keyStore);</span>
+<span class="nc" id="L140">        } catch (Throwable t) { // NOPMD: when dealing with HSMs we need to catch everything</span>
+<span class="nc" id="L141">            log.warn(&quot;Failed to initialize PKCS11 provider slot '&quot; + this.sSlotLabel + &quot;'.&quot;, t);</span>
+<span class="nc" id="L142">            CryptoTokenAuthenticationFailedException authfe = new CryptoTokenAuthenticationFailedException(</span>
+                    &quot;Failed to initialize PKCS11 provider slot '&quot; + this.sSlotLabel + &quot;'.&quot;);
+<span class="nc" id="L144">            authfe.initCause(t);</span>
+<span class="nc" id="L145">            throw authfe;</span>
+<span class="nc" id="L146">        }</span>
+<span class="nc" id="L147">        String msg = intres.getLocalizedMessage(&quot;token.activated&quot;, getId());</span>
+<span class="nc" id="L148">        log.info(msg);</span>
+<span class="nc" id="L149">    }</span>
+
+    private KeyStore createKeyStore(final char[] authCode) throws NoSuchAlgorithmException, CertificateException, UnsupportedEncodingException,
+            IOException, KeyStoreException {
+<span class="nc" id="L153">        final Provider provider = this.p11slot.getProvider();</span>
+<span class="nc" id="L154">        final KeyStore keyStore = KeyStore.getInstance( &quot;PKCS11&quot;, provider );</span>
+<span class="nc" id="L155">        log.debug(&quot;Loading key from slot '&quot; + this.sSlotLabel + &quot;' using pin.&quot;);</span>
+        // See ECA-1395 for an explanation of this special handling for the IAIK provider.
+        // If the application uses several instances of the IAIKPkcs11 provider, it has two options to get an initialized key store. First, it can get
+        // the initialized key store directly from the provider instance. This looks like this
+        // KeyStore tokenKeyStore = pkcs11Provider_.getTokenManager().getKeyStore();
+        // where pkcs11Provider_ is the instance of the IAIKPkcs11 provider. Second, the application can instantiate the key store as usual and then
+        // initialize it. For initialization, the application must provide the name of the instance that this key store shall operate with. Just
+        // instantiating the key store is not enough, and if the application calls tokenKeyStore.load(null, null), it always(!) binds the key store to
+        // the first instance of the IAIKPkcs11 provider. This is the case, because there is no means for the KeyStoreSPI class to get the instance of
+        // the provider that was used to instantiate it. This means, it does not help to provide the provider name and calling
+        // KeyStore.getInstance(&quot;PKCS11KeyStore&quot;, providerName), the call to the load(InputStream, char[]) method with appropriate arguments is
+        // required nevertheless. The correct usage will look like this
+        // KeyStore cardKeyStore = KeyStore.getInstance(&quot;PKCS11KeyStore&quot;);
+        // String providerName = pkcs11Provider_.getName();
+        // ByteArrayInputStream providerNameInpustStream =
+        // new ByteArrayInputStream(providerName.getBytes(&quot;UTF-8&quot;));
+        // cardKeyStore.load(providerNameInpustStream, null);
+        // The password parameter of the load method (this is the second parameter, which is null here) will be used if provided (i.e. if it is not
+        // null). If it is null, the default login manager will use the configured method for prompting the PIN on demand. If the application just
+        // provides the instance number as a string instead of the complete provider name, the key store will also accept it.
+<span class="nc bnc" id="L175" title="All 2 branches missed.">        if (provider.getClass().getName().equals(Pkcs11SlotLabel.IAIK_PKCS11_CLASS)) {</span>
+<span class="nc" id="L176">            keyStore.load(new ByteArrayInputStream(getSignProviderName().getBytes(&quot;UTF-8&quot;)), authCode);</span>
+        } else {
+            // For the Sun provider no provider name is used.
+<span class="nc" id="L179">            keyStore.load(null, authCode);</span>
+        }
+<span class="nc" id="L181">        return keyStore;</span>
+    }
+
+    @Override
+    public void deactivate() {
+        try {
+<span class="nc" id="L187">            setKeyStore(null);</span>
+<span class="nc" id="L188">        } catch (KeyStoreException e) {</span>
+            // Exception should only be thrown if loading a non-null KeyStore fails
+<span class="nc" id="L190">            throw new IllegalStateException(&quot;This should never happen.&quot;);</span>
+<span class="nc" id="L191">        }</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">        if (this.p11slot != null) {</span>
+<span class="nc" id="L193">            this.p11slot.logoutFromSlotIfNoTokensActive();            </span>
+        } else {
+<span class="nc" id="L195">            log.debug(&quot;p11slot was null, token was not active trying to deactivate.&quot;);</span>
+        }
+<span class="nc" id="L197">        final String msg = intres.getLocalizedMessage(&quot;token.deactivate&quot;, getId());</span>
+<span class="nc" id="L198">        log.info(msg);</span>
+<span class="nc" id="L199">    }</span>
+
+    @Override
+    public void reset() {
+<span class="nc bnc" id="L203" title="All 2 branches missed.">        if (this.p11slot != null) {</span>
+<span class="nc" id="L204">            this.p11slot.reset();</span>
+        }
+<span class="nc" id="L206">    }</span>
+
+    @Override
+    public void deleteEntry(final String alias) throws KeyStoreException, NoSuchAlgorithmException,
+            CertificateException, IOException, CryptoTokenOfflineException {
+<span class="nc bnc" id="L211" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(alias)) {</span>
+<span class="nc" id="L212">            KeyStoreTools cont = new KeyStoreTools(getKeyStore(), getSignProviderName());</span>
+<span class="nc" id="L213">            cont.deleteEntry(alias);</span>
+<span class="nc" id="L214">            String msg = intres.getLocalizedMessage(&quot;token.deleteentry&quot;, alias, getId());</span>
+<span class="nc" id="L215">            log.info(msg);</span>
+<span class="nc" id="L216">        } else {</span>
+<span class="nc" id="L217">            log.debug(&quot;Trying to delete keystore entry with empty alias.&quot;);</span>
+        }
+<span class="nc" id="L219">    }</span>
+
+    @Override
+    public void generateKeyPair(final String keySpec, final String alias) throws InvalidAlgorithmParameterException,
+            CryptoTokenOfflineException {
+<span class="nc bnc" id="L224" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(alias)) {</span>
+<span class="nc" id="L225">            KeyStoreTools cont = new KeyStoreTools(getKeyStore(), getSignProviderName());</span>
+<span class="nc" id="L226">            cont.generateKeyPair(keySpec, alias);</span>
+<span class="nc" id="L227">        } else {</span>
+<span class="nc" id="L228">            log.debug(&quot;Trying to generate keys with empty alias.&quot;);</span>
+        }
+<span class="nc" id="L230">    }</span>
+
+    @Override
+    public void generateKeyPair(final AlgorithmParameterSpec spec, final String alias) throws 
+            InvalidAlgorithmParameterException, CertificateException, IOException,
+            CryptoTokenOfflineException {
+<span class="nc bnc" id="L236" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(alias)) {</span>
+<span class="nc" id="L237">            KeyStoreTools cont = new KeyStoreTools(getKeyStore(), getSignProviderName());</span>
+<span class="nc" id="L238">            cont.generateKeyPair(spec, alias);</span>
+<span class="nc" id="L239">        } else {</span>
+<span class="nc" id="L240">            log.debug(&quot;Trying to generate keys with empty alias.&quot;);</span>
+        }
+<span class="nc" id="L242">    }</span>
+
+    @Override
+    public void generateKey(final String algorithm, final int keysize, final String alias) throws NoSuchAlgorithmException, NoSuchProviderException,
+            KeyStoreException, CryptoTokenOfflineException {
+<span class="nc bnc" id="L247" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L248">            log.debug(&quot;Generate key, &quot;+algorithm+&quot;, &quot;+keysize+&quot;, &quot;+alias);</span>
+        }
+<span class="nc bnc" id="L250" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(alias)) {</span>
+<span class="nc" id="L251">            KeyStoreTools cont = new KeyStoreTools(getKeyStore(), getSignProviderName());</span>
+<span class="nc" id="L252">            cont.generateKey(algorithm, keysize, alias);</span>
+<span class="nc" id="L253">        } else {</span>
+<span class="nc" id="L254">            log.debug(&quot;Trying to generate keys with empty alias.&quot;);</span>
+        }
+<span class="nc" id="L256">    }</span>
+
+    @Override
+    public byte[] getTokenData() {
+<span class="nc" id="L260">        return null;</span>
+    }
+    
+    /** Used for testing 
+     * @return slot*/
+    protected P11Slot getP11slot() {
+<span class="nc" id="L266">        return p11slot;</span>
+    }
+    
+    /**
+     * Extracts the slotLabel that is used for many tokens in construction of the provider
+     *
+     * @param sSlotLabelKey which key in the properties that gives us the label
+     * @param properties CA token properties
+     * @return String with the slot label, trimmed from whitespace
+     */
+    private static String getSlotLabel(String sSlotLabelKey, Properties properties) {
+<span class="nc" id="L277">        String ret = null;</span>
+<span class="nc bnc" id="L278" title="All 4 branches missed.">        if (sSlotLabelKey != null &amp;&amp; properties != null) {</span>
+<span class="nc" id="L279">            ret = properties.getProperty(sSlotLabelKey);</span>
+<span class="nc bnc" id="L280" title="All 2 branches missed.">            if (ret != null) {</span>
+<span class="nc" id="L281">                ret = ret.trim();</span>
+            }
+        }
+<span class="nc" id="L284">        return ret;</span>
+    }
+    
+    /**
+     * Will replace deprecated properties values with the new ones. 
+     * 
+     * @param properties a properties file of the old format.
+     * @return a defensive copy of the submitted properties
+     */
+    @Deprecated
+    //Remove when we no longer support upgrading from 5.0.x -&gt; 6.0.x 
+    public static Properties upgradePropertiesFileFrom5_0_x(final Properties properties) {
+<span class="nc" id="L296">        Properties returnValue = new Properties();</span>
+        
+<span class="nc bnc" id="L298" title="All 2 branches missed.">        for (Object key : properties.keySet()) {</span>
+<span class="nc" id="L299">            final String keyString = (String) key;</span>
+<span class="nc bnc" id="L300" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L301">                log.debug(&quot;&gt;upgradePropertiesFileFrom5_0_x, keyString: &quot;+key);</span>
+            }
+<span class="nc bnc" id="L303" title="All 2 branches missed.">            if (keyString.equalsIgnoreCase(SLOT_LABEL_KEY)) {</span>
+<span class="nc" id="L304">                String keyValue = properties.getProperty(keyString);</span>
+<span class="nc bnc" id="L305" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L306">                    log.debug(&quot;&gt;upgradePropertiesFileFrom5_0_x, keyValue: &quot;+keyValue);</span>
+                }
+                // In 5.0.11, the &quot;slot&quot; value may contain just an integer, but may also encode an integer, an index
+                // a token label or a config file. 
+<span class="nc" id="L310">                final String oldLabelPrefix = &quot;TOKEN_LABEL:&quot;;</span>
+<span class="nc" id="L311">                final String oldIndexPrefix = &quot;SLOT_LIST_IX:&quot;;</span>
+<span class="nc" id="L312">                final String oldSlotNumberPrefix = &quot;SLOT_ID:&quot;;</span>
+<span class="nc" id="L313">                final String oldSunFilePrefix = &quot;SUN_FILE:&quot;;</span>
+<span class="nc" id="L314">                final String delimiter = &quot;:&quot;;</span>
+<span class="nc bnc" id="L315" title="All 2 branches missed.">                if(Pkcs11SlotLabelType.SLOT_NUMBER.validate(keyValue)) {</span>
+                    //If it was a straight integer, then save as is
+<span class="nc" id="L317">                    returnValue.setProperty(SLOT_LABEL_VALUE, keyValue);</span>
+<span class="nc" id="L318">                    returnValue.setProperty(SLOT_LABEL_TYPE, Pkcs11SlotLabelType.SLOT_NUMBER.getKey());</span>
+<span class="nc bnc" id="L319" title="All 2 branches missed.">                } else if(keyValue.startsWith(oldSlotNumberPrefix)) {</span>
+                   //If not, check with the rest of the values 
+<span class="nc" id="L321">                    returnValue.setProperty(SLOT_LABEL_VALUE, keyValue.split(delimiter, 2)[1]);</span>
+<span class="nc" id="L322">                    returnValue.setProperty(SLOT_LABEL_TYPE, Pkcs11SlotLabelType.SLOT_NUMBER.getKey());</span>
+<span class="nc bnc" id="L323" title="All 2 branches missed.">                } else if(keyValue.startsWith(oldIndexPrefix)) {</span>
+<span class="nc" id="L324">                    returnValue.setProperty(SLOT_LABEL_VALUE, keyValue.split(delimiter, 2)[1]);</span>
+<span class="nc" id="L325">                    returnValue.setProperty(SLOT_LABEL_TYPE, Pkcs11SlotLabelType.SLOT_INDEX.getKey());</span>
+<span class="nc bnc" id="L326" title="All 2 branches missed.">                } else if(keyValue.startsWith(oldLabelPrefix)) {</span>
+<span class="nc" id="L327">                    returnValue.setProperty(SLOT_LABEL_VALUE, keyValue.split(delimiter, 2)[1]);</span>
+<span class="nc" id="L328">                    returnValue.setProperty(SLOT_LABEL_TYPE, Pkcs11SlotLabelType.SLOT_LABEL.getKey());</span>
+<span class="nc bnc" id="L329" title="All 2 branches missed.">                } else if(keyValue.startsWith(oldSunFilePrefix)) {</span>
+<span class="nc" id="L330">                    returnValue.setProperty(SLOT_LABEL_TYPE, Pkcs11SlotLabelType.SUN_FILE.getKey());</span>
+                }
+                
+<span class="nc bnc" id="L333" title="All 2 branches missed.">            } else if (keyString.equalsIgnoreCase(SLOT_LIST_INDEX_KEY)) {</span>
+<span class="nc" id="L334">                String indexValue = properties.getProperty(keyString);</span>
+<span class="nc bnc" id="L335" title="All 2 branches missed.">                if (indexValue.charAt(0) != 'i') {</span>
+<span class="nc" id="L336">                    indexValue = &quot;i&quot; + indexValue;</span>
+                }
+<span class="nc bnc" id="L338" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L339">                    log.debug(&quot;&gt;upgradePropertiesFileFrom5_0_x, indexValue: &quot;+indexValue);</span>
+                }
+<span class="nc" id="L341">                returnValue.setProperty(SLOT_LABEL_VALUE, indexValue);</span>
+<span class="nc" id="L342">                returnValue.setProperty(SLOT_LABEL_TYPE, Pkcs11SlotLabelType.SLOT_INDEX.getKey());</span>
+<span class="nc" id="L343">            } else {</span>
+<span class="nc bnc" id="L344" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L345">                    log.debug(&quot;&gt;upgradePropertiesFileFrom5_0_x, keyString is neither &quot;+SLOT_LABEL_KEY+&quot; or &quot;+SLOT_LIST_INDEX_KEY+&quot;, just setting the property without SLOT_LABEL_TYPE.&quot;);</span>
+                }
+<span class="nc" id="L347">                returnValue.setProperty(keyString, properties.getProperty(keyString));</span>
+            }
+<span class="nc" id="L349">        }</span>
+<span class="nc" id="L350">        return returnValue;</span>
+    }
+
+    @Override
+    public boolean permitExtractablePrivateKeyForTest() {
+<span class="nc" id="L355">        return doPermitExtractablePrivateKey();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

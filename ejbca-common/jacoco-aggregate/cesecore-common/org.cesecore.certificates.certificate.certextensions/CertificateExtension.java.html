@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CertificateExtension.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-common</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.certificate.certextensions</a> &gt; <span class="el_source">CertificateExtension.java</span></div><h1>CertificateExtension.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/ 
+package org.cesecore.certificates.certificate.certextensions;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.security.PublicKey;
+import java.util.Properties;
+
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.cesecore.certificates.ca.CA;
+import org.cesecore.certificates.ca.internal.CertificateValidity;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+
+/**
+ * Base class for a certificate extension.
+ * All extensions should inherit this class.
+ * 
+ * The methods that need implementation is getValue
+ * 
+ * @version $Id: CertificateExtension.java 29873 2018-09-13 09:36:27Z aminkh $
+ */
+public abstract class CertificateExtension implements Serializable {
+	
+	private static final long serialVersionUID = -7708267512352607118L;
+	
+	// This attribute should be removed when support for EJBCA 6.4.0 is dropped. This attribute has been replaced by OID as an extension's identifying attribute.
+	// By the time we dropped support for Ejbca 6.4.0, this attribute will not be significant in any way and any references to it can be removed without replacement.
+	@Deprecated
+    private int id;
+	private String oID;
+	private String displayName;
+	private boolean criticalFlag;
+	private boolean requiredFlag;
+	private Properties properties;
+	
+	/**
+	 * Constructor for creating a Certificate Extension. 
+	 */
+	public CertificateExtension() {
+<span class="fc" id="L52">		super();</span>
+<span class="fc" id="L53">	}</span>
+
+	/**
+	 * @return the unique id of the extension
+	 */
+	public int getId() {
+<span class="fc" id="L59">		return id;</span>
+	}
+
+	/**
+	 * @return The unique OID of the extension
+	 */
+	public String getOID() {
+<span class="fc" id="L66">		return oID;</span>
+	}
+	
+	/**
+	 * @param oID The unique OID of the extension
+	 */
+	public void setOID(String oID) {
+<span class="fc" id="L73">		this.oID = oID.trim();</span>
+<span class="fc" id="L74">	}</span>
+	
+	/**
+	 * @return This extension's readable name
+	 */
+	public String getDisplayName() {
+<span class="fc" id="L80">	    return displayName;</span>
+	}
+	
+	/**
+	 * @param displayName The extension's readable name
+	 */
+	public void setDisplayName(String displayName) {
+<span class="fc" id="L87">	    this.displayName = displayName;</span>
+<span class="fc" id="L88">	}</span>
+	/**
+	 * @return flag indicating if the extension should be marked as critical or not.
+	 */
+	public boolean isCriticalFlag() {
+<span class="fc" id="L93">		return criticalFlag;</span>
+	}
+
+	/**
+	 * @param criticalFlag flag indicating if the extension should be marked as critical or not.
+	 */
+	public void setCriticalFlag(boolean criticalFlag) {
+<span class="fc" id="L100">		this.criticalFlag = criticalFlag;</span>
+<span class="fc" id="L101">	}</span>
+	
+	/**
+     * @return flag indicating if the extension should be marked as required or not.
+     */
+    public boolean isRequiredFlag() {
+<span class="fc" id="L107">        return requiredFlag;</span>
+    }
+
+    /**
+     * @param requiredFlag flag indicating if the extension should be marked as required or not.
+     */
+    public void setRequiredFlag(final boolean requiredFlag) {
+<span class="nc" id="L114">        this.requiredFlag = requiredFlag;</span>
+<span class="nc" id="L115">    }</span>
+	
+
+	/**
+	 * The properties configured for this extension. The properties are stripped
+	 * of the beginning &quot;idX.property.&quot;. So searching for the property
+	 * &quot;id1.property.value&quot; only the key &quot;value&quot; should be used in the returned property.
+	 * 
+	 * @return the properties configured for this certificate extension.
+	 */
+	public Properties getProperties() {
+<span class="fc" id="L126">		return properties;</span>
+	}
+	
+	/**
+	 * Method that initializes the CertificateExtension
+	 * 
+	 * @param id the uniqueID of the extension
+	 * @param oID the OID 
+	 * @param displayName the DN
+	 * @param criticalFlag if the extension should be marked as critical or not.
+	 * @param requiredFlag if the extension should be marked as required or not. 
+	 * @param extensionProperties the complete configuration property file.
+	 */
+	public void init(int id, String oID, String displayName, boolean criticalFlag, final boolean requiredFlag, Properties extensionProperties){
+<span class="fc" id="L140">		this.id = id;</span>
+<span class="fc" id="L141">		this.oID = oID.trim();</span>
+<span class="fc" id="L142">		this.displayName = displayName;</span>
+<span class="fc" id="L143">		this.criticalFlag = criticalFlag;</span>
+<span class="fc" id="L144">		this.requiredFlag = requiredFlag;</span>
+<span class="fc" id="L145">		this.properties = extensionProperties;</span>
+<span class="fc" id="L146">	}</span>
+	
+	/**
+	 * Method that should return the ASN1Encodable value used in the extension
+	 * this is the method at all implementors must implement.
+	 * 
+	 * @param userData the userdata of the issued certificate.
+	 * @param ca the CA data with access to all the keys etc. For CA certificates, this is the CA itself.
+	 * @param certProfile the certificate profile
+	 * @param userPublicKey public key of the user, or null if not available
+	 * @param caPublicKey public key of the CA, or null if not available
+	 * @param val validity of certificate where the extension will be added
+	 * @return a ASN1Encodable or null, if this extension should not be used, which was determined from the values somehow.
+	 * @throws CertificateExtensionException if there was an error constructing the certificate extension
+	 * 
+     * @deprecated Callers should use the getValueEncoded method as this method might not be supported by all implementations. Implementors can
+     * still implement this method if they prefer as it gets called from getValueEncoded.
+	 */
+    public abstract ASN1Encodable getValue(EndEntityInformation userData, CA ca, CertificateProfile certProfile, PublicKey userPublicKey,
+            PublicKey caPublicKey, CertificateValidity val) throws CertificateExtensionException;
+
+	/**
+	 * Method that should return the byte[] value used in the extension. 
+	 * 
+	 * The default implementation of this method first calls the getValue() 
+	 * method and then encodes the result as an byte array. 
+	 * CertificateExtension implementors has the choice of overriding this 
+	 * method if they want to include byte[] data in the certificate that
+	 * is not necessarily an ASN.1 structure otherwise the getValue method 
+	 * can be implemented as before.
+	 * 
+	 * @param userData the userdata of the issued certificate.
+	 * @param ca the CA data with access to all the keys etc
+	 * @param certProfile the certificate profile
+	 * @param userPublicKey public key of the user, or null if not available
+	 * @param caPublicKey public key of the CA, or null if not available
+     * @param val validity of certificate where the extension will be added
+	 * @return a byte[] or null, if this extension should not be used, which was determined from the values somehow.
+	 * @throws CertificateExtensionException if there was an error constructing the certificate extensio
+     *
+	 */
+    public byte[] getValueEncoded(EndEntityInformation userData, CA ca, CertificateProfile certProfile, PublicKey userPublicKey,
+            PublicKey caPublicKey, CertificateValidity val) throws CertificateExtensionException {
+		final byte[] result;
+<span class="fc" id="L190">		final ASN1Encodable value = getValue(userData, ca, certProfile, userPublicKey, caPublicKey, val);</span>
+<span class="pc bpc" id="L191" title="1 of 2 branches missed.">		if (value == null) {</span>
+<span class="nc" id="L192">			result = null;</span>
+		} else {
+		    try {
+<span class="fc" id="L195">		        result = value.toASN1Primitive().getEncoded();</span>
+<span class="nc" id="L196">		    } catch (IOException ioe) {</span>
+<span class="nc" id="L197">		        throw new CertificateExtensionException(ioe.getMessage(), ioe);</span>
+<span class="fc" id="L198">		    }</span>
+		}
+<span class="fc" id="L200">		return result;</span>
+	}
+	
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

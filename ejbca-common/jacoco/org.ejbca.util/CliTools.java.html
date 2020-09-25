@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CliTools.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util</a> &gt; <span class="el_source">CliTools.java</span></div><h1>CliTools.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.util;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/** Tools used in command line handling
+ * @version $Id: CliTools.java 22117 2015-10-29 10:53:42Z mikekushner $
+ */
+<span class="nc" id="L21">public class CliTools {</span>
+
+    /**
+     * Using Arrays.asList will return an AbstractList that you cannot remove items from. This List is backed by a new ArrayList.
+     * 
+     * Example usage for parsing argument switches:
+     *  public void method(String[] args) {
+     *   List&amp;lt;String&amp;gt; argsList = getAsModifyableList(args);
+     *   boolean switch1 = argsList.remove(&quot;-switch1&quot;);
+     *   boolean switch2 = argsList.remove(&quot;-switch2&quot;);
+     *   args = argsList.toArray(new String[0]);
+     *   ...
+     *  }
+     * @param stringArray Strings
+     * @return List of strings
+     */
+    public static List&lt;String&gt; getAsModifyableList(String[] stringArray) {
+<span class="nc" id="L38">    	List&lt;String&gt; list = new ArrayList&lt;String&gt;();</span>
+<span class="nc bnc" id="L39" title="All 2 branches missed.">    	for (String string : stringArray) {</span>
+<span class="nc" id="L40">    		list.add(string);</span>
+    	}
+<span class="nc" id="L42">    	return list;</span>
+    }
+    
+    /** 
+     * @return the next string after the specified parameter if the switch exists and null otherwise.
+     * The switch and the following value is removed from the supplied list.
+     * @param parameter Param
+     * @param modifyableList List
+     *  
+     */
+    public static String getAndRemoveParameter(String parameter, List&lt;String&gt; modifyableList) {
+<span class="nc" id="L53">        String ret = null;</span>
+<span class="nc" id="L54">        int index = modifyableList.indexOf(parameter);</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">        if (index &gt; -1) {</span>
+<span class="nc" id="L56">            ret = modifyableList.get(index + 1);</span>
+<span class="nc" id="L57">            modifyableList.remove(index + 1);</span>
+<span class="nc" id="L58">            modifyableList.remove(index);</span>
+        }
+<span class="nc" id="L60">        return ret;</span>
+    }
+    
+    /** @param parameter Param
+     * @param modifyableList List
+     * @return true if the parameter was present and removes it from the list. */
+    public static boolean getAndRemoveSwitch(final String parameter, List&lt;String&gt; modifyableList) {
+<span class="nc" id="L67">        final int index = modifyableList.indexOf(parameter);</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">        if (index &gt; -1) {</span>
+<span class="nc" id="L69">            modifyableList.remove(index);</span>
+<span class="nc" id="L70">            return true;</span>
+        }
+<span class="nc" id="L72">        return false;</span>
+    }
+    
+    /** @param modifyableList Param
+     * @return the remaining list as a regular args[] array */
+    public static String[] getAsArgs(List&lt;String&gt; modifyableList) {
+<span class="nc" id="L78">        return modifyableList.toArray(new String[modifyableList.size()]);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

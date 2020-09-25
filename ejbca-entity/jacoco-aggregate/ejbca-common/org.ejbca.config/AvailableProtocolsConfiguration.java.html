@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AvailableProtocolsConfiguration.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-entity</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.config</a> &gt; <span class="el_source">AvailableProtocolsConfiguration.java</span></div><h1>AvailableProtocolsConfiguration.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.config;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import org.cesecore.configuration.ConfigurationBase;
+
+
+/**
+ * Handles configuration of protocols supporting enable / disable
+ *
+ * @version $Id: AvailableProtocolsConfiguration.java 29241 2018-06-15 15:08:02Z henriks $
+ *
+ */
+public class AvailableProtocolsConfiguration extends ConfigurationBase implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    public final static String CONFIGURATION_ID = &quot;AVAILABLE_PROTOCOLS&quot;;
+
+    /**
+     * Protocols currently supporting enable/disable configuration by EJBCA
+     */
+<span class="nc" id="L38">    public enum AvailableProtocols {</span>
+        // If you add a protocol &gt; 6.11.0 it should be disabled by default
+<span class="nc" id="L40">        ACME(&quot;ACME&quot;, &quot;/ejbca/acme&quot;),</span>
+<span class="nc" id="L41">        CERT_STORE(&quot;Certstore&quot;, &quot;/certificates&quot;),</span>
+<span class="nc" id="L42">        CMP(&quot;CMP&quot;, &quot;/ejbca/publicweb/cmp&quot;),</span>
+<span class="nc" id="L43">        CRL_STORE(&quot;CRLstore&quot;, &quot;/crls&quot;),</span>
+<span class="nc" id="L44">        EST(&quot;EST&quot;, &quot;/.well-known/est&quot;),</span>
+<span class="nc" id="L45">        OCSP(&quot;OCSP&quot;, &quot;/ejbca/publicweb/status/ocsp&quot;),</span>
+<span class="nc" id="L46">        PUBLIC_WEB(&quot;Public Web&quot;, &quot;/ejbca&quot;),</span>
+<span class="nc" id="L47">        SCEP(&quot;SCEP&quot;, &quot;/ejbca/publicweb/apply/scep&quot;),</span>
+<span class="nc" id="L48">        RA_WEB(&quot;RA Web&quot;, &quot;/ejbca/ra&quot;),</span>
+<span class="nc" id="L49">        REST(&quot;REST Certificate Management&quot;, &quot;/ejbca/ejbca-rest-api&quot;),</span>
+<span class="nc" id="L50">        WEB_DIST(&quot;Webdist&quot;, &quot;/ejbca/publicweb/webdist&quot;),</span>
+<span class="nc" id="L51">        WS(&quot;Web Service&quot;, &quot;/ejbca/ejbcaws&quot;);</span>
+
+        private final String name;
+        private final String url;
+<span class="nc" id="L55">        private static final Map&lt;String, String&gt; reverseLookupMap = new HashMap&lt;&gt;();</span>
+        
+        static {
+<span class="nc bnc" id="L58" title="All 2 branches missed.">            for (final AvailableProtocols protocol : AvailableProtocols.values()) {</span>
+<span class="nc" id="L59">                reverseLookupMap.put(protocol.getName(), protocol.getUrl());</span>
+            }
+<span class="nc" id="L61">        }</span>
+        
+        /**
+         * Creates a new instance of an available protocol enum.
+         * @param name the name of the enum, same as the &quot;serviceName&quot; from web.xml
+         * @param url the URL to the servlet
+         */
+<span class="nc" id="L68">        private AvailableProtocols(final String name, final String url) {</span>
+<span class="nc" id="L69">            this.name = name;</span>
+<span class="nc" id="L70">            this.url = url;</span>
+<span class="nc" id="L71">        }</span>
+
+        /** @return user friendly name of protocol */
+        public String getName() {
+<span class="nc" id="L75">            return name;</span>
+        }
+
+        public String getUrl() {
+<span class="nc" id="L79">            return url;</span>
+        }
+        
+        public static String getContextPathByName(String name) {
+<span class="nc" id="L83">            return reverseLookupMap.get(name);</span>
+        }
+    };
+
+    /** Initializes the configuration */
+    public AvailableProtocolsConfiguration() {
+<span class="nc" id="L89">        super();</span>
+<span class="nc" id="L90">    }</span>
+
+    /**
+     * Checks whether protocol is enabled / disabled locally
+     * @param protocol to check status of @see {@link AvailableProtocols}
+     * @return true if protocol is enabled, false otherwise
+     */
+    public boolean getProtocolStatus(String protocol) {
+<span class="nc" id="L98">        Boolean ret = (Boolean)data.get(protocol);</span>
+        // All protocols added &gt; 6.11.0 should be disabled by default
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        if (ret == null &amp;&amp; (</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">                protocol.equals(AvailableProtocols.ACME.getName())  ||</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">                protocol.equals(AvailableProtocols.EST.getName())   || </span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">                protocol.equals(AvailableProtocols.REST.getName()))) {</span>
+<span class="nc" id="L104">            setProtocolStatus(protocol, false);</span>
+<span class="nc" id="L105">            return false;</span>
+        }
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        return ret == null ? true : ret;</span>
+    }
+
+    public void setProtocolStatus(String protocol, boolean status) {
+<span class="nc" id="L111">        data.put(protocol, status);</span>
+<span class="nc" id="L112">    }</span>
+
+    /** @return map containing the current status of all configurable protocols. */
+    public LinkedHashMap&lt;String, Boolean&gt; getAllProtocolsAndStatus() {
+<span class="nc" id="L116">        LinkedHashMap&lt;String, Boolean&gt; protocolStatusMap = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        for (AvailableProtocols protocol : AvailableProtocols.values()) {</span>
+<span class="nc" id="L118">            protocolStatusMap.put(protocol.getName(), getProtocolStatus(protocol.getName()));</span>
+        }
+<span class="nc" id="L120">        return protocolStatusMap;</span>
+    }
+
+    @Override
+    public String getConfigurationId() {
+<span class="nc" id="L125">        return CONFIGURATION_ID;</span>
+    }
+
+    @Override
+    public void upgrade() {
+<span class="nc bnc" id="L130" title="All 2 branches missed.">        if(Float.compare(LATEST_VERSION, getVersion()) != 0) {</span>
+<span class="nc" id="L131">            data.put(VERSION,  Float.valueOf(LATEST_VERSION));</span>
+        }
+<span class="nc" id="L133">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

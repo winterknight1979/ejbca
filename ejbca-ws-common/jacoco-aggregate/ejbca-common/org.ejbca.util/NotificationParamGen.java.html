@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>NotificationParamGen.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-ws-common</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util</a> &gt; <span class="el_source">NotificationParamGen.java</span></div><h1>NotificationParamGen.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.util;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.cesecore.util.ValidityDate;
+
+/**
+ * Base class generating parameter data for email notifications. Derived classes can add additional parameters.
+ * 
+ * The following parameters are set in this class
+ * ${NL}                           = New Line in message
+ * ${DATE} or ${current.DATE}      = The current date
+ * 
+ *
+ * @version $Id: NotificationParamGen.java 24437 2016-09-29 12:52:09Z anatom $
+ */
+
+public class NotificationParamGen {
+
+<span class="fc" id="L35">  private HashMap&lt;String, String&gt; params = new HashMap&lt;String, String&gt;();	</span>
+  
+  /** regexp pattern to match ${identifier} patterns */
+<span class="fc" id="L38">  private final static Pattern PATTERN = Pattern.compile(&quot;\\$\\{(.+?)\\}&quot;);</span>
+  
+<span class="fc" id="L40">  protected NotificationParamGen() {</span>
+<span class="fc" id="L41">	  paramPut(&quot;NL&quot;, System.getProperty(&quot;line.separator&quot;));</span>
+<span class="fc" id="L42">      paramPut(&quot;DATE&quot;, fastDateFormat(new Date()));</span>
+<span class="fc" id="L43">  }</span>
+
+  /**
+   * Method used to retrieve the populated parameter HashMap with the notification text.
+ * @return params
+   */
+  public HashMap&lt;String, String&gt; getParams(){
+<span class="fc" id="L50">	  return params;</span>
+  }
+
+  /**
+   * method that makes sure that a &quot;&quot; is inserted instead of null
+   * @param key key
+   * @param value value
+   */
+  protected void paramPut(String key, String value){
+<span class="pc bpc" id="L59" title="1 of 2 branches missed.">	  if(value == null){</span>
+<span class="nc" id="L60">		  params.put(key, &quot;&quot;);</span>
+	  }else{
+<span class="fc" id="L62">		  params.put(key, value);</span>
+	  }
+<span class="fc" id="L64">  }</span>
+  
+  /**
+   * method that makes sure that a &quot;&quot; is inserted instead of null
+   * @param key key
+   * @param value value
+   */
+  protected void paramPut(String key, Integer value){
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">	  if(value == null){</span>
+<span class="nc" id="L73">		  params.put(key, &quot;&quot;);</span>
+	  }else{
+<span class="fc" id="L75">		  params.put(key, value.toString());</span>
+	  }
+<span class="fc" id="L77">  }</span>
+	
+  // Help method used to populate a message 
+  /**
+   * Interpolate the patterns that exists on the input on the form '${pattern}'.
+   * @param input the input content to be interpolated
+   * @return the interpolated content
+   */
+  public String interpolate(String input) {
+<span class="fc" id="L86">	  return interpolate(getParams(), input);</span>
+  }
+
+  /**
+   * Interpolate the patterns that exists on the input on the form '${pattern}'.
+ * @param patterns patterns
+   * @param input the input content to be interpolated
+   * @return the interpolated content
+   */
+  public static String interpolate(HashMap&lt;String, String&gt; patterns, String input) {
+<span class="fc" id="L96">      final Matcher m = PATTERN.matcher(input);</span>
+<span class="fc" id="L97">      final StringBuffer sb = new StringBuffer(input.length());</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">      while (m.find()) {</span>
+          // when the pattern is ${identifier}, group 0 is 'identifier'
+<span class="fc" id="L100">          String key = m.group(1);</span>
+<span class="fc" id="L101">          String value = patterns.get(key);</span>
+          // if the pattern does exists, replace it by its value
+          // otherwise keep the pattern ( it is group(0) )
+<span class="pc bpc" id="L104" title="1 of 2 branches missed.">          if (value != null) {</span>
+              // $ is a group symbol in regexp replacement, see:
+              // http://stackoverflow.com/questions/11913709/why-does-replaceall-fail-with-illegal-group-reference
+              // since we can generate passwords etc with $ in them we need to escape $ signs in the value. The same applies for backslash.
+<span class="fc" id="L108">              m.appendReplacement(sb, Matcher.quoteReplacement(value));</span>
+          } else {
+              // I'm doing this to avoid the backreference problem as there will be a $
+              // if I replace directly with the group 0 (which is also a pattern)
+<span class="nc" id="L112">              m.appendReplacement(sb, &quot;&quot;);</span>
+<span class="nc" id="L113">              String unknown = m.group(0);</span>
+<span class="nc" id="L114">              sb.append(unknown);</span>
+          }
+<span class="fc" id="L116">      }</span>
+<span class="fc" id="L117">      m.appendTail(sb);</span>
+<span class="fc" id="L118">      return sb.toString();</span>
+  }
+  
+  protected String fastDateFormat(Date date) {
+<span class="fc" id="L122">	  return ValidityDate.formatAsISO8601(date, ValidityDate.TIMEZONE_SERVER);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EjbcaConfiguration.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.config</a> &gt; <span class="el_source">EjbcaConfiguration.java</span></div><h1>EjbcaConfiguration.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.config;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+
+/**
+ * This file handles configuration from ejbca.properties
+ * 
+ * @version $Id: EjbcaConfiguration.java 26418 2017-08-25 06:16:20Z henriks $
+ */
+public final class EjbcaConfiguration {
+
+<span class="nc" id="L26">    private static final Logger log = Logger.getLogger(EjbcaConfiguration.class);</span>
+
+    // This is a singleton with on static methods
+    private EjbcaConfiguration() {
+    }
+
+    private static final String TRUE = &quot;true&quot;;
+
+    /**
+     * Check if EJBCA is running in production
+     * @return bool
+     */
+    public static boolean getIsInProductionMode() {
+<span class="nc" id="L39">        final String value = EjbcaConfigurationHolder.getString(&quot;ejbca.productionmode&quot;);</span>
+<span class="nc bnc" id="L40" title="All 6 branches missed.">        if (TRUE.equalsIgnoreCase(value) || &quot;ca&quot;.equalsIgnoreCase(value) || &quot;ocsp&quot;.equalsIgnoreCase(value)) {</span>
+<span class="nc" id="L41">            return true;</span>
+        }
+<span class="nc" id="L43">        return false;</span>
+    }
+
+    /**
+     * @return Password used to protect CMS keystores in the database.
+     */
+    public static String getCaCmsKeyStorePass() {
+<span class="nc" id="L50">        return EjbcaConfigurationHolder.getExpandedString(&quot;ca.cmskeystorepass&quot;);</span>
+    }
+
+    /**
+     * @return How long an request should stay valid. The value is stored in seconds in the configuration, but returned as milliseconds.
+     */
+    public static long getApprovalDefaultRequestValidity() {
+<span class="nc" id="L57">        long value = 28800L;</span>
+        try {
+<span class="nc" id="L59">            value = Long.parseLong(EjbcaConfigurationHolder.getString(&quot;approval.defaultrequestvalidity&quot;));</span>
+<span class="nc" id="L60">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L61">            log.warn(&quot;\&quot;approval.defaultrequestvalidity\&quot; is not a decimal number. Using default value: &quot; + value);</span>
+<span class="nc" id="L62">        }</span>
+<span class="nc" id="L63">        return value * 1000L;</span>
+    }
+
+    /**
+     * @return How long an approved request should stay valid. The value is stored in seconds in the configuration, but returned as milliseconds.
+     */
+    public static long getApprovalDefaultApprovalValidity() {
+<span class="nc" id="L70">        long value = 28800L;</span>
+        try {
+<span class="nc" id="L72">            value = Long.parseLong(EjbcaConfigurationHolder.getString(&quot;approval.defaultapprovalvalidity&quot;));</span>
+<span class="nc" id="L73">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L74">            log.warn(&quot;\&quot;approval.defaultapprovalvalidity\&quot; is not a decimal number. Using default value: &quot; + value);</span>
+<span class="nc" id="L75">        }</span>
+<span class="nc" id="L76">        return value * 1000L;</span>
+    }
+    
+    /**
+     * @return How long time an administrator can extend an approval request for, or 0 to forbid extension of request expiration time.
+     * The value is stored in seconds in the configuration, but returned as milliseconds.
+     */
+    public static long getApprovalDefaultMaxExtensionTime() {
+<span class="nc" id="L84">        long value = 0L;</span>
+        try {
+<span class="nc" id="L86">            value = Long.parseLong(EjbcaConfigurationHolder.getString(&quot;approval.defaultmaxextensiontime&quot;));</span>
+<span class="nc" id="L87">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L88">            log.warn(&quot;\&quot;approval.defaultmaxextensiontime\&quot; is not a decimal number. Using default value: &quot; + value);</span>
+<span class="nc" id="L89">        }</span>
+<span class="nc" id="L90">        return value * 1000L;</span>
+    }
+    
+    /**
+     * @return Excluded classes from approval.
+     */
+    public static String getApprovalExcludedClasses() {
+<span class="nc" id="L97">        return EjbcaConfigurationHolder.getExpandedString(&quot;approval.excludedClasses&quot;);</span>
+    }
+
+    /**
+     * @return Parameter specifying amount of free memory (Mb) before alarming
+     */
+    public static long getHealthCheckAmountFreeMem() {
+<span class="nc" id="L104">        long value = 1;</span>
+        try {
+<span class="nc" id="L106">            value = Long.parseLong(EjbcaConfigurationHolder.getString(&quot;healthcheck.amountfreemem&quot;));</span>
+<span class="nc" id="L107">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L108">            log.warn(&quot;\&quot;healthcheck.amountfreemem\&quot; or \&quot;ocsphealthcheck.amountfreemem\&quot; is not a decimal number. Using default value: &quot; + value);</span>
+<span class="nc" id="L109">        }</span>
+<span class="nc" id="L110">        return value * 1024L * 1024L;</span>
+    }
+
+    /**
+     * @return Parameter specifying database test query string. Used to check that the database is operational.
+     */
+    public static String getHealthCheckDbQuery() {
+<span class="nc" id="L117">        return EjbcaConfigurationHolder.getExpandedString(&quot;healthcheck.dbquery&quot;);</span>
+    }
+
+    /**
+     * @return Parameter to specify location of file containing information about maintenance
+     */
+    public static String getHealthCheckAuthorizedIps() {
+<span class="nc" id="L124">        return EjbcaConfigurationHolder.getExpandedString(&quot;healthcheck.authorizedips&quot;);</span>
+    }
+
+    /**
+     * @return Parameter to specify if the check of CA tokens should actually perform a signature test on the CA token.
+     */
+    public static boolean getHealthCheckCaTokenSignTest() {
+<span class="nc" id="L131">        return TRUE.equalsIgnoreCase(EjbcaConfigurationHolder.getString(&quot;healthcheck.catokensigntest&quot;));</span>
+    }
+
+    /**
+     * @return Parameter to specify if a connection test of publishers should be performed.
+     */
+    public static boolean getHealthCheckPublisherConnections() {
+<span class="nc" id="L138">        return TRUE.equalsIgnoreCase(EjbcaConfigurationHolder.getString(&quot;healthcheck.publisherconnections&quot;));</span>
+    }
+
+    /**
+     * @return Parameter to specify location of file containing information about maintenance
+     */
+    public static String getHealthCheckMaintenanceFile() {
+<span class="nc" id="L145">        return EjbcaConfigurationHolder.getExpandedString(&quot;healthcheck.maintenancefile&quot;);</span>
+    }
+
+    /**
+     * @return Parameter to configure name of maintenance property.
+     */
+    public static String getHealthCheckMaintenancePropertyName() {
+<span class="nc" id="L152">        return EjbcaConfigurationHolder.getExpandedString(&quot;healthcheck.maintenancepropertyname&quot;);</span>
+    }
+
+    /**
+     * @return Text string used to say that every thing is ok with this node.
+     */
+    public static String getOkMessage() {
+<span class="nc" id="L159">        return EjbcaConfigurationHolder.getExpandedString(&quot;healthcheck.okmessage&quot;);</span>
+    }
+    
+    /**
+     * 
+     * @return true if an error code 500 should be sent in case of error.
+     */
+    public static boolean getSendServerError() {
+<span class="nc" id="L167">     return TRUE.equalsIgnoreCase(EjbcaConfigurationHolder.getExpandedString(&quot;healthcheck.sendservererror&quot;));</span>
+    }
+    
+    /**
+     * 
+     * @return a static error message instead of one generated by the HealthChecker
+     */
+    public static String getCustomErrorMessage() {
+<span class="nc" id="L175">        return EjbcaConfigurationHolder.getExpandedString(&quot;healthcheck.customerrormessage&quot;);</span>
+    }
+
+    /**
+     *@return Class performing the healthcheck. Must implement the IHealthCheck interface.
+     */
+    public static String getHealthCheckClassPath() {
+<span class="nc" id="L182">        return EjbcaConfigurationHolder.getExpandedString(&quot;healthcheck.classpath&quot;);</span>
+    }
+
+    /**
+     * @return Parameter to specify if retrieving endEntity profiles in EndEntityProfileSessionBean should be cached, and in that case for how long.
+     */
+    public static long getCacheEndEntityProfileTime() {
+<span class="nc" id="L189">        long time = 1000; // cache 1 second is the default</span>
+        try {
+<span class="nc" id="L191">            time = Long.valueOf(EjbcaConfigurationHolder.getString(&quot;eeprofiles.cachetime&quot;));</span>
+<span class="nc" id="L192">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L193">            log.error(&quot;Invalid value in eeprofiles.cachetime, must be decimal number (milliseconds to cache EndEntity profiles): &quot; + e.getMessage());</span>
+<span class="nc" id="L194">        }</span>
+<span class="nc" id="L195">        return time;</span>
+    }
+    
+    /**
+     * @return Parameter to specify if retrieving approval profiles in ApprovalProfileSessionBean should be cached, and in that case for how long.
+     */
+    public static long getCacheApprovalProfileTime() {
+<span class="nc" id="L202">        long time = 1000; // cache 1 second is the default</span>
+        try {
+<span class="nc" id="L204">            time = Long.valueOf(EjbcaConfigurationHolder.getString(&quot;approvalprofiles.cachetime&quot;));</span>
+<span class="nc" id="L205">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L206">            log.error(&quot;Invalid value in approvalprofiles.cachetime, must be decimal number (milliseconds to cache approval profiles): &quot; + e.getMessage());</span>
+<span class="nc" id="L207">        }</span>
+<span class="nc" id="L208">        return time;</span>
+    }
+    
+    /**
+     * @return Parameter to specify if retrieving Publishers from PublisherSession should be cached, and in that case for how long.
+     */
+    public static long getCachePublisherTime() {
+<span class="nc" id="L215">        final String value = EjbcaConfigurationHolder.getString(&quot;publisher.cachetime&quot;);</span>
+<span class="nc" id="L216">        long time = 1000; // cache 1 second is the default</span>
+        try {
+<span class="nc bnc" id="L218" title="All 2 branches missed.">            if (value!=null) {</span>
+<span class="nc" id="L219">                time = Long.valueOf(value);</span>
+            }
+<span class="nc" id="L221">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L222">            log.error(&quot;Invalid value in publisher.cachetime, must be decimal number (milliseconds to cache Publisher): &quot; + e.getMessage());</span>
+<span class="nc" id="L223">        }</span>
+<span class="nc" id="L224">        return time;</span>
+    }
+
+    /** @return Custom Available Access Rules. */
+    public static String[] getCustomAvailableAccessRules() {
+<span class="nc" id="L229">    	return StringUtils.split(EjbcaConfigurationHolder.getString(&quot;ejbca.customavailableaccessrules&quot;), ';');</span>
+    }
+
+    /**
+     * @return Parameter to specify if how many rounds the BCrypt algorithm should process passwords stored in the database.
+     * 0 means use the old way instead of BCrypt.
+     */
+    public static int getPasswordLogRounds() {
+<span class="nc" id="L237">    	final String PROPERTY_NAME = &quot;ejbca.passwordlogrounds&quot;;</span>
+<span class="nc" id="L238">        int time = 1; // only 1 single round is the default</span>
+        try {
+<span class="nc" id="L240">            time = Integer.valueOf(EjbcaConfigurationHolder.getString(PROPERTY_NAME));</span>
+<span class="nc" id="L241">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L242">            log.error(&quot;Invalid value in &quot; + PROPERTY_NAME + &quot;, must be decimal number, using 1 round: &quot; + e.getMessage());</span>
+<span class="nc" id="L243">        }</span>
+<span class="nc" id="L244">        return time;</span>
+    }
+    
+    public static String getCliDefaultUser() {
+<span class="nc" id="L248">        return EjbcaConfigurationHolder.getString(&quot;ejbca.cli.defaultusername&quot;);</span>
+    }
+    
+    public static String getCliDefaultPassword() {
+<span class="nc" id="L252">        return EjbcaConfigurationHolder.getString(&quot;ejbca.cli.defaultpassword&quot;);</span>
+    }
+
+    public static String getScepDefaultCA() {
+<span class="nc" id="L256">        return EjbcaConfigurationHolder.getString(&quot;scep.defaultca&quot;);</span>
+    }
+
+    /** @return true if publishers should be invoked in parallel instead of sequentially. */
+    @Deprecated // EJBCA 6.3.0 safety for the new Parallel publishing feature. Remove when default is considered stable.
+    public static boolean isPublishParallelEnabled() {
+<span class="nc" id="L262">        return getBooleanProperty(&quot;publish.parallel.enabled&quot;, true);</span>
+    }
+
+    /** @return true if TCP keep alive should be used for outgoing peer connections. */
+    @Deprecated // EJBCA 6.3.0 safety for the new PeerConnector feature. Remove when default is considered stable.
+    public static boolean isPeerSoKeepAlive() {
+<span class="nc" id="L268">        return getBooleanProperty(&quot;peerconnector.connection.sokeepalive&quot;, true);</span>
+    }
+
+    /** @return true if Nagle's algorithm should be disabled for outgoing peer connections. */
+    @Deprecated // EJBCA 6.3.0 safety for the new PeerConnector feature. Remove when default is considered stable.
+    public static boolean isPeerTcpNoDelay() {
+<span class="nc" id="L274">        return getBooleanProperty(&quot;peerconnector.connection.tcpnodelay&quot;, false);</span>
+    }
+
+    /** @return the socket timeout in milliseconds for outgoing peer connections. */
+    @Deprecated // EJBCA 6.3.0 safety for the new PeerConnector feature. Remove when default is considered stable.
+    public static int getPeerSoTimeoutMillis() {
+<span class="nc" id="L280">        return getIntProperty(&quot;peerconnector.connection.sotimeout&quot;, 20000);</span>
+    }
+
+    /** @return the maximum pool size for outgoing peer connections. */
+    @Deprecated // EJBCA 6.3.0 safety for the new PeerConnector feature. Remove when default is considered stable.
+    public static int getPeerMaxPoolSize() {
+<span class="nc" id="L286">        return getIntProperty(&quot;peerconnector.connection.maxpoolsize&quot;, 100);</span>
+    }
+
+    /** @return the number of database entries to compare at the time when doing background synchronization of certificate data. */
+    @Deprecated // EJBCA 6.3.0 safety for the new PeerConnector feature. Remove when default is considered stable.
+    public static int getPeerSyncBatchSize() {
+<span class="nc" id="L292">        return getIntProperty(&quot;peerconnector.sync.batchsize&quot;, 2000);</span>
+    }
+
+    /** @return the maximum number of updates to send in parallel when doing background synchronization of certificate data. */
+    @Deprecated // EJBCA 6.3.0 safety for the new PeerConnector feature. Remove when default is considered stable.
+    public static int getPeerSyncConcurrency() {
+<span class="nc" id="L298">        return getIntProperty(&quot;peerconnector.sync.concurrency&quot;, 12);</span>
+    }
+
+    /** @return the largest allowed incoming peer message that will be processed. */
+    @Deprecated // EJBCA 6.3.0 safety for the new PeerConnector feature. Remove when default is considered stable.
+    public static int getPeerIncomingMaxMessageSize() {
+<span class="nc" id="L304">        return getIntProperty(&quot;peerconnector.incoming.maxmessagesize&quot;, 134217728);</span>
+    }
+
+    /** @return how long a peer can be absent in milliseconds before (re-)authentication is triggered. */
+    @Deprecated // EJBCA 6.3.0 safety for the new PeerConnector feature. Remove when default is considered stable.
+    public static long getPeerIncomingAuthCacheTimeMillis() {
+<span class="nc" id="L310">        return Integer.valueOf(getIntProperty(&quot;peerconnector.incoming.authcachetime&quot;, 60000)).longValue();</span>
+    }
+
+    public static long getPeerDataCacheTime() {
+<span class="nc" id="L314">        return getLongProperty(&quot;peerconnector.cachetime&quot;, 60000L);</span>
+    }
+
+    /** @param key Key
+     * @param defaultValue Default 
+     * @return the value as a boolean or the default otherwise. */
+    private static boolean getBooleanProperty(final String key, final boolean defaultValue) {
+<span class="nc" id="L321">        final String value = EjbcaConfigurationHolder.getString(key);</span>
+<span class="nc bnc" id="L322" title="All 2 branches missed.">        if (defaultValue) {</span>
+<span class="nc bnc" id="L323" title="All 2 branches missed.">            return !Boolean.FALSE.toString().equalsIgnoreCase(value);</span>
+        } else {
+<span class="nc bnc" id="L325" title="All 2 branches missed.">            return !Boolean.TRUE.toString().equalsIgnoreCase(value);</span>
+        }
+    }
+    
+    /** @param key Key
+     * @param defaultValue Default 
+     * @return the value as an int or the default otherwise. */
+    private static int getIntProperty(final String key, final int defaultValue) {
+<span class="nc" id="L333">        final String value = EjbcaConfigurationHolder.getString(key);</span>
+<span class="nc" id="L334">        int ret = defaultValue;</span>
+        try {
+<span class="nc bnc" id="L336" title="All 2 branches missed.">            if (value!=null) {</span>
+<span class="nc" id="L337">                ret = Integer.valueOf(value);</span>
+            }
+<span class="nc" id="L339">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L340">            log.error(&quot;Invalid value configured for '&quot;+key+&quot;', must be decimal number: &quot; + e.getMessage());</span>
+<span class="nc" id="L341">        }</span>
+<span class="nc" id="L342">        return ret;</span>
+    }
+
+    /** @param key Key
+     * @param defaultValue Default 
+     * @return the value as an long or the default otherwise. */
+    private static long getLongProperty(final String key, final long defaultValue) {
+<span class="nc" id="L349">        final String value = EjbcaConfigurationHolder.getString(key);</span>
+<span class="nc" id="L350">        long ret = defaultValue;</span>
+        try {
+<span class="nc bnc" id="L352" title="All 2 branches missed.">            if (value!=null) {</span>
+<span class="nc" id="L353">                ret = Long.valueOf(value);</span>
+            }
+<span class="nc" id="L355">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L356">            log.error(&quot;Invalid value configured for '&quot;+key+&quot;', must be decimal number: &quot; + e.getMessage());</span>
+<span class="nc" id="L357">        }</span>
+<span class="nc" id="L358">        return ret;</span>
+    }
+   
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

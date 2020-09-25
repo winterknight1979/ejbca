@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RequestAndPublicKeySelector.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-ejb-interface</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.ca.internal</a> &gt; <span class="el_source">RequestAndPublicKeySelector.java</span></div><h1>RequestAndPublicKeySelector.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/ 
+package org.cesecore.certificates.ca.internal;
+
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PublicKey;
+
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.certificate.request.RequestMessage;
+import org.cesecore.certificates.certificate.request.RequestMessageUtils;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+
+/** Class used to select which request message and public key to use to issue a certificate, by looking
+ * at the various input in priority order. 
+ * 3. Request inside endEntityInformation has priority over providedPublicKey and providedRequestMessage
+ * 2. providedPublicKey has priority over the public key in providedRequestMessage
+ * 1. providedRequestMessage and it's public key is used
+ * 
+ * @version $Id: RequestAndPublicKeySelector.java 26392 2017-08-22 17:49:48Z anatom $
+ */
+public class RequestAndPublicKeySelector {
+
+	/** Class logger. */
+<span class="nc" id="L36">    private static final Logger log = Logger.getLogger(RequestAndPublicKeySelector.class);</span>
+    
+    private PublicKey publicKey;
+    private RequestMessage requestMessage;
+    /** Constructor taking input needed to make decision on which public key and requets message to use. After construction caller can use the methods
+     * {@link #getPublicKey()} and {@link #getRequestMessage()} to retrieve the selected objects.
+     * 
+     * @param providedRequestMessage message
+     * @param providedPublicKey key
+     * @param endEntityInformation info
+     */
+<span class="nc" id="L47">    public RequestAndPublicKeySelector(final RequestMessage providedRequestMessage, final PublicKey providedPublicKey, final ExtendedInformation endEntityInformation) {</span>
+<span class="nc" id="L48">        requestMessage = providedRequestMessage; //The request message was provided outside of endEntityInformation</span>
+<span class="nc" id="L49">        String debugPublicKeySource = null;</span>
+<span class="nc" id="L50">        String debugRequestMessageSource = null;</span>
+<span class="nc bnc" id="L51" title="All 2 branches missed.">        if (providedRequestMessage != null){</span>
+            try {
+<span class="nc" id="L53">                publicKey = providedRequestMessage.getRequestPublicKey();</span>
+<span class="nc" id="L54">                debugPublicKeySource = &quot;from providedRequestMessage&quot;;</span>
+<span class="nc" id="L55">                debugRequestMessageSource = &quot;from providedRequestMessage&quot;;</span>
+<span class="nc" id="L56">            } catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchProviderException e1) {</span>
+                //Fine since public key can be provided with providedPublicKey or endEntityInformation.extendedInformation.certificateRequest
+<span class="nc" id="L58">            }</span>
+        }
+        //ProvidedPublicKey has priority over providedRequestMessage.requestPublicKey
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        if (providedPublicKey != null){</span>
+<span class="nc" id="L62">            publicKey = providedPublicKey;</span>
+<span class="nc" id="L63">            debugPublicKeySource = &quot;separately&quot;;</span>
+        }
+        //Request inside endEntityInformation has priority over providedPublicKey and providedRequestMessage
+<span class="nc bnc" id="L66" title="All 4 branches missed.">        if (endEntityInformation != null &amp;&amp; endEntityInformation.getCertificateRequest() != null){</span>
+<span class="nc" id="L67">            requestMessage = RequestMessageUtils.genPKCS10RequestMessage(endEntityInformation.getCertificateRequest());</span>
+            try {
+<span class="nc" id="L69">                publicKey = requestMessage.getRequestPublicKey();</span>
+<span class="nc" id="L70">                debugPublicKeySource = &quot;from endEntity.extendedInformaion.certificateRequest&quot;;</span>
+<span class="nc" id="L71">                debugRequestMessageSource = &quot;from endEntity.extendedInformaion.certificateRequest&quot;;</span>
+<span class="nc" id="L72">            } catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchProviderException e) {</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L74">                    log.debug(&quot;Error occured with extracting public key from endEntityInformation.extendedInformation. Proceeding with one provided separately&quot;, e);</span>
+                }
+<span class="nc" id="L76">            }</span>
+        }
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L79">            log.debug(&quot;Public key is provided &quot; + debugPublicKeySource);</span>
+<span class="nc" id="L80">            log.debug(&quot;Request is provided &quot; + debugRequestMessageSource);</span>
+        }
+<span class="nc" id="L82">    }</span>
+
+    public PublicKey getPublicKey() {
+<span class="nc" id="L85">        return publicKey;</span>
+    }
+
+    public RequestMessage getRequestMessage() {
+<span class="nc" id="L89">        return requestMessage;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

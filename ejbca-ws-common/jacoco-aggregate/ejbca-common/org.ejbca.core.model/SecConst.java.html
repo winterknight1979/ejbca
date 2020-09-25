@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>SecConst.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-ws-common</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model</a> &gt; <span class="el_source">SecConst.java</span></div><h1>SecConst.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.model;
+
+/**
+ * Constants for users and certificates. Constants for Type of user: Type is constructed as a mask
+ * since one user can be of several types. To test a user type:
+ * &lt;pre&gt;
+ * if (((type &amp;amp; USER_ENDUSER) == USER_ENDUSER) &amp;amp;&amp;amp; ((type &amp;amp; USER_CAADMIN) == USER_ADMINISTOR) || ...
+ *    ...
+ * &lt;/pre&gt;
+ * Bit usage: bits 0-7   (1:st byte):  user types bits 8-15  (2:nd byte):  unused bits 16-23 (3:rd
+ * byte):  unused bits 24-30 (4:th byte):  unused Constants for certificates are simple integer
+ * types. Constants for Token Types Token type is constructed of integer constants since only one
+ * token type can be generated.
+ *
+ * @version $Id: SecConst.java 27422 2017-12-05 14:05:42Z bastianf $
+ */
+public final class SecConst {
+
+    // Token types.
+
+    /** Indicates that a browser generated token should be used. */
+    public static final int TOKEN_SOFT_BROWSERGEN = 1;
+
+    /** Indicates that a p12 token should be generated. */
+    public static final int TOKEN_SOFT_P12 = 2;
+
+    /** Indicates that a jks token should be generated. */
+    public static final int TOKEN_SOFT_JKS = 3;
+
+    /** Indicates that a pem token should be generated. */
+    public static final int TOKEN_SOFT_PEM = 4;
+
+    /** All values equal or below this constant should be treated as a soft token. */
+    public static final int TOKEN_SOFT = 100;
+
+<span class="nc" id="L49">    public static final String[] TOKENTEXTS = {&quot;TOKENSOFTUSERGENERATED&quot;,&quot;TOKENSOFTP12&quot;,&quot;TOKENSOFTJKS&quot;,&quot;TOKENSOFTPEM&quot;};</span>
+
+<span class="nc" id="L51">    public static final int[]    TOKENIDS   = {SecConst.TOKEN_SOFT_BROWSERGEN,SecConst.TOKEN_SOFT_P12,SecConst.TOKEN_SOFT_JKS,SecConst.TOKEN_SOFT_PEM};</span>
+
+    /** Constant indicating a standard hard token, defined in scaper. */
+    public static final int TOKEN_HARD_DEFAULT = 101;
+
+    /** Constant indicating a eid hard token.
+     *   OBSERVE This class should only be used for backward compatibility with EJBCA 2.0
+     */
+    public static final int TOKEN_EID = 102;
+
+    /**Constant indicating a swedish eid hard token.  */
+    public static final int TOKEN_SWEDISHEID = 103;
+
+    /**Constant indicating a enhanced eid hard token.  */
+    public static final int TOKEN_ENHANCEDEID = 104;
+
+    /**Constant indicating a enhanced eid hard token.  */
+    public static final int TOKEN_TURKISHEID = 105;
+
+    public static final int NO_HARDTOKENISSUER = 0;
+
+    // ECA-419 Check This!
+    public static final int EMPTY_VALIDATOR = 1;
+
+    /** Used in end entity profiles and service workers
+     * This is duplicated in CAConstants */
+    public static final int ALLCAS = 1;
+
+
+    /**
+     * Constants used in the SignSessionBean indicating the userdata defined CA should be used.
+     */
+    public static final int CAID_USEUSERDEFINED = 0;
+
+    /**
+     * Default key lengths. Users are allowed to choose from these key lengths when
+     * lookup of available bit lengths fails.
+     * see org.ejbca.ui.web.pub.ApplyBean in publicweb-gui
+     */
+<span class="nc" id="L90">    public static final int[] DEFAULT_KEY_LENGTHS = new int[] {512, 1024, 2048};</span>
+
+    /**
+     * Prevents creation of new SecConst
+     */
+    private SecConst() {
+    }
+
+	// Revocation reasons identifiers
+<span class="nc" id="L99">    public static final String[] reasontexts = {</span>
+        &quot;REV_UNSPECIFIED&quot;,			&quot;REV_KEYCOMPROMISE&quot;,	&quot;REV_CACOMPROMISE&quot;,
+        &quot;REV_AFFILIATIONCHANGED&quot;,	&quot;REV_SUPERSEDED&quot;,		&quot;REV_CESSATIONOFOPERATION&quot;,
+        &quot;REV_CERTIFICATEHOLD&quot;,		&quot;REV_UNUSED&quot;,			&quot;REV_REMOVEFROMCRL&quot;,
+        &quot;REV_PRIVILEGEWITHDRAWN&quot;,	&quot;REV_AACOMPROMISE&quot;
+    };
+    public static final int HIGN_REASON_BOUNDRARY = 11;
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

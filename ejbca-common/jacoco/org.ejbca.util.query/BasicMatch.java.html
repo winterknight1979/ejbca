@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BasicMatch.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util.query</a> &gt; <span class="el_source">BasicMatch.java</span></div><h1>BasicMatch.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.util.query;
+
+import java.io.Serializable;
+
+import org.apache.commons.lang.StringEscapeUtils;
+
+/**
+ * A base class used by Query class to build a query. Inherited by UserMatch, TimeMatch and
+ * LogMatch. Main function is getQueryString which is abstract and must be overloaded.
+ *
+ * @version $Id: BasicMatch.java 25704 2017-04-18 14:42:43Z jeklund $
+ */
+public abstract class BasicMatch implements Serializable {
+    
+    private static final long serialVersionUID = -1L;
+
+    public static final int MATCH_TYPE_EQUALS = 0;
+    public static final int MATCH_TYPE_BEGINSWITH = 1;
+    public static final int MATCH_TYPE_CONTAINS = 2;
+
+    /** Creates a new instance of BasicMatch */
+<span class="fc" id="L34">    public BasicMatch() { }</span>
+
+    /** @return a SQL statement fragment from the given data (with escaped single quotes). */
+    public abstract String getQueryString();
+
+    /** @return true if query is legal, false otherwise */
+    public abstract boolean isLegalQuery();
+
+    /** Escape single quotes as double quotes 
+     * @param matchValue Value
+     * @return String */
+    public String escapeSql(final String matchValue) {
+<span class="fc" id="L46">        return StringEscapeUtils.escapeSql(matchValue);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

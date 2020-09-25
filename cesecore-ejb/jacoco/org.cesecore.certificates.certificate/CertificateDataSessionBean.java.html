@@ -1,0 +1,456 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CertificateDataSessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cesecore-ejb</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.certificate</a> &gt; <span class="el_source">CertificateDataSessionBean.java</span></div><h1>CertificateDataSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.certificate;
+
+import java.math.BigInteger;
+import java.security.cert.Certificate;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.TimeZone;
+
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+
+import org.apache.commons.lang.time.FastDateFormat;
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.crl.RevokedCertInfo;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.util.QueryResultWrapper;
+import org.cesecore.util.ValidityDate;
+import org.cesecore.util.ValueExtractor;
+
+/**
+ * Low level CRUD functions to access CertificateData
+ *
+ * @version $Id: CertificateDataSessionBean.java 28981 2018-05-21 14:10:49Z jekaterina_b_helmes $
+ */
+@Stateless //(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;CertificateDataSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+<span class="nc" id="L47">public class CertificateDataSessionBean extends BaseCertificateDataSessionBean implements CertificateDataSessionLocal {</span>
+
+<span class="nc" id="L49">    private static final Logger log = Logger.getLogger(CertificateDataSessionBean.class);</span>
+
+    @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+    private EntityManager entityManager;
+
+    @Override
+    protected String getTableName() {
+<span class="nc" id="L56">        return &quot;CertificateData&quot;;</span>
+    }
+
+    @Override
+    protected EntityManager getEntityManager() {
+<span class="nc" id="L61">        return entityManager;</span>
+    }
+
+    //
+    // Search functions.
+    //
+
+    /** @return the found entity instance or null if the entity does not exist */
+    @Override
+    public CertificateData findByFingerprint(String fingerprint) {
+<span class="nc" id="L71">        return entityManager.find(CertificateData.class, fingerprint);</span>
+    }
+
+    /** @return return the query results as a Set. */
+    @Override
+    public Set&lt;String&gt; findUsernamesBySubjectDNAndIssuerDN(final String subjectDN, final String issuerDN) {
+<span class="nc" id="L77">            final TypedQuery&lt;String&gt; query = entityManager.createQuery(&quot;SELECT a.username FROM CertificateData a WHERE a.subjectDN=:subjectDN AND a.issuerDN=:issuerDN&quot;, String.class);</span>
+<span class="nc" id="L78">            query.setParameter(&quot;subjectDN&quot;, subjectDN);</span>
+<span class="nc" id="L79">            query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
+<span class="nc" id="L80">            return new HashSet&lt;&gt;(query.getResultList());</span>
+    }
+
+    /** @return return the query results as a List. */
+    @Override
+    public List&lt;CertificateData&gt; findBySubjectDN(final String subjectDN) {
+<span class="nc" id="L86">        final TypedQuery&lt;CertificateData&gt; query = entityManager.createQuery(&quot;SELECT a FROM CertificateData a WHERE a.subjectDN=:subjectDN&quot;, CertificateData.class);</span>
+<span class="nc" id="L87">        query.setParameter(&quot;subjectDN&quot;, subjectDN);</span>
+<span class="nc" id="L88">        return query.getResultList();</span>
+    }
+
+    /** @return return the query results as a List. */
+    @Override
+    public List&lt;CertificateData&gt; findBySerialNumber(final String serialNumber) {
+<span class="nc" id="L94">        final TypedQuery&lt;CertificateData&gt; query = entityManager.createQuery(&quot;SELECT a FROM CertificateData a WHERE a.serialNumber=:serialNumber&quot;, CertificateData.class);</span>
+<span class="nc" id="L95">        query.setParameter(&quot;serialNumber&quot;, serialNumber);</span>
+<span class="nc" id="L96">        return query.getResultList();</span>
+    }
+
+    /** @return return the query results as a List. */
+    @Override
+    public List&lt;CertificateData&gt; findByIssuerDNSerialNumber(final String issuerDN, final String serialNumber) {
+<span class="nc" id="L102">        final TypedQuery&lt;CertificateData&gt; query = entityManager.createQuery(&quot;SELECT a FROM CertificateData a WHERE a.issuerDN=:issuerDN AND a.serialNumber=:serialNumber&quot;, CertificateData.class);</span>
+<span class="nc" id="L103">        query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
+<span class="nc" id="L104">        query.setParameter(&quot;serialNumber&quot;, serialNumber);</span>
+<span class="nc" id="L105">        return query.getResultList();</span>
+    }
+
+    @Override
+    public CertificateInfo findFirstCertificateInfo(final String issuerDN, final String serialNumber) {
+<span class="nc" id="L110">        CertificateInfo ret = null;</span>
+<span class="nc" id="L111">        final Query query = entityManager</span>
+<span class="nc" id="L112">                .createNativeQuery(</span>
+                        &quot;SELECT a.fingerprint, a.subjectDN, a.cAFingerprint, a.status, a.type, a.serialNumber, a.notBefore, a.expireDate, a.revocationDate, a.revocationReason, &quot;
+                                + &quot;a.username, a.tag, a.certificateProfileId, a.endEntityProfileId, a.updateTime, a.subjectKeyId, a.subjectAltName FROM CertificateData a WHERE a.issuerDN=:issuerDN AND a.serialNumber=:serialNumber&quot;,
+                        &quot;CertificateInfoSubset2&quot;);
+<span class="nc" id="L116">        query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
+<span class="nc" id="L117">        query.setParameter(&quot;serialNumber&quot;, serialNumber);</span>
+<span class="nc" id="L118">        query.setMaxResults(1);</span>
+        @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L120">        final List&lt;Object[]&gt; resultList = query.getResultList();</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        if (!resultList.isEmpty()) {</span>
+<span class="nc" id="L122">            final Object[] fields = resultList.get(0);</span>
+            // The order of the results are defined by the SqlResultSetMapping annotation
+<span class="nc" id="L124">            final String fingerprint = (String) fields[0];</span>
+<span class="nc" id="L125">            final String subjectDN = (String) fields[1];</span>
+<span class="nc" id="L126">            final String cafp = (String) fields[2];</span>
+<span class="nc" id="L127">            final int status = ValueExtractor.extractIntValue(fields[3]);</span>
+<span class="nc" id="L128">            final int type = ValueExtractor.extractIntValue(fields[4]);</span>
+            final Long notBefore;
+<span class="nc bnc" id="L130" title="All 2 branches missed.">            if (fields[5] == null) {</span>
+<span class="nc" id="L131">                notBefore = null;</span>
+            } else {
+<span class="nc" id="L133">                notBefore = ValueExtractor.extractLongValue(fields[5]);</span>
+            }
+<span class="nc" id="L135">            final long expireDate = ValueExtractor.extractLongValue(fields[6]);</span>
+<span class="nc" id="L136">            final long revocationDate = ValueExtractor.extractLongValue(fields[7]);</span>
+<span class="nc" id="L137">            final int revocationReason = ValueExtractor.extractIntValue(fields[8]);</span>
+<span class="nc" id="L138">            final String username = (String) fields[9];</span>
+<span class="nc" id="L139">            final String tag = (String) fields[10];</span>
+<span class="nc" id="L140">            final int certificateProfileId = ValueExtractor.extractIntValue(fields[11]);</span>
+            final Integer endEntityProfileId;
+<span class="nc bnc" id="L142" title="All 2 branches missed.">            if (fields[12] == null) {</span>
+<span class="nc" id="L143">                endEntityProfileId = null;</span>
+            } else {
+<span class="nc" id="L145">                endEntityProfileId = ValueExtractor.extractIntValue(fields[12]);</span>
+            }
+            final long updateTime;
+<span class="nc bnc" id="L148" title="All 2 branches missed.">            if (fields[13] == null) {</span>
+<span class="nc" id="L149">                updateTime = 0; // Might be null in an upgraded installation</span>
+            } else {
+<span class="nc" id="L151">                updateTime = ValueExtractor.extractLongValue(fields[13]);</span>
+            }
+<span class="nc" id="L153">            final String subjectKeyId = (String)fields[14];</span>
+<span class="nc" id="L154">            final String subjectAltName = (String)fields[15];</span>
+<span class="nc" id="L155">            ret = new CertificateInfo(fingerprint, cafp, serialNumber, issuerDN, subjectDN, status, type, notBefore, expireDate, revocationDate,</span>
+                    revocationReason, username, tag, certificateProfileId, endEntityProfileId, updateTime, subjectKeyId, subjectAltName);
+        }
+<span class="nc" id="L158">        return ret;</span>
+    }
+
+    @Override
+    public String findLastUsernameByIssuerDNSerialNumber(String issuerDN, String serialNumber) {
+<span class="nc" id="L163">        final TypedQuery&lt;String&gt; query = entityManager</span>
+<span class="nc" id="L164">                .createQuery(&quot;SELECT a.username FROM CertificateData a WHERE a.issuerDN=:issuerDN AND a.serialNumber=:serialNumber&quot;, String.class);</span>
+<span class="nc" id="L165">        query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
+<span class="nc" id="L166">        query.setParameter(&quot;serialNumber&quot;, serialNumber);</span>
+        // Since no ordering is done this seems a bit strange, but this is what it was like in previous versions..
+<span class="nc" id="L168">        return QueryResultWrapper.getLastResult(query);</span>
+    }
+
+    @Override
+    public List&lt;CertificateData&gt; findByUsernameOrdered(String username) {
+<span class="nc" id="L173">        final TypedQuery&lt;CertificateData&gt; query = entityManager</span>
+<span class="nc" id="L174">                .createQuery(&quot;SELECT a FROM CertificateData a WHERE a.username=:username ORDER BY a.expireDate DESC, a.serialNumber DESC&quot;, CertificateData.class);</span>
+<span class="nc" id="L175">        query.setParameter(&quot;username&quot;, username);</span>
+<span class="nc" id="L176">        return query.getResultList();</span>
+    }
+
+    /** @return return the query results as a List. */
+    @Override
+    public List&lt;CertificateData&gt; findByUsernameAndStatus(final String username, final int status) {
+<span class="nc" id="L182">        final TypedQuery&lt;CertificateData&gt; query = entityManager</span>
+<span class="nc" id="L183">                .createQuery(&quot;SELECT a FROM CertificateData a WHERE a.username=:username AND a.status=:status ORDER BY a.expireDate DESC, a.serialNumber DESC&quot;, CertificateData.class);</span>
+<span class="nc" id="L184">        query.setParameter(&quot;username&quot;, username);</span>
+<span class="nc" id="L185">        query.setParameter(&quot;status&quot;, status);</span>
+<span class="nc" id="L186">        return query.getResultList();</span>
+    }
+
+    /** @return return the query results as a List. */
+    @Override
+    public List&lt;CertificateData&gt; findByUsernameAndStatusAfterExpireDate(final String username, final int status, final long afterExpireDate) {
+<span class="nc" id="L192">        final TypedQuery&lt;CertificateData&gt; query = entityManager</span>
+<span class="nc" id="L193">                .createQuery(&quot;SELECT a FROM CertificateData a WHERE a.username=:username AND a.status=:status AND a.expireDate&gt;=:afterExpireDate ORDER BY a.expireDate DESC, a.serialNumber DESC&quot;,</span>
+                        CertificateData.class);
+<span class="nc" id="L195">        query.setParameter(&quot;username&quot;, username);</span>
+<span class="nc" id="L196">        query.setParameter(&quot;status&quot;, status);</span>
+<span class="nc" id="L197">        query.setParameter(&quot;afterExpireDate&quot;, afterExpireDate);</span>
+<span class="nc" id="L198">        return query.getResultList();</span>
+    }
+
+    // TODO: When only JPA is used, check if we can refactor this method to SELECT DISTINCT a.username FROM ...
+    @Override
+    public Set&lt;String&gt; findUsernamesByIssuerDNAndSubjectKeyId(final String issuerDN, final String subjectKeyId) {
+<span class="nc" id="L204">        final TypedQuery&lt;String&gt; query = entityManager.createQuery(&quot;SELECT a.username FROM CertificateData a WHERE a.issuerDN=:issuerDN AND a.subjectKeyId=:subjectKeyId&quot;, String.class);</span>
+<span class="nc" id="L205">        query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
+<span class="nc" id="L206">        query.setParameter(&quot;subjectKeyId&quot;, subjectKeyId);</span>
+<span class="nc" id="L207">        return new HashSet&lt;&gt;(query.getResultList());</span>
+    }
+
+    @Override
+    public String findUsernameByIssuerDnAndSerialNumber(final String issuerDn, final String serialNumber) {
+<span class="nc" id="L212">        final TypedQuery&lt;String&gt; query = entityManager.createQuery(&quot;SELECT a.username FROM CertificateData a WHERE a.issuerDN=:issuerDN AND a.serialNumber=:serialNumber&quot;, String.class);</span>
+<span class="nc" id="L213">        query.setParameter(&quot;issuerDN&quot;, issuerDn);</span>
+<span class="nc" id="L214">        query.setParameter(&quot;serialNumber&quot;, serialNumber);</span>
+<span class="nc" id="L215">        return query.getSingleResult();</span>
+    }
+
+    @Override
+    public Set&lt;String&gt; findUsernamesBySubjectKeyIdOrDnAndIssuer(final String issuerDN, final String subjectKeyId, final String subjectDN) {
+<span class="nc" id="L220">        final TypedQuery&lt;String&gt; query = entityManager.createQuery(&quot;SELECT a.username FROM CertificateData a WHERE (a.subjectKeyId=:subjectKeyId OR a.subjectDN=:subjectDN) AND a.issuerDN=:issuerDN&quot;,</span>
+                String.class);
+<span class="nc" id="L222">        query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
+<span class="nc" id="L223">        query.setParameter(&quot;subjectKeyId&quot;, subjectKeyId);</span>
+<span class="nc" id="L224">        query.setParameter(&quot;subjectDN&quot;, subjectDN);</span>
+<span class="nc" id="L225">        return new HashSet&lt;&gt;(query.getResultList());</span>
+    }
+
+    @Override
+    public List&lt;String&gt; findFingerprintsByIssuerDN(final String issuerDN) {
+<span class="nc" id="L230">        final TypedQuery&lt;String&gt; query = entityManager.createQuery(&quot;SELECT a.fingerprint FROM CertificateData a WHERE a.issuerDN=:issuerDN&quot;, String.class);</span>
+<span class="nc" id="L231">        query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
+<span class="nc" id="L232">        return query.getResultList();</span>
+    }
+
+    @Override
+    public Collection&lt;RevokedCertInfo&gt; getRevokedCertInfos(final String issuerDN, final long lastbasecrldate) {
+<span class="nc bnc" id="L237" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L238">            log.debug(&quot;Quering for revoked certificates. IssuerDN: '&quot; + issuerDN + &quot;', Last Base CRL Date: &quot; + FastDateFormat.getInstance(ValidityDate.ISO8601_DATE_FORMAT, TimeZone.getTimeZone(&quot;GMT&quot;)).format(lastbasecrldate));</span>
+        }
+<span class="nc" id="L240">        return getRevokedCertInfosInternal(issuerDN, lastbasecrldate, false);</span>
+    }
+
+    @Override
+    public List&lt;CertificateData&gt; findByExpireDateWithLimit(final long expireDate, final int maxNumberOfResults) {
+<span class="nc" id="L245">        final TypedQuery&lt;CertificateData&gt; query = entityManager</span>
+<span class="nc" id="L246">                .createQuery(&quot;SELECT a FROM CertificateData a WHERE a.expireDate&lt;:expireDate AND (a.status=:status1 OR a.status=:status2)&quot;, CertificateData.class);</span>
+<span class="nc" id="L247">        query.setParameter(&quot;expireDate&quot;, expireDate);</span>
+<span class="nc" id="L248">        query.setParameter(&quot;status1&quot;, CertificateConstants.CERT_ACTIVE);</span>
+<span class="nc" id="L249">        query.setParameter(&quot;status2&quot;, CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION);</span>
+<span class="nc" id="L250">        query.setMaxResults(maxNumberOfResults);</span>
+<span class="nc" id="L251">        return query.getResultList();</span>
+    }
+
+    @Override
+    public List&lt;CertificateData&gt; findByExpireDateWithLimitAndOffset(long expireDate, int maxNumberOfResults, int offset) {
+<span class="nc" id="L256">        final TypedQuery&lt;CertificateData&gt; query = entityManager</span>
+<span class="nc" id="L257">                .createQuery(&quot;SELECT a FROM CertificateData a WHERE a.expireDate&lt;:expireDate AND (a.status=:status1 OR a.status=:status2) order by a.expireDate asc&quot;, CertificateData.class);</span>
+<span class="nc" id="L258">        query.setParameter(&quot;expireDate&quot;, expireDate);</span>
+<span class="nc" id="L259">        query.setParameter(&quot;status1&quot;, CertificateConstants.CERT_ACTIVE);</span>
+<span class="nc" id="L260">        query.setParameter(&quot;status2&quot;, CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION);</span>
+<span class="nc" id="L261">        query.setMaxResults(maxNumberOfResults);</span>
+<span class="nc" id="L262">        query.setFirstResult(offset);</span>
+<span class="nc" id="L263">        return query.getResultList();</span>
+    }
+
+
+    @Override
+    public int countByExpireDate(long expireDate) {
+<span class="nc" id="L269">        Query query = entityManager.createQuery(&quot;SELECT count(a) FROM CertificateData a WHERE a.expireDate&lt;:expireDate AND (a.status=:status1 OR a.status=:status2) &quot;);</span>
+<span class="nc" id="L270">        query.setParameter(&quot;expireDate&quot;, expireDate);</span>
+<span class="nc" id="L271">        query.setParameter(&quot;status1&quot;, CertificateConstants.CERT_ACTIVE);</span>
+<span class="nc" id="L272">        query.setParameter(&quot;status2&quot;, CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION);</span>
+<span class="nc" id="L273">        return ((Long) query.getSingleResult()).intValue();</span>
+    }
+
+    @Override
+    public List&lt;CertificateData&gt; findByExpireDateAndIssuerWithLimit(final long expireDate, final String issuerDN, final int maxNumberOfResults) {
+<span class="nc" id="L278">        final TypedQuery&lt;CertificateData&gt; query = entityManager</span>
+<span class="nc" id="L279">                .createQuery(&quot;SELECT a FROM CertificateData a WHERE a.expireDate&lt;:expireDate AND (a.status=:status1 OR a.status=:status2) AND issuerDN=:issuerDN&quot;, CertificateData.class);</span>
+<span class="nc" id="L280">        query.setParameter(&quot;expireDate&quot;, expireDate);</span>
+<span class="nc" id="L281">        query.setParameter(&quot;status1&quot;, CertificateConstants.CERT_ACTIVE);</span>
+<span class="nc" id="L282">        query.setParameter(&quot;status2&quot;, CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION);</span>
+<span class="nc" id="L283">        query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
+<span class="nc" id="L284">        query.setMaxResults(maxNumberOfResults);</span>
+<span class="nc" id="L285">        return query.getResultList();</span>
+    }
+
+    @Override
+    public List&lt;CertificateData&gt; findByExpireDateAndTypeWithLimit(final long expireDate, final int certificateType, final int maxNumberOfResults) {
+<span class="nc" id="L290">        final TypedQuery&lt;CertificateData&gt; query = entityManager</span>
+<span class="nc" id="L291">                .createQuery(&quot;SELECT a FROM CertificateData a WHERE a.expireDate&lt;:expireDate AND (a.status=:status1 OR a.status=:status2) AND a.type=:ctype&quot;, CertificateData.class);</span>
+<span class="nc" id="L292">        query.setParameter(&quot;expireDate&quot;, expireDate);</span>
+<span class="nc" id="L293">        query.setParameter(&quot;status1&quot;, CertificateConstants.CERT_ACTIVE);</span>
+<span class="nc" id="L294">        query.setParameter(&quot;status2&quot;, CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION);</span>
+<span class="nc" id="L295">        query.setParameter(&quot;ctype&quot;, certificateType);</span>
+<span class="nc" id="L296">        query.setMaxResults(maxNumberOfResults);</span>
+<span class="nc" id="L297">        return query.getResultList();</span>
+    }
+
+    @Override
+    public List&lt;String&gt; findUsernamesByExpireTimeWithLimit(final long minExpireTime, final long maxExpireTime, final int maxResults) {
+        // TODO: Would it be more effective to drop the NOT NULL of this query and remove it from the result?
+<span class="nc" id="L303">        final TypedQuery&lt;String&gt; query = entityManager</span>
+<span class="nc" id="L304">                .createQuery(&quot;SELECT DISTINCT a.username FROM CertificateData a WHERE a.expireDate&gt;=:minExpireTime AND a.expireDate&lt;:maxExpireTime AND &quot; +</span>
+                        &quot;(a.status=:status1 OR a.status=:status2) AND a.username IS NOT NULL&quot;, String.class);
+<span class="nc" id="L306">        query.setParameter(&quot;minExpireTime&quot;, minExpireTime);</span>
+<span class="nc" id="L307">        query.setParameter(&quot;maxExpireTime&quot;, maxExpireTime);</span>
+<span class="nc" id="L308">        query.setParameter(&quot;status1&quot;, CertificateConstants.CERT_ACTIVE);</span>
+<span class="nc" id="L309">        query.setParameter(&quot;status2&quot;, CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION);</span>
+<span class="nc" id="L310">        query.setMaxResults(maxResults);</span>
+<span class="nc" id="L311">        return query.getResultList();</span>
+    }
+
+    @Override
+    public List&lt;Certificate&gt; getCertificateList(final List&lt;CertificateData&gt; cdl) {
+<span class="nc" id="L316">        final List&lt;Certificate&gt; cl = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L317" title="All 2 branches missed.">        for (final CertificateData cd : cdl) {</span>
+<span class="nc" id="L318">            final Certificate cert = cd.getCertificate(entityManager);</span>
+<span class="nc bnc" id="L319" title="All 2 branches missed.">            if ( cert==null ) {</span>
+<span class="nc" id="L320">                continue;</span>
+            }
+<span class="nc" id="L322">            cl.add(cert);</span>
+<span class="nc" id="L323">        }</span>
+<span class="nc" id="L324">        return cl;</span>
+    }
+
+    @Override
+    public List&lt;Certificate&gt; findCertificatesByIssuerDnAndSerialNumbers(final String issuerDN, final Collection&lt;BigInteger&gt; serialNumbers) {
+<span class="nc" id="L329">        final StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L330" title="All 2 branches missed.">        for(final BigInteger serno : serialNumbers) {</span>
+<span class="nc" id="L331">            sb.append(&quot;, '&quot;);</span>
+<span class="nc" id="L332">            sb.append(serno.toString());</span>
+<span class="nc" id="L333">            sb.append(&quot;'&quot;);</span>
+<span class="nc" id="L334">        }</span>
+        // to save the repeating if-statement in the above closure not to add ', ' as the first characters in the StringBuilder we remove the two chars
+        // here :)
+<span class="nc" id="L337">        sb.delete(0, &quot;, &quot;.length());</span>
+        // Derby: Columns of type 'LONG VARCHAR' may not be used in CREATE INDEX, ORDER BY, GROUP BY, UNION, INTERSECT, EXCEPT or DISTINCT statements
+        // because comparisons are not supported for that type.
+        // Since two certificates in the database should never be the same, &quot;SELECT DISTINCT ...&quot; was changed to &quot;SELECT ...&quot; here.
+<span class="nc" id="L341">        final TypedQuery&lt;CertificateData&gt; query = entityManager.createQuery(&quot;SELECT a FROM CertificateData a WHERE a.issuerDN=:issuerDN AND a.serialNumber IN (&quot;</span>
+<span class="nc" id="L342">                + sb.toString() + &quot;)&quot;, CertificateData.class);</span>
+<span class="nc" id="L343">        query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
+<span class="nc" id="L344">        return getCertificateList(query.getResultList());</span>
+    }
+
+    @Override
+    public CertificateInfo getCertificateInfo(final String fingerprint) {
+<span class="nc" id="L349">        CertificateInfo ret = null;</span>
+<span class="nc" id="L350">        final Query query = entityManager.createNativeQuery(</span>
+                &quot;SELECT a.issuerDN as issuerDN, a.subjectDN as subjectDN, a.cAFingerprint as cAFingerprint, a.status as status, a.type as type, a.serialNumber as serialNumber, &quot;
+                        + &quot;a.notBefore as notBefore, a.expireDate as expireDate, a.revocationDate as revocationDate, a.revocationReason as revocationReason, &quot;
+                        + &quot;a.username as username, a.tag as tag, a.certificateProfileId as certificateProfileId, a.endEntityProfileId as endEntityProfileId, a.updateTime as updateTime, &quot;
+                        + &quot;a.subjectKeyId as subjectKeyId, a.subjectAltName as subjectAltName FROM CertificateData a WHERE a.fingerprint=:fingerprint&quot;,
+                &quot;CertificateInfoSubset&quot;);
+<span class="nc" id="L356">        query.setParameter(&quot;fingerprint&quot;, fingerprint);</span>
+        @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L358">        final List&lt;Object[]&gt; resultList = query.getResultList();</span>
+<span class="nc bnc" id="L359" title="All 2 branches missed.">        if (!resultList.isEmpty()) {</span>
+<span class="nc" id="L360">            final Object[] fields = resultList.get(0);</span>
+            // The order of the results are defined by the SqlResultSetMapping annotation
+<span class="nc" id="L362">            final String issuerDN = (String) fields[0];</span>
+<span class="nc" id="L363">            final String subjectDN = (String) fields[1];</span>
+<span class="nc" id="L364">            final String cafp = (String) fields[2];</span>
+<span class="nc" id="L365">            final int status = ValueExtractor.extractIntValue(fields[3]);</span>
+<span class="nc" id="L366">            final int type = ValueExtractor.extractIntValue(fields[4]);</span>
+<span class="nc" id="L367">            final String serno = (String) fields[5];</span>
+            final Long notBefore;
+<span class="nc bnc" id="L369" title="All 2 branches missed.">            if (fields[6] == null) {</span>
+<span class="nc" id="L370">                notBefore = null;</span>
+            } else {
+<span class="nc" id="L372">                notBefore = ValueExtractor.extractLongValue(fields[6]);</span>
+            }
+<span class="nc" id="L374">            final long expireDate = ValueExtractor.extractLongValue(fields[7]);</span>
+<span class="nc" id="L375">            final long revocationDate = ValueExtractor.extractLongValue(fields[8]);</span>
+<span class="nc" id="L376">            final int revocationReason = ValueExtractor.extractIntValue(fields[9]);</span>
+<span class="nc" id="L377">            final String username = (String) fields[10];</span>
+<span class="nc" id="L378">            final String tag = (String) fields[11];</span>
+<span class="nc" id="L379">            final int certificateProfileId = ValueExtractor.extractIntValue(fields[12]);</span>
+            final Integer endEntityProfileId;
+<span class="nc bnc" id="L381" title="All 2 branches missed.">            if (fields[13] == null) {</span>
+<span class="nc" id="L382">                endEntityProfileId = null;</span>
+            } else {
+<span class="nc" id="L384">                endEntityProfileId = ValueExtractor.extractIntValue(fields[13]);</span>
+            }
+            final long updateTime;
+<span class="nc bnc" id="L387" title="All 2 branches missed.">            if (fields[14] == null) {</span>
+<span class="nc" id="L388">                updateTime = 0; // Might be null in an upgraded installation</span>
+            } else {
+<span class="nc" id="L390">                updateTime = ValueExtractor.extractLongValue(fields[14]);</span>
+            }
+<span class="nc" id="L392">            final String subjectKeyId = (String)fields[15];</span>
+<span class="nc" id="L393">            final String subjectAltName = (String)fields[16];</span>
+<span class="nc" id="L394">            ret = new CertificateInfo(fingerprint, cafp, serno, issuerDN, subjectDN, status, type, notBefore, expireDate, revocationDate, revocationReason,</span>
+                    username, tag, certificateProfileId, endEntityProfileId, updateTime, subjectKeyId, subjectAltName);
+        }
+<span class="nc" id="L397">        return ret;</span>
+    }
+
+    @Override
+    public List&lt;Certificate&gt; findActiveCertificatesByType(final Collection&lt;Integer&gt; certificateTypes) {
+        // Derby: Columns of type 'LONG VARCHAR' may not be used in CREATE INDEX, ORDER BY, GROUP BY, UNION, INTERSECT, EXCEPT or DISTINCT statements
+        // because comparisons are not supported for that type.
+        // Since two certificates in the database should never be the same, &quot;SELECT DISTINCT ...&quot; was changed to &quot;SELECT ...&quot; here.
+<span class="nc" id="L405">        final TypedQuery&lt;CertificateData&gt; query = entityManager</span>
+<span class="nc" id="L406">                .createQuery(&quot;SELECT a FROM CertificateData a WHERE (a.status=:status1 or a.status=:status2) AND a.type IN (:ctypes)&quot;, CertificateData.class);</span>
+<span class="nc" id="L407">        query.setParameter(&quot;status1&quot;, CertificateConstants.CERT_ACTIVE);</span>
+<span class="nc" id="L408">        query.setParameter(&quot;status2&quot;, CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION);</span>
+<span class="nc" id="L409">        query.setParameter(&quot;ctypes&quot;, certificateTypes);</span>
+<span class="nc" id="L410">        return getCertificateList( query.getResultList());</span>
+    }
+
+    @Override
+    public List&lt;Certificate&gt; findActiveCertificatesByTypeAndIssuer(final Collection&lt;Integer&gt; certificateTypes, final String issuerDN) {
+        // Derby: Columns of type 'LONG VARCHAR' may not be used in CREATE INDEX, ORDER BY, GROUP BY, UNION, INTERSECT, EXCEPT or DISTINCT statements
+        // because comparisons are not supported for that type.
+        // Since two certificates in the database should never be the same, &quot;SELECT DISTINCT ...&quot; was changed to &quot;SELECT ...&quot; here.
+<span class="nc" id="L418">        final TypedQuery&lt;CertificateData&gt; query = entityManager</span>
+<span class="nc" id="L419">                .createQuery(&quot;SELECT a FROM CertificateData a WHERE (a.status=:status1 or a.status=:status2) AND a.type IN (:ctypes) AND a.issuerDN=:issuerDN&quot;, CertificateData.class);</span>
+<span class="nc" id="L420">        query.setParameter(&quot;ctypes&quot;, certificateTypes);</span>
+<span class="nc" id="L421">        query.setParameter(&quot;status1&quot;, CertificateConstants.CERT_ACTIVE);</span>
+<span class="nc" id="L422">        query.setParameter(&quot;status2&quot;, CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION);</span>
+<span class="nc" id="L423">        query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
+<span class="nc" id="L424">        return getCertificateList(query.getResultList());</span>
+    }
+
+    @Override
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public List&lt;Object[]&gt; findExpirationInfo(final Collection&lt;String&gt; cas, final Collection&lt;Integer&gt; certificateProfiles,
+            final long activeNotifiedExpireDateMin, final long activeNotifiedExpireDateMax, final long activeExpireDateMin) {
+        // We don't select the base64 certificate data here, because it may be a LONG data type which we can't simply select, or we don't want to read all the data.
+<span class="nc" id="L432">        final Query query = entityManager.createNativeQuery(&quot;SELECT DISTINCT fingerprint as fingerprint, username as username&quot;</span>
+                + &quot; FROM CertificateData WHERE &quot;
+                + &quot;issuerDN IN (:cas) AND &quot;
+                // If the list of certificate profiles is empty, ignore it as a parameter
+<span class="nc bnc" id="L436" title="All 2 branches missed.">                + (!certificateProfiles.isEmpty() ? &quot;certificateProfileId IN (:certificateProfiles) AND&quot; : &quot;&quot;)</span>
+                + &quot;(expireDate&gt;:activeNotifiedExpireDateMin) AND &quot; + &quot;(expireDate&lt;:activeNotifiedExpireDateMax) AND (status=:status1&quot;
+                + &quot; OR status=:status2) AND (expireDate&gt;=:activeExpireDateMin OR &quot; + &quot;status=:status3)&quot;, &quot;FingerprintUsernameSubset&quot;);
+<span class="nc" id="L439">        query.setParameter(&quot;cas&quot;, cas);</span>
+<span class="nc bnc" id="L440" title="All 2 branches missed.">        if(!certificateProfiles.isEmpty()) {</span>
+<span class="nc" id="L441">            query.setParameter(&quot;certificateProfiles&quot;, certificateProfiles);</span>
+        }
+<span class="nc" id="L443">        query.setParameter(&quot;activeNotifiedExpireDateMin&quot;, activeNotifiedExpireDateMin);</span>
+<span class="nc" id="L444">        query.setParameter(&quot;activeNotifiedExpireDateMax&quot;, activeNotifiedExpireDateMax);</span>
+<span class="nc" id="L445">        query.setParameter(&quot;status1&quot;, CertificateConstants.CERT_ACTIVE);</span>
+<span class="nc" id="L446">        query.setParameter(&quot;status2&quot;, CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION);</span>
+<span class="nc" id="L447">        query.setParameter(&quot;activeExpireDateMin&quot;, activeExpireDateMin);</span>
+<span class="nc" id="L448">        query.setParameter(&quot;status3&quot;, CertificateConstants.CERT_ACTIVE);</span>
+        // How to debug log the SQL query:
+        // log.debug(&quot;findExpirationInfo: &quot;+query.unwrap(org.hibernate.Query.class).getQueryString());
+<span class="nc" id="L451">        return query.getResultList();</span>
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Log4jHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util</a> &gt; <span class="el_source">Log4jHandler.java</span></div><h1>Log4jHandler.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.util;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+
+/**
+ * Use {@link #add()} to add a handler to {@link java.util.logging.Logger} that logs to {@link org.apache.log4j.Logger}
+ * 
+ * @version $Id: Log4jHandler.java 22311 2015-11-30 08:11:23Z mikekushner $
+ *
+ */
+<span class="nc" id="L29">public class Log4jHandler extends Handler {</span>
+<span class="nc" id="L30">	static private boolean isStarted = false;</span>
+	/**
+	 * Add handler to java sun logging that logs to log4j
+	 */
+	public static void add() {
+<span class="nc bnc" id="L35" title="All 2 branches missed.">		if ( isStarted ) {</span>
+<span class="nc" id="L36">			return;</span>
+		}
+<span class="nc" id="L38">		isStarted = true;</span>
+<span class="nc" id="L39">		final Level logLevel = Level.FINEST;</span>
+<span class="nc" id="L40">		final Logger rootLogger = Logger.getLogger(&quot;&quot;);</span>
+<span class="nc" id="L41">		final Handler handlers[] = rootLogger.getHandlers();</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">		for ( int i=0; i&lt;handlers.length; i++ ) {</span>
+<span class="nc" id="L43">			rootLogger.removeHandler(handlers[i]);</span>
+		}
+<span class="nc" id="L45">		rootLogger.setLevel(logLevel);</span>
+<span class="nc" id="L46">		final Handler handler = new Log4jHandler();</span>
+<span class="nc" id="L47">		handler.setLevel(logLevel);</span>
+<span class="nc" id="L48">		rootLogger.addHandler( handler );</span>
+<span class="nc" id="L49">	}</span>
+
+
+	/* (non-Javadoc)
+	 * @see java.util.logging.Handler#close()
+	 */
+	public void close() throws SecurityException {
+		// do nothing
+<span class="nc" id="L57">	}</span>
+	/* (non-Javadoc)
+	 * @see java.util.logging.Handler#flush()
+	 */
+	public void flush() {
+		// do nothing
+<span class="nc" id="L63">	}</span>
+	private org.apache.log4j.Level translateLevel( Level level ) {
+<span class="nc bnc" id="L65" title="All 2 branches missed.">		if ( level.intValue() &lt; Level.FINEST.intValue() ) {</span>
+<span class="nc" id="L66">			return org.apache.log4j.Level.ALL;</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">		} else if ( level.intValue() &lt;= Level.FINEST.intValue() ) {</span>
+<span class="nc" id="L68">			return org.apache.log4j.Level.TRACE;</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">		} else if ( level.intValue() &lt;= Level.FINER.intValue() ) {</span>
+<span class="nc" id="L70">			return org.apache.log4j.Level.DEBUG;</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">		} else if ( level.intValue() &lt;= Level.FINE.intValue() ) {</span>
+<span class="nc" id="L72">			return org.apache.log4j.Level.DEBUG;</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">		} else if ( level.intValue() &lt;= Level.INFO.intValue() ) {</span>
+<span class="nc" id="L74">			return org.apache.log4j.Level.INFO;</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">		} else if ( level.intValue() &lt;= Level.WARNING.intValue() ) {</span>
+<span class="nc" id="L76">			return org.apache.log4j.Level.WARN;</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">		} else if ( level.intValue() &lt;= Level.SEVERE.intValue() ) {</span>
+<span class="nc" id="L78">			return org.apache.log4j.Level.FATAL;</span>
+		} else {
+<span class="nc" id="L80">			return org.apache.log4j.Level.OFF;</span>
+		}
+	}
+	/* (non-Javadoc)
+	 * @see java.util.logging.Handler#publish(java.util.logging.LogRecord)
+	 */
+	public void publish(LogRecord record) {
+<span class="nc" id="L87">		final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger( record.getSourceClassName() );</span>
+<span class="nc" id="L88">		StringWriter stringWriter = new StringWriter();</span>
+<span class="nc" id="L89">		PrintWriter printWriter = new PrintWriter(stringWriter);</span>
+<span class="nc" id="L90">		printWriter.print(record.getSourceMethodName());</span>
+<span class="nc" id="L91">		printWriter.print(&quot;: &quot;);</span>
+<span class="nc" id="L92">		printWriter.print(record.getMessage());</span>
+<span class="nc" id="L93">		Object parameters[] = record.getParameters();</span>
+<span class="nc bnc" id="L94" title="All 4 branches missed.">		for ( int i=0; parameters!=null &amp;&amp; i&lt;parameters.length; i++ ) {</span>
+<span class="nc" id="L95">			printWriter.println();</span>
+<span class="nc" id="L96">			printWriter.print(&quot;{&quot; + i +&quot;} = &quot; + parameters[i] );</span>
+		}
+<span class="nc" id="L98">		logger.log( Log4jHandler.class.getCanonicalName(),</span>
+<span class="nc" id="L99">		            translateLevel(record.getLevel()),</span>
+<span class="nc" id="L100">		            stringWriter.toString(),</span>
+<span class="nc" id="L101">		            record.getThrown() );</span>
+<span class="nc" id="L102">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

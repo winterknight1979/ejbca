@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CertificateRenewalException.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-entity</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.protocol</a> &gt; <span class="el_source">CertificateRenewalException.java</span></div><h1>CertificateRenewalException.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA: The OpenSource Certificate Authority                          *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.protocol;
+
+/**
+ * Thrown if an error occurs during Certificate Renewal.
+ * 
+ * @version $Id: CertificateRenewalException.java 27620 2017-12-21 10:27:29Z mikekushner $
+ *
+ */
+public class CertificateRenewalException extends Exception {
+
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * @see java.lang.Exception#Exception()
+     */
+<span class="nc" id="L28">    public CertificateRenewalException() {</span>
+<span class="nc" id="L29">    }</span>
+
+    /**
+     * @param message message
+     * @see java.lang.Exception#Exception(String)
+     */
+    public CertificateRenewalException(String message) {
+<span class="nc" id="L36">        super(message);</span>
+<span class="nc" id="L37">    }</span>
+
+    /**
+     * @param cause cause
+     * @see java.lang.Exception#Exception(Throwable)
+     */
+    public CertificateRenewalException(Throwable cause) {
+<span class="nc" id="L44">        super(cause);</span>
+<span class="nc" id="L45">    }</span>
+
+    /**
+     * @param message message
+     * @param cause cause
+     * @see java.lang.Exception#Exception(String, Throwable)
+     */
+    public CertificateRenewalException(String message, Throwable cause) {
+<span class="nc" id="L53">        super(message, cause);</span>
+<span class="nc" id="L54">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

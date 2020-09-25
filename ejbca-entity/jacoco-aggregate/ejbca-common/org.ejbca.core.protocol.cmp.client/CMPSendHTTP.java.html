@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CMPSendHTTP.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-entity</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.cmp.client</a> &gt; <span class="el_source">CMPSendHTTP.java</span></div><h1>CMPSendHTTP.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.cmp.client;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import org.cesecore.certificates.ocsp.exception.MalformedRequestException;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.ui.web.LimitLengthASN1Reader;
+
+/**
+ * Client to send message to CMP server over HTTP.
+ * 
+ * @version $Id: CMPSendHTTP.java 22456 2015-12-16 10:49:12Z mikekushner $
+ */
+public class CMPSendHTTP {
+    /** Internal localization of logs and errors */
+<span class="nc" id="L33">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+
+	public final String contentType;
+	public final byte response[];
+	public final int responseCode;
+
+<span class="nc" id="L39">	private CMPSendHTTP(String ct, byte ba[], int rc) {</span>
+<span class="nc" id="L40">		this.contentType = ct;</span>
+<span class="nc" id="L41">		this.response = ba;</span>
+<span class="nc" id="L42">		this.responseCode = rc;</span>
+<span class="nc" id="L43">	}</span>
+
+	public static CMPSendHTTP sendMessage(final byte[] message, final String hostName,
+	        final int port, final String urlPath, final boolean doClose) throws MalformedURLException, IOException {
+<span class="nc" id="L47">	    return sendMessage(message, &quot;http://&quot;+hostName+&quot;:&quot;+port+urlPath, doClose);</span>
+	}
+
+	public static CMPSendHTTP sendMessage(final byte[] message, final String url, final boolean doClose) throws MalformedURLException, IOException {
+<span class="nc" id="L51">		boolean isError = true;</span>
+<span class="nc" id="L52">		final HttpURLConnection con = (HttpURLConnection)new URL(url).openConnection();</span>
+		try {
+			// POST the CMP request
+<span class="nc" id="L55">			con.setDoOutput(true);</span>
+<span class="nc" id="L56">			con.setRequestMethod(&quot;POST&quot;);</span>
+<span class="nc" id="L57">			con.setRequestProperty(&quot;Content-type&quot;, &quot;application/pkixcmp&quot;);</span>
+<span class="nc" id="L58">			con.connect();</span>
+<span class="nc" id="L59">			final OutputStream os = con.getOutputStream();</span>
+<span class="nc" id="L60">			os.write(message);</span>
+<span class="nc" id="L61">			os.close();</span>
+<span class="nc" id="L62">			final String contentType = con.getContentType();</span>
+<span class="nc" id="L63">			final int responseCode = con.getResponseCode();</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">			if (responseCode!=HttpURLConnection.HTTP_OK) {</span>
+<span class="nc" id="L65">				return new CMPSendHTTP(contentType, null, responseCode);</span>
+			}
+<span class="nc" id="L67">            final LimitLengthASN1Reader limitLengthASN1Reader = new LimitLengthASN1Reader(con.getInputStream(), con.getContentLength());</span>
+            try {
+<span class="nc" id="L69">                final byte response[] = limitLengthASN1Reader.readFirstASN1Object();</span>
+<span class="nc" id="L70">                isError = false;</span>
+<span class="nc" id="L71">                return new CMPSendHTTP(contentType, response, responseCode);</span>
+<span class="nc" id="L72">            } catch (MalformedRequestException e) {</span>
+<span class="nc" id="L73">                throw new IOException(intres.getLocalizedMessage(&quot;cmp.errornoasn1&quot;), e);</span>
+            } finally {
+<span class="nc" id="L75">                limitLengthASN1Reader.close();</span>
+            }
+		} finally {
+<span class="nc bnc" id="L78" title="All 4 branches missed.">			if (doClose || isError) {</span>
+<span class="nc" id="L79">				con.disconnect();</span>
+			}
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

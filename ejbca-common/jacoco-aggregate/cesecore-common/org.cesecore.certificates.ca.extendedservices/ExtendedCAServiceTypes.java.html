@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ExtendedCAServiceTypes.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-common</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.ca.extendedservices</a> &gt; <span class="el_source">ExtendedCAServiceTypes.java</span></div><h1>ExtendedCAServiceTypes.java</h1><pre class="source lang-java linenums">package org.cesecore.certificates.ca.extendedservices;
+
+/**
+ * 
+ * @version $Id: ExtendedCAServiceTypes.java 21900 2015-09-17 19:22:21Z anatom $
+ *
+ */
+
+<span class="nc" id="L9">public class ExtendedCAServiceTypes {</span>
+
+    @Deprecated //Removed in EJBCA 6.0.0, and retained to support migration. Remove once support for upgrading from 4.0.x is dropped. 
+	public static final int TYPE_OCSPEXTENDEDSERVICE   = 1; 	
+    // Number 2 was XKMS, do not re-use this as it might cause interoperability/upgrade issues from older installations that had it
+	public static final int TYPE_CMSEXTENDEDSERVICE = 3; 
+	public static final int TYPE_HARDTOKENENCEXTENDEDSERVICE = 4;
+	public static final int TYPE_KEYRECOVERYEXTENDEDSERVICE = 5;
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

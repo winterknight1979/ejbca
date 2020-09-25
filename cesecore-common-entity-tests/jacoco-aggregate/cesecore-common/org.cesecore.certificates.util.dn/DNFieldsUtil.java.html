@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>DNFieldsUtil.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-common-entity-tests</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.util.dn</a> &gt; <span class="el_source">DNFieldsUtil.java</span></div><h1>DNFieldsUtil.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.util.dn;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.util.CeSecoreNameStyle;
+
+/**
+ * DN string utilities.
+ * 
+ * Optimized to lower object instantiation by performing manipulations &quot;in-place&quot; using StringBuilder and char[].
+ * 
+ * Not built to handle '+' char separators or take special consideration to Unicode.
+ * Current implementation will treat unescaped '=' in values as ok (backwards compatible).
+ * 
+ * @version $Id: DNFieldsUtil.java 25580 2017-03-22 14:30:19Z anatom $
+ */
+<span class="nc" id="L34">public abstract class DNFieldsUtil {</span>
+
+<span class="fc" id="L36">	private static final Logger LOG = Logger.getLogger(DNFieldsUtil.class);</span>
+	private static final int EMPTY = -1;
+	private static final String MSG_ERROR_MISSING_EQUAL = &quot;DN field definition is missing the '=': &quot;;
+	private static final String ATTRIBUTE_SEPARATOR = &quot;,&quot;;
+	private static final String KEY_VALUE_SEPARATOR = &quot;=&quot;;
+	
+	/**
+     * The method splits an DN string into a map of it's attributes and values.
+     * 
+     * @param dnString the DN String to split (i.e.: 'C=DE,CN=test,SN=1').
+     * @return a map containing the attributes and values.
+     */
+    public static final Map&lt;String, String&gt; dnStringToMap(final String dnString) {
+<span class="fc" id="L49">        final String[] dnTokens = dnString.split(ATTRIBUTE_SEPARATOR);</span>
+<span class="fc" id="L50">        final Map&lt;String, String&gt; result = new HashMap&lt;String,String&gt;();</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">        if (StringUtils.isNotBlank(dnString)) {</span>
+            String[] tokens;
+<span class="fc bfc" id="L53" title="All 2 branches covered.">            for (int i = 0; i&lt;dnTokens.length;i++) {</span>
+<span class="fc" id="L54">                tokens = dnTokens[i].split(KEY_VALUE_SEPARATOR);</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">                if (tokens.length &gt; 1) {</span>
+<span class="fc" id="L56">                    result.put(tokens[0], tokens[1]);</span>
+                } else {
+<span class="fc" id="L58">                    result.put(tokens[0], StringUtils.EMPTY);</span>
+                }
+            }
+        }
+<span class="fc" id="L62">        return result;</span>
+    }
+    
+    /**
+     * The method checks if the subject-DN contains both C and CN attributes
+     * (in a potential CVCA/CSCA certificate at least the attributes C and CN must be set).
+     * 
+     * @param map the map of DN attributes and values.
+     * @return true if the DN map contains non-empty values for both C and CN.
+     */
+    public static final boolean mapContainsCountryAndCN(final Map&lt;String,String&gt; map) {
+<span class="nc" id="L73">        boolean result = false;</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        if (map.size() &gt;= 2) {</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">            result = StringUtils.isNotBlank(map.get(CeSecoreNameStyle.DefaultSymbols.get(CeSecoreNameStyle.C))) </span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">                  &amp;&amp; StringUtils.isNotBlank(CeSecoreNameStyle.DefaultSymbols.get(CeSecoreNameStyle.CN));</span>
+        }
+<span class="nc" id="L78">        return result;</span>
+    }
+
+    /**
+     * The method checks if the two subject-DN maps are equal except the 'SN' attribute.
+     * @param map1 the left side subject-DN map.
+     * @param map2 the right side subject-DN map.
+     * @return true if both subject-DN are equal except the 'SN' attribute (accepts null or empty Strings as values, but not for 'SN' attribute).
+     */
+    public static final boolean dnEqualsWithOtherSerialNumber(final Map&lt;String,String&gt; map1, final Map&lt;String,String&gt; map2) {
+<span class="pc bpc" id="L88" title="2 of 6 branches missed.">        if (map1.size() &lt; 2 || map2.size() &lt; 2 || map1.size() != map2.size()) {</span>
+<span class="fc" id="L89">            return false;</span>
+        }
+        String key, value1, value2;
+<span class="fc" id="L92">        final String snAttributeKey = CeSecoreNameStyle.DefaultSymbols.get(CeSecoreNameStyle.SN);</span>
+<span class="fc" id="L93">        boolean result = true;</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">        for (Map.Entry&lt;String,String&gt; entry : map1.entrySet()) {</span>
+<span class="fc" id="L95">            key = entry.getKey();</span>
+<span class="fc" id="L96">            value1 = entry.getValue();</span>
+<span class="fc" id="L97">            value2 = map2.get(key);</span>
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">            if (snAttributeKey.equals( key)) { // check that serial numbers are not blank and not equal. </span>
+<span class="nc bnc" id="L99" title="All 6 branches missed.">                if (StringUtils.isBlank(value1) || StringUtils.isBlank(value2) || value1 == value2) {</span>
+<span class="nc" id="L100">                    result = false;</span>
+                }
+            } else { // All other DN attributes must be equal.
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">                if (!StringUtils.equals(value1, value2)) {</span>
+<span class="nc" id="L104">                	result = false;</span>
+                }
+            }
+<span class="fc" id="L107">        }</span>
+<span class="fc" id="L108">        return result;</span>
+    }
+
+
+	/** Invoke removeEmpties and only return the fully clean dn String. 
+	 * @param dn DN
+	 * @return clean DN */
+	public static String removeAllEmpties(final String dn) {
+<span class="pc bpc" id="L116" title="1 of 2 branches missed.">		if (dn==null) {</span>
+<span class="nc" id="L117">			return null;</span>
+		}
+<span class="fc" id="L119">    	final StringBuilder removedAllEmpties = new StringBuilder(dn.length());</span>
+<span class="fc" id="L120">    	DNFieldsUtil.removeEmpties(dn, removedAllEmpties, false);</span>
+<span class="fc" id="L121">		return removedAllEmpties.toString();</span>
+	}
+
+	/**
+	 * This method will take the supplied string and fill the two provided empty StringBuilders.
+	 * 
+	 * removedTrailingEmpties is produced by:
+	 * Removes fields (key=value) where the value is empty if it is the last value with the same key.
+	 * Example: &quot;CN=abc,CN=,CN=def,O=,O=abc,O=&quot; will become &quot;CN=abc,CN=,CN=def,O=,O=abc&quot;.
+	 * Example: &quot;CN=abc,DC=,O=,CN=def,O=,O=abc,O=&quot; will become &quot;CN=abc,O=,CN=def,O=,O=abc&quot;.
+	 * 
+	 * removedAllEmpties is produced by:
+	 * Removes all fields (key=value) where the value is empty.
+	 * Example: &quot;CN=abc,CN=,O=,CN=def,O=,O=abc,O=&quot; will become &quot;CN=abc,CN=def,O=abc&quot;.
+	 * 
+	 * Since the algorithms are very similar for these two it makes sense to calculate them both at
+	 * the same time for use in EndEntityInformation.
+	 * 
+	 * @param sDN the String to clean.
+	 * @param removedAllEmpties StringBuilder
+	 * @param processTrailing true is removedTrailingEmpties should be considered.
+	 * @return removedTrailingEmpties StringBuilder if both types of cleaning give different results or null if they are the same.
+	 */
+	public static StringBuilder removeEmpties(final String sDN, final StringBuilder removedAllEmpties, final boolean processTrailing) {
+<span class="fc" id="L145">		StringBuilder removedTrailingEmpties = null;</span>
+    	// First make a list of where all the key=value pairs start and if they are empty or not
+<span class="fc" id="L147">    	final List&lt;Integer&gt; startOfPairs = new ArrayList&lt;Integer&gt;();</span>
+<span class="fc" id="L148">    	final List&lt;Integer&gt; startOfValues = new ArrayList&lt;Integer&gt;();</span>
+<span class="fc" id="L149">    	final char[] buf = sDN.toCharArray();</span>
+<span class="fc" id="L150">    	populatePositionLists(startOfPairs, startOfValues, buf);</span>
+<span class="fc" id="L151">    	boolean areStringBuildersEqual = true;</span>
+    	// Go through all the pairs from first to last
+<span class="fc bfc" id="L153" title="All 2 branches covered.">    	for (int i=0; i&lt;startOfPairs.size(); i++) {</span>
+<span class="fc" id="L154">    		final int startOfThisPair = startOfPairs.get(i).intValue();</span>
+    		final int startOfNextPair;
+<span class="fc bfc" id="L156" title="All 2 branches covered.">    		if (i == startOfPairs.size()-1) {</span>
+<span class="fc" id="L157">    			startOfNextPair = buf.length;	// The &quot;next element&quot; begins at the end of the buffer</span>
+    		} else {
+<span class="fc" id="L159">    			startOfNextPair = startOfPairs.get(i+1).intValue();</span>
+    		}
+<span class="fc" id="L161">    		final int startOfThisValue = startOfValues.get(i).intValue();</span>
+<span class="fc" id="L162">    		boolean addOnlyNonTrailingEmpties = true;</span>
+<span class="fc" id="L163">    		boolean addAllNonEmpties = true;</span>
+<span class="fc bfc" id="L164" title="All 2 branches covered.">    		if (startOfThisValue == EMPTY) {</span>
+    	    	// If a pair is empty
+<span class="fc" id="L166">    			addOnlyNonTrailingEmpties = false;</span>
+<span class="fc" id="L167">    			addAllNonEmpties = false;</span>
+    			// If we only remove trailing empties there is a second chance that we will still add it..
+<span class="fc bfc" id="L169" title="All 2 branches covered.">    			if (processTrailing) {</span>
+<span class="fc bfc" id="L170" title="All 2 branches covered.">        			for (int j=i+1; j&lt;startOfPairs.size(); j++) {</span>
+<span class="fc" id="L171">        				final int startOfThisPair2 = startOfPairs.get(j).intValue();</span>
+<span class="fc bfc" id="L172" title="All 4 branches covered.">        				if (hasSameKey(buf, startOfThisPair, startOfThisPair2) &amp;&amp; startOfValues.get(j).intValue() != EMPTY) {</span>
+        					// if this was not the last pair with this key and one of the later ones is not empty: add it!
+<span class="fc" id="L174">        					addOnlyNonTrailingEmpties = true;</span>
+<span class="fc" id="L175">        					break;</span>
+        				}
+        			}
+    			}
+    		}
+<span class="fc bfc" id="L180" title="All 4 branches covered.">    		if (areStringBuildersEqual &amp;&amp; (addOnlyNonTrailingEmpties != addAllNonEmpties)) {</span>
+    			// The StringBuilders are no longer equal, so we need to populate the empty one and let them diverge
+<span class="fc" id="L182">    			areStringBuildersEqual = false;</span>
+<span class="pc bpc" id="L183" title="1 of 2 branches missed.">    			if (processTrailing) {</span>
+<span class="fc" id="L184">        			removedTrailingEmpties = new StringBuilder(removedAllEmpties);</span>
+    			}
+    		}
+<span class="fc bfc" id="L187" title="All 2 branches covered.">    		if (addAllNonEmpties) {</span>
+<span class="fc" id="L188">    			removedAllEmpties.append(buf, startOfThisPair, startOfNextPair-startOfThisPair);</span>
+    		}
+<span class="fc bfc" id="L190" title="All 6 branches covered.">    		if (processTrailing &amp;&amp; !areStringBuildersEqual &amp;&amp; addOnlyNonTrailingEmpties) {</span>
+<span class="fc" id="L191">    			removedTrailingEmpties.append(buf, startOfThisPair, startOfNextPair-startOfThisPair);</span>
+    		}
+    	}
+<span class="fc" id="L194">    	removeUnwatedLastChars(removedAllEmpties);</span>
+<span class="fc bfc" id="L195" title="All 2 branches covered.">    	if (!areStringBuildersEqual) {</span>
+<span class="fc" id="L196">        	removeUnwatedLastChars(removedTrailingEmpties);</span>
+    	}
+<span class="fc" id="L198">    	return removedTrailingEmpties;</span>
+    }
+	
+	/** 
+	 * If we end up with a buffer ending with &quot;,&quot; or &quot;, &quot; we need to remove these chars unless they've been escaped with a '\'
+	 * 
+	 * @param sb A StringBuilder to work in. 
+	 */
+    private static void removeUnwatedLastChars(final StringBuilder sb) {
+<span class="fc bfc" id="L207" title="All 2 branches covered.">        if (sb.length() &gt; 0) {</span>
+<span class="pc bpc" id="L208" title="1 of 2 branches missed.">            for (int i = sb.length() - 1; i &gt;= 0; i--) {</span>
+<span class="fc" id="L209">                final char c = sb.charAt(i);</span>
+<span class="fc bfc" id="L210" title="All 4 branches covered.">                if (c == ' ' || c == ',') {</span>
+<span class="fc bfc" id="L211" title="All 2 branches covered.">                    if (sb.charAt(i - 1) == '\\') {</span>
+<span class="fc" id="L212">                        break;</span>
+                    } else {
+<span class="fc" id="L214">                        sb.deleteCharAt(i);</span>
+                    }
+                } else {
+                    break;
+                }
+            }
+        }
+<span class="fc" id="L221">    }</span>
+
+	/** Populates the two lists with starting positions in the character buffer where the value=key pair begins and keys begin. 
+	 * @param startOfPairs pairs start
+	 * @param startOfValues values start
+	 * @param buf buffer */
+    private static void populatePositionLists(final List&lt;Integer&gt; startOfPairs, final List&lt;Integer&gt; startOfValues, final char[] buf) {
+<span class="pc bpc" id="L228" title="1 of 2 branches missed.">    	if (buf.length&gt;0) {</span>
+<span class="fc" id="L229">        	startOfPairs.add(Integer.valueOf(0));</span>
+    	}
+<span class="fc" id="L231">    	boolean notEscaped = true;	// Keep track of what is escapes and not</span>
+<span class="fc bfc" id="L232" title="All 2 branches covered.">    	for (int i=0; i&lt;buf.length; i++) {</span>
+<span class="fc bfc" id="L233" title="All 4 branches covered.">    		switch (buf[i]) {</span>
+    		case '\\':
+<span class="fc" id="L235">    			notEscaped ^= true;</span>
+<span class="fc" id="L236">    			break;</span>
+    		case ',':
+<span class="fc bfc" id="L238" title="All 2 branches covered.">    			if (notEscaped) {</span>
+<span class="fc bfc" id="L239" title="All 2 branches covered.">        			if (startOfPairs.size() &gt; startOfValues.size()) {</span>
+        				// We are missing a '=' in the DN!
+<span class="fc" id="L241">        				LOG.info(MSG_ERROR_MISSING_EQUAL + new String(buf));</span>
+        			}
+<span class="fc" id="L243">    				int j = i+1;</span>
+<span class="pc bpc" id="L244" title="1 of 4 branches missed.">    				while (j&lt;buf.length &amp;&amp; buf[j] == ' ') {</span>
+<span class="fc" id="L245">    					j++;	// Ignore spaces</span>
+    				}
+<span class="fc" id="L247">    				startOfPairs.add(Integer.valueOf(j));</span>
+<span class="fc" id="L248">    			} else {</span>
+<span class="fc" id="L249">    				notEscaped = true;</span>
+    			}
+<span class="fc" id="L251">    			break;</span>
+    		case '=':
+<span class="pc bpc" id="L253" title="1 of 2 branches missed.">    			if (notEscaped) {</span>
+    				// Only use the first '=' after a ',' (backwards compatible)
+<span class="fc bfc" id="L255" title="All 2 branches covered.">        			if (startOfPairs.size() &gt; startOfValues.size()) {</span>
+<span class="fc" id="L256">        				int j = i+1;</span>
+<span class="fc bfc" id="L257" title="All 4 branches covered.">        				while (j&lt;buf.length &amp;&amp; buf[j] == ' ') {</span>
+<span class="fc" id="L258">        					j++;	// Ignore spaces</span>
+        				}
+<span class="fc bfc" id="L260" title="All 4 branches covered.">        				if (j&gt;=buf.length || buf[j] == ',') {</span>
+<span class="fc" id="L261">        					startOfValues.add(Integer.valueOf(EMPTY));	// Use -1 to mark that the value is empty</span>
+        				} else {
+<span class="fc" id="L263">        					startOfValues.add(Integer.valueOf(j));</span>
+        				}
+<span class="fc" id="L265">        			}</span>
+    			} else {
+<span class="nc" id="L267">    				notEscaped = true;</span>
+    			}
+<span class="nc" id="L269">    			break;</span>
+    		default:
+<span class="fc" id="L271">    			notEscaped=true;</span>
+    		}
+    	}
+<span class="fc" id="L274">    }</span>
+
+    /** Compares the two character sequences in the buffer at the positions until a not escaped '=' is found. 
+     * @param sb buffer
+     * @param pos1 position 1
+     * @param pos2 position 2
+     * @return  boolean */
+    private static boolean hasSameKey(final char[] sb, int pos1, int pos2) {
+<span class="fc" id="L282">    	final int len = sb.length;</span>
+<span class="fc" id="L283">    	boolean notEscaped = true;	// Keep track of what is escapes and not</span>
+<span class="pc bpc" id="L284" title="2 of 4 branches missed.">    	while (len&gt;pos1 &amp;&amp; len&gt;pos2 ) {</span>
+<span class="fc" id="L285">        	final char c1 = sb[pos1];</span>
+<span class="pc bpc" id="L286" title="1 of 3 branches missed.">        	switch (c1) {</span>
+        	case '\\':
+<span class="nc" id="L288">    			notEscaped ^= true;</span>
+<span class="nc" id="L289">    			break;</span>
+        	case '=':
+<span class="pc bpc" id="L291" title="1 of 4 branches missed.">        		if (notEscaped &amp;&amp; c1 == sb[pos2]) {</span>
+<span class="fc" id="L292">        			return true;</span>
+        		} // else.. continue with the default action..
+        	default:
+<span class="fc bfc" id="L295" title="All 2 branches covered.">            	if (c1 != sb[pos2]) {</span>
+<span class="fc" id="L296">            		return false;</span>
+            	}
+<span class="fc" id="L298">    			notEscaped=true;</span>
+        	}
+<span class="fc" id="L300">        	pos1++;</span>
+<span class="fc" id="L301">        	pos2++;</span>
+<span class="fc" id="L302">    	}</span>
+<span class="nc" id="L303">    	return false;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

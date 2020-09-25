@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RoleMemberSessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cesecore-ejb</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.roles.member</a> &gt; <span class="el_source">RoleMemberSessionBean.java</span></div><h1>RoleMemberSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.roles.member;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.enums.EventType;
+import org.cesecore.audit.enums.EventTypes;
+import org.cesecore.audit.enums.ModuleTypes;
+import org.cesecore.audit.enums.ServiceTypes;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.AuthenticationTokenMetaData;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.authorization.user.matchvalues.AccessMatchValue;
+import org.cesecore.authorization.user.matchvalues.AccessMatchValueReverseLookupRegistry;
+import org.cesecore.internal.InternalResources;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.roles.Role;
+import org.cesecore.roles.management.RoleDataSessionLocal;
+import org.cesecore.roles.management.RoleSessionLocal;
+
+/**
+ * @see RoleMemberSessionRemote
+ * 
+ * @version $Id: RoleMemberSessionBean.java 26208 2017-08-03 08:55:48Z oskareriksson $
+ *
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;RoleMemberSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L56">public class RoleMemberSessionBean implements RoleMemberSessionLocal, RoleMemberSessionRemote {</span>
+
+<span class="nc" id="L58">    private static final Logger log = Logger.getLogger(RoleMemberSessionBean.class);</span>
+
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private RoleSessionLocal roleSession;
+    @EJB
+    private RoleDataSessionLocal roleDataSession;
+    @EJB
+    private RoleMemberDataSessionLocal roleMemberDataSession;
+    @EJB
+    private SecurityEventsLoggerSessionLocal securityEventsLoggerSession;
+
+    /** @param authenticationToken Token
+     * @param roleMember Member
+     * @return the authorized role 
+     * @throws AuthorizationDeniedException if access denied */
+    private Role lookupRoleAndCheckAuthorization(final AuthenticationToken authenticationToken, final RoleMember roleMember) throws AuthorizationDeniedException {
+        // Check existence and authorization of referenced objects
+<span class="nc" id="L77">        final Role role = roleSession.getRole(authenticationToken, roleMember.getRoleId());</span>
+<span class="nc bnc" id="L78" title="All 4 branches missed.">        if (roleMember.getRoleId() != RoleMember.NO_ROLE &amp;&amp; role == null) {</span>
+<span class="nc" id="L79">            throw new IllegalStateException(&quot;Role with ID &quot; + roleMember.getRoleId() + &quot; was not found, or administrator is not authorized to it&quot;);</span>
+        }
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (roleMember.getTokenIssuerId() != RoleMember.NO_ISSUER) {</span>
+            // Do more expensive fully correct check if it is potentially issued by a CA
+<span class="nc" id="L83">            final AuthenticationTokenMetaData metaData = AccessMatchValueReverseLookupRegistry.INSTANCE.getMetaData(roleMember.getTokenType());</span>
+<span class="nc" id="L84">            final AccessMatchValue accessMatchValue = metaData.getAccessMatchValueIdMap().get(roleMember.getTokenMatchKey());</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">            if (accessMatchValue.isIssuedByCa()) {</span>
+                // According to the meta data, this tokenIssuerId should be interpreted as a CA ID
+<span class="nc" id="L87">                final int caId = roleMember.getTokenIssuerId();</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">                if (!authorizationSession.isAuthorizedNoLogging(authenticationToken, StandardRules.CAACCESS.resource() + caId)) {</span>
+<span class="nc" id="L89">                    throw new AuthorizationDeniedException(&quot;CA with ID &quot; + caId + &quot; was not found, or administrator is not authorized to it&quot;);</span>
+                }
+            }
+        }
+<span class="nc" id="L93">        return role;</span>
+    }
+
+    @Override
+    public RoleMember persist(final AuthenticationToken authenticationToken, final RoleMember roleMember) throws AuthorizationDeniedException {
+<span class="nc" id="L98">        return persist(authenticationToken, roleMember, true);</span>
+    }
+    
+    @Override
+    public RoleMember persist(final AuthenticationToken authenticationToken, final RoleMember roleMember, final boolean requireNonImportantRoleMembership)
+            throws AuthorizationDeniedException {
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        if (roleMember==null) {</span>
+            // Successfully did nothing
+<span class="nc" id="L106">            return null;</span>
+        }
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        if (requireNonImportantRoleMembership) {</span>
+<span class="nc" id="L109">            assertNonImportantRoleMembership(authenticationToken, roleMember);</span>
+        }
+<span class="nc" id="L111">        roleSession.assertAuthorizedToRoleMembers(authenticationToken, roleMember.getRoleId(), true);</span>
+<span class="nc" id="L112">        RoleMember oldRoleMember = null;</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        if (roleMember.getId() != RoleMember.ROLE_MEMBER_ID_UNASSIGNED) {</span>
+            // Try to locate an existing RoleMember
+<span class="nc" id="L115">            oldRoleMember = roleMemberDataSession.findRoleMember(roleMember.getId());</span>
+            // If the role Id will change, assert that we have access to the old value first
+<span class="nc bnc" id="L117" title="All 4 branches missed.">            if (oldRoleMember != null &amp;&amp; roleMember.getRoleId()!=oldRoleMember.getRoleId()) {</span>
+<span class="nc" id="L118">                lookupRoleAndCheckAuthorization(authenticationToken, oldRoleMember);</span>
+            }
+        }
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L122">            log.debug(&quot;Persisting a role member with ID &quot; + roleMember.getId() + &quot; and match value '&quot; + roleMember.getTokenMatchValue() + &quot;'&quot;);</span>
+        }
+<span class="nc" id="L124">        final Role role = lookupRoleAndCheckAuthorization(authenticationToken, roleMember);</span>
+<span class="nc" id="L125">        normalizeRoleMember(roleMember);</span>
+<span class="nc" id="L126">        final RoleMember persistedRoleMember = roleMemberDataSession.persistRoleMember(roleMember);</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">        final boolean addedRoleMember = (oldRoleMember==null);</span>
+<span class="nc" id="L128">        final String tokenType = persistedRoleMember.getTokenType();</span>
+<span class="nc" id="L129">        final int tokenMatchKey = persistedRoleMember.getTokenMatchKey();</span>
+<span class="nc" id="L130">        final String tokenMatchKeyName = AccessMatchValueReverseLookupRegistry.INSTANCE.performReverseLookup(tokenType, tokenMatchKey).name();</span>
+        final String msg;
+<span class="nc bnc" id="L132" title="All 2 branches missed.">        if (addedRoleMember) {</span>
+<span class="nc" id="L133">            msg = InternalResources.getInstance().getLocalizedMessage(&quot;authorization.adminadded&quot;, persistedRoleMember.getTokenMatchValue(), role.getRoleNameFull());</span>
+        } else {
+<span class="nc" id="L135">            msg = InternalResources.getInstance().getLocalizedMessage(&quot;authorization.adminchanged&quot;, persistedRoleMember.getTokenMatchValue(), role.getRoleNameFull());</span>
+        }
+<span class="nc" id="L137">        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L138">        details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L139">        details.put(&quot;id&quot;, persistedRoleMember.getId());</span>
+<span class="nc bnc" id="L140" title="All 4 branches missed.">        if (addedRoleMember || !oldRoleMember.getTokenType().equals(persistedRoleMember.getTokenType())) {</span>
+<span class="nc" id="L141">            details.put(&quot;tokenType&quot;, persistedRoleMember.getTokenType());</span>
+        }
+<span class="nc bnc" id="L143" title="All 4 branches missed.">        if (addedRoleMember || oldRoleMember.getTokenIssuerId()!=persistedRoleMember.getTokenIssuerId()) {</span>
+<span class="nc" id="L144">            details.put(&quot;tokenIssuerId&quot;, roleMember.getTokenIssuerId());</span>
+        }
+<span class="nc bnc" id="L146" title="All 4 branches missed.">        if (addedRoleMember || oldRoleMember.getTokenMatchKey()!=persistedRoleMember.getTokenMatchKey()) {</span>
+<span class="nc" id="L147">            details.put(&quot;tokenMatchKey&quot;, tokenMatchKeyName + &quot; (&quot; + persistedRoleMember.getTokenMatchKey()+ &quot;)&quot;);</span>
+        }
+<span class="nc bnc" id="L149" title="All 4 branches missed.">        if (addedRoleMember || oldRoleMember.getTokenMatchOperator()!=persistedRoleMember.getTokenMatchOperator()) {</span>
+<span class="nc" id="L150">            details.put(&quot;tokenMatchOperator&quot;, persistedRoleMember.getAccessMatchType().name() + &quot; (&quot; + persistedRoleMember.getTokenMatchOperator()+ &quot;)&quot;);</span>
+        }
+<span class="nc bnc" id="L152" title="All 4 branches missed.">        if (addedRoleMember || !StringUtils.equals(oldRoleMember.getTokenMatchValue(), persistedRoleMember.getTokenMatchValue())) {</span>
+<span class="nc" id="L153">            details.put(&quot;tokenMatchValue&quot;, persistedRoleMember.getTokenMatchValue());</span>
+        }
+<span class="nc bnc" id="L155" title="All 4 branches missed.">        if (addedRoleMember || oldRoleMember.getRoleId()!=persistedRoleMember.getRoleId()) {</span>
+<span class="nc" id="L156">            details.put(&quot;roleId&quot;, roleMember.getRoleId());</span>
+<span class="nc" id="L157">            details.put(&quot;nameSpace&quot;, role.getNameSpace());</span>
+<span class="nc" id="L158">            details.put(&quot;roleName&quot;, role.getRoleName());</span>
+        }
+<span class="nc bnc" id="L160" title="All 4 branches missed.">        if (addedRoleMember || !StringUtils.equals(oldRoleMember.getDescription(), persistedRoleMember.getDescription())) {</span>
+<span class="nc" id="L161">            details.put(&quot;description&quot;, persistedRoleMember.getDescription());</span>
+        }
+<span class="nc bnc" id="L163" title="All 2 branches missed.">        final EventType eventType = addedRoleMember ? EventTypes.ROLE_ACCESS_USER_ADDITION : EventTypes.ROLE_ACCESS_USER_CHANGE;</span>
+<span class="nc" id="L164">        securityEventsLoggerSession.log(eventType, EventStatus.SUCCESS, ModuleTypes.ROLES, ServiceTypes.CORE, authenticationToken.toString(), null, null, null, details);</span>
+<span class="nc" id="L165">        return persistedRoleMember;</span>
+    }
+    
+    /**
+     * Normalizes data in the role member, e.g. changing serial numbers to uppercase without leading zeros.
+     * @param roleMember Member
+     */
+    private void normalizeRoleMember(final RoleMember roleMember) {
+<span class="nc" id="L173">        final AccessMatchValue matchKey = AccessMatchValueReverseLookupRegistry.INSTANCE.performReverseLookup(roleMember.getTokenType(), roleMember.getTokenMatchKey());</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">        if (matchKey != null) {</span>
+<span class="nc" id="L175">            roleMember.setTokenMatchValue(matchKey.normalizeMatchValue(roleMember.getTokenMatchValue()));</span>
+        }
+<span class="nc" id="L177">    }</span>
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public RoleMember getRoleMember(final AuthenticationToken authenticationToken, final int roleMemberId) throws AuthorizationDeniedException {
+<span class="nc" id="L182">        final RoleMember roleMember = roleMemberDataSession.findRoleMember(roleMemberId);</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">        if (roleMember == null) {</span>
+<span class="nc" id="L184">            return null;</span>
+        }
+        // Authorization checks
+<span class="nc" id="L187">        roleSession.assertAuthorizedToRoleMembers(authenticationToken, roleMember.getRoleId(), false);</span>
+<span class="nc" id="L188">        lookupRoleAndCheckAuthorization(authenticationToken, roleMember);</span>
+<span class="nc" id="L189">        return roleMember;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public List&lt;RoleMember&gt; getRoleMembersByRoleId(final AuthenticationToken authenticationToken, final int roleId) throws AuthorizationDeniedException {
+        // Ensure that the role exists and that the caller is authorized to it
+<span class="nc bnc" id="L196" title="All 2 branches missed.">        if (!authorizationSession.isAuthorizedNoLogging(authenticationToken, StandardRules.VIEWROLES.resource())) {</span>
+<span class="nc" id="L197">            final String msg = InternalResources.getInstance().getLocalizedMessage(&quot;authorization.notauthorizedtoviewroles&quot;, authenticationToken.toString());</span>
+<span class="nc" id="L198">            throw new AuthorizationDeniedException(msg);</span>
+        }
+<span class="nc bnc" id="L200" title="All 2 branches missed.">        if (roleSession.getRole(authenticationToken, roleId)==null) {</span>
+<span class="nc" id="L201">            return null;</span>
+        }
+<span class="nc" id="L203">        final List&lt;RoleMember&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L204">        final Set&lt;String&gt; requiredCaAccessResources = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">        for (final RoleMemberData roleMemberData : roleMemberDataSession.findByRoleId(roleId)) {</span>
+<span class="nc" id="L206">            final RoleMember roleMember = roleMemberData.asValueObject();</span>
+<span class="nc" id="L207">            final AuthenticationTokenMetaData metaData = AccessMatchValueReverseLookupRegistry.INSTANCE.getMetaData(roleMember.getTokenType());</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">            if (metaData.getAccessMatchValueIdMap().get(roleMember.getTokenMatchKey()).isIssuedByCa()) {</span>
+<span class="nc" id="L209">                requiredCaAccessResources.add(StandardRules.CAACCESS.resource() + roleMember.getTokenIssuerId());</span>
+            }
+<span class="nc" id="L211">            ret.add(roleMember);</span>
+<span class="nc" id="L212">        }</span>
+<span class="nc" id="L213">        final String[] requiredCaAccessResourcesArray = requiredCaAccessResources.toArray(new String[requiredCaAccessResources.size()]);</span>
+<span class="nc bnc" id="L214" title="All 4 branches missed.">        if (!requiredCaAccessResources.isEmpty() &amp;&amp; !authorizationSession.isAuthorizedNoLogging(authenticationToken, requiredCaAccessResourcesArray)) {</span>
+<span class="nc" id="L215">            throw new AuthorizationDeniedException(&quot;Not authorized to all members in role.&quot;);</span>
+        }
+<span class="nc" id="L217">        return ret;</span>
+    }
+
+    /** @param authenticationToken Token
+     * @param roleMember Member
+     * @throws AuthorizationDeniedException if the provided RoleMember is the only member in the particular RoleMember's Role matching the authentication token */
+    private void assertNonImportantRoleMembership(final AuthenticationToken authenticationToken, final RoleMember roleMember) throws AuthorizationDeniedException {
+<span class="nc" id="L224">        final List&lt;RoleMember&gt; roleMembers = getRoleMembersByRoleId(authenticationToken, roleMember.getRoleId());</span>
+<span class="nc" id="L225">        int count = 0;</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">        for (final RoleMember current : roleMembers) {</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">            if (current.getTokenType().equals(roleMember.getTokenType()) &amp;&amp;</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">                    current.getTokenIssuerId()==roleMember.getTokenIssuerId() &amp;&amp;</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">                    current.getTokenMatchKey()==roleMember.getTokenMatchKey() &amp;&amp;</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">                    current.getTokenMatchOperator()==roleMember.getTokenMatchOperator() &amp;&amp;</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">                    StringUtils.equals(current.getTokenMatchValue(), roleMember.getTokenMatchValue())) {</span>
+<span class="nc" id="L232">                count++;</span>
+            }
+<span class="nc" id="L234">        }</span>
+        // If there are no duplicate matches for this RoleMember...
+<span class="nc bnc" id="L236" title="All 2 branches missed.">        if (count&lt;2) {</span>
+<span class="nc bnc" id="L237" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L238">                log.debug(&quot;No RoleMember provides the same match as the one with id &quot; + roleMember.getId() + &quot;. count=&quot;+count);</span>
+            }
+            // ...and the caller relies on this match for access the access granted by this Role...
+<span class="nc bnc" id="L241" title="All 2 branches missed.">            for (final RoleMember current : roleMemberDataSession.getRoleMembersMatchingAuthenticationToken(authenticationToken)) {</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">                if (roleMember.getId() == current.getId()) {</span>
+<span class="nc bnc" id="L243" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L244">                        log.debug(&quot;'&quot;+authenticationToken+&quot;' relies on match from RoleMember with id &quot; + roleMember.getId() + &quot;.&quot;);</span>
+                    }
+                    // ...also check if there are other roles that would provide the same access as a this Role
+<span class="nc" id="L247">                    roleSession.assertNonImportantRoleMembership(authenticationToken, roleMember.getRoleId());</span>
+                }
+<span class="nc" id="L249">            }</span>
+        } else {
+<span class="nc bnc" id="L251" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L252">                log.debug(&quot;RoleMembers provides the same match as the one with id &quot; + roleMember.getId() + &quot;. count=&quot;+count);</span>
+            }
+        }
+<span class="nc" id="L255">    }</span>
+    
+    @Override
+    public boolean remove(final AuthenticationToken authenticationToken, final int roleMemberId) throws AuthorizationDeniedException {
+<span class="nc" id="L259">        final RoleMember roleMember = roleMemberDataSession.findRoleMember(roleMemberId);</span>
+<span class="nc bnc" id="L260" title="All 2 branches missed.">        if (roleMember == null) {</span>
+<span class="nc" id="L261">            return false;</span>
+        }
+<span class="nc" id="L263">        assertNonImportantRoleMembership(authenticationToken, roleMember);</span>
+<span class="nc" id="L264">        roleSession.assertAuthorizedToRoleMembers(authenticationToken, roleMember.getRoleId(), true);</span>
+<span class="nc" id="L265">        final Role role = lookupRoleAndCheckAuthorization(authenticationToken, roleMember);</span>
+<span class="nc" id="L266">        final boolean removed = roleMemberDataSession.remove(roleMemberId);</span>
+<span class="nc bnc" id="L267" title="All 2 branches missed.">        if (removed) {</span>
+<span class="nc" id="L268">            final String tokenType = roleMember.getTokenType();</span>
+<span class="nc" id="L269">            final int tokenMatchKey = roleMember.getTokenMatchKey();</span>
+<span class="nc" id="L270">            final String tokenMatchKeyName = AccessMatchValueReverseLookupRegistry.INSTANCE.performReverseLookup(tokenType, tokenMatchKey).name();</span>
+<span class="nc" id="L271">            final String msg = InternalResources.getInstance().getLocalizedMessage(&quot;authorization.adminremoved&quot;, roleMember.getTokenMatchValue(), role.getRoleNameFull());</span>
+<span class="nc" id="L272">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L273">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L274">            details.put(&quot;id&quot;, roleMember.getId());</span>
+<span class="nc" id="L275">            details.put(&quot;tokenType&quot;, roleMember.getTokenType());</span>
+<span class="nc" id="L276">            details.put(&quot;tokenIssuerId&quot;, roleMember.getTokenIssuerId());</span>
+<span class="nc" id="L277">            details.put(&quot;tokenMatchKey&quot;, tokenMatchKeyName + &quot; (&quot; + roleMember.getTokenMatchKey()+ &quot;)&quot;);</span>
+<span class="nc" id="L278">            details.put(&quot;tokenMatchOperator&quot;, roleMember.getAccessMatchType().name() + &quot; (&quot; + roleMember.getTokenMatchOperator()+ &quot;)&quot;);</span>
+<span class="nc" id="L279">            details.put(&quot;tokenMatchValue&quot;, roleMember.getTokenMatchValue());</span>
+<span class="nc" id="L280">            details.put(&quot;roleId&quot;, roleMember.getRoleId());</span>
+<span class="nc" id="L281">            details.put(&quot;nameSpace&quot;, role.getNameSpace());</span>
+<span class="nc" id="L282">            details.put(&quot;roleName&quot;, role.getRoleName());</span>
+<span class="nc" id="L283">            details.put(&quot;description&quot;, roleMember.getDescription());</span>
+<span class="nc" id="L284">            securityEventsLoggerSession.log(EventTypes.ROLE_ACCESS_USER_DELETION, EventStatus.SUCCESS, ModuleTypes.ROLES, ServiceTypes.CORE,</span>
+<span class="nc" id="L285">                    authenticationToken.toString(), null, null, null, details);</span>
+        }
+<span class="nc" id="L287">        return removed;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

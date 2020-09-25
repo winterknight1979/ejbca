@@ -1,0 +1,3264 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CertificateProfile.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-ejb</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.certificateprofile</a> &gt; <span class="el_source">CertificateProfile.java</span></div><h1>CertificateProfile.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.certificateprofile;
+
+import java.io.Serializable;
+import java.security.PublicKey;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.StringTokenizer;
+
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ocsp.OCSPObjectIdentifiers;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.KeyPurposeId;
+import org.cesecore.certificates.ca.ApprovalRequestType;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificate.IllegalKeyException;
+import org.cesecore.certificates.util.AlgorithmConstants;
+import org.cesecore.certificates.util.AlgorithmTools;
+import org.cesecore.certificates.util.DNFieldExtractor;
+import org.cesecore.certificates.util.DnComponents;
+import org.cesecore.internal.InternalResources;
+import org.cesecore.internal.UpgradeableDataHashMap;
+import org.cesecore.keys.util.KeyTools;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.ValidityDate;
+
+/**
+ * CertificateProfile is a basic class used to customize a certificate configuration or be inherited by fixed certificate profiles.
+ *
+ * @version $Id: CertificateProfile.java 29578 2018-08-07 12:19:15Z jekaterina_b_helmes $
+ */
+public class CertificateProfile extends UpgradeableDataHashMap implements Serializable, Cloneable {
+<span class="fc" id="L57">    private static final Logger log = Logger.getLogger(CertificateProfile.class);</span>
+    /** Internal localization of logs and errors */
+<span class="fc" id="L59">    private static final InternalResources intres = InternalResources.getInstance();</span>
+
+    // Public Constants
+    public static final float LATEST_VERSION = (float) 46.0;
+
+    public static final String ROOTCAPROFILENAME = &quot;ROOTCA&quot;;
+    public static final String SUBCAPROFILENAME = &quot;SUBCA&quot;;
+    public static final String ENDUSERPROFILENAME = &quot;ENDUSER&quot;;
+    public static final String OCSPSIGNERPROFILENAME = &quot;OCSPSIGNER&quot;;
+    public static final String SERVERPROFILENAME = &quot;SERVER&quot;;
+    public static final String HARDTOKENAUTHPROFILENAME = &quot;HARDTOKEN_AUTH&quot;;
+    public static final String HARDTOKENAUTHENCPROFILENAME = &quot;HARDTOKEN_AUTHENC&quot;;
+    public static final String HARDTOKENENCPROFILENAME = &quot;HARDTOKEN_ENC&quot;;
+    public static final String HARDTOKENSIGNPROFILENAME = &quot;HARDTOKEN_SIGN&quot;;
+
+<span class="fc" id="L74">    public static final List&lt;String&gt; FIXED_PROFILENAMES = new ArrayList&lt;&gt;();</span>
+    static {
+<span class="fc" id="L76">        FIXED_PROFILENAMES.add(ROOTCAPROFILENAME);</span>
+<span class="fc" id="L77">        FIXED_PROFILENAMES.add(SUBCAPROFILENAME);</span>
+<span class="fc" id="L78">        FIXED_PROFILENAMES.add(ENDUSERPROFILENAME);</span>
+<span class="fc" id="L79">        FIXED_PROFILENAMES.add(OCSPSIGNERPROFILENAME);</span>
+<span class="fc" id="L80">        FIXED_PROFILENAMES.add(SERVERPROFILENAME);</span>
+<span class="fc" id="L81">        FIXED_PROFILENAMES.add(HARDTOKENAUTHPROFILENAME);</span>
+<span class="fc" id="L82">        FIXED_PROFILENAMES.add(HARDTOKENAUTHENCPROFILENAME);</span>
+<span class="fc" id="L83">        FIXED_PROFILENAMES.add(HARDTOKENENCPROFILENAME);</span>
+<span class="fc" id="L84">        FIXED_PROFILENAMES.add(HARDTOKENSIGNPROFILENAME);</span>
+    }
+ 
+    /**
+     * Determines if a de-serialized file is compatible with this class.
+     *
+     * Maintainers must change this value if and only if the new version of this class is not compatible with old versions. See Sun docs for &lt;a
+     * href=http://java.sun.com/products/jdk/1.1/docs/guide /serialization/spec/version.doc.html&gt; details. &lt;/a&gt;
+     *
+     */
+    private static final long serialVersionUID = -8069608639716545206L;
+
+
+
+    /** Microsoft Template Constants */
+    public static final String MSTEMPL_DOMAINCONTROLLER = &quot;DomainController&quot;;
+
+<span class="fc" id="L101">    public static final String[] AVAILABLE_MSTEMPLATES = { MSTEMPL_DOMAINCONTROLLER };</span>
+
+    public static final String TRUE = &quot;true&quot;;
+    public static final String FALSE = &quot;false&quot;;
+
+    /**
+     * Determines the access rights in CV Certificates. CV Certificates is used by EU EAC ePassports and is issued by a CVC CA. DG3 is access to
+     * fingerprints and DG4 access to iris.
+     */
+    public static final int CVC_ACCESS_NONE = 0;
+    public static final int CVC_ACCESS_DG3 = 1;
+    public static final int CVC_ACCESS_DG4 = 2;
+    public static final int CVC_ACCESS_DG3DG4 = 3;
+    // For signature terminals (defined in version 2.10 of the EAC specification)
+    public static final int CVC_ACCESS_SIGN = 16;
+    public static final int CVC_ACCESS_QUALSIGN = 32;
+    public static final int CVC_ACCESS_SIGN_AND_QUALSIGN = 48;
+
+    /**
+     * CVC terminal types. Controls which set of roles and access rights are available.
+     */
+    public static final int CVC_TERMTYPE_IS = 0;
+    /** Authentication terminal */
+    public static final int CVC_TERMTYPE_AT = 1;
+    /** Signature terminal */
+    public static final int CVC_TERMTYPE_ST = 2;
+
+    /** Accreditation Body DV for signature terminals. ABs accredits CSPs */
+    public static final int CVC_SIGNTERM_DV_AB = 0;
+    /** Certification Service Provider DV for signature terminals */
+    public static final int CVC_SIGNTERM_DV_CSP = 1;
+
+    /** Supported certificate versions. */
+    public static final String VERSION_X509V3 = &quot;X509v3&quot;;
+    public static final String CUSTOMPROFILENAME = &quot;CUSTOM&quot;;
+
+    /** Constant indicating that any CA can be used with this certificate profile. */
+    public static final int ANYCA = -1;
+    /** Constant indicating that any elliptic curve may be used with this profile. */
+    public static final String ANY_EC_CURVE = &quot;ANY_EC_CURVE&quot;;
+
+    /** Constant holding the default available bit lengths for certificate profiles */
+<span class="fc" id="L143">    public static final int[] DEFAULTBITLENGTHS = { 0, 192, 224, 239, 256, 384, 512, 521, 1024, 1536, 2048, 3072, 4096, 6144, 8192 };</span>
+<span class="fc" id="L144">    public static final byte[] DEFAULT_CVC_RIGHTS_AT = { 0, 0, 0, 0, 0 };</span>
+
+    /** Constants for validity and private key usage period. */
+    public static final String DEFAULT_CERTIFICATE_VALIDITY = &quot;2y&quot;;
+    /** Constant for default validity for fixed profiles is 25 years including 6 or 7 leap days. */
+    public static final String DEFAULT_CERTIFICATE_VALIDITY_FOR_FIXED_CA = &quot;25y7d&quot;;
+    /** Constant for default validity offset (for backward compatibility': -10m'!) */
+    public static final String DEFAULT_CERTIFICATE_VALIDITY_OFFSET = &quot;-10m&quot;;
+    public static final long DEFAULT_PRIVATE_KEY_USAGE_PERIOD_OFFSET = 0;
+    public static final long DEFAULT_PRIVATE_KEY_USAGE_PERIOD_LENGTH = 730 * 24 * 3600;
+
+    // Profile fields
+    protected static final String CERTVERSION = &quot;certversion&quot;;
+    @Deprecated
+    protected static final String VALIDITY = &quot;validity&quot;;
+    protected static final String ENCODED_VALIDITY = &quot;encodedvalidity&quot;;
+    protected static final String USE_CERTIFICATE_VALIDITY_OFFSET = &quot;usecertificatevalidityoffset&quot;;
+    protected static final String CERTIFICATE_VALIDITY_OFFSET = &quot;certificatevalidityoffset&quot;;
+    protected static final String USE_EXPIRATION_RESTRICTION_FOR_WEEKDAYS = &quot;useexpirationrestrictionforweekdays&quot;;
+    protected static final String EXPIRATION_RESTRICTION_FOR_WEEKDAYS_BEFORE = &quot;expirationrestrictionforweekdaysbefore&quot;;
+    protected static final String EXPIRATION_RESTRICTION_WEEKDAYS = &quot;expirationrestrictionweekdays&quot;;
+    protected static final String ALLOWVALIDITYOVERRIDE = &quot;allowvalidityoverride&quot;;
+    protected static final String ALLOWKEYUSAGEOVERRIDE = &quot;allowkeyusageoverride&quot;;
+    protected static final String ALLOWBACKDATEDREVOCATION = &quot;allowbackdatedrevokation&quot;;
+    protected static final String ALLOWEXTENSIONOVERRIDE = &quot;allowextensionoverride&quot;;
+    protected static final String ALLOWDNOVERRIDE = &quot;allowdnoverride&quot;;
+    protected static final String ALLOWDNOVERRIDEBYEEI = &quot;allowdnoverridebyeei&quot;;
+    protected static final String ALLOWCERTSNOVERIDE = &quot;allowcertsnoverride&quot;;
+    protected static final String AVAILABLEKEYALGORITHMS = &quot;availablekeyalgorithms&quot;;
+    protected static final String AVAILABLEECCURVES = &quot;availableeccurves&quot;;
+    protected static final String AVAILABLEBITLENGTHS = &quot;availablebitlengths&quot;;
+    protected static final String MINIMUMAVAILABLEBITLENGTH = &quot;minimumavailablebitlength&quot;;
+    protected static final String MAXIMUMAVAILABLEBITLENGTH = &quot;maximumavailablebitlength&quot;;
+    public static final String TYPE = &quot;type&quot;;
+    protected static final String AVAILABLECAS = &quot;availablecas&quot;;
+    protected static final String USEDPUBLISHERS = &quot;usedpublishers&quot;;
+    protected static final String USECNPOSTFIX = &quot;usecnpostfix&quot;;
+    protected static final String CNPOSTFIX = &quot;cnpostfix&quot;;
+    protected static final String USESUBJECTDNSUBSET = &quot;usesubjectdnsubset&quot;;
+    protected static final String SUBJECTDNSUBSET = &quot;subjectdnsubset&quot;;
+    protected static final String USESUBJECTALTNAMESUBSET = &quot;usesubjectaltnamesubset&quot;;
+    protected static final String SUBJECTALTNAMESUBSET = &quot;subjectaltnamesubset&quot;;
+    protected static final String USEDCERTIFICATEEXTENSIONS = &quot;usedcertificateextensions&quot;;
+    /**
+     * @deprecated since 6.8.0, where approval settings and profiles became interlinked.
+     */
+    @Deprecated
+    protected static final String APPROVALSETTINGS = &quot;approvalsettings&quot;;
+    /**
+     * @deprecated since 6.6.0, use the appropriate approval profile instead
+     * Needed for a while in order to be able to import old statedumps from 6.5 and earlier
+     */
+    @Deprecated
+    public static final String NUMOFREQAPPROVALS = &quot;numofreqapprovals&quot;;
+    /**
+     * @deprecated since 6.8.0, where approval settings and profiles became interlinked.
+     */
+    @Deprecated
+    protected static final String APPROVALPROFILE = &quot;approvalProfile&quot;;
+    protected static final String APPROVALS = &quot;approvals&quot;;
+    protected static final String SIGNATUREALGORITHM = &quot;signaturealgorithm&quot;;
+    protected static final String USECERTIFICATESTORAGE = &quot;usecertificatestorage&quot;;
+    protected static final String STORECERTIFICATEDATA = &quot;storecertificatedata&quot;;
+    protected static final String STORESUBJECTALTNAME = &quot;storesubjectaltname&quot;;
+    //
+    // CRL extensions
+    protected static final String USECRLNUMBER = &quot;usecrlnumber&quot;;
+    protected static final String CRLNUMBERCRITICAL = &quot;crlnumbercritical&quot;;
+    //
+    // Certificate extensions
+    protected static final String USEBASICCONSTRAINTS = &quot;usebasicconstrants&quot;;
+    protected static final String BASICCONSTRAINTSCRITICAL = &quot;basicconstraintscritical&quot;;
+    protected static final String USEPATHLENGTHCONSTRAINT = &quot;usepathlengthconstraint&quot;;
+    protected static final String PATHLENGTHCONSTRAINT = &quot;pathlengthconstraint&quot;;
+    protected static final String USEKEYUSAGE = &quot;usekeyusage&quot;;
+    protected static final String KEYUSAGECRITICAL = &quot;keyusagecritical&quot;;
+    protected static final String KEYUSAGE = &quot;keyusage&quot;;
+    protected static final String USESUBJECTKEYIDENTIFIER = &quot;usesubjectkeyidentifier&quot;;
+    protected static final String SUBJECTKEYIDENTIFIERCRITICAL = &quot;subjectkeyidentifiercritical&quot;;
+    protected static final String USEAUTHORITYKEYIDENTIFIER = &quot;useauthoritykeyidentifier&quot;;
+    protected static final String AUTHORITYKEYIDENTIFIERCRITICAL = &quot;authoritykeyidentifiercritical&quot;;
+    protected static final String USESUBJECTALTERNATIVENAME = &quot;usesubjectalternativename&quot;;
+    protected static final String SUBJECTALTERNATIVENAMECRITICAL = &quot;subjectalternativenamecritical&quot;;
+    protected static final String USEISSUERALTERNATIVENAME = &quot;useissueralternativename&quot;;
+    protected static final String ISSUERALTERNATIVENAMECRITICAL = &quot;issueralternativenamecritical&quot;;
+    protected static final String USECRLDISTRIBUTIONPOINT = &quot;usecrldistributionpoint&quot;;
+    protected static final String USEDEFAULTCRLDISTRIBUTIONPOINT = &quot;usedefaultcrldistributionpoint&quot;;
+    protected static final String CRLDISTRIBUTIONPOINTCRITICAL = &quot;crldistributionpointcritical&quot;;
+    protected static final String CRLDISTRIBUTIONPOINTURI = &quot;crldistributionpointuri&quot;;
+    protected static final String CRLISSUER = &quot;crlissuer&quot;;
+    protected static final String USEFRESHESTCRL = &quot;usefreshestcrl&quot;;
+    protected static final String USECADEFINEDFRESHESTCRL = &quot;usecadefinedfreshestcrl&quot;;
+    protected static final String FRESHESTCRLURI = &quot;freshestcrluri&quot;;
+    protected static final String USECERTIFICATEPOLICIES = &quot;usecertificatepolicies&quot;;
+    protected static final String CERTIFICATEPOLICIESCRITICAL = &quot;certificatepoliciescritical&quot;;
+    /** Policy containing oid, User Notice and Cps Url */
+    protected static final String CERTIFICATE_POLICIES = &quot;certificatepolicies&quot;;
+    protected static final String USEEXTENDEDKEYUSAGE = &quot;useextendedkeyusage&quot;;
+    protected static final String EXTENDEDKEYUSAGE = &quot;extendedkeyusage&quot;;
+    protected static final String EXTENDEDKEYUSAGECRITICAL = &quot;extendedkeyusagecritical&quot;;
+    protected static final String USEDOCUMENTTYPELIST = &quot;usedocumenttypelist&quot;;
+    protected static final String DOCUMENTTYPELISTCRITICAL = &quot;documenttypelistcritical&quot;;
+    protected static final String DOCUMENTTYPELIST = &quot;documenttypelist&quot;;
+    protected static final String USEOCSPNOCHECK = &quot;useocspnocheck&quot;;
+    protected static final String USEAUTHORITYINFORMATIONACCESS = &quot;useauthorityinformationaccess&quot;;
+    protected static final String USEOCSPSERVICELOCATOR = &quot;useocspservicelocator&quot;;
+    protected static final String USEDEFAULTCAISSUER = &quot;usedefaultcaissuer&quot;;
+    protected static final String USEDEFAULTOCSPSERVICELOCATOR = &quot;usedefaultocspservicelocator&quot;;
+    protected static final String OCSPSERVICELOCATORURI = &quot;ocspservicelocatoruri&quot;;
+    protected static final String USECAISSUERS = &quot;usecaissuersuri&quot;;
+    protected static final String CAISSUERS = &quot;caissuers&quot;;
+    protected static final String USELDAPDNORDER = &quot;useldapdnorder&quot;;
+    protected static final String USEMICROSOFTTEMPLATE = &quot;usemicrosofttemplate&quot;;
+    protected static final String MICROSOFTTEMPLATE = &quot;microsofttemplate&quot;;
+    protected static final String USECARDNUMBER = &quot;usecardnumber&quot;;
+    protected static final String USEQCSTATEMENT = &quot;useqcstatement&quot;;
+    protected static final String USEPKIXQCSYNTAXV2 = &quot;usepkixqcsyntaxv2&quot;;
+    protected static final String QCSTATEMENTCRITICAL = &quot;useqcstatementcritical&quot;;
+    protected static final String QCSTATEMENTRANAME = &quot;useqcstatementraname&quot;;
+    protected static final String QCSSEMANTICSID = &quot;useqcsematicsid&quot;;
+    protected static final String USEQCETSIQCCOMPLIANCE = &quot;useqcetsiqccompliance&quot;;
+    protected static final String USEQCETSIVALUELIMIT = &quot;useqcetsivaluelimit&quot;;
+    protected static final String QCETSIVALUELIMIT = &quot;qcetsivaluelimit&quot;;
+    protected static final String QCETSIVALUELIMITEXP = &quot;qcetsivaluelimitexp&quot;;
+    protected static final String QCETSIVALUELIMITCURRENCY = &quot;qcetsivaluelimitcurrency&quot;;
+    protected static final String USEQCETSIRETENTIONPERIOD = &quot;useqcetsiretentionperiod&quot;;
+    protected static final String QCETSIRETENTIONPERIOD = &quot;qcetsiretentionperiod&quot;;
+    protected static final String USEQCETSISIGNATUREDEVICE = &quot;useqcetsisignaturedevice&quot;;
+    protected static final String USEQCETSITYPE = &quot;useqcetsitype&quot;;
+    protected static final String QCETSITYPE = &quot;qcetsitype&quot;;
+    protected static final String QCETSIPDS = &quot;qcetsipds&quot;;
+    /** @deprecated since EJBCA 6.6.1. It was only used in 6.6.0, and is needed to handle upgrades from that version
+     * PDS URLs are now handled in QCETSIPDS */
+    @Deprecated
+    protected static final String QCETSIPDSURL = &quot;qcetsipdsurl&quot;;
+    /** @deprecated since EJBCA 6.6.1. It was only used in 6.6.0, and is needed to handle upgrades from that version
+    * PDS URLs are now handled in QCETSIPDS */
+    @Deprecated
+    protected static final String QCETSIPDSLANG = &quot;qcetsipdslang&quot;;
+    protected static final String USEQCCUSTOMSTRING = &quot;useqccustomstring&quot;;
+    protected static final String QCCUSTOMSTRINGOID = &quot;qccustomstringoid&quot;;
+    protected static final String QCCUSTOMSTRINGTEXT = &quot;qccustomstringtext&quot;;
+    protected static final String USENAMECONSTRAINTS = &quot;usenameconstraints&quot;;
+    protected static final String NAMECONSTRAINTSCRITICAL = &quot;nameconstraintscritical&quot;;
+    protected static final String USESUBJECTDIRATTRIBUTES = &quot;usesubjectdirattributes&quot;;
+    protected static final String CVCTERMINALTYPE = &quot;cvctermtype&quot;;
+    protected static final String CVCACCESSRIGHTS = &quot;cvcaccessrights&quot;;
+    protected static final String CVCLONGACCESSRIGHTS = &quot;cvclongaccessrights&quot;;
+    protected static final String CVCSIGNTERMDVTYPE = &quot;cvcsigntermdvtype&quot;;
+    protected static final String USEPRIVKEYUSAGEPERIOD          = &quot;useprivkeyusageperiod&quot;;
+    protected static final String USEPRIVKEYUSAGEPERIODNOTBEFORE = &quot;useprivkeyusageperiodnotbefore&quot;;
+    protected static final String USEPRIVKEYUSAGEPERIODNOTAFTER  = &quot;useprivkeyusageperiodnotafter&quot;;
+    protected static final String PRIVKEYUSAGEPERIODSTARTOFFSET  = &quot;privkeyusageperiodstartoffset&quot;;
+    protected static final String PRIVKEYUSAGEPERIODLENGTH           = &quot;privkeyusageperiodlength&quot;;
+    protected static final String USECERTIFICATETRANSPARENCYINCERTS = &quot;usecertificatetransparencyincerts&quot;;
+    protected static final String USECERTIFICATETRANSPARENCYINOCSP  = &quot;usecertificatetransparencyinocsp&quot;;
+    protected static final String USECERTIFICATETRANSPARENCYINPUBLISHERS  = &quot;usecertificatetransparencyinpublisher&quot;;
+
+    /* Certificate Transparency */
+    protected static final String CTSUBMITEXISTING  = &quot;ctsubmitexisting&quot;;
+    protected static final String CTLOGS = &quot;ctlogs&quot;;
+    protected static final String CTLABELS = &quot;ctlabels&quot;;
+    @Deprecated
+    protected static final String CT_MIN_TOTAL_SCTS = &quot;ctminscts&quot;; // This key is the same as in previous versions
+    @Deprecated
+    protected static final String CT_MIN_TOTAL_SCTS_OCSP = &quot;ctminsctsocsp&quot;; // This key is also the same as in previous versions
+    @Deprecated
+    protected static final String CT_MAX_SCTS = &quot;ctmaxscts&quot;; // Only used to fetch old value after upgrade, replaced by CT_MAX_NON_MANDATORY_SCTS and CT_MAX_MANDATORY_SCTS
+    @Deprecated
+    protected static final String CT_MAX_SCTS_OCSP = &quot;ctmaxsctsocsp&quot;; // Only used to fetch old value after upgrade, replaced by CT_MAX_NONMANDATORY_SCTS_OCSP and CT_MAX_MANDATORY_SCTS
+    
+    /* All deprecated below were removed in 6.10.1. Keep for upgrade purposes or move keys to UpgradeSessionBean */
+    @Deprecated
+    protected static final String CT_MIN_MANDATORY_SCTS = &quot;ctminmandatoryscts&quot;;
+    @Deprecated
+    protected static final String CT_MAX_MANDATORY_SCTS = &quot;ctmaxmandatoryscts&quot;;
+    @Deprecated
+    protected static final String CT_MIN_MANDATORY_SCTS_OCSP = &quot;ctminmandatorysctsocsp&quot;;
+    @Deprecated
+    protected static final String CT_MAX_MANDATORY_SCTS_OCSP = &quot;ctmaxmandatorysctsocsp&quot;;
+    @Deprecated
+    protected static final String CT_MIN_NONMANDATORY_SCTS = &quot;ctminnonmandatoryscts&quot;;
+    @Deprecated
+    protected static final String CT_MAX_NONMANDATORY_SCTS = &quot;ctmaxnonmandatoryscts&quot;;
+    @Deprecated
+    protected static final String CT_MIN_NONMANDATORY_SCTS_OCSP = &quot;ctminnonmandatorysctsocsp&quot;;
+    @Deprecated
+    protected static final String CT_MAX_NONMANDATORY_SCTS_OCSP = &quot;ctmaxnonmandatorysctsocsp&quot;;
+    protected static final String CT_SCTS_MIN = &quot;ctsctsmin&quot;;
+    protected static final String CT_SCTS_MAX = &quot;ctsctsmax&quot;;
+    protected static final String CT_SCTS_MIN_OCSP = &quot;ctsctsminocsp&quot;;
+    protected static final String CT_SCTS_MAX_OCSP = &quot;ctsctsmaxocsp&quot;;
+    protected static final String CT_NUMBER_OF_SCTS_BY_VALIDITY = &quot;ctnumberofsctsbyvalidity&quot;;
+    protected static final String CT_NUMBER_OF_SCTS_BY_CUSTOM = &quot;ctnumberofsctsbycustom&quot;;
+    protected static final String CT_MAX_NUMBER_OF_SCTS_BY_VALIDITY = &quot;ctmaxnumberofsctsbyvalidity&quot;;
+    protected static final String CT_MAX_NUMBER_OF_SCTS_BY_CUSTOM = &quot;ctmaxnumberofsctsbycustom&quot;;
+    protected static final String CTMAXRETRIES = &quot;ctmaxretries&quot;;
+
+    protected static final String USERSINGLEACTIVECERTIFICATECONSTRAINT = &quot;usesingleactivecertificateconstraint&quot;;
+    protected static final String USECUSTOMDNORDER = &quot;usecustomdnorder&quot;;
+    protected static final String USECUSTOMDNORDERLDAP = &quot;usecustomdnorderldap&quot;;
+    protected static final String CUSTOMDNORDER = &quot;customdnorder&quot;;
+    protected static final String OVERRIDABLEEXTENSIONOIDS = &quot;overridableextensionoids&quot;;
+    protected static final String NONOVERRIDABLEEXTENSIONOIDS = &quot;nonoverridableextensionoids&quot;;
+
+    /**
+     * OID for creating Smartcard Number Certificate Extension SEIS Cardnumber Extension according to SS 614330/31
+     */
+    public static final String OID_CARDNUMBER = &quot;1.2.752.34.2.1&quot;;
+
+    /** Constants holding the use properties for certificate extensions */
+<span class="fc" id="L355">    protected static final HashMap&lt;String, String&gt; useStandardCertificateExtensions = new HashMap&lt;&gt;();</span>
+    {
+<span class="fc" id="L357">        useStandardCertificateExtensions.put(USEBASICCONSTRAINTS, Extension.basicConstraints.getId());</span>
+<span class="fc" id="L358">        useStandardCertificateExtensions.put(USEKEYUSAGE, Extension.keyUsage.getId());</span>
+<span class="fc" id="L359">        useStandardCertificateExtensions.put(USESUBJECTKEYIDENTIFIER, Extension.subjectKeyIdentifier.getId());</span>
+<span class="fc" id="L360">        useStandardCertificateExtensions.put(USEAUTHORITYKEYIDENTIFIER, Extension.authorityKeyIdentifier.getId());</span>
+<span class="fc" id="L361">        useStandardCertificateExtensions.put(USESUBJECTALTERNATIVENAME, Extension.subjectAlternativeName.getId());</span>
+<span class="fc" id="L362">        useStandardCertificateExtensions.put(USEISSUERALTERNATIVENAME, Extension.issuerAlternativeName.getId());</span>
+<span class="fc" id="L363">        useStandardCertificateExtensions.put(USECRLDISTRIBUTIONPOINT, Extension.cRLDistributionPoints.getId());</span>
+<span class="fc" id="L364">        useStandardCertificateExtensions.put(USEFRESHESTCRL, Extension.freshestCRL.getId());</span>
+<span class="fc" id="L365">        useStandardCertificateExtensions.put(USECERTIFICATEPOLICIES, Extension.certificatePolicies.getId());</span>
+<span class="fc" id="L366">        useStandardCertificateExtensions.put(USEEXTENDEDKEYUSAGE, Extension.extendedKeyUsage.getId());</span>
+<span class="fc" id="L367">        useStandardCertificateExtensions.put(USEDOCUMENTTYPELIST, &quot;2.23.136.1.1.6.2&quot;);</span>
+<span class="fc" id="L368">        useStandardCertificateExtensions.put(USEQCSTATEMENT, Extension.qCStatements.getId());</span>
+<span class="fc" id="L369">        useStandardCertificateExtensions.put(USENAMECONSTRAINTS, Extension.nameConstraints.getId());</span>
+<span class="fc" id="L370">        useStandardCertificateExtensions.put(USESUBJECTDIRATTRIBUTES, Extension.subjectDirectoryAttributes.getId());</span>
+<span class="fc" id="L371">        useStandardCertificateExtensions.put(USEAUTHORITYINFORMATIONACCESS, Extension.authorityInfoAccess.getId());</span>
+<span class="fc" id="L372">        useStandardCertificateExtensions.put(USEPRIVKEYUSAGEPERIOD, Extension.privateKeyUsagePeriod.getId());</span>
+<span class="fc" id="L373">        useStandardCertificateExtensions.put(USEOCSPNOCHECK, OCSPObjectIdentifiers.id_pkix_ocsp_nocheck.getId());</span>
+<span class="fc" id="L374">        useStandardCertificateExtensions.put(USEMICROSOFTTEMPLATE, CertTools.OID_MSTEMPLATE);</span>
+<span class="fc" id="L375">        useStandardCertificateExtensions.put(USECARDNUMBER, OID_CARDNUMBER);</span>
+    }
+
+    // Old values used to upgrade from v22 to v23
+    protected static final String CERTIFICATEPOLICYID = &quot;certificatepolicyid&quot;;
+    /** Policy Notice Url to CPS field alias in the data structure */
+    protected static final String POLICY_NOTICE_CPS_URL = &quot;policynoticecpsurl&quot;;
+    /** Policy Notice User Notice field alias in the data structure */
+    protected static final String POLICY_NOTICE_UNOTICE_TEXT = &quot;policynoticeunoticetext&quot;;
+
+    // Public Methods
+
+    /**
+     * Creates a new instance of CertificateProfile. The default contructor creates a basic CertificateProfile
+     * that is the same as an End User certificateProfile, except that there are _no_ key usages. this means that a certificate
+     * issued with a default profile should not be usable for anything. Should be used for testing and where you want to create your own
+     * CertificateProfile for specific purposes.
+     *
+     */
+<span class="fc" id="L394">    public CertificateProfile() {</span>
+<span class="fc" id="L395">        setCommonDefaults();</span>
+<span class="fc" id="L396">    }</span>
+
+    /**
+     * Creates a new instance of CertificateProfile
+     *
+     * These settings are general for all sub-profiles, only differing values are overridden in the sub-profiles. If changing any present value here
+     * you must therefore go through all sub-profiles and add an override there. I.e. only add new values here, don't change any present settings.
+     *
+     * @param type
+     *            one of CertificateProfileConstants.CERTPROFILE_FIXED_XX, for example CertificateConstants.CERTPROFILE_NO_PROFILE, CERTPROFILE_NO_ENDUSER, etc
+     */
+<span class="fc" id="L407">    public CertificateProfile(int type) {</span>
+<span class="fc" id="L408">        setCommonDefaults();</span>
+<span class="fc" id="L409">        setDefaultValues(type);</span>
+<span class="fc" id="L410">    }</span>
+
+    private void setCommonDefaults() {
+<span class="fc" id="L413">        setType(CertificateConstants.CERTTYPE_ENDENTITY);</span>
+<span class="fc" id="L414">        setCertificateVersion(VERSION_X509V3);</span>
+<span class="fc" id="L415">        setEncodedValidity(DEFAULT_CERTIFICATE_VALIDITY);</span>
+<span class="fc" id="L416">        setUseCertificateValidityOffset(false);</span>
+<span class="fc" id="L417">        setCertificateValidityOffset(DEFAULT_CERTIFICATE_VALIDITY_OFFSET);</span>
+<span class="fc" id="L418">        setUseExpirationRestrictionForWeekdays(false);</span>
+<span class="fc" id="L419">        setExpirationRestrictionForWeekdaysExpireBefore(true);</span>
+<span class="fc" id="L420">        setDefaultExpirationRestrictionWeekdays();</span>
+<span class="fc" id="L421">        setAllowValidityOverride(false);</span>
+
+<span class="fc" id="L423">        setAllowExtensionOverride(false);</span>
+
+<span class="fc" id="L425">        setAllowDNOverride(false);</span>
+<span class="fc" id="L426">        setAllowDNOverrideByEndEntityInformation(false);</span>
+<span class="fc" id="L427">        setAllowBackdatedRevocation(false);</span>
+<span class="fc" id="L428">        setUseCertificateStorage(true);</span>
+<span class="fc" id="L429">        setStoreCertificateData(true);</span>
+<span class="fc" id="L430">        setStoreSubjectAlternativeName(true); // New profiles created after EJBCA 6.6.0 will store SAN by default</span>
+
+<span class="fc" id="L432">        setUseBasicConstraints(true);</span>
+<span class="fc" id="L433">        setBasicConstraintsCritical(true);</span>
+
+<span class="fc" id="L435">        setUseSubjectKeyIdentifier(true);</span>
+<span class="fc" id="L436">        setSubjectKeyIdentifierCritical(false);</span>
+
+<span class="fc" id="L438">        setUseAuthorityKeyIdentifier(true);</span>
+<span class="fc" id="L439">        setAuthorityKeyIdentifierCritical(false);</span>
+
+<span class="fc" id="L441">        setUseSubjectAlternativeName(true);</span>
+<span class="fc" id="L442">        setSubjectAlternativeNameCritical(false);</span>
+
+<span class="fc" id="L444">        setUseIssuerAlternativeName(true);</span>
+<span class="fc" id="L445">        setIssuerAlternativeNameCritical(false);</span>
+
+<span class="fc" id="L447">        setUseCRLDistributionPoint(false);</span>
+<span class="fc" id="L448">        setUseDefaultCRLDistributionPoint(false);</span>
+<span class="fc" id="L449">        setCRLDistributionPointCritical(false);</span>
+<span class="fc" id="L450">        setCRLDistributionPointURI(&quot;&quot;);</span>
+<span class="fc" id="L451">        setUseFreshestCRL(false);</span>
+<span class="fc" id="L452">        setUseCADefinedFreshestCRL(false);</span>
+<span class="fc" id="L453">        setFreshestCRLURI(&quot;&quot;);</span>
+<span class="fc" id="L454">        setCRLIssuer(null);</span>
+
+<span class="fc" id="L456">        setUseCertificatePolicies(false);</span>
+<span class="fc" id="L457">        setCertificatePoliciesCritical(false);</span>
+<span class="fc" id="L458">        ArrayList&lt;CertificatePolicy&gt; policies = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L459">        setCertificatePolicies(policies);</span>
+
+<span class="fc" id="L461">        setAvailableKeyAlgorithmsAsList(AlgorithmTools.getAvailableKeyAlgorithms());</span>
+<span class="fc" id="L462">        setAvailableEcCurvesAsList(Arrays.asList(ANY_EC_CURVE));</span>
+<span class="fc" id="L463">        setAvailableBitLengths(DEFAULTBITLENGTHS);</span>
+<span class="fc" id="L464">        setSignatureAlgorithm(null);</span>
+
+<span class="fc" id="L466">        setUseKeyUsage(true);</span>
+<span class="fc" id="L467">        setKeyUsage(new boolean[9]);</span>
+<span class="fc" id="L468">        setAllowKeyUsageOverride(false);</span>
+<span class="fc" id="L469">        setKeyUsageCritical(true);</span>
+
+<span class="fc" id="L471">        setUseExtendedKeyUsage(false);</span>
+<span class="fc" id="L472">        setExtendedKeyUsage(new ArrayList&lt;String&gt;());</span>
+<span class="fc" id="L473">        setExtendedKeyUsageCritical(false);</span>
+
+<span class="fc" id="L475">        setUseDocumentTypeList(false);</span>
+<span class="fc" id="L476">        setDocumentTypeListCritical(false);</span>
+<span class="fc" id="L477">        setDocumentTypeList(new ArrayList&lt;String&gt;());</span>
+
+<span class="fc" id="L479">        ArrayList&lt;Integer&gt; availablecas = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L480">        availablecas.add(Integer.valueOf(ANYCA));</span>
+<span class="fc" id="L481">        setAvailableCAs(availablecas);</span>
+
+<span class="fc" id="L483">        setPublisherList(new ArrayList&lt;Integer&gt;());</span>
+
+<span class="fc" id="L485">        setUseOcspNoCheck(false);</span>
+
+<span class="fc" id="L487">        setUseLdapDnOrder(true);</span>
+<span class="fc" id="L488">        setUseCustomDnOrder(false);</span>
+
+<span class="fc" id="L490">        setUseMicrosoftTemplate(false);</span>
+<span class="fc" id="L491">        setMicrosoftTemplate(&quot;&quot;);</span>
+<span class="fc" id="L492">        setUseCardNumber(false);</span>
+
+<span class="fc" id="L494">        setUseCNPostfix(false);</span>
+<span class="fc" id="L495">        setCNPostfix(&quot;&quot;);</span>
+
+<span class="fc" id="L497">        setUseSubjectDNSubSet(false);</span>
+<span class="fc" id="L498">        setSubjectDNSubSet(new ArrayList&lt;String&gt;());</span>
+<span class="fc" id="L499">        setUseSubjectAltNameSubSet(false);</span>
+<span class="fc" id="L500">        setSubjectAltNameSubSet(new ArrayList&lt;Integer&gt;());</span>
+
+<span class="fc" id="L502">        setUsePathLengthConstraint(false);</span>
+<span class="fc" id="L503">        setPathLengthConstraint(0);</span>
+
+<span class="fc" id="L505">        setUseQCStatement(false);</span>
+<span class="fc" id="L506">        setUsePkixQCSyntaxV2(false);</span>
+<span class="fc" id="L507">        setQCStatementCritical(false);</span>
+<span class="fc" id="L508">        setQCStatementRAName(null);</span>
+<span class="fc" id="L509">        setQCSemanticsId(null);</span>
+<span class="fc" id="L510">        setUseQCEtsiQCCompliance(false);</span>
+<span class="fc" id="L511">        setUseQCEtsiSignatureDevice(false);</span>
+<span class="fc" id="L512">        setUseQCEtsiValueLimit(false);</span>
+<span class="fc" id="L513">        setQCEtsiValueLimit(0);</span>
+<span class="fc" id="L514">        setQCEtsiValueLimitExp(0);</span>
+<span class="fc" id="L515">        setQCEtsiValueLimitCurrency(null);</span>
+<span class="fc" id="L516">        setUseQCEtsiRetentionPeriod(false);</span>
+<span class="fc" id="L517">        setQCEtsiRetentionPeriod(0);</span>
+<span class="fc" id="L518">        setUseQCCustomString(false);</span>
+<span class="fc" id="L519">        setQCCustomStringOid(null);</span>
+<span class="fc" id="L520">        setQCCustomStringText(null);</span>
+<span class="fc" id="L521">        setQCEtsiPds(null);</span>
+<span class="fc" id="L522">        setQCEtsiType(null);</span>
+
+<span class="fc" id="L524">        setUseCertificateTransparencyInCerts(false);</span>
+<span class="fc" id="L525">        setUseCertificateTransparencyInOCSP(false);</span>
+<span class="fc" id="L526">        setUseCertificateTransparencyInPublishers(false);</span>
+
+<span class="fc" id="L528">        setUseSubjectDirAttributes(false);</span>
+<span class="fc" id="L529">        setUseNameConstraints(false);</span>
+<span class="fc" id="L530">        setUseAuthorityInformationAccess(false);</span>
+<span class="fc" id="L531">        setCaIssuers(new ArrayList&lt;String&gt;());</span>
+<span class="fc" id="L532">        setUseDefaultCAIssuer(false);</span>
+<span class="fc" id="L533">        setUseDefaultOCSPServiceLocator(false);</span>
+<span class="fc" id="L534">        setOCSPServiceLocatorURI(&quot;&quot;);</span>
+
+        // Default to have access to fingerprint and iris
+<span class="fc" id="L537">        setCVCAccessRights(CertificateProfile.CVC_ACCESS_DG3DG4);</span>
+
+<span class="fc" id="L539">        setUsedCertificateExtensions(new ArrayList&lt;Integer&gt;());</span>
+<span class="fc" id="L540">        setApprovals(new LinkedHashMap&lt;ApprovalRequestType, Integer&gt;());</span>
+
+        // PrivateKeyUsagePeriod extension
+<span class="fc" id="L543">        setUsePrivateKeyUsagePeriodNotBefore(false);</span>
+<span class="fc" id="L544">        setUsePrivateKeyUsagePeriodNotAfter(false);</span>
+<span class="fc" id="L545">        setPrivateKeyUsagePeriodStartOffset(DEFAULT_PRIVATE_KEY_USAGE_PERIOD_OFFSET);</span>
+<span class="fc" id="L546">        setPrivateKeyUsagePeriodLength(DEFAULT_PRIVATE_KEY_USAGE_PERIOD_LENGTH);</span>
+
+<span class="fc" id="L548">        setSingleActiveCertificateConstraint(false);</span>
+
+<span class="fc" id="L550">        setOverridableExtensionOIDs(new LinkedHashSet&lt;String&gt;());</span>
+<span class="fc" id="L551">        setNonOverridableExtensionOIDs(new LinkedHashSet&lt;String&gt;());</span>
+<span class="fc" id="L552">    }</span>
+
+    /**
+     * @param type
+     *            one of CertificateProfileConstants.CERTPROFILE_FIXED_XX, for example CertificateConstants.CERTPROFILE_FIXED_ROOTCA
+     */
+
+    private void setDefaultValues(int type) {
+<span class="fc bfc" id="L560" title="All 2 branches covered.">        if (type == CertificateProfileConstants.CERTPROFILE_FIXED_ROOTCA) {</span>
+<span class="fc" id="L561">            setType(CertificateConstants.CERTTYPE_ROOTCA);</span>
+<span class="fc" id="L562">            setAllowValidityOverride(true);</span>
+<span class="fc" id="L563">            setUseKeyUsage(true);</span>
+<span class="fc" id="L564">            setKeyUsage(new boolean[9]);</span>
+<span class="fc" id="L565">            setKeyUsage(CertificateConstants.DIGITALSIGNATURE, true);</span>
+<span class="fc" id="L566">            setKeyUsage(CertificateConstants.KEYCERTSIGN, true);</span>
+<span class="fc" id="L567">            setKeyUsage(CertificateConstants.CRLSIGN, true);</span>
+<span class="fc" id="L568">            setKeyUsageCritical(true);</span>
+<span class="fc" id="L569">            setEncodedValidity(DEFAULT_CERTIFICATE_VALIDITY_FOR_FIXED_CA);</span>
+<span class="fc bfc" id="L570" title="All 2 branches covered.">        } else if (type == CertificateProfileConstants.CERTPROFILE_FIXED_SUBCA) {</span>
+<span class="fc" id="L571">            setType(CertificateConstants.CERTTYPE_SUBCA);</span>
+<span class="fc" id="L572">            setAllowValidityOverride(true);</span>
+<span class="fc" id="L573">            setUseKeyUsage(true);</span>
+<span class="fc" id="L574">            setKeyUsage(new boolean[9]);</span>
+<span class="fc" id="L575">            setKeyUsage(CertificateConstants.DIGITALSIGNATURE, true);</span>
+<span class="fc" id="L576">            setKeyUsage(CertificateConstants.KEYCERTSIGN, true);</span>
+<span class="fc" id="L577">            setKeyUsage(CertificateConstants.CRLSIGN, true);</span>
+<span class="fc" id="L578">            setKeyUsageCritical(true);</span>
+<span class="fc" id="L579">            setEncodedValidity(DEFAULT_CERTIFICATE_VALIDITY_FOR_FIXED_CA);</span>
+<span class="fc bfc" id="L580" title="All 2 branches covered.">        } else if (type == CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER) {</span>
+<span class="fc" id="L581">            setType(CertificateConstants.CERTTYPE_ENDENTITY);</span>
+            // Standard key usages for end users are: digitalSignature | nonRepudiation, and/or (keyEncipherment or keyAgreement)
+            // Default key usage is digitalSignature | nonRepudiation | keyEncipherment
+            // Create an array for KeyUsage according to X509Certificate.getKeyUsage()
+<span class="fc" id="L585">            setUseKeyUsage(true);</span>
+<span class="fc" id="L586">            setKeyUsage(new boolean[9]);</span>
+<span class="fc" id="L587">            setKeyUsage(CertificateConstants.DIGITALSIGNATURE, true);</span>
+<span class="fc" id="L588">            setKeyUsage(CertificateConstants.NONREPUDIATION, true);</span>
+<span class="fc" id="L589">            setKeyUsage(CertificateConstants.KEYENCIPHERMENT, true);</span>
+<span class="fc" id="L590">            setKeyUsageCritical(true);</span>
+<span class="fc" id="L591">            setUseExtendedKeyUsage(true);</span>
+<span class="fc" id="L592">            ArrayList&lt;String&gt; eku = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L593">            eku.add(KeyPurposeId.id_kp_clientAuth.getId());</span>
+<span class="fc" id="L594">            eku.add(KeyPurposeId.id_kp_emailProtection.getId());</span>
+<span class="fc" id="L595">            setExtendedKeyUsage(eku);</span>
+<span class="fc" id="L596">            setExtendedKeyUsageCritical(false);</span>
+<span class="fc bfc" id="L597" title="All 2 branches covered.">        } else if (type == CertificateProfileConstants.CERTPROFILE_FIXED_OCSPSIGNER) {</span>
+<span class="fc" id="L598">            setType(CertificateConstants.CERTTYPE_ENDENTITY);</span>
+            // Default key usage for an OCSP signer is digitalSignature
+            // Create an array for KeyUsage acoording to X509Certificate.getKeyUsage()
+<span class="fc" id="L601">            setUseKeyUsage(true);</span>
+<span class="fc" id="L602">            setKeyUsage(new boolean[9]);</span>
+<span class="fc" id="L603">            setKeyUsage(CertificateConstants.DIGITALSIGNATURE, true);</span>
+<span class="fc" id="L604">            setKeyUsageCritical(true);</span>
+<span class="fc" id="L605">            setUseExtendedKeyUsage(true);</span>
+<span class="fc" id="L606">            ArrayList&lt;String&gt; eku = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L607">            eku.add(KeyPurposeId.id_kp_OCSPSigning.getId());</span>
+<span class="fc" id="L608">            setExtendedKeyUsage(eku);</span>
+<span class="fc" id="L609">            setExtendedKeyUsageCritical(false);</span>
+<span class="fc" id="L610">            setUseOcspNoCheck(true);</span>
+<span class="fc bfc" id="L611" title="All 2 branches covered.">        } else if (type == CertificateProfileConstants.CERTPROFILE_FIXED_SERVER) {</span>
+<span class="fc" id="L612">            setType(CertificateConstants.CERTTYPE_ENDENTITY);</span>
+            // Standard key usages for server are: digitalSignature | (keyEncipherment or keyAgreement)
+            // Default key usage is digitalSignature | keyEncipherment
+            // Create an array for KeyUsage acoording to X509Certificate.getKeyUsage()
+<span class="fc" id="L616">            setUseKeyUsage(true);</span>
+<span class="fc" id="L617">            setKeyUsage(new boolean[9]);</span>
+<span class="fc" id="L618">            setKeyUsage(CertificateConstants.DIGITALSIGNATURE, true);</span>
+<span class="fc" id="L619">            setKeyUsage(CertificateConstants.KEYENCIPHERMENT, true);</span>
+<span class="fc" id="L620">            setKeyUsageCritical(true);</span>
+<span class="fc" id="L621">            setUseExtendedKeyUsage(true);</span>
+<span class="fc" id="L622">            ArrayList&lt;String&gt; eku = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L623">            eku.add(KeyPurposeId.id_kp_serverAuth.getId());</span>
+<span class="fc" id="L624">            setExtendedKeyUsage(eku);</span>
+<span class="fc" id="L625">            setExtendedKeyUsageCritical(false);</span>
+<span class="fc bfc" id="L626" title="All 2 branches covered.">        } else if (type == CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENAUTH) {</span>
+<span class="fc" id="L627">            setType(CertificateConstants.CERTTYPE_ENDENTITY);</span>
+<span class="fc" id="L628">            setUseKeyUsage(true);</span>
+<span class="fc" id="L629">            setKeyUsage(new boolean[9]);</span>
+<span class="fc" id="L630">            setKeyUsage(CertificateConstants.DIGITALSIGNATURE, true);</span>
+<span class="fc" id="L631">            setKeyUsageCritical(true);</span>
+<span class="fc" id="L632">            setUseExtendedKeyUsage(true);</span>
+<span class="fc" id="L633">            ArrayList&lt;String&gt; eku = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L634">            eku.add(KeyPurposeId.id_kp_clientAuth.getId());</span>
+<span class="fc" id="L635">            eku.add(KeyPurposeId.id_kp_smartcardlogon.getId());</span>
+<span class="fc" id="L636">            setExtendedKeyUsage(eku);</span>
+<span class="fc" id="L637">            setExtendedKeyUsageCritical(false);</span>
+<span class="fc bfc" id="L638" title="All 2 branches covered.">        } else if (type == CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENAUTHENC) {</span>
+<span class="fc" id="L639">            setType(CertificateConstants.CERTTYPE_ENDENTITY);</span>
+<span class="fc" id="L640">            setUseKeyUsage(true);</span>
+<span class="fc" id="L641">            setKeyUsage(new boolean[9]);</span>
+<span class="fc" id="L642">            setKeyUsage(CertificateConstants.KEYENCIPHERMENT, true);</span>
+<span class="fc" id="L643">            setKeyUsage(CertificateConstants.DIGITALSIGNATURE, true);</span>
+<span class="fc" id="L644">            setKeyUsageCritical(true);</span>
+<span class="fc" id="L645">            setUseExtendedKeyUsage(true);</span>
+<span class="fc" id="L646">            ArrayList&lt;String&gt; eku = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L647">            eku.add(KeyPurposeId.id_kp_clientAuth.getId());</span>
+<span class="fc" id="L648">            eku.add(KeyPurposeId.id_kp_emailProtection.getId());</span>
+<span class="fc" id="L649">            eku.add(KeyPurposeId.id_kp_smartcardlogon.getId());</span>
+<span class="fc" id="L650">            setExtendedKeyUsage(eku);</span>
+<span class="fc" id="L651">            setExtendedKeyUsageCritical(false);</span>
+<span class="fc bfc" id="L652" title="All 2 branches covered.">        } else if (type == CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENENC) {</span>
+<span class="fc" id="L653">            setType(CertificateConstants.CERTTYPE_ENDENTITY);</span>
+<span class="fc" id="L654">            setUseKeyUsage(true);</span>
+<span class="fc" id="L655">            setKeyUsage(new boolean[9]);</span>
+<span class="fc" id="L656">            setKeyUsage(CertificateConstants.KEYENCIPHERMENT, true);</span>
+<span class="fc" id="L657">            setKeyUsageCritical(true);</span>
+<span class="fc" id="L658">            setUseExtendedKeyUsage(true);</span>
+<span class="fc" id="L659">            ArrayList&lt;String&gt; eku = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L660">            eku.add(KeyPurposeId.id_kp_emailProtection.getId());</span>
+<span class="fc" id="L661">            setExtendedKeyUsage(eku);</span>
+<span class="fc" id="L662">            setExtendedKeyUsageCritical(false);</span>
+<span class="fc bfc" id="L663" title="All 2 branches covered.">        } else if (type == CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENSIGN) {</span>
+<span class="fc" id="L664">            setType(CertificateConstants.CERTTYPE_ENDENTITY);</span>
+<span class="fc" id="L665">            setUseKeyUsage(true);</span>
+<span class="fc" id="L666">            setKeyUsage(new boolean[9]);</span>
+<span class="fc" id="L667">            setKeyUsage(CertificateConstants.NONREPUDIATION, true);</span>
+<span class="fc" id="L668">            setKeyUsageCritical(true);</span>
+<span class="fc" id="L669">            setUseExtendedKeyUsage(true);</span>
+<span class="fc" id="L670">            ArrayList&lt;String&gt; eku = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L671">            eku.add(KeyPurposeId.id_kp_emailProtection.getId());</span>
+<span class="fc" id="L672">            setExtendedKeyUsage(eku);</span>
+<span class="fc" id="L673">            setExtendedKeyUsageCritical(false);</span>
+        }
+<span class="fc" id="L675">    }</span>
+
+    // Public Methods.
+    /** @return the version of the certificate, should be one of the VERSION_ constants defined in CertificateProfile class. */
+    public String getCertificateVersion() {
+<span class="fc" id="L680">        return (String) data.get(CERTVERSION);</span>
+    }
+
+    /**
+     * Sets the version of the certificate, should be one of the VERSION_ constants defined in CertificateProfile class.
+     * @param version version
+     */
+    public void setCertificateVersion(String version) {
+<span class="fc" id="L688">        data.put(CERTVERSION, version);</span>
+<span class="fc" id="L689">    }</span>
+
+    /**
+     * @see ValidityDate#getDateBeforeVersion661(long, java.util.Date)
+     * @return a long that is used to provide the end date of certificates for this profile, interpreted by ValidityDate#getDate
+     * @deprecated since since EJBCA 6.6.1
+     */
+    @Deprecated
+    public long getValidity() {
+<span class="nc" id="L698">        return ((Long) data.get(VALIDITY)).longValue();</span>
+    }
+
+    /**
+     * Gets the encoded validity.
+     * @return the validity as ISO8601 date or relative time.
+     * @see org.cesecore.util.ValidityDate ValidityDate
+     * @see org.cesecore.util.SimpleTime SimpleTime
+     */
+    @SuppressWarnings(&quot;deprecation&quot;)
+    public String getEncodedValidity() {
+<span class="fc" id="L709">        String result = (String) data.get(ENCODED_VALIDITY);</span>
+<span class="pc bpc" id="L710" title="1 of 2 branches missed.">        if (StringUtils.isBlank(result)) {</span>
+<span class="nc" id="L711">            result = ValidityDate.getStringBeforeVersion661(getValidity());</span>
+<span class="nc" id="L712">            setEncodedValidity(result);</span>
+        }
+<span class="fc" id="L714">        return result;</span>
+    }
+
+    /**
+     * Sets the encoded validity .
+     * @param encodedValidity the validity as ISO8601 date or relative time.
+     * @see  org.cesecore.util.ValidityDate ValidityDate
+     * @see  org.cesecore.util.SimpleTime SimpleTime
+     */
+    public void setEncodedValidity(String encodedValidity) {
+<span class="fc" id="L724">        data.put(ENCODED_VALIDITY, encodedValidity);</span>
+<span class="fc" id="L725">    }</span>
+
+    /**
+     * Gets the certificate validity offset.
+     * @return true if we should overwrite the default certificate validity offset with the one specified in the certificate profile.
+     * @see  #setCertificateValidityOffset
+     */
+    public boolean getUseCertificateValidityOffset() {
+        // Extra null check to handle in-development upgrades
+<span class="pc bpc" id="L734" title="1 of 2 branches missed.">        if (data.get(USE_CERTIFICATE_VALIDITY_OFFSET) != null) {</span>
+<span class="fc" id="L735">            return Boolean.valueOf((Boolean) data.get(USE_CERTIFICATE_VALIDITY_OFFSET));</span>
+        } else {
+<span class="nc" id="L737">            return false;</span>
+        }
+    }
+
+    /**
+     * Use certificate validity offset.
+     * @param enabled boolean
+     */
+    public void setUseCertificateValidityOffset(boolean enabled) {
+<span class="fc" id="L746">        data.put(USE_CERTIFICATE_VALIDITY_OFFSET, Boolean.valueOf(enabled));</span>
+<span class="fc" id="L747">    }</span>
+
+    /**
+     * Gets the certificate validity offset.
+     * @return the offset as simple time string with seconds precision (i.e. '-10m')
+     * @see org.cesecore.util.SimpleTime
+     */
+    public String getCertificateValidityOffset() {
+<span class="fc" id="L755">        return (String) data.get(CERTIFICATE_VALIDITY_OFFSET);</span>
+    }
+
+    /**
+     * Sets the certificate not before offset.
+     * @param simpleTime the offset as simple time string with seconds precision.
+     * @see org.cesecore.util.SimpleTime
+     */
+    public void setCertificateValidityOffset(String simpleTime) {
+<span class="fc" id="L764">        data.put(CERTIFICATE_VALIDITY_OFFSET, simpleTime);</span>
+<span class="fc" id="L765">    }</span>
+
+    /**
+     * @return true if we should apply restrictions that certificate expiration can only occur on week days specified by setExpirationRestrictionWeekday
+     * @see #setExpirationRestrictionWeekdays(boolean[])
+     */
+    public boolean getUseExpirationRestrictionForWeekdays() {
+<span class="fc" id="L772">        return Boolean.valueOf((Boolean) data.get(USE_EXPIRATION_RESTRICTION_FOR_WEEKDAYS));</span>
+    }
+
+    /**
+     * Use validity expiration restriction.
+     * @param enabled boolean
+     */
+    public void setUseExpirationRestrictionForWeekdays(boolean enabled) {
+<span class="fc" id="L780">        data.put(USE_EXPIRATION_RESTRICTION_FOR_WEEKDAYS, Boolean.valueOf(enabled));</span>
+<span class="fc" id="L781">    }</span>
+
+    /**
+     * @return true if we should roll back expiration or false of we should roll forward expiration to match week days specified by setExpirationRestrictionWeekday
+     * @see #setExpirationRestrictionWeekdays(boolean[])
+     */
+    public boolean getExpirationRestrictionForWeekdaysExpireBefore() {
+<span class="fc" id="L788">        return Boolean.valueOf((Boolean) data.get(EXPIRATION_RESTRICTION_FOR_WEEKDAYS_BEFORE));</span>
+    }
+
+    /**
+     * Sets if the certificate validity shall expire earlier as requested if a the expiration
+     * restriction was applied?
+     *
+     * @param enabled true, otherwise false.
+     */
+    public void setExpirationRestrictionForWeekdaysExpireBefore(boolean enabled) {
+<span class="fc" id="L798">        data.put(EXPIRATION_RESTRICTION_FOR_WEEKDAYS_BEFORE, Boolean.valueOf(enabled));</span>
+<span class="fc" id="L799">    }</span>
+
+    /**
+     * @param weekday (see java.util.Calendar.MONDAY - SUNDAY)
+     * @return true if the weekday is selected as validity expiration restriction.
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public boolean getExpirationRestrictionWeekday(int weekday) {
+<span class="nc" id="L807">        return ((ArrayList&lt;Boolean&gt;) data.get(EXPIRATION_RESTRICTION_WEEKDAYS)).get(weekday-1).booleanValue();</span>
+    }
+
+    /**
+     * Include a weekday as validity expiration restriction.
+     * @param weekday (see java.util.Calendar.MONDAY - SUNDAY)
+     * @param enabled boolean
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void setExpirationRestrictionWeekday(int weekday, boolean enabled) {
+<span class="fc" id="L817">        ((ArrayList&lt;Boolean&gt;) data.get(EXPIRATION_RESTRICTION_WEEKDAYS)).set(weekday-1, Boolean.valueOf(enabled));</span>
+<span class="fc" id="L818">    }</span>
+
+    /**
+     * Gets a copy of the List&amp;lt;Boolean&amp;gt; where validity restriction for weekdays are stored.
+     *
+     * @return boolean array.
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public boolean[] getExpirationRestrictionWeekdays() {
+<span class="fc" id="L827">        final ArrayList&lt;Boolean&gt; list = (ArrayList&lt;Boolean&gt;) data.get(EXPIRATION_RESTRICTION_WEEKDAYS);</span>
+<span class="fc" id="L828">        final boolean[] result = new boolean[list.size()];</span>
+<span class="fc bfc" id="L829" title="All 2 branches covered.">        for (int i = 0; i &lt; list.size(); i++) {</span>
+<span class="fc" id="L830">            result[i] = list.get(i).booleanValue();</span>
+        }
+<span class="fc" id="L832">        return result;</span>
+    }
+
+    private void setExpirationRestrictionWeekdays(boolean[] weekdays) {
+<span class="fc" id="L836">        final ArrayList&lt;Boolean&gt; list = new ArrayList&lt;Boolean&gt;(weekdays.length);</span>
+<span class="fc bfc" id="L837" title="All 2 branches covered.">        for (int i = 0; i &lt; weekdays.length; i++) {</span>
+<span class="fc" id="L838">            list.add(Boolean.valueOf(weekdays[i]));</span>
+        }
+<span class="fc" id="L840">        data.put(EXPIRATION_RESTRICTION_WEEKDAYS, list);</span>
+<span class="fc" id="L841">    }</span>
+
+    private void setDefaultExpirationRestrictionWeekdays() {
+<span class="fc" id="L844">        setExpirationRestrictionWeekdays(new boolean[7]);</span>
+<span class="fc" id="L845">        setExpirationRestrictionWeekday(Calendar.MONDAY, true);</span>
+<span class="fc" id="L846">        setExpirationRestrictionWeekday(Calendar.FRIDAY, true);</span>
+<span class="fc" id="L847">        setExpirationRestrictionWeekday(Calendar.SATURDAY, true);</span>
+<span class="fc" id="L848">        setExpirationRestrictionWeekday(Calendar.SUNDAY, true);</span>
+<span class="fc" id="L849">    }</span>
+
+    /**
+     * If validity override is allowed, a certificate can have a shorter validity than the one specified in the certificate profile, but never longer.
+     * A certificate created with validity override can hava a starting point in the future.
+     *
+     * @return true if validity override is allowed
+     */
+    public boolean getAllowValidityOverride() {
+<span class="fc" id="L858">        return ((Boolean) data.get(ALLOWVALIDITYOVERRIDE)).booleanValue();</span>
+    }
+
+    /**
+     * If validity override is allowed, a certificate can have a shorter validity than the one specified in the certificate profile, but never longer.
+     * A certificate created with validity override can hava a starting point in the future.
+     * @param allowvalidityoverride boolean
+     */
+    public void setAllowValidityOverride(boolean allowvalidityoverride) {
+<span class="fc" id="L867">        data.put(ALLOWVALIDITYOVERRIDE, Boolean.valueOf(allowvalidityoverride));</span>
+<span class="fc" id="L868">    }</span>
+
+    /**
+     * If extension override is allowed, the X509 certificate extension created in a certificate can come from the request sent by the user. If the
+     * request contains an extension than will be used instead of the one defined in the profile. If the request does not contain an extension, the
+     * one defined in the profile will be used.
+     * @return boolean
+     */
+    public boolean getAllowExtensionOverride() {
+<span class="fc" id="L877">        Object d = data.get(ALLOWEXTENSIONOVERRIDE);</span>
+<span class="pc bpc" id="L878" title="1 of 2 branches missed.">        if (d == null) {</span>
+<span class="nc" id="L879">            return false;</span>
+        }
+<span class="fc" id="L881">        return ((Boolean) d).booleanValue();</span>
+    }
+
+    /** @param allowextensionoverride boolean
+     * @see #getAllowExtensionOverride() */
+    public void setAllowExtensionOverride(boolean allowextensionoverride) {
+<span class="fc" id="L887">        data.put(ALLOWEXTENSIONOVERRIDE, Boolean.valueOf(allowextensionoverride));</span>
+<span class="fc" id="L888">    }</span>
+
+    /**
+     * If DN override is allowed, the X509 subject DN extension created in a certificate can
+     * come directly from the CSR in the request sent by the user. This is instead of the normal way where the user's
+     * registered DN is used.
+     * @return boolean
+     */
+    public boolean getAllowDNOverride() {
+<span class="fc" id="L897">        Object d = data.get(ALLOWDNOVERRIDE);</span>
+<span class="pc bpc" id="L898" title="1 of 2 branches missed.">        if (d == null) {</span>
+<span class="nc" id="L899">            return false;</span>
+        }
+<span class="fc" id="L901">        return ((Boolean) d).booleanValue();</span>
+    }
+
+    /** @param allowdnoverride boolean
+     * @see #getAllowDNOverride() */
+    public void setAllowDNOverride(boolean allowdnoverride) {
+<span class="fc" id="L907">        data.put(ALLOWDNOVERRIDE, Boolean.valueOf(allowdnoverride));</span>
+<span class="fc" id="L908">    }</span>
+
+    /**
+     * If DN override by End Entity Information is allowed, the X509 subject DN extension created in a certificate can
+     * come directly from the request meta information sent by the user. This is instead of the normal way where the
+     * user's registered DN is used.
+     * @return boolean
+     */
+    public boolean getAllowDNOverrideByEndEntityInformation() {
+<span class="nc" id="L917">        Object d = data.get(ALLOWDNOVERRIDEBYEEI);</span>
+<span class="nc bnc" id="L918" title="All 2 branches missed.">        if (d == null) {</span>
+<span class="nc" id="L919">            return false;</span>
+        }
+<span class="nc" id="L921">        return ((Boolean) d).booleanValue();</span>
+    }
+
+    /** @param value boolean
+     * @see #getAllowDNOverrideByEndEntityInformation() */
+    public void setAllowDNOverrideByEndEntityInformation(final boolean value) {
+<span class="fc" id="L927">        data.put(ALLOWDNOVERRIDEBYEEI, Boolean.valueOf(value));</span>
+<span class="fc" id="L928">    }</span>
+
+    /**
+     * If override is allowed the serial number could be specified.
+     *
+     * @return true if allowed
+     */
+    public boolean getAllowCertSerialNumberOverride() {
+<span class="fc" id="L936">        Object d = data.get(ALLOWCERTSNOVERIDE);</span>
+<span class="fc bfc" id="L937" title="All 2 branches covered.">        if (d == null) {</span>
+<span class="fc" id="L938">            return false;</span>
+        }
+<span class="fc" id="L940">        return ((Boolean) d).booleanValue();</span>
+    }
+
+    /**
+     * @see #getAllowDNOverride()
+     * @param allowdnoverride
+     *            new value
+     */
+    public void setAllowCertSerialNumberOverride(boolean allowdnoverride) {
+<span class="fc" id="L949">        data.put(ALLOWCERTSNOVERIDE, Boolean.valueOf(allowdnoverride));</span>
+<span class="fc" id="L950">    }</span>
+
+    public boolean getUseBasicConstraints() {
+<span class="fc" id="L953">        return ((Boolean) data.get(USEBASICCONSTRAINTS)).booleanValue();</span>
+    }
+
+    public void setUseBasicConstraints(boolean usebasicconstraints) {
+<span class="fc" id="L957">        data.put(USEBASICCONSTRAINTS, Boolean.valueOf(usebasicconstraints));</span>
+<span class="fc" id="L958">    }</span>
+
+    public boolean getBasicConstraintsCritical() {
+<span class="fc" id="L961">        return ((Boolean) data.get(BASICCONSTRAINTSCRITICAL)).booleanValue();</span>
+    }
+
+    public void setBasicConstraintsCritical(boolean basicconstraintscritical) {
+<span class="fc" id="L965">        data.put(BASICCONSTRAINTSCRITICAL, Boolean.valueOf(basicconstraintscritical));</span>
+<span class="fc" id="L966">    }</span>
+
+    public boolean getUseKeyUsage() {
+<span class="fc" id="L969">        return ((Boolean) data.get(USEKEYUSAGE)).booleanValue();</span>
+    }
+
+    public void setUseKeyUsage(boolean usekeyusage) {
+<span class="fc" id="L973">        data.put(USEKEYUSAGE, Boolean.valueOf(usekeyusage));</span>
+<span class="fc" id="L974">    }</span>
+
+    public boolean getKeyUsageCritical() {
+<span class="fc" id="L977">        return ((Boolean) data.get(KEYUSAGECRITICAL)).booleanValue();</span>
+    }
+
+    public void setKeyUsageCritical(boolean keyusagecritical) {
+<span class="fc" id="L981">        data.put(KEYUSAGECRITICAL, Boolean.valueOf(keyusagecritical));</span>
+<span class="fc" id="L982">    }</span>
+
+    public boolean getUseSubjectKeyIdentifier() {
+<span class="fc" id="L985">        return ((Boolean) data.get(USESUBJECTKEYIDENTIFIER)).booleanValue();</span>
+    }
+
+    public void setUseSubjectKeyIdentifier(boolean usesubjectkeyidentifier) {
+<span class="fc" id="L989">        data.put(USESUBJECTKEYIDENTIFIER, Boolean.valueOf(usesubjectkeyidentifier));</span>
+<span class="fc" id="L990">    }</span>
+
+    public boolean getSubjectKeyIdentifierCritical() {
+<span class="fc" id="L993">        return ((Boolean) data.get(SUBJECTKEYIDENTIFIERCRITICAL)).booleanValue();</span>
+    }
+
+    public void setSubjectKeyIdentifierCritical(boolean subjectkeyidentifiercritical) {
+<span class="fc" id="L997">        data.put(SUBJECTKEYIDENTIFIERCRITICAL, Boolean.valueOf(subjectkeyidentifiercritical));</span>
+<span class="fc" id="L998">    }</span>
+
+    public boolean getUseAuthorityKeyIdentifier() {
+<span class="fc" id="L1001">        return ((Boolean) data.get(USEAUTHORITYKEYIDENTIFIER)).booleanValue();</span>
+    }
+
+    public void setUseAuthorityKeyIdentifier(boolean useauthoritykeyidentifier) {
+<span class="fc" id="L1005">        data.put(USEAUTHORITYKEYIDENTIFIER, Boolean.valueOf(useauthoritykeyidentifier));</span>
+<span class="fc" id="L1006">    }</span>
+
+    public boolean getAuthorityKeyIdentifierCritical() {
+<span class="fc" id="L1009">        return ((Boolean) data.get(AUTHORITYKEYIDENTIFIERCRITICAL)).booleanValue();</span>
+    }
+
+    public void setAuthorityKeyIdentifierCritical(boolean authoritykeyidentifiercritical) {
+<span class="fc" id="L1013">        data.put(AUTHORITYKEYIDENTIFIERCRITICAL, Boolean.valueOf(authoritykeyidentifiercritical));</span>
+<span class="fc" id="L1014">    }</span>
+
+    public boolean getUseSubjectAlternativeName() {
+<span class="fc" id="L1017">        return ((Boolean) data.get(USESUBJECTALTERNATIVENAME)).booleanValue();</span>
+    }
+
+    public void setUseSubjectAlternativeName(boolean usesubjectalternativename) {
+<span class="fc" id="L1021">        data.put(USESUBJECTALTERNATIVENAME, Boolean.valueOf(usesubjectalternativename));</span>
+<span class="fc" id="L1022">    }</span>
+
+    public boolean getStoreCertificateData() {
+        // Lazy upgrade for profiles created prior to EJBCA 6.2.10
+<span class="nc" id="L1026">        final Boolean value = (Boolean) data.get(STORECERTIFICATEDATA);</span>
+<span class="nc bnc" id="L1027" title="All 2 branches missed.">        if (value == null) {</span>
+            // Default for existing profiles is true
+<span class="nc" id="L1029">            setStoreCertificateData(true);</span>
+<span class="nc" id="L1030">            return true;</span>
+        } else {
+<span class="nc" id="L1032">            return value.booleanValue();</span>
+        }
+    }
+
+    public void setStoreCertificateData(boolean storeCertificateData) {
+<span class="fc" id="L1037">        data.put(STORECERTIFICATEDATA, Boolean.valueOf(storeCertificateData));</span>
+<span class="fc" id="L1038">    }</span>
+
+    /** @return true if the CertificateData.subjectAltName column should be populated. */
+    public boolean getStoreSubjectAlternativeName() {
+        // Lazy upgrade for profiles created prior to EJBCA 6.6.0
+<span class="nc" id="L1043">        final Boolean value = (Boolean) data.get(STORESUBJECTALTNAME);</span>
+<span class="nc bnc" id="L1044" title="All 2 branches missed.">        if (value == null) {</span>
+            // Old profiles created before EJBCA 6.6.0 will not store SAN by default.
+<span class="nc" id="L1046">            setStoreSubjectAlternativeName(false);</span>
+<span class="nc" id="L1047">            return false;</span>
+        } else {
+<span class="nc" id="L1049">            return value.booleanValue();</span>
+        }
+    }
+
+    public void setStoreSubjectAlternativeName(final boolean storeSubjectAlternativeName) {
+<span class="fc" id="L1054">        data.put(STORESUBJECTALTNAME, Boolean.valueOf(storeSubjectAlternativeName));</span>
+<span class="fc" id="L1055">    }</span>
+
+    public boolean getSubjectAlternativeNameCritical() {
+<span class="fc" id="L1058">        return ((Boolean) data.get(SUBJECTALTERNATIVENAMECRITICAL)).booleanValue();</span>
+    }
+
+    public void setSubjectAlternativeNameCritical(boolean subjectalternativenamecritical) {
+<span class="fc" id="L1062">        data.put(SUBJECTALTERNATIVENAMECRITICAL, Boolean.valueOf(subjectalternativenamecritical));</span>
+<span class="fc" id="L1063">    }</span>
+
+    public boolean getUseIssuerAlternativeName() {
+<span class="fc" id="L1066">        return ((Boolean) data.get(USEISSUERALTERNATIVENAME)).booleanValue();</span>
+    }
+
+    public void setUseIssuerAlternativeName(boolean useissueralternativename) {
+<span class="fc" id="L1070">        data.put(USEISSUERALTERNATIVENAME, Boolean.valueOf(useissueralternativename));</span>
+<span class="fc" id="L1071">    }</span>
+
+    public boolean getIssuerAlternativeNameCritical() {
+<span class="fc" id="L1074">        return ((Boolean) data.get(ISSUERALTERNATIVENAMECRITICAL)).booleanValue();</span>
+    }
+
+    public void setIssuerAlternativeNameCritical(boolean issueralternativenamecritical) {
+<span class="fc" id="L1078">        data.put(ISSUERALTERNATIVENAMECRITICAL, Boolean.valueOf(issueralternativenamecritical));</span>
+<span class="fc" id="L1079">    }</span>
+
+    public boolean getUseCRLDistributionPoint() {
+<span class="fc" id="L1082">        return ((Boolean) data.get(USECRLDISTRIBUTIONPOINT)).booleanValue();</span>
+    }
+
+    public void setUseCRLDistributionPoint(boolean usecrldistributionpoint) {
+<span class="fc" id="L1086">        data.put(USECRLDISTRIBUTIONPOINT, Boolean.valueOf(usecrldistributionpoint));</span>
+<span class="fc" id="L1087">    }</span>
+
+    public boolean getUseDefaultCRLDistributionPoint() {
+<span class="fc" id="L1090">        return ((Boolean) data.get(USEDEFAULTCRLDISTRIBUTIONPOINT)).booleanValue();</span>
+    }
+
+    public void setUseDefaultCRLDistributionPoint(boolean usedefaultcrldistributionpoint) {
+<span class="fc" id="L1094">        data.put(USEDEFAULTCRLDISTRIBUTIONPOINT, Boolean.valueOf(usedefaultcrldistributionpoint));</span>
+<span class="fc" id="L1095">    }</span>
+
+    public boolean getCRLDistributionPointCritical() {
+<span class="fc" id="L1098">        return ((Boolean) data.get(CRLDISTRIBUTIONPOINTCRITICAL)).booleanValue();</span>
+    }
+
+    public void setCRLDistributionPointCritical(boolean crldistributionpointcritical) {
+<span class="fc" id="L1102">        data.put(CRLDISTRIBUTIONPOINTCRITICAL, Boolean.valueOf(crldistributionpointcritical));</span>
+<span class="fc" id="L1103">    }</span>
+
+    public String getCRLDistributionPointURI() {
+<span class="fc" id="L1106">        return (String) data.get(CRLDISTRIBUTIONPOINTURI);</span>
+    }
+
+    public void setCRLDistributionPointURI(String crldistributionpointuri) {
+<span class="fc bfc" id="L1110" title="All 2 branches covered.">        if (crldistributionpointuri == null) {</span>
+<span class="fc" id="L1111">            data.put(CRLDISTRIBUTIONPOINTURI, &quot;&quot;);</span>
+        } else {
+<span class="fc" id="L1113">            data.put(CRLDISTRIBUTIONPOINTURI, crldistributionpointuri);</span>
+        }
+<span class="fc" id="L1115">    }</span>
+
+    public String getCRLIssuer() {
+<span class="fc" id="L1118">        return (String) data.get(CRLISSUER);</span>
+    }
+
+    public void setCRLIssuer(String crlissuer) {
+<span class="fc bfc" id="L1122" title="All 2 branches covered.">        if (crlissuer == null) {</span>
+<span class="fc" id="L1123">            data.put(CRLISSUER, &quot;&quot;);</span>
+        } else {
+<span class="fc" id="L1125">            data.put(CRLISSUER, crlissuer);</span>
+        }
+<span class="fc" id="L1127">    }</span>
+
+    public boolean getUseFreshestCRL() {
+<span class="fc" id="L1130">        Object obj = data.get(USEFRESHESTCRL);</span>
+<span class="pc bpc" id="L1131" title="1 of 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L1132">            return false;</span>
+        } else {
+<span class="fc" id="L1134">            return ((Boolean) obj).booleanValue();</span>
+        }
+    }
+
+    public void setUseFreshestCRL(boolean usefreshestcrl) {
+<span class="fc" id="L1139">        data.put(USEFRESHESTCRL, Boolean.valueOf(usefreshestcrl));</span>
+<span class="fc" id="L1140">    }</span>
+
+    public boolean getUseCADefinedFreshestCRL() {
+<span class="fc" id="L1143">        Object obj = data.get(USECADEFINEDFRESHESTCRL);</span>
+<span class="pc bpc" id="L1144" title="1 of 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L1145">            return false;</span>
+        } else {
+<span class="fc" id="L1147">            return ((Boolean) obj).booleanValue();</span>
+        }
+    }
+
+    public void setUseCADefinedFreshestCRL(boolean usecadefinedfreshestcrl) {
+<span class="fc" id="L1152">        data.put(USECADEFINEDFRESHESTCRL, Boolean.valueOf(usecadefinedfreshestcrl));</span>
+<span class="fc" id="L1153">    }</span>
+
+    public String getFreshestCRLURI() {
+<span class="fc" id="L1156">        return ((String) data.get(FRESHESTCRLURI));</span>
+    }
+
+    public void setFreshestCRLURI(String freshestcrluri) {
+<span class="fc bfc" id="L1160" title="All 2 branches covered.">        if (freshestcrluri == null) {</span>
+<span class="fc" id="L1161">            data.put(FRESHESTCRLURI, &quot;&quot;);</span>
+        } else {
+<span class="fc" id="L1163">            data.put(FRESHESTCRLURI, freshestcrluri);</span>
+        }
+<span class="fc" id="L1165">    }</span>
+
+    public boolean getUseCertificatePolicies() {
+<span class="fc" id="L1168">        return ((Boolean) data.get(USECERTIFICATEPOLICIES)).booleanValue();</span>
+    }
+
+    public void setUseCertificatePolicies(boolean usecertificatepolicies) {
+<span class="fc" id="L1172">        data.put(USECERTIFICATEPOLICIES, Boolean.valueOf(usecertificatepolicies));</span>
+<span class="fc" id="L1173">    }</span>
+
+    public boolean getUseCertificateStorage() {
+        //Lazy upgrade for profiles created prior to EJBCA 6.2.10
+<span class="nc" id="L1177">        Boolean value = (Boolean) data.get(USECERTIFICATESTORAGE);</span>
+<span class="nc bnc" id="L1178" title="All 2 branches missed.">        if (value == null) {</span>
+            //Default is true
+<span class="nc" id="L1180">            setUseCertificateStorage(true);</span>
+<span class="nc" id="L1181">            return true;</span>
+        } else {
+<span class="nc" id="L1183">            return value.booleanValue();</span>
+        }
+    }
+
+    public void setUseCertificateStorage(boolean useCertificateStorage) {
+<span class="fc" id="L1188">        data.put(USECERTIFICATESTORAGE, Boolean.valueOf(useCertificateStorage));</span>
+<span class="fc" id="L1189">    }</span>
+
+    public boolean getCertificatePoliciesCritical() {
+<span class="fc" id="L1192">        return ((Boolean) data.get(CERTIFICATEPOLICIESCRITICAL)).booleanValue();</span>
+    }
+
+    public void setCertificatePoliciesCritical(boolean certificatepoliciescritical) {
+<span class="fc" id="L1196">        data.put(CERTIFICATEPOLICIESCRITICAL, Boolean.valueOf(certificatepoliciescritical));</span>
+<span class="fc" id="L1197">    }</span>
+
+    public List&lt;CertificatePolicy&gt; getCertificatePolicies() {
+        @SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L1201">        List&lt;CertificatePolicy&gt; l = (List&lt;CertificatePolicy&gt;) data.get(CERTIFICATE_POLICIES);</span>
+<span class="pc bpc" id="L1202" title="1 of 2 branches missed.">        if (l == null) {</span>
+<span class="nc" id="L1203">            l = new ArrayList&lt;CertificatePolicy&gt;();</span>
+        } else {
+            // Check class name, because we changed this in EJBCA 5 and need to support older versions in the database for 100% upgrade
+<span class="fc bfc" id="L1206" title="All 2 branches covered.">            if (l.size() &gt; 0) {</span>
+                try {
+                    // Don't remove the unused test object
+<span class="fc" id="L1209">                    CertificatePolicy test = l.get(0); // NOPMD: we need to actually get the text object, otherwise the cast will not be tried</span>
+<span class="fc" id="L1210">                    test.getPolicyID();</span>
+<span class="fc" id="L1211">                } catch (ClassCastException e) {</span>
+<span class="pc bpc" id="L1212" title="1 of 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1213">                        log.debug(&quot;CertificatePolicy in profile is old class name (&lt; EJBCA 5), post-upgrade has not been run. Converting in code to return new class type.&quot;);</span>
+                    }
+                    @SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L1216">                    List&lt;Object&gt; oldl = (List&lt;Object&gt;) data.get(CERTIFICATE_POLICIES);</span>
+                    // In worst case they can have mixed old and new classes, therefore we use a &quot;normal&quot; iterator so we can verify the cast
+<span class="fc" id="L1218">                    l = new ArrayList&lt;CertificatePolicy&gt;();</span>
+<span class="fc bfc" id="L1219" title="All 2 branches covered.">                    for (int i = 0; i &lt; oldl.size(); i++) {</span>
+                        try {
+<span class="fc" id="L1221">                            org.ejbca.core.model.ca.certificateprofiles.CertificatePolicy oldPol = (org.ejbca.core.model.ca.certificateprofiles.CertificatePolicy)oldl.get(i);</span>
+<span class="fc" id="L1222">                            CertificatePolicy newPol = new CertificatePolicy(oldPol.getPolicyID(), oldPol.getQualifierId(), oldPol.getQualifier());</span>
+<span class="pc bpc" id="L1223" title="1 of 2 branches missed.">                            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1224">                                log.trace(&quot;Adding converted policy&quot;);</span>
+                            }
+<span class="fc" id="L1226">                            l.add(newPol);</span>
+<span class="fc" id="L1227">                        } catch (ClassCastException e2) {</span>
+                            // This was already a new class, there are mixed policies here...
+<span class="fc" id="L1229">                            CertificatePolicy newPol = (CertificatePolicy)oldl.get(i);</span>
+<span class="pc bpc" id="L1230" title="1 of 2 branches missed.">                            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1231">                                log.trace(&quot;Adding non-converted policy&quot;);</span>
+                            }
+<span class="fc" id="L1233">                            l.add(newPol);</span>
+<span class="fc" id="L1234">                        }</span>
+                    }
+<span class="fc" id="L1236">                }</span>
+            }
+        }
+<span class="fc" id="L1239">        return l;</span>
+    }
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void addCertificatePolicy(CertificatePolicy policy) {
+<span class="pc bpc" id="L1244" title="1 of 2 branches missed.">        if (data.get(CERTIFICATE_POLICIES) == null) {</span>
+<span class="nc" id="L1245">            setCertificatePolicies(new ArrayList&lt;CertificatePolicy&gt;());</span>
+        }
+<span class="fc" id="L1247">        ((List&lt;CertificatePolicy&gt;) data.get(CERTIFICATE_POLICIES)).add(policy);</span>
+<span class="fc" id="L1248">    }</span>
+
+    public void setCertificatePolicies(List&lt;CertificatePolicy&gt; policies) {
+<span class="pc bpc" id="L1251" title="1 of 2 branches missed.">        if (policies == null) {</span>
+<span class="nc" id="L1252">            data.put(CERTIFICATE_POLICIES, new ArrayList&lt;CertificatePolicy&gt;(0));</span>
+        } else {
+<span class="fc" id="L1254">            data.put(CERTIFICATE_POLICIES, policies);</span>
+        }
+<span class="fc" id="L1256">    }</span>
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void removeCertificatePolicy(CertificatePolicy policy) {
+<span class="pc bpc" id="L1260" title="1 of 2 branches missed.">        if (data.get(CERTIFICATE_POLICIES) != null) {</span>
+<span class="fc" id="L1261">            ((List&lt;CertificatePolicy&gt;) data.get(CERTIFICATE_POLICIES)).remove(policy);</span>
+        }
+<span class="fc" id="L1263">    }</span>
+
+    /** Type is used when setting BasicConstraints, i.e. to determine if it is a CA or an end entity
+     * @return type
+     * @see CertificateConstants#CERTTYPE_ROOTCA etc
+     */
+    public int getType() {
+<span class="fc" id="L1270">        return ((Integer) data.get(TYPE)).intValue();</span>
+    }
+
+    /** Type is used when setting BasicConstraints, i.e. to determine if it is a CA or an end entity
+     * @param type type
+     * @see CertificateConstants#CERTTYPE_ROOTCA etc
+     */
+    public void setType(int type) {
+<span class="fc" id="L1278">        data.put(TYPE, Integer.valueOf(type));</span>
+<span class="fc" id="L1279">    }</span>
+
+    public boolean isTypeSubCA() {
+<span class="fc bfc" id="L1282" title="All 2 branches covered.">        return ((Integer) data.get(TYPE)).intValue() == CertificateConstants.CERTTYPE_SUBCA;</span>
+    }
+
+    public boolean isTypeRootCA() {
+<span class="fc bfc" id="L1286" title="All 2 branches covered.">        return ((Integer) data.get(TYPE)).intValue() == CertificateConstants.CERTTYPE_ROOTCA;</span>
+    }
+
+    public boolean isTypeEndEntity() {
+<span class="fc bfc" id="L1290" title="All 2 branches covered.">        return ((Integer) data.get(TYPE)).intValue() == CertificateConstants.CERTTYPE_ENDENTITY;</span>
+    }
+
+    public String[] getAvailableKeyAlgorithms() {
+<span class="nc" id="L1294">        final List&lt;String&gt; availableKeyAlgorithms = getAvailableKeyAlgorithmsAsList();</span>
+<span class="nc" id="L1295">        return availableKeyAlgorithms.toArray(new String[availableKeyAlgorithms.size()]);</span>
+    }
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public List&lt;String&gt; getAvailableKeyAlgorithmsAsList() {
+<span class="fc" id="L1299">        return (ArrayList&lt;String&gt;) data.get(AVAILABLEKEYALGORITHMS);</span>
+    }
+    public void setAvailableKeyAlgorithms(final String[] availableKeyAlgorithms) {
+<span class="fc" id="L1302">        setAvailableKeyAlgorithmsAsList(Arrays.asList(availableKeyAlgorithms));</span>
+<span class="fc" id="L1303">    }</span>
+    public void setAvailableKeyAlgorithmsAsList(final List&lt;String&gt; availableKeyAlgorithms) {
+<span class="fc" id="L1305">        data.put(AVAILABLEKEYALGORITHMS, new ArrayList&lt;&gt;(availableKeyAlgorithms));</span>
+<span class="fc" id="L1306">    }</span>
+    public String[] getAvailableEcCurves() {
+<span class="nc" id="L1308">        final List&lt;String&gt; availableEcCurves = getAvailableEcCurvesAsList();</span>
+<span class="nc" id="L1309">        return availableEcCurves.toArray(new String[availableEcCurves.size()]);</span>
+    }
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public List&lt;String&gt; getAvailableEcCurvesAsList() {
+<span class="fc" id="L1313">        return (ArrayList&lt;String&gt;) data.get(AVAILABLEECCURVES);</span>
+    }
+    public void setAvailableEcCurves(final String[] availableEcCurves) {
+<span class="fc" id="L1316">        setAvailableEcCurvesAsList(Arrays.asList(availableEcCurves));</span>
+<span class="fc" id="L1317">    }</span>
+    public void setAvailableEcCurvesAsList(final List&lt;String&gt; availableEcCurves) {
+<span class="fc" id="L1319">        data.put(AVAILABLEECCURVES, new ArrayList&lt;&gt;(availableEcCurves));</span>
+<span class="fc" id="L1320">    }</span>
+
+	public int[] getAvailableBitLengths() {
+<span class="fc" id="L1323">        final List&lt;Integer&gt; availablebitlengths = getAvailableBitLengthsAsList();</span>
+<span class="fc" id="L1324">        final int[] returnval = new int[availablebitlengths.size()];</span>
+<span class="fc bfc" id="L1325" title="All 2 branches covered.">        for (int i = 0; i &lt; availablebitlengths.size(); i++) {</span>
+<span class="fc" id="L1326">            returnval[i] = availablebitlengths.get(i).intValue();</span>
+        }
+<span class="fc" id="L1328">        return returnval;</span>
+    }
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public List&lt;Integer&gt; getAvailableBitLengthsAsList() {
+<span class="fc" id="L1332">        return (ArrayList&lt;Integer&gt;) data.get(AVAILABLEBITLENGTHS);</span>
+    }
+
+    public void setAvailableBitLengths(List&lt;Integer&gt; availablebitlengths) {
+        // Strange values here, but it makes the &lt;&gt; below work for sure
+<span class="fc" id="L1337">        int minimumavailablebitlength = 99999999;</span>
+<span class="fc" id="L1338">        int maximumavailablebitlength = 0;</span>
+
+<span class="fc bfc" id="L1340" title="All 2 branches covered.">        for (int i = 0; i &lt; availablebitlengths.size(); i++) {</span>
+<span class="fc bfc" id="L1341" title="All 2 branches covered.">            if (availablebitlengths.get(i) &gt; maximumavailablebitlength) {</span>
+<span class="fc" id="L1342">                maximumavailablebitlength = availablebitlengths.get(i);</span>
+            }
+<span class="fc bfc" id="L1344" title="All 2 branches covered.">            if (availablebitlengths.get(i) &lt; minimumavailablebitlength) {</span>
+<span class="fc" id="L1345">                minimumavailablebitlength = availablebitlengths.get(i);</span>
+            }
+        }
+<span class="fc" id="L1348">        data.put(AVAILABLEBITLENGTHS, availablebitlengths);</span>
+<span class="fc" id="L1349">        data.put(MINIMUMAVAILABLEBITLENGTH, Integer.valueOf(minimumavailablebitlength));</span>
+<span class="fc" id="L1350">        data.put(MAXIMUMAVAILABLEBITLENGTH, Integer.valueOf(maximumavailablebitlength));</span>
+<span class="fc" id="L1351">    }</span>
+
+    public void setAvailableBitLengths(int[] availablebitlengths) {
+<span class="fc" id="L1354">        ArrayList&lt;Integer&gt; availbitlengths = new ArrayList&lt;&gt;(availablebitlengths.length);</span>
+
+<span class="fc bfc" id="L1356" title="All 2 branches covered.">        for (int i = 0; i &lt; availablebitlengths.length; i++) {</span>
+<span class="fc" id="L1357">            availbitlengths.add(Integer.valueOf(availablebitlengths[i]));</span>
+        }
+<span class="fc" id="L1359">        setAvailableBitLengths(availbitlengths);</span>
+<span class="fc" id="L1360">    }</span>
+
+    public int getMinimumAvailableBitLength() {
+<span class="fc" id="L1363">        return ((Integer) data.get(MINIMUMAVAILABLEBITLENGTH)).intValue();</span>
+    }
+
+    public int getMaximumAvailableBitLength() {
+<span class="fc" id="L1367">        return ((Integer) data.get(MAXIMUMAVAILABLEBITLENGTH)).intValue();</span>
+    }
+
+    /**
+     * @param keyAlgorithm Algorithm
+     * @param keySpecification Spec
+     * @return true if the given combination of keyAlgorithm/keySpecification is allowed by this certificate profile.
+     */
+    public boolean isKeyTypeAllowed(final String keyAlgorithm, final String keySpecification) {
+<span class="fc" id="L1376">        final List&lt;String&gt; availableKeyAlgorithms = getAvailableKeyAlgorithmsAsList();</span>
+<span class="fc" id="L1377">        final List&lt;Integer&gt; availableBitLengths = getAvailableBitLengthsAsList();</span>
+<span class="fc" id="L1378">        final List&lt;String&gt; availableEcCurves = getAvailableEcCurvesAsList();</span>
+<span class="fc bfc" id="L1379" title="All 2 branches covered.">        if (!availableKeyAlgorithms.contains(keyAlgorithm)) { return false; }</span>
+<span class="fc bfc" id="L1380" title="All 2 branches covered.">        if (StringUtils.isNumeric(keySpecification)) {</span>
+            // keySpecification is a bit length (RSA)
+<span class="fc" id="L1382">            return availableBitLengths.contains(Integer.parseInt(keySpecification));</span>
+        } else {
+            // keySpecification is a curve name (EC)
+<span class="fc bfc" id="L1385" title="All 4 branches covered.">            return availableEcCurves.contains(keySpecification) || availableEcCurves.contains(CertificateProfile.ANY_EC_CURVE);</span>
+        }
+    }
+
+    /**
+     * Returns the chosen algorithm to be used for signing the certificates or null if it is to be inherited from the CA (i.e., it is the same as the
+     * algorithm used to sign the CA certificate).
+     *
+     * @see org.cesecore.certificates.util.AlgorithmConstants#AVAILABLE_SIGALGS
+     * @return JCE identifier for the signature algorithm or null if it is to be inherited from the CA (i.e., it is the same as the algorithm used to
+     *         sign the CA certificate).
+     */
+    public String getSignatureAlgorithm() {
+        // If it's null, it is inherited from issuing CA.
+<span class="fc" id="L1399">        return (String) data.get(SIGNATUREALGORITHM);</span>
+    }
+
+    /**
+     * Sets the algorithm to be used for signing the certificates. A null value means that the signature algorithm is to be inherited from the CA
+     * (i.e., it is the same as the algorithm used to sign the CA certificate).
+     *
+     * @param signAlg
+     *            JCE identifier for the signature algorithm or null if it is to be inherited from the CA (i.e., it is the same as the algorithm used
+     *            to sign the CA certificate).
+     * @see org.cesecore.certificates.util.AlgorithmConstants#AVAILABLE_SIGALGS
+     */
+    public void setSignatureAlgorithm(String signAlg) {
+<span class="fc" id="L1412">        data.put(SIGNATUREALGORITHM, signAlg);</span>
+<span class="fc" id="L1413">    }</span>
+
+    public boolean[] getKeyUsage() {
+        @SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L1417">        ArrayList&lt;Boolean&gt; keyusage = (ArrayList&lt;Boolean&gt;) data.get(KEYUSAGE);</span>
+<span class="fc" id="L1418">        boolean[] returnval = new boolean[keyusage.size()];</span>
+<span class="fc bfc" id="L1419" title="All 2 branches covered.">        for (int i = 0; i &lt; keyusage.size(); i++) {</span>
+<span class="fc" id="L1420">            returnval[i] = keyusage.get(i).booleanValue();</span>
+        }
+<span class="fc" id="L1422">        return returnval;</span>
+    }
+
+    /**
+     * @param keyusageconstant
+     *            from CertificateConstants.DIGITALSIGNATURE etc
+     * @return true or false if the key usage is set or not.
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public boolean getKeyUsage(int keyusageconstant) {
+<span class="fc" id="L1432">        return ((ArrayList&lt;Boolean&gt;) data.get(KEYUSAGE)).get(keyusageconstant).booleanValue();</span>
+    }
+
+    public void setKeyUsage(boolean[] keyusage) {
+<span class="fc" id="L1436">        ArrayList&lt;Boolean&gt; keyuse = new ArrayList&lt;Boolean&gt;(keyusage.length);</span>
+
+<span class="fc bfc" id="L1438" title="All 2 branches covered.">        for (int i = 0; i &lt; keyusage.length; i++) {</span>
+<span class="fc" id="L1439">            keyuse.add(Boolean.valueOf(keyusage[i]));</span>
+        }
+<span class="fc" id="L1441">        data.put(KEYUSAGE, keyuse);</span>
+<span class="fc" id="L1442">    }</span>
+
+    /**
+     * @param keyusageconstant
+     *            from CertificateConstants.DIGITALSIGNATURE etc
+     * @param value
+     *            true or false if the key usage is set or not.
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void setKeyUsage(int keyusageconstant, boolean value) {
+<span class="fc" id="L1452">        ((ArrayList&lt;Boolean&gt;) data.get(KEYUSAGE)).set(keyusageconstant, Boolean.valueOf(value));</span>
+<span class="fc" id="L1453">    }</span>
+
+    public void setAllowKeyUsageOverride(boolean override) {
+<span class="fc" id="L1456">        data.put(ALLOWKEYUSAGEOVERRIDE, Boolean.valueOf(override));</span>
+<span class="fc" id="L1457">    }</span>
+
+    public boolean getAllowKeyUsageOverride() {
+<span class="fc" id="L1460">        return ((Boolean) data.get(ALLOWKEYUSAGEOVERRIDE)).booleanValue();</span>
+    }
+
+    public void setAllowBackdatedRevocation(boolean override) {
+<span class="fc" id="L1464">        this.data.put(ALLOWBACKDATEDREVOCATION, Boolean.valueOf(override));</span>
+<span class="fc" id="L1465">    }</span>
+    public boolean getAllowBackdatedRevocation() {
+<span class="nc" id="L1467">        final Object value = this.data.get(ALLOWBACKDATEDREVOCATION);</span>
+<span class="nc bnc" id="L1468" title="All 6 branches missed.">        return value!=null &amp;&amp; value instanceof Boolean &amp;&amp; ((Boolean)value).booleanValue();</span>
+    }
+
+    public void setUseDocumentTypeList(boolean use) {
+<span class="fc" id="L1472">        data.put(USEDOCUMENTTYPELIST, Boolean.valueOf(use));</span>
+<span class="fc" id="L1473">    }</span>
+
+    public boolean getUseDocumentTypeList() {
+<span class="nc" id="L1476">        return ((Boolean) data.get(USEDOCUMENTTYPELIST)).booleanValue();</span>
+    }
+
+    public void setDocumentTypeListCritical(boolean critical) {
+<span class="fc" id="L1480">        data.put(DOCUMENTTYPELISTCRITICAL, Boolean.valueOf(critical));</span>
+<span class="fc" id="L1481">    }</span>
+
+    public boolean getDocumentTypeListCritical() {
+<span class="nc" id="L1484">        return ((Boolean) data.get(DOCUMENTTYPELISTCRITICAL)).booleanValue();</span>
+    }
+
+    public void setDocumentTypeList(ArrayList&lt;String&gt; docTypes) {
+<span class="fc" id="L1488">        data.put(DOCUMENTTYPELIST, docTypes);</span>
+<span class="fc" id="L1489">    }</span>
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public ArrayList&lt;String&gt; getDocumentTypeList() {
+<span class="nc" id="L1493">        return (ArrayList&lt;String&gt;) data.get(DOCUMENTTYPELIST);</span>
+    }
+
+    public void setUseExtendedKeyUsage(boolean use) {
+<span class="fc" id="L1497">        data.put(USEEXTENDEDKEYUSAGE, Boolean.valueOf(use));</span>
+<span class="fc" id="L1498">    }</span>
+
+    public boolean getUseExtendedKeyUsage() {
+<span class="fc" id="L1501">        return ((Boolean) data.get(USEEXTENDEDKEYUSAGE)).booleanValue();</span>
+    }
+
+    public void setExtendedKeyUsageCritical(boolean critical) {
+<span class="fc" id="L1505">        data.put(EXTENDEDKEYUSAGECRITICAL, Boolean.valueOf(critical));</span>
+<span class="fc" id="L1506">    }</span>
+
+    public boolean getExtendedKeyUsageCritical() {
+<span class="fc" id="L1509">        return ((Boolean) data.get(EXTENDEDKEYUSAGECRITICAL)).booleanValue();</span>
+    }
+
+    /**
+     * Extended Key Usage is an arraylist of oid Strings. Usually oids comes from KeyPurposeId in BC.
+     * @param extendedkeyusage oid strings
+     */
+    public void setExtendedKeyUsage(ArrayList&lt;String&gt; extendedkeyusage) {
+<span class="fc" id="L1517">        data.put(EXTENDEDKEYUSAGE, extendedkeyusage);</span>
+<span class="fc" id="L1518">    }</span>
+
+    /**
+     * Extended Key Usage is an arraylist of Strings with eku oids.
+     * @return oid strings
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public ArrayList&lt;String&gt; getExtendedKeyUsageOids() {
+<span class="fc" id="L1526">        return (ArrayList&lt;String&gt;) data.get(EXTENDEDKEYUSAGE);</span>
+    }
+    public void setExtendedKeyUsageOids(final ArrayList&lt;String&gt; extendedKeyUsageOids) {
+<span class="nc" id="L1529">        setExtendedKeyUsage(extendedKeyUsageOids);</span>
+<span class="nc" id="L1530">    }</span>
+
+    public void setUseCustomDnOrder(boolean use) {
+<span class="fc" id="L1533">        data.put(USECUSTOMDNORDER, Boolean.valueOf(use));</span>
+<span class="fc" id="L1534">    }</span>
+
+    public boolean getUseCustomDnOrder() {
+<span class="nc" id="L1537">        boolean ret = false; // Default value is false here</span>
+<span class="nc" id="L1538">        Object o = data.get(USECUSTOMDNORDER);</span>
+<span class="nc bnc" id="L1539" title="All 2 branches missed.">        if (o != null) {</span>
+<span class="nc" id="L1540">            ret = ((Boolean) o).booleanValue();</span>
+        }
+<span class="nc" id="L1542">        return ret;</span>
+    }
+
+    /** Set to true if we should apply the rules for LDAP DN Order (separate flag) 
+     * to the custom DN order
+     * @param useldap true or false
+     */
+    public void setUseCustomDnOrderWithLdap(boolean useldap) {
+<span class="nc" id="L1550">        data.put(USECUSTOMDNORDERLDAP, Boolean.valueOf(useldap));</span>
+<span class="nc" id="L1551">    }</span>
+
+    /** 
+     * @return true if we should apply the rules for LDAP DN Order (separate flag), default to false for new usage, where no custom order exists, 
+     * and to true for old usage to be backward compatible 
+     */
+    public boolean getUseCustomDnOrderWithLdap() {
+<span class="nc" id="L1558">        boolean ret = true; // Default value is true here</span>
+<span class="nc" id="L1559">        Object o = data.get(USECUSTOMDNORDERLDAP);</span>
+<span class="nc bnc" id="L1560" title="All 2 branches missed.">        if (o != null) {</span>
+<span class="nc" id="L1561">            ret = ((Boolean) o).booleanValue();</span>
+<span class="nc bnc" id="L1562" title="All 2 branches missed.">        } else if (getCustomDnOrder().isEmpty()) {</span>
+            // We have not set a value for this checkbox, and we have no custom DN order defined
+            // in this case we default to false (new usage)
+<span class="nc" id="L1565">            ret = false;</span>
+        }
+<span class="nc" id="L1567">        return ret;</span>
+    }
+
+
+    /** Custom DN order is an ArrayList of DN strings
+     * @see DnComponents
+     * @return ArrayList of Strings or an empty ArrayList
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public ArrayList&lt;String&gt; getCustomDnOrder() {
+<span class="nc bnc" id="L1577" title="All 2 branches missed.">        if (data.get(CUSTOMDNORDER) == null) {</span>
+<span class="nc" id="L1578">            return new ArrayList&lt;&gt;();</span>
+        }
+<span class="nc" id="L1580">        return (ArrayList&lt;String&gt;) data.get(CUSTOMDNORDER);</span>
+    }
+
+    public void setCustomDnOrder(final ArrayList&lt;String&gt; dnOrder) {
+<span class="nc" id="L1584">        data.put(CUSTOMDNORDER, dnOrder);</span>
+<span class="nc" id="L1585">    }</span>
+
+    public boolean getUseLdapDnOrder() {
+<span class="fc" id="L1588">        boolean ret = true; // Default value is true here</span>
+<span class="fc" id="L1589">        Object o = data.get(USELDAPDNORDER);</span>
+<span class="pc bpc" id="L1590" title="1 of 2 branches missed.">        if (o != null) {</span>
+<span class="fc" id="L1591">            ret = ((Boolean) o).booleanValue();</span>
+        }
+<span class="fc" id="L1593">        return ret;</span>
+    }
+
+    public void setUseLdapDnOrder(boolean use) {
+<span class="fc" id="L1597">        data.put(USELDAPDNORDER, Boolean.valueOf(use));</span>
+<span class="fc" id="L1598">    }</span>
+
+    public boolean getUseMicrosoftTemplate() {
+<span class="fc" id="L1601">        return ((Boolean) data.get(USEMICROSOFTTEMPLATE)).booleanValue();</span>
+    }
+
+    public void setUseMicrosoftTemplate(boolean use) {
+<span class="fc" id="L1605">        data.put(USEMICROSOFTTEMPLATE, Boolean.valueOf(use));</span>
+<span class="fc" id="L1606">    }</span>
+
+    public String getMicrosoftTemplate() {
+<span class="fc" id="L1609">        return (String) data.get(MICROSOFTTEMPLATE);</span>
+    }
+
+    public void setMicrosoftTemplate(String mstemplate) {
+<span class="fc" id="L1613">        data.put(MICROSOFTTEMPLATE, mstemplate);</span>
+<span class="fc" id="L1614">    }</span>
+
+    public boolean getUseCardNumber() {
+<span class="fc" id="L1617">        return ((Boolean) data.get(USECARDNUMBER)).booleanValue();</span>
+    }
+
+    public void setUseCardNumber(boolean use) {
+<span class="fc" id="L1621">        data.put(USECARDNUMBER, Boolean.valueOf(use));</span>
+<span class="fc" id="L1622">    }</span>
+
+    public boolean getUseCNPostfix() {
+<span class="fc" id="L1625">        return ((Boolean) data.get(USECNPOSTFIX)).booleanValue();</span>
+    }
+
+    public void setUseCNPostfix(boolean use) {
+<span class="fc" id="L1629">        data.put(USECNPOSTFIX, Boolean.valueOf(use));</span>
+<span class="fc" id="L1630">    }</span>
+
+    public String getCNPostfix() {
+<span class="fc" id="L1633">        return (String) data.get(CNPOSTFIX);</span>
+    }
+
+    public void setCNPostfix(String cnpostfix) {
+<span class="fc" id="L1637">        data.put(CNPOSTFIX, cnpostfix);</span>
+
+<span class="fc" id="L1639">    }</span>
+
+    public boolean getUseSubjectDNSubSet() {
+<span class="fc" id="L1642">        return ((Boolean) data.get(USESUBJECTDNSUBSET)).booleanValue();</span>
+    }
+
+    public void setUseSubjectDNSubSet(boolean use) {
+<span class="fc" id="L1646">        data.put(USESUBJECTDNSUBSET, Boolean.valueOf(use));</span>
+<span class="fc" id="L1647">    }</span>
+
+    /**
+     * @return a List of Integer (DNFieldExtractor constants) indicating which subject dn fields that should be used in certificate.
+     *
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public List&lt;Integer&gt; getSubjectDNSubSet() {
+<span class="fc" id="L1655">        return (List&lt;Integer&gt;) data.get(SUBJECTDNSUBSET);</span>
+    }
+
+    /**
+     * Should contain a collection of Integer (DNFieldExtractor constants) indicating which subject dn fields that should be used in certificate.
+     *
+     * Will come in as a list of string from the GUI, because JSP doesn't always care about type safety.
+     * @param subjectdns DNs
+     *
+     */
+    public void setSubjectDNSubSet(List&lt;String&gt; subjectdns) {
+<span class="fc" id="L1666">        List&lt;Integer&gt; convertedList = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L1667" title="All 2 branches covered.">        for(String value : subjectdns) {</span>
+<span class="fc" id="L1668">            convertedList.add(Integer.valueOf(value));</span>
+<span class="fc" id="L1669">        }</span>
+<span class="fc" id="L1670">        data.put(SUBJECTDNSUBSET, convertedList);</span>
+
+<span class="fc" id="L1672">    }</span>
+
+    /**
+     * Overridable Extension OIDs is an Set of oid Strings.
+     * It is used to list what are the extensions that can be overridden when allow extension override is enabled in the Certificate Profile.
+     * @param overridableextensionoids Set of oids (strings), or an empty set, should not be null
+     */
+    public void setOverridableExtensionOIDs(Set&lt;String&gt; overridableextensionoids) {
+<span class="fc" id="L1680">        data.put(OVERRIDABLEEXTENSIONOIDS, new LinkedHashSet&lt;String&gt;(overridableextensionoids));</span>
+<span class="fc" id="L1681">    }</span>
+
+    /**
+     * Overridable Extension OIDs is an Set of oid Strings.
+     * It is used to list what are the extensions that can be overridden when allow extension override is enabled in the Certificate Profile.
+     * @return Set of strings containing oids, or an empty set, never null
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public Set&lt;String&gt; getOverridableExtensionOIDs() {
+<span class="nc bnc" id="L1690" title="All 2 branches missed.">    	if (data.get(OVERRIDABLEEXTENSIONOIDS) == null) {</span>
+<span class="nc" id="L1691">    		return new LinkedHashSet&lt;String&gt;();</span>
+    	}
+<span class="nc" id="L1693">        return (Set&lt;String&gt;) data.get(OVERRIDABLEEXTENSIONOIDS);</span>
+    }
+
+    /**
+     * Non Overridable Extension OIDs is a Set of oid Strings.
+     * It is used to list what are the extensions that can not be overridden when allow extension override is enabled in the Certificate Profile..
+     * @param nonoverridableextensionoids Set of oids (strings) that are not allowed to be overridden, or empty set to not disallow anything, not null
+     */
+    public void setNonOverridableExtensionOIDs(Set&lt;String&gt; nonoverridableextensionoids) {
+<span class="fc" id="L1702">        data.put(NONOVERRIDABLEEXTENSIONOIDS, new LinkedHashSet&lt;String&gt;(nonoverridableextensionoids));</span>
+<span class="fc" id="L1703">    }</span>
+
+    /**
+     * Non Overridable Extension OIDs is a Set of oid Strings.
+     * It is used to list what are the extensions that can not be overridde when allow extension override is enabled in the Certificate Profile..
+     * @return Set of strings containing oids, or an empty set, never null
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public Set&lt;String&gt; getNonOverridableExtensionOIDs() {
+<span class="nc bnc" id="L1712" title="All 2 branches missed.">    	if (data.get(NONOVERRIDABLEEXTENSIONOIDS) == null) {</span>
+<span class="nc" id="L1713">    		return new LinkedHashSet&lt;String&gt;();</span>
+    	}
+<span class="nc" id="L1715">        return (Set&lt;String&gt;) data.get(NONOVERRIDABLEEXTENSIONOIDS);</span>
+    }
+
+    /**
+     * Method taking a full user dn and returns a DN only containing the DN fields specified in the subjectdn sub set array.
+     *
+     * @param dn DN
+     * @return a subset of original DN
+     */
+
+    public String createSubjectDNSubSet(String dn) {
+<span class="fc" id="L1726">        DNFieldExtractor extractor = new DNFieldExtractor(dn, DNFieldExtractor.TYPE_SUBJECTDN);</span>
+<span class="fc" id="L1727">        return constructUserData(extractor, getSubjectDNSubSet(), true);</span>
+    }
+
+    public boolean getUseSubjectAltNameSubSet() {
+<span class="fc" id="L1731">        return ((Boolean) data.get(USESUBJECTALTNAMESUBSET)).booleanValue();</span>
+    }
+
+    public void setUseSubjectAltNameSubSet(boolean use) {
+<span class="fc" id="L1735">        data.put(USESUBJECTALTNAMESUBSET, Boolean.valueOf(use));</span>
+<span class="fc" id="L1736">    }</span>
+
+    /**
+     * @return a List of Integer (DNFieldExtractor constants) indicating which subject altnames fields that should be used in certificate.
+     *
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public List&lt;Integer&gt; getSubjectAltNameSubSet() {
+<span class="fc" id="L1744">        return (List&lt;Integer&gt;) data.get(SUBJECTALTNAMESUBSET);</span>
+    }
+
+    /**
+     * Sets a List of Integer (DNFieldExtractor constants) indicating which subject altnames fields that should be used in certificate.
+     * @param subjectaltnames names
+     *
+     */
+    public void setSubjectAltNameSubSet(List&lt;Integer&gt; subjectaltnames) {
+<span class="fc" id="L1753">        data.put(SUBJECTALTNAMESUBSET, subjectaltnames);</span>
+
+<span class="fc" id="L1755">    }</span>
+
+    /**
+     * Method taking a full user dn and returns a AltName only containing the AltName fields specified in the subjectaltname sub set array.
+     *
+     * @param subjectaltname Alt Name
+     * @return a subset of original DN
+     */
+    public String createSubjectAltNameSubSet(String subjectaltname) {
+<span class="fc" id="L1764">        DNFieldExtractor extractor = new DNFieldExtractor(subjectaltname, DNFieldExtractor.TYPE_SUBJECTALTNAME);</span>
+<span class="fc" id="L1765">        return constructUserData(extractor, getSubjectAltNameSubSet(), false);</span>
+    }
+
+    /**
+     * Help method converting a full DN or Subject Alt Name to one usng only specified fields
+     *
+     * @param extractor extractor
+     * @param usefields fields
+     * @param subjectdn DN
+     * @return data
+     */
+    protected static String constructUserData(DNFieldExtractor extractor, Collection&lt;Integer&gt; usefields, boolean subjectdn) {
+<span class="fc" id="L1777">        String retval = &quot;&quot;;</span>
+
+<span class="pc bpc" id="L1779" title="1 of 2 branches missed.">        if (usefields instanceof List&lt;?&gt;) {</span>
+<span class="fc" id="L1780">            Collections.sort((List&lt;Integer&gt;) usefields);</span>
+        }
+<span class="fc" id="L1782">        String dnField = null;</span>
+<span class="fc bfc" id="L1783" title="All 2 branches covered.">        for (Integer next : usefields) {</span>
+<span class="fc" id="L1784">            dnField = extractor.getFieldString(next.intValue());</span>
+<span class="pc bpc" id="L1785" title="1 of 2 branches missed.">            if (StringUtils.isNotEmpty(dnField)) {</span>
+<span class="fc bfc" id="L1786" title="All 2 branches covered.">                if (retval.length() == 0) {</span>
+<span class="fc" id="L1787">                    retval += dnField; // first item, don't start with a comma</span>
+                } else {
+<span class="fc" id="L1789">                    retval += &quot;,&quot; + dnField;</span>
+                }
+            }
+<span class="fc" id="L1792">        }</span>
+<span class="pc bpc" id="L1793" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1794">            log.debug(&quot;CertificateProfile: constructed DN or AltName: &quot; + retval);</span>
+        }
+<span class="fc" id="L1796">        return retval;</span>
+    }
+
+    /**
+     * @return a List of caids (Integer), indicating which CAs the profile should be applicable to.
+     *
+     * If it contains the constant ANYCA then the profile is applicable to all CAs
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public List&lt;Integer&gt; getAvailableCAs() {
+<span class="fc" id="L1806">        return (List&lt;Integer&gt;) data.get(AVAILABLECAS);</span>
+    }
+
+    /**
+     * Saves the CertificateProfile's list of CAs the cert profile is applicable to.
+     *
+     * @param availablecas
+     *            a List of caids (Integer)
+     */
+
+    public void setAvailableCAs(List&lt;Integer&gt; availablecas) {
+<span class="fc" id="L1817">        data.put(AVAILABLECAS, availablecas);</span>
+<span class="fc" id="L1818">    }</span>
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public boolean isApplicableToAnyCA() {
+<span class="fc" id="L1822">        return ((List&lt;Integer&gt;) data.get(AVAILABLECAS)).contains(Integer.valueOf(ANYCA));</span>
+    }
+
+    /**
+     * @return a List of publisher id's (Integer) indicating which publishers a certificate created with this profile should be published to.
+     * Never returns null.
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public List&lt;Integer&gt; getPublisherList() {
+<span class="fc" id="L1831">        Object o = data.get(USEDPUBLISHERS);</span>
+<span class="pc bpc" id="L1832" title="1 of 2 branches missed.">        if (o == null) {</span>
+<span class="nc" id="L1833">            o = new ArrayList&lt;Integer&gt;();</span>
+        }
+<span class="fc" id="L1835">        return (List&lt;Integer&gt;) o;</span>
+    }
+
+    /**
+     * Saves the CertificateProfile's list of publishers that certificates created with this profile should be published to.
+     *
+     * @param publisher
+     *            a List&amp;lt;Integer&amp;gt; of publisher Ids
+     */
+
+    public void setPublisherList(List&lt;Integer&gt; publisher) {
+<span class="fc" id="L1846">        data.put(USEDPUBLISHERS, publisher);</span>
+<span class="fc" id="L1847">    }</span>
+
+    /**
+     * Method indicating that Path Length Constraint should be used in the BasicConstaint
+     * @return boolean
+     */
+    public boolean getUsePathLengthConstraint() {
+<span class="fc" id="L1854">        return ((Boolean) data.get(USEPATHLENGTHCONSTRAINT)).booleanValue();</span>
+    }
+
+    /**
+     * Method indicating that Path Length Constraint should be used in the BasicConstaint
+     * @param use boolean
+     */
+    public void setUsePathLengthConstraint(boolean use) {
+<span class="fc" id="L1862">        data.put(USEPATHLENGTHCONSTRAINT, Boolean.valueOf(use));</span>
+<span class="fc" id="L1863">    }</span>
+
+    public int getPathLengthConstraint() {
+<span class="fc" id="L1866">        return ((Integer) data.get(PATHLENGTHCONSTRAINT)).intValue();</span>
+    }
+
+    public void setPathLengthConstraint(int pathlength) {
+<span class="fc" id="L1870">        data.put(PATHLENGTHCONSTRAINT, Integer.valueOf(pathlength));</span>
+<span class="fc" id="L1871">    }</span>
+
+    public void setCaIssuers(List&lt;String&gt; caIssuers) {
+<span class="fc" id="L1874">        data.put(CAISSUERS, caIssuers);</span>
+<span class="fc" id="L1875">    }</span>
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void addCaIssuer(String caIssuer) {
+<span class="fc" id="L1879">        caIssuer = caIssuer.trim();</span>
+<span class="fc bfc" id="L1880" title="All 2 branches covered.">        if (caIssuer.length() &lt; 1) {</span>
+<span class="fc" id="L1881">            return;</span>
+        }
+<span class="pc bpc" id="L1883" title="1 of 2 branches missed.">        if (data.get(CAISSUERS) == null) {</span>
+<span class="nc" id="L1884">            List&lt;String&gt; caIssuers = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1885">            caIssuers.add(caIssuer);</span>
+<span class="nc" id="L1886">            this.setCaIssuers(caIssuers);</span>
+<span class="nc" id="L1887">        } else {</span>
+<span class="fc" id="L1888">            ((List&lt;String&gt;) data.get(CAISSUERS)).add(caIssuer);</span>
+        }
+<span class="fc" id="L1890">    }</span>
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public List&lt;String&gt; getCaIssuers() {
+<span class="fc bfc" id="L1894" title="All 2 branches covered.">        if (data.get(CAISSUERS) == null) {</span>
+<span class="fc" id="L1895">            return new ArrayList&lt;&gt;();</span>
+        } else {
+<span class="fc" id="L1897">            return (List&lt;String&gt;) data.get(CAISSUERS);</span>
+        }
+    }
+
+    public void removeCaIssuer(String caIssuer) {
+<span class="pc bpc" id="L1902" title="1 of 2 branches missed.">        if (data.get(CAISSUERS) != null) {</span>
+<span class="fc" id="L1903">            ((List&lt;?&gt;) data.get(CAISSUERS)).remove(caIssuer);</span>
+        }
+<span class="fc" id="L1905">    }</span>
+
+    public boolean getUseOcspNoCheck() {
+<span class="pc bpc" id="L1908" title="1 of 2 branches missed.">        if (data.get(USEOCSPNOCHECK) == null) {</span>
+<span class="nc" id="L1909">            return false;</span>
+        } else {
+<span class="fc" id="L1911">            return ((Boolean) data.get(USEOCSPNOCHECK)).booleanValue();</span>
+        }
+    }
+
+    public void setUseOcspNoCheck(boolean useocspnocheck) {
+<span class="fc" id="L1916">        data.put(USEOCSPNOCHECK, Boolean.valueOf(useocspnocheck));</span>
+<span class="fc" id="L1917">    }</span>
+
+    public boolean getUseAuthorityInformationAccess() {
+<span class="fc" id="L1920">        return ((Boolean) data.get(USEAUTHORITYINFORMATIONACCESS)).booleanValue();</span>
+    }
+
+    public void setUseAuthorityInformationAccess(boolean useauthorityinformationaccess) {
+<span class="fc" id="L1924">        data.put(USEAUTHORITYINFORMATIONACCESS, Boolean.valueOf(useauthorityinformationaccess));</span>
+<span class="fc" id="L1925">    }</span>
+
+    public boolean getUseDefaultCAIssuer() {
+        //Lazy instantiation in case upgrade for some reason fails
+<span class="nc bnc" id="L1929" title="All 2 branches missed.">        if(data.get(USEDEFAULTCAISSUER) == null) {</span>
+<span class="nc" id="L1930">            data.put(USEDEFAULTCAISSUER, false);</span>
+        }
+<span class="nc" id="L1932">        return ((Boolean) data.get(USEDEFAULTCAISSUER)).booleanValue();</span>
+    }
+
+    public void setUseDefaultCAIssuer(boolean usedefaultcaissuer) {
+<span class="fc" id="L1936">        data.put(USEDEFAULTCAISSUER, Boolean.valueOf(usedefaultcaissuer));</span>
+<span class="fc" id="L1937">    }</span>
+
+    public boolean getUseDefaultOCSPServiceLocator() {
+<span class="fc" id="L1940">        return ((Boolean) data.get(USEDEFAULTOCSPSERVICELOCATOR)).booleanValue();</span>
+    }
+
+    public void setUseDefaultOCSPServiceLocator(boolean usedefaultocspservicelocator) {
+<span class="fc" id="L1944">        data.put(USEDEFAULTOCSPSERVICELOCATOR, Boolean.valueOf(usedefaultocspservicelocator));</span>
+<span class="fc" id="L1945">    }</span>
+
+    public String getOCSPServiceLocatorURI() {
+<span class="fc" id="L1948">        return (String) data.get(OCSPSERVICELOCATORURI);</span>
+    }
+
+    public void setOCSPServiceLocatorURI(String ocspservicelocatoruri) {
+<span class="fc bfc" id="L1952" title="All 2 branches covered.">        if (ocspservicelocatoruri == null) {</span>
+<span class="fc" id="L1953">            data.put(OCSPSERVICELOCATORURI, &quot;&quot;);</span>
+        } else {
+<span class="fc" id="L1955">            data.put(OCSPSERVICELOCATORURI, ocspservicelocatoruri);</span>
+        }
+<span class="fc" id="L1957">    }</span>
+
+    public boolean getUseQCStatement() {
+<span class="fc" id="L1960">        return ((Boolean) data.get(USEQCSTATEMENT)).booleanValue();</span>
+    }
+
+    public void setUseQCStatement(boolean useqcstatement) {
+<span class="fc" id="L1964">        data.put(USEQCSTATEMENT, Boolean.valueOf(useqcstatement));</span>
+<span class="fc" id="L1965">    }</span>
+
+    public boolean getUsePkixQCSyntaxV2() {
+<span class="fc" id="L1968">        return ((Boolean) data.get(USEPKIXQCSYNTAXV2)).booleanValue();</span>
+    }
+
+    public void setUsePkixQCSyntaxV2(boolean pkixqcsyntaxv2) {
+<span class="fc" id="L1972">        data.put(USEPKIXQCSYNTAXV2, Boolean.valueOf(pkixqcsyntaxv2));</span>
+<span class="fc" id="L1973">    }</span>
+
+    public boolean getQCStatementCritical() {
+<span class="fc" id="L1976">        return ((Boolean) data.get(QCSTATEMENTCRITICAL)).booleanValue();</span>
+    }
+
+    public void setQCStatementCritical(boolean qcstatementcritical) {
+<span class="fc" id="L1980">        data.put(QCSTATEMENTCRITICAL, Boolean.valueOf(qcstatementcritical));</span>
+<span class="fc" id="L1981">    }</span>
+
+    /** @return String with RAName or empty string */
+    public String getQCStatementRAName() {
+<span class="fc" id="L1985">        return (String) data.get(QCSTATEMENTRANAME);</span>
+    }
+
+    public void setQCStatementRAName(String qcstatementraname) {
+<span class="pc bpc" id="L1989" title="1 of 2 branches missed.">        if (qcstatementraname == null) {</span>
+<span class="fc" id="L1990">            data.put(QCSTATEMENTRANAME, &quot;&quot;);</span>
+        } else {
+<span class="nc" id="L1992">            data.put(QCSTATEMENTRANAME, qcstatementraname);</span>
+        }
+<span class="fc" id="L1994">    }</span>
+
+    /** @return String with SemanticsId or empty string */
+    public String getQCSemanticsId() {
+<span class="fc" id="L1998">        return (String) data.get(QCSSEMANTICSID);</span>
+    }
+
+    public void setQCSemanticsId(String qcsemanticsid) {
+<span class="fc bfc" id="L2002" title="All 2 branches covered.">        if (qcsemanticsid == null) {</span>
+<span class="fc" id="L2003">            data.put(QCSSEMANTICSID, &quot;&quot;);</span>
+        } else {
+<span class="fc" id="L2005">            data.put(QCSSEMANTICSID, qcsemanticsid);</span>
+        }
+<span class="fc" id="L2007">    }</span>
+
+    public boolean getUseQCEtsiQCCompliance() {
+<span class="fc" id="L2010">        return ((Boolean) data.get(USEQCETSIQCCOMPLIANCE)).booleanValue();</span>
+    }
+
+    public void setUseQCEtsiQCCompliance(boolean useqcetsiqccompliance) {
+<span class="fc" id="L2014">        data.put(USEQCETSIQCCOMPLIANCE, Boolean.valueOf(useqcetsiqccompliance));</span>
+<span class="fc" id="L2015">    }</span>
+
+    public boolean getUseQCEtsiValueLimit() {
+<span class="fc" id="L2018">        return ((Boolean) data.get(USEQCETSIVALUELIMIT)).booleanValue();</span>
+    }
+
+    public void setUseQCEtsiValueLimit(boolean useqcetsivaluelimit) {
+<span class="fc" id="L2022">        data.put(USEQCETSIVALUELIMIT, Boolean.valueOf(useqcetsivaluelimit));</span>
+<span class="fc" id="L2023">    }</span>
+
+    public int getQCEtsiValueLimit() {
+<span class="fc" id="L2026">        return ((Integer) data.get(QCETSIVALUELIMIT)).intValue();</span>
+    }
+
+    public void setQCEtsiValueLimit(int qcetsivaluelimit) {
+<span class="fc" id="L2030">        data.put(QCETSIVALUELIMIT, Integer.valueOf(qcetsivaluelimit));</span>
+<span class="fc" id="L2031">    }</span>
+
+    public int getQCEtsiValueLimitExp() {
+<span class="fc" id="L2034">        return ((Integer) data.get(QCETSIVALUELIMITEXP)).intValue();</span>
+    }
+
+    public void setQCEtsiValueLimitExp(int qcetsivaluelimitexp) {
+<span class="fc" id="L2038">        data.put(QCETSIVALUELIMITEXP, Integer.valueOf(qcetsivaluelimitexp));</span>
+<span class="fc" id="L2039">    }</span>
+
+    /** @return String with Currency or empty string */
+    public String getQCEtsiValueLimitCurrency() {
+<span class="fc" id="L2043">        return (String) data.get(QCETSIVALUELIMITCURRENCY);</span>
+    }
+
+    public void setQCEtsiValueLimitCurrency(String qcetsivaluelimitcurrency) {
+<span class="pc bpc" id="L2047" title="1 of 2 branches missed.">        if (qcetsivaluelimitcurrency == null) {</span>
+<span class="fc" id="L2048">            data.put(QCETSIVALUELIMITCURRENCY, &quot;&quot;);</span>
+        } else {
+<span class="nc" id="L2050">            data.put(QCETSIVALUELIMITCURRENCY, qcetsivaluelimitcurrency);</span>
+        }
+<span class="fc" id="L2052">    }</span>
+
+    public boolean getUseQCEtsiRetentionPeriod() {
+<span class="fc" id="L2055">        return ((Boolean) data.get(USEQCETSIRETENTIONPERIOD)).booleanValue();</span>
+    }
+
+    public void setUseQCEtsiRetentionPeriod(boolean useqcetsiretentionperiod) {
+<span class="fc" id="L2059">        data.put(USEQCETSIRETENTIONPERIOD, Boolean.valueOf(useqcetsiretentionperiod));</span>
+<span class="fc" id="L2060">    }</span>
+
+    public int getQCEtsiRetentionPeriod() {
+<span class="fc" id="L2063">        return ((Integer) data.get(QCETSIRETENTIONPERIOD)).intValue();</span>
+    }
+
+    public void setQCEtsiRetentionPeriod(int qcetsiretentionperiod) {
+<span class="fc" id="L2067">        data.put(QCETSIRETENTIONPERIOD, Integer.valueOf(qcetsiretentionperiod));</span>
+<span class="fc" id="L2068">    }</span>
+
+    public boolean getUseQCEtsiSignatureDevice() {
+<span class="fc" id="L2071">        return ((Boolean) data.get(USEQCETSISIGNATUREDEVICE)).booleanValue();</span>
+    }
+
+    public void setUseQCEtsiSignatureDevice(boolean useqcetsisignaturedevice) {
+<span class="fc" id="L2075">        data.put(USEQCETSISIGNATUREDEVICE, Boolean.valueOf(useqcetsisignaturedevice));</span>
+<span class="fc" id="L2076">    }</span>
+
+    /** @return String with Type OID or null (or empty string) if it's not to be used (EN 319 412-05)
+     * 0.4.0.1862.1.6.1 = id-etsi-qct-esign
+     * 0.4.0.1862.1.6.2 = id-etsi-qct-eseal
+     * 0.4.0.1862.1.6.3 = id-etsi-qct-web
+     */
+    public String getQCEtsiType() {
+<span class="fc" id="L2084">        return (String) data.get(QCETSITYPE);</span>
+    }
+    public void setQCEtsiType(String qcetsitype) {
+<span class="fc" id="L2087">        data.put(QCETSITYPE, qcetsitype);</span>
+<span class="fc" id="L2088">    }</span>
+
+    /**
+     * @return the PKI Disclosure Statements (EN 319 412-05) used in this profile, or null if none are present.
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public List&lt;PKIDisclosureStatement&gt; getQCEtsiPds() {
+<span class="fc" id="L2095">        List&lt;PKIDisclosureStatement&gt; result = null;</span>
+<span class="fc" id="L2096">        List&lt;PKIDisclosureStatement&gt; pdsList = (List&lt;PKIDisclosureStatement&gt;)data.get(QCETSIPDS);</span>
+<span class="pc bpc" id="L2097" title="1 of 4 branches missed.">        if (pdsList != null &amp;&amp; !pdsList.isEmpty()) {</span>
+<span class="fc" id="L2098">            result = new ArrayList&lt;&gt;(pdsList.size());</span>
+            try {
+<span class="fc bfc" id="L2100" title="All 2 branches covered.">                for (final PKIDisclosureStatement pds : pdsList) {</span>
+<span class="fc" id="L2101">                    result.add((PKIDisclosureStatement) pds.clone());</span>
+<span class="fc" id="L2102">                }</span>
+<span class="nc" id="L2103">            } catch (CloneNotSupportedException e) {</span>
+<span class="nc" id="L2104">                throw new IllegalStateException(e);</span>
+<span class="fc" id="L2105">            }</span>
+        }
+<span class="fc" id="L2107">        return result;</span>
+    }
+
+    /**
+     * Sets the PKI Disclosure Statements (EN 319 412-05).
+     * Both null and empty lists are interpreted as an &quot;none&quot;.
+     * @param pds list of disclosure statements
+     */
+    public void setQCEtsiPds(final List&lt;PKIDisclosureStatement&gt; pds) {
+<span class="fc bfc" id="L2116" title="All 4 branches covered.">        if (pds == null || pds.isEmpty()) { // never store an empty list</span>
+<span class="fc" id="L2117">            data.put(QCETSIPDS, null);</span>
+        } else {
+<span class="fc" id="L2119">            data.put(QCETSIPDS, new ArrayList&lt;&gt;(pds));</span>
+        }
+        // Remove old data from EJBCA &lt; 6.6.1
+<span class="fc" id="L2122">        data.remove(QCETSIPDSURL);</span>
+<span class="fc" id="L2123">        data.remove(QCETSIPDSLANG);</span>
+<span class="fc" id="L2124">    }</span>
+
+    public boolean getUseQCCustomString() {
+<span class="fc" id="L2127">        return ((Boolean) data.get(USEQCCUSTOMSTRING)).booleanValue();</span>
+    }
+
+    public void setUseQCCustomString(boolean useqccustomstring) {
+<span class="fc" id="L2131">        data.put(USEQCCUSTOMSTRING, Boolean.valueOf(useqccustomstring));</span>
+<span class="fc" id="L2132">    }</span>
+
+    /** @return String with oid or empty string */
+    public String getQCCustomStringOid() {
+<span class="fc" id="L2136">        return (String) data.get(QCCUSTOMSTRINGOID);</span>
+    }
+
+    public void setQCCustomStringOid(String qccustomstringoid) {
+<span class="pc bpc" id="L2140" title="1 of 2 branches missed.">        if (qccustomstringoid == null) {</span>
+<span class="fc" id="L2141">            data.put(QCCUSTOMSTRINGOID, &quot;&quot;);</span>
+        } else {
+<span class="nc" id="L2143">            data.put(QCCUSTOMSTRINGOID, qccustomstringoid);</span>
+        }
+<span class="fc" id="L2145">    }</span>
+
+    /** @return String with custom text or empty string */
+    public String getQCCustomStringText() {
+<span class="fc" id="L2149">        return (String) data.get(QCCUSTOMSTRINGTEXT);</span>
+    }
+
+    public void setQCCustomStringText(String qccustomstringtext) {
+<span class="pc bpc" id="L2153" title="1 of 2 branches missed.">        if (qccustomstringtext == null) {</span>
+<span class="fc" id="L2154">            data.put(QCCUSTOMSTRINGTEXT, &quot;&quot;);</span>
+        } else {
+<span class="nc" id="L2156">            data.put(QCCUSTOMSTRINGTEXT, qccustomstringtext);</span>
+        }
+<span class="fc" id="L2158">    }</span>
+
+    public boolean getUseNameConstraints() {
+<span class="nc" id="L2161">        Boolean b = (Boolean) data.get(USENAMECONSTRAINTS);</span>
+<span class="nc bnc" id="L2162" title="All 4 branches missed.">        return b != null &amp;&amp; b.booleanValue();</span>
+    }
+
+    public void setUseNameConstraints(boolean use) {
+<span class="fc" id="L2166">        data.put(USENAMECONSTRAINTS, Boolean.valueOf(use));</span>
+<span class="fc" id="L2167">    }</span>
+
+    public boolean getNameConstraintsCritical() {
+<span class="nc" id="L2170">        Boolean b = (Boolean) data.get(NAMECONSTRAINTSCRITICAL);</span>
+<span class="nc bnc" id="L2171" title="All 4 branches missed.">        return b != null &amp;&amp; b.booleanValue();</span>
+    }
+
+    public void setNameConstraintsCritical(boolean use) {
+<span class="nc" id="L2175">        data.put(NAMECONSTRAINTSCRITICAL, Boolean.valueOf(use));</span>
+<span class="nc" id="L2176">    }</span>
+
+    public boolean getUseSubjectDirAttributes() {
+<span class="fc" id="L2179">        return ((Boolean) data.get(USESUBJECTDIRATTRIBUTES)).booleanValue();</span>
+    }
+
+    public void setUseSubjectDirAttributes(boolean use) {
+<span class="fc" id="L2183">        data.put(USESUBJECTDIRATTRIBUTES, Boolean.valueOf(use));</span>
+<span class="fc" id="L2184">    }</span>
+
+    public void setSingleActiveCertificateConstraint(final boolean enabled) {
+<span class="fc" id="L2187">        data.put(USERSINGLEACTIVECERTIFICATECONSTRAINT, Boolean.valueOf(enabled));</span>
+<span class="fc" id="L2188">    }</span>
+
+    public boolean isSingleActiveCertificateConstraint() {
+<span class="nc" id="L2191">        Object constraintObject = data.get(USERSINGLEACTIVECERTIFICATECONSTRAINT);</span>
+<span class="nc bnc" id="L2192" title="All 2 branches missed.">        if(constraintObject == null) {</span>
+            //For upgrading from versions prior to 6.3.1
+<span class="nc" id="L2194">            setSingleActiveCertificateConstraint(false);</span>
+<span class="nc" id="L2195">            return false;</span>
+        } else {
+<span class="nc" id="L2197">            return ((Boolean) data.get(USERSINGLEACTIVECERTIFICATECONSTRAINT)).booleanValue();</span>
+        }
+    }
+
+
+    /**
+     * Returns which type of terminals are used in this ca/certificate hierarchy.
+     * The values correspond to the id-roles-1/2/3 OIDs.
+     * @return type
+     */
+    public int getCVCTerminalType() {
+<span class="nc bnc" id="L2208" title="All 2 branches missed.">        if (data.get(CVCTERMINALTYPE) == null) {</span>
+<span class="nc" id="L2209">            return CertificateProfile.CVC_TERMTYPE_IS;</span>
+        }
+<span class="nc" id="L2211">        return ((Integer) data.get(CVCTERMINALTYPE)).intValue();</span>
+    }
+
+    public void setCVCTerminalType(int termtype) {
+<span class="nc" id="L2215">        data.put(CVCTERMINALTYPE, Integer.valueOf(termtype));</span>
+<span class="nc" id="L2216">    }</span>
+    
+<span class="nc bnc" id="L2218" title="All 2 branches missed.">    public boolean isCvcTerminalTypeIs() { return getCVCTerminalType() == CertificateProfile.CVC_TERMTYPE_IS; }</span>
+<span class="nc bnc" id="L2219" title="All 2 branches missed.">    public boolean isCvcTerminalTypeAt() { return getCVCTerminalType() == CertificateProfile.CVC_TERMTYPE_AT; }</span>
+<span class="nc bnc" id="L2220" title="All 2 branches missed.">    public boolean isCvcTerminalTypeSt() { return getCVCTerminalType() == CertificateProfile.CVC_TERMTYPE_ST; }</span>
+
+    public int getCVCAccessRights() {
+<span class="pc bpc" id="L2223" title="1 of 2 branches missed.">        if (data.get(CVCACCESSRIGHTS) == null) {</span>
+<span class="nc" id="L2224">            return CertificateProfile.CVC_ACCESS_NONE;</span>
+        }
+<span class="fc" id="L2226">        return ((Integer) data.get(CVCACCESSRIGHTS)).intValue();</span>
+    }
+
+    public void setCVCAccessRights(int access) {
+<span class="fc" id="L2230">        data.put(CVCACCESSRIGHTS, Integer.valueOf(access));</span>
+<span class="fc" id="L2231">    }</span>
+
+    /**
+     * Used for bitmasks that don't fit in an int.
+     * E.g. the 5-byte bitmask for Authentication Terminals
+     * @return rights
+     */
+    public byte[] getCVCLongAccessRights() {
+<span class="nc bnc" id="L2239" title="All 2 branches missed.">        if (data.get(CVCLONGACCESSRIGHTS) == null) {</span>
+<span class="nc" id="L2240">            return null;</span>
+        }
+        @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L2243">        List&lt;Byte&gt; rightsList = (List&lt;Byte&gt;)data.get(CVCLONGACCESSRIGHTS);</span>
+<span class="nc" id="L2244">        return ArrayUtils.toPrimitive(rightsList.toArray(new Byte[0]));</span>
+    }
+
+    public void setCVCLongAccessRights(byte[] access) {
+<span class="nc bnc" id="L2248" title="All 2 branches missed.">        if (access == null) {</span>
+<span class="nc" id="L2249">            data.put(CVCLONGACCESSRIGHTS, null);</span>
+        } else {
+            // Convert to List&lt;Byte&gt; since byte[] doesn't work with database protection
+<span class="nc" id="L2252">            data.put(CVCLONGACCESSRIGHTS, new ArrayList&lt;&gt;(Arrays.asList(ArrayUtils.toObject(access))));</span>
+        }
+<span class="nc" id="L2254">    }</span>
+
+    public int getCVCSignTermDVType() {
+<span class="nc bnc" id="L2257" title="All 2 branches missed.">        if (data.get(CVCSIGNTERMDVTYPE) == null) {</span>
+<span class="nc" id="L2258">            return CertificateProfile.CVC_SIGNTERM_DV_CSP;</span>
+        }
+<span class="nc" id="L2260">        return ((Integer) data.get(CVCSIGNTERMDVTYPE)).intValue();</span>
+    }
+
+    public void setCVCSignTermDVType(int type) {
+<span class="nc" id="L2264">        data.put(CVCSIGNTERMDVTYPE, Integer.valueOf(type));</span>
+<span class="nc" id="L2265">    }</span>
+
+    /**
+     * Method returning a list of (Integers) of ids of used CUSTOM certificate extensions. I.e. those custom certificate extensions selected for this
+     * profile. Never null.
+     *
+     * Autoupgradable method
+     * @return extensions
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public List&lt;Integer&gt; getUsedCertificateExtensions() {
+<span class="pc bpc" id="L2276" title="1 of 2 branches missed.">        if (data.get(USEDCERTIFICATEEXTENSIONS) == null) {</span>
+<span class="nc" id="L2277">            return new ArrayList&lt;&gt;();</span>
+        }
+<span class="fc" id="L2279">        return (List&lt;Integer&gt;) data.get(USEDCERTIFICATEEXTENSIONS);</span>
+    }
+
+    /**
+     * Method setting a list of used certificate extensions a list of Integers containing CertificateExtension Id is expected
+     *
+     * @param usedCertificateExtensions extensions
+     */
+    public void setUsedCertificateExtensions(List&lt;Integer&gt; usedCertificateExtensions) {
+<span class="pc bpc" id="L2288" title="1 of 2 branches missed.">        if (usedCertificateExtensions == null) {</span>
+<span class="nc" id="L2289">            data.put(USEDCERTIFICATEEXTENSIONS, new ArrayList&lt;Integer&gt;());</span>
+        } else {
+<span class="fc" id="L2291">            data.put(USEDCERTIFICATEEXTENSIONS, usedCertificateExtensions);</span>
+        }
+<span class="fc" id="L2293">    }</span>
+
+    /**
+     * Function that looks up in the profile all certificate extensions that we should use if the value is that we should use it, the oid for this
+     * extension is returned in the list
+     *
+     * @return List of oid Strings for standard certificate extensions that should be used
+     */
+    public List&lt;String&gt; getUsedStandardCertificateExtensions() {
+<span class="fc" id="L2302">        ArrayList&lt;String&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L2303">        Iterator&lt;String&gt; iter = useStandardCertificateExtensions.keySet().iterator();</span>
+<span class="fc bfc" id="L2304" title="All 2 branches covered.">        while (iter.hasNext()) {</span>
+<span class="fc" id="L2305">            String s = iter.next();</span>
+<span class="pc bpc" id="L2306" title="1 of 4 branches missed.">            if ((data.get(s) != null) &amp;&amp; ((Boolean) data.get(s)).booleanValue()) {</span>
+<span class="fc" id="L2307">                ret.add(useStandardCertificateExtensions.get(s));</span>
+<span class="pc bpc" id="L2308" title="1 of 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L2309">                    log.debug(&quot;Using standard certificate extension: &quot; + s);</span>
+                }
+            } else {
+<span class="pc bpc" id="L2312" title="1 of 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L2313">                    log.debug(&quot;Not using standard certificate extensions: &quot; + s);</span>
+                }
+            }
+<span class="fc" id="L2316">        }</span>
+<span class="fc" id="L2317">        return ret;</span>
+    }
+
+    /**
+     * @return a List of Integers (CAInfo.REQ_APPROVAL_ constants) of which action that requires approvals, default none, never null
+     *
+     * @deprecated since 6.8.0. Use getApprovals() instead;
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    @Deprecated
+    public List&lt;Integer&gt; getApprovalSettings() {
+<span class="nc" id="L2328">        List&lt;Integer&gt; approvalSettings = (List&lt;Integer&gt;) data.get(APPROVALSETTINGS);</span>
+<span class="nc bnc" id="L2329" title="All 2 branches missed.">        if (approvalSettings != null) {</span>
+<span class="nc" id="L2330">            return approvalSettings;</span>
+        } else {
+<span class="nc" id="L2332">            return new ArrayList&lt;&gt;();</span>
+        }
+    }
+
+    /**
+     * List of Integers (CAInfo.REQ_APPROVAL_ constants) of which action that requires approvals
+     * @param approvalSettings settings
+     *
+     * @deprecated since 6.8.0. Use setApprovals() instead;
+     */
+    @Deprecated
+    public void setApprovalSettings(List&lt;Integer&gt; approvalSettings) {
+<span class="fc" id="L2344">        data.put(APPROVALSETTINGS, approvalSettings);</span>
+<span class="fc" id="L2345">    }</span>
+
+    /**
+     * Returns the number of different administrators that needs to approve an action, default 1.
+     * @return number of required approvals
+     *
+     * @deprecated since 6.6.0, use the appropriate approval profile instead
+     * Needed for a while in order to be able to import old statedumps from 6.5 and earlier
+     */
+    @Deprecated
+    public int getNumOfReqApprovals() {
+<span class="nc" id="L2356">        Integer result = (Integer) data.get(NUMOFREQAPPROVALS);</span>
+<span class="nc bnc" id="L2357" title="All 2 branches missed.">        if(result != null) {</span>
+<span class="nc" id="L2358">            return result.intValue();</span>
+        } else {
+<span class="nc" id="L2360">            return 1;</span>
+        }
+    }
+
+    /**
+     * The number of different administrators that needs to approve
+     * @param numOfReqApprovals number of required approvals
+     *
+     * @deprecated since 6.6.0, use the appropriate approval profile instead
+     * Needed for a while in order to be able to import old statedumps from 6.5 and earlier
+     */
+    @Deprecated
+    public void setNumOfReqApprovals(int numOfReqApprovals) {
+<span class="fc" id="L2373">        data.put(NUMOFREQAPPROVALS, Integer.valueOf(numOfReqApprovals));</span>
+<span class="fc" id="L2374">    }</span>
+
+    /**
+     * @return the id of the approval profile. ID -1 means  that no approval profile was set
+     *
+     * @deprecated since 6.8.0. Use getApprovals() instead;
+     */
+    @Deprecated
+    public int getApprovalProfileID() {
+<span class="fc" id="L2383">        Integer approvalProfileId = (Integer) data.get(APPROVALPROFILE);</span>
+<span class="pc bpc" id="L2384" title="1 of 2 branches missed.">        if(approvalProfileId != null) {</span>
+<span class="fc" id="L2385">            return approvalProfileId.intValue();</span>
+        } else {
+<span class="nc" id="L2387">            return -1;</span>
+        }
+    }
+
+    /**
+     * @param approvalProfileID ID
+     *
+     * @deprecated since 6.8.0. Use setApprovals() instead;
+     */
+    @Deprecated
+    public void setApprovalProfileID(int approvalProfileID) {
+<span class="fc" id="L2398">        data.put(APPROVALPROFILE, Integer.valueOf(approvalProfileID));</span>
+<span class="fc" id="L2399">    }</span>
+
+    public void setApprovals(Map&lt;ApprovalRequestType, Integer&gt; approvals) {
+<span class="pc bpc" id="L2402" title="1 of 2 branches missed.">        if(approvals == null) {</span>
+<span class="nc" id="L2403">            approvals = new LinkedHashMap&lt;&gt;();</span>
+        }
+        // We must store this as a predictable order map in the database, in order for databaseprotection to work
+<span class="fc" id="L2406">        data.put(APPROVALS, new LinkedHashMap&lt;ApprovalRequestType, Integer&gt;(approvals));</span>
+<span class="fc" id="L2407">    }</span>
+
+    /**
+     * @return a map of approvals, mapped as approval setting (as defined in this class) : approval profile ID. Never returns null.
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public Map&lt;ApprovalRequestType, Integer&gt; getApprovals() {
+<span class="fc bfc" id="L2414" title="All 2 branches covered.">        if (data.get(APPROVALS) == null) {</span>
+<span class="fc" id="L2415">            Map&lt;ApprovalRequestType, Integer&gt; approvals = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L2416">            int approvalProfileId = getApprovalProfileID();</span>
+<span class="pc bpc" id="L2417" title="1 of 2 branches missed.">            if(approvalProfileId != -1) {</span>
+<span class="nc bnc" id="L2418" title="All 2 branches missed.">                for(int approvalSetting : getApprovalSettings()) {</span>
+<span class="nc" id="L2419">                    approvals.put(ApprovalRequestType.getFromIntegerValue(approvalSetting), approvalProfileId);</span>
+<span class="nc" id="L2420">                }</span>
+            }
+<span class="fc" id="L2422">            setApprovals(approvals);</span>
+        }
+<span class="fc" id="L2424">        return (Map&lt;ApprovalRequestType, Integer&gt;) data.get(APPROVALS);</span>
+    }
+
+    /**
+     * @return If the PrivateKeyUsagePeriod extension should be used and with the notBefore component.
+     */
+    public boolean isUsePrivateKeyUsagePeriodNotBefore() {
+<span class="pc bpc" id="L2431" title="1 of 2 branches missed.">        if (data.get(USEPRIVKEYUSAGEPERIODNOTAFTER) == null) {</span>
+<span class="nc" id="L2432">            return false;</span>
+        }
+<span class="fc" id="L2434">        return ((Boolean) data.get(USEPRIVKEYUSAGEPERIODNOTBEFORE)).booleanValue();</span>
+    }
+
+    /**
+     * Sets if the PrivateKeyUsagePeriod extension should be used and with
+     * the notBefore component.
+     * Setting this to true means that there will be an PrivateKeyUsagePeriod
+     * extension and that it also at least will contain an notBefore component.
+     * Setting this to false means that the extension will not contain an
+     * notBefore component. In that case if there will be an extension depends
+     * on if {@link #isUsePrivateKeyUsagePeriodNotAfter()} is true.
+     *
+     * @param use True if the notBefore component should be used.
+     */
+    public void setUsePrivateKeyUsagePeriodNotBefore(final boolean use) {
+<span class="fc" id="L2449">            data.put(USEPRIVKEYUSAGEPERIODNOTBEFORE, use);</span>
+<span class="pc bpc" id="L2450" title="1 of 4 branches missed.">            data.put(USEPRIVKEYUSAGEPERIOD, use || isUsePrivateKeyUsagePeriodNotAfter());</span>
+<span class="fc" id="L2451">    }</span>
+
+    /**
+     * @return If the PrivateKeyUsagePeriod extension should be used and with the notAfter component.
+     */
+    public boolean isUsePrivateKeyUsagePeriodNotAfter() {
+<span class="pc bpc" id="L2457" title="1 of 2 branches missed.">        if (data.get(USEPRIVKEYUSAGEPERIODNOTAFTER) == null) {</span>
+<span class="fc" id="L2458">            return false;</span>
+        }
+<span class="nc" id="L2460">        return ((Boolean) data.get(USEPRIVKEYUSAGEPERIODNOTAFTER)).booleanValue();</span>
+    }
+
+    /**
+     * Sets if the PrivateKeyUsagePeriod extension should be used and with
+     * the notAfter component.
+     * Setting this to true means that there will be an PrivateKeyUsagePeriod
+     * extension and that it also at least will contain an notAfter component.
+     * Setting this to false means that the extension will not contain an
+     * notAfter component. In that case if there will be an extension depends
+     * on if {@link #isUsePrivateKeyUsagePeriodNotBefore()} is true.
+     *
+     * @param use True if the notAfter component should be used.
+     */
+    public void setUsePrivateKeyUsagePeriodNotAfter(final boolean use) {
+<span class="fc" id="L2475">            data.put(USEPRIVKEYUSAGEPERIODNOTAFTER, use);</span>
+<span class="pc bpc" id="L2476" title="1 of 4 branches missed.">            data.put(USEPRIVKEYUSAGEPERIOD, use || isUsePrivateKeyUsagePeriodNotBefore());</span>
+<span class="fc" id="L2477">    }</span>
+
+    /**
+     * @return How long (in seconds) after the certificate's notBefore date the
+     * PrivateKeyUsagePeriod's notBefore date should be.
+     */
+    public long getPrivateKeyUsagePeriodStartOffset() {
+<span class="nc" id="L2484">            return ((Long) data.get(PRIVKEYUSAGEPERIODSTARTOFFSET)).longValue();</span>
+    }
+
+    /**
+     * Sets how long (in seconds) after the certificate's notBefore date the PrivateKeyUsagePeriod's notBefore date should be.
+     *
+     * @param start Offset from certificate issuance.
+     */
+    public void setPrivateKeyUsagePeriodStartOffset(final long start) {
+<span class="fc" id="L2493">        data.put(PRIVKEYUSAGEPERIODSTARTOFFSET, start);</span>
+<span class="fc" id="L2494">    }</span>
+
+    /**
+     * @return The private key usage period (private key validity) length (in seconds).
+     */
+    public long getPrivateKeyUsagePeriodLength() {
+<span class="nc" id="L2500">        return ((Long) data.get(PRIVKEYUSAGEPERIODLENGTH)).longValue();</span>
+    }
+
+    /**
+     * Sets the private key usage period (private key validity) length (in seconds).
+     *
+     * @param validity The length.
+     */
+    public void setPrivateKeyUsagePeriodLength(final long validity) {
+<span class="fc" id="L2509">        data.put(PRIVKEYUSAGEPERIODLENGTH, validity);</span>
+<span class="fc" id="L2510">    }</span>
+
+    /**
+     * @return Whether Certificate Transparency (CT) should be used when generating new certificates. CT is specified in RFC 6962
+     */
+    public boolean isUseCertificateTransparencyInCerts() {
+<span class="nc bnc" id="L2516" title="All 2 branches missed.">        if (data.get(USECERTIFICATETRANSPARENCYINCERTS) == null) {</span>
+<span class="nc" id="L2517">            return false;</span>
+        }
+<span class="nc" id="L2519">        return ((Boolean)data.get(USECERTIFICATETRANSPARENCYINCERTS)).booleanValue();</span>
+    }
+
+    public void setUseCertificateTransparencyInCerts(boolean use) {
+<span class="fc" id="L2523">        data.put(USECERTIFICATETRANSPARENCYINCERTS, use);</span>
+<span class="fc" id="L2524">    }</span>
+
+    /**
+     * @return Whether Certificate Transparency (CT) should be used in OCSP responses. CT is specified in RFC 6962
+     */
+    public boolean isUseCertificateTransparencyInOCSP() {
+<span class="nc bnc" id="L2530" title="All 2 branches missed.">        if (data.get(USECERTIFICATETRANSPARENCYINOCSP) == null) {</span>
+<span class="nc" id="L2531">            return false;</span>
+        }
+<span class="nc" id="L2533">        return ((Boolean)data.get(USECERTIFICATETRANSPARENCYINOCSP)).booleanValue();</span>
+    }
+
+    public void setUseCertificateTransparencyInOCSP(boolean use) {
+<span class="fc" id="L2537">        data.put(USECERTIFICATETRANSPARENCYINOCSP, use);</span>
+<span class="fc" id="L2538">    }</span>
+
+    /**
+     * @return Whether Certificate Transparency (CT) should be used in publishers.
+     * You have to create a publisher and enable it in the profile also!
+     */
+    public boolean isUseCertificateTransparencyInPublishers() {
+<span class="nc bnc" id="L2545" title="All 2 branches missed.">        if (data.get(USECERTIFICATETRANSPARENCYINPUBLISHERS) == null) {</span>
+            // Default to being enabled if CT in OCSP was enabled
+<span class="nc" id="L2547">            return isUseCertificateTransparencyInOCSP();</span>
+        }
+<span class="nc" id="L2549">        return ((Boolean)data.get(USECERTIFICATETRANSPARENCYINPUBLISHERS)).booleanValue();</span>
+    }
+
+    public void setUseCertificateTransparencyInPublishers(boolean use) {
+<span class="fc" id="L2553">        data.put(USECERTIFICATETRANSPARENCYINPUBLISHERS, use);</span>
+<span class="fc" id="L2554">    }</span>
+    
+    public boolean isCtEnabled() {
+<span class="nc bnc" id="L2557" title="All 2 branches missed.">        return isUseCertificateTransparencyInCerts() ||</span>
+<span class="nc bnc" id="L2558" title="All 2 branches missed.">            isUseCertificateTransparencyInOCSP() ||</span>
+<span class="nc bnc" id="L2559" title="All 2 branches missed.">            isUseCertificateTransparencyInPublishers();</span>
+    }
+
+    public boolean isNumberOfSctByValidity() {
+<span class="nc bnc" id="L2563" title="All 2 branches missed.">        if (data.get(CT_NUMBER_OF_SCTS_BY_VALIDITY) == null) {</span>
+            // Default value
+<span class="nc" id="L2565">            return true;</span>
+        }
+<span class="nc" id="L2567">        return (Boolean)data.get(CT_NUMBER_OF_SCTS_BY_VALIDITY);</span>
+    }
+    
+    public void setNumberOfSctByValidity(boolean use) {
+<span class="nc" id="L2571">        data.put(CT_NUMBER_OF_SCTS_BY_VALIDITY, use);</span>
+<span class="nc" id="L2572">    }</span>
+
+    public boolean isNumberOfSctByCustom() {
+<span class="nc bnc" id="L2575" title="All 2 branches missed.">        if (data.get(CT_NUMBER_OF_SCTS_BY_CUSTOM) == null) {</span>
+            // Default value
+<span class="nc" id="L2577">            return false;</span>
+        }
+<span class="nc" id="L2579">        return (Boolean)data.get(CT_NUMBER_OF_SCTS_BY_CUSTOM);</span>
+    }
+    
+    public void setNumberOfSctByCustom(boolean use) {
+<span class="nc" id="L2583">        data.put(CT_NUMBER_OF_SCTS_BY_CUSTOM, use);</span>
+<span class="nc" id="L2584">    }</span>
+    
+    public boolean isMaxNumberOfSctByValidity() {
+<span class="nc bnc" id="L2587" title="All 2 branches missed.">        if (data.get(CT_MAX_NUMBER_OF_SCTS_BY_VALIDITY) == null) {</span>
+            // Default value
+<span class="nc" id="L2589">            return false;</span>
+        }
+<span class="nc" id="L2591">        return (Boolean)data.get(CT_MAX_NUMBER_OF_SCTS_BY_VALIDITY);</span>
+    }
+    
+    public void setMaxNumberOfSctByValidity(boolean use) {
+<span class="nc" id="L2595">        data.put(CT_MAX_NUMBER_OF_SCTS_BY_VALIDITY, use);</span>
+<span class="nc" id="L2596">    }</span>
+    
+    public boolean isMaxNumberOfSctByCustom() {
+<span class="nc bnc" id="L2599" title="All 2 branches missed.">        if (data.get(CT_MAX_NUMBER_OF_SCTS_BY_CUSTOM) == null) {</span>
+            // Default value
+<span class="nc" id="L2601">            return true;</span>
+        }
+<span class="nc" id="L2603">        return (Boolean)data.get(CT_MAX_NUMBER_OF_SCTS_BY_CUSTOM);</span>
+    }
+    
+    public void setMaxNumberOfSctByCustom(boolean use) {
+<span class="nc" id="L2607">        data.put(CT_MAX_NUMBER_OF_SCTS_BY_CUSTOM, use);</span>
+<span class="nc" id="L2608">    }</span>
+    
+    /**
+     * @return Whether existing certificates should be submitted by the CT publisher and the CT OCSP extension class.
+     */
+    public boolean isUseCTSubmitExisting() {
+<span class="nc bnc" id="L2614" title="All 2 branches missed.">        if (data.get(CTSUBMITEXISTING) == null) {</span>
+<span class="nc" id="L2615">            return true;</span>
+        }
+<span class="nc" id="L2617">        return ((Boolean)data.get(CTSUBMITEXISTING)).booleanValue();</span>
+    }
+
+    public void setUseCTSubmitExisting(boolean use) {
+<span class="nc" id="L2621">        data.put(CTSUBMITEXISTING, use);</span>
+<span class="nc" id="L2622">    }</span>
+
+    /**
+     * @return the IDs of the CT logs that are activated in this profile.
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    @Deprecated
+    public Set&lt;Integer&gt; getEnabledCTLogs() {
+<span class="nc bnc" id="L2630" title="All 2 branches missed.">        if (data.get(CTLOGS) == null) {</span>
+<span class="nc" id="L2631">            return new LinkedHashSet&lt;&gt;();</span>
+        }
+
+<span class="nc" id="L2634">        return (Set&lt;Integer&gt;)data.get(CTLOGS);</span>
+    }
+
+    /** Sets the enabled CT logs. NOTE: The argument must be a LinkedHashSet, since order is important 
+     * @param logIds IDs*/
+    @Deprecated
+    public void setEnabledCTLogs(LinkedHashSet&lt;Integer&gt; logIds) {
+<span class="nc" id="L2641">        data.put(CTLOGS, new LinkedHashSet&lt;&gt;(logIds));</span>
+<span class="nc" id="L2642">    }</span>
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public Set&lt;String&gt; getEnabledCtLabels() {
+<span class="nc bnc" id="L2646" title="All 2 branches missed.">        if (data.get(CTLABELS) == null) {</span>
+<span class="nc" id="L2647">            return new LinkedHashSet&lt;&gt;();</span>
+        }
+<span class="nc" id="L2649">        return (Set&lt;String&gt;)data.get(CTLABELS);</span>
+    }
+    
+    public void setEnabledCTLabels(LinkedHashSet&lt;String&gt; ctLabels) {
+<span class="nc" id="L2653">        data.put(CTLABELS, ctLabels);</span>
+<span class="nc" id="L2654">    }</span>
+    
+    /**
+     * &lt;p&gt;Number of CT logs to require an SCT from, or it will be considered an error. If zero, CT is completely optional and
+     * ignored if no log servers can be contacted.&lt;/p&gt;
+     * &lt;p&gt;This value is used for certificates and publishers. For OCSP responses, @see CertificateProfile#getCtMinTotalSctsOcsp
+     * &lt;p&gt;
+     * @return the total number of SCTs required
+     */
+    @Deprecated
+    public int getCtMinTotalScts() {
+<span class="nc bnc" id="L2665" title="All 2 branches missed.">        if (data.get(CT_MIN_TOTAL_SCTS) == null) {</span>
+<span class="nc" id="L2666">            return 0; // setting is OFF</span>
+        }
+<span class="nc" id="L2668">        return (Integer) data.get(CT_MIN_TOTAL_SCTS);</span>
+    }
+
+    /** @param value minimum number of SCTs required in total */
+    @Deprecated
+    public void setCtMinTotalScts(int value) {
+<span class="nc" id="L2674">        data.put(CT_MIN_TOTAL_SCTS, value);</span>
+<span class="nc" id="L2675">    }</span>
+
+    /** @return sets
+     * @see CertificateProfile#getCtMinTotalScts */
+    @Deprecated
+    public int getCtMinTotalSctsOcsp() {
+<span class="nc bnc" id="L2681" title="All 2 branches missed.">        if (data.get(CT_MIN_TOTAL_SCTS_OCSP) == null) {</span>
+<span class="nc" id="L2682">            return getCtMinTotalScts();</span>
+        }
+<span class="nc" id="L2684">        return (Integer) data.get(CT_MIN_TOTAL_SCTS_OCSP);</span>
+    }
+
+    /** @param value minimum number of SCTs for OCSP responses required in total */
+    @Deprecated
+    public void setCtMinTotalSctsOcsp(int value) {
+<span class="nc" id="L2690">        data.put(CT_MIN_TOTAL_SCTS_OCSP, value);</span>
+<span class="nc" id="L2691">    }</span>
+
+    /**
+     * &lt;p&gt;Number of SCTs retrieved after which we will stop contacting non-mandatory log servers.&lt;/p&gt;
+     * @return the maximum number of non-mandatory SCTs
+     */
+    @Deprecated
+    public int getCtMaxNonMandatoryScts() {
+<span class="nc bnc" id="L2699" title="All 2 branches missed.">        if (data.get(CT_MAX_NONMANDATORY_SCTS) == null) {</span>
+<span class="nc bnc" id="L2700" title="All 2 branches missed.">            if (data.get(CT_MAX_SCTS) == null) {</span>
+<span class="nc" id="L2701">                log.info(&quot;CT_MAX_NON_MANDATORY_SCTS is null =&gt; legacy value is also null, using 1 log as default.&quot;);</span>
+<span class="nc" id="L2702">                return 1;</span>
+            }
+<span class="nc" id="L2704">            log.info(&quot;CT_MAX_NON_MANDATORY_SCTS is null =&gt; using legacy value: &quot; + data.get(CT_MAX_SCTS));</span>
+<span class="nc" id="L2705">            return (Integer) data.get(CT_MAX_SCTS);</span>
+        }
+<span class="nc" id="L2707">        return (Integer) data.get(CT_MAX_NONMANDATORY_SCTS);</span>
+    }
+
+    /** @param value the maximum number of non-mandatory SCTs */
+    @Deprecated
+    public void setCtMaxNonMandatoryScts(int value) {
+<span class="nc" id="L2713">        data.put(CT_MAX_NONMANDATORY_SCTS, value);</span>
+<span class="nc" id="L2714">    }</span>
+
+    /** @return sets
+     * @see CertificateProfile#getCtMaxNonMandatoryScts */
+    @Deprecated
+    public int getCtMaxNonMandatorySctsOcsp() {
+<span class="nc bnc" id="L2720" title="All 2 branches missed.">        if (data.get(CT_MAX_NONMANDATORY_SCTS_OCSP) == null) {</span>
+<span class="nc bnc" id="L2721" title="All 2 branches missed.">            if (data.get(CT_MAX_SCTS_OCSP) == null) {</span>
+<span class="nc" id="L2722">                log.info(&quot;CT_MAX_NON_MANDATORY_SCTS_OCSP is null =&gt; legacy value is also null, using 1 log as default.&quot;);</span>
+<span class="nc" id="L2723">                return 1;</span>
+            }
+<span class="nc" id="L2725">            log.info(&quot;CT_MAX_NON_MANDATORY_SCTS_OCSP is null =&gt; using legacy value: &quot; + data.get(CT_MAX_SCTS_OCSP));</span>
+<span class="nc" id="L2726">            return (Integer) data.get(CT_MAX_SCTS_OCSP);</span>
+        }
+<span class="nc" id="L2728">        return (Integer) data.get(CT_MAX_NONMANDATORY_SCTS_OCSP);</span>
+    }
+
+    /** @param value maximum value number of non-mandatory SCTs for OCSP responses */
+    @Deprecated
+    public void setCtMaxNonMandatorySctsOcsp(int value) {
+<span class="nc" id="L2734">        data.put(CT_MAX_NONMANDATORY_SCTS_OCSP, value);</span>
+<span class="nc" id="L2735">    }</span>
+
+    /**
+     * &lt;p&gt;Number of CT logs marked as &quot;not mandatory&quot; to require an SCT from, or it will be considered an error. Default is zero logs.&lt;/p&gt;
+     * &lt;p&gt;For publishers, certificates are submitted to all enabled logs.&lt;/p&gt;
+     * @return scts
+     */
+    @Deprecated
+    public int getCtMinNonMandatoryScts() {
+<span class="nc bnc" id="L2744" title="All 2 branches missed.">        if (data.get(CT_MIN_NONMANDATORY_SCTS) == null) {</span>
+<span class="nc" id="L2745">            return getCtMinTotalScts();</span>
+        }
+<span class="nc" id="L2747">        return (Integer) data.get(CT_MIN_NONMANDATORY_SCTS);</span>
+    }
+
+    /** @param value minimum number of non-mandatory SCTs */
+    @Deprecated
+    public void setCtMinNonMandatoryScts(int value) {
+<span class="nc" id="L2753">        data.put(CT_MIN_NONMANDATORY_SCTS, value);</span>
+<span class="nc" id="L2754">    }</span>
+
+    /** @return scts
+     * @see CertificateProfile#getCtMinNonMandatoryScts */
+    @Deprecated
+    public int getCtMinNonMandatorySctsOcsp() {
+<span class="nc bnc" id="L2760" title="All 2 branches missed.">        if (data.get(CT_MIN_NONMANDATORY_SCTS_OCSP) == null) {</span>
+<span class="nc" id="L2761">            return getCtMinNonMandatoryScts();</span>
+        }
+<span class="nc" id="L2763">        return (Integer) data.get(CT_MIN_NONMANDATORY_SCTS_OCSP);</span>
+    }
+
+    /** @param value minimum number of non-mandatory SCTs */
+    @Deprecated
+    public void setCtMinNonMandatorySctsOcsp(int value) {
+<span class="nc" id="L2769">        data.put(CT_MIN_NONMANDATORY_SCTS_OCSP, value);</span>
+<span class="nc" id="L2770">    }</span>
+
+    public int getCtMinScts() {
+<span class="nc bnc" id="L2773" title="All 2 branches missed.">        if (data.get(CT_SCTS_MIN) == null) {</span>
+<span class="nc" id="L2774">            return getCtMinTotalScts();</span>
+        }
+<span class="nc" id="L2776">        return (Integer) data.get(CT_SCTS_MIN);</span>
+    }
+    
+    public void setCtMinScts(int value) {
+<span class="nc" id="L2780">        data.put(CT_SCTS_MIN, value);</span>
+<span class="nc" id="L2781">    }</span>
+    
+    public int getCtMaxScts() {
+<span class="nc bnc" id="L2784" title="All 2 branches missed.">        if (data.get(CT_SCTS_MAX) == null) {</span>
+<span class="nc" id="L2785">            return getCtMinTotalScts();</span>
+        }
+<span class="nc" id="L2787">        return (Integer) data.get(CT_SCTS_MAX);</span>
+    }
+    
+    public void setCtMaxScts(int value) {
+<span class="nc" id="L2791">        data.put(CT_SCTS_MAX, value);</span>
+<span class="nc" id="L2792">    }</span>
+    
+    public int getCtMinSctsOcsp() {
+<span class="nc bnc" id="L2795" title="All 2 branches missed.">        if (data.get(CT_SCTS_MIN_OCSP) == null) {</span>
+<span class="nc" id="L2796">            return getCtMinTotalScts();</span>
+        }
+<span class="nc" id="L2798">        return (Integer) data.get(CT_SCTS_MIN_OCSP);</span>
+    }
+    
+    public void setCtMinSctsOcsp(int value) {
+<span class="nc" id="L2802">        data.put(CT_SCTS_MIN_OCSP, value);</span>
+<span class="nc" id="L2803">    }</span>
+    
+    public int getCtMaxSctsOcsp() {
+<span class="nc bnc" id="L2806" title="All 2 branches missed.">        if (data.get(CT_SCTS_MAX_OCSP) == null) {</span>
+<span class="nc" id="L2807">            return getCtMinTotalScts();</span>
+        }
+<span class="nc" id="L2809">        return (Integer) data.get(CT_SCTS_MAX_OCSP);</span>
+    }
+    
+    public void setCtMaxSctsOcsp(int value) {
+<span class="nc" id="L2813">        data.put(CT_SCTS_MAX_OCSP, value);</span>
+<span class="nc" id="L2814">    }</span>
+    
+    
+    /** @return Number of times to retry connecting to a Certificate Transparency log */
+    public int getCTMaxRetries() {
+<span class="nc bnc" id="L2819" title="All 2 branches missed.">        if (data.get(CTMAXRETRIES) == null) {</span>
+<span class="nc" id="L2820">            return 0;</span>
+        }
+<span class="nc" id="L2822">        return (Integer)data.get(CTMAXRETRIES);</span>
+    }
+
+    public void setCTMaxRetries(int numRetries) {
+<span class="nc" id="L2826">        data.put(CTMAXRETRIES, numRetries);</span>
+<span class="nc" id="L2827">    }</span>
+    
+    /**
+     * Usage only intended for post upgrade! 
+     * Removes CT data prior to EJBCA 6.10.1 from certificate profile. 
+     * */
+    public void removeLegacyCtData() {
+<span class="nc bnc" id="L2834" title="All 2 branches missed.">        if (data.get(CT_MAX_SCTS) != null) {</span>
+<span class="nc" id="L2835">            data.remove(CT_MAX_SCTS);</span>
+        }
+<span class="nc bnc" id="L2837" title="All 2 branches missed.">        if (data.get(CT_MAX_SCTS_OCSP) != null) {</span>
+<span class="nc" id="L2838">            data.remove(CT_MAX_SCTS_OCSP);</span>
+        }
+<span class="nc bnc" id="L2840" title="All 2 branches missed.">        if (data.get(CT_MIN_MANDATORY_SCTS) != null) {</span>
+<span class="nc" id="L2841">            data.remove(CT_MIN_MANDATORY_SCTS);</span>
+        }
+<span class="nc bnc" id="L2843" title="All 2 branches missed.">        if (data.get(CT_MAX_MANDATORY_SCTS) != null) {</span>
+<span class="nc" id="L2844">            data.remove(CT_MAX_MANDATORY_SCTS);</span>
+        }
+<span class="nc bnc" id="L2846" title="All 2 branches missed.">        if (data.get(CT_MIN_MANDATORY_SCTS_OCSP) != null) {</span>
+<span class="nc" id="L2847">            data.remove(CT_MIN_MANDATORY_SCTS_OCSP);</span>
+        }
+<span class="nc bnc" id="L2849" title="All 2 branches missed.">        if (data.get(CT_MAX_MANDATORY_SCTS_OCSP) != null) {</span>
+<span class="nc" id="L2850">            data.remove(CT_MAX_MANDATORY_SCTS_OCSP);</span>
+        }
+<span class="nc bnc" id="L2852" title="All 2 branches missed.">        if (data.get(CT_MIN_NONMANDATORY_SCTS) != null) {</span>
+<span class="nc" id="L2853">            data.remove(CT_MIN_NONMANDATORY_SCTS);</span>
+        }
+<span class="nc bnc" id="L2855" title="All 2 branches missed.">        if (data.get(CT_MAX_NONMANDATORY_SCTS) != null) {</span>
+<span class="nc" id="L2856">            data.remove(CT_MAX_NONMANDATORY_SCTS);</span>
+        }
+<span class="nc bnc" id="L2858" title="All 2 branches missed.">        if (data.get(CT_MIN_NONMANDATORY_SCTS_OCSP) != null) {</span>
+<span class="nc" id="L2859">            data.remove(CT_MIN_NONMANDATORY_SCTS_OCSP);</span>
+        }
+<span class="nc bnc" id="L2861" title="All 2 branches missed.">        if (data.get(CT_MAX_NONMANDATORY_SCTS_OCSP) != null) {</span>
+<span class="nc" id="L2862">            data.remove(CT_MAX_NONMANDATORY_SCTS_OCSP);</span>
+        }
+<span class="nc" id="L2864">    }</span>
+    
+    
+
+    /**
+     * Checks that a public key fulfills the policy in the CertificateProfile
+     *
+     * @param publicKey PublicKey to verify
+     * @throws IllegalKeyException if the PublicKey does not fulfill policy in CertificateProfile
+     */
+    public void verifyKey(final PublicKey publicKey) throws IllegalKeyException {
+<span class="fc" id="L2875">        final String keyAlgorithm = AlgorithmTools.getKeyAlgorithm(publicKey);</span>
+<span class="fc" id="L2876">        final int keyLength = KeyTools.getKeyLength(publicKey);</span>
+<span class="pc bpc" id="L2877" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L2878">            log.debug(&quot;KeyAlgorithm: &quot; + keyAlgorithm + &quot; KeyLength: &quot; + keyLength);</span>
+        }
+        // Verify that the key algorithm is compliant with the certificate profile
+<span class="fc bfc" id="L2881" title="All 2 branches covered.">        if (!getAvailableKeyAlgorithmsAsList().contains(keyAlgorithm)) {</span>
+<span class="pc bpc" id="L2882" title="1 of 2 branches missed.">            if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L2883">                log.debug(&quot;List of available algorithms &quot; + getAvailableKeyAlgorithmsAsList() + &quot; does not contain the on of the public key: &quot; + keyAlgorithm);</span>
+            }
+<span class="fc" id="L2885">            throw new IllegalKeyException(intres.getLocalizedMessage(&quot;createcert.illegalkeyalgorithm&quot;, keyAlgorithm));</span>
+        }
+<span class="fc bfc" id="L2887" title="All 2 branches covered.">        if (AlgorithmConstants.KEYALGORITHM_ECDSA.equals(keyAlgorithm)) {</span>
+<span class="fc" id="L2888">            final List&lt;String&gt; availableEcCurves = getAvailableEcCurvesAsList();</span>
+<span class="fc" id="L2889">            final String keySpecification = AlgorithmTools.getKeySpecification(publicKey);</span>
+<span class="fc bfc" id="L2890" title="All 2 branches covered.">            for (final String ecNamedCurveAlias : AlgorithmTools.getEcKeySpecAliases(keySpecification)) {</span>
+<span class="fc bfc" id="L2891" title="All 2 branches covered.">                if (availableEcCurves.contains(ecNamedCurveAlias)) {</span>
+                    // Curve is allowed, so we don't check key strength
+<span class="fc" id="L2893">                    return;</span>
+                }
+<span class="fc" id="L2895">            }</span>
+<span class="fc bfc" id="L2896" title="All 2 branches covered.">            if (!availableEcCurves.contains(ANY_EC_CURVE)) {</span>
+                // Curve will never be allowed by bit length check
+<span class="fc" id="L2898">                throw new IllegalKeyException(intres.getLocalizedMessage(&quot;createcert.illegaleccurve&quot;, keySpecification));</span>
+            }
+        }
+        // Verify key length that it is compliant with certificate profile
+<span class="pc bpc" id="L2902" title="1 of 2 branches missed.">        if (keyLength == -1) {</span>
+<span class="nc" id="L2903">            throw new IllegalKeyException(intres.getLocalizedMessage(&quot;createcert.unsupportedkeytype&quot;, publicKey.getClass().getName()));</span>
+        }
+<span class="pc bpc" id="L2905" title="1 of 4 branches missed.">        if ((keyLength &lt; (getMinimumAvailableBitLength() - 1)) || (keyLength &gt; (getMaximumAvailableBitLength()))) {</span>
+<span class="fc" id="L2906">            throw new IllegalKeyException(intres.getLocalizedMessage(&quot;createcert.illegalkeylength&quot;, Integer.valueOf(keyLength)));</span>
+        }
+<span class="fc" id="L2908">    }</span>
+
+    /**
+     * Checks that provided caId is allowed.
+     *
+     * @param caId caId to verify
+     * @return Returns true, if caId belongs to availableCas or if any CA is allowed (-1 is in availableCAs list)
+     */
+    public boolean isCaAllowed(int caId) {
+<span class="nc" id="L2917">        List&lt;Integer&gt; availableCAs = getAvailableCAs();</span>
+<span class="nc bnc" id="L2918" title="All 4 branches missed.">        return availableCAs.contains(-1) || availableCAs.contains(caId);</span>
+    }
+    
+    @Override
+    public CertificateProfile clone() throws CloneNotSupportedException {
+<span class="fc" id="L2923">        final CertificateProfile clone = new CertificateProfile(0);</span>
+        // We need to make a deep copy of the hashmap here
+<span class="fc" id="L2925">        clone.data = new LinkedHashMap&lt;&gt;(data.size());</span>
+<span class="fc bfc" id="L2926" title="All 2 branches covered.">        for (final Entry&lt;Object,Object&gt; entry : data.entrySet()) {</span>
+<span class="fc" id="L2927">                Object value = entry.getValue();</span>
+<span class="fc bfc" id="L2928" title="All 2 branches covered.">                if (value instanceof ArrayList&lt;?&gt;) {</span>
+                        // We need to make a clone of this object, but the stored immutables can still be referenced
+<span class="fc" id="L2930">                        value = ((ArrayList&lt;?&gt;)value).clone();</span>
+                }
+<span class="fc" id="L2932">                clone.data.put(entry.getKey(), value);</span>
+<span class="fc" id="L2933">        }</span>
+<span class="fc" id="L2934">        return clone;</span>
+    }
+
+    /** Implementation of UpgradableDataHashMap function getLatestVersion */
+    @Override
+    public float getLatestVersion() {
+<span class="fc" id="L2940">        return LATEST_VERSION;</span>
+    }
+
+    /**
+     * Function setting the current version of the class data. Used for JUnit testing
+     * @param version version
+     */
+    protected void setVersion(float version) {
+<span class="nc" id="L2948">        data.put(VERSION, Float.valueOf(version));</span>
+<span class="nc" id="L2949">    }</span>
+
+    /**
+     * Implementation of UpgradableDataHashMap function upgrade.
+     */
+    @SuppressWarnings(&quot;deprecation&quot;)
+    @Override
+    public void upgrade() {
+<span class="pc bpc" id="L2957" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L2958">            log.trace(&quot;&gt;upgrade: &quot; + getLatestVersion() + &quot;, &quot; + getVersion());</span>
+        }
+<span class="pc bpc" id="L2960" title="1 of 2 branches missed.">        if (Float.compare(getLatestVersion(), getVersion()) != 0) {</span>
+            // New version of the class, upgrade
+<span class="fc" id="L2962">            String msg = intres.getLocalizedMessage(&quot;certprofile.upgrade&quot;, new Float(getVersion()));</span>
+<span class="fc" id="L2963">            log.info(msg);</span>
+
+<span class="pc bpc" id="L2965" title="1 of 2 branches missed.">            if (data.get(ALLOWKEYUSAGEOVERRIDE) == null) {</span>
+<span class="fc" id="L2966">                data.put(ALLOWKEYUSAGEOVERRIDE, Boolean.TRUE);</span>
+            }
+<span class="pc bpc" id="L2968" title="1 of 2 branches missed.">            if (data.get(USEEXTENDEDKEYUSAGE) == null) {</span>
+<span class="fc" id="L2969">                data.put(USEEXTENDEDKEYUSAGE, Boolean.FALSE);</span>
+            }
+<span class="pc bpc" id="L2971" title="1 of 2 branches missed.">            if (data.get(EXTENDEDKEYUSAGE) == null) {</span>
+<span class="fc" id="L2972">                data.put(EXTENDEDKEYUSAGE, new ArrayList&lt;String&gt;());</span>
+            }
+<span class="pc bpc" id="L2974" title="1 of 2 branches missed.">            if (data.get(EXTENDEDKEYUSAGECRITICAL) == null) {</span>
+<span class="fc" id="L2975">                data.put(EXTENDEDKEYUSAGECRITICAL, Boolean.FALSE);</span>
+            }
+<span class="pc bpc" id="L2977" title="1 of 2 branches missed.">            if (data.get(AVAILABLECAS) == null) {</span>
+<span class="fc" id="L2978">                ArrayList&lt;Integer&gt; availablecas = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L2979">                availablecas.add(Integer.valueOf(ANYCA));</span>
+<span class="fc" id="L2980">                data.put(AVAILABLECAS, availablecas);</span>
+            }
+<span class="pc bpc" id="L2982" title="1 of 2 branches missed.">            if (data.get(USEDPUBLISHERS) == null) {</span>
+<span class="fc" id="L2983">                data.put(USEDPUBLISHERS, new ArrayList&lt;Integer&gt;());</span>
+            }
+<span class="pc bpc" id="L2985" title="2 of 4 branches missed.">            if ( (data.get(USEOCSPSERVICELOCATOR) == null) &amp;&amp; (data.get(USEAUTHORITYINFORMATIONACCESS) == null) ) {</span>
+                // Only set this flag if we have not already set the new flag USEAUTHORITYINFORMATIONACCESS
+                // setUseOCSPServiceLocator(false);
+<span class="fc" id="L2988">                data.put(USEOCSPSERVICELOCATOR, Boolean.FALSE);</span>
+<span class="fc" id="L2989">                setOCSPServiceLocatorURI(&quot;&quot;);</span>
+            }
+
+<span class="pc bpc" id="L2992" title="1 of 2 branches missed.">            if (data.get(USEMICROSOFTTEMPLATE) == null) {</span>
+<span class="fc" id="L2993">                setUseMicrosoftTemplate(false);</span>
+<span class="fc" id="L2994">                setMicrosoftTemplate(&quot;&quot;);</span>
+            }
+
+<span class="pc bpc" id="L2997" title="1 of 2 branches missed.">            if (data.get(USECNPOSTFIX) == null) {</span>
+<span class="fc" id="L2998">                setUseCNPostfix(false);</span>
+<span class="fc" id="L2999">                setCNPostfix(&quot;&quot;);</span>
+            }
+
+<span class="pc bpc" id="L3002" title="1 of 2 branches missed.">            if (data.get(USESUBJECTDNSUBSET) == null) {</span>
+<span class="fc" id="L3003">                setUseSubjectDNSubSet(false);</span>
+<span class="fc" id="L3004">                setSubjectDNSubSet(new ArrayList&lt;String&gt;());</span>
+<span class="fc" id="L3005">                setUseSubjectAltNameSubSet(false);</span>
+<span class="fc" id="L3006">                setSubjectAltNameSubSet(new ArrayList&lt;Integer&gt;());</span>
+            }
+
+<span class="pc bpc" id="L3009" title="1 of 2 branches missed.">            if (data.get(USEPATHLENGTHCONSTRAINT) == null) {</span>
+<span class="fc" id="L3010">                setUsePathLengthConstraint(false);</span>
+<span class="fc" id="L3011">                setPathLengthConstraint(0);</span>
+            }
+
+<span class="pc bpc" id="L3014" title="1 of 2 branches missed.">            if (data.get(USEQCSTATEMENT) == null) {</span>
+<span class="fc" id="L3015">                setUseQCStatement(false);</span>
+<span class="fc" id="L3016">                setUsePkixQCSyntaxV2(false);</span>
+<span class="fc" id="L3017">                setQCStatementCritical(false);</span>
+<span class="fc" id="L3018">                setQCStatementRAName(null);</span>
+<span class="fc" id="L3019">                setQCSemanticsId(null);</span>
+<span class="fc" id="L3020">                setUseQCEtsiQCCompliance(false);</span>
+<span class="fc" id="L3021">                setUseQCEtsiSignatureDevice(false);</span>
+<span class="fc" id="L3022">                setUseQCEtsiValueLimit(false);</span>
+<span class="fc" id="L3023">                setUseQCEtsiRetentionPeriod(false);</span>
+<span class="fc" id="L3024">                setQCEtsiRetentionPeriod(0);</span>
+<span class="fc" id="L3025">                setQCEtsiValueLimit(0);</span>
+<span class="fc" id="L3026">                setQCEtsiValueLimitExp(0);</span>
+<span class="fc" id="L3027">                setQCEtsiValueLimitCurrency(null);</span>
+            }
+
+<span class="pc bpc" id="L3030" title="1 of 2 branches missed.">            if (data.get(USEDEFAULTCRLDISTRIBUTIONPOINT) == null) {</span>
+<span class="fc" id="L3031">                setUseDefaultCRLDistributionPoint(false);</span>
+<span class="fc" id="L3032">                setUseDefaultOCSPServiceLocator(false);</span>
+            }
+
+<span class="pc bpc" id="L3035" title="1 of 2 branches missed.">            if (data.get(USEQCCUSTOMSTRING) == null) {</span>
+<span class="fc" id="L3036">                setUseQCCustomString(false);</span>
+<span class="fc" id="L3037">                setQCCustomStringOid(null);</span>
+<span class="fc" id="L3038">                setQCCustomStringText(null);</span>
+            }
+<span class="pc bpc" id="L3040" title="1 of 2 branches missed.">            if (data.get(USESUBJECTDIRATTRIBUTES) == null) {</span>
+<span class="fc" id="L3041">                setUseSubjectDirAttributes(false);</span>
+            }
+<span class="pc bpc" id="L3043" title="1 of 2 branches missed.">            if (data.get(ALLOWVALIDITYOVERRIDE) == null) {</span>
+<span class="fc" id="L3044">                setAllowValidityOverride(false);</span>
+            }
+
+<span class="pc bpc" id="L3047" title="1 of 2 branches missed.">            if (data.get(CRLISSUER) == null) {</span>
+<span class="fc" id="L3048">                setCRLIssuer(null); // v20</span>
+            }
+
+<span class="pc bpc" id="L3051" title="1 of 2 branches missed.">            if (data.get(USEOCSPNOCHECK) == null) {</span>
+<span class="fc" id="L3052">                setUseOcspNoCheck(false); // v21</span>
+            }
+<span class="pc bpc" id="L3054" title="1 of 2 branches missed.">            if (data.get(USEFRESHESTCRL) == null) {</span>
+<span class="fc" id="L3055">                setUseFreshestCRL(false); // v22</span>
+<span class="fc" id="L3056">                setUseCADefinedFreshestCRL(false);</span>
+<span class="fc" id="L3057">                setFreshestCRLURI(null);</span>
+            }
+
+<span class="pc bpc" id="L3060" title="1 of 2 branches missed.">            if (data.get(CERTIFICATE_POLICIES) == null) { // v23</span>
+<span class="pc bpc" id="L3061" title="1 of 2 branches missed.">                if (data.get(CERTIFICATEPOLICYID) != null) {</span>
+<span class="nc" id="L3062">                    String ids = (String) data.get(CERTIFICATEPOLICYID);</span>
+<span class="nc" id="L3063">                    String unotice = null;</span>
+<span class="nc" id="L3064">                    String cpsuri = null;</span>
+<span class="nc bnc" id="L3065" title="All 2 branches missed.">                    if (data.get(POLICY_NOTICE_UNOTICE_TEXT) != null) {</span>
+<span class="nc" id="L3066">                        unotice = (String) data.get(POLICY_NOTICE_UNOTICE_TEXT);</span>
+                    }
+<span class="nc bnc" id="L3068" title="All 2 branches missed.">                    if (data.get(POLICY_NOTICE_CPS_URL) != null) {</span>
+<span class="nc" id="L3069">                        cpsuri = (String) data.get(POLICY_NOTICE_CPS_URL);</span>
+                    }
+                    // Only the first policy could have user notice and cpsuri in the old scheme
+<span class="nc" id="L3072">                    StringTokenizer tokenizer = new StringTokenizer(ids, &quot;;&quot;, false);</span>
+<span class="nc bnc" id="L3073" title="All 2 branches missed.">                    if (tokenizer.hasMoreTokens()) {</span>
+<span class="nc" id="L3074">                        String id = tokenizer.nextToken();</span>
+<span class="nc" id="L3075">                        CertificatePolicy newpolicy = null;</span>
+<span class="nc bnc" id="L3076" title="All 2 branches missed.">                        if (StringUtils.isNotEmpty(unotice)) {</span>
+<span class="nc" id="L3077">                            newpolicy = new CertificatePolicy(id, CertificatePolicy.id_qt_unotice, unotice);</span>
+<span class="nc" id="L3078">                            addCertificatePolicy(newpolicy);</span>
+                        }
+<span class="nc bnc" id="L3080" title="All 2 branches missed.">                        if (StringUtils.isNotEmpty(cpsuri)) {</span>
+<span class="nc" id="L3081">                            newpolicy = new CertificatePolicy(id, CertificatePolicy.id_qt_cps, cpsuri);</span>
+<span class="nc" id="L3082">                            addCertificatePolicy(newpolicy);</span>
+                        }
+                        // If it was a lonely policy id
+<span class="nc bnc" id="L3085" title="All 2 branches missed.">                        if (newpolicy == null) {</span>
+<span class="nc" id="L3086">                            newpolicy = new CertificatePolicy(id, null, null);</span>
+<span class="nc" id="L3087">                            addCertificatePolicy(newpolicy);</span>
+                        }
+                    }
+<span class="nc bnc" id="L3090" title="All 2 branches missed.">                    while (tokenizer.hasMoreTokens()) {</span>
+<span class="nc" id="L3091">                        String id = tokenizer.nextToken();</span>
+<span class="nc" id="L3092">                        CertificatePolicy newpolicy = new CertificatePolicy(id, null, null);</span>
+<span class="nc" id="L3093">                        addCertificatePolicy(newpolicy);</span>
+<span class="nc" id="L3094">                    }</span>
+                }
+            }
+
+<span class="pc bpc" id="L3098" title="2 of 4 branches missed.">            if ( (data.get(USECAISSUERS) == null) &amp;&amp; (data.get(USEAUTHORITYINFORMATIONACCESS) == null) ) {</span>
+                // Only set this flag if we have not already set the new flag USEAUTHORITYINFORMATIONACCESS
+                // setUseCaIssuers(false); // v24
+<span class="fc" id="L3101">                data.put(USECAISSUERS, Boolean.FALSE); // v24</span>
+<span class="fc" id="L3102">                setCaIssuers(new ArrayList&lt;String&gt;());</span>
+            }
+<span class="pc bpc" id="L3104" title="4 of 6 branches missed.">            if ( ((data.get(USEOCSPSERVICELOCATOR) != null) || (data.get(USECAISSUERS) != null)) &amp;&amp; (data.get(USEAUTHORITYINFORMATIONACCESS) == null) ) {</span>
+                // Only do this if we have not already set the new flag USEAUTHORITYINFORMATIONACCESS
+<span class="fc" id="L3106">                boolean ocsp = false;</span>
+<span class="pc bpc" id="L3107" title="1 of 2 branches missed.">                if ((data.get(USEOCSPSERVICELOCATOR) != null)) {</span>
+<span class="fc" id="L3108">                    ocsp = ((Boolean) data.get(USEOCSPSERVICELOCATOR)).booleanValue();</span>
+                }
+<span class="fc" id="L3110">                boolean caissuers = false;</span>
+<span class="pc bpc" id="L3111" title="1 of 2 branches missed.">                if ((data.get(USECAISSUERS) != null)) {</span>
+<span class="fc" id="L3112">                    caissuers = ((Boolean) data.get(USECAISSUERS)).booleanValue();</span>
+                }
+<span class="pc bpc" id="L3114" title="2 of 4 branches missed.">                if (ocsp || caissuers) {</span>
+<span class="nc" id="L3115">                    setUseAuthorityInformationAccess(true); // v25</span>
+                } else {
+<span class="fc" id="L3117">                    setUseAuthorityInformationAccess(false); // v25</span>
+                }
+<span class="pc bnc" id="L3119" title="All 2 branches missed.">            } else if (data.get(USEAUTHORITYINFORMATIONACCESS) == null) {</span>
+<span class="nc" id="L3120">                setUseAuthorityInformationAccess(false);</span>
+            }
+
+<span class="pc bpc" id="L3123" title="1 of 2 branches missed.">            if (data.get(ALLOWEXTENSIONOVERRIDE) == null) {</span>
+<span class="fc" id="L3124">                setAllowExtensionOverride(false); // v26</span>
+            }
+
+<span class="pc bpc" id="L3127" title="1 of 2 branches missed.">            if (data.get(USEQCETSIRETENTIONPERIOD) == null) {</span>
+<span class="nc" id="L3128">                setUseQCEtsiRetentionPeriod(false); // v27</span>
+<span class="nc" id="L3129">                setQCEtsiRetentionPeriod(0);</span>
+            }
+
+<span class="pc bpc" id="L3132" title="1 of 2 branches missed.">            if (data.get(CVCACCESSRIGHTS) == null) {</span>
+<span class="fc" id="L3133">                setCVCAccessRights(CertificateProfile.CVC_ACCESS_NONE); // v28</span>
+            }
+
+<span class="pc bpc" id="L3136" title="1 of 2 branches missed.">            if (data.get(USELDAPDNORDER) == null) {</span>
+<span class="fc" id="L3137">                setUseLdapDnOrder(true); // v29, default value is true</span>
+            }
+
+<span class="pc bpc" id="L3140" title="1 of 2 branches missed.">            if (data.get(USECARDNUMBER) == null) { // v30, default value is false</span>
+<span class="fc" id="L3141">                setUseCardNumber(false);</span>
+            }
+
+<span class="pc bpc" id="L3144" title="1 of 2 branches missed.">            if (data.get(ALLOWDNOVERRIDE) == null) {</span>
+<span class="fc" id="L3145">                setAllowDNOverride(false); // v31</span>
+            }
+
+<span class="pc bpc" id="L3148" title="1 of 2 branches missed.">            if (data.get(NUMOFREQAPPROVALS) == null) { // v 33</span>
+<span class="fc" id="L3149">                setNumOfReqApprovals(1);</span>
+            }
+<span class="pc bpc" id="L3151" title="1 of 2 branches missed.">            if (data.get(APPROVALSETTINGS) == null) { // v 33</span>
+<span class="fc" id="L3152">                setApprovalSettings(new ArrayList&lt;Integer&gt;());</span>
+            }
+
+<span class="pc bpc" id="L3155" title="1 of 2 branches missed.">            if (data.get(SIGNATUREALGORITHM) == null) { // v 34</span>
+<span class="fc" id="L3156">                setSignatureAlgorithm(null);</span>
+            }
+
+<span class="pc bpc" id="L3159" title="1 of 2 branches missed.">            if (data.get(USEPRIVKEYUSAGEPERIODNOTBEFORE) == null) { // v 35</span>
+<span class="fc" id="L3160">                setUsePrivateKeyUsagePeriodNotBefore(false);</span>
+            }
+<span class="pc bpc" id="L3162" title="1 of 2 branches missed.">            if (data.get(USEPRIVKEYUSAGEPERIODNOTAFTER) == null) { // v 35</span>
+<span class="fc" id="L3163">                setUsePrivateKeyUsagePeriodNotAfter(false);</span>
+            }
+<span class="pc bpc" id="L3165" title="1 of 2 branches missed.">            if (data.get(PRIVKEYUSAGEPERIODSTARTOFFSET) == null) { // v 35</span>
+<span class="fc" id="L3166">                setPrivateKeyUsagePeriodStartOffset(DEFAULT_PRIVATE_KEY_USAGE_PERIOD_OFFSET);</span>
+            }
+<span class="pc bpc" id="L3168" title="1 of 2 branches missed.">            if (data.get(PRIVKEYUSAGEPERIODLENGTH) == null) { // v 35</span>
+<span class="fc" id="L3169">                setPrivateKeyUsagePeriodLength(DEFAULT_PRIVATE_KEY_USAGE_PERIOD_LENGTH);</span>
+            }
+<span class="pc bpc" id="L3171" title="1 of 2 branches missed.">            if(data.get(USEISSUERALTERNATIVENAME) == null) { // v 36</span>
+<span class="fc" id="L3172">                setUseIssuerAlternativeName(false);</span>
+            }
+<span class="pc bpc" id="L3174" title="1 of 2 branches missed.">            if(data.get(ISSUERALTERNATIVENAMECRITICAL) == null) { // v 36</span>
+<span class="fc" id="L3175">                setIssuerAlternativeNameCritical(false);</span>
+            }
+<span class="pc bpc" id="L3177" title="1 of 2 branches missed.">            if(data.get(USEDOCUMENTTYPELIST) == null) { // v 37</span>
+<span class="fc" id="L3178">                setUseDocumentTypeList(false);</span>
+            }
+<span class="pc bpc" id="L3180" title="1 of 2 branches missed.">            if(data.get(DOCUMENTTYPELISTCRITICAL) == null) { // v 37</span>
+<span class="fc" id="L3181">                setDocumentTypeListCritical(false);</span>
+            }
+<span class="pc bpc" id="L3183" title="1 of 2 branches missed.">            if(data.get(DOCUMENTTYPELIST) == null) { // v 37</span>
+<span class="fc" id="L3184">            	setDocumentTypeList(new ArrayList&lt;String&gt;());</span>
+            }
+<span class="pc bpc" id="L3186" title="1 of 2 branches missed.">            if(data.get(AVAILABLEKEYALGORITHMS) == null) { // v 39</span>
+                // Make some intelligent guesses what key algorithm this profile is used for
+<span class="fc" id="L3188">                final List&lt;String&gt; availableKeyAlgorithms = AlgorithmTools.getAvailableKeyAlgorithms();</span>
+<span class="pc bpc" id="L3189" title="1 of 2 branches missed.">                if (getMinimumAvailableBitLength()&gt;521) {</span>
+<span class="fc" id="L3190">                    availableKeyAlgorithms.remove(AlgorithmConstants.KEYALGORITHM_ECDSA);</span>
+<span class="fc" id="L3191">                    availableKeyAlgorithms.remove(AlgorithmConstants.KEYALGORITHM_DSTU4145);</span>
+<span class="fc" id="L3192">                    availableKeyAlgorithms.remove(AlgorithmConstants.KEYALGORITHM_ECGOST3410);</span>
+                }
+<span class="pc bpc" id="L3194" title="2 of 4 branches missed.">                if (getMinimumAvailableBitLength()&gt;1024 || getMaximumAvailableBitLength()&lt;1024) {</span>
+<span class="nc" id="L3195">                    availableKeyAlgorithms.remove(AlgorithmConstants.KEYALGORITHM_DSA);</span>
+                }
+<span class="pc bpc" id="L3197" title="1 of 2 branches missed.">                if (getMaximumAvailableBitLength()&lt;1024) {</span>
+<span class="nc" id="L3198">                    availableKeyAlgorithms.remove(AlgorithmConstants.KEYALGORITHM_RSA);</span>
+                }
+<span class="fc" id="L3200">                setAvailableKeyAlgorithmsAsList(availableKeyAlgorithms);</span>
+            }
+<span class="pc bpc" id="L3202" title="1 of 2 branches missed.">            if (data.get(AVAILABLEECCURVES) == null) { // v 40</span>
+<span class="fc" id="L3203">               setAvailableEcCurves(new String[]{ ANY_EC_CURVE });</span>
+            }
+<span class="pc bpc" id="L3205" title="1 of 2 branches missed.">            if(data.get(APPROVALPROFILE) == null) { // v41</span>
+<span class="fc" id="L3206">                setApprovalProfileID(-1);</span>
+            }
+            // v42. ETSI QC Type and PDS specified in EN 319 412-05.
+            // Nothing to set though, since null values means to not use the new values
+
+            // v43, ECA-5304.
+<span class="pc bpc" id="L3212" title="1 of 2 branches missed.">            if (data.get(USEDEFAULTCAISSUER) == null) {</span>
+<span class="fc" id="L3213">                setUseDefaultCAIssuer(false);</span>
+            }
+
+            // v44. ECA-5141
+            // 'encodedValidity' is derived by the former long value!
+<span class="pc bpc" id="L3218" title="1 of 2 branches missed.">            if(null == data.get(ENCODED_VALIDITY)) {</span>
+<span class="pc bpc" id="L3219" title="1 of 2 branches missed.">                if (data.get(VALIDITY) != null) { // avoid NPE if this is a very raw profile</span>
+<span class="nc" id="L3220">                    setEncodedValidity(ValidityDate.getStringBeforeVersion661(getValidity()));</span>
+                }
+                // Don't upgrade to anything is there was nothing to upgrade
+            }
+            // v44. ECA-5330
+            // initialize fields for expiration restriction for weekdays. use is false because of backward compatibility, the before restriction default is true
+<span class="pc bpc" id="L3226" title="1 of 2 branches missed.">            if(null == data.get(USE_EXPIRATION_RESTRICTION_FOR_WEEKDAYS)) {</span>
+<span class="fc" id="L3227">                setUseExpirationRestrictionForWeekdays(false);</span>
+            }
+<span class="pc bpc" id="L3229" title="1 of 2 branches missed.">            if(null == data.get(EXPIRATION_RESTRICTION_WEEKDAYS)) {</span>
+<span class="fc" id="L3230">                setDefaultExpirationRestrictionWeekdays();</span>
+            }
+<span class="pc bpc" id="L3232" title="1 of 2 branches missed.">            if(null == data.get(EXPIRATION_RESTRICTION_FOR_WEEKDAYS_BEFORE)) {</span>
+<span class="fc" id="L3233">                setExpirationRestrictionForWeekdaysExpireBefore(true);</span>
+            }
+            // v44. ECA-3554
+            // initialize default certificate not before offset (default '-10m' because of backward compatibility).
+<span class="pc bpc" id="L3237" title="1 of 2 branches missed.">            if(null == data.get(USE_CERTIFICATE_VALIDITY_OFFSET)) {</span>
+<span class="fc" id="L3238">                setUseCertificateValidityOffset(false);</span>
+            }
+<span class="pc bpc" id="L3240" title="1 of 2 branches missed.">            if(null == data.get(CERTIFICATE_VALIDITY_OFFSET)) {</span>
+<span class="fc" id="L3241">                setCertificateValidityOffset(DEFAULT_CERTIFICATE_VALIDITY_OFFSET);</span>
+            }
+
+            // v45: Multiple ETSI QC PDS values (ECA-5478)
+<span class="pc bpc" id="L3245" title="1 of 2 branches missed.">            if (!data.containsKey(QCETSIPDS)) {</span>
+<span class="fc" id="L3246">                final String url = (String) data.get(QCETSIPDSURL);</span>
+<span class="fc" id="L3247">                final String lang = (String) data.get(QCETSIPDSLANG);</span>
+<span class="fc bfc" id="L3248" title="All 2 branches covered.">                if (StringUtils.isNotEmpty(url)) {</span>
+<span class="fc" id="L3249">                    final List&lt;PKIDisclosureStatement&gt; pdsList = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L3250">                    pdsList.add(new PKIDisclosureStatement(url, lang));</span>
+<span class="fc" id="L3251">                    data.put(QCETSIPDS, pdsList);</span>
+<span class="fc" id="L3252">                } else {</span>
+<span class="fc" id="L3253">                    data.put(QCETSIPDS, null);</span>
+                }
+            }
+            // v46: approvals changed type to LinkedHashMap
+<span class="fc" id="L3257">            setApprovals(getApprovals());</span>
+
+<span class="fc" id="L3259">            data.put(VERSION, new Float(LATEST_VERSION));</span>
+        }
+<span class="fc" id="L3261">        log.trace(&quot;&lt;upgrade&quot;);</span>
+<span class="fc" id="L3262">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

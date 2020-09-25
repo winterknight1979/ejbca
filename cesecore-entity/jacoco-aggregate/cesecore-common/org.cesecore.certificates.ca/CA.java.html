@@ -1,0 +1,1350 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CA.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-entity</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.ca</a> &gt; <span class="el_source">CA.java</span></div><h1>CA.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.ca;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
+import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PublicKey;
+import java.security.SignatureException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateParsingException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.x509.Extensions;
+import org.bouncycastle.cert.X509CRLHolder;
+import org.bouncycastle.cms.CMSException;
+import org.bouncycastle.jce.X509KeyUsage;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.cesecore.certificates.ca.catoken.CAToken;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAService;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceInfo;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceNotActiveException;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceRequest;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceRequestException;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceResponse;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypes;
+import org.cesecore.certificates.ca.extendedservices.IllegalExtendedCAServiceRequestException;
+import org.cesecore.certificates.certificate.CertificateCreateException;
+import org.cesecore.certificates.certificate.IllegalKeyException;
+import org.cesecore.certificates.certificate.certextensions.AvailableCustomCertificateExtensionsConfiguration;
+import org.cesecore.certificates.certificate.certextensions.CertificateExtensionException;
+import org.cesecore.certificates.certificate.request.RequestMessage;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.crl.RevokedCertInfo;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.util.AlgorithmConstants;
+import org.cesecore.internal.InternalResources;
+import org.cesecore.internal.UpgradeableDataHashMap;
+import org.cesecore.keys.token.CryptoToken;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.StringTools;
+import org.cesecore.util.ValidityDate;
+
+/**
+ * CA is a base class that should be inherited by all CA types
+ *
+ * @version $Id: CA.java 31725 2019-03-07 10:05:50Z tarmo_r_helmes $
+ */
+public abstract class CA extends UpgradeableDataHashMap implements Serializable {
+
+    private static final long serialVersionUID = -8755429830955594642L;
+
+    /** Log4j instance */
+<span class="nc" id="L84">    private static Logger log = Logger.getLogger(CA.class);</span>
+    /** Internal localization of logs and errors */
+<span class="nc" id="L86">    private static final InternalResources intres = InternalResources.getInstance();</span>
+
+    // protected fields.
+    public static final String CATYPE = &quot;catype&quot;;
+    protected static final String SUBJECTDN = &quot;subjectdn&quot;;
+    protected static final String CAID = &quot;caid&quot;;
+    public static final String NAME = &quot;name&quot;;
+    @Deprecated
+    protected static final String VALIDITY = &quot;validity&quot;;
+    protected static final String ENCODED_VALIDITY = &quot;encodedvalidity&quot;;
+    protected static final String EXPIRETIME = &quot;expiretime&quot;;
+    protected static final String CERTIFICATECHAIN = &quot;certificatechain&quot;;
+    protected static final String RENEWEDCERTIFICATECHAIN = &quot;renewedcertificatechain&quot;;
+    protected static final String ROLLOVERCERTIFICATECHAIN = &quot;rollovercertificatechain&quot;;
+    public static final String CATOKENDATA = &quot;catoken&quot;;
+    protected static final String SIGNEDBY = &quot;signedby&quot;;
+    protected static final String DESCRIPTION = &quot;description&quot;;
+    protected static final String REVOCATIONREASON = &quot;revokationreason&quot;;
+    protected static final String REVOCATIONDATE = &quot;revokationdate&quot;;
+    protected static final String CERTIFICATEPROFILEID = &quot;certificateprofileid&quot;;
+    protected static final String DEFAULTCERTIFICATEPROFILEID = &quot;defaultcertificateprofileid&quot;;
+    protected static final String CRLPERIOD = &quot;crlperiod&quot;;
+    protected static final String DELTACRLPERIOD = &quot;deltacrlperiod&quot;;
+    protected static final String CRLISSUEINTERVAL = &quot;crlIssueInterval&quot;;
+    protected static final String CRLOVERLAPTIME = &quot;crlOverlapTime&quot;;
+    protected static final String CRLPUBLISHERS = &quot;crlpublishers&quot;;
+    protected static final String VALIDATORS = &quot;keyvalidators&quot;;
+    private static final String FINISHUSER = &quot;finishuser&quot;;
+    protected static final String REQUESTCERTCHAIN = &quot;requestcertchain&quot;;
+    protected static final String EXTENDEDCASERVICES = &quot;extendedcaservices&quot;;
+    protected static final String EXTENDEDCASERVICE = &quot;extendedcaservice&quot;;
+    protected static final String USENOCONFLICTCERTIFICATEDATA = &quot;usenoconflictcertificatedata&quot;;
+    protected static final String SERIALNUMBEROCTETSIZE = &quot;serialnumberoctetsize&quot;;
+
+    /**
+     * @deprecated since 6.8.0, replaced by the approvals Action:ApprovalProfile mapping
+     */
+    @Deprecated
+    protected static final String APPROVALSETTINGS = &quot;approvalsettings&quot;;
+    /**
+     * @deprecated since 6.6.0, use the appropriate approval profile instead
+     * Needed in order to be able to upgrade from 6.5 and earlier
+     */
+    @Deprecated
+    protected static final String NUMBEROFREQAPPROVALS = &quot;numberofreqapprovals&quot;;
+    /**
+     * @deprecated since 6.8.0, replaced by the approvals Action:ApprovalProfile mapping
+     */
+    @Deprecated
+    protected static final String APPROVALPROFILE = &quot;approvalprofile&quot;;
+    protected static final String INCLUDEINHEALTHCHECK = &quot;includeinhealthcheck&quot;;
+    private static final String DO_ENFORCE_UNIQUE_PUBLIC_KEYS = &quot;doEnforceUniquePublicKeys&quot;;
+    private static final String DO_ENFORCE_UNIQUE_DISTINGUISHED_NAME = &quot;doEnforceUniqueDistinguishedName&quot;;
+    private static final String DO_ENFORCE_UNIQUE_SUBJECTDN_SERIALNUMBER = &quot;doEnforceUniqueSubjectDNSerialnumber&quot;;
+    private static final String USE_CERTREQ_HISTORY = &quot;useCertreqHistory&quot;;
+    private static final String USE_USER_STORAGE = &quot;useUserStorage&quot;;
+    private static final String USE_CERTIFICATE_STORAGE = &quot;useCertificateStorage&quot;;
+    private static final String ACCEPT_REVOCATION_NONEXISTING_ENTRY = &quot;acceptRevocationNonExistingEntry&quot;;
+    private static final String LATESTLINKCERTIFICATE = &quot;latestLinkCertificate&quot;;
+    private static final String KEEPEXPIREDCERTSONCRL = &quot;keepExpiredCertsOnCRL&quot;;
+    private static final String APPROVALS = &quot;approvals&quot;;
+
+<span class="nc" id="L148">    private HashMap&lt;Integer, ExtendedCAService&gt; extendedcaservicemap = new HashMap&lt;&gt;();</span>
+
+<span class="nc" id="L150">    private ArrayList&lt;Certificate&gt; certificatechain = null;</span>
+<span class="nc" id="L151">    private ArrayList&lt;Certificate&gt; renewedcertificatechain = null;</span>
+<span class="nc" id="L152">    private ArrayList&lt;Certificate&gt; requestcertchain = null;</span>
+
+<span class="nc" id="L154">    private CAInfo cainfo = null;</span>
+<span class="nc" id="L155">    private CAToken caToken = null;</span>
+
+    /** No args constructor required for ServiceLocator */
+<span class="nc" id="L158">    protected CA() {}</span>
+
+    /** Creates a new instance of CA, this constructor should be used when a new CA is created 
+     * @param cainfo Info*/
+<span class="nc" id="L162">    public CA(CAInfo cainfo) {</span>
+<span class="nc" id="L163">        init(cainfo);</span>
+<span class="nc" id="L164">    }</span>
+    public void init(CAInfo cainfo) {
+<span class="nc" id="L166">        data = new LinkedHashMap&lt;&gt;();</span>
+
+<span class="nc" id="L168">        this.cainfo = cainfo;</span>
+
+<span class="nc" id="L170">        setEncodedValidity(cainfo.getEncodedValidity());</span>
+<span class="nc" id="L171">        setSignedBy(cainfo.getSignedBy());</span>
+<span class="nc" id="L172">        data.put(DESCRIPTION, cainfo.getDescription());</span>
+<span class="nc" id="L173">        data.put(REVOCATIONREASON, Integer.valueOf(-1));</span>
+<span class="nc" id="L174">        data.put(CERTIFICATEPROFILEID, Integer.valueOf(cainfo.getCertificateProfileId()));</span>
+<span class="nc" id="L175">        data.put(USENOCONFLICTCERTIFICATEDATA, cainfo.isUseNoConflictCertificateData());</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">        if (!cainfo.isUseCertificateStorage()) {</span>
+<span class="nc" id="L177">            data.put(DEFAULTCERTIFICATEPROFILEID, Integer.valueOf(cainfo.getDefaultCertificateProfileId()));</span>
+        }
+<span class="nc" id="L179">        setKeepExpiredCertsOnCRL(cainfo.getKeepExpiredCertsOnCRL());</span>
+<span class="nc" id="L180">        setCRLPeriod(cainfo.getCRLPeriod());</span>
+<span class="nc" id="L181">        setCRLIssueInterval(cainfo.getCRLIssueInterval());</span>
+<span class="nc" id="L182">        setCRLOverlapTime(cainfo.getCRLOverlapTime());</span>
+<span class="nc" id="L183">        setDeltaCRLPeriod(cainfo.getDeltaCRLPeriod());</span>
+<span class="nc" id="L184">        setCRLPublishers(cainfo.getCRLPublishers());</span>
+<span class="nc" id="L185">        setValidators(cainfo.getValidators());</span>
+<span class="nc" id="L186">        setFinishUser(cainfo.getFinishUser());</span>
+<span class="nc" id="L187">        setIncludeInHealthCheck(cainfo.getIncludeInHealthCheck());</span>
+<span class="nc" id="L188">        setDoEnforceUniquePublicKeys(cainfo.isDoEnforceUniquePublicKeys());</span>
+<span class="nc" id="L189">        setDoEnforceUniqueDistinguishedName(cainfo.isDoEnforceUniqueDistinguishedName());</span>
+<span class="nc" id="L190">        setDoEnforceUniqueSubjectDNSerialnumber(cainfo.isDoEnforceUniqueSubjectDNSerialnumber());</span>
+<span class="nc" id="L191">        setUseCertReqHistory(cainfo.isUseCertReqHistory());</span>
+<span class="nc" id="L192">        setUseUserStorage(cainfo.isUseUserStorage());</span>
+<span class="nc" id="L193">        setUseCertificateStorage(cainfo.isUseCertificateStorage());</span>
+<span class="nc" id="L194">        setAcceptRevocationNonExistingEntry(cainfo.isAcceptRevocationNonExistingEntry());</span>
+
+<span class="nc" id="L196">        ArrayList&lt;Integer&gt; extendedservicetypes = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">        for(ExtendedCAServiceInfo next : cainfo.getExtendedCAServiceInfos()) {</span>
+<span class="nc" id="L198">            createExtendedCAService(next);</span>
+<span class="nc bnc" id="L199" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L200">                log.debug(&quot;Adding extended service to CA '&quot;+cainfo.getName()+&quot;': &quot;+next.getType()+&quot;, &quot;+next.getImplClass());</span>
+            }
+<span class="nc" id="L202">            extendedservicetypes.add(next.getType());</span>
+<span class="nc" id="L203">        }</span>
+<span class="nc" id="L204">        data.put(EXTENDEDCASERVICES, extendedservicetypes);</span>
+<span class="nc" id="L205">        setApprovals(cainfo.getApprovals());</span>
+<span class="nc" id="L206">    }</span>
+
+    private void createExtendedCAService(ExtendedCAServiceInfo info) {
+        // Create implementation using reflection
+        try {
+<span class="nc" id="L211">            Class&lt;?&gt; implClass = Class.forName(info.getImplClass());</span>
+<span class="nc" id="L212">            final ExtendedCAService service = (ExtendedCAService) implClass.getConstructor(ExtendedCAServiceInfo.class).newInstance(</span>
+                    new Object[] { info });
+<span class="nc" id="L214">            setExtendedCAService(service);</span>
+<span class="nc" id="L215">        } catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L216">            log.warn(&quot;failed to add extended CA service: &quot;, e);</span>
+<span class="nc" id="L217">        } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L218">            log.warn(&quot;failed to add extended CA service: &quot;, e);</span>
+<span class="nc" id="L219">        } catch (SecurityException e) {</span>
+<span class="nc" id="L220">            log.warn(&quot;failed to add extended CA service: &quot;, e);</span>
+<span class="nc" id="L221">        } catch (InstantiationException e) {</span>
+<span class="nc" id="L222">            log.warn(&quot;failed to add extended CA service: &quot;, e);</span>
+<span class="nc" id="L223">        } catch (IllegalAccessException e) {</span>
+<span class="nc" id="L224">            log.warn(&quot;failed to add extended CA service: &quot;, e);</span>
+<span class="nc" id="L225">        } catch (InvocationTargetException e) {</span>
+<span class="nc" id="L226">            log.warn(&quot;failed to add extended CA service: &quot;, e);</span>
+<span class="nc" id="L227">        } catch (NoSuchMethodException e) {</span>
+<span class="nc" id="L228">            log.warn(&quot;failed to add extended CA service: &quot;, e);</span>
+<span class="nc" id="L229">        }</span>
+<span class="nc" id="L230">    }</span>
+
+<span class="nc" id="L232">    public CA(HashMap&lt;Object, Object&gt; data) {</span>
+<span class="nc" id="L233">        init(data);</span>
+<span class="nc" id="L234">    }</span>
+
+    /** Constructor used when retrieving existing CA from database. 
+     * @param data data*/
+    public void init(HashMap&lt;Object, Object&gt; data) {
+<span class="nc" id="L239">        loadData(data);</span>
+<span class="nc" id="L240">        extendedcaservicemap = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L241">    }</span>
+
+    public void setCAInfo(CAInfo cainfo) {
+<span class="nc" id="L244">        this.cainfo = cainfo;</span>
+<span class="nc" id="L245">    }</span>
+
+    public CAInfo getCAInfo() {
+<span class="nc" id="L248">        return this.cainfo;</span>
+    }
+
+    public String getSubjectDN() {
+<span class="nc" id="L252">        return cainfo.getSubjectDN();</span>
+    }
+
+    public void setSubjectDN(String subjectDn) {
+<span class="nc" id="L256">        cainfo.subjectdn = subjectDn;</span>
+<span class="nc" id="L257">    }</span>
+
+    public int getCAId() {
+<span class="nc" id="L260">        return cainfo.getCAId();</span>
+    }
+
+    public void setCAId(int caid) {
+<span class="nc" id="L264">        cainfo.caid = caid;</span>
+<span class="nc" id="L265">    }</span>
+
+    public String getName() {
+<span class="nc" id="L268">        return cainfo.getName();</span>
+    }
+
+    public void setName(String caname) {
+<span class="nc" id="L272">        cainfo.name = caname;</span>
+<span class="nc" id="L273">    }</span>
+
+    public int getStatus() {
+<span class="nc" id="L276">        return cainfo.getStatus();</span>
+    }
+
+    public void setStatus(int status) {
+<span class="nc" id="L280">        cainfo.status = status;</span>
+<span class="nc" id="L281">    }</span>
+
+    /**
+     * @return one of CAInfo.CATYPE_CVC or CATYPE_X509
+     */
+    public int getCAType() {
+<span class="nc" id="L287">        return ((Integer) data.get(CATYPE)).intValue();</span>
+    }
+
+    @Deprecated
+    public long getValidity() {
+<span class="nc" id="L292">        return ((Number) data.get(VALIDITY)).longValue();</span>
+    }
+
+    /**
+     * Gets the validity.
+     * @return the validity as ISO8601 date or relative time.
+     * @see org.cesecore.util.ValidityDate ValidityDate
+     */
+    @SuppressWarnings(&quot;deprecation&quot;)
+    public String getEncodedValidity() {
+<span class="nc" id="L302">        String result = (String) data.get(ENCODED_VALIDITY);</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">        if (StringUtils.isBlank(result)) {</span>
+<span class="nc" id="L304">            result = ValidityDate.getStringBeforeVersion661(getValidity());</span>
+        }
+<span class="nc" id="L306">        return result;</span>
+    }
+
+    /**
+     * Sets the validity as relative time (format '*y *mo *d *h *m *s', i.e. '1y +2mo -3d 4h 5m 6s') or as fixed end date
+     * (ISO8601 format, i.e. 'yyyy-MM-dd HH:mm:ssZZ', 'yyyy-MM-dd HH:mmZZ' or 'yyyy-MM-ddZZ' with optional '+00:00' appended).
+     *
+     * @param encodedValidity validity
+     */
+    public void setEncodedValidity(String encodedValidity) {
+<span class="nc" id="L316">        data.put(ENCODED_VALIDITY, encodedValidity);</span>
+<span class="nc" id="L317">    }</span>
+
+    public Date getExpireTime() {
+<span class="nc" id="L320">        return ((Date) data.get(EXPIRETIME));</span>
+    }
+
+    public void setExpireTime(Date expiretime) {
+<span class="nc" id="L324">        data.put(EXPIRETIME, expiretime);</span>
+<span class="nc" id="L325">    }</span>
+
+    public int getSignedBy() {
+<span class="nc" id="L328">        return ((Integer) data.get(SIGNEDBY)).intValue();</span>
+    }
+
+    public void setSignedBy(int signedby) {
+<span class="nc" id="L332">        data.put(SIGNEDBY, Integer.valueOf(signedby));</span>
+<span class="nc" id="L333">    }</span>
+
+    public String getDescription() {
+<span class="nc" id="L336">        return ((String) data.get(DESCRIPTION));</span>
+    }
+
+    public void setDescription(String description) {
+<span class="nc" id="L340">        data.put(DESCRIPTION, description);</span>
+<span class="nc" id="L341">    }</span>
+
+    public int getRevocationReason() {
+<span class="nc" id="L344">        return ((Integer) data.get(REVOCATIONREASON)).intValue();</span>
+    }
+
+    public void setRevocationReason(int reason) {
+<span class="nc" id="L348">        data.put(REVOCATIONREASON, Integer.valueOf(reason));</span>
+<span class="nc" id="L349">    }</span>
+
+    public Date getRevocationDate() {
+<span class="nc" id="L352">        return (Date) data.get(REVOCATIONDATE);</span>
+    }
+
+    public void setRevocationDate(Date date) {
+<span class="nc" id="L356">        data.put(REVOCATIONDATE, date);</span>
+<span class="nc" id="L357">    }</span>
+
+    public long getCRLPeriod() {
+<span class="nc" id="L360">        return ((Long) data.get(CRLPERIOD)).longValue();</span>
+    }
+
+    public void setCRLPeriod(long crlperiod) {
+<span class="nc" id="L364">        data.put(CRLPERIOD, Long.valueOf(crlperiod));</span>
+<span class="nc" id="L365">    }</span>
+
+    public long getDeltaCRLPeriod() {
+<span class="nc bnc" id="L368" title="All 2 branches missed.">        if (data.containsKey(DELTACRLPERIOD)) {</span>
+<span class="nc" id="L369">            return ((Long) data.get(DELTACRLPERIOD)).longValue();</span>
+        } else {
+<span class="nc" id="L371">            return 0;</span>
+        }
+    }
+
+    public void setDeltaCRLPeriod(long deltacrlperiod) {
+<span class="nc" id="L376">        data.put(DELTACRLPERIOD, Long.valueOf(deltacrlperiod));</span>
+<span class="nc" id="L377">    }</span>
+
+    public long getCRLIssueInterval() {
+<span class="nc" id="L380">        return ((Long) data.get(CRLISSUEINTERVAL)).longValue();</span>
+    }
+
+    public void setCRLIssueInterval(long crlIssueInterval) {
+<span class="nc" id="L384">        data.put(CRLISSUEINTERVAL, Long.valueOf(crlIssueInterval));</span>
+<span class="nc" id="L385">    }</span>
+
+    public long getCRLOverlapTime() {
+<span class="nc" id="L388">        return ((Long) data.get(CRLOVERLAPTIME)).longValue();</span>
+    }
+
+    public void setCRLOverlapTime(long crlOverlapTime) {
+<span class="nc" id="L392">        data.put(CRLOVERLAPTIME, Long.valueOf(crlOverlapTime));</span>
+<span class="nc" id="L393">    }</span>
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public Collection&lt;Integer&gt; getCRLPublishers() {
+<span class="nc" id="L397">        return ((Collection&lt;Integer&gt;) data.get(CRLPUBLISHERS));</span>
+    }
+
+    public void setCRLPublishers(Collection&lt;Integer&gt; crlpublishers) {
+<span class="nc" id="L401">        data.put(CRLPUBLISHERS, crlpublishers);</span>
+<span class="nc" id="L402">    }</span>
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public Collection&lt;Integer&gt; getValidators() {
+<span class="nc" id="L406">        return ((Collection&lt;Integer&gt;) data.get(VALIDATORS));</span>
+    }
+
+    public void setValidators(Collection&lt;Integer&gt; validators) {
+<span class="nc" id="L410">        data.put(VALIDATORS, validators);</span>
+<span class="nc" id="L411">    }</span>
+
+    public boolean getKeepExpiredCertsOnCRL() {
+<span class="nc bnc" id="L414" title="All 2 branches missed.">        if(data.containsKey(KEEPEXPIREDCERTSONCRL)) {</span>
+<span class="nc" id="L415">            return ((Boolean)data.get(KEEPEXPIREDCERTSONCRL)).booleanValue();</span>
+        } else {
+<span class="nc" id="L417">            return false;</span>
+        }
+    }
+
+    public void setKeepExpiredCertsOnCRL(boolean keepexpiredcertsoncrl) {
+<span class="nc" id="L422">        data.put(KEEPEXPIREDCERTSONCRL, Boolean.valueOf(keepexpiredcertsoncrl));</span>
+<span class="nc" id="L423">    }</span>
+
+    public int getCertificateProfileId() {
+<span class="nc" id="L426">        return ((Integer) data.get(CERTIFICATEPROFILEID)).intValue();</span>
+    }
+    public int getDefaultCertificateProfileId() {
+<span class="nc" id="L429">        Integer defaultCertificateProfileId = (Integer) data.get(DEFAULTCERTIFICATEPROFILEID);</span>
+<span class="nc bnc" id="L430" title="All 2 branches missed.">        if (defaultCertificateProfileId != null) {</span>
+<span class="nc" id="L431">            return defaultCertificateProfileId.intValue();</span>
+        } else {
+<span class="nc" id="L433">            return 0;</span>
+        }
+    }
+
+    /** @return the CAs token reference. */
+    public CAToken getCAToken() {
+<span class="nc bnc" id="L439" title="All 2 branches missed.">        if (caToken == null) {</span>
+            @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L441">            HashMap&lt;String, String&gt; tokendata = (HashMap&lt;String, String&gt;) data.get(CATOKENDATA);</span>
+<span class="nc" id="L442">            final CAToken ret = new CAToken(tokendata);</span>
+<span class="nc" id="L443">            String signaturealg = tokendata.get(CAToken.SIGNATUREALGORITHM);</span>
+<span class="nc" id="L444">            String encryptionalg = tokendata.get(CAToken.ENCRYPTIONALGORITHM);</span>
+<span class="nc" id="L445">            String keysequence = CAToken.DEFAULT_KEYSEQUENCE;</span>
+<span class="nc" id="L446">            Object seqo = tokendata.get(CAToken.SEQUENCE);</span>
+<span class="nc bnc" id="L447" title="All 2 branches missed.">            if (seqo != null) {</span>
+<span class="nc" id="L448">                keysequence = (String)seqo;</span>
+            }
+<span class="nc" id="L450">            int keysequenceformat = StringTools.KEY_SEQUENCE_FORMAT_NUMERIC;</span>
+<span class="nc" id="L451">            Object seqfo = tokendata.get(CAToken.SEQUENCE_FORMAT);</span>
+<span class="nc bnc" id="L452" title="All 2 branches missed.">            if (seqfo != null) {</span>
+<span class="nc" id="L453">                keysequenceformat = (Integer)seqfo;</span>
+            }
+            // Set values for new CA token
+<span class="nc" id="L456">            ret.setSignatureAlgorithm(signaturealg);</span>
+<span class="nc" id="L457">            ret.setEncryptionAlgorithm(encryptionalg);</span>
+<span class="nc" id="L458">            ret.setKeySequence(keysequence);</span>
+<span class="nc" id="L459">            ret.setKeySequenceFormat(keysequenceformat);</span>
+<span class="nc" id="L460">            caToken = ret;</span>
+        }
+<span class="nc" id="L462">        return caToken;</span>
+    }
+
+    /** Sets the CA token. 
+     * @param catoken token
+     * @throws InvalidAlgorithmException  if algorithm is not valid*/
+    public void setCAToken(CAToken catoken) throws InvalidAlgorithmException {
+        // Check that the signature algorithm is one of the allowed ones, only check if there is a sigAlg though
+    	// things like a NulLCryptoToken does not have signature algorithms
+<span class="nc" id="L471">    	final String sigAlg = catoken.getSignatureAlgorithm();</span>
+<span class="nc bnc" id="L472" title="All 2 branches missed.">    	if (StringUtils.isNotEmpty(sigAlg)) {</span>
+<span class="nc bnc" id="L473" title="All 2 branches missed.">            if (!StringTools.containsCaseInsensitive(AlgorithmConstants.AVAILABLE_SIGALGS, sigAlg)) {</span>
+<span class="nc" id="L474">                final String msg = intres.getLocalizedMessage(&quot;createcert.invalidsignaturealg&quot;, sigAlg, ArrayUtils.toString(AlgorithmConstants.AVAILABLE_SIGALGS));</span>
+<span class="nc" id="L475">                throw new InvalidAlgorithmException(msg);</span>
+            }
+    	}
+<span class="nc" id="L478">    	final String encAlg = catoken.getEncryptionAlgorithm();</span>
+<span class="nc bnc" id="L479" title="All 2 branches missed.">    	if (StringUtils.isNotEmpty(encAlg)) {</span>
+<span class="nc bnc" id="L480" title="All 2 branches missed.">    		if (!StringTools.containsCaseInsensitive(AlgorithmConstants.AVAILABLE_SIGALGS, encAlg)) {</span>
+<span class="nc" id="L481">    			final String msg = intres.getLocalizedMessage(&quot;createcert.invalidsignaturealg&quot;, encAlg, ArrayUtils.toString(AlgorithmConstants.AVAILABLE_SIGALGS));</span>
+<span class="nc" id="L482">    			throw new InvalidAlgorithmException(msg);</span>
+    		}
+    	}
+<span class="nc" id="L485">        data.put(CATOKENDATA, catoken.saveData());</span>
+<span class="nc" id="L486">        this.caToken = catoken;</span>
+<span class="nc" id="L487">    }</span>
+
+    /** Returns a collection of CA certificates, or null if no request certificate chain exists 
+     * @return certificates*/
+    public Collection&lt;Certificate&gt; getRequestCertificateChain() {
+<span class="nc bnc" id="L492" title="All 2 branches missed.">        if (requestcertchain == null) {</span>
+            @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L494">            final Collection&lt;String&gt; storechain = (Collection&lt;String&gt;) data.get(REQUESTCERTCHAIN);</span>
+<span class="nc bnc" id="L495" title="All 2 branches missed.">            if (storechain != null) {</span>
+<span class="nc" id="L496">                this.requestcertchain = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L497" title="All 2 branches missed.">                for (final String b64Cert : storechain) {</span>
+                    try {
+<span class="nc" id="L499">                        this.requestcertchain.add(CertTools.getCertfromByteArray(Base64.decode(b64Cert.getBytes()), Certificate.class));</span>
+<span class="nc" id="L500">                    } catch (CertificateParsingException e) {</span>
+<span class="nc" id="L501">                       throw new IllegalStateException(&quot;Database seems to contain invalid certificate information.&quot;, e);</span>
+<span class="nc" id="L502">                    }</span>
+
+<span class="nc" id="L504">                }</span>
+            }
+        }
+<span class="nc" id="L507">        return requestcertchain;</span>
+    }
+
+    public void setRequestCertificateChain(Collection&lt;Certificate&gt; requestcertificatechain) {
+<span class="nc" id="L511">        final ArrayList&lt;String&gt; storechain = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L512" title="All 2 branches missed.">        for (final Certificate cert : requestcertificatechain) {</span>
+            try {
+<span class="nc" id="L514">                storechain.add(new String(Base64.encode(cert.getEncoded())));</span>
+<span class="nc" id="L515">            } catch (Exception e) {</span>
+<span class="nc" id="L516">                throw new RuntimeException(e);</span>
+<span class="nc" id="L517">            }</span>
+<span class="nc" id="L518">        }</span>
+<span class="nc" id="L519">        data.put(REQUESTCERTCHAIN, storechain);</span>
+<span class="nc" id="L520">        this.requestcertchain = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L521">        this.requestcertchain.addAll(requestcertificatechain);</span>
+<span class="nc" id="L522">    }</span>
+
+    /**
+     * Returns a collection of CA-certificates, with this CAs cert i position 0, or null if no CA-certificates exist. The root CA certificate will
+     * thus be in the last position.
+     *
+     * @return Collection of Certificate
+     */
+    public List&lt;Certificate&gt; getCertificateChain() {
+<span class="nc bnc" id="L531" title="All 2 branches missed.">        if (certificatechain == null) {</span>
+            @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L533">            Collection&lt;String&gt; storechain = (Collection&lt;String&gt;) data.get(CERTIFICATECHAIN);</span>
+<span class="nc bnc" id="L534" title="All 2 branches missed.">            if (storechain == null) {</span>
+<span class="nc" id="L535">                return null;</span>
+            }
+<span class="nc" id="L537">            this.certificatechain = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L538" title="All 2 branches missed.">            for (final String b64Cert : storechain) {</span>
+                try {
+<span class="nc" id="L540">                    Certificate cert = CertTools.getCertfromByteArray(Base64.decode(b64Cert.getBytes()), Certificate.class);</span>
+<span class="nc bnc" id="L541" title="All 2 branches missed.">                    if (cert != null) {</span>
+<span class="nc bnc" id="L542" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L543">                            log.debug(&quot;Adding CA certificate from CERTIFICATECHAIN to certificatechain:&quot;);</span>
+<span class="nc" id="L544">                            log.debug(&quot;Cert subjectDN: &quot; + CertTools.getSubjectDN(cert));</span>
+<span class="nc" id="L545">                            log.debug(&quot;Cert issuerDN: &quot; + CertTools.getIssuerDN(cert));</span>
+                        }
+<span class="nc" id="L547">                        this.certificatechain.add(cert);</span>
+                    } else {
+<span class="nc" id="L549">                        throw new IllegalArgumentException(&quot;Can not create certificate object from: &quot; + b64Cert);</span>
+                    }
+<span class="nc" id="L551">                } catch (Exception e) {</span>
+<span class="nc" id="L552">                    throw new IllegalStateException(e);</span>
+<span class="nc" id="L553">                }</span>
+<span class="nc" id="L554">            }</span>
+        }
+<span class="nc" id="L556">        return certificatechain;</span>
+    }
+
+    public void setCertificateChain(final List&lt;Certificate&gt; certificatechain) {
+<span class="nc" id="L560">        final ArrayList&lt;String&gt; storechain = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L561" title="All 2 branches missed.">        for (final Certificate cert : certificatechain) {</span>
+            try {
+<span class="nc" id="L563">                storechain.add(new String(Base64.encode(cert.getEncoded())));</span>
+<span class="nc" id="L564">            } catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L565">                throw new IllegalArgumentException(e);</span>
+<span class="nc" id="L566">            }</span>
+<span class="nc" id="L567">        }</span>
+<span class="nc" id="L568">        data.put(CERTIFICATECHAIN, storechain);</span>
+<span class="nc" id="L569">        this.certificatechain = new ArrayList&lt;&gt;(certificatechain);</span>
+<span class="nc" id="L570">        this.cainfo.setCertificateChain(certificatechain);</span>
+<span class="nc" id="L571">    }</span>
+
+    /**
+     * @return the list of renewed CA certificates in order from the oldest as first to the newest as the last one
+     */
+    public List&lt;Certificate&gt; getRenewedCertificateChain() {
+<span class="nc bnc" id="L577" title="All 2 branches missed.">        if (renewedcertificatechain == null) {</span>
+            @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L579">            Collection&lt;String&gt; storechain = (Collection&lt;String&gt;) data.get(RENEWEDCERTIFICATECHAIN);</span>
+<span class="nc bnc" id="L580" title="All 2 branches missed.">            if (storechain == null) {</span>
+<span class="nc" id="L581">                return null;</span>
+            }
+<span class="nc" id="L583">            renewedcertificatechain = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L584" title="All 2 branches missed.">            for (final String b64Cert : storechain) {</span>
+                try {
+<span class="nc" id="L586">                    Certificate cert = CertTools.getCertfromByteArray(Base64.decode(b64Cert.getBytes()), Certificate.class);</span>
+<span class="nc bnc" id="L587" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L588">                        log.debug(&quot;Adding CA certificate from RENEWEDCERTIFICATECHAIN to renewedcertificatechain:&quot;);</span>
+<span class="nc" id="L589">                        log.debug(&quot;Cert subjectDN: &quot; + CertTools.getSubjectDN(cert));</span>
+<span class="nc" id="L590">                        log.debug(&quot;Cert issuerDN: &quot; + CertTools.getIssuerDN(cert));</span>
+                    }
+<span class="nc" id="L592">                    renewedcertificatechain.add(cert);</span>
+<span class="nc" id="L593">                } catch (CertificateParsingException e) {</span>
+<span class="nc" id="L594">                    throw new IllegalStateException(&quot;Some certificates from renewed certificate chain could not be parsed&quot;, e);</span>
+<span class="nc" id="L595">                }</span>
+<span class="nc" id="L596">            }</span>
+        }
+<span class="nc" id="L598">        return renewedcertificatechain;</span>
+    }
+
+    /**
+     * Make sure to respect the order of renewed CA certificates in the collection: from the oldest as first to the newest as the last one
+     * @param certificatechain collection of the renewed CA certificates to be stored
+     */
+    public void setRenewedCertificateChain(final List&lt;Certificate&gt; certificatechain) {
+<span class="nc" id="L606">        ArrayList&lt;String&gt; storechain = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L607" title="All 2 branches missed.">        for (Certificate cert : certificatechain) {</span>
+            try {
+<span class="nc" id="L609">                String b64Cert = new String(Base64.encode(cert.getEncoded()));</span>
+<span class="nc" id="L610">                storechain.add(b64Cert);</span>
+<span class="nc" id="L611">            } catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L612">                throw new IllegalStateException(&quot;Renewed certificates could not be encoded&quot;, e);</span>
+<span class="nc" id="L613">            }</span>
+<span class="nc" id="L614">        }</span>
+<span class="nc" id="L615">        data.put(RENEWEDCERTIFICATECHAIN, storechain);</span>
+
+<span class="nc" id="L617">        renewedcertificatechain = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L618">        renewedcertificatechain.addAll(certificatechain);</span>
+<span class="nc" id="L619">        cainfo.setRenewedCertificateChain(certificatechain);</span>
+<span class="nc" id="L620">    }</span>
+
+    public void setRolloverCertificateChain(Collection&lt;Certificate&gt; certificatechain) {
+<span class="nc" id="L623">        Iterator&lt;Certificate&gt; iter = certificatechain.iterator();</span>
+<span class="nc" id="L624">        ArrayList&lt;String&gt; storechain = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L625" title="All 2 branches missed.">        while (iter.hasNext()) {</span>
+<span class="nc" id="L626">            Certificate cert = iter.next();</span>
+            try {
+<span class="nc" id="L628">                String b64Cert = new String(Base64.encode(cert.getEncoded()));</span>
+<span class="nc" id="L629">                storechain.add(b64Cert);</span>
+<span class="nc" id="L630">            } catch (Exception e) {</span>
+<span class="nc" id="L631">                throw new RuntimeException(e);</span>
+<span class="nc" id="L632">            }</span>
+<span class="nc" id="L633">        }</span>
+<span class="nc" id="L634">        data.put(ROLLOVERCERTIFICATECHAIN, storechain);</span>
+<span class="nc" id="L635">    }</span>
+
+    public List&lt;Certificate&gt; getRolloverCertificateChain() {
+<span class="nc" id="L638">        final List&lt;?&gt; storechain = (List&lt;?&gt;)data.get(ROLLOVERCERTIFICATECHAIN);</span>
+<span class="nc bnc" id="L639" title="All 2 branches missed.">        if (storechain == null) {</span>
+<span class="nc" id="L640">            return null;</span>
+        }
+<span class="nc" id="L642">        final List&lt;Certificate&gt; chain = new ArrayList&lt;&gt;(storechain.size());</span>
+<span class="nc bnc" id="L643" title="All 2 branches missed.">        for (Object o : storechain) {</span>
+<span class="nc" id="L644">            final String b64Cert = (String)o;</span>
+            try {
+<span class="nc" id="L646">                final byte[] decoded = Base64.decode(b64Cert.getBytes(&quot;US-ASCII&quot;));</span>
+<span class="nc" id="L647">                final Certificate cert = CertTools.getCertfromByteArray(decoded, Certificate.class);</span>
+<span class="nc" id="L648">                chain.add(cert);</span>
+<span class="nc" id="L649">            } catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L650">                throw new IllegalStateException(e);</span>
+<span class="nc" id="L651">            } catch (CertificateParsingException e) {</span>
+<span class="nc" id="L652">                throw new IllegalStateException(e);</span>
+<span class="nc" id="L653">            }</span>
+<span class="nc" id="L654">        }</span>
+<span class="nc" id="L655">        return chain;</span>
+    }
+
+    public void clearRolloverCertificateChain() {
+<span class="nc" id="L659">        data.remove(ROLLOVERCERTIFICATECHAIN);</span>
+<span class="nc" id="L660">    }</span>
+
+    /** @return the CAs certificate, or null if no CA-certificates exist. */
+    public Certificate getCACertificate() {
+<span class="nc bnc" id="L664" title="All 2 branches missed.">        if (certificatechain == null) {</span>
+<span class="nc" id="L665">            getCertificateChain();</span>
+            // if it's still null, return null
+<span class="nc bnc" id="L667" title="All 2 branches missed.">            if (certificatechain == null) {</span>
+<span class="nc" id="L668">                return null;</span>
+            }
+        }
+<span class="nc bnc" id="L671" title="All 2 branches missed.">        if (certificatechain.size() == 0) {</span>
+<span class="nc" id="L672">            return null;</span>
+        }
+<span class="nc" id="L674">        Certificate ret = certificatechain.get(0);</span>
+<span class="nc bnc" id="L675" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L676">            log.debug(&quot;CA certificate chain is &quot; + certificatechain.size() + &quot; levels deep.&quot;);</span>
+<span class="nc" id="L677">            log.debug(&quot;CA-cert subjectDN: &quot; + CertTools.getSubjectDN(ret));</span>
+<span class="nc" id="L678">            log.debug(&quot;CA-cert issuerDN: &quot; + CertTools.getIssuerDN(ret));</span>
+        }
+<span class="nc" id="L680">        return ret;</span>
+    }
+
+    /** @param request Request message
+     * @return true if we should use the next CA certificate for rollover, instead of the current CA certificate. */
+    public boolean getUseNextCACert(final RequestMessage request) {
+<span class="nc" id="L686">        final Certificate currentCert = getCACertificate();</span>
+<span class="nc bnc" id="L687" title="All 2 branches missed.">        if (request == null) {</span>
+            // We get here when creating a new CA
+<span class="nc" id="L689">            log.trace(&quot;getUseNextCACert: request is null. most likely this is a new CA&quot;);</span>
+<span class="nc" id="L690">            return false;</span>
+        }
+
+<span class="nc" id="L693">        final BigInteger requestSerNo = request.getSerialNo();</span>
+<span class="nc bnc" id="L694" title="All 2 branches missed.">        if (requestSerNo == null) {</span>
+<span class="nc" id="L695">            log.debug(&quot;getUseNextCACert: No serial number in request. Will use current CA cert.&quot;);</span>
+<span class="nc" id="L696">            return false;</span>
+        }
+
+<span class="nc" id="L699">        final BigInteger currentSerNo = CertTools.getSerialNumber(currentCert);</span>
+<span class="nc bnc" id="L700" title="All 4 branches missed.">        if (currentSerNo == null || currentSerNo.equals(requestSerNo)) {</span>
+            // Normal case
+<span class="nc" id="L702">            log.trace(&quot;getUseNextCACert: CA serial number matches request serial number&quot;);</span>
+<span class="nc" id="L703">            return false;</span>
+        }
+
+<span class="nc" id="L706">        final List&lt;Certificate&gt; rolloverChain = getRolloverCertificateChain();</span>
+<span class="nc bnc" id="L707" title="All 4 branches missed.">        if (rolloverChain == null || rolloverChain.isEmpty()) {</span>
+<span class="nc" id="L708">            log.debug(&quot;getUseNextCACert: Serial number in request does not match CA serial number, and no roll over certificate chain is present. Will use current CA cert.&quot;);</span>
+<span class="nc" id="L709">            return false;</span>
+        }
+
+<span class="nc" id="L712">        final Certificate rolloverCert = rolloverChain.get(0);</span>
+<span class="nc" id="L713">        final BigInteger rolloverSerNo = CertTools.getSerialNumber(rolloverCert);</span>
+<span class="nc bnc" id="L714" title="All 4 branches missed.">        if (rolloverSerNo != null &amp;&amp; rolloverSerNo.equals(requestSerNo)) {</span>
+<span class="nc" id="L715">            log.debug(&quot;getUseNextCACert: Serial number in request matches next (rollover) CA cert. Using next CA cert and key.&quot;);</span>
+<span class="nc" id="L716">            return true; // this is the only case where we use the next CA cert</span>
+        }
+
+<span class="nc" id="L719">        log.debug(&quot;getUseNextCACert: Serial number in request does not match CA serial number nor next (rollover) CA cert. Will use current CA cert.&quot;);</span>
+<span class="nc" id="L720">        return false;</span>
+    }
+
+    protected boolean getFinishUser() {
+<span class="nc" id="L724">        return getBoolean(FINISHUSER, true);</span>
+    }
+
+    private void setFinishUser(boolean finishuser) {
+<span class="nc" id="L728">        putBoolean(FINISHUSER, finishuser);</span>
+<span class="nc" id="L729">    }</span>
+
+    protected boolean getIncludeInHealthCheck() {
+<span class="nc" id="L732">        return getBoolean(INCLUDEINHEALTHCHECK, true);</span>
+    }
+
+    protected void setIncludeInHealthCheck(boolean includeInHealthCheck) {
+<span class="nc" id="L736">        putBoolean(INCLUDEINHEALTHCHECK, includeInHealthCheck);</span>
+<span class="nc" id="L737">    }</span>
+
+    public boolean isDoEnforceUniquePublicKeys() {
+<span class="nc" id="L740">        return getBoolean(DO_ENFORCE_UNIQUE_PUBLIC_KEYS, false);</span>
+    }
+
+    private void setDoEnforceUniquePublicKeys(boolean doEnforceUniquePublicKeys) {
+<span class="nc" id="L744">        putBoolean(DO_ENFORCE_UNIQUE_PUBLIC_KEYS, doEnforceUniquePublicKeys);</span>
+<span class="nc" id="L745">    }</span>
+
+    public boolean isDoEnforceUniqueDistinguishedName() {
+<span class="nc" id="L748">        return getBoolean(DO_ENFORCE_UNIQUE_DISTINGUISHED_NAME, false);</span>
+    }
+
+    private void setDoEnforceUniqueDistinguishedName(boolean doEnforceUniqueDistinguishedName) {
+<span class="nc" id="L752">        putBoolean(DO_ENFORCE_UNIQUE_DISTINGUISHED_NAME, doEnforceUniqueDistinguishedName);</span>
+<span class="nc" id="L753">    }</span>
+
+    public boolean isDoEnforceUniqueSubjectDNSerialnumber() {
+<span class="nc" id="L756">        return getBoolean(DO_ENFORCE_UNIQUE_SUBJECTDN_SERIALNUMBER, false);</span>
+    }
+
+    private void setDoEnforceUniqueSubjectDNSerialnumber(boolean doEnforceUniqueSubjectDNSerialnumber) {
+<span class="nc" id="L760">        putBoolean(DO_ENFORCE_UNIQUE_SUBJECTDN_SERIALNUMBER, doEnforceUniqueSubjectDNSerialnumber);</span>
+<span class="nc" id="L761">    }</span>
+
+    /**
+     * Whether certificate request history should be used or not. The default value here is
+     * used when the value is missing in the database, and is true for compatibility with
+     * old CAs since it was not configurable and always enabled before 3.10.4.
+     * For new CAs the default value is set in the web or CLI code and is false since 6.0.0.
+     * @return true/false
+     */
+    public boolean isUseCertReqHistory() {
+<span class="nc" id="L771">        return getBoolean(USE_CERTREQ_HISTORY, true);</span>
+    }
+
+    private void setUseCertReqHistory(boolean useCertReqHistory) {
+<span class="nc" id="L775">        putBoolean(USE_CERTREQ_HISTORY, useCertReqHistory);</span>
+<span class="nc" id="L776">    }</span>
+
+    /**@return whether users should be stored or not, default true as was the case before 3.10.x 
+     * */
+    public boolean isUseUserStorage() {
+<span class="nc" id="L781">        return getBoolean(USE_USER_STORAGE, true);</span>
+    }
+
+    private void setUseUserStorage(boolean useUserStorage) {
+<span class="nc" id="L785">        putBoolean(USE_USER_STORAGE, useUserStorage);</span>
+<span class="nc" id="L786">    }</span>
+
+    /**@return whether issued certificates should be stored or not, default true as was the case before 3.10.x */
+    public boolean isUseCertificateStorage() {
+<span class="nc" id="L790">        return getBoolean(USE_CERTIFICATE_STORAGE, true);</span>
+    }
+
+    private void setUseCertificateStorage(boolean useCertificateStorage) {
+<span class="nc" id="L794">        putBoolean(USE_CERTIFICATE_STORAGE, useCertificateStorage);</span>
+<span class="nc" id="L795">    }</span>
+
+    private void setAcceptRevocationNonExistingEntry(boolean acceptRevocationNonExistingEntry) {
+<span class="nc" id="L798">        putBoolean(ACCEPT_REVOCATION_NONEXISTING_ENTRY, acceptRevocationNonExistingEntry);</span>
+<span class="nc" id="L799">    }</span>
+
+    /** @return whether revocations for non existing entry accepted */
+    public boolean isAcceptRevocationNonExistingEntry() {
+<span class="nc" id="L803">        return getBoolean(ACCEPT_REVOCATION_NONEXISTING_ENTRY, false);</span>
+    }
+
+
+    /**
+     * @return A 1:1 mapping between Approval Action:Approval Profile ID
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public Map&lt;ApprovalRequestType, Integer&gt; getApprovals() {
+<span class="nc" id="L812">        return (Map&lt;ApprovalRequestType, Integer&gt;) data.get(APPROVALS);</span>
+    }
+
+    public void setApprovals(Map&lt;ApprovalRequestType, Integer&gt; approvals) {
+        // We must store this as a predictable order map in the database, in order for databaseprotection to work
+<span class="nc bnc" id="L817" title="All 2 branches missed.">        data.put(APPROVALS, approvals != null ? new LinkedHashMap&lt;&gt;(approvals) : new LinkedHashMap&lt;&gt;());</span>
+<span class="nc" id="L818">    }</span>
+
+    /**
+     * @return a collection of Integers (CAInfo.REQ_APPROVAL_ constants) of which action that requires approvals,
+     * default none and never null.
+     *
+     * @deprecated since 6.8.0, see getApprovals()
+     */
+    @Deprecated
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public Collection&lt;Integer&gt; getApprovalSettings() {
+<span class="nc bnc" id="L829" title="All 2 branches missed.">        if (data.get(APPROVALSETTINGS) == null) {</span>
+<span class="nc" id="L830">            return new ArrayList&lt;&gt;();</span>
+        }
+<span class="nc" id="L832">        return (Collection&lt;Integer&gt;) data.get(APPROVALSETTINGS);</span>
+    }
+
+    /**
+     * Collection of Integers (CAInfo.REQ_APPROVAL_ constants) of which action that requires approvals
+     * @param approvalSettings settings
+     *
+     * @deprecated since 6.8.0, see setApprovals()
+     */
+    @Deprecated
+    public void setApprovalSettings(Collection&lt;Integer&gt; approvalSettings) {
+<span class="nc" id="L843">        data.put(APPROVALSETTINGS, approvalSettings);</span>
+<span class="nc" id="L844">    }</span>
+
+    /**
+     * @return the number of different administrators that needs to approve an action, default 1.
+     * @deprecated since 6.6.0, use the appropriate approval profile instead.
+     * Needed in order to be able to upgrade from 6.5 and earlier
+     */
+    @Deprecated
+    public int getNumOfRequiredApprovals() {
+<span class="nc bnc" id="L853" title="All 2 branches missed.">        if (data.get(NUMBEROFREQAPPROVALS) == null) {</span>
+<span class="nc" id="L854">            return 1;</span>
+        }
+<span class="nc" id="L856">        return ((Integer) data.get(NUMBEROFREQAPPROVALS)).intValue();</span>
+    }
+
+    /**
+     * The number of different administrators that needs to approve
+     * @param numOfReqApprovals # of approvals
+     * @deprecated since 6.6.0, use the appropriate approval profile instead.
+     * Needed in order to be able to upgrade from 6.5 and earlier
+     */
+    @Deprecated
+    public void setNumOfRequiredApprovals(int numOfReqApprovals) {
+<span class="nc" id="L867">        data.put(NUMBEROFREQAPPROVALS, Integer.valueOf(numOfReqApprovals));</span>
+<span class="nc" id="L868">    }</span>
+
+    /**
+     * @return the id of the approval profile. Defult -1 (= none)
+     *
+     * @deprecated since 6.8.0, see getApprovals()
+     */
+    @Deprecated
+    public int getApprovalProfile() {
+<span class="nc bnc" id="L877" title="All 2 branches missed.">        if (data.get(APPROVALPROFILE) == null) {</span>
+<span class="nc" id="L878">            return -1;</span>
+        }
+<span class="nc" id="L880">        return ((Integer) data.get(APPROVALPROFILE)).intValue();</span>
+    }
+
+    /**
+     * The id of the approval profile.
+     * @param approvalProfileID ID
+     *
+     * @deprecated since 6.8.0, see setApprovals()
+     */
+    @Deprecated
+    public void setApprovalProfile(final int approvalProfileID) {
+<span class="nc" id="L891">        data.put(APPROVALPROFILE, Integer.valueOf(approvalProfileID));</span>
+<span class="nc" id="L892">    }</span>
+
+    public void updateCA(CryptoToken cryptoToken, CAInfo cainfo, final AvailableCustomCertificateExtensionsConfiguration cceConfig) throws InvalidAlgorithmException {
+<span class="nc" id="L895">        setEncodedValidity(cainfo.getEncodedValidity());</span>
+<span class="nc" id="L896">        data.put(DESCRIPTION, cainfo.getDescription());</span>
+<span class="nc" id="L897">        data.put(CRLPERIOD, Long.valueOf(cainfo.getCRLPeriod()));</span>
+<span class="nc" id="L898">        data.put(DELTACRLPERIOD, Long.valueOf(cainfo.getDeltaCRLPeriod()));</span>
+<span class="nc" id="L899">        data.put(CRLISSUEINTERVAL, Long.valueOf(cainfo.getCRLIssueInterval()));</span>
+<span class="nc" id="L900">        data.put(CRLOVERLAPTIME, Long.valueOf(cainfo.getCRLOverlapTime()));</span>
+<span class="nc" id="L901">        data.put(CRLPUBLISHERS, cainfo.getCRLPublishers());</span>
+<span class="nc" id="L902">        data.put(VALIDATORS, cainfo.getValidators());</span>
+<span class="nc" id="L903">        data.put(APPROVALS, cainfo.getApprovals());</span>
+<span class="nc" id="L904">        data.put(USENOCONFLICTCERTIFICATEDATA, cainfo.isUseNoConflictCertificateData());</span>
+<span class="nc bnc" id="L905" title="All 2 branches missed.">        if (cainfo.getCertificateProfileId() &gt; 0) {</span>
+<span class="nc" id="L906">            data.put(CERTIFICATEPROFILEID, Integer.valueOf(cainfo.getCertificateProfileId()));</span>
+        }
+<span class="nc bnc" id="L908" title="All 4 branches missed.">        if (cainfo.getDefaultCertificateProfileId() &gt; 0 &amp;&amp; !cainfo.isUseCertificateStorage()) {</span>
+<span class="nc" id="L909">            data.put(DEFAULTCERTIFICATEPROFILEID, Integer.valueOf(cainfo.getDefaultCertificateProfileId()));</span>
+        }
+<span class="nc" id="L911">        setKeepExpiredCertsOnCRL(cainfo.getKeepExpiredCertsOnCRL());</span>
+
+<span class="nc bnc" id="L913" title="All 2 branches missed.">        if (cainfo.getCAToken() != null) {</span>
+<span class="nc" id="L914">            setCAToken(cainfo.getCAToken());</span>
+        }
+<span class="nc" id="L916">        setFinishUser(cainfo.getFinishUser());</span>
+<span class="nc" id="L917">        setIncludeInHealthCheck(cainfo.getIncludeInHealthCheck());</span>
+<span class="nc" id="L918">        setDoEnforceUniquePublicKeys(cainfo.isDoEnforceUniquePublicKeys());</span>
+<span class="nc" id="L919">        setDoEnforceUniqueDistinguishedName(cainfo.isDoEnforceUniqueDistinguishedName());</span>
+<span class="nc" id="L920">        setDoEnforceUniqueSubjectDNSerialnumber(cainfo.isDoEnforceUniqueSubjectDNSerialnumber());</span>
+<span class="nc" id="L921">        setUseCertReqHistory(cainfo.isUseCertReqHistory());</span>
+<span class="nc" id="L922">        setUseUserStorage(cainfo.isUseUserStorage());</span>
+<span class="nc" id="L923">        setUseCertificateStorage(cainfo.isUseCertificateStorage());</span>
+<span class="nc" id="L924">        setAcceptRevocationNonExistingEntry(cainfo.isAcceptRevocationNonExistingEntry());</span>
+<span class="nc" id="L925">        List&lt;Certificate&gt; newcerts = cainfo.getCertificateChain();</span>
+<span class="nc bnc" id="L926" title="All 4 branches missed.">        if ((newcerts != null) &amp;&amp; (newcerts.size() &gt; 0)) {</span>
+<span class="nc" id="L927">            setCertificateChain(newcerts);</span>
+<span class="nc" id="L928">            Certificate cacert = newcerts.iterator().next();</span>
+<span class="nc" id="L929">            setExpireTime(CertTools.getNotAfter(cacert));</span>
+        }
+        // Update or create extended CA services
+<span class="nc" id="L932">        final Collection&lt;ExtendedCAServiceInfo&gt; infos = cainfo.getExtendedCAServiceInfos();</span>
+<span class="nc bnc" id="L933" title="All 2 branches missed.">        if (infos != null) {</span>
+<span class="nc" id="L934">            final Collection&lt;ExtendedCAServiceInfo&gt; newInfos = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L935">            Collection&lt;Integer&gt; extendedservicetypes = getExternalCAServiceTypes(); // Se we can add things to this</span>
+<span class="nc bnc" id="L936" title="All 2 branches missed.">            for (ExtendedCAServiceInfo info : infos) {</span>
+<span class="nc" id="L937">                ExtendedCAService service = this.getExtendedCAService(info.getType());</span>
+<span class="nc bnc" id="L938" title="All 2 branches missed.">                if (service == null) {</span>
+<span class="nc bnc" id="L939" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L940">                        log.debug(&quot;Creating new extended CA service of type: &quot;+info.getType());</span>
+                    }
+<span class="nc" id="L942">                    createExtendedCAService(info);</span>
+<span class="nc" id="L943">                    extendedservicetypes.add(info.getType());</span>
+<span class="nc" id="L944">                    newInfos.add(info);</span>
+                } else {
+<span class="nc bnc" id="L946" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L947">                        log.debug(&quot;Updating extended CA service of type: &quot;+info.getType());</span>
+                    }
+<span class="nc" id="L949">                    service.update(cryptoToken, info, this, cceConfig); // the service's signing certificate might get created at this point!</span>
+<span class="nc" id="L950">                    setExtendedCAService(service);</span>
+
+                    // Now read back the info object from the service.
+                    // This is necessary because the service's signing certificate is &quot;lazy-created&quot;,
+                    // i.e. created when the service becomes active the first time.
+<span class="nc" id="L955">                    final ExtendedCAServiceInfo newInfo = service.getExtendedCAServiceInfo();</span>
+<span class="nc" id="L956">                    newInfos.add(newInfo);</span>
+                }
+<span class="nc" id="L958">            }</span>
+<span class="nc" id="L959">            cainfo.setExtendedCAServiceInfos(newInfos);</span>
+<span class="nc" id="L960">            data.put(EXTENDEDCASERVICES, extendedservicetypes);</span>
+        }
+
+<span class="nc bnc" id="L963" title="All 2 branches missed.">        if (cainfo.getStatus() == CAConstants.CA_UNINITIALIZED) {</span>
+<span class="nc" id="L964">            updateUninitializedCA(cainfo);</span>
+        }
+
+<span class="nc" id="L967">        this.cainfo = cainfo;</span>
+<span class="nc" id="L968">    }</span>
+
+    /**
+     * Called when an uninitialized CA is updated, either from updateCA
+     * or from other places in the code.
+     *
+     * A few more values are also set in the overridden method in X509CA.
+     * @param cainfo Info
+     */
+    public void updateUninitializedCA(CAInfo cainfo) {
+<span class="nc" id="L978">        setSignedBy(cainfo.getSignedBy());</span>
+<span class="nc" id="L979">    }</span>
+
+    /**
+     *
+     * @param cryptoToken Token
+     * @param publicKey provided public key. Will not have any precedence over subject.extendedInformation.certificateRequest
+     * @param subject end entity information. If it contains certificateRequest under extendedInformation, it will be used instead of the provided RequestMessage and publicKey
+     * @param notBefore null or a custom date to use as notBefore date
+     * @param keyusage BouncyCastle key usage {@link X509KeyUsage}, e.g. X509KeyUsage.digitalSignature | X509KeyUsage.keyEncipherment
+     * @param encodedValidity requested validity as SimpleTime string or ISO8601 date string (see ValidityDate.java).
+     * @param certProfile Profile
+     * @param sequence an optional requested sequence number (serial number) for the certificate, may or may not be used by the CA. Currently used by
+     *            CVC CAs for sequence field. Can be set to null.
+     * @param cceConfig containing a list of available custom certificate extensions
+     * @return The newly created certificate
+     * @throws Exception On error
+     */
+    public Certificate generateCertificate(CryptoToken cryptoToken, EndEntityInformation subject, PublicKey publicKey, int keyusage, Date notBefore, String encodedValidity,
+            CertificateProfile certProfile, String sequence, AvailableCustomCertificateExtensionsConfiguration cceConfig) throws Exception {
+        // Calculate the notAfter date
+<span class="nc bnc" id="L999" title="All 2 branches missed.">        if (notBefore == null) {</span>
+<span class="nc" id="L1000">            notBefore = new Date();</span>
+        }
+        final Date notAfter;
+<span class="nc bnc" id="L1003" title="All 2 branches missed.">        if (StringUtils.isNotBlank(encodedValidity)) {</span>
+<span class="nc" id="L1004">            notAfter = ValidityDate.getDate(encodedValidity, notBefore);</span>
+        } else {
+<span class="nc" id="L1006">            notAfter = null;</span>
+        }
+<span class="nc" id="L1008">        return generateCertificate(cryptoToken, subject, null, publicKey, keyusage, notBefore, notAfter, certProfile, null, sequence, null, cceConfig);</span>
+    }
+
+    /**
+     *
+     * @param cryptoToken Token
+     * @param request provided request message containing optional information, and will be set with the signing key and provider.
+     * If the certificate profile allows subject DN override this value will be used instead of the value from subject.getDN. Its public key is going to be used if
+     * publicKey == null &amp;amp;&amp;amp; subject.extendedInformation.certificateRequest == null. Can be null.
+     * @param publicKey provided public key which will have precedence over public key from the provided RequestMessage but not over subject.extendedInformation.certificateRequest
+     * @param subject end entity information. If it contains certificateRequest under extendedInformation, it will be used instead of the provided RequestMessage and publicKey
+     * @param keyusage BouncyCastle key usage {@link X509KeyUsage}, e.g. X509KeyUsage.digitalSignature | X509KeyUsage.keyEncipherment
+     * @param notBefore Start date
+     * @param notAfter End date
+     * @param certProfile Profile
+     * @param extensions an optional set of extensions to set in the created certificate, if the profile allows extension override, null if the
+     *            profile default extensions should be used.
+     * @param sequence an optional requested sequence number (serial number) for the certificate, may or may not be used by the CA. Currently used by
+     *            CVC CAs for sequence field. Can be set to null.
+     * @param certGenParams Extra parameters for certificate generation, e.g. for the CT extension. May contain references to session beans.
+     * @param cceConfig containing a list of available custom certificate extensions
+     * @return the generated certificate
+     *
+     * @throws CryptoTokenOfflineException if the crypto token was unavailable
+     * @throws CertificateExtensionException  if any of the certificate extensions were invalid
+     * @throws CertificateCreateException if an error occurred when trying to create a certificate.
+     * @throws OperatorCreationException  if CA's private key contained an unknown algorithm or provider
+     * @throws IllegalNameException if the name specified in the certificate request contains illegal characters
+     * @throws IllegalValidityException  if validity was invalid
+     * @throws InvalidAlgorithmException  if the signing algorithm in the certificate profile (or the CA Token if not found) was invalid.
+     * @throws CAOfflineException if the CA wasn't active
+     * @throws SignatureException if the CA's certificate's and request's certificate's and signature algorithms differ
+     * @throws IllegalKeyException if the using public key is not allowed to be used by specified certProfile
+     */
+    public abstract Certificate generateCertificate(CryptoToken cryptoToken, EndEntityInformation subject, RequestMessage request,
+            PublicKey publicKey, int keyusage, Date notBefore, Date notAfter, CertificateProfile certProfile, Extensions extensions, String sequence,
+            CertificateGenerationParams certGenParams, AvailableCustomCertificateExtensionsConfiguration cceConfig) throws CryptoTokenOfflineException, CAOfflineException, InvalidAlgorithmException,
+            IllegalValidityException, IllegalNameException, OperatorCreationException, CertificateCreateException, CertificateExtensionException,
+            SignatureException, IllegalKeyException;
+
+    /**
+     *
+     *@param cryptoToken Token
+     * @param request provided request message containing optional information, and will be set with the signing key and provider.
+     * If the certificate profile allows subject DN override this value will be used instead of the value from subject.getDN. Its public key is going to be used if
+     * publicKey == null &amp;amp;&amp;amp; subject.extendedInformation.certificateRequest == null. Can be null.
+     * @param publicKey provided public key which will have precedence over public key from the provided RequestMessage but not over subject.extendedInformation.certificateRequest
+     * @param subject end entity information. If it contains certificateRequest under extendedInformation, it will be used instead of the provided RequestMessage and publicKey
+     * @param keyusage BouncyCastle key usage {@link X509KeyUsage}, e.g. X509KeyUsage.digitalSignature | X509KeyUsage.keyEncipherment
+     * @param notBefore Start date
+     * @param notAfter End date
+     * @param certProfile Profile
+     * @param extensions an optional set of extensions to set in the created certificate, if the profile allows extension override, null if the
+     *            profile default extensions should be used.
+     * @param sequence an optional requested sequence number (serial number) for the certificate, may or may not be used by the CA. Currently used by
+     *            CVC CAs for sequence field. Can be set to null.
+     * @param cceConfig containing a list of available custom certificate extensions
+     * @return the generated certificate
+     *
+     * @throws CryptoTokenOfflineException if the crypto token was unavailable
+     * @throws CertificateExtensionException  if any of the certificate extensions were invalid
+     * @throws CertificateCreateException if an error occurred when trying to create a certificate.
+     * @throws OperatorCreationException  if CA's private key contained an unknown algorithm or provider
+     * @throws IllegalNameException if the name specified in the certificate request contains illegal characters
+     * @throws IllegalValidityException  if validity was invalid
+     * @throws InvalidAlgorithmException  if the signing algorithm in the certificate profile (or the CA Token if not found) was invalid.
+     * @throws CAOfflineException if the CA wasn't active
+     * @throws SignatureException if the CA's certificate's and request's certificate's and signature algorithms differ
+     * @throws IllegalKeyException if the using public key is not allowed to be used by specified certProfile
+     */
+    public final Certificate generateCertificate(CryptoToken cryptoToken, final EndEntityInformation subject, final RequestMessage request,
+            final PublicKey publicKey, final int keyusage, final Date notBefore, final Date notAfter, final CertificateProfile certProfile,
+            final Extensions extensions, final String sequence, final AvailableCustomCertificateExtensionsConfiguration cceConfig)
+            throws CryptoTokenOfflineException, CAOfflineException, InvalidAlgorithmException,
+            IllegalValidityException, IllegalNameException, OperatorCreationException, CertificateCreateException, CertificateExtensionException,
+            SignatureException, IllegalKeyException {
+<span class="nc" id="L1084">        return generateCertificate(cryptoToken, subject, request, publicKey, keyusage, notBefore, notAfter, certProfile, extensions, sequence, null, cceConfig);</span>
+    }
+
+
+    public abstract X509CRLHolder generateCRL(CryptoToken cryptoToken,Collection&lt;RevokedCertInfo&gt; certs, int crlnumber) throws Exception;
+
+    public abstract X509CRLHolder generateDeltaCRL(CryptoToken cryptoToken, Collection&lt;RevokedCertInfo&gt; certs, int crlnumber, int basecrlnumber) throws Exception;
+
+    /**
+     * Create a signed PKCS#7 / CMS message.
+     *
+     * @param cryptoToken Token
+     * @param cert Certificate
+     * @param includeChain True to include all certs
+     * @return A DER-encoded PKCS#7
+     * @throws SignRequestSignatureException if the certificate doesn't seem to be signed by this CA
+     * @see CertTools#createCertsOnlyCMS(List) for how to craete a certs-only PKCS7/CMS
+     */
+    public abstract byte[] createPKCS7(CryptoToken cryptoToken, X509Certificate cert, boolean includeChain) throws SignRequestSignatureException;
+
+    /**
+     * Creates a roll over PKCS7 for the next CA certificate, signed with the current CA key. Used by ScepServlet.
+     * @param cryptoToken Token
+     *
+     * @return Encoded signed certificate chain, suitable for use in SCEP.
+     * @throws SignRequestSignatureException if the certificate doesn't seem to be signed by this CA
+     */
+    public abstract byte[] createPKCS7Rollover(CryptoToken cryptoToken) throws SignRequestSignatureException;
+
+    /**
+     * Creates a certificate signature request (CSR), that can be sent to an external Root CA. Request format can vary depending on the type of CA. For
+     * X509 CAs PKCS#10 requests are created, for CVC CAs CVC requests are created.
+     * @param cryptoToken Token
+     *
+     * @param attributes PKCS10 attributes to be included in the request, a Collection of ASN1Encodable objects, ready to put in the request. Can be
+     *            null.
+     * @param signAlg the signature algorithm used by the CA
+     * @param cacert the CAcertficate the request is targeted for, may be used or ignored by implementation depending on the request type created.
+     * @param signatureKeyPurpose which CA token key pair should be used to create the request, normally SecConst.CAKEYPURPOSE_CERTSIGN but can also
+     *            be SecConst.CAKEYPURPOSE_CERTSIGN_NEXT.
+     * @param certificateProfile Certificate profile to use for CA-type specific purposes, such as CV Certificate Extensions.
+     * @param cceConfig containing a list of available custom certificate extensions
+     * @return byte array with binary encoded request
+     * @throws CryptoTokenOfflineException if the crypto token is offline
+     * @throws CertificateExtensionException if there was a problem constructing a certificate extension.
+     */
+    public abstract byte[] createRequest(CryptoToken cryptoToken, Collection&lt;ASN1Encodable&gt; attributes, String signAlg, Certificate cacert,
+            int signatureKeyPurpose, CertificateProfile certificateProfile, AvailableCustomCertificateExtensionsConfiguration cceConfig)
+                    throws CryptoTokenOfflineException, CertificateExtensionException;
+
+    public abstract byte[] createAuthCertSignRequest(CryptoToken cryptoToken, byte[] request) throws CryptoTokenOfflineException;
+
+    /**
+     * General encryption method used to encrypt using a CA
+     * @param cryptoToken token
+     *
+     * @param data the data to encrypt
+     * @param keyPurpose should be one of the SecConst.CAKEYPURPOSE_ constants
+     * @return encrypted data
+     * @throws CryptoTokenOfflineException If crypto token is off-line so encryption key can not be used.
+     * @throws CMSException In case parsing/encryption of CMS data fails.
+     * @throws NoSuchProviderException If encryption provider is not available.
+     * @throws NoSuchAlgorithmException If desired encryption algorithm is not available.
+     * @throws IOException In case reading/writing data streams failed during encryption
+     */
+    public abstract byte[] encryptData(CryptoToken cryptoToken, byte[] data, int keyPurpose) throws CryptoTokenOfflineException, NoSuchAlgorithmException, NoSuchProviderException, CMSException, IOException;
+
+    /**
+     * General encryption method used to decrypt using a CA
+     * @param cryptoToken Token
+     *
+     * @param data the data to decrypt
+     * @param cAKeyPurpose should be one of the SecConst.CAKEYPURPOSE_ constants
+     * @return decrypted data
+     * @throws CMSException In case parsing/decryption of CMS data fails.
+     * @throws CryptoTokenOfflineException If crypto token is off-line so decryption key can not be used.
+     */
+    public abstract byte[] decryptData(CryptoToken cryptoToken, byte[] data, int cAKeyPurpose) throws CMSException, CryptoTokenOfflineException;
+
+    // Methods used with extended services
+    /**
+     * Initializes the ExtendedCAService
+     *
+     * @param cryptoToken the cryptotoken used to initiate the service
+     * @param type the type of the extended key service
+     * @param ca the CA used to initiate the service
+     * @param cceConfig containing a list of available custom certificate extensions
+     * @throws Exception On error
+     */
+    public void initExtendedService(CryptoToken cryptoToken, int type, CA ca, final AvailableCustomCertificateExtensionsConfiguration cceConfig) throws Exception {
+<span class="nc" id="L1174">        ExtendedCAService service = getExtendedCAService(type);</span>
+<span class="nc bnc" id="L1175" title="All 2 branches missed.">        if (service != null) {</span>
+<span class="nc" id="L1176">            service.init(cryptoToken, ca, cceConfig);</span>
+<span class="nc" id="L1177">            setExtendedCAService(service);</span>
+        }
+<span class="nc" id="L1179">    }</span>
+
+    /** Method used to retrieve information about the service. 
+     * @param type type
+     * @return info */
+    public ExtendedCAServiceInfo getExtendedCAServiceInfo(int type) {
+<span class="nc" id="L1185">        ExtendedCAServiceInfo ret = null;</span>
+<span class="nc" id="L1186">        ExtendedCAService service = getExtendedCAService(type);</span>
+<span class="nc bnc" id="L1187" title="All 2 branches missed.">        if (service != null) {</span>
+<span class="nc" id="L1188">            ret = service.getExtendedCAServiceInfo();</span>
+        }
+<span class="nc" id="L1190">        return ret;</span>
+    }
+
+    /**
+     * Method used to perform the service.
+     * @param cryptoToken token
+     * @param request request
+     * @return  service response
+     * @throws ExtendedCAServiceRequestException If there was a problem with the request
+     * @throws IllegalExtendedCAServiceRequestException If the request is illegal
+     * @throws ExtendedCAServiceNotActiveException If the service is inactive or not found
+     * @throws OperatorCreationException If creation fails
+     * @throws CertificateException Ig there was a problem with the certificate
+     * @throws CertificateEncodingException if there was a problem constructing a certificate extension.
+     */
+    public ExtendedCAServiceResponse extendedService(CryptoToken cryptoToken, ExtendedCAServiceRequest request) throws ExtendedCAServiceRequestException,
+            IllegalExtendedCAServiceRequestException, ExtendedCAServiceNotActiveException, CertificateEncodingException, CertificateException, OperatorCreationException {
+<span class="nc" id="L1207">        ExtendedCAService service = getExtendedCAService(request.getServiceType());</span>
+<span class="nc bnc" id="L1208" title="All 2 branches missed.">        if (service == null) {</span>
+<span class="nc" id="L1209">        	final String msg = &quot;Extended CA service is null for service request: &quot;+request.getClass().getName();</span>
+<span class="nc" id="L1210">        	log.error(msg);</span>
+<span class="nc" id="L1211">        	throw new IllegalExtendedCAServiceRequestException();</span>
+        }
+        // Enrich request with CA in order for the service to be able to use CA keys and certificates
+<span class="nc" id="L1214">        service.setCA(this);</span>
+<span class="nc" id="L1215">        return service.extendedService(cryptoToken, request);</span>
+    }
+
+    @SuppressWarnings(&quot;rawtypes&quot;)
+    public HashMap getExtendedCAServiceData(int type) {
+<span class="nc" id="L1220">        HashMap serviceData = (HashMap) data.get(EXTENDEDCASERVICE + type);</span>
+<span class="nc" id="L1221">        return serviceData;</span>
+    }
+
+    public void setExtendedCAServiceData(int type, @SuppressWarnings(&quot;rawtypes&quot;) HashMap serviceData) {
+<span class="nc" id="L1225">        data.put(EXTENDEDCASERVICE + type, serviceData);</span>
+<span class="nc" id="L1226">    }</span>
+
+    protected ExtendedCAService getExtendedCAService(int type) {
+<span class="nc" id="L1229">        ExtendedCAService returnval = null;</span>
+        try {
+<span class="nc" id="L1231">            returnval = extendedcaservicemap.get(Integer.valueOf(type));</span>
+<span class="nc bnc" id="L1232" title="All 2 branches missed.">            if (returnval == null) {</span>
+            	@SuppressWarnings(&quot;rawtypes&quot;)
+<span class="nc" id="L1234">                HashMap serviceData = getExtendedCAServiceData(type);</span>
+<span class="nc bnc" id="L1235" title="All 2 branches missed.">                if (serviceData != null) {</span>
+                    // We must have run upgrade on the extended CA services for this to work
+<span class="nc" id="L1237">                    String implClassname = (String) serviceData.get(ExtendedCAServiceInfo.IMPLEMENTATIONCLASS);</span>
+<span class="nc bnc" id="L1238" title="All 2 branches missed.">                    if (implClassname == null) {</span>
+                        // We need this hardcoded implementation classnames in order to be able to upgrade extended services from before
+                        // See ECA-6341 and UpgradeSessionBean.migrateDatabase500()
+<span class="nc" id="L1241">                        log.info(&quot;implementation classname is null for extended service type: &quot;+type+&quot;. Will try our known ones.&quot;);</span>
+<span class="nc bnc" id="L1242" title="All 5 branches missed.">                        switch (type) {</span>
+                        case 2: // Old XKMSCAService that should not be used anymore
+<span class="nc" id="L1244">                            log.info(&quot;Found an XKMS CA service type. Will not create the deprecated service.&quot;);</span>
+<span class="nc" id="L1245">                            break;</span>
+                        case ExtendedCAServiceTypes.TYPE_CMSEXTENDEDSERVICE:
+<span class="nc" id="L1247">                            implClassname = &quot;org.ejbca.core.model.ca.caadmin.extendedcaservices.CmsCAService&quot;;</span>
+<span class="nc" id="L1248">                            break;</span>
+                        case ExtendedCAServiceTypes.TYPE_HARDTOKENENCEXTENDEDSERVICE:
+<span class="nc" id="L1250">                            implClassname = &quot;org.ejbca.core.model.ca.caadmin.extendedcaservices.HardTokenEncryptCAService&quot;;</span>
+<span class="nc" id="L1251">                            break;</span>
+                        case ExtendedCAServiceTypes.TYPE_KEYRECOVERYEXTENDEDSERVICE:
+<span class="nc" id="L1253">                            implClassname = &quot;org.ejbca.core.model.ca.caadmin.extendedcaservices.KeyRecoveryCAService&quot;;</span>
+<span class="nc" id="L1254">                            break;</span>
+                        default:
+<span class="nc" id="L1256">                            log.error(&quot;implementation classname is null for extended service type: &quot;+type+&quot;. Service not created.&quot;);</span>
+                            break;
+                        }
+                    }
+<span class="nc bnc" id="L1260" title="All 2 branches missed.">                    if (implClassname != null) {</span>
+<span class="nc bnc" id="L1261" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1262">                            log.debug(&quot;implementation classname for extended service type: &quot;+type+&quot; is &quot;+implClassname);</span>
+                        }
+<span class="nc" id="L1264">                        Class&lt;?&gt; implClass = Class.forName(implClassname);</span>
+<span class="nc" id="L1265">                        returnval = (ExtendedCAService) implClass.getConstructor(HashMap.class).newInstance(new Object[] { serviceData });</span>
+<span class="nc" id="L1266">                        extendedcaservicemap.put(Integer.valueOf(type), returnval);</span>
+                    }
+<span class="nc" id="L1268">                } else {</span>
+<span class="nc" id="L1269">                	log.error(&quot;Servicedata is null for extended CA service of type: &quot;+type);</span>
+                }
+            }
+<span class="nc" id="L1272">        } catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L1273">            log.warn(&quot;Extended CA service of type &quot; + type + &quot; can not get created: &quot;, e);</span>
+<span class="nc" id="L1274">        } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L1275">            log.warn(&quot;Extended CA service of type &quot; + type + &quot; can not get created: &quot;, e);</span>
+<span class="nc" id="L1276">        } catch (SecurityException e) {</span>
+<span class="nc" id="L1277">            log.warn(&quot;Extended CA service of type &quot; + type + &quot; can not get created: &quot;, e);</span>
+<span class="nc" id="L1278">        } catch (InstantiationException e) {</span>
+<span class="nc" id="L1279">            log.warn(&quot;Extended CA service of type &quot; + type + &quot; can not get created: &quot;, e);</span>
+<span class="nc" id="L1280">        } catch (IllegalAccessException e) {</span>
+<span class="nc" id="L1281">            log.warn(&quot;Extended CA service of type &quot; + type + &quot; can not get created: &quot;, e);</span>
+<span class="nc" id="L1282">        } catch (InvocationTargetException e) {</span>
+<span class="nc" id="L1283">            log.warn(&quot;Extended CA service of type &quot; + type + &quot; can not get created: &quot;, e);</span>
+<span class="nc" id="L1284">        } catch (NoSuchMethodException e) {</span>
+<span class="nc" id="L1285">            log.warn(&quot;Extended CA service of type &quot; + type + &quot; can not get created: &quot;, e);</span>
+<span class="nc" id="L1286">        }</span>
+<span class="nc" id="L1287">        return returnval;</span>
+    }
+
+    @SuppressWarnings(&quot;rawtypes&quot;)
+    public void setExtendedCAService(ExtendedCAService extendedcaservice) {
+<span class="nc" id="L1292">        ExtendedCAServiceInfo info = extendedcaservice.getExtendedCAServiceInfo();</span>
+<span class="nc" id="L1293">        setExtendedCAServiceData(info.getType(), (HashMap)extendedcaservice.saveData());</span>
+<span class="nc" id="L1294">        extendedcaservicemap.put(Integer.valueOf(info.getType()), extendedcaservice);</span>
+<span class="nc" id="L1295">    }</span>
+
+    /** Returns a Collection of ExternalCAServices (int) added to this CA. 
+     * @return types*/
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public Collection&lt;Integer&gt; getExternalCAServiceTypes() {
+<span class="nc bnc" id="L1301" title="All 2 branches missed.">        if (data.get(EXTENDEDCASERVICES) == null) {</span>
+<span class="nc" id="L1302">            return new ArrayList&lt;&gt;();</span>
+        }
+<span class="nc" id="L1304">        return (Collection&lt;Integer&gt;) data.get(EXTENDEDCASERVICES);</span>
+    }
+
+    /**
+     * Method to upgrade new (or existing externacaservices) This method needs to be called outside the regular upgrade since the CA isn't
+     * instantiated in the regular upgrade.
+     * @return true/false
+     */
+    public abstract boolean upgradeExtendedCAServices();
+
+    /** Create a certificate with all the current CA certificate info, but signed by the old issuer 
+     * @param cryptoToken token
+     * @param createLinkCertificate create?
+     * @param certProfile profile
+     * @param cceConfig config
+     * @param oldCaCert old cert
+     * @throws CryptoTokenOfflineException on error */
+    public abstract void createOrRemoveLinkCertificate(CryptoToken cryptoToken, boolean createLinkCertificate, CertificateProfile certProfile,
+            AvailableCustomCertificateExtensionsConfiguration cceConfig, Certificate oldCaCert) throws CryptoTokenOfflineException;
+
+    /** Store the latest link certificate in this object. 
+     * @param encodedLinkCertificate certificate*/
+    protected void updateLatestLinkCertificate(byte[] encodedLinkCertificate) {
+<span class="nc bnc" id="L1327" title="All 2 branches missed.">        if (encodedLinkCertificate == null) {</span>
+<span class="nc" id="L1328">            data.remove(LATESTLINKCERTIFICATE);</span>
+        } else {
+            try {
+<span class="nc" id="L1331">                data.put(LATESTLINKCERTIFICATE, new String(Base64.encode(encodedLinkCertificate),&quot;UTF8&quot;));</span>
+<span class="nc" id="L1332">            } catch (final UnsupportedEncodingException e) {</span>
+<span class="nc" id="L1333">                throw new RuntimeException(e);  // Lack of UTF8 would be fatal.</span>
+<span class="nc" id="L1334">            }</span>
+        }
+<span class="nc" id="L1336">    }</span>
+
+    /** @return the CA latest link certificate or null */
+    public byte[] getLatestLinkCertificate() {
+<span class="nc bnc" id="L1340" title="All 2 branches missed.">        if (data.get(LATESTLINKCERTIFICATE) == null) {</span>
+<span class="nc" id="L1341">            return null;</span>
+        }
+        try {
+<span class="nc" id="L1344">            return Base64.decode(((String)data.get(LATESTLINKCERTIFICATE)).getBytes(&quot;UTF8&quot;));</span>
+<span class="nc" id="L1345">        } catch (final UnsupportedEncodingException e) {</span>
+<span class="nc" id="L1346">            throw new RuntimeException(e);  // Lack of UTF8 would be fatal.</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

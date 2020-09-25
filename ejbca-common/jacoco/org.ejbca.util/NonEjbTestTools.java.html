@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NonEjbTestTools.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util</a> &gt; <span class="el_source">NonEjbTestTools.java</span></div><h1>NonEjbTestTools.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.util;
+
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
+
+import org.bouncycastle.asn1.ASN1EncodableVector;
+import org.bouncycastle.asn1.DERSequence;
+import org.bouncycastle.asn1.DERSet;
+import org.bouncycastle.asn1.DERUTF8String;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.cesecore.certificates.util.AlgorithmConstants;
+import org.cesecore.keys.util.KeyTools;
+import org.cesecore.util.CertTools;
+
+/**
+ * Helpers used by different tests, that does not invoke EJBs.
+ * 
+ * TODO: Move this class to one of the test libs
+ *  
+ * @version $Id: NonEjbTestTools.java 22117 2015-10-29 10:53:42Z mikekushner $
+ */
+<span class="nc" id="L42">public class NonEjbTestTools {</span>
+
+    public static byte[] generatePKCS10Req(String dn, String password) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, SignatureException, InvalidAlgorithmParameterException, IOException, OperatorCreationException {
+        // Generate keys
+<span class="nc" id="L46">    	KeyPair keys = KeyTools.genKeys(&quot;512&quot;, AlgorithmConstants.KEYALGORITHM_RSA);            </span>
+
+        // Create challenge password attribute for PKCS10
+        // Attributes { ATTRIBUTE:IOSet } ::= SET OF Attribute{{ IOSet }}
+        //
+        // Attribute { ATTRIBUTE:IOSet } ::= SEQUENCE {
+        //    type    ATTRIBUTE.&amp;id({IOSet}),
+        //    values  SET SIZE(1..MAX) OF ATTRIBUTE.&amp;Type({IOSet}{\@type})
+        // }
+<span class="nc" id="L55">        ASN1EncodableVector vec = new ASN1EncodableVector();</span>
+<span class="nc" id="L56">        vec.add(PKCSObjectIdentifiers.pkcs_9_at_challengePassword); </span>
+<span class="nc" id="L57">        ASN1EncodableVector values = new ASN1EncodableVector();</span>
+<span class="nc" id="L58">        values.add(new DERUTF8String(password));</span>
+<span class="nc" id="L59">        vec.add(new DERSet(values));</span>
+<span class="nc" id="L60">        ASN1EncodableVector v = new ASN1EncodableVector();</span>
+<span class="nc" id="L61">        v.add(new DERSequence(vec));</span>
+<span class="nc" id="L62">        DERSet set = new DERSet(v);</span>
+        // Create PKCS#10 certificate request
+<span class="nc" id="L64">        PKCS10CertificationRequest p10request = CertTools.genPKCS10CertificationRequest(&quot;SHA1WithRSA&quot;,</span>
+<span class="nc" id="L65">                CertTools.stringToBcX500Name(dn), keys.getPublic(), set, keys.getPrivate(), null);</span>
+<span class="nc" id="L66">        return p10request.toASN1Structure().getEncoded();        </span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,4 @@
+org.ejbca.core.ejb.profiles
+org.ejbca.core.ejb.ra
+org.ejbca.database
+org.ejbca.util

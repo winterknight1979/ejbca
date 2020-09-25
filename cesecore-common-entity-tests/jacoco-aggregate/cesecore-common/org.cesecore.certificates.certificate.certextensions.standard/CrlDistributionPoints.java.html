@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CrlDistributionPoints.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-common-entity-tests</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.certificate.certextensions.standard</a> &gt; <span class="el_source">CrlDistributionPoints.java</span></div><h1>CrlDistributionPoints.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/ 
+package org.cesecore.certificates.certificate.certextensions.standard;
+
+import java.security.PublicKey;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.StringTokenizer;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1EncodableVector;
+import org.bouncycastle.asn1.DERIA5String;
+import org.bouncycastle.asn1.DERSequence;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.CRLDistPoint;
+import org.bouncycastle.asn1.x509.DistributionPoint;
+import org.bouncycastle.asn1.x509.DistributionPointName;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
+import org.cesecore.certificates.ca.CA;
+import org.cesecore.certificates.ca.X509CA;
+import org.cesecore.certificates.ca.internal.CertificateValidity;
+import org.cesecore.certificates.certificate.certextensions.CertificateExtensionException;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.util.StringTools;
+
+/** 
+ * 
+ * Class for standard X509 certificate extension. 
+ * See rfc3280 or later for spec of this extension.      
+ * 
+ * @version $Id: CrlDistributionPoints.java 23316 2016-04-28 19:03:37Z jeklund $
+ */
+<span class="fc" id="L48">public class CrlDistributionPoints extends StandardCertificateExtension {</span>
+    private static final long serialVersionUID = 1L;
+<span class="fc" id="L50">    private static final Logger log = Logger.getLogger(CrlDistributionPoints.class);</span>
+	
+    @Override
+	public void init(final CertificateProfile certProf) {
+<span class="fc" id="L54">		super.setOID(Extension.cRLDistributionPoints.getId());</span>
+<span class="fc" id="L55">		super.setCriticalFlag(certProf.getCRLDistributionPointCritical());</span>
+<span class="fc" id="L56">	}</span>
+    
+    @Override
+    public ASN1Encodable getValue(final EndEntityInformation subject, final CA ca, final CertificateProfile certProfile,
+            final PublicKey userPublicKey, final PublicKey caPublicKey, CertificateValidity val) throws
+            CertificateExtensionException {
+<span class="nc" id="L62">		String crldistpoint = certProfile.getCRLDistributionPointURI();</span>
+<span class="nc" id="L63">		String crlissuer=certProfile.getCRLIssuer();</span>
+<span class="nc" id="L64">		final X509CA x509ca = (X509CA)ca;</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">		if(certProfile.getUseDefaultCRLDistributionPoint()){</span>
+<span class="nc" id="L66">			crldistpoint = x509ca.getDefaultCRLDistPoint();</span>
+<span class="nc" id="L67">			crlissuer = x509ca.getDefaultCRLIssuer();</span>
+		}
+		// Multiple CDPs are separated with the ';' sign        	         	 
+<span class="nc" id="L70">		final ArrayList&lt;DistributionPointName&gt; dpns = new ArrayList&lt;DistributionPointName&gt;();</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">		if (StringUtils.isNotEmpty(crldistpoint)) {</span>
+<span class="nc" id="L72">			final Iterator&lt;String&gt; it = StringTools.splitURIs(crldistpoint).iterator();</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">			while (it.hasNext()) {</span>
+				// 6 is URI
+<span class="nc" id="L75">				final String uri = (String) it.next();</span>
+<span class="nc" id="L76">				final GeneralName gn = new GeneralName(GeneralName.uniformResourceIdentifier, new DERIA5String(uri));</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">				if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L78">					log.debug(&quot;Added CRL distpoint: &quot;+uri);</span>
+				}
+<span class="nc" id="L80">				final ASN1EncodableVector vec = new ASN1EncodableVector();</span>
+<span class="nc" id="L81">				vec.add(gn);</span>
+<span class="nc" id="L82">				final GeneralNames gns = GeneralNames.getInstance(new DERSequence(vec));</span>
+<span class="nc" id="L83">				final DistributionPointName dpn = new DistributionPointName(0, gns);</span>
+<span class="nc" id="L84">				dpns.add(dpn);</span>
+<span class="nc" id="L85">			}            	</span>
+		}
+		// CRL issuer works much like Dist point URI. If separated by ; it is put in the same global distPoint as the URI, 
+		// if there is more of one of them, the one with more is put in an own global distPoint.
+<span class="nc" id="L89">		final ArrayList&lt;GeneralNames&gt; issuers = new ArrayList&lt;GeneralNames&gt;();</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">		if (StringUtils.isNotEmpty(crlissuer)) {</span>
+<span class="nc" id="L91">			final StringTokenizer tokenizer = new StringTokenizer(crlissuer, &quot;;&quot;, false);</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">			while (tokenizer.hasMoreTokens()) {</span>
+<span class="nc" id="L93">				final String issuer = tokenizer.nextToken();</span>
+<span class="nc" id="L94">				final GeneralName gn = new GeneralName(new X500Name(issuer));</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">				if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L96">					log.debug(&quot;Added CRL issuer: &quot;+issuer);</span>
+				}
+<span class="nc" id="L98">				final ASN1EncodableVector vec = new ASN1EncodableVector();</span>
+<span class="nc" id="L99">				vec.add(gn);</span>
+<span class="nc" id="L100">				final GeneralNames gns = GeneralNames.getInstance(new DERSequence(vec));</span>
+<span class="nc" id="L101">				issuers.add(gns);</span>
+<span class="nc" id="L102">			}            	</span>
+		}
+<span class="nc" id="L104">		final ArrayList&lt;DistributionPoint&gt; distpoints = new ArrayList&lt;DistributionPoint&gt;();</span>
+<span class="nc bnc" id="L105" title="All 4 branches missed.">		if ( (!issuers.isEmpty()) || (!dpns.isEmpty()) ) {</span>
+<span class="nc" id="L106">			int i = dpns.size();</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">			if (issuers.size() &gt; i) {</span>
+<span class="nc" id="L108">				i = issuers.size();</span>
+			}
+<span class="nc bnc" id="L110" title="All 2 branches missed.">			for (int j = 0; j &lt; i; j++) {</span>
+<span class="nc" id="L111">				DistributionPointName dpn = null;</span>
+<span class="nc" id="L112">				GeneralNames issuer = null;</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">				if (dpns.size() &gt; j) {</span>
+<span class="nc" id="L114">					dpn = (DistributionPointName)dpns.get(j);</span>
+				}
+<span class="nc bnc" id="L116" title="All 2 branches missed.">				if (issuers.size() &gt; j) {</span>
+<span class="nc" id="L117">					issuer = (GeneralNames)issuers.get(j);</span>
+				}
+<span class="nc bnc" id="L119" title="All 4 branches missed.">				if ( (dpn != null) || (issuer != null) ) {</span>
+<span class="nc" id="L120">					distpoints.add(new DistributionPoint(dpn, null, issuer));            	            			</span>
+				}
+			}
+		}
+<span class="nc" id="L124">		CRLDistPoint ret = null;</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">		if (!distpoints.isEmpty()) {</span>
+<span class="nc" id="L126">			ret = new CRLDistPoint((DistributionPoint[])distpoints.toArray(new DistributionPoint[distpoints.size()]));			</span>
+		} 
+<span class="nc bnc" id="L128" title="All 2 branches missed.">		if (ret == null) {</span>
+<span class="nc" id="L129">			log.error(&quot;CrlDistributionPoints missconfigured, no distribution points available.&quot;);</span>
+		}
+<span class="nc" id="L131">		return ret;</span>
+	}	
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

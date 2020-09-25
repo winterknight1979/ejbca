@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>UserMatch.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-ws-common</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util.query</a> &gt; <span class="el_source">UserMatch.java</span></div><h1>UserMatch.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.util.query;
+
+import org.apache.commons.lang.StringUtils;
+
+/**
+ * A class used by Query class to build a query for EJBCA RA module.
+ *
+ * @version $Id: UserMatch.java 26481 2017-09-04 11:43:58Z henriks $
+ */
+public class UserMatch extends BasicMatch {
+
+    private static final long serialVersionUID = 5458563135026714888L;
+
+    public static final int MATCH_NONE                     = -1;
+
+    public static final int MATCH_WITH_USERNAME            = 0;
+    public static final int MATCH_WITH_EMAIL               = 1;
+    public static final int MATCH_WITH_STATUS              = 2; // Value must the number representation.
+    public static final int MATCH_WITH_ENDENTITYPROFILE    = 3; // Matches the profile id not profilename.
+    public static final int MATCH_WITH_CERTIFICATEPROFILE  = 4; // Matches the certificatetype id not name.
+    public static final int MATCH_WITH_CA                  = 5; // Matches the CA id not CA name.
+	public static final int MATCH_WITH_TOKEN               = 6;
+	public static final int MATCH_WITH_DN                  = 7;
+    // Subject DN fields.
+    public static final int MATCH_WITH_UID                 = 100;
+    public static final int MATCH_WITH_COMMONNAME          = 101;
+    public static final int MATCH_WITH_DNSERIALNUMBER      = 102;
+    public static final int MATCH_WITH_GIVENNAME           = 103;
+    public static final int MATCH_WITH_INITIALS            = 104;
+    public static final int MATCH_WITH_SURNAME             = 105;
+    public static final int MATCH_WITH_TITLE               = 106;
+    public static final int MATCH_WITH_ORGANIZATIONALUNIT  = 107;
+    public static final int MATCH_WITH_ORGANIZATION        = 108;
+    public static final int MATCH_WITH_LOCALITY            = 109;
+    public static final int MATCH_WITH_STATEORPROVINCE     = 110;
+    public static final int MATCH_WITH_DOMAINCOMPONENT     = 111;
+    public static final int MATCH_WITH_COUNTRY             = 112;
+    // Subject Altname Fields
+    public static final int MATCH_WITH_RFC822NAME          = 200;
+    public static final int MATCH_WITH_DNSNAME             = 201;
+    public static final int MATCH_WITH_IPADDRESS           = 202;
+    public static final int MATCH_WITH_X400ADDRESS         = 203;
+    public static final int MATCH_WITH_DIRECTORYNAME       = 204;
+    public static final int MATCH_WITH_EDIPARTYNAME        = 205;
+    public static final int MATCH_WITH_URI                 = 206;
+    public static final int MATCH_WITH_REGISTEREDID        = 207;
+    public static final int MATCH_WITH_UPN                 = 208;
+    public static final int MATCH_WITH_GUID                = 209;
+
+<span class="fc" id="L62">    static final String[] MATCH_WITH_SQLNAMES = {</span>
+        &quot;username&quot;, &quot;subjectEmail&quot;, &quot;status&quot;, &quot;endEntityProfileId&quot;, &quot;certificateProfileId&quot;, &quot;cAId&quot;, &quot;tokenType&quot;
+    };
+
+    // Represents the column names in ra userdata table.
+    private static final String MATCH_WITH_USERNAMESTRING = &quot;UPPER(username)&quot;;
+    private static final String MATCH_WITH_SUBJECTDN = &quot;UPPER(subjectDN)&quot;;
+<span class="fc" id="L69">    private static final String[] MATCH_WITH_SUBJECTDN_NAMES = {</span>
+        &quot;UID=&quot;, &quot;CN=&quot;, &quot;SN=&quot;, &quot;GIVENNAME=&quot;, &quot;INITIALS=&quot;, &quot;SURNAME=&quot;, &quot;T=&quot;, &quot;OU=&quot;, &quot;O=&quot;, &quot;L=&quot;, &quot;ST=&quot;,
+        &quot;DC&quot;, &quot;C=&quot;
+    };
+    
+    private static final String MATCH_WITH_SUBJECTALTNAME = &quot;subjectAltName&quot;;
+<span class="fc" id="L75">    private static final String[] MATCH_WITH_SUBJECTALTNAME_NAMES = {</span>
+        &quot;RFC822NAME=&quot;, &quot;DNSNAME=&quot;, &quot;IPADDRESS=&quot;, &quot;X400ADDRESS=&quot;, &quot;DIRECTORYNAME=&quot;,
+        &quot;EDIPARTYNAME=&quot;, &quot;UNIFORMRESOURCEIDENTIFIER=&quot;, &quot;REGISTEREDID=&quot;, &quot;UPN=&quot;,  &quot;GUID=&quot;
+    };
+
+    /** For example UserMatch.MATCH_WITH_USERNAME */
+    private int matchwith;
+    /** For example BasicMatch.MATCH_TYPE_EQUALS */
+    private int matchtype;
+    /** For example a username */
+    private String matchvalue;
+
+    /**
+     * Creates a new instance of UserMatch.
+     *
+     * @param matchwith determines which field i userdata table to match with.
+     * @param matchtype determines how to match the field. SubjectDN fields can only be matched with 'begins with'.
+     * @param matchvalue the value to match with.
+     *
+     * @throws NumberFormatException if matchvalue contains illegal numbervalue when matching number field.
+     */
+<span class="fc" id="L96">    public UserMatch(int matchwith, int matchtype, String matchvalue) throws NumberFormatException {</span>
+<span class="fc" id="L97">        this.matchwith = matchwith;</span>
+<span class="fc" id="L98">        this.matchtype = matchtype;</span>
+<span class="fc" id="L99">        this.matchvalue = matchvalue;</span>
+<span class="pc bpc" id="L100" title="1 of 4 branches missed.">        if (matchwith &gt;= MATCH_WITH_STATUS &amp;&amp; matchwith &lt;= MATCH_WITH_CA) {</span>
+<span class="fc" id="L101">            Integer.valueOf(matchvalue);</span>
+        }
+<span class="fc" id="L103">    }</span>
+
+    @Override
+    public String getQueryString() {
+<span class="fc" id="L107">        String returnval = &quot;&quot;;</span>
+<span class="fc" id="L108">        final String matchvalue = super.escapeSql(this.matchvalue).toUpperCase();</span>
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">        if (isSubjectDNMatch()) {</span>
+            // Ignore MATCH_TYPE_EQUALS.
+<span class="nc" id="L111">            returnval = MATCH_WITH_SUBJECTDN + &quot; LIKE '%&quot; +</span>
+            MATCH_WITH_SUBJECTDN_NAMES[matchwith - 100] + matchvalue + &quot;%'&quot;;
+<span class="pc bpc" id="L113" title="1 of 2 branches missed.">        } else if (isSubjectAltNameMatch()) {</span>
+<span class="nc" id="L114">            returnval = MATCH_WITH_SUBJECTALTNAME + &quot; LIKE '%&quot; + MATCH_WITH_SUBJECTALTNAME_NAMES[matchwith - 200] + matchvalue + &quot;%'&quot;;           </span>
+<span class="pc bpc" id="L115" title="1 of 2 branches missed.">        } else if (matchwith == MATCH_WITH_DN) {</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">            if (matchtype == BasicMatch.MATCH_TYPE_EQUALS) {</span>
+<span class="nc" id="L117">                returnval = MATCH_WITH_SUBJECTDN + &quot; = '&quot; + matchvalue.trim() + &quot;'&quot;;</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">            } else if (matchtype == BasicMatch.MATCH_TYPE_BEGINSWITH) {</span>
+<span class="nc" id="L119">                returnval = MATCH_WITH_SUBJECTDN + &quot; LIKE '&quot; + matchvalue + &quot;%'&quot;;</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">            } else if (matchtype == BasicMatch.MATCH_TYPE_CONTAINS) {</span>
+<span class="nc" id="L121">                returnval = MATCH_WITH_SUBJECTDN + &quot; LIKE '%&quot; + matchvalue + &quot;%'&quot;;</span>
+            } 
+<span class="fc bfc" id="L123" title="All 2 branches covered.">        } else if (matchwith == MATCH_WITH_USERNAME) {</span>
+<span class="fc bfc" id="L124" title="All 2 branches covered.">            if (matchtype == BasicMatch.MATCH_TYPE_EQUALS) {</span>
+<span class="fc" id="L125">                returnval = MATCH_WITH_USERNAMESTRING + &quot; = '&quot; + matchvalue.trim() + &quot;'&quot;;</span>
+<span class="pc bpc" id="L126" title="1 of 2 branches missed.">            } else if (matchtype == BasicMatch.MATCH_TYPE_BEGINSWITH) {</span>
+<span class="fc" id="L127">                returnval = MATCH_WITH_USERNAMESTRING + &quot; LIKE '&quot; + matchvalue + &quot;%'&quot;;</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">            } else if (matchtype == BasicMatch.MATCH_TYPE_CONTAINS) {</span>
+<span class="nc" id="L129">                returnval = MATCH_WITH_USERNAMESTRING + &quot; LIKE '%&quot; + matchvalue + &quot;%'&quot;;</span>
+            }
+<span class="pc bpc" id="L131" title="1 of 2 branches missed.">        } else if (matchtype == BasicMatch.MATCH_TYPE_EQUALS) {</span>
+            // Because some databases (read JavaDB/Derby) does not allow matching of integer with a string expression
+            // like &quot;where status='10'&quot; instead of &quot;where status=10&quot;, we have to have some special handling here.
+<span class="fc" id="L134">            String stringChar = &quot;'&quot;;</span>
+<span class="pc bpc" id="L135" title="9 of 10 branches missed.">            if (matchwith == MATCH_WITH_STATUS || matchwith == MATCH_WITH_CA || matchwith == MATCH_WITH_CERTIFICATEPROFILE || </span>
+                    matchwith == MATCH_WITH_ENDENTITYPROFILE || matchwith == MATCH_WITH_TOKEN) {
+<span class="fc" id="L137">                stringChar = &quot;&quot;;</span>
+            }
+<span class="fc" id="L139">            returnval = MATCH_WITH_SQLNAMES[matchwith] + &quot; = &quot;+stringChar + matchvalue.trim() + stringChar;</span>
+<span class="pc bnc" id="L140" title="All 2 branches missed.">        } else if (matchtype == BasicMatch.MATCH_TYPE_BEGINSWITH) {</span>
+<span class="nc" id="L141">            returnval = MATCH_WITH_SQLNAMES[matchwith] + &quot; LIKE '&quot; + matchvalue + &quot;%'&quot;;</span>
+        }
+<span class="fc" id="L143">        return returnval;</span>
+    }
+
+    @Override
+    public boolean isLegalQuery() {
+<span class="nc" id="L148">        return StringUtils.isNotBlank(matchvalue);</span>
+    }
+
+    private boolean isSubjectDNMatch() {
+<span class="pc bpc" id="L152" title="3 of 4 branches missed.">        return this.matchwith &gt;= 100 &amp;&amp; this.matchwith &lt; 200;</span>
+    }
+    
+    private boolean isSubjectAltNameMatch() {
+<span class="pc bpc" id="L156" title="3 of 4 branches missed.">        return this.matchwith &gt;= 200 &amp;&amp; this.matchwith &lt; 300;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

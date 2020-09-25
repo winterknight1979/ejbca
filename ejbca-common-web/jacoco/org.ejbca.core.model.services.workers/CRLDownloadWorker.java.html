@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CRLDownloadWorker.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.services.workers</a> &gt; <span class="el_source">CRLDownloadWorker.java</span></div><h1>CRLDownloadWorker.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.services.workers;
+
+import java.net.URL;
+import java.security.cert.CRLException;
+import java.security.cert.X509CRL;
+import java.security.cert.X509Certificate;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CAConstants;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.ca.X509CAInfo;
+import org.cesecore.certificates.crl.CrlImportException;
+import org.cesecore.certificates.crl.CrlStoreException;
+import org.cesecore.certificates.crl.CrlStoreSessionLocal;
+import org.cesecore.certificates.util.cert.CrlExtensions;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.NetworkTools;
+import org.cesecore.util.ValidityDate;
+import org.ejbca.core.ejb.crl.ImportCrlSessionLocal;
+import org.ejbca.core.model.services.BaseWorker;
+import org.ejbca.core.model.services.ServiceExecutionFailedException;
+
+/**
+ * Worker used for downloading external CRLs and populating the local database with limited CertificateData entries,
+ * that can be used to service OCSP responses and stores the CRL locally, so it could be served for example through
+ * the public web.
+ * 
+ * If the freshest CRL extension is present in a full CRL, the delta CRL will be downloaded and processed as well.
+ * 
+ * The worker can be configured to not respect the nextUpdate
+ * 
+ * @version $Id: CRLDownloadWorker.java 27740 2018-01-05 07:24:53Z mikekushner $
+ */
+<span class="nc" id="L52">public class CRLDownloadWorker extends BaseWorker {</span>
+<span class="nc" id="L53">    private static final Logger log = Logger.getLogger(CRLDownloadWorker.class);</span>
+
+    public static final String PROP_IGNORE_NEXT_UPDATE = &quot;ignoreNextUpdate&quot;;
+    public static final String PROP_MAX_DOWNLOAD_SIZE = &quot;maxDownloadSize&quot;;
+    public static final int DEFAULT_MAX_DOWNLOAD_SIZE = 1*1024*1024;
+
+    @Override
+    public void work(Map&lt;Class&lt;?&gt;, Object&gt; ejbs) throws ServiceExecutionFailedException {
+        // Get references to all EJB's that will be used
+<span class="nc" id="L62">        final CaSessionLocal caSession = (CaSessionLocal) ejbs.get(CaSessionLocal.class);</span>
+<span class="nc" id="L63">        final CrlStoreSessionLocal crlStoreSession = (CrlStoreSessionLocal) ejbs.get(CrlStoreSessionLocal.class);</span>
+<span class="nc" id="L64">        final ImportCrlSessionLocal importCrlSession = (ImportCrlSessionLocal) ejbs.get(ImportCrlSessionLocal.class);</span>
+        // Parse worker configuration
+<span class="nc" id="L66">        Collection&lt;Integer&gt; caIdsToCheck = getCAIdsToCheck(true);</span>
+<span class="nc bnc" id="L67" title="All 4 branches missed.">        if (caIdsToCheck!=null &amp;&amp; caIdsToCheck.contains(Integer.valueOf(CAConstants.ALLCAS))) {</span>
+<span class="nc" id="L68">            caIdsToCheck = caSession.getAllCaIds();</span>
+        }
+<span class="nc" id="L70">        final boolean ignoreNextUpdate = Boolean.valueOf(properties.getProperty(PROP_IGNORE_NEXT_UPDATE, Boolean.FALSE.toString()));</span>
+<span class="nc" id="L71">        final int maxDownloadSize = Integer.parseInt(properties.getProperty(PROP_MAX_DOWNLOAD_SIZE, String.valueOf(DEFAULT_MAX_DOWNLOAD_SIZE)));</span>
+        // Process all the configured CAs
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        for (final int caId : caIdsToCheck) {</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L75">                log.trace(&quot;Processing CA with Id &quot; + caId);</span>
+            }
+            try {
+<span class="nc" id="L78">                final CAInfo caInfo = caSession.getCAInfoInternal(caId);</span>
+<span class="nc bnc" id="L79" title="All 6 branches missed.">                if (caInfo != null &amp;&amp; caInfo.getCAType() == CAInfo.CATYPE_X509 &amp;&amp; caInfo.getStatus() == CAConstants.CA_EXTERNAL) {</span>
+<span class="nc" id="L80">                    final X509Certificate caCertificate = (X509Certificate) caInfo.getCertificateChain().iterator().next();</span>
+                    // Parse the configured external CDP into a URL
+<span class="nc" id="L82">                    final String cdp = ((X509CAInfo)caInfo).getExternalCdp();</span>
+<span class="nc bnc" id="L83" title="All 4 branches missed.">                    if (cdp==null || cdp.length()==0) {</span>
+<span class="nc" id="L84">                        log.info(&quot;No external CDP configured for CA '&quot; + caInfo.getName() + &quot;'. Ignoring CA.&quot;);</span>
+<span class="nc" id="L85">                        continue;</span>
+                    }
+<span class="nc" id="L87">                    final URL url = NetworkTools.getValidHttpUrl(cdp);</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">                    if (url==null) {</span>
+<span class="nc" id="L89">                        log.info(&quot;Invalid HTTP URL '&quot; + cdp + &quot;' in external CDP configured for CA '&quot; + caInfo.getName() + &quot;'. Ignoring CA.&quot;);</span>
+<span class="nc" id="L90">                        continue;</span>
+                    }
+<span class="nc" id="L92">                    final String issuerDn = CertTools.getSubjectDN(caCertificate);</span>
+                    // Get last known CRL (if any) and check when the next update will be
+<span class="nc" id="L94">                    final Date now = new Date();</span>
+<span class="nc" id="L95">                    final X509CRL lastFullCrl = getCRLFromBytes(crlStoreSession.getLastCRL(issuerDn, false));</span>
+                    final X509CRL newestFullCrl;
+<span class="nc bnc" id="L97" title="All 6 branches missed.">                    if (!ignoreNextUpdate &amp;&amp; lastFullCrl!=null &amp;&amp; now.before(lastFullCrl.getNextUpdate())) {</span>
+<span class="nc" id="L98">                        log.info(&quot;Next full CRL update for CA '&quot; + caInfo.getName() + &quot;' will be &quot; + ValidityDate.formatAsISO8601(lastFullCrl.getNextUpdate(), null) + &quot;. Skipping download.&quot;);</span>
+<span class="nc" id="L99">                        newestFullCrl = lastFullCrl;</span>
+                    } else {
+<span class="nc" id="L101">                        final X509CRL downloadedFullCrl = getAndProcessCrl(url, maxDownloadSize, caCertificate, caInfo, importCrlSession);</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">                        if (downloadedFullCrl==null) {</span>
+<span class="nc" id="L103">                            newestFullCrl = lastFullCrl;</span>
+                        } else {
+<span class="nc" id="L105">                            newestFullCrl = downloadedFullCrl;</span>
+                        }
+                    }
+<span class="nc bnc" id="L108" title="All 2 branches missed.">                    if (newestFullCrl!=null) {</span>
+<span class="nc" id="L109">                        final List&lt;String&gt; freshestCdps = CrlExtensions.extractFreshestCrlDistributionPoints(newestFullCrl);</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">                        if (!freshestCdps.isEmpty()) {</span>
+                            // Delta CRLs are used and we might already have a valid one stored
+<span class="nc" id="L112">                            X509CRL lastDeltaCrl = getCRLFromBytes(crlStoreSession.getLastCRL(issuerDn, true));</span>
+<span class="nc bnc" id="L113" title="All 4 branches missed.">                            if (lastDeltaCrl!=null &amp;&amp; lastDeltaCrl.getThisUpdate().before(newestFullCrl.getThisUpdate())) {</span>
+                                // The last known delta CRL info is already included in the latest full CRL, so treat the last delta as non-existent
+<span class="nc" id="L115">                                lastDeltaCrl = null;</span>
+                            }
+<span class="nc bnc" id="L117" title="All 6 branches missed.">                            if (!ignoreNextUpdate &amp;&amp; lastDeltaCrl!=null &amp;&amp; now.before(lastDeltaCrl.getNextUpdate())) {</span>
+<span class="nc" id="L118">                                log.info(&quot;Next delta CRL update for CA '&quot; + caInfo.getName() + &quot;' will be &quot; + ValidityDate.formatAsISO8601(lastDeltaCrl.getNextUpdate(), null) + &quot;. Skipping download.&quot;);</span>
+                            } else {
+                                // Check for and process first delta CRL that can be reached over HTTP (if any)
+<span class="nc bnc" id="L121" title="All 2 branches missed.">                                for (final String freshestCdp : freshestCdps) {</span>
+<span class="nc" id="L122">                                    final URL freshestCdpUrl = NetworkTools.getValidHttpUrl(freshestCdp);</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">                                    if (freshestCdpUrl==null) {</span>
+<span class="nc" id="L124">                                        log.info(&quot;Unusable Freshest CDP HTTP URL '&quot; + freshestCdpUrl + &quot;' in CRL. Skipping download.&quot;);</span>
+<span class="nc" id="L125">                                        continue;</span>
+                                    }
+<span class="nc" id="L127">                                    final X509CRL newDeltaCrl = getAndProcessCrl(freshestCdpUrl, maxDownloadSize, caCertificate, caInfo, importCrlSession);</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">                                    if (newDeltaCrl!=null) {</span>
+<span class="nc" id="L129">                                        break;</span>
+                                    }
+<span class="nc" id="L131">                                }</span>
+                            }
+                        }
+                    }
+<span class="nc" id="L135">                } else {</span>
+<span class="nc" id="L136">                    log.info(&quot;'&quot; + caInfo.getName() + &quot;' is not an external X509 CA. Ignoring.&quot;);</span>
+                }
+<span class="nc" id="L138">            } catch (CRLException e) {</span>
+<span class="nc" id="L139">                log.error(&quot;Last known CRL read from the database for CA Id &quot; + caId + &quot; has encoding problems.&quot;, e);</span>
+<span class="nc" id="L140">            } catch (CrlStoreException e) {</span>
+<span class="nc" id="L141">                log.error(&quot;Failed to store the downloaded CRL in the database for CA Id &quot; + caId + &quot;.&quot;, e);</span>
+<span class="nc" id="L142">            } catch (CrlImportException e) {</span>
+<span class="nc" id="L143">                log.error(&quot;Failed to import the downloaded CRL in the database for CA Id &quot; + caId + &quot;.&quot;, e);</span>
+<span class="nc" id="L144">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L145">                throw new ServiceExecutionFailedException(&quot;Service should always be authorized to any CA.&quot;, e);</span>
+<span class="nc" id="L146">            }</span>
+<span class="nc" id="L147">        }</span>
+<span class="nc" id="L148">    }</span>
+    
+    private X509CRL getCRLFromBytes(final byte[] crlBytes) throws CRLException {
+<span class="nc bnc" id="L151" title="All 2 branches missed.">        if (crlBytes != null) {</span>
+<span class="nc" id="L152">            return CertTools.getCRLfromByteArray(crlBytes);</span>
+        }
+<span class="nc" id="L154">        return null;</span>
+    }
+    
+    private X509CRL getAndProcessCrl(final URL cdpUrl, final int maxSize, final X509Certificate caCertificate, final CAInfo caInfo,
+            final ImportCrlSessionLocal importCrlSession) throws CrlStoreException, AuthorizationDeniedException, CrlImportException {
+<span class="nc" id="L159">        X509CRL newCrl = null;</span>
+<span class="nc" id="L160">        final byte[] crlBytesNew = NetworkTools.downloadDataFromUrl(cdpUrl, maxSize);</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        if (crlBytesNew==null) {</span>
+<span class="nc" id="L162">            log.warn(&quot;Unable to download CRL for &quot; + CertTools.getSubjectDN(caCertificate));</span>
+        } else {
+            try {
+<span class="nc" id="L165">                newCrl = CertTools.getCRLfromByteArray(crlBytesNew);</span>
+<span class="nc" id="L166">                importCrlSession.importCrl(admin, caInfo, crlBytesNew);</span>
+<span class="nc" id="L167">            } catch (CRLException e) {</span>
+<span class="nc" id="L168">                log.warn(&quot;Unable to decode downloaded CRL for '&quot; + caInfo.getSubjectDN() + &quot;'.&quot;);</span>
+<span class="nc" id="L169">                return null;</span>
+<span class="nc" id="L170">            }</span>
+        }
+<span class="nc" id="L172">        return newCrl;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

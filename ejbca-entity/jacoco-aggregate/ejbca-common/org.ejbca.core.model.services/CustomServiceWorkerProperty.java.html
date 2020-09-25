@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CustomServiceWorkerProperty.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-entity</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.services</a> &gt; <span class="el_source">CustomServiceWorkerProperty.java</span></div><h1>CustomServiceWorkerProperty.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.services;
+
+import java.util.List;
+
+/**
+ * Helper class for rendering an UI for a custom service worker.
+ * 
+ * @version $Id: CustomServiceWorkerProperty.java 22117 2015-10-29 10:53:42Z mikekushner $
+ */
+public class CustomServiceWorkerProperty {
+
+    public static final int UI_TEXTINPUT  = 0;
+    public static final int UI_SELECTONE  = 1;
+    public static final int UI_BOOLEAN    = 2;
+    public static final int UI_SELECTMANY = 3;
+
+    private final String name;
+    private final int type;
+    private final List&lt;String&gt; options;
+    private final List&lt;String&gt; optionTexts;
+    private String value;
+    
+    /**
+     * Construct a UI object with a list of options to choose from.
+     * @param name The name of the property this object should map to.
+     * @param type One of CustomServiceWorkerProperty.UI_* constants.
+     * @param options Selectable options.
+     * @param optionTexts Label of the options in the same order.
+     * @param value The current value of this component.
+     */
+<span class="nc" id="L43">    public CustomServiceWorkerProperty(final String name, final int type, final List&lt;String&gt; options, final List&lt;String&gt; optionTexts, final String value) {</span>
+<span class="nc" id="L44">        this.name = name;</span>
+<span class="nc" id="L45">        this.type = type;</span>
+<span class="nc" id="L46">        this.options = options;</span>
+<span class="nc" id="L47">        this.optionTexts = optionTexts;</span>
+<span class="nc" id="L48">        this.value = value;</span>
+<span class="nc" id="L49">    }</span>
+
+    /**
+     * Construct a simple UI object with free text or boolean value.
+     * @param name The name of the property this object should map to.
+     * @param type One of CustomServiceWorkerProperty.UI_* constants.
+     * @param value The current value of this component.
+     */
+<span class="nc" id="L57">    public CustomServiceWorkerProperty(final String name, final int type, final String value) {</span>
+<span class="nc" id="L58">        this.name = name;</span>
+<span class="nc" id="L59">        this.type = type;</span>
+<span class="nc" id="L60">        this.options = null;</span>
+<span class="nc" id="L61">        this.optionTexts = null;</span>
+<span class="nc" id="L62">        this.value = value;</span>
+<span class="nc" id="L63">    }</span>
+
+    /** @return the current value of this property (as String) */
+    public String getValue() {
+<span class="nc" id="L67">        return value;</span>
+    }
+    
+    /** @param value Set the current value of this property (as String) */
+    public void setValue(String value) {
+<span class="nc bnc" id="L72" title="All 2 branches missed.">        if (value!=null) {</span>
+<span class="nc" id="L73">            value = value.trim();</span>
+        }
+<span class="nc" id="L75">        this.value = value;</span>
+<span class="nc" id="L76">    }</span>
+    
+    /** @return the current value of this component as a boolean. */
+    public boolean getBooleanValue() {
+<span class="nc" id="L80">        return Boolean.valueOf(getValue());</span>
+    }
+    /** @param value Set the current value of this component as a boolean. */
+    public void setBooleanValue(final boolean value) {
+<span class="nc" id="L84">        setValue(Boolean.valueOf(value).toString());</span>
+<span class="nc" id="L85">    }</span>
+    /** @return the current value of this component as a &quot;select many&quot; component. */
+    public String[] getMultiValue() {
+<span class="nc" id="L88">        return getValue().split(&quot;;&quot;);</span>
+    }
+    /** @param values Set the current value of this component as a &quot;select many&quot; component. */
+    public void setMultiValue(final String[] values) {
+<span class="nc" id="L92">        final StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">        for (final String value : values) {</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">            if (sb.length()&gt;0) {</span>
+<span class="nc" id="L95">                sb.append(';');</span>
+            }
+<span class="nc" id="L97">            sb.append(value);</span>
+        }
+<span class="nc" id="L99">        setValue(sb.toString());</span>
+<span class="nc" id="L100">    }</span>
+
+    /** @return the name of this property */
+<span class="nc" id="L103">    public String getName() { return name; }</span>
+    /** @return one of the CustomPublisherProperty.UI_* constants */
+<span class="nc" id="L105">    public int getType() { return type; }</span>
+    /** @return true if this is a free text input field. */
+<span class="nc bnc" id="L107" title="All 2 branches missed.">    public boolean isTypeText() { return type == UI_TEXTINPUT; }</span>
+    /** @return true if this is a boolean input field. */
+<span class="nc bnc" id="L109" title="All 2 branches missed.">    public boolean isTypeBoolean() { return type == UI_BOOLEAN; }</span>
+    /** @return true if this is a &quot;select one&quot; input field. */
+<span class="nc bnc" id="L111" title="All 2 branches missed.">    public boolean isTypeSelectOne() { return type == UI_SELECTONE; }</span>
+    /** @return true if this is a &quot;select many&quot; input field. */
+<span class="nc bnc" id="L113" title="All 2 branches missed.">    public boolean isTypeSelectMany() { return type == UI_SELECTMANY; }</span>
+    /** @return a List of values this property can have or null if this does not apply to the type */
+<span class="nc" id="L115">    public List&lt;String&gt; getOptions() { return options; }</span>
+    /** @return a List of user-friendly texts corresponding to the values this property can have or null if this does not apply to the type */
+<span class="nc" id="L117">    public List&lt;String&gt; getOptionTexts() { return optionTexts; }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

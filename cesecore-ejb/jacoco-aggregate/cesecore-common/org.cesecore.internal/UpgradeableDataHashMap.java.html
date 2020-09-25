@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>UpgradeableDataHashMap.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-ejb</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.internal</a> &gt; <span class="el_source">UpgradeableDataHashMap.java</span></div><h1>UpgradeableDataHashMap.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.cesecore.internal;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.cesecore.util.Base64GetHashMap;
+
+
+
+/**
+ * UpgradeableDataHashMap is an class implementing the IUpgradeableData intended to be extended by
+ * classes saving it's data to a database in BLOB/CLOB form.
+ *
+ * @version $Id: UpgradeableDataHashMap.java 34306 2020-01-16 12:21:31Z andrey_s_helmes $
+ *
+ * @see org.cesecore.internal.IUpgradeableData
+ */
+public abstract class UpgradeableDataHashMap implements IUpgradeableData, Serializable {
+    /**
+     * Determines if a de-serialized file is compatible with this class.
+     *
+     * Maintainers must change this value if and only if the new version
+     * of this class is not compatible with old versions. See Sun docs
+     * for &lt;a href=http://java.sun.com/products/jdk/1.1/docs/guide
+     * /serialization/spec/version.doc.html&gt; details. &lt;/a&gt;
+     *
+     */
+	private static final long serialVersionUID = -1766329888474901945L;
+
+    // Use LinkedHashMap because we want to have consistent serializing of the hashmap in order to be able to sign/verify data
+    protected LinkedHashMap&lt;Object, Object&gt; data;
+<span class="fc" id="L49">    private boolean upgraded = false;</span>
+    public static final String VERSION = &quot;version&quot;;
+
+	/**
+     * Creates a new UpgradeableDataHashMap object.
+     */
+<span class="fc" id="L55">    public UpgradeableDataHashMap() {</span>
+<span class="fc" id="L56">        data = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L57">        data.put(VERSION, getLatestVersion());</span>
+<span class="fc" id="L58">    }</span>
+
+    /**
+     * @see IUpgradeableData#getLatestVersion()
+     */
+    @Override
+    public abstract float getLatestVersion();
+
+    /**
+     * @see IUpgradeableData#getVersion()
+     */
+    @Override
+    public float getVersion() {
+<span class="fc" id="L71">        return (Float) data.get(VERSION);</span>
+    }
+
+    /**
+     * @see IUpgradeableData#saveData()
+     */
+    @Override
+    public Object saveData() {
+<span class="fc" id="L79">        return data.clone();</span>
+    }
+
+    public LinkedHashMap&lt;Object, Object&gt; getRawData() {
+<span class="fc" id="L83">        return data;</span>
+    }
+
+    /**
+     * @see IUpgradeableData#loadData(Object)
+     */
+    @Override
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void loadData(final Object data) {
+    	// By creating a new LinkedHashMap (Base64GetHashMap) here we slip through a possible upgrade issue when upgrading
+    	// from older implementation that used a plain HashMap instead.
+    	// Both newer and older versions can be casted to HashMap.
+<span class="fc" id="L95">    	this.data = new Base64GetHashMap((HashMap&lt;?, ?&gt;)data);</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">    	if(Float.compare(getLatestVersion(), getVersion()) &gt; 0) {</span>
+<span class="fc" id="L97">    		upgrade();</span>
+<span class="fc" id="L98">    		upgraded = true;</span>
+    	}
+<span class="fc" id="L100">    }</span>
+
+    /** So you can poll to see if the data has been upgraded
+     *
+     * @return true if data has been upgraded, false otherwise
+     */
+    public boolean isUpgraded() {
+<span class="nc" id="L107">		return upgraded;</span>
+	}
+
+    /**
+     * Function that should handle the update if of the data in the class so it's up to date with
+     * the latest version. An update is only done when needed.
+     */
+    @Override
+    public abstract void upgrade();
+
+    /** Create a Map with the differences between the current object and the parameter object.
+     * Puts the result in a new Map with keys:
+     * &lt;pre&gt;
+     * changed:key, changedvalue
+     * remove:key, removedvalue
+     * added:key, addedvalue
+     * &lt;/pre&gt;
+     *
+     * @param newobj The &quot;changed&quot; object for which we want to get the changes compared to this object
+     * @return Map object with difference as described above
+     */
+    public Map&lt;Object, Object&gt; diff(UpgradeableDataHashMap newobj) {
+    	@SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L130">        Map&lt;Object, Object&gt; newmap = (Map&lt;Object, Object&gt;)newobj.saveData();</span>
+<span class="fc" id="L131">    	return diffMaps(data, newmap);</span>
+    }
+
+    /** Create a Map with the differences between the two input objects.
+     * Puts the result in a new Map with keys:
+     * &lt;pre&gt;
+     * changed:key, changedvalue
+     * remove:key, removedvalue
+     * added:key, addedvalue
+     * &lt;/pre&gt;
+     *
+	 * @param oldmap Old map
+	 * @param newmap New map
+	 * @return Map&amp;lt;Object, Object&amp;gt; with difference
+	 */
+	public static Map&lt;Object, Object&gt; diffMaps(Map&lt;Object, Object&gt; oldmap, Map&lt;Object, Object&gt; newmap) {
+<span class="fc" id="L147">		Map&lt;Object, Object&gt; result = new LinkedHashMap&lt;Object, Object&gt;();</span>
+<span class="fc bfc" id="L148" title="All 2 branches covered.">    	for (Object key : oldmap.keySet()) {</span>
+<span class="pc bpc" id="L149" title="1 of 2 branches missed.">			if (newmap.containsKey(key)) {</span>
+				// Check if the value is the same
+<span class="fc" id="L151">				Object value = oldmap.get(key);</span>
+<span class="fc bfc" id="L152" title="All 2 branches covered.">				if (value == null) {</span>
+<span class="fc bfc" id="L153" title="All 2 branches covered.">					if (newmap.get(key) != null) {</span>
+<span class="fc" id="L154">						result.put(&quot;addedvalue:&quot;+key, newmap.get(key));</span>
+					}
+<span class="fc bfc" id="L156" title="All 2 branches covered.">				} else if (!value.equals(newmap.get(key))) {</span>
+<span class="fc" id="L157">					Object val = newmap.get(key);</span>
+<span class="fc bfc" id="L158" title="All 2 branches covered.">					if (val == null) {</span>
+<span class="fc" id="L159">						val = &quot;&quot;;</span>
+					}
+<span class="fc" id="L161">					result.put(&quot;changed:&quot;+key, getVal(val));</span>
+				}
+<span class="fc" id="L163">			} else {</span>
+				// Value removed
+<span class="nc" id="L165">				Object val = oldmap.get(key);</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">				if (val == null) {</span>
+<span class="nc" id="L167">					val = &quot;&quot;;</span>
+				}
+<span class="nc" id="L169">				result.put(&quot;removed:&quot;+key, getVal(val));</span>
+			}
+<span class="fc" id="L171">		}</span>
+    	// look for added properties
+<span class="fc bfc" id="L173" title="All 2 branches covered.">    	for (Object key : newmap.keySet()) {</span>
+<span class="pc bpc" id="L174" title="1 of 2 branches missed.">    		if (!oldmap.containsKey(key)) {</span>
+<span class="nc" id="L175">				Object val = newmap.get(key);</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">				if (val == null) {</span>
+<span class="nc" id="L177">					val = &quot;&quot;;</span>
+				}
+<span class="nc" id="L179">				result.put(&quot;added:&quot;+key, getVal(val));</span>
+    		}
+<span class="fc" id="L181">    	}</span>
+<span class="fc" id="L182">    	return result;</span>
+	}
+
+	/** helper method to get nice output from types that do
+	 * not work nicely with Object.toString()
+	 * @param o Object
+	 * @return String
+	 */
+	private static String getVal(Object o) {
+<span class="fc" id="L191">	    StringBuilder b = new StringBuilder();</span>
+<span class="pc bpc" id="L192" title="1 of 2 branches missed.">	    if (o instanceof String[]) {</span>
+<span class="nc" id="L193">	        b.append('[');</span>
+<span class="nc" id="L194">            String[] arr = (String[]) o;</span>
+<span class="nc bnc" id="L195" title="All 2 branches missed.">            for (String s: arr) {</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">                if (b.length() &gt; 1) {</span>
+<span class="nc" id="L197">                    b.append(&quot;, &quot;);</span>
+                }
+<span class="nc" id="L199">                b.append(s);</span>
+            }
+<span class="nc" id="L201">            b.append(']');</span>
+<span class="nc" id="L202">        } else {</span>
+<span class="fc" id="L203">            b.append(o);</span>
+        }
+<span class="fc" id="L205">	    return b.toString();</span>
+	}
+
+	// Helper methods for interacting with the stored data
+
+    /**
+     * Retrieve a boolean value from the data map in a safe manner.
+     * @param key the key for the value to retrieve
+     * @param defaultValue the default value to return if the value with the specified key does
+     *                     not exist in the map or cannot be cast to a boolean
+     * @return the value mapped to the key specified as first parameter or the default value
+     *         specified as second parameter if retrieval failed
+     */
+    protected boolean getBoolean(final String key, final boolean defaultValue) {
+<span class="nc" id="L219">        final Object object = data.get(key);</span>
+<span class="nc bnc" id="L220" title="All 4 branches missed.">        if (object == null || !(object instanceof Boolean)) {</span>
+<span class="nc" id="L221">            return defaultValue;</span>
+        }
+<span class="nc" id="L223">        return (Boolean) object;</span>
+    }
+
+    /**
+     * Retrieve a non-null string value from the data map in a safe manner.
+     * @param key the key for the value to retrieve
+     * @param defaultValue the default value to return if the value with the specified key does
+     *                     not exist in the map or cannot be cast to a string
+     * @return the value mapped to the key specified as first parameter or the default value
+     *         specified as second parameter if retrieval failed
+     */
+    protected String getString(final String key, final String defaultValue) {
+<span class="nc" id="L235">        final Object object = data.get(key);</span>
+<span class="nc bnc" id="L236" title="All 4 branches missed.">        if (object == null || !(object instanceof String)) {</span>
+<span class="nc" id="L237">            return defaultValue;</span>
+        }
+<span class="nc" id="L239">        return (String) object;</span>
+    }
+
+    /** Set the value for the specified key as a primitive (never null) boolean 
+     * @param key key
+     * @param value value */
+    protected void putBoolean(final String key, final boolean value) {
+<span class="fc" id="L246">        data.put(key, value);</span>
+<span class="fc" id="L247">    }</span>
+
+    /**
+     * @return a deep copy of this hashmap's data object, for cloning purposes.
+     */
+    protected LinkedHashMap&lt;Object, Object&gt; getClonedData() {
+        // We need to make a deep copy of the hashmap here
+<span class="fc" id="L254">        LinkedHashMap&lt;Object, Object&gt; clonedData = new LinkedHashMap&lt;&gt;(data.size());</span>
+<span class="fc bfc" id="L255" title="All 2 branches covered.">        for (final Entry&lt;Object,Object&gt; entry : data.entrySet()) {</span>
+<span class="fc" id="L256">                Object value = entry.getValue();</span>
+<span class="pc bpc" id="L257" title="1 of 2 branches missed.">                if (value instanceof ArrayList&lt;?&gt;) {</span>
+                        // We need to make a clone of this object, but the stored immutables can still be referenced
+<span class="nc" id="L259">                        value = ((ArrayList&lt;?&gt;)value).clone();</span>
+                }
+<span class="fc" id="L261">                clonedData.put(entry.getKey(), value);</span>
+<span class="fc" id="L262">        }</span>
+<span class="fc" id="L263">        return clonedData;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

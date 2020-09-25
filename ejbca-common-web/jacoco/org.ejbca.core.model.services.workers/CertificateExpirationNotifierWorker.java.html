@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CertificateExpirationNotifierWorker.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.services.workers</a> &gt; <span class="el_source">CertificateExpirationNotifierWorker.java</span></div><h1>CertificateExpirationNotifierWorker.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.services.workers;
+
+import java.security.cert.Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.ejbca.core.ejb.ra.EndEntityAccessSessionLocal;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.ra.UserNotificationParamGen;
+import org.ejbca.core.model.services.ServiceExecutionFailedException;
+import org.ejbca.core.model.services.actions.MailActionInfo;
+
+/**
+ * Makes queries about which certificates that is about to expire in a given number of days and creates a 
+ * notification sent to either the end user or the administrator.
+ * 
+ * version: $Id: CertificateExpirationNotifierWorker.java 29010 2018-05-23 13:09:53Z jekaterina_b_helmes $
+ */
+<span class="nc" id="L42">public class CertificateExpirationNotifierWorker extends EmailSendingWorker {</span>
+
+<span class="nc" id="L44">    private static final Logger log = Logger.getLogger(CertificateExpirationNotifierWorker.class);</span>
+
+    private CertificateStoreSessionLocal certificateStoreSession;
+    private transient List&lt;Integer&gt; certificateProfileIds;
+
+    /**
+     * Worker that makes a query to the Certificate Store about expiring certificates.
+     * 
+     * @see org.ejbca.core.model.services.IWorker#work
+     */
+    @Override
+    public void work(Map&lt;Class&lt;?&gt;, Object&gt; ejbs) throws ServiceExecutionFailedException {
+<span class="nc" id="L56">        log.trace(&quot;&gt;CertificateExpirationNotifierWorker.work started&quot;);</span>
+<span class="nc" id="L57">        final CaSessionLocal caSession = ((CaSessionLocal) ejbs.get(CaSessionLocal.class));</span>
+<span class="nc" id="L58">        certificateStoreSession = ((CertificateStoreSessionLocal) ejbs.get(CertificateStoreSessionLocal.class));</span>
+<span class="nc" id="L59">        final EndEntityAccessSessionLocal endEntityAccessSession = ((EndEntityAccessSessionLocal) ejbs.get(EndEntityAccessSessionLocal.class));</span>
+
+<span class="nc" id="L61">        ArrayList&lt;EmailCertData&gt; userEmailQueue = new ArrayList&lt;EmailCertData&gt;();</span>
+<span class="nc" id="L62">        ArrayList&lt;EmailCertData&gt; adminEmailQueue = new ArrayList&lt;EmailCertData&gt;();</span>
+
+        // Build Query
+<span class="nc" id="L65">        Collection&lt;String&gt; cas = new ArrayList&lt;String&gt;();</span>
+<span class="nc" id="L66">        Collection&lt;Integer&gt; caIds = getCAIdsToCheck(false);</span>
+<span class="nc" id="L67">        Collection&lt;Integer&gt; certificateProfileIds = getCertificateProfileIdsToCheck();</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">        if (!caIds.isEmpty()) {</span>
+            //if caIds contains SecConst.ALLCAS, reassign caIds to contain just that.
+<span class="nc bnc" id="L70" title="All 2 branches missed.">            if(caIds.contains(SecConst.ALLCAS)) {</span>
+<span class="nc" id="L71">                caIds = caSession.getAllCaIds();</span>
+            }
+<span class="nc bnc" id="L73" title="All 2 branches missed.">            for(Integer caid : caIds) {</span>
+                CAInfo caInfo;  
+                try {
+<span class="nc" id="L76">                    caInfo = caSession.getCAInfo(getAdmin(), caid);</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">                    if(caInfo == null) {</span>
+<span class="nc" id="L78">                        log.info(InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;services.errorworker.errornoca&quot;, caid, null));</span>
+<span class="nc" id="L79">                        continue;</span>
+                    }
+<span class="nc" id="L81">                }  catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L82">                    log.info(InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, caid, &quot;CAId&quot;));</span>
+<span class="nc" id="L83">                    continue;</span>
+<span class="nc" id="L84">                }</span>
+<span class="nc" id="L85">                String cadn = caInfo.getSubjectDN();</span>
+<span class="nc" id="L86">                cas.add(cadn);</span>
+<span class="nc" id="L87">            }</span>
+
+            /*
+             * Algorithm:
+             * 
+             * Inputs: CertificateData.status Which either is ACTIVE or
+             * NOTIFIEDABOUTEXPIRATION in order to be candidates for
+             * notifications.
+             * 
+             * nextRunTimestamp Tells when the next service run will be
+             * 
+             * currRunTimestamp Tells when the service should run (usually &quot;now&quot;
+             * but there may be delayed runs as well if the app-server has been
+             * down)
+             * 
+             * thresHold The configured &quot;threshold&quot;
+             * 
+             * We want to accomplish two things:
+             * 
+             * 1. Notify for expirations within the service window 2. Notify
+             * _once_ for expirations that occurred before the service window
+             * like flagging certificates that have a shorter life-span than the
+             * threshold (pathologic test-case...)
+             * 
+             * The first is checked by:
+             * 
+             * notify = currRunTimestamp + thresHold &lt;= ExpireDate &lt;
+             * nextRunTimestamp + thresHold AND (status = ACTIVE OR status =
+             * NOTIFIEDABOUTEXPIRATION)
+             * 
+             * The second can be checked by:
+             * 
+             * notify = currRunTimestamp + thresHold &gt; ExpireDate AND status =
+             * ACTIVE
+             * 
+             * In both case status can be set to NOTIFIEDABOUTEXPIRATION
+             * 
+             * As Tomas pointed out we do not need to flag certificates that
+             * have expired already which is a separate test.
+             */
+
+<span class="nc" id="L128">            long now = new Date().getTime();</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">            if (!cas.isEmpty()) {</span>
+<span class="nc" id="L130">                long thresHold = getTimeBeforeExpire();</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L132">                    log.debug(&quot;Looking for expiring certificates for CAs '&quot;+caIds+&quot;' and certificate profiles '&quot;+certificateProfileIds+&quot;', with expire treshold: &quot;+thresHold+</span>
+                            &quot;. activeNotifiedExpireDateMin: &quot;+now+&quot;, activeNotifiedExpireDateMax: &quot;+(nextRunTimeStamp + thresHold)+&quot;, activeExpireDateMin: &quot;+(runTimeStamp + thresHold));
+                }
+                try {
+<span class="nc" id="L136">                    List&lt;Object[]&gt; fingerprintUsernameList = certificateStoreSession.findExpirationInfo(cas, certificateProfileIds, now, (nextRunTimeStamp + thresHold),</span>
+                            (runTimeStamp + thresHold));
+<span class="nc" id="L138">                    int count = 0;</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">                    for (Object[] next : fingerprintUsernameList) {</span>
+<span class="nc" id="L140">                        count++;</span>
+                        // For each certificate update status.
+<span class="nc" id="L142">                        String fingerprint = (String) next[0];</span>
+<span class="nc" id="L143">                        String username = (String) next[1];</span>
+                        // Get the certificate through a session bean
+<span class="nc" id="L145">                        log.debug(&quot;Found a certificate we should notify. Username=&quot; + username + &quot;, fp=&quot; + fingerprint);</span>
+<span class="nc" id="L146">                        Certificate cert = certificateStoreSession.findCertificateByFingerprint(fingerprint);</span>
+<span class="nc" id="L147">                        EndEntityInformation userData = endEntityAccessSession.findUser(getAdmin(), username);</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">                        if (userData != null) {</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">                            if (isSendToEndUsers()) {</span>
+<span class="nc bnc" id="L150" title="All 4 branches missed.">                                if (userData.getEmail() == null || userData.getEmail().trim().equals(&quot;&quot;)) {</span>
+<span class="nc" id="L151">                                    log.info(InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;services.errorworker.errornoemail&quot;, username));</span>
+                                } else {
+                                    // Populate end user message
+<span class="nc" id="L154">                                    log.debug(&quot;Adding to email queue for user: &quot; + userData.getEmail());</span>
+<span class="nc" id="L155">                                    final UserNotificationParamGen userNotificationParamGen = new UserNotificationParamGen(userData, cert);</span>
+<span class="nc" id="L156">                                    final String message = userNotificationParamGen.interpolate(getEndUserMessage());</span>
+<span class="nc" id="L157">                                    final String subject = userNotificationParamGen.interpolate(getEndUserSubject());</span>
+<span class="nc" id="L158">                                    final MailActionInfo mailActionInfo = new MailActionInfo(userData.getEmail(), subject, message);</span>
+<span class="nc" id="L159">                                    userEmailQueue.add(new EmailCertData(fingerprint, mailActionInfo));</span>
+<span class="nc" id="L160">                                }</span>
+                            }
+                        } else {
+<span class="nc" id="L163">                            log.debug(&quot;Trying to send notification to user, but no UserData can be found for user '&quot; + username</span>
+                                    + &quot;', will only send to admin if admin notifications are defined.&quot;);
+                        }
+<span class="nc bnc" id="L166" title="All 2 branches missed.">                        if (isSendToAdmins()) {</span>
+                            // If we did not have any user for this, we will simply use empty values for substitution
+<span class="nc bnc" id="L168" title="All 2 branches missed.">                            if (userData == null) {</span>
+<span class="nc" id="L169">                                userData = new EndEntityInformation();</span>
+<span class="nc" id="L170">                                userData.setUsername(username);</span>
+                            }
+                            // Populate admin message
+<span class="nc" id="L173">                            log.debug(&quot;Adding to email queue for admin&quot;);</span>
+<span class="nc" id="L174">                            final UserNotificationParamGen userNotificationParamGen = new UserNotificationParamGen(userData, cert);</span>
+<span class="nc" id="L175">                            final String message = userNotificationParamGen.interpolate(getAdminMessage());</span>
+<span class="nc" id="L176">                            final String subject = userNotificationParamGen.interpolate(getAdminSubject());</span>
+<span class="nc" id="L177">                            final MailActionInfo mailActionInfo = new MailActionInfo(null, subject, message);</span>
+<span class="nc" id="L178">                            adminEmailQueue.add(new EmailCertData(fingerprint, mailActionInfo));</span>
+                        }
+<span class="nc bnc" id="L180" title="All 4 branches missed.">                        if (!isSendToEndUsers() &amp;&amp; !isSendToAdmins()) {</span>
+                            // a little bit of a kludge to make JUnit testing feasible...
+<span class="nc" id="L182">                            log.debug(&quot;nobody to notify for cert with fp:&quot; + fingerprint);</span>
+<span class="nc" id="L183">                            updateStatus(fingerprint, CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION);</span>
+                        }
+<span class="nc" id="L185">                    }</span>
+<span class="nc bnc" id="L186" title="All 2 branches missed.">                    if (count == 0) {</span>
+<span class="nc" id="L187">                        log.debug(&quot;No certificates found for notification.&quot;);</span>
+                    }
+
+<span class="nc" id="L190">                } catch (Exception fe) {</span>
+<span class="nc" id="L191">                    log.error(&quot;Error running service work: &quot;, fe);</span>
+<span class="nc" id="L192">                    throw new ServiceExecutionFailedException(fe);</span>
+<span class="nc" id="L193">                }</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">                if (isSendToEndUsers()) {</span>
+<span class="nc" id="L195">                    sendEmails(userEmailQueue, ejbs);</span>
+                }
+<span class="nc bnc" id="L197" title="All 2 branches missed.">                if (isSendToAdmins()) {</span>
+<span class="nc" id="L198">                    sendEmails(adminEmailQueue, ejbs);</span>
+                }
+<span class="nc" id="L200">            } else {</span>
+<span class="nc" id="L201">                log.info(&quot;CAs select collection is empty, there were ids but no names?&quot;);</span>
+            }
+<span class="nc" id="L203">        } else {</span>
+<span class="nc" id="L204">            log.debug(&quot;No CAs to check&quot;);</span>
+        }
+<span class="nc" id="L206">        log.trace(&quot;&lt;CertificateExpirationNotifierWorker.work ended&quot;);</span>
+<span class="nc" id="L207">    }</span>
+
+    /**
+     * Method that must be implemented by all subclasses to EmailSendingWorker, used to update status of a certificate, user, or similar
+     * 
+     * @param pk primary key of object to update
+     * @param status status to update to
+     */
+    @Override
+    protected void updateStatus(String pk, int status) {
+        try {
+<span class="nc bnc" id="L218" title="All 2 branches missed.">            if (!certificateStoreSession.setStatus(getAdmin(), pk, status)) {</span>
+<span class="nc" id="L219">                log.error(&quot;Error updating certificate status for certificate with fingerprint: &quot; + pk);</span>
+            }
+<span class="nc" id="L221">        } catch (AuthorizationDeniedException e) {</span>
+            // Should not be possible...
+<span class="nc" id="L223">            log.error(&quot;Internal admin not authorized: &quot;, e);</span>
+<span class="nc" id="L224">            throw new RuntimeException(e);</span>
+<span class="nc" id="L225">        }</span>
+<span class="nc" id="L226">    }</span>
+    
+    /**
+     * Returns the Set of Certificate Profile IDs. For performance reasons cached as a 
+     * transient class variable.
+     * 
+     * @return collection
+     */
+    private Collection&lt;Integer&gt;getCertificateProfileIdsToCheck() {
+<span class="nc bnc" id="L235" title="All 2 branches missed.">        if (this.certificateProfileIds == null) {</span>
+<span class="nc" id="L236">            this.certificateProfileIds = new ArrayList&lt;Integer&gt;();</span>
+<span class="nc" id="L237">            String idString = properties.getProperty(PROP_CERTIFICATE_PROFILE_IDS_TO_CHECK);</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">            if (idString != null) {</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">                for (String id : idString.split(&quot;;&quot;)) {</span>
+<span class="nc" id="L240">                    certificateProfileIds.add(Integer.valueOf(id));</span>
+                }
+            }
+        }
+<span class="nc" id="L244">        return certificateProfileIds;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

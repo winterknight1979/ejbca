@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HardTokenIssuer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.hardtoken</a> &gt; <span class="el_source">HardTokenIssuer.java</span></div><h1>HardTokenIssuer.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+/*
+ * HardTokenIssuer.java
+ *
+ * Created on den 19 januari 2003, 12:53
+ */
+package org.ejbca.core.model.hardtoken;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+
+import org.cesecore.internal.UpgradeableDataHashMap;
+
+/**
+ * HardTokenIssuer V3 is a class representing the data saved for each HardTokenIssuer.
+ * it isn't back compatible with the old version.
+ *
+ * @author  TomSelleck
+ * @version $Id: HardTokenIssuer.java 22117 2015-10-29 10:53:42Z mikekushner $
+ */
+public  class HardTokenIssuer extends UpgradeableDataHashMap implements Serializable, Cloneable {
+
+    private static final long serialVersionUID = -1794111124380177196L;
+
+    // Default Values
+    public static final float LATEST_VERSION = 1;
+
+    // Protected Constants, must be overloaded by all deriving classes.   
+    protected static final String AVAILABLEHARDTOKENSPROFILES  = &quot;availablehardtokensprofiles&quot;; 
+	protected static final String DESCRIPTION                  = &quot;description&quot;; 
+    
+<span class="nc" id="L46">    public HardTokenIssuer(){</span>
+<span class="nc" id="L47">      data.put(AVAILABLEHARDTOKENSPROFILES,new ArrayList&lt;Integer&gt;());</span>
+<span class="nc" id="L48">      data.put(DESCRIPTION,&quot;&quot;);         </span>
+<span class="nc" id="L49">    }</span>
+    
+    // Public Methods
+    
+    // Availablehardtokens defines which hard tokens the issuer is able to issue. 
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public ArrayList&lt;Integer&gt; getAvailableHardTokenProfiles(){
+<span class="nc" id="L56">      return (ArrayList&lt;Integer&gt;) data.get(AVAILABLEHARDTOKENSPROFILES); </span>
+    }
+    
+    public void setAvailableHardTokenProfiles(ArrayList&lt;Integer&gt; availablehardtokens){
+<span class="nc" id="L60">      data.put(AVAILABLEHARDTOKENSPROFILES,availablehardtokens); </span>
+<span class="nc" id="L61">    }    </span>
+    
+    public String getDescription(){
+<span class="nc" id="L64">      return  (String) data.get(DESCRIPTION);	</span>
+    }
+
+	public void setDescription(String description){
+<span class="nc" id="L68">	  data.put(DESCRIPTION, description);	</span>
+<span class="nc" id="L69">	}    </span>
+    
+    public void setField(String field, Object value){ 
+<span class="nc" id="L72">       data.put(field,value);   </span>
+<span class="nc" id="L73">    }</span>
+    
+    /** Implementation of UpgradableDataHashMap function getLatestVersion */
+    public float getLatestVersion(){
+<span class="nc" id="L77">       return LATEST_VERSION;</span>
+    }
+
+    /** Implementation of UpgradableDataHashMap function upgrade. */
+    public void upgrade(){	
+<span class="nc" id="L82">    }</span>
+    
+    @SuppressWarnings({ &quot;rawtypes&quot;, &quot;unchecked&quot; })
+    public Object clone() throws CloneNotSupportedException {
+<span class="nc" id="L86">      HardTokenIssuer clone = new HardTokenIssuer();</span>
+<span class="nc" id="L87">      HashMap clonedata = (HashMap) clone.saveData();</span>
+      
+<span class="nc" id="L89">      Iterator i = (data.keySet()).iterator();</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">      while(i.hasNext()){</span>
+<span class="nc" id="L91">        Object key = i.next();  </span>
+<span class="nc" id="L92">        clonedata.put(key,data.get(key)); </span>
+<span class="nc" id="L93">      }</span>
+      
+<span class="nc" id="L95">      clone.loadData(clonedata);</span>
+<span class="nc" id="L96">      return clone;</span>
+    }    
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

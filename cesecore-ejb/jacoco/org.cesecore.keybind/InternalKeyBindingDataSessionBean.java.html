@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>InternalKeyBindingDataSessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cesecore-ejb</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.keybind</a> &gt; <span class="el_source">InternalKeyBindingDataSessionBean.java</span></div><h1>InternalKeyBindingDataSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.keybind;
+
+import java.security.SecureRandom;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import javax.ejb.SessionContext;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+
+import org.apache.log4j.Logger;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.internal.InternalResources;
+import org.cesecore.util.QueryResultWrapper;
+
+/**
+ * @see org.cesecore.keybind.InternalKeyBindingDataSessionLocal
+ * @version $Id: InternalKeyBindingDataSessionBean.java 25609 2017-03-24 00:00:29Z jeklund $
+ */
+@Stateless  //(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;InternalKeyBindingDataSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L42">public class InternalKeyBindingDataSessionBean implements InternalKeyBindingDataSessionLocal {</span>
+
+<span class="nc" id="L44">    private static final Logger log = Logger.getLogger(InternalKeyBindingDataSessionBean.class);</span>
+<span class="nc" id="L45">    private static final InternalResources intres = InternalResources.getInstance();</span>
+<span class="nc" id="L46">    private static final Random rnd = new SecureRandom();</span>
+
+    @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+    private EntityManager entityManager;
+
+    // Myself needs to be looked up in postConstruct
+    @Resource
+    private SessionContext sessionContext;
+    private InternalKeyBindingDataSessionLocal keyBindSession;
+
+    @PostConstruct
+    public void postConstruct() {
+        // We lookup the reference to our-self in PostConstruct, since we cannot inject this.
+        // We can not inject ourself, JBoss will not start then therefore we use this to get a reference to this session bean
+        // to call readData we want to do it on the real bean in order to get
+        // the transaction setting (REQUIRED) which creates a new transaction if one was not running (required to read LOBs in PostgreSQL)
+<span class="nc" id="L62">        keyBindSession = sessionContext.getBusinessObject(InternalKeyBindingDataSessionLocal.class);</span>
+<span class="nc" id="L63">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public void flushCache() {
+<span class="nc" id="L68">        InternalKeyBindingCache.INSTANCE.flush();</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L70">            log.debug(&quot;Flushed &quot;+InternalKeyBindingCache.class.getSimpleName());</span>
+        }
+<span class="nc" id="L72">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public InternalKeyBinding getInternalKeyBinding(final int id) {
+        // 1. Check (new) InternalKeyBindingCache if it is time to sync-up with database
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        if (InternalKeyBindingCache.INSTANCE.shouldCheckForUpdates(id)) {</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L80">                log.debug(&quot;Object with ID &quot; + id + &quot; will be checked for updates.&quot;);</span>
+            }
+            // 2. If cache is expired or missing, first thread to discover this reloads item from database and sends it to the cache
+<span class="nc" id="L83">            final InternalKeyBindingData internalKeyBindingData = keyBindSession.readData(id);</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">            if (internalKeyBindingData==null) {</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L86">                    log.debug(&quot;Requested object did not exist in database and will be purged from cache if present: &quot; + id);</span>
+                }
+                // Ensure that it is removed from cache
+<span class="nc" id="L89">                InternalKeyBindingCache.INSTANCE.removeEntry(id);</span>
+            } else {
+<span class="nc" id="L91">                final int digest = internalKeyBindingData.getProtectString(0).hashCode();</span>
+<span class="nc" id="L92">                final String type = internalKeyBindingData.getKeyBindingType();</span>
+<span class="nc" id="L93">                final String name = internalKeyBindingData.getName();</span>
+<span class="nc" id="L94">                final InternalKeyBindingStatus status = internalKeyBindingData.getStatusEnum();</span>
+<span class="nc" id="L95">                final String certificateId = internalKeyBindingData.getCertificateId();</span>
+<span class="nc" id="L96">                final int cryptoTokenId = internalKeyBindingData.getCryptoTokenId();</span>
+<span class="nc" id="L97">                final String keyPairAlias = internalKeyBindingData.getKeyPairAlias();</span>
+<span class="nc" id="L98">                final LinkedHashMap&lt;Object,Object&gt; dataMapToLoad = internalKeyBindingData.getDataMap();</span>
+                // Create new token and store it in the cache.
+<span class="nc" id="L100">                final InternalKeyBinding internalKeyBinding = InternalKeyBindingFactory.INSTANCE.create(type, id, name, status, certificateId, cryptoTokenId, keyPairAlias, dataMapToLoad);</span>
+<span class="nc" id="L101">                InternalKeyBindingCache.INSTANCE.updateWith(id, digest, name, internalKeyBinding);</span>
+            }
+            // 3. The cache compares the database data with what is in the cache
+            // 4. If database is different from cache, replace it in the cache (while trying to keep activation)
+        }
+        // 5. Get InternalKeyBinding from cache (or null) and be merry
+<span class="nc" id="L107">        return  InternalKeyBindingCache.INSTANCE.getEntry(id);</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public InternalKeyBinding getInternalKeyBindingForEdit(final int id) {
+<span class="nc" id="L113">        final InternalKeyBinding internalKeyBinding = getInternalKeyBinding(id);</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        if (internalKeyBinding == null) {</span>
+<span class="nc" id="L115">            return null;</span>
+        } else {
+            // 6. Create and return a clone (so clients don't mess with the cached object)
+<span class="nc" id="L118">            final InternalKeyBinding internalKeyBindingClone = InternalKeyBindingFactory.INSTANCE.create(internalKeyBinding.getImplementationAlias(),</span>
+<span class="nc" id="L119">                    id, internalKeyBinding.getName(), internalKeyBinding.getStatus(), internalKeyBinding.getCertificateId(),</span>
+<span class="nc" id="L120">                    internalKeyBinding.getCryptoTokenId(), internalKeyBinding.getKeyPairAlias(), internalKeyBinding.getDataMapToPersist());</span>
+<span class="nc" id="L121">            return internalKeyBindingClone;</span>
+        }
+    }
+
+    @Override
+    public int mergeInternalKeyBinding(InternalKeyBinding internalKeyBinding) throws InternalKeyBindingNameInUseException {
+<span class="nc bnc" id="L127" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L128">            log.debug(&quot;&gt;mergeInternalKeyBinding &quot; + internalKeyBinding.getName() + &quot; &quot; + internalKeyBinding.getClass().getName());</span>
+        }
+<span class="nc" id="L130">        int internalKeyBindingId = internalKeyBinding.getId();</span>
+<span class="nc" id="L131">        final String name = internalKeyBinding.getName();</span>
+<span class="nc" id="L132">        final InternalKeyBindingStatus status = internalKeyBinding.getStatus();</span>
+<span class="nc" id="L133">        final String type = InternalKeyBindingFactory.INSTANCE.getTypeFromImplementation(internalKeyBinding);</span>
+<span class="nc" id="L134">        final String certificateId = internalKeyBinding.getCertificateId();</span>
+<span class="nc" id="L135">        final int cryptoTokenId = internalKeyBinding.getCryptoTokenId();</span>
+<span class="nc" id="L136">        final String keyPairAlias = internalKeyBinding.getKeyPairAlias();</span>
+<span class="nc" id="L137">        final LinkedHashMap&lt;Object,Object&gt; dataMap = internalKeyBinding.getDataMapToPersist();</span>
+        // Allocate a new internalKeyBindingId if we create the InternalKeyBinding
+<span class="nc" id="L139">        InternalKeyBindingData internalKeyBindingData = null;</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">        if (internalKeyBindingId == 0) {</span>
+<span class="nc" id="L141">            final List&lt;Integer&gt; allUsedIds = getIds(null);</span>
+<span class="nc" id="L142">            Integer allocatedId = null;</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">            for (int i=0; i&lt;100; i++) {</span>
+<span class="nc" id="L144">                final int current = Integer.valueOf(rnd.nextInt());</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">                if (!allUsedIds.contains(current)) {</span>
+<span class="nc" id="L146">                    allocatedId = current;</span>
+<span class="nc" id="L147">                    break;</span>
+                }
+            }
+<span class="nc bnc" id="L150" title="All 2 branches missed.">            if (allocatedId == null) {</span>
+<span class="nc" id="L151">                throw new RuntimeException(&quot;Failed to allocate a new internalKeyBindingId.&quot;);</span>
+            }
+<span class="nc" id="L153">            internalKeyBindingId = allocatedId.intValue();</span>
+            // We need to replace this object with an object that has the correct ID if we are going to cache it later
+<span class="nc" id="L155">            internalKeyBinding = InternalKeyBindingFactory.INSTANCE.create(type, internalKeyBindingId, name,</span>
+                    status, certificateId, cryptoTokenId, keyPairAlias, dataMap);
+<span class="nc bnc" id="L157" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L158">                log.debug(&quot;Allocated a new internalKeyBindingId: &quot; + internalKeyBindingId);</span>
+            }
+<span class="nc" id="L160">        } else {</span>
+            // The one invoking the method has specified an id and expects the object to exist
+<span class="nc" id="L162">            internalKeyBindingData = entityManager.find(InternalKeyBindingData.class, internalKeyBindingId);</span>
+        }
+<span class="nc bnc" id="L164" title="All 2 branches missed.">        if (internalKeyBindingData == null) {</span>
+            // The InternalKeyBinding does not exist in the database, before we add it we want to check that the name is not in use
+<span class="nc bnc" id="L166" title="All 2 branches missed.">            if (isNameUsed(name)) {</span>
+<span class="nc bnc" id="L167" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L168">                    log.debug(&quot;isNameUsed(&quot;+name+&quot;)&quot;);</span>
+                }
+<span class="nc" id="L170">                throw new InternalKeyBindingNameInUseException(intres.getLocalizedMessage(&quot;internalkeybinding.nameisinuse&quot;, name));</span>
+            }
+<span class="nc" id="L172">            internalKeyBindingData = new InternalKeyBindingData(internalKeyBindingId, name, status, type, certificateId, cryptoTokenId, keyPairAlias, dataMap);</span>
+        } else {
+<span class="nc bnc" id="L174" title="All 2 branches missed.">            if (!isNameUsedByIdOnly(internalKeyBindingData.getName(), internalKeyBindingId)) {</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L176">                    log.debug(&quot;!isNameUsedByIdOnly(&quot;+name+&quot;, &quot;+internalKeyBindingId+&quot;)&quot;);</span>
+                }
+<span class="nc" id="L178">                throw new InternalKeyBindingNameInUseException(intres.getLocalizedMessage(&quot;internalkeybinding.nameisinuse&quot;, name));</span>
+            }
+            // It might be the case that the calling transaction has already loaded a reference to this token
+            // and hence we need to get the same one and perform updates on this object instead of trying to
+            // merge a new object.
+<span class="nc" id="L183">            internalKeyBindingData.setName(name);</span>
+<span class="nc" id="L184">            internalKeyBindingData.setStatusEnum(status);</span>
+<span class="nc" id="L185">            internalKeyBindingData.setKeyBindingType(type);</span>
+<span class="nc" id="L186">            internalKeyBindingData.setCertificateId(certificateId);</span>
+<span class="nc" id="L187">            internalKeyBindingData.setCryptoTokenId(cryptoTokenId);</span>
+<span class="nc" id="L188">            internalKeyBindingData.setKeyPairAlias(keyPairAlias);</span>
+<span class="nc" id="L189">            internalKeyBindingData.setDataMap(dataMap);</span>
+<span class="nc" id="L190">            internalKeyBindingData.setLastUpdate(System.currentTimeMillis());</span>
+        }
+<span class="nc" id="L192">        internalKeyBindingData = createOrUpdateData(internalKeyBindingData);</span>
+        // Update cache with provided token (it might be active and we like keeping things active)
+<span class="nc" id="L194">        InternalKeyBindingCache.INSTANCE.updateWith(internalKeyBindingId, internalKeyBindingData.getProtectString(0).hashCode(), name, internalKeyBinding);</span>
+<span class="nc bnc" id="L195" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L196">            log.debug(&quot;&lt;mergeInternalKeyBinding &quot; + internalKeyBinding.getName());</span>
+        }
+<span class="nc" id="L198">        return internalKeyBindingId;   // tokenId</span>
+    }
+
+    @Override
+    public boolean removeInternalKeyBinding(final int id) {
+<span class="nc" id="L203">        final boolean ret = deleteData(id);</span>
+<span class="nc" id="L204">        InternalKeyBindingCache.INSTANCE.updateWith(id, 0, null, null);</span>
+<span class="nc" id="L205">        return ret;</span>
+    }
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public Map&lt;String,Integer&gt; getCachedNameToIdMap() {
+<span class="nc" id="L211">        return InternalKeyBindingCache.INSTANCE.getNameToIdMap();</span>
+    }
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public boolean isNameUsed(final String name) {
+<span class="nc" id="L217">        final Query query = entityManager.createQuery(&quot;SELECT a FROM InternalKeyBindingData a WHERE a.name=:name&quot;);</span>
+<span class="nc" id="L218">        query.setParameter(&quot;name&quot;, name);</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">        return !query.getResultList().isEmpty();</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public boolean isNameUsedByIdOnly(final String name, final int id) {
+<span class="nc" id="L225">        final Query query = entityManager.createQuery(&quot;SELECT a FROM InternalKeyBindingData a WHERE a.name=:name&quot;);</span>
+<span class="nc" id="L226">        query.setParameter(&quot;name&quot;, name);</span>
+        @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L228">        final List&lt;InternalKeyBindingData&gt; internalKeyBindingDatas = query.getResultList();</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">        for (final InternalKeyBindingData internalKeyBindingData: internalKeyBindingDatas) {</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">            if (internalKeyBindingData.getId() != id) {</span>
+<span class="nc" id="L231">                return false;</span>
+            }
+<span class="nc" id="L233">        }</span>
+<span class="nc" id="L234">        return true;</span>
+    }
+
+    //
+    // Create Read Update Delete (CRUD) methods
+    //
+
+    @Override
+    public InternalKeyBindingData readData(final int id) {
+<span class="nc" id="L243">        final Query query = entityManager.createQuery(&quot;SELECT a FROM InternalKeyBindingData a WHERE a.id=:id&quot;);</span>
+<span class="nc" id="L244">        query.setParameter(&quot;id&quot;, id);</span>
+<span class="nc" id="L245">        return QueryResultWrapper.getSingleResult(query);</span>
+    }
+
+    private InternalKeyBindingData createOrUpdateData(final InternalKeyBindingData data) {
+<span class="nc" id="L249">        return entityManager.merge(data);</span>
+    }
+
+    private boolean deleteData(final int id) {
+<span class="nc" id="L253">        final Query query = entityManager.createQuery(&quot;DELETE FROM InternalKeyBindingData a WHERE a.id=:id&quot;);</span>
+<span class="nc" id="L254">        query.setParameter(&quot;id&quot;, id);</span>
+<span class="nc bnc" id="L255" title="All 2 branches missed.">        return query.executeUpdate() == 1;</span>
+    }
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public List&lt;Integer&gt; getIds(String keyBindingType) {
+<span class="nc bnc" id="L262" title="All 2 branches missed.">        if (keyBindingType == null) {</span>
+<span class="nc" id="L263">            return entityManager.createQuery(&quot;SELECT a.id FROM InternalKeyBindingData a&quot;).getResultList();</span>
+        } else {
+<span class="nc" id="L265">            final Query query = entityManager.createQuery(&quot;SELECT a.id FROM InternalKeyBindingData a WHERE a.keyBindingType=:keyBindingType&quot;);</span>
+<span class="nc" id="L266">            query.setParameter(&quot;keyBindingType&quot;, keyBindingType);</span>
+<span class="nc" id="L267">            return query.getResultList();</span>
+        }
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AlwaysAllowLocalAuthenticationTokenMetaData.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-common-entity-tests</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.authentication.tokens</a> &gt; <span class="el_source">AlwaysAllowLocalAuthenticationTokenMetaData.java</span></div><h1>AlwaysAllowLocalAuthenticationTokenMetaData.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.authentication.tokens;
+
+import java.util.Arrays;
+import java.util.List;
+
+import org.cesecore.authorization.user.AccessMatchType;
+import org.cesecore.authorization.user.matchvalues.AccessMatchValue;
+
+/**
+ * Meta data definition and ServiceLoader marker for {@link org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken}.
+ * 
+ * @version $Id: AlwaysAllowLocalAuthenticationTokenMetaData.java 25615 2017-03-24 18:44:19Z samuellb $
+ */
+public class AlwaysAllowLocalAuthenticationTokenMetaData extends AuthenticationTokenMetaDataBase {
+
+<span class="fc" id="L28">    private static String TOKEN_TYPE = &quot;AlwaysAllowLocalAuthenticationToken&quot;;</span>
+    
+<span class="fc" id="L30">    private static enum InternalMatchValue implements AccessMatchValue {</span>
+<span class="fc" id="L31">        INSTANCE(0), DEFAULT(Integer.MAX_VALUE);</span>
+
+        private final int numericValue;
+        
+<span class="fc" id="L35">        private InternalMatchValue(final int numericValue) {</span>
+<span class="fc" id="L36">            this.numericValue = numericValue;</span>
+<span class="fc" id="L37">        }</span>
+        
+        @Override
+        public int getNumericValue() {
+<span class="fc" id="L41">            return numericValue;</span>
+        }
+
+        @Override
+        public String getTokenType() {
+<span class="nc" id="L46">            return TOKEN_TYPE;</span>
+        }
+
+        @Override
+        public boolean isIssuedByCa() {
+<span class="nc" id="L51">            return false;</span>
+        }
+
+        @Override
+        public boolean isDefaultValue() {
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">            return numericValue == DEFAULT.numericValue;</span>
+        }
+
+        @Override
+        public List&lt;AccessMatchType&gt; getAvailableAccessMatchTypes() {
+<span class="nc" id="L61">            return Arrays.asList();</span>
+        }
+        
+        @Override
+        public String normalizeMatchValue(final String value) {
+<span class="nc" id="L66">            return null; // does not have a value</span>
+        }
+    }
+    
+    public AlwaysAllowLocalAuthenticationTokenMetaData() {
+<span class="fc" id="L71">        super(TOKEN_TYPE, Arrays.asList(InternalMatchValue.values()), false);</span>
+<span class="fc" id="L72">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

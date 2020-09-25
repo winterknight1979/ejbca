@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ProfileBase.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-ejb</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.profiles</a> &gt; <span class="el_source">ProfileBase.java</span></div><h1>ProfileBase.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.profiles;
+
+import java.io.Serializable;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import org.cesecore.internal.UpgradeableDataHashMap;
+
+/**
+ * Base class for all Profile entity beans. Mainly a holder for an UpgradeableDataHashMap, it's meant to be completely agnostic of any implementation
+ * details. 
+ * 
+ * @version $Id: ProfileBase.java 28140 2018-01-30 12:40:30Z andresjakobs $
+ *
+ */
+public abstract class ProfileBase extends UpgradeableDataHashMap implements Profile, Serializable{
+    
+    private static final long serialVersionUID = 1L;
+    
+    public static final float LATEST_VERSION = 1f;
+    
+    private static final String PROFILE_NAME_KEY = &quot;profile.name&quot;;
+    private static final String PROFILE_ID_KEY = &quot;profile.id&quot;;
+    
+<span class="fc" id="L37">    private transient Class&lt;? extends Profile&gt; implementationClass = null;</span>
+    
+<span class="fc" id="L39">    private transient String name = null;</span>
+<span class="fc" id="L40">    private transient Integer profileId = null;</span>
+
+    /** List separator. */
+    protected static final String LIST_SEPARATOR = &quot;;&quot;;
+    
+<span class="fc" id="L45">    public ProfileBase() {</span>
+        //Public constructor needed deserialization 
+<span class="fc" id="L47">    }</span>
+    public ProfileBase(final String name) {
+<span class="fc" id="L49">        super();</span>
+<span class="fc" id="L50">        setProfileName(name);</span>
+<span class="fc" id="L51">        initialize();</span>
+<span class="fc" id="L52">    }</span>
+    
+    /*
+     * This method only needs to be called by the factory method (and some unit tests), because it sets a ton of boilerplate stuff which isn't 
+     * required by already initialized profiles.
+     */
+    @Override
+    public void initialize() {
+<span class="fc" id="L60">        data.put(PROFILE_TYPE, getImplementationClass()); </span>
+<span class="fc" id="L61">    }</span>
+    
+    @Override
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public LinkedHashMap&lt;Object, Object&gt; getDataMap() {
+<span class="nc" id="L66">        LinkedHashMap&lt;Object, Object&gt; saveData = (LinkedHashMap&lt;Object, Object&gt;) saveData();</span>
+<span class="nc" id="L67">        return saveData;</span>
+    }
+    
+    protected abstract Class&lt;? extends Profile&gt;  getImplementationClass();
+    
+    /**
+     * Method allows implementions to add non-datamapped objects to be persisted. 
+     * 
+     */
+    protected abstract void saveTransientObjects();
+    
+    protected abstract void loadTransientObjects();
+    
+    @Override
+    public void setDataMap(LinkedHashMap&lt;Object, Object&gt; dataMap) {
+<span class="nc" id="L82">        loadData(dataMap);</span>
+<span class="nc" id="L83">        loadTransientObjects();</span>
+<span class="nc" id="L84">    }</span>
+        
+    @SuppressWarnings(&quot;unchecked&quot;)
+    @Override
+    public Class&lt;? extends Profile&gt; getType() {
+<span class="nc bnc" id="L89" title="All 2 branches missed.">        if(implementationClass == null) {</span>
+<span class="nc" id="L90">            implementationClass = (Class&lt;? extends Profile&gt;) data.get(PROFILE_TYPE);</span>
+        }
+<span class="nc" id="L92">        return implementationClass;</span>
+    }
+  
+    @Override
+    public Integer getProfileId() {
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        if(profileId == null) {</span>
+<span class="nc" id="L98">            profileId = (Integer) data.get(PROFILE_ID_KEY);</span>
+        }
+<span class="nc" id="L100">        return profileId;</span>
+    }
+    
+    @Override
+    public void setProfileId(Integer profileId) {
+<span class="nc" id="L105">        this.profileId = profileId;</span>
+<span class="nc" id="L106">        data.put(PROFILE_ID_KEY, profileId);</span>
+<span class="nc" id="L107">    }</span>
+    
+    @Override
+    public String getProfileName() {
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        if(name == null) {</span>
+<span class="nc" id="L112">            name = (String) data.get(PROFILE_NAME_KEY);</span>
+        }
+<span class="nc" id="L114">        return name;</span>
+    }     
+    
+    @Override
+    public void setProfileName(String profileName) {
+<span class="fc" id="L119">       this.name = profileName;</span>
+<span class="fc" id="L120">       data.put(PROFILE_NAME_KEY, profileName);</span>
+<span class="fc" id="L121">    }</span>
+
+    /** Implementation of UpgradableDataHashMap function getLatestVersion */
+    @Override
+    public float getLatestVersion(){
+<span class="nc" id="L126">       return LATEST_VERSION;</span>
+    }
+
+    @Override
+<span class="nc" id="L130">    public void upgrade() {}</span>
+    
+    /** @param key key
+     * @param defaultValue value 
+     * @param &lt;T&gt; type
+     * @return data from the underlying map. Encourages use of String valued keys. */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    protected &lt;T&gt; T getData(final String key, final T defaultValue) {
+<span class="nc" id="L138">        final T ret = (T) data.get(key);</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        return ret==null ? defaultValue : ret;</span>
+    }
+    
+    /** Store data in the underlying map. Encourages use of String valued keys. 
+     * @param key key
+     * @param value value */
+    protected void putData(final String key, final Object value) {
+<span class="nc" id="L146">        data.put(key, value);</span>
+<span class="nc" id="L147">    }</span>
+   
+    @Override
+    public Map&lt;Object, Object&gt; diff(Profile newobj) {
+<span class="nc" id="L151">        Map&lt;Object, Object&gt; newmap = (Map&lt;Object, Object&gt;) newobj.getDataMap();</span>
+<span class="nc" id="L152">        return diffMaps(data, newmap);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

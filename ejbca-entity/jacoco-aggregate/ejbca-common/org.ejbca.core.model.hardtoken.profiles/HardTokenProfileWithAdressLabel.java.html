@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>HardTokenProfileWithAdressLabel.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-entity</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.hardtoken.profiles</a> &gt; <span class="el_source">HardTokenProfileWithAdressLabel.java</span></div><h1>HardTokenProfileWithAdressLabel.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.model.hardtoken.profiles;
+
+
+import java.awt.print.Printable;
+import java.awt.print.PrinterException;
+import java.io.IOException;
+import java.io.StringReader;
+
+import org.cesecore.certificates.endentity.EndEntityInformation;
+
+/**
+ * HardTokenProfileWithAdressLabel is a basic class that should be inherited by all types
+ * of hardtokenprofiles that should have adress label functionality.
+ * 
+ * @version $Id: HardTokenProfileWithAdressLabel.java 22117 2015-10-29 10:53:42Z mikekushner $
+ */
+public abstract class HardTokenProfileWithAdressLabel extends HardTokenProfileWithReceipt implements IAdressLabelSettings{
+		
+	
+	private static final long serialVersionUID = 6349060371407093333L;
+    // Protected Constants
+	protected static final String ADRESSLABELTYPE                = &quot;adresslabeltype&quot;;
+	protected static final String ADRESSLABELFILENAME            = &quot;adresslabelfilename&quot;;
+	protected static final String ADRESSLABELDATA                = &quot;adresslabeldata&quot;;
+	protected static final String ADRESSLABELCOPIES              = &quot;adresslabelcopies&quot;;
+	
+
+<span class="nc" id="L41">	private SVGImageManipulator adresslabelsvgimagemanipulator = null;</span>
+			
+    // Default Values
+    public HardTokenProfileWithAdressLabel() {
+<span class="nc" id="L45">      super();</span>
+      
+<span class="nc" id="L47">      setAdressLabelType(IAdressLabelSettings.ADRESSLABELTYPE_GENERAL);</span>
+<span class="nc" id="L48">      setAdressLabelTemplateFilename(&quot;&quot;);</span>
+<span class="nc" id="L49">	  setNumberOfAdressLabelCopies(1);</span>
+         
+      
+<span class="nc" id="L52">    }</span>
+
+    @Override
+    public void upgrade(){
+      // Perform upgrade functionality
+    	
+<span class="nc bnc" id="L58" title="All 2 branches missed.">      if(data.get(ADRESSLABELTYPE) == null){</span>
+<span class="nc" id="L59">      	setAdressLabelType(IAdressLabelSettings.ADRESSLABELTYPE_GENERAL);</span>
+      } 	
+<span class="nc bnc" id="L61" title="All 2 branches missed.">      if(data.get(ADRESSLABELFILENAME) == null){</span>
+<span class="nc" id="L62">      	setAdressLabelTemplateFilename(&quot;&quot;);</span>
+      }      	
+<span class="nc bnc" id="L64" title="All 2 branches missed.">      if(data.get(ADRESSLABELCOPIES) == null){</span>
+<span class="nc" id="L65">      	setNumberOfAdressLabelCopies(1);	</span>
+      }
+    	
+<span class="nc" id="L68">      super.upgrade(); </span>
+<span class="nc" id="L69">    }</span>
+    
+
+    
+    @Override
+	public int getNumberOfAdressLabelCopies() {
+<span class="nc" id="L75">		return ((Integer) data.get(ADRESSLABELCOPIES)).intValue();</span>
+	}
+    @Override
+	public String getAdressLabelData() {
+<span class="nc" id="L79">		return (String) data.get(ADRESSLABELDATA);</span>
+	}
+    @Override
+	public String getAdressLabelTemplateFilename() {
+<span class="nc" id="L83">		return (String) data.get(ADRESSLABELFILENAME);</span>
+	}
+    @Override
+	public int getAdressLabelType() {
+<span class="nc" id="L87">		return ((Integer) data.get(ADRESSLABELTYPE)).intValue();</span>
+	}
+    @Override
+	public void setNumberOfAdressLabelCopies(int copies) {
+<span class="nc" id="L91">		  data.put(ADRESSLABELCOPIES, Integer.valueOf(copies));	</span>
+<span class="nc" id="L92">	}</span>
+    @Override
+	public void setAdressLabelData(String templatedata) {
+<span class="nc" id="L95">		data.put(ADRESSLABELDATA, templatedata);	</span>
+<span class="nc" id="L96">	}</span>
+    @Override
+	public void setAdressLabelTemplateFilename(String filename) {
+<span class="nc" id="L99">		  data.put(ADRESSLABELFILENAME, filename);		</span>
+<span class="nc" id="L100">	}</span>
+    @Override
+	public void setAdressLabelType(int type) {
+<span class="nc" id="L103">		data.put(ADRESSLABELTYPE, Integer.valueOf(type));</span>
+<span class="nc" id="L104">	}</span>
+    /**
+     * Method that parses the template, replaces the userdata
+     * and returning a printable byte array 
+     * @param userdata User
+     * @param pincodes PIN
+     * @param pukcodes PUK
+     * @param hardtokensn SN
+     * @param copyoftokensn SN copy
+     * @return LAbel
+     * @throws IOException On IO fail
+     * @throws PrinterException On print fail
+     */  
+    public Printable printAdressLabel(EndEntityInformation userdata, String[] pincodes,
+            String[] pukcodes, String hardtokensn, String copyoftokensn) throws IOException, PrinterException {
+<span class="nc" id="L119">        Printable returnval = null;</span>
+
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        if(getAdressLabelData() != null){</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">            if(adresslabelsvgimagemanipulator == null) {</span>
+<span class="nc" id="L123">                adresslabelsvgimagemanipulator = new SVGImageManipulator(new StringReader(getAdressLabelData()),</span>
+<span class="nc" id="L124">                        getVisualValidity(),</span>
+<span class="nc" id="L125">                        getHardTokenSNPrefix()); </span>
+            }
+<span class="nc" id="L127">            returnval = adresslabelsvgimagemanipulator.print(userdata, pincodes, pukcodes, hardtokensn, copyoftokensn);                                                         </span>
+        }
+
+<span class="nc" id="L130">        return returnval;   </span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

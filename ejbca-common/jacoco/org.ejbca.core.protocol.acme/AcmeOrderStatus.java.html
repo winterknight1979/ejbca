@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AcmeOrderStatus.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.acme</a> &gt; <span class="el_source">AcmeOrderStatus.java</span></div><h1>AcmeOrderStatus.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA: The OpenSource Certificate Authority                          *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.protocol.acme;
+
+import org.cesecore.certificates.endentity.EndEntityConstants;
+
+/**
+ * @version $Id: AcmeOrderStatus.java 29587 2018-08-07 15:25:52Z mikekushner $
+ *
+ */
+<span class="nc" id="L21">public enum AcmeOrderStatus {</span>
+    /** &quot;The certificate will not be issued. Consider this order process abandoned.&quot; */
+<span class="nc" id="L23">    INVALID(EndEntityConstants.STATUS_FAILED),</span>
+    /** 
+     * &quot;The server does not believe that the client has fulfilled the requirements.
+     * Check the &quot;authorizations&quot; array for entries that are still pending.&quot;
+     */
+<span class="nc" id="L28">    PENDING(EndEntityConstants.STATUS_INITIALIZED),</span>
+    /** 
+     * &quot;The server agrees that the requirements have been fulfilled, and is awaiting finalization. 
+     * Submit a finalization request.&quot; 
+     */
+<span class="nc" id="L33">    READY(EndEntityConstants.STATUS_INPROCESS),</span>
+    /**
+     * &quot;The certificate is being issued. Send a GET request after the time given in the &quot;Retry-After&quot; 
+     * header field of the response, if any.&quot;
+     */
+<span class="nc" id="L38">    PROCESSING(EndEntityConstants.STATUS_NEW),</span>
+    /** 
+     * &quot;The server has issued the certificate and provisioned its URL to the &quot;certificate&quot; field of the order. 
+     * Download the certificate.&quot; 
+     */
+<span class="nc" id="L43">    VALID(EndEntityConstants.STATUS_GENERATED);</span>
+    
+    private final int endEntityStatus;
+    
+<span class="nc" id="L47">    private AcmeOrderStatus(final int endEntityStatus) {</span>
+<span class="nc" id="L48">        this.endEntityStatus = endEntityStatus;</span>
+<span class="nc" id="L49">    }</span>
+
+    /** @return the corresponding EJBCA end entity status */
+<span class="nc" id="L52">    public int getEndEntityStatus() { return endEntityStatus; }</span>
+    public static AcmeOrderStatus fromEndEntityStatus(final int endEntityStatus) {
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        for (final AcmeOrderStatus current : AcmeOrderStatus.values()) {</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">            if (current.getEndEntityStatus()==endEntityStatus) {</span>
+<span class="nc" id="L56">                return current;</span>
+            }
+        }
+<span class="nc" id="L59">        return null;</span>
+    }
+<span class="nc" id="L61">    public String getJsonValue() { return this.name().toLowerCase(); }</span>
+<span class="nc" id="L62">    public static AcmeOrderStatus fromJsonValue(final String status) { return AcmeOrderStatus.valueOf(status.toUpperCase()); }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

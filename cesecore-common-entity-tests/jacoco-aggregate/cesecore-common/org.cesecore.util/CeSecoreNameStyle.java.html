@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CeSecoreNameStyle.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-common-entity-tests</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.util</a> &gt; <span class="el_source">CeSecoreNameStyle.java</span></div><h1>CeSecoreNameStyle.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.cesecore.util;
+
+import java.util.Hashtable;
+
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.DERPrintableString;
+import org.bouncycastle.asn1.x500.AttributeTypeAndValue;
+import org.bouncycastle.asn1.x500.RDN;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.X500NameStyle;
+import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.asn1.x500.style.IETFUtils;
+
+/** Class that determines string representations of DNs. Overrides the default BCStyle in order to:
+ * - Be consistent for all future for backwards compatibility (serialnumber)
+ * - Be able to add fields that does not (yet) exist in BC (like CABForum Jurisdiction* in BC 1.54)
+ *
+ * @version $Id: CeSecoreNameStyle.java 26562 2017-09-16 19:07:04Z samuellb $
+ *
+ */
+<span class="fc" id="L35">public class CeSecoreNameStyle extends BCStyle {</span>
+
+<span class="fc" id="L37">    public static final X500NameStyle INSTANCE = new CeSecoreNameStyle();</span>
+
+    /**
+     * EV TLS jurisdictionCountry.
+     * https://cabforum.org/wp-content/uploads/EV-V1_5_2Libre.pdf
+     */
+<span class="fc" id="L43">    public static final ASN1ObjectIdentifier JURISDICTION_COUNTRY = new ASN1ObjectIdentifier(&quot;1.3.6.1.4.1.311.60.2.1.3&quot;);</span>
+    /**
+     * EV TLS jurisdictionState.
+     * https://cabforum.org/wp-content/uploads/EV-V1_5_2Libre.pdf
+     */
+<span class="fc" id="L48">    public static final ASN1ObjectIdentifier JURISDICTION_STATE = new ASN1ObjectIdentifier(&quot;1.3.6.1.4.1.311.60.2.1.2&quot;);</span>
+    /**
+     * EV TLS jurisdictionLocality.
+     * https://cabforum.org/wp-content/uploads/EV-V1_5_2Libre.pdf
+     */
+<span class="fc" id="L53">    public static final ASN1ObjectIdentifier JURISDICTION_LOCALITY = new ASN1ObjectIdentifier(&quot;1.3.6.1.4.1.311.60.2.1.1&quot;);</span>
+    /**
+     * X.520 organizationIdentifier, used by ETSI TS 319 412 (eIDAS).
+     * https://www.itu.int/rec/dologin.asp?lang=e&amp;amp;id=T-REC-X.520-201210-S!Cor3!PDF-E&amp;amp;type=items
+     */
+<span class="fc" id="L58">    public static final ASN1ObjectIdentifier ORGANIZATION_IDENTIFIER = new ASN1ObjectIdentifier(&quot;2.5.4.97&quot;);</span>
+
+    /**
+     * 
+     */
+<span class="fc" id="L63">    public static final ASN1ObjectIdentifier DESCRIPTION = new ASN1ObjectIdentifier(&quot;2.5.4.13&quot;);</span>
+    
+    /**
+     * default look up table translating OID values into their common symbols following
+     * the convention in RFC 2253 with a few extras
+     */
+<span class="fc" id="L69">    public static final Hashtable&lt;ASN1ObjectIdentifier, String&gt; DefaultSymbols = new Hashtable&lt;&gt;();</span>
+
+    /**
+     * look up table translating common symbols into their OIDS.
+     */
+<span class="fc" id="L74">    public static final Hashtable&lt;String, ASN1ObjectIdentifier&gt; DefaultLookUp = new Hashtable&lt;&gt;();</span>
+
+    /**
+     * look up table translating common symbols into their OIDS.
+     */
+<span class="fc" id="L79">    public static final Hashtable&lt;String, String&gt; DefaultStringStringLookUp = new Hashtable&lt;&gt;();</span>
+
+    static {
+<span class="fc" id="L82">        DefaultSymbols.put(C, &quot;C&quot;);</span>
+<span class="fc" id="L83">        DefaultSymbols.put(O, &quot;O&quot;);</span>
+<span class="fc" id="L84">        DefaultSymbols.put(T, &quot;T&quot;);</span>
+<span class="fc" id="L85">        DefaultSymbols.put(OU, &quot;OU&quot;);</span>
+<span class="fc" id="L86">        DefaultSymbols.put(CN, &quot;CN&quot;);</span>
+<span class="fc" id="L87">        DefaultSymbols.put(L, &quot;L&quot;);</span>
+<span class="fc" id="L88">        DefaultSymbols.put(ST, &quot;ST&quot;);</span>
+<span class="fc" id="L89">        DefaultSymbols.put(SN, &quot;SN&quot;);</span>
+<span class="fc" id="L90">        DefaultSymbols.put(EmailAddress, &quot;E&quot;);</span>
+<span class="fc" id="L91">        DefaultSymbols.put(DC, &quot;DC&quot;);</span>
+<span class="fc" id="L92">        DefaultSymbols.put(UID, &quot;UID&quot;);</span>
+<span class="fc" id="L93">        DefaultSymbols.put(STREET, &quot;STREET&quot;);</span>
+<span class="fc" id="L94">        DefaultSymbols.put(SURNAME, &quot;SURNAME&quot;);</span>
+<span class="fc" id="L95">        DefaultSymbols.put(GIVENNAME, &quot;GIVENNAME&quot;);</span>
+<span class="fc" id="L96">        DefaultSymbols.put(INITIALS, &quot;INITIALS&quot;);</span>
+<span class="fc" id="L97">        DefaultSymbols.put(GENERATION, &quot;GENERATION&quot;);</span>
+<span class="fc" id="L98">        DefaultSymbols.put(UnstructuredAddress, &quot;unstructuredAddress&quot;);</span>
+<span class="fc" id="L99">        DefaultSymbols.put(UnstructuredName, &quot;unstructuredName&quot;);</span>
+<span class="fc" id="L100">        DefaultSymbols.put(UNIQUE_IDENTIFIER, &quot;UniqueIdentifier&quot;);</span>
+<span class="fc" id="L101">        DefaultSymbols.put(DN_QUALIFIER, &quot;DN&quot;);</span>
+<span class="fc" id="L102">        DefaultSymbols.put(PSEUDONYM, &quot;Pseudonym&quot;);</span>
+<span class="fc" id="L103">        DefaultSymbols.put(POSTAL_ADDRESS, &quot;PostalAddress&quot;);</span>
+<span class="fc" id="L104">        DefaultSymbols.put(NAME_AT_BIRTH, &quot;NameAtBirth&quot;);</span>
+<span class="fc" id="L105">        DefaultSymbols.put(COUNTRY_OF_CITIZENSHIP, &quot;CountryOfCitizenship&quot;);</span>
+<span class="fc" id="L106">        DefaultSymbols.put(COUNTRY_OF_RESIDENCE, &quot;CountryOfResidence&quot;);</span>
+<span class="fc" id="L107">        DefaultSymbols.put(GENDER, &quot;Gender&quot;);</span>
+<span class="fc" id="L108">        DefaultSymbols.put(PLACE_OF_BIRTH, &quot;PlaceOfBirth&quot;);</span>
+<span class="fc" id="L109">        DefaultSymbols.put(DATE_OF_BIRTH, &quot;DateOfBirth&quot;);</span>
+<span class="fc" id="L110">        DefaultSymbols.put(POSTAL_CODE, &quot;PostalCode&quot;);</span>
+<span class="fc" id="L111">        DefaultSymbols.put(BUSINESS_CATEGORY, &quot;BusinessCategory&quot;);</span>
+<span class="fc" id="L112">        DefaultSymbols.put(TELEPHONE_NUMBER, &quot;TelephoneNumber&quot;);</span>
+<span class="fc" id="L113">        DefaultSymbols.put(NAME, &quot;Name&quot;);</span>
+<span class="fc" id="L114">        DefaultSymbols.put(JURISDICTION_LOCALITY, &quot;JurisdictionLocality&quot;);</span>
+<span class="fc" id="L115">        DefaultSymbols.put(JURISDICTION_STATE, &quot;JurisdictionState&quot;);</span>
+<span class="fc" id="L116">        DefaultSymbols.put(JURISDICTION_COUNTRY, &quot;JurisdictionCountry&quot;);</span>
+<span class="fc" id="L117">        DefaultSymbols.put(ORGANIZATION_IDENTIFIER, &quot;organizationIdentifier&quot;);</span>
+<span class="fc" id="L118">        DefaultSymbols.put(DESCRIPTION, &quot;description&quot;);</span>
+
+<span class="fc" id="L120">        DefaultLookUp.put(&quot;c&quot;, C);</span>
+<span class="fc" id="L121">        DefaultLookUp.put(&quot;o&quot;, O);</span>
+<span class="fc" id="L122">        DefaultLookUp.put(&quot;t&quot;, T);</span>
+<span class="fc" id="L123">        DefaultLookUp.put(&quot;ou&quot;, OU);</span>
+<span class="fc" id="L124">        DefaultLookUp.put(&quot;cn&quot;, CN);</span>
+<span class="fc" id="L125">        DefaultLookUp.put(&quot;l&quot;, L);</span>
+<span class="fc" id="L126">        DefaultLookUp.put(&quot;st&quot;, ST);</span>
+<span class="fc" id="L127">        DefaultLookUp.put(&quot;sn&quot;, SN);</span>
+<span class="fc" id="L128">        DefaultLookUp.put(&quot;serialnumber&quot;, SN);</span>
+<span class="fc" id="L129">        DefaultLookUp.put(&quot;street&quot;, STREET);</span>
+<span class="fc" id="L130">        DefaultLookUp.put(&quot;emailaddress&quot;, E);</span>
+<span class="fc" id="L131">        DefaultLookUp.put(&quot;dc&quot;, DC);</span>
+<span class="fc" id="L132">        DefaultLookUp.put(&quot;e&quot;, E);</span>
+<span class="fc" id="L133">        DefaultLookUp.put(&quot;uid&quot;, UID);</span>
+<span class="fc" id="L134">        DefaultLookUp.put(&quot;surname&quot;, SURNAME);</span>
+<span class="fc" id="L135">        DefaultLookUp.put(&quot;givenname&quot;, GIVENNAME);</span>
+<span class="fc" id="L136">        DefaultLookUp.put(&quot;initials&quot;, INITIALS);</span>
+<span class="fc" id="L137">        DefaultLookUp.put(&quot;generation&quot;, GENERATION);</span>
+<span class="fc" id="L138">        DefaultLookUp.put(&quot;unstructuredaddress&quot;, UnstructuredAddress);</span>
+<span class="fc" id="L139">        DefaultLookUp.put(&quot;unstructuredname&quot;, UnstructuredName);</span>
+<span class="fc" id="L140">        DefaultLookUp.put(&quot;uniqueidentifier&quot;, UNIQUE_IDENTIFIER);</span>
+<span class="fc" id="L141">        DefaultLookUp.put(&quot;dn&quot;, DN_QUALIFIER);</span>
+<span class="fc" id="L142">        DefaultLookUp.put(&quot;pseudonym&quot;, PSEUDONYM);</span>
+<span class="fc" id="L143">        DefaultLookUp.put(&quot;postaladdress&quot;, POSTAL_ADDRESS);</span>
+<span class="fc" id="L144">        DefaultLookUp.put(&quot;nameofbirth&quot;, NAME_AT_BIRTH);</span>
+<span class="fc" id="L145">        DefaultLookUp.put(&quot;countryofcitizenship&quot;, COUNTRY_OF_CITIZENSHIP);</span>
+<span class="fc" id="L146">        DefaultLookUp.put(&quot;countryofresidence&quot;, COUNTRY_OF_RESIDENCE);</span>
+<span class="fc" id="L147">        DefaultLookUp.put(&quot;gender&quot;, GENDER);</span>
+<span class="fc" id="L148">        DefaultLookUp.put(&quot;placeofbirth&quot;, PLACE_OF_BIRTH);</span>
+<span class="fc" id="L149">        DefaultLookUp.put(&quot;dateofbirth&quot;, DATE_OF_BIRTH);</span>
+<span class="fc" id="L150">        DefaultLookUp.put(&quot;postalcode&quot;, POSTAL_CODE);</span>
+<span class="fc" id="L151">        DefaultLookUp.put(&quot;businesscategory&quot;, BUSINESS_CATEGORY);</span>
+<span class="fc" id="L152">        DefaultLookUp.put(&quot;telephonenumber&quot;, TELEPHONE_NUMBER);</span>
+<span class="fc" id="L153">        DefaultLookUp.put(&quot;name&quot;, NAME);</span>
+<span class="fc" id="L154">        DefaultLookUp.put(&quot;jurisdictionlocality&quot;, JURISDICTION_LOCALITY);</span>
+<span class="fc" id="L155">        DefaultLookUp.put(&quot;jurisdictionstate&quot;, JURISDICTION_STATE);</span>
+<span class="fc" id="L156">        DefaultLookUp.put(&quot;jurisdictioncountry&quot;, JURISDICTION_COUNTRY);</span>
+<span class="fc" id="L157">        DefaultLookUp.put(&quot;organizationidentifier&quot;, ORGANIZATION_IDENTIFIER);</span>
+<span class="fc" id="L158">        DefaultLookUp.put(&quot;description&quot;, DESCRIPTION);</span>
+
+<span class="fc" id="L160">        DefaultStringStringLookUp.put(&quot;C&quot;, C.getId());</span>
+<span class="fc" id="L161">        DefaultStringStringLookUp.put(&quot;O&quot;, O.getId());</span>
+<span class="fc" id="L162">        DefaultStringStringLookUp.put(&quot;T&quot;, T.getId());</span>
+<span class="fc" id="L163">        DefaultStringStringLookUp.put(&quot;OU&quot;, OU.getId());</span>
+<span class="fc" id="L164">        DefaultStringStringLookUp.put(&quot;CN&quot;, CN.getId());</span>
+<span class="fc" id="L165">        DefaultStringStringLookUp.put(&quot;L&quot;, L.getId());</span>
+<span class="fc" id="L166">        DefaultStringStringLookUp.put(&quot;ST&quot;, ST.getId());</span>
+<span class="fc" id="L167">        DefaultStringStringLookUp.put(&quot;SN&quot;, SN.getId());</span>
+<span class="fc" id="L168">        DefaultStringStringLookUp.put(&quot;SERIALNUMBER&quot;, SN.getId());</span>
+<span class="fc" id="L169">        DefaultStringStringLookUp.put(&quot;STREET&quot;, STREET.getId());</span>
+<span class="fc" id="L170">        DefaultStringStringLookUp.put(&quot;EMAILADDRESS&quot;, E.getId());</span>
+<span class="fc" id="L171">        DefaultStringStringLookUp.put(&quot;DC&quot;, DC.getId());</span>
+<span class="fc" id="L172">        DefaultStringStringLookUp.put(&quot;E&quot;, E.getId());</span>
+<span class="fc" id="L173">        DefaultStringStringLookUp.put(&quot;UID&quot;, UID.getId());</span>
+<span class="fc" id="L174">        DefaultStringStringLookUp.put(&quot;SURNAME&quot;, SURNAME.getId());</span>
+<span class="fc" id="L175">        DefaultStringStringLookUp.put(&quot;GIVENNAME&quot;, GIVENNAME.getId());</span>
+<span class="fc" id="L176">        DefaultStringStringLookUp.put(&quot;INITIALS&quot;, INITIALS.getId());</span>
+<span class="fc" id="L177">        DefaultStringStringLookUp.put(&quot;GENERATION&quot;, GENERATION.getId());</span>
+<span class="fc" id="L178">        DefaultStringStringLookUp.put(&quot;UNSTRUCTUREDADDRESS&quot;, UnstructuredAddress.getId());</span>
+<span class="fc" id="L179">        DefaultStringStringLookUp.put(&quot;UNSTRUCTUREDNAME&quot;, UnstructuredName.getId());</span>
+<span class="fc" id="L180">        DefaultStringStringLookUp.put(&quot;UNIQUEIDENTIFIER&quot;, UNIQUE_IDENTIFIER.getId());</span>
+<span class="fc" id="L181">        DefaultStringStringLookUp.put(&quot;DN&quot;, DN_QUALIFIER.getId());</span>
+<span class="fc" id="L182">        DefaultStringStringLookUp.put(&quot;PSEUDONYM&quot;, PSEUDONYM.getId());</span>
+<span class="fc" id="L183">        DefaultStringStringLookUp.put(&quot;POSTALADDRESS&quot;, POSTAL_ADDRESS.getId());</span>
+<span class="fc" id="L184">        DefaultStringStringLookUp.put(&quot;NAMEOFBIRTH&quot;, NAME_AT_BIRTH.getId());</span>
+<span class="fc" id="L185">        DefaultStringStringLookUp.put(&quot;COUNTRYOFCITIZENSHIP&quot;, COUNTRY_OF_CITIZENSHIP.getId());</span>
+<span class="fc" id="L186">        DefaultStringStringLookUp.put(&quot;COUNTRYOFRESIDENCE&quot;, COUNTRY_OF_RESIDENCE.getId());</span>
+<span class="fc" id="L187">        DefaultStringStringLookUp.put(&quot;GENDER&quot;, GENDER.getId());</span>
+<span class="fc" id="L188">        DefaultStringStringLookUp.put(&quot;PLACEOFBIRTH&quot;, PLACE_OF_BIRTH.getId());</span>
+<span class="fc" id="L189">        DefaultStringStringLookUp.put(&quot;DATEOFBIRTH&quot;, DATE_OF_BIRTH.getId());</span>
+<span class="fc" id="L190">        DefaultStringStringLookUp.put(&quot;POSTALCODE&quot;, POSTAL_CODE.getId());</span>
+<span class="fc" id="L191">        DefaultStringStringLookUp.put(&quot;BUSINESSCATEGORY&quot;, BUSINESS_CATEGORY.getId());</span>
+<span class="fc" id="L192">        DefaultStringStringLookUp.put(&quot;TELEPHONENUMBER&quot;, TELEPHONE_NUMBER.getId());</span>
+<span class="fc" id="L193">        DefaultStringStringLookUp.put(&quot;NAME&quot;, NAME.getId());</span>
+<span class="fc" id="L194">        DefaultStringStringLookUp.put(&quot;JURISDICTIONLOCALITY&quot;, JURISDICTION_LOCALITY.getId());</span>
+<span class="fc" id="L195">        DefaultStringStringLookUp.put(&quot;JURISDICTIONSTATE&quot;, JURISDICTION_STATE.getId());</span>
+<span class="fc" id="L196">        DefaultStringStringLookUp.put(&quot;JURISDICTIONCOUNTRY&quot;, JURISDICTION_COUNTRY.getId());</span>
+<span class="fc" id="L197">        DefaultStringStringLookUp.put(&quot;ORGANIZATIONIDENTIFIER&quot;, ORGANIZATION_IDENTIFIER.getId());</span>
+<span class="fc" id="L198">        DefaultStringStringLookUp.put(&quot;DESCRIPTION&quot;, DESCRIPTION.getId());</span>
+<span class="fc" id="L199">    }</span>
+
+    /**
+     * This method is intended to be used in toString() in BCStyle classes. It is
+     * useful e.g. when the DefaultSymbols map is not the default inherited from
+     * BCStyle. It is public so it can be re-used by other classes as well
+     * (e.g. LdapNameStyle in EJBCA).
+     * @param defaultSymbols symbols
+     * @param name Name
+     * @return String
+     */
+    public static String buildString(Hashtable&lt;ASN1ObjectIdentifier,String&gt; defaultSymbols, X500Name name) {
+<span class="fc" id="L211">        StringBuffer buf = new StringBuffer();</span>
+<span class="fc" id="L212">        boolean first = true;</span>
+
+<span class="fc" id="L214">        RDN[] rdns = name.getRDNs();</span>
+
+<span class="fc bfc" id="L216" title="All 2 branches covered.">        for (int i = 0; i &lt; rdns.length; i++) {</span>
+<span class="fc bfc" id="L217" title="All 2 branches covered.">            if (first) {</span>
+<span class="fc" id="L218">                first = false;</span>
+            } else {
+<span class="fc" id="L220">                buf.append(',');</span>
+            }
+
+<span class="fc bfc" id="L223" title="All 2 branches covered.">            if (rdns[i].isMultiValued()) {</span>
+<span class="fc" id="L224">                AttributeTypeAndValue[] atv = rdns[i].getTypesAndValues();</span>
+<span class="fc" id="L225">                boolean firstAtv = true;</span>
+
+<span class="fc bfc" id="L227" title="All 2 branches covered.">                for (int j = 0; j != atv.length; j++) {</span>
+<span class="fc bfc" id="L228" title="All 2 branches covered.">                    if (firstAtv) {</span>
+<span class="fc" id="L229">                        firstAtv = false;</span>
+                    } else {
+<span class="fc" id="L231">                        buf.append('+');</span>
+                    }
+
+<span class="fc" id="L234">                    IETFUtils.appendTypeAndValue(buf, atv[j], defaultSymbols);</span>
+                }
+<span class="fc" id="L236">            } else {</span>
+<span class="fc" id="L237">                IETFUtils.appendTypeAndValue(buf, rdns[i].getFirst(), defaultSymbols);</span>
+            }
+        }
+
+<span class="fc" id="L241">        return buf.toString();</span>
+    }
+
+    @Override
+    public String toString(X500Name name) {
+<span class="fc" id="L246">        return buildString(DefaultSymbols, name);</span>
+    }
+
+    @Override
+    public ASN1Encodable stringToValue(ASN1ObjectIdentifier oid, String value) {
+        // JurisdictionCountry is not included in BC (at least up to and including 1.49), and must be PrintableString
+<span class="fc bfc" id="L252" title="All 2 branches covered.">        if (oid.equals(CeSecoreNameStyle.JURISDICTION_COUNTRY)) {</span>
+<span class="fc" id="L253">            return new DERPrintableString(value);</span>
+        }
+<span class="fc" id="L255">        return super.stringToValue(oid, value);</span>
+    }
+
+    @Override
+    public ASN1ObjectIdentifier attrNameToOID(String attrName)
+    {
+<span class="fc" id="L261">        return IETFUtils.decodeAttrName(attrName, DefaultLookUp);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

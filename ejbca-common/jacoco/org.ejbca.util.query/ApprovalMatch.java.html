@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApprovalMatch.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util.query</a> &gt; <span class="el_source">ApprovalMatch.java</span></div><h1>ApprovalMatch.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.util.query;
+
+import org.apache.commons.lang.StringUtils;
+
+/**
+ * A class used by Query class to build a custom query for EJBCA approval module.
+ *
+ * @version $Id: ApprovalMatch.java 25704 2017-04-18 14:42:43Z jeklund $
+ */
+public class ApprovalMatch extends BasicMatch {
+
+    private static final long serialVersionUID = -4891299802473333801L;
+
+    /** Match with the id column (the primary key), for looking up a particular approval */
+    public static final int MATCH_WITH_UNIQUEID                      = 0;
+    /** Match with the computed id for the approval, for searching for identical approvals */
+    public static final int MATCH_WITH_APPROVALID                    = 1;
+    public static final int MATCH_WITH_APPROVALTYPE                  = 2;
+    public static final int MATCH_WITH_ENDENTITYPROFILEID            = 3;
+    public static final int MATCH_WITH_CAID                          = 4;
+    public static final int MATCH_WITH_REQUESTADMINCERTISSUERDN      = 5;
+    public static final int MATCH_WITH_REQUESTADMINCERTSERIALNUMBER  = 6;
+    public static final int MATCH_WITH_STATUS                        = 7; 
+    public static final int MATCH_WITH_REMAININGAPPROVALS            = 8;
+
+    /** These refer to column names in the database and are used for native SQL querying. */
+<span class="nc" id="L39">    private static final String[] MATCH_WITH_SQLNAMES = {</span>
+        &quot;id&quot;, &quot;approvalId&quot;, &quot;approvalType&quot;, &quot;endEntityProfileId&quot;, &quot;cAId&quot;, &quot;reqAdminCertIssuerDn&quot;, &quot;reqAdminCertSn&quot;, &quot;status&quot;, &quot;remainingApprovals&quot;
+    };
+
+    private int matchwith;
+    private int matchtype;
+    private String matchvalue;
+
+    /**
+     * Creates a new instance.
+     *
+     * @param matchwith determines which field in approval table to match with.
+     * @param matchtype determines how to match the field..
+     * @param matchvalue the value to match with.
+     *
+     * @throws NumberFormatException if matchvalue contains illegal numbervalue when matching number field.
+     */
+    public ApprovalMatch(final int matchwith, final int matchtype, final String matchvalue)
+<span class="nc" id="L57">        throws NumberFormatException {</span>
+<span class="nc" id="L58">        this.matchwith = matchwith;</span>
+<span class="nc" id="L59">        this.matchtype = matchtype;</span>
+<span class="nc" id="L60">        this.matchvalue = matchvalue;</span>
+        // The row below does not do anything but check that matchvalue contains
+        // a legal number value when matching number field. See @throws clause.
+<span class="nc bnc" id="L63" title="All 4 branches missed.">        if (matchwith != MATCH_WITH_REQUESTADMINCERTISSUERDN &amp;&amp;</span>
+            matchwith != MATCH_WITH_REQUESTADMINCERTSERIALNUMBER){
+<span class="nc" id="L65">            Integer.valueOf(matchvalue);</span>
+        }
+<span class="nc" id="L67">    }</span>
+
+    @Override
+    public String getQueryString() {
+<span class="nc" id="L71">        String returnval = &quot;&quot;;</span>
+<span class="nc" id="L72">        final String matchvalue = super.escapeSql(this.matchvalue);</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        if (matchtype == BasicMatch.MATCH_TYPE_EQUALS) {</span>
+            // Because some databases (read JavaDB/Derby) does not allow matching of integer with a string expression
+            // like &quot;where status='10'&quot; instead of &quot;where status=10&quot;, we have to hav e some special handling here.
+<span class="nc" id="L76">            String stringChar = &quot;'&quot;;</span>
+<span class="nc bnc" id="L77" title="All 8 branches missed.">            if ((matchwith &gt;= MATCH_WITH_UNIQUEID &amp;&amp; matchwith &lt;= MATCH_WITH_CAID) || (matchwith == MATCH_WITH_STATUS) || (matchwith == MATCH_WITH_REMAININGAPPROVALS)) {</span>
+<span class="nc" id="L78">                stringChar = &quot;&quot;;</span>
+            }
+<span class="nc" id="L80">            returnval = MATCH_WITH_SQLNAMES[matchwith] + &quot; = &quot;+stringChar + matchvalue.trim() + stringChar;</span>
+        }
+<span class="nc bnc" id="L82" title="All 2 branches missed.">        if (matchtype == BasicMatch.MATCH_TYPE_BEGINSWITH) {</span>
+<span class="nc" id="L83">            returnval = MATCH_WITH_SQLNAMES[matchwith] + &quot; LIKE '&quot; + matchvalue + &quot;%'&quot;;</span>
+        }
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        if (matchtype == BasicMatch.MATCH_TYPE_CONTAINS) {</span>
+<span class="nc" id="L86">            returnval = MATCH_WITH_SQLNAMES[matchwith] + &quot; LIKE '%&quot; + matchvalue + &quot;%'&quot;;</span>
+        }
+<span class="nc" id="L88">        return returnval;</span>
+    }
+
+    @Override
+    public boolean isLegalQuery() {
+<span class="nc" id="L93">        return StringUtils.isNotBlank(matchvalue);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,2279 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OcspResponseGeneratorSessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cesecore-ejb</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.ocsp</a> &gt; <span class="el_source">OcspResponseGeneratorSessionBean.java</span></div><h1>OcspResponseGeneratorSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.ocsp;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.Serializable;
+import java.lang.reflect.Method;
+import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.InvalidParameterException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SignatureException;
+import java.security.UnrecoverableEntryException;
+import java.security.cert.CertPathValidatorException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.SessionContext;
+import javax.ejb.Stateless;
+import javax.ejb.Timeout;
+import javax.ejb.Timer;
+import javax.ejb.TimerConfig;
+import javax.ejb.TimerService;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1GeneralizedTime;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.ASN1OctetString;
+import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.DERNull;
+import org.bouncycastle.asn1.DEROctetString;
+import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
+import org.bouncycastle.asn1.ocsp.OCSPObjectIdentifiers;
+import org.bouncycastle.asn1.ocsp.RevokedInfo;
+import org.bouncycastle.asn1.oiw.OIWObjectIdentifiers;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.CRLReason;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.Extensions;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.KeyPurposeId;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
+import org.bouncycastle.cert.ocsp.BasicOCSPResp;
+import org.bouncycastle.cert.ocsp.BasicOCSPRespBuilder;
+import org.bouncycastle.cert.ocsp.CertificateID;
+import org.bouncycastle.cert.ocsp.OCSPException;
+import org.bouncycastle.cert.ocsp.OCSPReq;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.cert.ocsp.OCSPRespBuilder;
+import org.bouncycastle.cert.ocsp.Req;
+import org.bouncycastle.cert.ocsp.RevokedStatus;
+import org.bouncycastle.cert.ocsp.UnknownStatus;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.bc.BcDigestCalculatorProvider;
+import org.bouncycastle.util.encoders.Hex;
+import org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.UsernamePrincipal;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CAConstants;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.ca.InvalidAlgorithmException;
+import org.cesecore.certificates.ca.SignRequestException;
+import org.cesecore.certificates.ca.SignRequestSignatureException;
+import org.cesecore.certificates.ca.catoken.CAToken;
+import org.cesecore.certificates.ca.catoken.CATokenConstants;
+import org.cesecore.certificates.ca.internal.CaCertificateCache;
+import org.cesecore.certificates.certificate.CertificateInfo;
+import org.cesecore.certificates.certificate.CertificateStatus;
+import org.cesecore.certificates.certificate.CertificateStatusHolder;
+import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
+import org.cesecore.certificates.certificate.HashID;
+import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
+import org.cesecore.certificates.certificatetransparency.CertificateTransparency;
+import org.cesecore.certificates.certificatetransparency.CertificateTransparencyFactory;
+import org.cesecore.certificates.crl.RevokedCertInfo;
+import org.cesecore.certificates.ocsp.cache.OcspConfigurationCache;
+import org.cesecore.certificates.ocsp.cache.OcspExtensionsCache;
+import org.cesecore.certificates.ocsp.cache.OcspRequestSignerStatusCache;
+import org.cesecore.certificates.ocsp.cache.OcspSigningCache;
+import org.cesecore.certificates.ocsp.cache.OcspSigningCacheEntry;
+import org.cesecore.certificates.ocsp.exception.CryptoProviderException;
+import org.cesecore.certificates.ocsp.exception.IllegalNonceException;
+import org.cesecore.certificates.ocsp.exception.MalformedRequestException;
+import org.cesecore.certificates.ocsp.exception.OcspFailureException;
+import org.cesecore.certificates.ocsp.extension.OCSPExtension;
+import org.cesecore.certificates.ocsp.extension.OCSPExtensionType;
+import org.cesecore.certificates.ocsp.keys.CardKeys;
+import org.cesecore.certificates.ocsp.logging.AuditLogger;
+import org.cesecore.certificates.ocsp.logging.PatternLogger;
+import org.cesecore.certificates.ocsp.logging.TransactionLogger;
+import org.cesecore.certificates.util.AlgorithmTools;
+import org.cesecore.config.AvailableExtendedKeyUsagesConfiguration;
+import org.cesecore.config.ConfigurationHolder;
+import org.cesecore.config.GlobalOcspConfiguration;
+import org.cesecore.config.OcspConfiguration;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.internal.InternalResources;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.keybind.CertificateImportException;
+import org.cesecore.keybind.InternalKeyBindingDataSessionLocal;
+import org.cesecore.keybind.InternalKeyBindingInfo;
+import org.cesecore.keybind.InternalKeyBindingMgmtSessionLocal;
+import org.cesecore.keybind.InternalKeyBindingNameInUseException;
+import org.cesecore.keybind.InternalKeyBindingStatus;
+import org.cesecore.keybind.InternalKeyBindingTrustEntry;
+import org.cesecore.keybind.impl.AuthenticationKeyBinding;
+import org.cesecore.keybind.impl.OcspKeyBinding;
+import org.cesecore.keybind.impl.OcspKeyBinding.ResponderIdType;
+import org.cesecore.keys.token.BaseCryptoToken;
+import org.cesecore.keys.token.CachingKeyStoreWrapper;
+import org.cesecore.keys.token.CryptoToken;
+import org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.keys.token.CryptoTokenSessionLocal;
+import org.cesecore.keys.token.PKCS11CryptoToken;
+import org.cesecore.keys.token.SoftCryptoToken;
+import org.cesecore.keys.token.p11.Pkcs11SlotLabelType;
+import org.cesecore.keys.util.KeyTools;
+import org.cesecore.util.CeSecoreNameStyle;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.log.ProbableErrorHandler;
+import org.cesecore.util.log.SaferAppenderListener;
+import org.cesecore.util.log.SaferDailyRollingFileAppender;
+import org.cesecore.util.provider.EkuPKIXCertPathChecker;
+
+/**
+ * This SSB generates OCSP responses. 
+ * 
+ * @version $Id: OcspResponseGeneratorSessionBean.java 30346 2018-11-01 13:14:39Z samuellb $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;OcspResponseGeneratorSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+<span class="fc" id="L184">public class OcspResponseGeneratorSessionBean implements OcspResponseGeneratorSessionRemote, OcspResponseGeneratorSessionLocal, SaferAppenderListener {</span>
+
+    /** Max size of a request is 100000 bytes */
+    private static final int MAX_REQUEST_SIZE = 100000;
+    /** Timer identifiers */
+    private static final int TIMERID_OCSPSIGNINGCACHE = 1;
+
+<span class="fc" id="L191">    private static final String hardTokenClassName = OcspConfiguration.getHardTokenClassName();</span>
+
+<span class="fc" id="L193">    private static final Logger log = Logger.getLogger(OcspResponseGeneratorSessionBean.class);</span>
+
+<span class="fc" id="L195">    private static final InternalResources intres = InternalResources.getInstance();</span>
+    
+<span class="fc" id="L197">    private static volatile ExecutorService service = Executors.newCachedThreadPool();</span>
+    
+    @Resource
+    private SessionContext sessionContext;
+    /* When the sessionContext is injected, the timerService should be looked up.
+     * This is due to the Glassfish EJB verifier complaining. 
+     */
+    private TimerService timerService;
+
+    @EJB
+    private CaSessionLocal caSession;
+    @EJB
+    private CertificateStoreSessionLocal certificateStoreSession;
+    @EJB
+    private CryptoTokenSessionLocal cryptoTokenSession;
+    @EJB
+    private CryptoTokenManagementSessionLocal cryptoTokenManagementSession;
+    @EJB
+    private InternalKeyBindingDataSessionLocal internalKeyBindingDataSession;
+    @EJB
+    private InternalKeyBindingMgmtSessionLocal internalKeyBindingMgmtSession;
+    @EJB
+    private GlobalConfigurationSessionLocal globalConfigurationSession;
+
+<span class="fc" id="L221">    private JcaX509CertificateConverter certificateConverter = new JcaX509CertificateConverter();</span>
+
+    @PostConstruct
+    public void init() {
+<span class="nc bnc" id="L225" title="All 2 branches missed.">        if (OcspConfiguration.getLogSafer() == true) {</span>
+<span class="nc" id="L226">            SaferDailyRollingFileAppender.addSubscriber(this);</span>
+<span class="nc" id="L227">            log.info(&quot;Added us as subscriber: &quot; + SaferDailyRollingFileAppender.class.getCanonicalName());</span>
+        }
+<span class="nc" id="L229">        timerService = sessionContext.getTimerService();</span>
+<span class="nc" id="L230">    }</span>
+    
+    @Override
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public void initTimers() {
+        // Reload OCSP signing cache, and cancel/create timers if there are no timers or if the cache is empty (probably a fresh startup)
+<span class="nc bnc" id="L236" title="All 4 branches missed.">        if (getTimerCount(TIMERID_OCSPSIGNINGCACHE)==0 || OcspSigningCache.INSTANCE.getEntries().isEmpty()){</span>
+<span class="nc" id="L237">            reloadOcspSigningCache();</span>
+        } else {
+<span class="nc" id="L239">            log.info(&quot;Not initing OCSP reload timers, there are already some.&quot;);</span>
+        }
+<span class="nc" id="L241">    }</span>
+    
+    @Override
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public void reloadOcspExtensionsCache() {
+<span class="nc" id="L246">        OcspExtensionsCache.INSTANCE.reloadCache();</span>
+<span class="nc" id="L247">    }</span>
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public void clearCTFailFastCache() {
+<span class="nc" id="L252">        final CertificateTransparency ct = CertificateTransparencyFactory.getInstance();</span>
+<span class="nc bnc" id="L253" title="All 2 branches missed.">        if (ct != null) {</span>
+<span class="nc" id="L254">            ct.clearCaches();</span>
+        }
+<span class="nc" id="L256">    }</span>
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public void clearOcspRequestSignerRevocationStatusCache() {
+<span class="nc" id="L261">        OcspRequestSignerStatusCache.INSTANCE.flush();</span>
+<span class="nc" id="L262">    }</span>
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public void reloadOcspSigningCache() {
+<span class="nc bnc" id="L267" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L268">    		log.trace(&quot;&gt;reloadOcspSigningCache&quot;);</span>
+    	}
+        // Cancel any waiting timers of this type
+<span class="nc" id="L271">        cancelTimers(TIMERID_OCSPSIGNINGCACHE);</span>
+        try {      
+         // Verify card key holder
+<span class="nc bnc" id="L274" title="All 4 branches missed.">            if (log.isDebugEnabled() &amp;&amp; (CardKeyHolder.getInstance().getCardKeys() == null)) {</span>
+<span class="nc" id="L275">                log.debug(intres.getLocalizedMessage(&quot;ocsp.classnotfound&quot;, hardTokenClassName));</span>
+            }
+<span class="nc" id="L277">            GlobalOcspConfiguration ocspConfiguration = (GlobalOcspConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalOcspConfiguration.OCSP_CONFIGURATION_ID);</span>
+<span class="nc" id="L278">            OcspSigningCache.INSTANCE.stagingStart();</span>
+            try {
+                // Populate OcspSigningCache
+                // Add all potential CA's as OCSP responders to the staging area
+<span class="nc bnc" id="L282" title="All 2 branches missed.">                for (final Integer caId : caSession.getAllCaIds()) {</span>
+<span class="nc" id="L283">                    final List&lt;X509Certificate&gt; caCertificateChain = new ArrayList&lt;X509Certificate&gt;();</span>
+
+<span class="nc" id="L285">                    final CAInfo caInfo = caSession.getCAInfoInternal(caId.intValue());</span>
+<span class="nc bnc" id="L286" title="All 4 branches missed.">                    if (caInfo == null || caInfo.getCAType() == CAInfo.CATYPE_CVC) {</span>
+                        // Bravely ignore OCSP for CVC CAs
+<span class="nc" id="L288">                        continue;</span>
+                    }
+<span class="nc bnc" id="L290" title="All 2 branches missed.">                    if (caInfo.getStatus() == CAConstants.CA_ACTIVE) {</span>
+                        //Cache active CAs as signers
+<span class="nc bnc" id="L292" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L293">                            log.debug(&quot;Processing X509 CA &quot; + caInfo.getName() + &quot; (&quot; + caInfo.getCAId() + &quot;).&quot;);</span>
+                        }
+<span class="nc" id="L295">                        final CAToken caToken = caInfo.getCAToken();</span>
+<span class="nc" id="L296">                        final CryptoToken cryptoToken = cryptoTokenSession.getCryptoToken(caToken.getCryptoTokenId());</span>
+<span class="nc bnc" id="L297" title="All 2 branches missed.">                        if (cryptoToken == null) {</span>
+<span class="nc" id="L298">                            log.info(&quot;Excluding CA with id &quot; + caId + &quot; for OCSP signing consideration due to missing CryptoToken.&quot;);</span>
+<span class="nc" id="L299">                            continue;</span>
+                        }
+<span class="nc bnc" id="L301" title="All 2 branches missed.">                        for (final Certificate certificate : caInfo.getCertificateChain()) {</span>
+<span class="nc" id="L302">                            caCertificateChain.add((X509Certificate) certificate);</span>
+<span class="nc" id="L303">                        }</span>
+                        final String keyPairAlias;
+                        try {
+<span class="nc" id="L306">                            keyPairAlias = caToken.getAliasFromPurpose(CATokenConstants.CAKEYPURPOSE_CERTSIGN);</span>
+<span class="nc" id="L307">                        } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L308">                            log.warn(&quot;Referenced private key with purpose &quot; + CATokenConstants.CAKEYPURPOSE_CERTSIGN</span>
+<span class="nc" id="L309">                                    + &quot; could not be used. CryptoToken is off-line for CA with id &quot; + caId + &quot;: &quot; + e.getMessage());</span>
+<span class="nc" id="L310">                            continue;</span>
+<span class="nc" id="L311">                        }</span>
+                        final PrivateKey privateKey;
+                        try {
+<span class="nc" id="L314">                            privateKey = cryptoToken.getPrivateKey(keyPairAlias);</span>
+<span class="nc" id="L315">                        } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L316">                            log.warn(&quot;Referenced private key with alias &quot; + keyPairAlias</span>
+<span class="nc" id="L317">                                    + &quot; could not be used. CryptoToken is off-line for CA with id &quot; + caId + &quot;: &quot; + e.getMessage());</span>
+<span class="nc" id="L318">                            continue;</span>
+<span class="nc" id="L319">                        }</span>
+<span class="nc bnc" id="L320" title="All 2 branches missed.">                        if (privateKey == null) {</span>
+<span class="nc" id="L321">                            log.warn(&quot;Referenced private key with alias &quot; + keyPairAlias + &quot; does not exist. Ignoring CA with id &quot; + caId);</span>
+<span class="nc" id="L322">                            continue;</span>
+                        }
+<span class="nc" id="L324">                        final String signatureProviderName = cryptoToken.getSignProviderName();</span>
+<span class="nc bnc" id="L325" title="All 2 branches missed.">                        if (caCertificateChain.size() &gt; 0) {</span>
+<span class="nc" id="L326">                            X509Certificate caCertificate = caCertificateChain.get(0);</span>
+<span class="nc" id="L327">                            final CertificateStatus caCertificateStatus = getRevocationStatusWhenCasPrivateKeyIsCompromised(caCertificate, false);</span>
+<span class="nc" id="L328">                            OcspSigningCache.INSTANCE.stagingAdd(new OcspSigningCacheEntry(caCertificate, caCertificateStatus, caCertificateChain,</span>
+<span class="nc" id="L329">                                    null, privateKey, signatureProviderName, null, ocspConfiguration.getOcspResponderIdType()));</span>
+                            // Check if CA cert has been revoked (only key compromise as returned above). Always make this check, even if this CA has an OCSP signing certificate, because
+                            // signing will still fail even if the signing cert is valid. Shouldn't happen, but log it just in case.
+<span class="nc bnc" id="L332" title="All 2 branches missed.">                            if (caCertificateStatus.equals(CertificateStatus.REVOKED)) {</span>
+<span class="nc" id="L333">                                log.warn(&quot;Active CA with subject DN '&quot; + CertTools.getSubjectDN(caCertificate) + &quot;' and serial number &quot;</span>
+<span class="nc" id="L334">                                        + CertTools.getSerialNumber(caCertificate) + &quot; has a revoked certificate with reason &quot;</span>
+                                        + caCertificateStatus.revocationReason + &quot;.&quot;);
+                            }
+                            //Check if CA cert is expired
+<span class="nc bnc" id="L338" title="All 2 branches missed.">                            if (!CertTools.isCertificateValid(caCertificate, true)) {</span>
+<span class="nc" id="L339">                                log.warn(&quot;Active CA with subject DN '&quot; + CertTools.getSubjectDN(caCertificate) + &quot;' and serial number &quot;</span>
+<span class="nc" id="L340">                                        + CertTools.getSerialNumber(caCertificate) + &quot; has an expired certificate with expiration date &quot;</span>
+<span class="nc" id="L341">                                        + CertTools.getNotAfter(caCertificate) + &quot;.&quot;);</span>
+                            }
+<span class="nc" id="L343">                        } else {</span>
+<span class="nc" id="L344">                            log.warn(&quot;CA with ID &quot; + caId</span>
+                                    + &quot; appears to lack a certificate in the database. This may be a serious error if not in a test environment.&quot;);
+                        }
+<span class="nc bnc" id="L347" title="All 2 branches missed.">                    } else if (caInfo.getStatus() == CAConstants.CA_EXTERNAL) {</span>
+                        // If set, all external CA's without a keybinding (set below) will be responded to by the default responder. 
+<span class="nc bnc" id="L349" title="All 2 branches missed.">                        for (final Certificate certificate : caInfo.getCertificateChain()) {</span>
+<span class="nc" id="L350">                            caCertificateChain.add((X509Certificate) certificate);</span>
+<span class="nc" id="L351">                        }</span>
+<span class="nc" id="L352">                        final CertificateStatus caCertificateStatus = getRevocationStatusWhenCasPrivateKeyIsCompromised(caCertificateChain.get(0),</span>
+                                false);
+                        // Check if CA cert has been revoked (only key compromise as returned above). Always make this check, even if this CA has an OCSP signing certificate, because
+                        // signing will still fail even if the signing cert is valid. 
+<span class="nc bnc" id="L356" title="All 2 branches missed.">                        if (caCertificateStatus.equals(CertificateStatus.REVOKED)) {</span>
+<span class="nc" id="L357">                            log.info(&quot;External CA with subject DN '&quot; + CertTools.getSubjectDN(caCertificateChain.get(0)) + &quot;' and serial number &quot;</span>
+<span class="nc" id="L358">                                    + CertTools.getSerialNumber(caCertificateChain.get(0)) + &quot; has a revoked certificate with reason &quot;</span>
+                                    + caCertificateStatus.revocationReason + &quot;.&quot;);
+                        }
+                        //Check if CA cert is expired
+<span class="nc bnc" id="L362" title="All 2 branches missed.">                        if (!CertTools.isCertificateValid(caCertificateChain.get(0), false)) {</span>
+<span class="nc" id="L363">                            log.info(&quot;External CA with subject DN '&quot; + CertTools.getSubjectDN(caCertificateChain.get(0)) + &quot;' and serial number &quot;</span>
+<span class="nc" id="L364">                                    + CertTools.getSerialNumber(caCertificateChain.get(0)) + &quot; has an expired certificate with expiration date &quot;</span>
+<span class="nc" id="L365">                                    + CertTools.getNotAfter(caCertificateChain.get(0)) + &quot;.&quot;);</span>
+                        }
+                        //Add an entry with just a chain and nothing else
+<span class="nc" id="L368">                        OcspSigningCache.INSTANCE.stagingAdd(new OcspSigningCacheEntry(caCertificateChain.get(0), caCertificateStatus, null, null,</span>
+<span class="nc" id="L369">                                null, null, null, ocspConfiguration.getOcspResponderIdType()));</span>
+
+                    }
+<span class="nc" id="L372">                }</span>
+                // Add all potential InternalKeyBindings as OCSP responders to the staging area, overwriting CA entries from before
+<span class="nc bnc" id="L374" title="All 2 branches missed.">                for (final int internalKeyBindingId : internalKeyBindingDataSession.getIds(OcspKeyBinding.IMPLEMENTATION_ALIAS)) {</span>
+<span class="nc" id="L375">                    final OcspKeyBinding ocspKeyBinding = (OcspKeyBinding) internalKeyBindingDataSession.getInternalKeyBinding(internalKeyBindingId);  </span>
+<span class="nc bnc" id="L376" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L377">                        log.debug(&quot;Processing &quot; + ocspKeyBinding.getName() + &quot; (&quot; + ocspKeyBinding.getId() + &quot;)&quot;);</span>
+                    }
+<span class="nc bnc" id="L379" title="All 2 branches missed.">                    if (!ocspKeyBinding.getStatus().equals(InternalKeyBindingStatus.ACTIVE)) {</span>
+<span class="nc bnc" id="L380" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L381">                            log.debug(&quot;Ignoring OcspKeyBinding since it is not active.&quot;);</span>
+                        }
+                        continue;
+                    }
+<span class="nc" id="L385">                    final X509Certificate ocspSigningCertificate = (X509Certificate) certificateStoreSession.findCertificateByFingerprint(ocspKeyBinding.getCertificateId());</span>
+<span class="nc bnc" id="L386" title="All 2 branches missed.">                    if (ocspSigningCertificate == null) {</span>
+<span class="nc" id="L387">                        log.warn(&quot;OCSP signing certificate with referenced fingerprint &quot; + ocspKeyBinding.getCertificateId() +</span>
+<span class="nc" id="L388">                                &quot; does not exist. Ignoring internalKeyBinding with id &quot; + ocspKeyBinding.getId());</span>
+<span class="nc" id="L389">                        continue;</span>
+                    }
+                    //Make the same check as above 
+<span class="nc" id="L392">                    if (certificateStoreSession.getStatus(CertTools.getIssuerDN(ocspSigningCertificate), CertTools.getSerialNumber(ocspSigningCertificate))</span>
+<span class="nc bnc" id="L393" title="All 2 branches missed.">                            .equals(CertificateStatus.REVOKED)) {</span>
+<span class="nc" id="L394">                        log.warn(&quot;OCSP Responder certificate with subject DN '&quot; + CertTools.getSubjectDN(ocspSigningCertificate) + &quot;' and serial number &quot;</span>
+<span class="nc" id="L395">                                + CertTools.getSerialNumber(ocspSigningCertificate) + &quot; is revoked.&quot;);</span>
+                    }
+                    //Check if signing cert is expired
+<span class="nc bnc" id="L398" title="All 2 branches missed.">                    if (!CertTools.isCertificateValid(ocspSigningCertificate, true)) {</span>
+<span class="nc" id="L399">                        log.warn(&quot;OCSP Responder certificate with subject DN '&quot; + CertTools.getSubjectDN(ocspSigningCertificate) + &quot;' and serial number &quot;</span>
+<span class="nc" id="L400">                                + CertTools.getSerialNumber(ocspSigningCertificate) + &quot; is expired.&quot;);</span>
+                    }
+                    
+<span class="nc" id="L403">                    OcspSigningCacheEntry ocspSigningCacheEntry = makeOcspSigningCacheEntry(ocspSigningCertificate, ocspKeyBinding);</span>
+<span class="nc bnc" id="L404" title="All 2 branches missed.">                    if (ocspSigningCacheEntry == null) {</span>
+<span class="nc" id="L405">                        continue;</span>
+                    } else {
+<span class="nc" id="L407">                        OcspSigningCache.INSTANCE.stagingAdd(ocspSigningCacheEntry);</span>
+                    }
+<span class="nc" id="L409">                }</span>
+<span class="nc" id="L410">                OcspSigningCache.INSTANCE.stagingCommit(ocspConfiguration.getOcspDefaultResponderReference());</span>
+            } finally {
+<span class="nc" id="L412">                OcspSigningCache.INSTANCE.stagingRelease();</span>
+            }
+        } finally {
+            // Schedule a new timer of this type
+<span class="nc" id="L416">            addTimer(OcspConfiguration.getSigningCertsValidTimeInMilliseconds(), TIMERID_OCSPSIGNINGCACHE);</span>
+        }
+<span class="nc" id="L418">    }</span>
+
+    /**
+     * Constructs an OcspSigningCacheEntry from the given parameters.
+     * 
+     * @param ocspSigningCertificate The signing certificate associated with the key binding. May be found separately, so given as a separate parameter
+     * @param ocspKeyBinding the Key Binding to base the cache entry off of. 
+     * @return an OcspSigningCacheEntry, or null if any error was encountered.
+     */
+    private OcspSigningCacheEntry makeOcspSigningCacheEntry(X509Certificate ocspSigningCertificate, OcspKeyBinding ocspKeyBinding) {
+<span class="nc" id="L428">        final List&lt;X509Certificate&gt; caCertificateChain = getCaCertificateChain(ocspSigningCertificate);</span>
+<span class="nc bnc" id="L429" title="All 2 branches missed.">        if (caCertificateChain == null) {</span>
+<span class="nc" id="L430">            log.warn(&quot;OcspKeyBinding &quot; + ocspKeyBinding.getName() + &quot; ( &quot; + ocspKeyBinding.getId() + &quot;) has a signing certificate, but no chain and will be ignored.&quot;);</span>
+<span class="nc" id="L431">            return null;</span>
+        }
+<span class="nc" id="L433">        final CryptoToken cryptoToken = cryptoTokenSession.getCryptoToken(ocspKeyBinding.getCryptoTokenId());</span>
+<span class="nc bnc" id="L434" title="All 2 branches missed.">        if (cryptoToken == null) {</span>
+<span class="nc" id="L435">            log.warn(&quot;Referenced CryptoToken with id &quot; + ocspKeyBinding.getCryptoTokenId() + &quot; does not exist. Ignoring OcspKeyBinding with id &quot;</span>
+<span class="nc" id="L436">                    + ocspKeyBinding.getId());</span>
+<span class="nc" id="L437">            return null;</span>
+        }
+        final PrivateKey privateKey;
+        try {
+<span class="nc" id="L441">            privateKey = cryptoToken.getPrivateKey(ocspKeyBinding.getKeyPairAlias());</span>
+<span class="nc" id="L442">        } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L443">            log.warn(&quot;Referenced private key with alias &quot; + ocspKeyBinding.getKeyPairAlias() + &quot; could not be used. CryptoToken is off-line for OcspKeyBinding with id &quot;+ocspKeyBinding.getId()+&quot;: &quot; + e.getMessage());</span>
+<span class="nc" id="L444">            return null;</span>
+<span class="nc" id="L445">        }</span>
+<span class="nc bnc" id="L446" title="All 2 branches missed.">        if (privateKey == null) {</span>
+<span class="nc" id="L447">            log.warn(&quot;Referenced private key with alias &quot; + ocspKeyBinding.getKeyPairAlias() + &quot; does not exist. Ignoring OcspKeyBinding with id &quot;+ ocspKeyBinding.getId());</span>
+<span class="nc" id="L448">            return null;</span>
+        }
+<span class="nc" id="L450">        final String signatureProviderName = cryptoToken.getSignProviderName();</span>
+<span class="nc bnc" id="L451" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L452">            log.debug(&quot;Adding OcspKeyBinding &quot;+ocspKeyBinding.getId()+&quot;, &quot;+ocspKeyBinding.getName());</span>
+        }
+<span class="nc" id="L454">        final CertificateStatus certificateStatus = getRevocationStatusWhenCasPrivateKeyIsCompromised(caCertificateChain.get(0), true);</span>
+        OcspKeyBinding.ResponderIdType respIdType;
+<span class="nc bnc" id="L456" title="All 2 branches missed.">        if (ResponderIdType.NAME.equals(ocspKeyBinding.getResponderIdType())) {</span>
+<span class="nc" id="L457">            respIdType = OcspKeyBinding.ResponderIdType.NAME;</span>
+        } else {
+<span class="nc" id="L459">            respIdType = OcspKeyBinding.ResponderIdType.KEYHASH;</span>
+        }
+<span class="nc" id="L461">        return new OcspSigningCacheEntry(caCertificateChain.get(0), certificateStatus, caCertificateChain, ocspSigningCertificate, privateKey,</span>
+                signatureProviderName, ocspKeyBinding, respIdType);
+    }
+    
+    /** 
+     * RFC 6960 Section 2.7 states that if it is known CA's private key has been compromised, it MAY return the &quot;revoked&quot;
+     * state for all certificates issued by that CA.
+     * 
+     * We interpret this as if the revocation reasons is one of &quot;keyCompromise&quot;, &quot;cACompromise&quot; or &quot;aACompromise&quot; we know this.
+     * Additionally, if the &quot;unspecified&quot; reason is used we will consider this as a known private key compromise. (Safety first!)
+     * 
+     * @param caCertificate the X.509 CA certificate to check
+     * @param suppressInfo set to true to only do debug logging instead of info logging
+     * @return OK or the revocation status that we will use if the CA is revoked (same revocation date, but with reasonCode &quot;cACompromise&quot;)
+     */
+    private CertificateStatus getRevocationStatusWhenCasPrivateKeyIsCompromised(final X509Certificate caCertificate, final boolean suppressInfo) {
+<span class="nc" id="L477">        final String issuerDn = CertTools.getIssuerDN(caCertificate);</span>
+<span class="nc" id="L478">        final BigInteger serialNumber = CertTools.getSerialNumber(caCertificate);</span>
+<span class="nc" id="L479">        final CertificateStatus certificateStatus = certificateStoreSession.getStatus(issuerDn, serialNumber);</span>
+<span class="nc bnc" id="L480" title="All 2 branches missed.">        if (certificateStatus.isRevoked()) {</span>
+<span class="nc" id="L481">            final String subjectDn = CertTools.getSubjectDN(caCertificate);</span>
+<span class="nc bnc" id="L482" title="All 8 branches missed.">            if (certificateStatus.revocationReason == RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED ||</span>
+                    certificateStatus.revocationReason == RevokedCertInfo.REVOCATION_REASON_AACOMPROMISE ||
+                    certificateStatus.revocationReason == RevokedCertInfo.REVOCATION_REASON_CACOMPROMISE ||
+                    certificateStatus.revocationReason == RevokedCertInfo.REVOCATION_REASON_KEYCOMPROMISE) {
+<span class="nc" id="L486">                final String msg = &quot;CA certificate Subject DN '&quot; + subjectDn + &quot;', Issuer DN '&quot; + issuerDn + &quot;' and serial number &quot; +</span>
+<span class="nc" id="L487">                    serialNumber.toString() + &quot; (0x&quot; + serialNumber.toString(16) +</span>
+                    &quot;) is revoked with reason code &quot; +certificateStatus.revocationReason + &quot;. &quot; +
+                    &quot;The cACompromise revocation reason will be used for all certs issued by this CA.&quot;;
+<span class="nc bnc" id="L490" title="All 2 branches missed.">                if (suppressInfo) {</span>
+<span class="nc" id="L491">                    log.debug(msg);</span>
+                } else {
+<span class="nc" id="L493">                    log.info(msg);</span>
+                }
+<span class="nc" id="L495">                return new CertificateStatus(certificateStatus.toString(), certificateStatus.revocationDate.getTime(),</span>
+                        RevokedCertInfo.REVOCATION_REASON_CACOMPROMISE, certificateStatus.certificateProfileId);
+            }
+<span class="nc" id="L498">            final String msg = &quot;CA certificate Subject DN '&quot; + subjectDn + &quot;', Issuer DN '&quot; + issuerDn + &quot;' and serial number &quot; +</span>
+<span class="nc" id="L499">                serialNumber.toString() + &quot; (0x&quot; + serialNumber.toString(16) +</span>
+                &quot;) is revoked with reason code &quot; +certificateStatus.revocationReason + &quot;. &quot; +
+                &quot;Status of individual leaf certificate will still be checked.&quot;;
+<span class="nc bnc" id="L502" title="All 2 branches missed.">            if (suppressInfo) {</span>
+<span class="nc" id="L503">                log.debug(msg);</span>
+            } else {
+<span class="nc" id="L505">                log.info(msg);</span>
+            }
+        }
+<span class="nc" id="L508">        return CertificateStatus.OK;</span>
+    }
+
+    private List&lt;X509Certificate&gt; getCaCertificateChain(final X509Certificate leafCertificate) {
+<span class="nc" id="L512">        final List&lt;X509Certificate&gt; caCertificateChain = new ArrayList&lt;X509Certificate&gt;();</span>
+<span class="nc" id="L513">        X509Certificate currentLevelCertificate = leafCertificate;</span>
+<span class="nc bnc" id="L514" title="All 2 branches missed.">        while (!CertTools.getIssuerDN(currentLevelCertificate).equals(CertTools.getSubjectDN(currentLevelCertificate))) {</span>
+<span class="nc" id="L515">            final String issuerDn = CertTools.getIssuerDN(currentLevelCertificate);</span>
+<span class="nc" id="L516">            currentLevelCertificate = certificateStoreSession.findLatestX509CertificateBySubject(issuerDn);</span>
+<span class="nc bnc" id="L517" title="All 2 branches missed.">            if (currentLevelCertificate == null) {</span>
+<span class="nc" id="L518">                log.warn(&quot;Unable to build certificate chain for OCSP signing certificate with Subject DN '&quot; +</span>
+<span class="nc" id="L519">                        CertTools.getSubjectDN(leafCertificate) + &quot;'. CA with Subject DN '&quot; + issuerDn + &quot;' is missing in the database.&quot;);</span>
+<span class="nc" id="L520">                return null;</span>
+            }
+<span class="nc" id="L522">            caCertificateChain.add(currentLevelCertificate);</span>
+<span class="nc" id="L523">        }</span>
+        try {
+<span class="nc" id="L525">            CertTools.verify(leafCertificate, caCertificateChain, new Date(), new EkuPKIXCertPathChecker(KeyPurposeId.id_kp_OCSPSigning.getId()));</span>
+<span class="nc" id="L526">        } catch (CertPathValidatorException e) {</span>
+            // Apparently the built chain could not be used to validate the leaf certificate
+            // this could happen if the CA keys were renewed, but the subject DN did not change
+<span class="nc" id="L529">            log.info(&quot;Unable to build a valid certificate chain for OCSP signing certificate with Subject DN '&quot; +</span>
+<span class="nc" id="L530">                    CertTools.getSubjectDN(leafCertificate)  + &quot;' and Issuer DN &quot; + CertTools.getIssuerDN(leafCertificate) +</span>
+<span class="nc" id="L531">                    &quot;' using the latest CA certificate(s) in the database. Trying to recover from exception: &quot; + e.getMessage());</span>
+<span class="nc" id="L532">            final CertificateInfo certificateInfo = certificateStoreSession.getCertificateInfo(CertTools.getFingerprintAsString(leafCertificate));</span>
+<span class="nc bnc" id="L533" title="All 2 branches missed.">            if(certificateInfo == null) {</span>
+<span class="nc" id="L534">                return null;</span>
+            }
+<span class="nc" id="L536">            final List&lt;Certificate&gt; chainByFingerPrints = certificateStoreSession.getCertificateChain(certificateInfo);</span>
+<span class="nc bnc" id="L537" title="All 2 branches missed.">            if (chainByFingerPrints.size()&gt;0) {</span>
+                // Remove the leaf certificate itself
+<span class="nc" id="L539">                chainByFingerPrints.remove(0);</span>
+            }
+<span class="nc" id="L541">            caCertificateChain.clear();</span>
+<span class="nc bnc" id="L542" title="All 2 branches missed.">            for (final Certificate current : chainByFingerPrints) {</span>
+<span class="nc bnc" id="L543" title="All 2 branches missed.">                if (current instanceof X509Certificate) {</span>
+<span class="nc" id="L544">                    caCertificateChain.add((X509Certificate) current);</span>
+                } else {
+<span class="nc" id="L546">                    log.warn(&quot;Unable to build certificate chain for OCSP signing certificate with Subject DN '&quot; +</span>
+<span class="nc" id="L547">                            CertTools.getSubjectDN(leafCertificate) + &quot;' and Issuer DN '&quot; + CertTools.getIssuerDN(leafCertificate) +</span>
+                            &quot;'. CA certificate chain contains non-X509 certificates.&quot;);
+<span class="nc" id="L549">                    return null;</span>
+                }
+<span class="nc" id="L551">            }</span>
+<span class="nc bnc" id="L552" title="All 2 branches missed.">            if (caCertificateChain.isEmpty()) {</span>
+<span class="nc" id="L553">                log.warn(&quot;Unable to build certificate chain for OCSP signing certificate with Subject DN '&quot; +</span>
+<span class="nc" id="L554">                        CertTools.getSubjectDN(leafCertificate) + &quot;' and Issuer DN '&quot; + CertTools.getIssuerDN(leafCertificate) +</span>
+                        &quot;''. CA certificate(s) are missing in the database.&quot;);
+<span class="nc" id="L556">                return null;</span>
+            }
+            try {
+<span class="nc" id="L559">                CertTools.verify(leafCertificate, caCertificateChain, new Date(), new EkuPKIXCertPathChecker(KeyPurposeId.id_kp_OCSPSigning.getId()));</span>
+<span class="nc" id="L560">            } catch (Exception e2) {</span>
+<span class="nc" id="L561">                log.warn(&quot;Unable to build certificate chain for OCSP signing certificate with Subject DN '&quot; +</span>
+<span class="nc" id="L562">                        CertTools.getSubjectDN(leafCertificate) + &quot;' and Issuer DN '&quot; + CertTools.getIssuerDN(leafCertificate) +</span>
+<span class="nc" id="L563">                        &quot;''. Found CA certificate(s) cannot be used for validation: &quot; + e2.getMessage());</span>
+<span class="nc" id="L564">                return null;</span>
+<span class="nc" id="L565">            }</span>
+<span class="nc" id="L566">            log.info(&quot;Recovered and managed to build a valid certificate chain for OCSP signing certificate with Subject DN '&quot; +</span>
+<span class="nc" id="L567">                    CertTools.getSubjectDN(leafCertificate) + &quot;' and Issuer DN '&quot; + CertTools.getIssuerDN(leafCertificate) +</span>
+                    &quot;'.&quot;);
+<span class="nc" id="L569">        }</span>
+<span class="nc" id="L570">        return caCertificateChain;</span>
+    }
+   
+    
+    @Override
+    public void setCanlog(boolean canLog) {
+<span class="nc" id="L576">        CanLogCache.INSTANCE.setCanLog(canLog);</span>
+<span class="nc" id="L577">    }</span>
+
+    /**
+     * This method exists solely to avoid code duplication when error handling in getOcspResponse.
+     * 
+     * @param responseGenerator A OCSPRespBuilder for generating a response with state INTERNAL_ERROR.
+     * @param transactionLogger The TransactionLogger for this call.
+     * @param auditLogger The AuditLogger for this call.
+     * @param e The thrown exception.
+     * @return a response with state INTERNAL_ERROR.
+     * @throws OCSPException if generation of the response failed.
+     */
+    private OCSPResp processDefaultError(OCSPRespBuilder responseGenerator, TransactionLogger transactionLogger, AuditLogger auditLogger, Throwable e)
+            throws OCSPException {
+<span class="nc bnc" id="L591" title="All 2 branches missed.">        if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L592">            transactionLogger.paramPut(PatternLogger.PROCESS_TIME, PatternLogger.PROCESS_TIME);</span>
+        }
+<span class="nc bnc" id="L594" title="All 2 branches missed.">        if (auditLogger.isEnabled()) {</span>
+<span class="nc" id="L595">            auditLogger.paramPut(PatternLogger.PROCESS_TIME, PatternLogger.PROCESS_TIME);</span>
+        }
+<span class="nc" id="L597">        String errMsg = intres.getLocalizedMessage(&quot;ocsp.errorprocessreq&quot;, e.getMessage());</span>
+<span class="nc" id="L598">        log.error(errMsg, e);</span>
+<span class="nc bnc" id="L599" title="All 2 branches missed.">        if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L600">            transactionLogger.paramPut(TransactionLogger.STATUS, OCSPRespBuilder.INTERNAL_ERROR);</span>
+<span class="nc" id="L601">            transactionLogger.writeln();</span>
+        }
+<span class="nc bnc" id="L603" title="All 2 branches missed.">        if (auditLogger.isEnabled()) {</span>
+<span class="nc" id="L604">            auditLogger.paramPut(AuditLogger.STATUS, OCSPRespBuilder.INTERNAL_ERROR);</span>
+        }
+<span class="nc" id="L606">        return responseGenerator.build(OCSPRespBuilder.INTERNAL_ERROR, null); // RFC 2560: responseBytes are not set on error.</span>
+    }
+
+    /**
+     * Select the preferred OCSP response sigAlg according to RFC6960 Section 4.4.7 in the following order:
+     * 
+     *    1. Select an algorithm specified as a preferred signature algorithm in the client request if it is 
+     *       an acceptable algorithm by EJBCA.
+     *    2. Select the signature algorithm used to sign a certificate revocation list (CRL) issued by the 
+     *       certificate issuer providing status information for the certificate specified by CertID.
+     *       (NOT APPLIED)
+     *    3. Select the signature algorithm used to sign the OCSPRequest if it is an acceptable algorithm in EJBCA.
+     *    4. Select a signature algorithm that has been advertised as being the default signature algorithm for 
+     *       the signing service using an out-of-band mechanism.
+     *    5. Select a mandatory or recommended signature algorithm specified for the version of OCSP in use, aka. 
+     *       specified in the properties file.
+     * 
+     *    The acceptable algorithm by EJBCA are the algorithms specified in ocsp.properties file in 'ocsp.signaturealgorithm'
+     * 
+     * @param req request
+     * @param ocspSigningCacheEntry Signing cache
+     * @param signerCert Certificate
+     * @return Algorithm
+     */
+    private String getSigAlg(OCSPReq req, final OcspSigningCacheEntry ocspSigningCacheEntry, final X509Certificate signerCert) {
+<span class="nc" id="L631">        String sigAlg = null;</span>
+<span class="nc" id="L632">        PublicKey pk = signerCert.getPublicKey();</span>
+        // Start with the preferred signature algorithm in the OCSP request
+<span class="nc" id="L634">        final Extension preferredSigAlgExtension = req.getExtension(new ASN1ObjectIdentifier(OCSPObjectIdentifiers.id_pkix_ocsp + &quot;.8&quot;));</span>
+<span class="nc bnc" id="L635" title="All 2 branches missed.">        if (preferredSigAlgExtension != null) {</span>
+<span class="nc" id="L636">            final ASN1Sequence preferredSignatureAlgorithms = ASN1Sequence.getInstance(preferredSigAlgExtension.getParsedValue());</span>
+<span class="nc bnc" id="L637" title="All 2 branches missed.">            for (int i=0; i&lt;preferredSignatureAlgorithms.size(); i++) {</span>
+<span class="nc" id="L638">                final ASN1Encodable asn1Encodable = preferredSignatureAlgorithms.getObjectAt(i);</span>
+                final ASN1ObjectIdentifier algorithmOid;
+<span class="nc bnc" id="L640" title="All 2 branches missed.">                if (asn1Encodable instanceof ASN1ObjectIdentifier) {</span>
+                    // Handle client requests that were adapted to EJBCA 6.1.0's implementation
+<span class="nc" id="L642">                    log.info(&quot;OCSP request's PreferredSignatureAlgorithms did not contain an PreferredSignatureAlgorithm, but instead an algorithm OID.&quot;</span>
+                            + &quot; This will not be supported in a future versions of EJBCA.&quot;);
+<span class="nc" id="L644">                    algorithmOid = (ASN1ObjectIdentifier) asn1Encodable;</span>
+                } else {
+                    // Handle client requests that provide a proper AlgorithmIdentifier as specified in RFC 6960 + RFC 5280
+<span class="nc" id="L647">                    final ASN1Sequence preferredSignatureAlgorithm = ASN1Sequence.getInstance(asn1Encodable);</span>
+<span class="nc" id="L648">                    final AlgorithmIdentifier algorithmIdentifier = AlgorithmIdentifier.getInstance(preferredSignatureAlgorithm.getObjectAt(0));</span>
+<span class="nc" id="L649">                    algorithmOid = algorithmIdentifier.getAlgorithm();</span>
+                }
+<span class="nc bnc" id="L651" title="All 2 branches missed.">                if (algorithmOid != null) {</span>
+<span class="nc" id="L652">                    sigAlg = AlgorithmTools.getAlgorithmNameFromOID(algorithmOid);</span>
+<span class="nc bnc" id="L653" title="All 6 branches missed.">                    if (sigAlg!=null &amp;&amp; OcspConfiguration.isAcceptedSignatureAlgorithm(sigAlg) &amp;&amp; AlgorithmTools.isCompatibleSigAlg(pk, sigAlg)) {</span>
+<span class="nc bnc" id="L654" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L655">                            log.debug(&quot;Using OCSP response signature algorithm extracted from OCSP request extension. &quot; + algorithmOid);</span>
+                        }
+<span class="nc" id="L657">                        return sigAlg;</span>
+                    }
+                }
+            }
+        }
+        // the signature algorithm used to sign the OCSPRequest
+<span class="nc bnc" id="L663" title="All 2 branches missed.">        if(req.getSignatureAlgOID() != null) {</span>
+<span class="nc" id="L664">            sigAlg = AlgorithmTools.getAlgorithmNameFromOID(req.getSignatureAlgOID());</span>
+<span class="nc bnc" id="L665" title="All 4 branches missed.">            if(OcspConfiguration.isAcceptedSignatureAlgorithm(sigAlg) &amp;&amp; AlgorithmTools.isCompatibleSigAlg(pk, sigAlg)) {</span>
+<span class="nc bnc" id="L666" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L667">                    log.debug(&quot;OCSP response signature algorithm: the signature algorithm used to sign the OCSPRequest. &quot; + sigAlg);</span>
+                }
+<span class="nc" id="L669">                return sigAlg;</span>
+            }
+        }
+        // The signature algorithm that has been advertised as being the default signature algorithm for the signing service using an
+        // out-of-band mechanism.
+<span class="nc bnc" id="L674" title="All 2 branches missed.">        if (ocspSigningCacheEntry.isUsingSeparateOcspSigningCertificate()) {</span>
+            // If we have an OcspKeyBinding we use this configuration to override the default
+<span class="nc" id="L676">            sigAlg = ocspSigningCacheEntry.getOcspKeyBinding().getSignatureAlgorithm();</span>
+<span class="nc bnc" id="L677" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L678">                log.debug(&quot;OCSP response signature algorithm: the signature algorithm that has been advertised as being the default signature algorithm &quot; +</span>
+                        &quot;for the signing service using an out-of-band mechanism. &quot; + sigAlg);
+            }
+<span class="nc" id="L681">            return sigAlg;</span>
+        }   
+        // The signature algorithm specified for the version of OCSP in use.
+<span class="nc" id="L684">        String sigAlgs = OcspConfiguration.getSignatureAlgorithm();</span>
+<span class="nc" id="L685">        sigAlg = getSigningAlgFromAlgSelection(sigAlgs, pk);</span>
+<span class="nc bnc" id="L686" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L687">            log.debug(&quot;Using configured signature algorithm to sign OCSP response. &quot; + sigAlg);</span>
+        }
+<span class="nc" id="L689">        return sigAlg;</span>
+    }
+
+    /**
+     * This method takes byte array and translates it onto a OCSPReq class.
+     * 
+     * @param request the byte array in question.
+     * @param remoteAddress The remote address of the HttpRequest associated with this array.
+     * @param transactionLogger A transaction logger.
+     * @return OCSP Request
+     * @throws MalformedRequestException if malformed
+     * @throws SignRequestException thrown if an unsigned request was processed when system configuration requires that all requests be signed.
+     * @throws CertificateException if cert is invalid
+     * @throws NoSuchAlgorithmException if algo not found
+     * @throws SignRequestSignatureException if sigs fails
+     */
+    private OCSPReq translateRequestFromByteArray(byte[] request, String remoteAddress, TransactionLogger transactionLogger)
+            throws MalformedRequestException, SignRequestException, SignRequestSignatureException, CertificateException, NoSuchAlgorithmException {
+        final OCSPReq ocspRequest;
+        try {
+<span class="nc" id="L709">            ocspRequest = new OCSPReq(request);</span>
+<span class="nc" id="L710">        } catch (IOException e) {</span>
+<span class="nc" id="L711">            throw new MalformedRequestException(&quot;Could not form OCSP request&quot;, e);</span>
+<span class="nc" id="L712">        }</span>
+<span class="nc bnc" id="L713" title="All 2 branches missed.">        if (ocspRequest.getRequestorName() == null) {</span>
+<span class="nc bnc" id="L714" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L715">                log.debug(&quot;Requestor name is null&quot;);</span>
+            }
+        } else {
+<span class="nc bnc" id="L718" title="All 4 branches missed.">            if (transactionLogger.isEnabled() || log.isDebugEnabled()) {</span>
+<span class="nc" id="L719">                final X500Name requestorDirectoryName = (X500Name) ocspRequest.getRequestorName().getName();</span>
+<span class="nc" id="L720">                final String requestor = CertTools.stringToBCDNString(requestorDirectoryName.toString());</span>
+<span class="nc" id="L721">                final String requestorRaw = GeneralName.directoryName + &quot;: &quot; + X500Name.getInstance(CeSecoreNameStyle.INSTANCE, requestorDirectoryName).toString();</span>
+<span class="nc bnc" id="L722" title="All 2 branches missed.">                if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L723">                    transactionLogger.paramPut(TransactionLogger.REQ_NAME, requestor);</span>
+<span class="nc" id="L724">                    transactionLogger.paramPut(TransactionLogger.REQ_NAME_RAW, requestorRaw);</span>
+                }
+<span class="nc bnc" id="L726" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L727">                    log.debug(&quot;Requestor name is: '&quot; + requestor + &quot;' Raw: '&quot; + requestorRaw + &quot;'&quot;);</span>
+                }
+            }
+        }
+        /**
+         * check the signature if contained in request. if the request does not contain a signature and the servlet is configured in the way the a
+         * signature is required we send back 'sigRequired' response.
+         */
+<span class="nc bnc" id="L735" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L736">            log.debug(&quot;Incoming OCSP request is signed : &quot; + ocspRequest.isSigned());</span>
+        }
+<span class="nc bnc" id="L738" title="All 2 branches missed.">        if (ocspRequest.isSigned()) {</span>
+<span class="nc" id="L739">            final X509Certificate signercert = checkRequestSignature(remoteAddress, ocspRequest);</span>
+<span class="nc" id="L740">            final String signercertIssuerName = CertTools.getIssuerDN(signercert);</span>
+<span class="nc" id="L741">            final BigInteger signercertSerNo = CertTools.getSerialNumber(signercert);</span>
+<span class="nc" id="L742">            final String signercertSubjectName = CertTools.getSubjectDN(signercert);</span>
+<span class="nc bnc" id="L743" title="All 2 branches missed.">            if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L744">                transactionLogger.paramPut(TransactionLogger.SIGN_ISSUER_NAME_DN, signercertIssuerName);</span>
+<span class="nc" id="L745">                transactionLogger.paramPut(TransactionLogger.SIGN_SERIAL_NO, signercert.getSerialNumber().toByteArray());</span>
+<span class="nc" id="L746">                transactionLogger.paramPut(TransactionLogger.SIGN_SUBJECT_NAME, signercertSubjectName);</span>
+<span class="nc" id="L747">                transactionLogger.paramPut(PatternLogger.REPLY_TIME, TransactionLogger.REPLY_TIME);</span>
+            }
+            // Check if we have configured request verification using the old property file way..
+<span class="nc" id="L750">            boolean enforceRequestSigning = OcspConfiguration.getEnforceRequestSigning();</span>
+            // Next, check if there is an OcspKeyBinding where signing is required and configured for this request
+            // In the case where multiple requests are bundled together they all must be trusting the signer
+<span class="nc bnc" id="L753" title="All 2 branches missed.">            for (final Req req : ocspRequest.getRequestList()) {</span>
+<span class="nc" id="L754">                OcspSigningCacheEntry ocspSigningCacheEntry = OcspSigningCache.INSTANCE.getEntry(req.getCertID());</span>
+<span class="nc bnc" id="L755" title="All 2 branches missed.">                if (ocspSigningCacheEntry==null) {</span>
+<span class="nc bnc" id="L756" title="All 2 branches missed.">                    if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L757">                        log.trace(&quot;Using default responder to check signature.&quot;);</span>
+                    }
+<span class="nc" id="L759">                    ocspSigningCacheEntry = OcspSigningCache.INSTANCE.getDefaultEntry();</span>
+                }   
+<span class="nc bnc" id="L761" title="All 4 branches missed.">                if (ocspSigningCacheEntry!=null &amp;&amp; ocspSigningCacheEntry.isUsingSeparateOcspSigningCertificate()) {</span>
+<span class="nc bnc" id="L762" title="All 2 branches missed.">                    if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L763">                        log.trace(&quot;ocspSigningCacheEntry.isUsingSeparateOcspSigningCertificate: &quot; + ocspSigningCacheEntry.isUsingSeparateOcspSigningCertificate());</span>
+                    }
+<span class="nc" id="L765">                    final OcspKeyBinding ocspKeyBinding = ocspSigningCacheEntry.getOcspKeyBinding();</span>
+<span class="nc bnc" id="L766" title="All 2 branches missed.">                    if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L767">                        log.trace(&quot;OcspKeyBinding &quot; + ocspKeyBinding.getId() + &quot;, RequireTrustedSignature: &quot; + ocspKeyBinding.getRequireTrustedSignature());</span>
+                    }
+<span class="nc bnc" id="L769" title="All 2 branches missed.">                    if (ocspKeyBinding.getRequireTrustedSignature()) {</span>
+<span class="nc" id="L770">                        enforceRequestSigning = true;</span>
+<span class="nc" id="L771">                        boolean isTrusted = false;</span>
+<span class="nc" id="L772">                        final List&lt;InternalKeyBindingTrustEntry&gt; trustedCertificateReferences = ocspKeyBinding.getTrustedCertificateReferences();</span>
+<span class="nc bnc" id="L773" title="All 2 branches missed.">                        if (trustedCertificateReferences.isEmpty()) {</span>
+                            // We trust ANY cert from a known CA
+<span class="nc" id="L775">                            isTrusted = true;</span>
+                        } else {
+<span class="nc bnc" id="L777" title="All 2 branches missed.">                            for (final InternalKeyBindingTrustEntry trustEntry : trustedCertificateReferences) {</span>
+<span class="nc" id="L778">                                final int trustedCaId = trustEntry.getCaId();</span>
+<span class="nc" id="L779">                                final BigInteger trustedSerialNumber = trustEntry.fetchCertificateSerialNumber();</span>
+<span class="nc bnc" id="L780" title="All 2 branches missed.">                                if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L781">                                    log.trace(&quot;Processing trustedCaId=&quot;+trustedCaId + &quot; trustedSerialNumber=&quot;+trustedSerialNumber + &quot; signercertIssuerName.hashCode()=&quot;+</span>
+<span class="nc" id="L782">                                            signercertIssuerName.hashCode()+&quot; signercertSerNo=&quot;+signercertSerNo);</span>
+                                }
+<span class="nc bnc" id="L784" title="All 2 branches missed.">                                if (trustedCaId == signercertIssuerName.hashCode()) {</span>
+<span class="nc bnc" id="L785" title="All 2 branches missed.">                                    if (trustedSerialNumber == null) {</span>
+                                        // We trust any certificate from this CA
+<span class="nc" id="L787">                                        isTrusted = true;</span>
+<span class="nc bnc" id="L788" title="All 2 branches missed.">                                        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L789">                                            log.trace(&quot;Trusting request signature since ANY certificate from issuer &quot;+trustedCaId+&quot; is trusted.&quot;);</span>
+                                        }
+                                        break;
+<span class="nc bnc" id="L792" title="All 2 branches missed.">                                    } else if (signercertSerNo.equals(trustedSerialNumber)) {</span>
+                                        // We trust this particular certificate from this CA
+<span class="nc" id="L794">                                        isTrusted = true;</span>
+<span class="nc bnc" id="L795" title="All 2 branches missed.">                                        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L796">                                            log.trace(&quot;Trusting request signature since certificate with serialnumber &quot; + trustedSerialNumber + &quot; from issuer &quot;+trustedCaId+&quot; is trusted.&quot;);</span>
+                                        }
+                                        break;
+                                    }
+                                }
+<span class="nc" id="L801">                            }</span>
+                        }
+<span class="nc bnc" id="L803" title="All 2 branches missed.">                        if (!isTrusted) {</span>
+<span class="nc" id="L804">                            final String infoMsg = intres.getLocalizedMessage(&quot;ocsp.infosigner.notallowed&quot;, signercertSubjectName, signercertIssuerName,</span>
+<span class="nc" id="L805">                                    signercertSerNo.toString(16));</span>
+<span class="nc" id="L806">                            log.info(infoMsg);</span>
+<span class="nc" id="L807">                            throw new SignRequestSignatureException(infoMsg);</span>
+                        }
+                    }
+                }
+            }
+<span class="nc bnc" id="L812" title="All 2 branches missed.">            if (enforceRequestSigning) {</span>
+                // If it verifies OK, check if it is revoked
+<span class="nc" id="L814">                final String cacheLookupKey = OcspRequestSignerStatusCache.INSTANCE.createCacheLookupKey(signercertIssuerName, signercertSerNo);</span>
+<span class="nc" id="L815">                CertificateStatus status = OcspRequestSignerStatusCache.INSTANCE.getCachedCertificateStatus(cacheLookupKey);</span>
+<span class="nc bnc" id="L816" title="All 2 branches missed.">                if (status==null) {</span>
+<span class="nc" id="L817">                    status = certificateStoreSession.getStatus(signercertIssuerName, signercertSerNo);</span>
+<span class="nc" id="L818">                    OcspRequestSignerStatusCache.INSTANCE.updateCachedCertificateStatus(cacheLookupKey, status);</span>
+                }
+                /*
+                 * CertificateStatus.NOT_AVAILABLE means that the certificate does not exist in database. We treat this as ok, because it may be so that only revoked
+                 * certificates is in the (external) OCSP database.
+                 */
+<span class="nc bnc" id="L824" title="All 2 branches missed.">                if (status.equals(CertificateStatus.REVOKED)) {</span>
+<span class="nc" id="L825">                    String serno = signercertSerNo.toString(16);</span>
+<span class="nc" id="L826">                    String infoMsg = intres.getLocalizedMessage(&quot;ocsp.infosigner.revoked&quot;, signercertSubjectName, signercertIssuerName, serno);</span>
+<span class="nc" id="L827">                    log.info(infoMsg);</span>
+<span class="nc" id="L828">                    throw new SignRequestSignatureException(infoMsg);</span>
+                }
+            }
+<span class="nc" id="L831">        } else {</span>
+<span class="nc bnc" id="L832" title="All 2 branches missed.">            if (OcspConfiguration.getEnforceRequestSigning()) {</span>
+                // Signature required
+<span class="nc" id="L834">                throw new SignRequestException(&quot;Signature required&quot;);</span>
+            }
+            // Next, check if there is an OcspKeyBinding where signing is required and configured for this request
+            // In the case where multiple requests are bundled together they all must be trusting the signer
+<span class="nc bnc" id="L838" title="All 2 branches missed.">            for (final Req req : ocspRequest.getRequestList()) {</span>
+<span class="nc" id="L839">                OcspSigningCacheEntry ocspSigningCacheEntry = OcspSigningCache.INSTANCE.getEntry(req.getCertID());</span>
+<span class="nc bnc" id="L840" title="All 2 branches missed.">                if (ocspSigningCacheEntry==null) {</span>
+<span class="nc" id="L841">                    ocspSigningCacheEntry = OcspSigningCache.INSTANCE.getDefaultEntry();</span>
+                }
+<span class="nc bnc" id="L843" title="All 4 branches missed.">                if (ocspSigningCacheEntry != null &amp;&amp; ocspSigningCacheEntry.isUsingSeparateOcspSigningCertificate()) {</span>
+<span class="nc" id="L844">                    final OcspKeyBinding ocspKeyBinding = ocspSigningCacheEntry.getOcspKeyBinding();</span>
+<span class="nc bnc" id="L845" title="All 2 branches missed.">                    if (ocspKeyBinding.getRequireTrustedSignature()) {</span>
+<span class="nc" id="L846">                        throw new SignRequestException(&quot;Signature required&quot;);</span>
+                    }
+                }
+            }
+        }
+<span class="nc" id="L851">        return ocspRequest;</span>
+    }
+
+    /**
+     * Checks the signature on an OCSP request. Does not check for revocation of the signer certificate
+     * 
+     * @param clientRemoteAddr The IP address or host name of the remote client that sent the request, can be null.
+     * @param req The signed OCSPReq
+     * @return X509Certificate which is the certificate that signed the OCSP request
+     * @throws SignRequestSignatureException if signature verification fail, or if the signing certificate is not authorized
+     * @throws SignRequestException if there is no signature on the OCSPReq
+     * @throws CertificateException if the certificate can not be parsed
+     * @throws NoSuchAlgorithmException if the certificate contains an unsupported algorithm
+     */
+    private X509Certificate checkRequestSignature(String clientRemoteAddr, OCSPReq req) throws SignRequestException, SignRequestSignatureException,
+            CertificateException, NoSuchAlgorithmException {
+<span class="nc" id="L867">        X509Certificate signercert = null;</span>
+        // Get all certificates embedded in the request (probably a certificate chain)
+        try {
+<span class="nc" id="L870">            final X509CertificateHolder[] certs = req.getCerts();</span>
+<span class="nc" id="L871">            String signerSubjectDn = null;</span>
+            // We must find a certificate to verify the signature with...
+<span class="nc" id="L873">            boolean verifyOK = false;</span>
+<span class="nc bnc" id="L874" title="All 2 branches missed.">            for (int i=0; i&lt;certs.length; i++) {</span>
+<span class="nc" id="L875">                final X509Certificate certificate = certificateConverter.getCertificate(certs[i]);</span>
+                try {
+<span class="nc bnc" id="L877" title="All 2 branches missed.">                    if (req.isSignatureValid(CertTools.genContentVerifierProvider(certificate.getPublicKey()))) {</span>
+<span class="nc" id="L878">                        signercert = certificate; // if the request signature verifies by this certificate, this is the signer cert </span>
+<span class="nc" id="L879">                        signerSubjectDn = CertTools.getSubjectDN(signercert);</span>
+<span class="nc" id="L880">                        log.info(intres.getLocalizedMessage(&quot;ocsp.infosigner&quot;, signerSubjectDn));</span>
+<span class="nc" id="L881">                        verifyOK = true;</span>
+                        // Check that the signer certificate can be verified by one of the CA-certificates that we answer for
+<span class="nc" id="L883">                        final X509Certificate signerca = CaCertificateCache.INSTANCE.findLatestBySubjectDN(HashID.getFromIssuerDN(signercert));</span>
+<span class="nc bnc" id="L884" title="All 2 branches missed.">                        if (signerca != null) {</span>
+                            try {
+<span class="nc" id="L886">                                signercert.verify(signerca.getPublicKey());</span>
+<span class="nc" id="L887">                                final Date now = new Date();</span>
+<span class="nc bnc" id="L888" title="All 2 branches missed.">                                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L889">                                    log.debug(&quot;Checking validity. Now: &quot; + now + &quot;, signerNotAfter: &quot; + signercert.getNotAfter());</span>
+                                }
+                                try {
+                                    // Check validity of the request signing certificate
+<span class="nc" id="L893">                                    CertTools.checkValidity(signercert, now);</span>
+<span class="nc" id="L894">                                } catch (CertificateNotYetValidException e) {</span>
+<span class="nc" id="L895">                                    log.info(intres.getLocalizedMessage(&quot;ocsp.infosigner.certnotyetvalid&quot;, signerSubjectDn, CertTools.getIssuerDN(signercert), e.getMessage()));</span>
+<span class="nc" id="L896">                                    verifyOK = false;</span>
+<span class="nc" id="L897">                                } catch (CertificateExpiredException e) {</span>
+<span class="nc" id="L898">                                    log.info(intres.getLocalizedMessage(&quot;ocsp.infosigner.certexpired&quot;, signerSubjectDn, CertTools.getIssuerDN(signercert), e.getMessage()));</span>
+<span class="nc" id="L899">                                    verifyOK = false;</span>
+<span class="nc" id="L900">                                }</span>
+                                try {
+                                    // Check validity of the CA certificate
+<span class="nc" id="L903">                                    CertTools.checkValidity(signerca, now);</span>
+<span class="nc" id="L904">                                } catch (CertificateNotYetValidException e) {</span>
+<span class="nc" id="L905">                                    log.info(intres.getLocalizedMessage(&quot;ocsp.infosigner.certnotyetvalid&quot;, CertTools.getSubjectDN(signerca), CertTools.getIssuerDN(signerca), e.getMessage()));</span>
+<span class="nc" id="L906">                                    verifyOK = false;</span>
+<span class="nc" id="L907">                                } catch (CertificateExpiredException e) {</span>
+<span class="nc" id="L908">                                    log.info(intres.getLocalizedMessage(&quot;ocsp.infosigner.certexpired&quot;, CertTools.getSubjectDN(signerca), CertTools.getIssuerDN(signerca), e.getMessage()));</span>
+<span class="nc" id="L909">                                    verifyOK = false;</span>
+<span class="nc" id="L910">                                }</span>
+<span class="nc" id="L911">                            } catch (SignatureException e) {</span>
+<span class="nc" id="L912">                                log.info(intres.getLocalizedMessage(&quot;ocsp.infosigner.invalidcertsignature&quot;, signerSubjectDn, CertTools.getIssuerDN(signercert), e.getMessage()));</span>
+<span class="nc" id="L913">                                verifyOK = false;</span>
+<span class="nc" id="L914">                            } catch (InvalidKeyException e) {</span>
+<span class="nc" id="L915">                                log.info(intres.getLocalizedMessage(&quot;ocsp.infosigner.invalidcertsignature&quot;, signerSubjectDn, CertTools.getIssuerDN(signercert), e.getMessage()));</span>
+<span class="nc" id="L916">                                verifyOK = false;</span>
+<span class="nc" id="L917">                            }</span>
+                        } else {
+<span class="nc" id="L919">                            log.info(intres.getLocalizedMessage(&quot;ocsp.infosigner.nocacert&quot;, signerSubjectDn, CertTools.getIssuerDN(signercert)));</span>
+<span class="nc" id="L920">                            verifyOK = false;</span>
+                        }
+<span class="nc" id="L922">                        break;</span>
+                    }
+<span class="nc" id="L924">                } catch (OperatorCreationException e) {</span>
+                    // Very fatal error
+<span class="nc" id="L926">                    throw new EJBException(&quot;Can not create Jca content signer: &quot;, e);</span>
+<span class="nc" id="L927">                }</span>
+            }
+<span class="nc bnc" id="L929" title="All 2 branches missed.">            if (!verifyOK) {</span>
+<span class="nc bnc" id="L930" title="All 4 branches missed.">                if (signerSubjectDn == null &amp;&amp; certs.length &gt; 0) {</span>
+<span class="nc" id="L931">                    signerSubjectDn = CertTools.getSubjectDN(certificateConverter.getCertificate(certs[0]));</span>
+                }
+<span class="nc" id="L933">                String errMsg = intres.getLocalizedMessage(&quot;ocsp.errorinvalidsignature&quot;, signerSubjectDn);</span>
+<span class="nc" id="L934">                log.info(errMsg);</span>
+<span class="nc" id="L935">                throw new SignRequestSignatureException(errMsg);</span>
+            }
+<span class="nc" id="L937">        } catch (OCSPException e) {</span>
+<span class="nc" id="L938">            throw new CryptoProviderException(&quot;BouncyCastle was not initialized properly.&quot;, e);</span>
+<span class="nc" id="L939">        } catch (NoSuchProviderException e) {</span>
+<span class="nc" id="L940">            throw new CryptoProviderException(&quot;BouncyCastle was not found as a provider.&quot;, e);</span>
+<span class="nc" id="L941">        }</span>
+<span class="nc" id="L942">        return signercert;</span>
+    }
+    
+    private void assertAcceptableResponseExtension(OCSPReq req) throws OcspFailureException {
+<span class="nc bnc" id="L946" title="All 2 branches missed.">        if (null == req) {</span>
+<span class="nc" id="L947">            throw new IllegalArgumentException();</span>
+        }
+<span class="nc bnc" id="L949" title="All 2 branches missed.">        if (req.hasExtensions()) {</span>
+<span class="nc" id="L950">            final Extension acceptableResponsesExtension = req.getExtension(OCSPObjectIdentifiers.id_pkix_ocsp_response);</span>
+<span class="nc bnc" id="L951" title="All 2 branches missed.">            if (acceptableResponsesExtension != null) {</span>
+                // RFC 6960 4.4.3 AcceptableResponses ::= SEQUENCE OF OBJECT IDENTIFIER
+<span class="nc" id="L953">                final ASN1Sequence sequence = ASN1Sequence.getInstance(acceptableResponsesExtension.getExtnValue().getOctets());</span>
+                @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L955">                final Enumeration&lt;ASN1ObjectIdentifier&gt; oids = sequence.getObjects();</span>
+<span class="nc" id="L956">                boolean supportsResponseType = false;</span>
+<span class="nc bnc" id="L957" title="All 2 branches missed.">                while (oids.hasMoreElements()) {</span>
+<span class="nc" id="L958">                    final ASN1ObjectIdentifier oid = oids.nextElement();</span>
+<span class="nc bnc" id="L959" title="All 2 branches missed.">                    if (oid.equals(OCSPObjectIdentifiers.id_pkix_ocsp_basic)) {</span>
+                        // This is the response type we support, so we are happy! Break the loop.
+<span class="nc" id="L961">                        supportsResponseType = true;</span>
+<span class="nc bnc" id="L962" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L963">                            log.debug(&quot;Response type supported: &quot; + oid.getId());</span>
+                        }
+                        break;
+                    }
+<span class="nc" id="L967">                }</span>
+<span class="nc bnc" id="L968" title="All 2 branches missed.">                if (!supportsResponseType) {</span>
+<span class="nc" id="L969">                    final String msg = &quot;Required response type not supported, this responder only supports id-pkix-ocsp-basic.&quot;;</span>
+<span class="nc" id="L970">                    log.info(&quot;OCSP Request type not supported: &quot; + msg);</span>
+<span class="nc" id="L971">                    throw new OcspFailureException(msg);</span>
+                }
+            }
+        }
+<span class="nc" id="L975">    }</span>
+
+    /**
+     * When a timer expires, this method will update
+     * 
+     * According to JSR 220 FR (18.2.2), this method may not throw any exceptions.
+     * 
+     * @param timer The timer whose expiration caused this notification.
+     * 
+     */
+    @Timeout
+    /* Glassfish 2.1.1:
+     * &quot;Timeout method ....timeoutHandler(javax.ejb.Timer)must have TX attribute of TX_REQUIRES_NEW or TX_REQUIRED or TX_NOT_SUPPORTED&quot;
+     * JBoss 5.1.0.GA: We cannot mix timer updates with our EJBCA DataSource transactions. 
+     */
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public void timeoutHandler(Timer timer) {
+<span class="nc bnc" id="L992" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L993">            log.trace(&quot;&gt;timeoutHandler: &quot; + timer.getInfo().toString());</span>
+        }
+        // reloadTokenAndChainCache cancels old timers and adds a new timer
+<span class="nc" id="L996">        reloadOcspSigningCache();</span>
+<span class="nc bnc" id="L997" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L998">            log.trace(&quot;&lt;timeoutHandler&quot;);</span>
+        }
+<span class="nc" id="L1000">    }</span>
+
+    /**
+     * This method cancels all timers associated with this bean.
+     * @param id ID
+     */
+    // We don't want the appserver to persist/update the timer in the same transaction if they are stored in different non XA DataSources. This method
+    // should not be run from within a transaction.
+    private void cancelTimers(final int id) {
+<span class="nc bnc" id="L1009" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1010">            log.trace(&quot;&gt;cancelTimers&quot;);</span>
+        }
+<span class="nc" id="L1012">        final Collection&lt;Timer&gt; timers = timerService.getTimers();</span>
+<span class="nc bnc" id="L1013" title="All 2 branches missed.">        for (final Timer timer : timers) {</span>
+<span class="nc" id="L1014">            final int currentTimerId = ((Integer)timer.getInfo()).intValue();</span>
+<span class="nc bnc" id="L1015" title="All 2 branches missed.">            if (currentTimerId==id) {</span>
+<span class="nc" id="L1016">                timer.cancel();</span>
+            }
+<span class="nc" id="L1018">        }</span>
+<span class="nc bnc" id="L1019" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1020">            log.trace(&quot;&lt;cancelTimers, timers canceled: &quot; + timers.size());</span>
+        }
+<span class="nc" id="L1022">    }</span>
+
+    private int getTimerCount(final int id) {
+<span class="nc bnc" id="L1025" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1026">            log.trace(&quot;&gt;getTimerCount&quot;);</span>
+        }
+<span class="nc" id="L1028">        int count = 0;</span>
+<span class="nc" id="L1029">        final Collection&lt;Timer&gt; timers = timerService.getTimers();</span>
+<span class="nc bnc" id="L1030" title="All 2 branches missed.">        for (final Timer timer : timers) {</span>
+<span class="nc" id="L1031">            final int currentTimerId = ((Integer)timer.getInfo()).intValue();</span>
+<span class="nc bnc" id="L1032" title="All 2 branches missed.">            if (currentTimerId==id) {</span>
+<span class="nc" id="L1033">                count++;</span>
+            }
+<span class="nc" id="L1035">        }</span>
+<span class="nc bnc" id="L1036" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1037">            log.trace(&quot;&lt;getTimerCount, timers: &quot; + count);</span>
+        }
+<span class="nc" id="L1039">        return count;</span>
+    }
+
+    /**
+     * Adds a timer to the bean
+     * @param interval Interval
+     * 
+     * @param id the id of the timer
+     * @return Timer
+     */
+    // We don't want the appserver to persist/update the timer in the same transaction if they are stored in different non XA DataSources. This method
+    // should not be run from within a transaction.
+    private Timer addTimer(long interval, Integer id) {
+<span class="nc bnc" id="L1052" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1053">            log.trace(&quot;&gt;addTimer: &quot; + id + &quot;, interval: &quot; + interval);</span>
+        }
+<span class="nc" id="L1055">        Timer ret = null;</span>
+<span class="nc bnc" id="L1056" title="All 2 branches missed.">        if (interval &gt; 0) {</span>
+        	// Create non-persistent timer that fires once
+<span class="nc" id="L1058">            ret = timerService.createSingleActionTimer(interval, new TimerConfig(id, false));</span>
+<span class="nc bnc" id="L1059" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1060">                log.trace(&quot;&lt;addTimer: &quot; + id + &quot;, interval: &quot; + interval + &quot;, &quot; + ret.getNextTimeout().toString());</span>
+            }
+        }
+<span class="nc" id="L1063">        return ret;</span>
+    }
+
+    @Override
+    public OcspResponseInformation getOcspResponse(final byte[] request, final X509Certificate[] requestCertificates, String remoteAddress,
+            String xForwardedFor, StringBuffer requestUrl, final AuditLogger auditLogger, final TransactionLogger transactionLogger)
+            throws MalformedRequestException, OCSPException {
+        //Check parameters
+<span class="pc bpc" id="L1071" title="1 of 2 branches missed.">        if (auditLogger == null) {</span>
+<span class="nc" id="L1072">            throw new InvalidParameterException(&quot;Illegal to pass a null audit logger to OcspResponseSession.getOcspResponse&quot;);</span>
+        }
+<span class="pc bpc" id="L1074" title="1 of 2 branches missed.">        if (transactionLogger == null) {</span>
+<span class="nc" id="L1075">            throw new InvalidParameterException(&quot;Illegal to pass a null transaction logger to OcspResponseSession.getOcspResponse&quot;);</span>
+        }
+        // Validate byte array.
+<span class="pc bpc" id="L1078" title="1 of 2 branches missed.">        if (request.length &gt; MAX_REQUEST_SIZE) {</span>
+<span class="fc" id="L1079">            final String msg = intres.getLocalizedMessage(&quot;request.toolarge&quot;, MAX_REQUEST_SIZE, request.length);</span>
+<span class="fc" id="L1080">            throw new MalformedRequestException(msg);</span>
+        }
+<span class="nc" id="L1082">        byte[] respBytes = null;</span>
+<span class="nc" id="L1083">        final Date startTime = new Date();</span>
+<span class="nc" id="L1084">        OCSPResp ocspResponse = null;</span>
+        // Start logging process time after we have received the request
+<span class="nc bnc" id="L1086" title="All 2 branches missed.">        if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L1087">            transactionLogger.paramPut(PatternLogger.PROCESS_TIME, PatternLogger.PROCESS_TIME);</span>
+        }
+<span class="nc bnc" id="L1089" title="All 2 branches missed.">        if (auditLogger.isEnabled()) {</span>
+<span class="nc" id="L1090">            auditLogger.paramPut(PatternLogger.PROCESS_TIME, PatternLogger.PROCESS_TIME);</span>
+<span class="nc" id="L1091">            auditLogger.paramPut(AuditLogger.OCSPREQUEST, new String(Hex.encode(request)));</span>
+        }
+        OCSPReq req;
+<span class="nc" id="L1094">        long maxAge = OcspConfiguration.getMaxAge(CertificateProfileConstants.CERTPROFILE_NO_PROFILE);</span>
+<span class="nc" id="L1095">        OCSPRespBuilder responseGenerator = new OCSPRespBuilder();</span>
+<span class="nc" id="L1096">        X509Certificate signerCert = null;</span>
+        try {
+<span class="nc" id="L1098">            req = translateRequestFromByteArray(request, remoteAddress, transactionLogger);</span>
+            // Get the certificate status requests that are inside this OCSP req
+<span class="nc" id="L1100">            Req[] ocspRequests = req.getRequestList();</span>
+<span class="nc bnc" id="L1101" title="All 2 branches missed.">            if (ocspRequests.length &lt;= 0) {</span>
+<span class="nc" id="L1102">                String infoMsg = intres.getLocalizedMessage(&quot;ocsp.errornoreqentities&quot;);</span>
+<span class="nc" id="L1103">                log.info(infoMsg);</span>
+<span class="nc" id="L1104">                throw new MalformedRequestException(infoMsg);</span>
+            }
+<span class="nc" id="L1106">            final int maxRequests = 100;</span>
+<span class="nc bnc" id="L1107" title="All 2 branches missed.">            if (ocspRequests.length &gt; maxRequests) {</span>
+<span class="nc" id="L1108">                String infoMsg = intres.getLocalizedMessage(&quot;ocsp.errortoomanyreqentities&quot;, maxRequests);</span>
+<span class="nc" id="L1109">                log.info(infoMsg);</span>
+<span class="nc" id="L1110">                throw new MalformedRequestException(infoMsg);</span>
+            }
+<span class="nc bnc" id="L1112" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1113">                log.debug(&quot;The OCSP request contains &quot; + ocspRequests.length + &quot; simpleRequests.&quot;);</span>
+            }
+<span class="nc bnc" id="L1115" title="All 2 branches missed.">            if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L1116">                transactionLogger.paramPut(TransactionLogger.NUM_CERT_ID, ocspRequests.length);</span>
+<span class="nc" id="L1117">                transactionLogger.paramPut(TransactionLogger.STATUS, OCSPRespBuilder.SUCCESSFUL);</span>
+            }
+<span class="nc bnc" id="L1119" title="All 2 branches missed.">            if (auditLogger.isEnabled()) {</span>
+<span class="nc" id="L1120">                auditLogger.paramPut(AuditLogger.STATUS, OCSPRespBuilder.SUCCESSFUL);</span>
+            }
+<span class="nc" id="L1122">            OcspSigningCacheEntry ocspSigningCacheEntry = null;</span>
+<span class="nc" id="L1123">            long nextUpdate = OcspConfiguration.getUntilNextUpdate(CertificateProfileConstants.CERTPROFILE_NO_PROFILE);</span>
+<span class="nc" id="L1124">            Map&lt;ASN1ObjectIdentifier, Extension&gt; responseExtensions = new HashMap&lt;&gt;();</span>
+            
+            // Look over the status requests
+<span class="nc" id="L1127">            List&lt;OCSPResponseItem&gt; responseList = new ArrayList&lt;OCSPResponseItem&gt;();</span>
+<span class="nc" id="L1128">            boolean addExtendedRevokedExtension = false;</span>
+<span class="nc" id="L1129">            Date producedAt = null;</span>
+<span class="nc bnc" id="L1130" title="All 2 branches missed.">            for (Req ocspRequest : ocspRequests) {</span>
+<span class="nc" id="L1131">                CertificateID certId = ocspRequest.getCertID();</span>
+<span class="nc" id="L1132">                ASN1ObjectIdentifier certIdhash = certId.getHashAlgOID();</span>
+<span class="nc bnc" id="L1133" title="All 4 branches missed.">                if (!OIWObjectIdentifiers.idSHA1.equals(certIdhash) &amp;&amp; !NISTObjectIdentifiers.id_sha256.equals(certIdhash)) {</span>
+<span class="nc" id="L1134">                    throw new InvalidAlgorithmException(&quot;CertID with SHA1 and SHA256 are supported, not: &quot;+certIdhash.getId());</span>
+                }
+<span class="nc bnc" id="L1136" title="All 2 branches missed.">                if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L1137">                    transactionLogger.paramPut(TransactionLogger.SERIAL_NOHEX, certId.getSerialNumber().toByteArray());</span>
+<span class="nc" id="L1138">                    transactionLogger.paramPut(TransactionLogger.DIGEST_ALGOR, certId.getHashAlgOID().toString());</span>
+<span class="nc" id="L1139">                    transactionLogger.paramPut(TransactionLogger.ISSUER_NAME_HASH, certId.getIssuerNameHash());</span>
+<span class="nc" id="L1140">                    transactionLogger.paramPut(TransactionLogger.ISSUER_KEY, certId.getIssuerKeyHash());</span>
+                }
+<span class="nc bnc" id="L1142" title="All 2 branches missed.">                if (auditLogger.isEnabled()) {</span>
+<span class="nc" id="L1143">                    auditLogger.paramPut(AuditLogger.ISSUER_KEY, certId.getIssuerKeyHash());</span>
+<span class="nc" id="L1144">                    auditLogger.paramPut(AuditLogger.SERIAL_NOHEX, certId.getSerialNumber().toByteArray());</span>
+<span class="nc" id="L1145">                    auditLogger.paramPut(AuditLogger.ISSUER_NAME_HASH, certId.getIssuerNameHash());</span>
+                }
+<span class="nc" id="L1147">                byte[] hashbytes = certId.getIssuerNameHash();</span>
+<span class="nc" id="L1148">                String hash = null;</span>
+<span class="nc bnc" id="L1149" title="All 2 branches missed.">                if (hashbytes != null) {</span>
+<span class="nc" id="L1150">                    hash = new String(Hex.encode(hashbytes));</span>
+                }
+<span class="nc bnc" id="L1152" title="All 2 branches missed.">                if (xForwardedFor==null) {</span>
+<span class="nc" id="L1153">                    log.info(intres.getLocalizedMessage(&quot;ocsp.inforeceivedrequest&quot;, certId.getSerialNumber().toString(16), hash, remoteAddress));</span>
+                } else {
+<span class="nc" id="L1155">                    log.info(intres.getLocalizedMessage(&quot;ocsp.inforeceivedrequestwxff&quot;, certId.getSerialNumber().toString(16), hash, remoteAddress, xForwardedFor));</span>
+                }
+                // Locate the CA which gave out the certificate
+<span class="nc" id="L1158">                ocspSigningCacheEntry = OcspSigningCache.INSTANCE.getEntry(certId);</span>
+<span class="nc bnc" id="L1159" title="All 2 branches missed.">                if(ocspSigningCacheEntry == null) {</span>
+                  //Could it be that we haven't updated the OCSP Signing Cache?
+<span class="nc" id="L1161">                    ocspSigningCacheEntry = findAndAddMissingCacheEntry(certId);</span>
+                }         
+<span class="nc bnc" id="L1163" title="All 2 branches missed.">                if (ocspSigningCacheEntry != null) {</span>
+<span class="nc bnc" id="L1164" title="All 2 branches missed.">                    if (transactionLogger.isEnabled()) {</span>
+                        // This will be the issuer DN of the signing certificate, whether an OCSP responder or an internal CA  
+<span class="nc" id="L1166">                        transactionLogger.paramPut(TransactionLogger.ISSUER_NAME_DN, ocspSigningCacheEntry.getSigningCertificateIssuerDn());</span>
+<span class="nc" id="L1167">                        transactionLogger.paramPut(TransactionLogger.ISSUER_NAME_DN_RAW, ocspSigningCacheEntry.getSigningCertificateIssuerDnRaw());</span>
+                    }
+                } else {
+                    /*
+                     * if the certId was issued by an unknown CA 
+                     * 
+                     * The algorithm here: 
+                     * We will sign the response with the CA that issued the last certificate(certId) in the request. If the issuing CA is not available on 
+                     * this server, we sign the response with the default responderId (from params in web.xml). We have to look up the ca-certificate for 
+                     * each certId in the request though, as we will check for revocation on the ca-cert as well when checking for revocation on the certId.
+                     */                
+                    // We could not find certificate for this request so get certificate for default responder
+<span class="nc" id="L1179">                    ocspSigningCacheEntry = OcspSigningCache.INSTANCE.getDefaultEntry();</span>
+<span class="nc bnc" id="L1180" title="All 2 branches missed.">                    if (ocspSigningCacheEntry != null) {</span>
+<span class="nc" id="L1181">                        String errMsg = intres.getLocalizedMessage(&quot;ocsp.errorfindcacertusedefault&quot;,</span>
+<span class="nc" id="L1182">                                new String(Hex.encode(certId.getIssuerNameHash())));</span>
+<span class="nc" id="L1183">                        log.info(errMsg);</span>
+                        // If we can not find the CA, answer UnknowStatus
+<span class="nc" id="L1185">                        responseList.add(new OCSPResponseItem(certId, new UnknownStatus(), nextUpdate));</span>
+<span class="nc bnc" id="L1186" title="All 2 branches missed.">                        if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L1187">                            transactionLogger.paramPut(TransactionLogger.CERT_STATUS, OCSPResponseItem.OCSP_UNKNOWN);</span>
+<span class="nc" id="L1188">                            transactionLogger.writeln();</span>
+                        }
+                        continue;
+                    } else {
+<span class="nc" id="L1192">                        GlobalOcspConfiguration ocspConfiguration = (GlobalOcspConfiguration) globalConfigurationSession</span>
+<span class="nc" id="L1193">                                .getCachedConfiguration(GlobalOcspConfiguration.OCSP_CONFIGURATION_ID);</span>
+<span class="nc" id="L1194">                        String defaultResponder = ocspConfiguration.getOcspDefaultResponderReference();</span>
+<span class="nc" id="L1195">                        String errMsg = intres.getLocalizedMessage(&quot;ocsp.errorfindcacert&quot;, new String(Hex.encode(certId.getIssuerNameHash())),</span>
+                                defaultResponder);
+<span class="nc" id="L1197">                        log.error(errMsg);</span>
+                        // If we are responding to multiple requests, the last found ocspSigningCacheEntry will be used in the end
+                        // so even if there are not any one now, it might be later when it is time to sign the responses.
+                        // Since we only will sign the entire response once if there is at least one valid ocspSigningCacheEntry
+                        // we might as well include the unknown requests.
+<span class="nc" id="L1202">                        responseList.add(new OCSPResponseItem(certId, new UnknownStatus(), nextUpdate));</span>
+<span class="nc" id="L1203">                        continue;</span>
+                    }
+                }
+
+<span class="nc" id="L1207">                Collection&lt;String&gt; extensionOids = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L1208" title="All 2 branches missed.">                if (ocspSigningCacheEntry.getOcspKeyBinding() != null) {</span>
+<span class="nc" id="L1209">                    extensionOids = ocspSigningCacheEntry.getOcspKeyBinding().getOcspExtensions();</span>
+                }
+                
+                // Intended for debugging. Will usually be null
+<span class="nc" id="L1213">                String alwaysUseOid = OcspConfiguration.getAlwaysSendCustomOCSPExtension();</span>
+<span class="nc bnc" id="L1214" title="All 4 branches missed.">                if (alwaysUseOid != null &amp;&amp; !extensionOids.contains(alwaysUseOid)) {</span>
+<span class="nc" id="L1215">                    extensionOids.add(alwaysUseOid);</span>
+                }
+                
+                final org.bouncycastle.cert.ocsp.CertificateStatus certStatus;
+                // Check if the cacert (or the default responderid) is revoked
+<span class="nc" id="L1220">                X509Certificate caCertificate = ocspSigningCacheEntry.getIssuerCaCertificate();</span>
+<span class="nc" id="L1221">                final CertificateStatus signerIssuerCertStatus = ocspSigningCacheEntry.getIssuerCaCertificateStatus();</span>
+<span class="nc" id="L1222">                final String caCertificateSubjectDn = CertTools.getSubjectDN(caCertificate);</span>
+<span class="nc" id="L1223">                CertificateStatusHolder certificateStatusHolder = null;</span>
+                OCSPResponseItem respItem;
+<span class="nc bnc" id="L1225" title="All 2 branches missed.">                if (signerIssuerCertStatus.equals(CertificateStatus.REVOKED)) {</span>
+                    /*
+                     * According to chapter 2.7 in RFC2560:
+                     * 
+                     * 2.7 CA Key Compromise If an OCSP responder knows that a particular CA's private key has been compromised, it MAY return the revoked
+                     * state for all certificates issued by that CA.
+                     */
+                    // If we've ended up here it's because the signer issuer certificate was revoked. 
+<span class="nc" id="L1233">                    certStatus = new RevokedStatus(new RevokedInfo(new ASN1GeneralizedTime(signerIssuerCertStatus.revocationDate),</span>
+<span class="nc" id="L1234">                            CRLReason.lookup(signerIssuerCertStatus.revocationReason)));</span>
+<span class="nc" id="L1235">                    log.info(intres.getLocalizedMessage(&quot;ocsp.signcertissuerrevoked&quot;, CertTools.getSerialNumberAsString(caCertificate),</span>
+<span class="nc" id="L1236">                            CertTools.getSubjectDN(caCertificate)));</span>
+<span class="nc" id="L1237">                    respItem = new OCSPResponseItem(certId, certStatus, nextUpdate);</span>
+<span class="nc bnc" id="L1238" title="All 2 branches missed.">                    if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L1239">                        transactionLogger.paramPut(TransactionLogger.CERT_STATUS, OCSPResponseItem.OCSP_REVOKED);</span>
+<span class="nc" id="L1240">                        transactionLogger.paramPut(TransactionLogger.REV_REASON, signerIssuerCertStatus.revocationReason);</span>
+<span class="nc" id="L1241">                        transactionLogger.writeln();</span>
+                    }
+                } else {
+                    /**
+                     * Here is the actual check for the status of the sought certificate (easy to miss). Here we grab just the status if there aren't
+                     * any OIDs defined (default case), but if there are we'll probably need the certificate as well. If that's the case, we'll grab
+                     * the certificate in the same transaction.
+                     */
+                    final CertificateStatus status;
+<span class="nc bnc" id="L1250" title="All 2 branches missed.">                    if (extensionOids.isEmpty()) {</span>
+<span class="nc" id="L1251">                        status = certificateStoreSession.getStatus(caCertificateSubjectDn, certId.getSerialNumber());</span>
+                    } else {
+<span class="nc" id="L1253">                        certificateStatusHolder = certificateStoreSession.getCertificateAndStatus(caCertificateSubjectDn, certId.getSerialNumber());</span>
+<span class="nc" id="L1254">                        status = certificateStatusHolder.getCertificateStatus();</span>
+                    }
+<span class="nc bnc" id="L1256" title="All 2 branches missed.">                    if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L1257">                        transactionLogger.paramPut(TransactionLogger.CERT_PROFILE_ID, String.valueOf(status.certificateProfileId));</span>
+                    }
+                    // If we have an OcspKeyBinding configured for this request, we override the default value
+<span class="nc bnc" id="L1260" title="All 2 branches missed.">                    if (ocspSigningCacheEntry.isUsingSeparateOcspSigningCertificate()) {</span>
+<span class="nc" id="L1261">                        nextUpdate = ocspSigningCacheEntry.getOcspKeyBinding().getUntilNextUpdate()*1000L;</span>
+                    }
+                    // If we have an explicit value configured for this certificate profile, we override the the current value with this value
+<span class="nc bnc" id="L1264" title="All 2 branches missed.">                    if (status.certificateProfileId != CertificateProfileConstants.CERTPROFILE_NO_PROFILE &amp;&amp;</span>
+<span class="nc bnc" id="L1265" title="All 2 branches missed.">                            OcspConfiguration.isUntilNextUpdateConfigured(status.certificateProfileId)) {</span>
+<span class="nc" id="L1266">                        nextUpdate = OcspConfiguration.getUntilNextUpdate(status.certificateProfileId);</span>
+                    }
+                    // If we have an OcspKeyBinding configured for this request, we override the default value
+<span class="nc bnc" id="L1269" title="All 2 branches missed.">                    if (ocspSigningCacheEntry.isUsingSeparateOcspSigningCertificate()) {</span>
+<span class="nc" id="L1270">                        maxAge = ocspSigningCacheEntry.getOcspKeyBinding().getMaxAge()*1000L;</span>
+                    }
+                    // If we have an explicit value configured for this certificate profile, we override the the current value with this value
+<span class="nc bnc" id="L1273" title="All 2 branches missed.">                    if (status.certificateProfileId != CertificateProfileConstants.CERTPROFILE_NO_PROFILE &amp;&amp;</span>
+<span class="nc bnc" id="L1274" title="All 2 branches missed.">                            OcspConfiguration.isMaxAgeConfigured(status.certificateProfileId)) {</span>
+<span class="nc" id="L1275">                        maxAge = OcspConfiguration.getMaxAge(status.certificateProfileId);</span>
+                    }
+
+                    final String sStatus;
+<span class="nc" id="L1279">                    boolean addArchiveCutoff = false;</span>
+<span class="nc bnc" id="L1280" title="All 2 branches missed.">                    if (status.equals(CertificateStatus.NOT_AVAILABLE)) {</span>
+                        // No revocation info available for this cert, handle it
+<span class="nc bnc" id="L1282" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1283">                            log.debug(&quot;Unable to find revocation information for certificate with serial '&quot; + certId.getSerialNumber().toString(16)</span>
+                                    + &quot;'&quot; + &quot; from issuer '&quot; + caCertificateSubjectDn + &quot;'&quot;);
+                        }
+                        /* 
+                         * If we do not treat non existing certificates as good or revoked
+                         * OR
+                         * we don't actually handle requests for the CA issuing the certificate asked about
+                         * then we return unknown 
+                         * */
+<span class="nc bnc" id="L1292" title="All 2 branches missed.">                        if (OcspConfigurationCache.INSTANCE.isNonExistingGood(requestUrl, ocspSigningCacheEntry.getOcspKeyBinding()) &amp;&amp;</span>
+<span class="nc bnc" id="L1293" title="All 2 branches missed.">                                OcspSigningCache.INSTANCE.getEntry(certId) != null) {</span>
+<span class="nc" id="L1294">                            sStatus = &quot;good&quot;;</span>
+<span class="nc" id="L1295">                            certStatus = null; // null means &quot;good&quot; in OCSP</span>
+<span class="nc bnc" id="L1296" title="All 2 branches missed.">                            if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L1297">                                transactionLogger.paramPut(TransactionLogger.CERT_STATUS, OCSPResponseItem.OCSP_GOOD);</span>
+<span class="nc" id="L1298">                                transactionLogger.paramPut(TransactionLogger.REV_REASON, CRLReason.certificateHold);</span>
+                            }
+<span class="nc bnc" id="L1300" title="All 2 branches missed.">                        } else if (OcspConfigurationCache.INSTANCE.isNonExistingRevoked(requestUrl, ocspSigningCacheEntry.getOcspKeyBinding()) &amp;&amp;</span>
+<span class="nc bnc" id="L1301" title="All 2 branches missed.">                                OcspSigningCache.INSTANCE.getEntry(certId) != null) {</span>
+<span class="nc" id="L1302">                            sStatus = &quot;revoked&quot;;</span>
+<span class="nc" id="L1303">                            certStatus = new RevokedStatus(new RevokedInfo(new ASN1GeneralizedTime(new Date(0)),</span>
+<span class="nc" id="L1304">                                    CRLReason.lookup(CRLReason.certificateHold)));</span>
+<span class="nc bnc" id="L1305" title="All 2 branches missed.">                            if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L1306">                                transactionLogger.paramPut(TransactionLogger.CERT_STATUS, OCSPResponseItem.OCSP_REVOKED); </span>
+<span class="nc" id="L1307">                                transactionLogger.paramPut(TransactionLogger.REV_REASON, CRLReason.certificateHold);</span>
+                            }
+<span class="nc" id="L1309">                            addExtendedRevokedExtension = true;</span>
+<span class="nc bnc" id="L1310" title="All 2 branches missed.">                        } else if (OcspConfigurationCache.INSTANCE.isNonExistingUnauthorized(ocspSigningCacheEntry.getOcspKeyBinding())</span>
+<span class="nc bnc" id="L1311" title="All 2 branches missed.">                                &amp;&amp; OcspSigningCache.INSTANCE.getEntry(certId) != null) {</span>
+                            // In order to save on cycles and mitigate the chances of a DOS attack, we'll return a unsigned unauthorized reply. 
+<span class="nc" id="L1313">                            ocspResponse = responseGenerator.build(OCSPRespBuilder.UNAUTHORIZED, null);</span>
+<span class="nc bnc" id="L1314" title="All 2 branches missed.">                            if (auditLogger.isEnabled()) {</span>
+<span class="nc" id="L1315">                                auditLogger.paramPut(AuditLogger.STATUS, OCSPRespBuilder.UNAUTHORIZED);</span>
+                            }
+<span class="nc bnc" id="L1317" title="All 2 branches missed.">                            if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L1318">                                transactionLogger.paramPut(TransactionLogger.STATUS, OCSPRespBuilder.UNAUTHORIZED);</span>
+                            }
+<span class="nc" id="L1320">                            log.info(intres.getLocalizedMessage(&quot;ocsp.errorfindcert&quot;, certId.getSerialNumber().toString(16), caCertificateSubjectDn));</span>
+                            //Return early here
+<span class="nc" id="L1322">                            return new OcspResponseInformation(ocspResponse, maxAge, null);</span>
+                        } else {
+<span class="nc" id="L1324">                            sStatus = &quot;unknown&quot;;</span>
+<span class="nc" id="L1325">                            certStatus = new UnknownStatus();</span>
+<span class="nc bnc" id="L1326" title="All 2 branches missed.">                            if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L1327">                                transactionLogger.paramPut(TransactionLogger.CERT_STATUS, OCSPResponseItem.OCSP_UNKNOWN);</span>
+<span class="nc" id="L1328">                                transactionLogger.paramPut(TransactionLogger.REV_REASON, CRLReason.certificateHold);</span>
+                            }
+                        }
+<span class="nc bnc" id="L1331" title="All 2 branches missed.">                    } else if (status.equals(CertificateStatus.REVOKED)) {</span>
+                        // Revocation info available for this cert, handle it
+<span class="nc" id="L1333">                        sStatus = &quot;revoked&quot;;</span>
+<span class="nc" id="L1334">                        certStatus = new RevokedStatus(new RevokedInfo(new ASN1GeneralizedTime(status.revocationDate),</span>
+<span class="nc" id="L1335">                                CRLReason.lookup(status.revocationReason)));</span>
+<span class="nc bnc" id="L1336" title="All 2 branches missed.">                        if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L1337">                            transactionLogger.paramPut(TransactionLogger.CERT_STATUS, OCSPResponseItem.OCSP_REVOKED);</span>
+<span class="nc" id="L1338">                            transactionLogger.paramPut(TransactionLogger.REV_REASON, status.revocationReason);</span>
+                        }
+                        // If we have an explicit value configured for this certificate profile, we override the the current value with this value
+<span class="nc bnc" id="L1341" title="All 2 branches missed.">                        if (status.certificateProfileId != CertificateProfileConstants.CERTPROFILE_NO_PROFILE &amp;&amp;</span>
+<span class="nc bnc" id="L1342" title="All 2 branches missed.">                                OcspConfiguration.isRevokedUntilNextUpdateConfigured(status.certificateProfileId)) {</span>
+<span class="nc" id="L1343">                            nextUpdate = OcspConfiguration.getRevokedUntilNextUpdate(status.certificateProfileId);</span>
+                        }
+                        // If we have an explicit value configured for this certificate profile, we override the the current value with this value
+<span class="nc bnc" id="L1346" title="All 2 branches missed.">                        if (status.certificateProfileId != CertificateProfileConstants.CERTPROFILE_NO_PROFILE &amp;&amp;</span>
+<span class="nc bnc" id="L1347" title="All 2 branches missed.">                                OcspConfiguration.isRevokedMaxAgeConfigured(status.certificateProfileId)) {</span>
+<span class="nc" id="L1348">                            maxAge = OcspConfiguration.getRevokedMaxAge(status.certificateProfileId);</span>
+                        }
+                    } else {
+<span class="nc" id="L1351">                        sStatus = &quot;good&quot;;</span>
+<span class="nc" id="L1352">                        certStatus = null;</span>
+<span class="nc bnc" id="L1353" title="All 2 branches missed.">                        if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L1354">                            transactionLogger.paramPut(TransactionLogger.CERT_STATUS, OCSPResponseItem.OCSP_GOOD);</span>
+                        }
+<span class="nc" id="L1356">                        addArchiveCutoff = checkAddArchiveCuttoff(caCertificateSubjectDn, certId);</span>
+                    }
+<span class="nc bnc" id="L1358" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1359">                        log.debug(&quot;Set nextUpdate=&quot; + nextUpdate + &quot;, and maxAge=&quot; + maxAge + &quot; for certificateProfileId=&quot;</span>
+                                + status.certificateProfileId);
+                    }
+<span class="nc" id="L1362">                    log.info(intres.getLocalizedMessage(&quot;ocsp.infoaddedstatusinfo&quot;, sStatus, certId.getSerialNumber().toString(16), caCertificateSubjectDn));</span>
+<span class="nc" id="L1363">                    respItem = new OCSPResponseItem(certId, certStatus, nextUpdate);</span>
+<span class="nc bnc" id="L1364" title="All 2 branches missed.">                    if (addArchiveCutoff) {</span>
+<span class="nc" id="L1365">                        addArchiveCutoff(respItem);</span>
+<span class="nc" id="L1366">                        producedAt = new Date();</span>
+                    }
+<span class="nc bnc" id="L1368" title="All 2 branches missed.">                    if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L1369">                        transactionLogger.writeln();</span>
+                    }
+                }
+ 
+<span class="nc bnc" id="L1373" title="All 2 branches missed.">                for (String oidstr : extensionOids) {</span>
+<span class="nc" id="L1374">                    boolean useAlways = false;</span>
+<span class="nc bnc" id="L1375" title="All 2 branches missed.">                    if (oidstr.equals(alwaysUseOid)) {</span>
+<span class="nc" id="L1376">                        useAlways = true;</span>
+                    }
+<span class="nc" id="L1378">                    ASN1ObjectIdentifier oid = new ASN1ObjectIdentifier(oidstr);</span>
+<span class="nc" id="L1379">                    Extension extension = null;</span>
+<span class="nc bnc" id="L1380" title="All 2 branches missed.">                    if (!useAlways) {</span>
+                        // Only check if extension exists if we are not already bound to use it
+<span class="nc bnc" id="L1382" title="All 2 branches missed.">                        if (req.hasExtensions()) {</span>
+<span class="nc" id="L1383">                            extension = req.getExtension(oid);</span>
+                        }
+                    }
+                    //If found, or if it should be used anyway
+<span class="nc bnc" id="L1387" title="All 4 branches missed.">                    if (useAlways || extension!=null) {</span>
+                        // We found an extension, call the extension class
+<span class="nc bnc" id="L1389" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1390">                            log.debug(&quot;Found OCSP extension oid: &quot; + oidstr);</span>
+                        }
+<span class="nc" id="L1392">                        OCSPExtension extObj = OcspExtensionsCache.INSTANCE.getExtensions().get(oidstr);</span>
+<span class="nc bnc" id="L1393" title="All 2 branches missed.">                        if (extObj != null) {</span>
+                            // Find the certificate from the certId
+<span class="nc bnc" id="L1395" title="All 4 branches missed.">                            if(certificateStatusHolder != null &amp;&amp; certificateStatusHolder.getCertificate() != null) {</span>
+<span class="nc" id="L1396">                                X509Certificate cert = (X509Certificate) certificateStatusHolder.getCertificate();</span>
+                                // From EJBCA 6.2.10 and 6.3.2 the extension must perform the reverse DNS lookup by itself if needed.
+<span class="nc" id="L1398">                                final String remoteHost = remoteAddress;</span>
+                                // Call the OCSP extension
+<span class="nc" id="L1400">                                Map&lt;ASN1ObjectIdentifier, Extension&gt; retext = null;</span>
+<span class="nc" id="L1401">                                    retext = extObj.process(requestCertificates, remoteAddress, remoteHost, cert, certStatus, ocspSigningCacheEntry.getOcspKeyBinding());</span>
+<span class="nc bnc" id="L1402" title="All 2 branches missed.">                                if (retext != null) {</span>
+                                    // Add the returned X509Extensions to the responseExtension we will add to the basic OCSP response
+<span class="nc bnc" id="L1404" title="All 2 branches missed.">                                    if (extObj.getExtensionType().contains(OCSPExtensionType.RESPONSE)) {</span>
+<span class="nc" id="L1405">                                        responseExtensions.putAll(retext);</span>
+                                    }
+<span class="nc bnc" id="L1407" title="All 2 branches missed.">                                    if (extObj.getExtensionType().contains(OCSPExtensionType.SINGLE_RESPONSE)) {</span>
+<span class="nc" id="L1408">                                        respItem.addExtensions(retext);</span>
+                                    }
+                                } else {
+<span class="nc" id="L1411">                                        log.error(intres.getLocalizedMessage(&quot;ocsp.errorprocessextension&quot;, extObj.getClass().getName(),</span>
+<span class="nc" id="L1412">                                                Integer.valueOf(extObj.getLastErrorCode())));</span>
+                                }
+                            }
+                        }
+                    }
+<span class="nc" id="L1417">                }</span>
+<span class="nc" id="L1418">                responseList.add(respItem);</span>
+            }
+<span class="nc bnc" id="L1420" title="All 2 branches missed.">            if (addExtendedRevokedExtension) { </span>
+                // id-pkix-ocsp-extended-revoke OBJECT IDENTIFIER ::= {id-pkix-ocsp 9}
+<span class="nc" id="L1422">                final ASN1ObjectIdentifier extendedRevokedOID = OCSPObjectIdentifiers.id_pkix_ocsp_extended_revoke;</span>
+                try {
+<span class="nc" id="L1424">                    responseExtensions.put(extendedRevokedOID, new Extension(extendedRevokedOID, false, DERNull.INSTANCE.getEncoded() ));</span>
+<span class="nc" id="L1425">                } catch (IOException e) {</span>
+<span class="nc" id="L1426">                    throw new IllegalStateException(&quot;Could not get encoding from DERNull.&quot;, e);</span>
+<span class="nc" id="L1427">                }</span>
+            }
+<span class="nc bnc" id="L1429" title="All 2 branches missed.">            if (ocspSigningCacheEntry != null) {</span>
+                // Add standard response extensions
+<span class="nc" id="L1431">                responseExtensions.putAll(getStandardResponseExtensions(req, ocspSigningCacheEntry));</span>
+                
+                // Add responseExtensions
+<span class="nc" id="L1434">                Extensions exts = new Extensions(responseExtensions.values().toArray(new Extension[0]));</span>
+                // generate the signed response object
+<span class="nc" id="L1436">                BasicOCSPResp basicresp = signOcspResponse(req, responseList, exts, ocspSigningCacheEntry, producedAt);</span>
+<span class="nc" id="L1437">                signerCert = ocspSigningCacheEntry.getSigningCertificate();</span>
+<span class="nc" id="L1438">                ocspResponse = responseGenerator.build(OCSPRespBuilder.SUCCESSFUL, basicresp);</span>
+<span class="nc bnc" id="L1439" title="All 2 branches missed.">                if (auditLogger.isEnabled()) {</span>
+<span class="nc" id="L1440">                    auditLogger.paramPut(AuditLogger.STATUS, OCSPRespBuilder.SUCCESSFUL);</span>
+                }
+<span class="nc bnc" id="L1442" title="All 2 branches missed.">                if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L1443">                    transactionLogger.paramPut(TransactionLogger.STATUS, OCSPRespBuilder.SUCCESSFUL);</span>
+                }
+<span class="nc" id="L1445">            } else {</span>
+                // Only unknown CAs in requests and no default responder's cert, return an unsigned response
+<span class="nc bnc" id="L1447" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1448">                    log.debug(intres.getLocalizedMessage(&quot;ocsp.errornocacreateresp&quot;));</span>
+                }
+<span class="nc" id="L1450">                ocspResponse = responseGenerator.build(OCSPRespBuilder.UNAUTHORIZED, null);</span>
+<span class="nc bnc" id="L1451" title="All 2 branches missed.">                if (auditLogger.isEnabled()) {</span>
+<span class="nc" id="L1452">                    auditLogger.paramPut(AuditLogger.STATUS, OCSPRespBuilder.UNAUTHORIZED);</span>
+                }
+<span class="nc bnc" id="L1454" title="All 2 branches missed.">                if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L1455">                    transactionLogger.paramPut(TransactionLogger.STATUS, OCSPRespBuilder.UNAUTHORIZED);</span>
+                }
+            }
+<span class="nc" id="L1458">        } catch (SignRequestException e) {</span>
+<span class="nc bnc" id="L1459" title="All 2 branches missed.">            if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L1460">                transactionLogger.paramPut(PatternLogger.PROCESS_TIME, PatternLogger.PROCESS_TIME);</span>
+            }
+<span class="nc bnc" id="L1462" title="All 2 branches missed.">            if (auditLogger.isEnabled()) {</span>
+<span class="nc" id="L1463">                auditLogger.paramPut(PatternLogger.PROCESS_TIME, PatternLogger.PROCESS_TIME);</span>
+            }
+<span class="nc" id="L1465">            String errMsg = intres.getLocalizedMessage(&quot;ocsp.errorprocessreq&quot;, e.getMessage());</span>
+<span class="nc" id="L1466">            log.info(errMsg); // No need to log the full exception here</span>
+            // RFC 2560: responseBytes are not set on error.
+<span class="nc" id="L1468">            ocspResponse = responseGenerator.build(OCSPRespBuilder.SIG_REQUIRED, null);</span>
+<span class="nc bnc" id="L1469" title="All 2 branches missed.">            if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L1470">                transactionLogger.paramPut(TransactionLogger.STATUS, OCSPRespBuilder.SIG_REQUIRED);</span>
+<span class="nc" id="L1471">                transactionLogger.writeln();</span>
+            }
+<span class="nc bnc" id="L1473" title="All 2 branches missed.">            if (auditLogger.isEnabled()) {</span>
+<span class="nc" id="L1474">                auditLogger.paramPut(AuditLogger.STATUS, OCSPRespBuilder.SIG_REQUIRED);</span>
+            }
+<span class="nc" id="L1476">        } catch (SignRequestSignatureException | IllegalNonceException e) {</span>
+<span class="nc bnc" id="L1477" title="All 2 branches missed.">            if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L1478">                transactionLogger.paramPut(PatternLogger.PROCESS_TIME, PatternLogger.PROCESS_TIME);</span>
+            }
+<span class="nc bnc" id="L1480" title="All 2 branches missed.">            if (auditLogger.isEnabled()) {</span>
+<span class="nc" id="L1481">                auditLogger.paramPut(PatternLogger.PROCESS_TIME, PatternLogger.PROCESS_TIME);</span>
+            }
+<span class="nc" id="L1483">            String errMsg = intres.getLocalizedMessage(&quot;ocsp.errorprocessreq&quot;, e.getMessage());</span>
+<span class="nc" id="L1484">            log.info(errMsg); // No need to log the full exception here</span>
+            // RFC 2560: responseBytes are not set on error.
+<span class="nc" id="L1486">            ocspResponse = responseGenerator.build(OCSPRespBuilder.UNAUTHORIZED, null);</span>
+<span class="nc bnc" id="L1487" title="All 2 branches missed.">            if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L1488">                transactionLogger.paramPut(TransactionLogger.STATUS, OCSPRespBuilder.UNAUTHORIZED);</span>
+<span class="nc" id="L1489">                transactionLogger.writeln();</span>
+            }
+<span class="nc bnc" id="L1491" title="All 2 branches missed.">            if (auditLogger.isEnabled()) {</span>
+<span class="nc" id="L1492">                auditLogger.paramPut(AuditLogger.STATUS, OCSPRespBuilder.UNAUTHORIZED);</span>
+            }
+<span class="nc" id="L1494">        } catch (InvalidAlgorithmException e) {</span>
+<span class="nc bnc" id="L1495" title="All 2 branches missed.">            if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L1496">                transactionLogger.paramPut(PatternLogger.PROCESS_TIME, PatternLogger.PROCESS_TIME);</span>
+            }
+<span class="nc bnc" id="L1498" title="All 2 branches missed.">            if (auditLogger.isEnabled()) {</span>
+<span class="nc" id="L1499">                auditLogger.paramPut(PatternLogger.PROCESS_TIME, PatternLogger.PROCESS_TIME);</span>
+            }
+<span class="nc" id="L1501">            String errMsg = intres.getLocalizedMessage(&quot;ocsp.errorprocessreq&quot;, e.getMessage());</span>
+<span class="nc" id="L1502">            log.info(errMsg); // No need to log the full exception here</span>
+            // RFC 2560: responseBytes are not set on error.
+<span class="nc" id="L1504">            ocspResponse = responseGenerator.build(OCSPRespBuilder.MALFORMED_REQUEST, null);</span>
+<span class="nc bnc" id="L1505" title="All 2 branches missed.">            if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L1506">                transactionLogger.paramPut(TransactionLogger.STATUS, OCSPRespBuilder.MALFORMED_REQUEST);</span>
+<span class="nc" id="L1507">                transactionLogger.writeln();</span>
+            }
+<span class="nc bnc" id="L1509" title="All 2 branches missed.">            if (auditLogger.isEnabled()) {</span>
+<span class="nc" id="L1510">                auditLogger.paramPut(AuditLogger.STATUS, OCSPRespBuilder.MALFORMED_REQUEST);</span>
+            }
+<span class="nc" id="L1512">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L1513">            ocspResponse = processDefaultError(responseGenerator, transactionLogger, auditLogger, e);</span>
+<span class="nc" id="L1514">        } catch (CertificateException e) {</span>
+<span class="nc" id="L1515">            ocspResponse = processDefaultError(responseGenerator, transactionLogger, auditLogger, e);</span>
+<span class="nc" id="L1516">        } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L1517">            ocspResponse = processDefaultError(responseGenerator, transactionLogger, auditLogger, e);</span>
+<span class="nc" id="L1518">        }</span>
+        try {
+<span class="nc" id="L1520">            respBytes = ocspResponse.getEncoded();</span>
+<span class="nc bnc" id="L1521" title="All 2 branches missed.">            if (auditLogger.isEnabled()) {</span>
+<span class="nc" id="L1522">                auditLogger.paramPut(AuditLogger.OCSPRESPONSE, new String(Hex.encode(respBytes)));</span>
+<span class="nc" id="L1523">                auditLogger.writeln();</span>
+<span class="nc" id="L1524">                auditLogger.flush();</span>
+            }
+<span class="nc bnc" id="L1526" title="All 2 branches missed.">            if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L1527">                transactionLogger.flush();</span>
+            }
+<span class="nc bnc" id="L1529" title="All 2 branches missed.">            if (OcspConfiguration.getLogSafer()) {</span>
+                // See if the Errorhandler has found any problems
+<span class="nc bnc" id="L1531" title="All 2 branches missed.">                if (hasErrorHandlerFailedSince(startTime)) {</span>
+<span class="nc" id="L1532">                    log.info(&quot;ProbableErrorhandler reported error, cannot answer request&quot;);</span>
+                    // RFC 2560: responseBytes are not set on error.
+<span class="nc" id="L1534">                    ocspResponse = responseGenerator.build(OCSPRespBuilder.INTERNAL_ERROR, null);</span>
+
+                }
+                // See if the Appender has reported any problems
+<span class="nc bnc" id="L1538" title="All 2 branches missed.">                if (!CanLogCache.INSTANCE.canLog()) {</span>
+<span class="nc" id="L1539">                    log.info(&quot;SaferDailyRollingFileAppender reported error, cannot answer request&quot;);</span>
+                    // RFC 2560: responseBytes are not set on error.
+<span class="nc" id="L1541">                    ocspResponse = responseGenerator.build(OCSPRespBuilder.INTERNAL_ERROR, null);</span>
+                }
+            }
+<span class="nc" id="L1544">        } catch (IOException e) {</span>
+<span class="nc" id="L1545">            log.error(&quot;Unexpected IOException caught.&quot;, e);</span>
+<span class="nc bnc" id="L1546" title="All 2 branches missed.">            if (transactionLogger.isEnabled()) {</span>
+<span class="nc" id="L1547">                transactionLogger.flush();</span>
+            }
+<span class="nc bnc" id="L1549" title="All 2 branches missed.">            if (auditLogger.isEnabled()) {</span>
+<span class="nc" id="L1550">                auditLogger.flush();</span>
+            }
+<span class="nc" id="L1552">        }</span>
+<span class="nc" id="L1553">        return new OcspResponseInformation(ocspResponse, maxAge, signerCert);</span>
+    }
+    
+    private boolean checkAddArchiveCuttoff(String caCertificateSubjectDn, CertificateID certId) {
+<span class="nc bnc" id="L1557" title="All 2 branches missed.">        if (OcspConfiguration.getExpiredArchiveCutoff() == -1) {</span>
+<span class="nc" id="L1558">            return false;</span>
+        }
+<span class="nc" id="L1560">        CertificateInfo info = certificateStoreSession.findFirstCertificateInfo(caCertificateSubjectDn, certId.getSerialNumber());</span>
+<span class="nc" id="L1561">        Date expDate = info.getExpireDate();</span>
+<span class="nc bnc" id="L1562" title="All 2 branches missed.">        if (expDate.before(new Date())) {</span>
+<span class="nc" id="L1563">            log.info(&quot;Certificate with serial number '&quot; + certId.getSerialNumber() + &quot;' is not valid. &quot; +</span>
+                    &quot;Adding singleExtension id-pkix-ocsp-archive-cutoff&quot;);
+<span class="nc" id="L1565">            return true;</span>
+        }
+<span class="nc" id="L1567">        return false;</span>
+    }
+    
+    private void addArchiveCutoff(OCSPResponseItem respItem) {
+<span class="nc" id="L1571">        long archPeriod = OcspConfiguration.getExpiredArchiveCutoff();</span>
+<span class="nc bnc" id="L1572" title="All 2 branches missed.">        if (archPeriod == -1) {</span>
+<span class="nc" id="L1573">            return;</span>
+        }
+<span class="nc" id="L1575">        long res = System.currentTimeMillis() - archPeriod;</span>
+        ASN1OctetString archiveCutoffValue;
+        try {
+<span class="nc" id="L1578">            archiveCutoffValue = new DEROctetString(new ASN1GeneralizedTime(new Date(res)));</span>
+<span class="nc" id="L1579">        } catch (IOException e) {</span>
+<span class="nc" id="L1580">            throw new IllegalStateException(&quot;IOException was caught when decoding static value.&quot;, e);</span>
+<span class="nc" id="L1581">        } </span>
+<span class="nc" id="L1582">        Extension archiveCutoff = new Extension(OCSPObjectIdentifiers.id_pkix_ocsp_archive_cutoff, false, archiveCutoffValue);</span>
+<span class="nc" id="L1583">        respItem.addExtensions(Collections.singletonMap(OCSPObjectIdentifiers.id_pkix_ocsp_archive_cutoff, archiveCutoff));</span>
+<span class="nc" id="L1584">    }</span>
+
+    /**
+     * returns a Map of responseExtensions to be added to the BacisOCSPResponseGenerator with &lt;code&gt;
+     * X509Extensions exts = new X509Extensions(table);
+     * basicRes.setResponseExtensions(responseExtensions);
+     * &lt;/code&gt;
+     * 
+     * @param req the OCSP request
+     * @param ocspSigningCacheEntry the OCSP signing cache entry used 
+     * @return a HashMap, can be empty but not null
+     * @throws IllegalNonceException if Nonce is larger than 32 bytes
+     */
+    private Map&lt;ASN1ObjectIdentifier, Extension&gt; getStandardResponseExtensions(final OCSPReq req, final OcspSigningCacheEntry ocspSigningCacheEntry)
+            throws IllegalNonceException {
+<span class="nc" id="L1599">        HashMap&lt;ASN1ObjectIdentifier, Extension&gt; result = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L1600" title="All 2 branches missed.">        if (req.hasExtensions()) {</span>
+            // Table of extensions to include in the response
+            // OCSP Nonce, if included in the request, the response must include the same according to RFC6960
+<span class="nc" id="L1603">            Extension ext = req.getExtension(OCSPObjectIdentifiers.id_pkix_ocsp_nonce);</span>
+            //Check the keybinding firsthand if nonce's are enabled, if there is no keybinding (because a CA is replying), check the global value. 
+<span class="nc bnc" id="L1605" title="All 2 branches missed.">            boolean nonceEnable = (ocspSigningCacheEntry.getOcspKeyBinding() != null ? ocspSigningCacheEntry.getOcspKeyBinding().isNonceEnabled() :</span>
+<span class="nc" id="L1606">                ((GlobalOcspConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalOcspConfiguration.OCSP_CONFIGURATION_ID)).getNonceEnabled());</span>
+<span class="nc bnc" id="L1607" title="All 4 branches missed.">            if (null != ext &amp;&amp; nonceEnable) {</span>
+<span class="nc" id="L1608">                ASN1OctetString noncestr = ext.getExtnValue();</span>
+                // Limit Nonce to 32 bytes to avoid chosen-prefix attack on hash collisions.
+                // See https://groups.google.com/forum/#!topic/mozilla.dev.security.policy/x3TOIJL7MGw
+<span class="nc bnc" id="L1611" title="All 6 branches missed.">                if ( (noncestr != null) &amp;&amp; (noncestr.getOctets() != null) &amp;&amp; (noncestr.getOctets().length &gt; 32) ) {</span>
+<span class="nc" id="L1612">                    log.info(&quot;Received OCSP request with Nonce larger than 32 bytes, rejecting.&quot;);</span>
+<span class="nc" id="L1613">                    throw new IllegalNonceException(&quot;Nonce too large&quot;);</span>
+                }
+<span class="nc" id="L1615">                result.put(OCSPObjectIdentifiers.id_pkix_ocsp_nonce, ext);</span>
+            }
+        }
+<span class="nc" id="L1618">        return result;</span>
+    }
+
+    /**
+     * This method handles cache misses where there exists an active key binding which hasn't been cached.
+     * 
+     * @param certId the CertificateID for the certificate being requested. 
+     * @return the now cached entry, or null if none was found. 
+     * @throws CertificateEncodingException on fail
+     */
+    private OcspSigningCacheEntry findAndAddMissingCacheEntry(CertificateID certId) throws CertificateEncodingException {
+<span class="nc" id="L1629">        OcspSigningCacheEntry ocspSigningCacheEntry = null;</span>
+<span class="nc bnc" id="L1630" title="All 2 branches missed.">        for (final int internalKeyBindingId : internalKeyBindingDataSession.getIds(OcspKeyBinding.IMPLEMENTATION_ALIAS)) {</span>
+<span class="nc" id="L1631">            final OcspKeyBinding ocspKeyBinding = (OcspKeyBinding) internalKeyBindingDataSession.getInternalKeyBinding(internalKeyBindingId);</span>
+<span class="nc bnc" id="L1632" title="All 2 branches missed.">            if (ocspKeyBinding.getStatus().equals(InternalKeyBindingStatus.ACTIVE)) {</span>
+<span class="nc" id="L1633">                X509Certificate ocspCertificate = (X509Certificate) certificateStoreSession.findCertificateByFingerprint(ocspKeyBinding</span>
+<span class="nc" id="L1634">                        .getCertificateId());</span>
+<span class="nc bnc" id="L1635" title="All 2 branches missed.">                if (ocspCertificate == null) {</span>
+                    // There may be key binding with missing certificates normally (waiting for certificate response?), so don't spam the log
+<span class="nc bnc" id="L1637" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1638">                        log.debug(&quot;Could not find certificate for OCSP Key Binding '&quot;+ocspKeyBinding.getName()+&quot;'. Certificate fingerprint: &quot;+ocspKeyBinding.getCertificateId());</span>
+                    }
+                } else {
+<span class="nc" id="L1641">                    X509Certificate issuingCertificate = certificateStoreSession.findLatestX509CertificateBySubject(CertTools</span>
+<span class="nc" id="L1642">                            .getIssuerDN(ocspCertificate));</span>
+<span class="nc bnc" id="L1643" title="All 2 branches missed.">                    if (issuingCertificate == null) {</span>
+                        // There may be key binding with missing certificates normally (waiting for certificate response?), so don't spam the log
+<span class="nc bnc" id="L1645" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1646">                            log.info(&quot;Could not find issuer certificate for OCSP Key Binding '&quot;+ocspKeyBinding.getName()+&quot;'. Issuer DN: &quot;+ocspKeyBinding.getCertificateId());</span>
+                        }
+                    } else {
+                        try {
+<span class="nc bnc" id="L1650" title="All 2 branches missed.">                            if (certId.matchesIssuer(new JcaX509CertificateHolder(issuingCertificate), new BcDigestCalculatorProvider())) {</span>
+                                //We found it! Unless it's not active, or something else was wrong with it. 
+<span class="nc" id="L1652">                                ocspSigningCacheEntry = makeOcspSigningCacheEntry(ocspCertificate, ocspKeyBinding);</span>
+                                //If it was all right, add it to the cache for future use.
+<span class="nc bnc" id="L1654" title="All 2 branches missed.">                                if (ocspSigningCacheEntry != null) {</span>
+<span class="nc" id="L1655">                                    OcspSigningCache.INSTANCE.addSingleEntry(ocspSigningCacheEntry);</span>
+<span class="nc" id="L1656">                                    break;</span>
+                                }
+                            }
+<span class="nc" id="L1659">                        } catch (OCSPException e) {</span>
+<span class="nc" id="L1660">                            throw new IllegalStateException(&quot;Could not create BcDigestCalculatorProvider&quot;, e);</span>
+<span class="nc" id="L1661">                        }                        </span>
+                    }
+                }
+            }
+<span class="nc" id="L1665">        }</span>
+<span class="nc" id="L1666">        return ocspSigningCacheEntry;</span>
+    }
+    
+    private BasicOCSPResp signOcspResponse(OCSPReq req, List&lt;OCSPResponseItem&gt; responseList, Extensions exts, 
+            final OcspSigningCacheEntry ocspSigningCacheEntry, Date producedAt) throws CryptoTokenOfflineException {
+<span class="nc" id="L1671">        assertAcceptableResponseExtension(req);</span>
+<span class="nc bnc" id="L1672" title="All 2 branches missed.">        if (!ocspSigningCacheEntry.isSigningCertificateForOcspSigning()) {</span>
+<span class="nc" id="L1673">            log.warn(&quot;Signing with non OCSP certificate (no 'OCSP Signing' Extended Key Usage) bound by OcspKeyBinding '&quot; + ocspSigningCacheEntry.getOcspKeyBinding().getName() + &quot;'.&quot;);</span>
+        }
+<span class="nc" id="L1675">        final X509Certificate signerCert = ocspSigningCacheEntry.getSigningCertificate();</span>
+<span class="nc" id="L1676">        final String sigAlg = getSigAlg(req, ocspSigningCacheEntry, signerCert);</span>
+<span class="nc bnc" id="L1677" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1678">            log.debug(&quot;Signing algorithm: &quot; + sigAlg);</span>
+        }
+        try {
+            // Now we can use the returned OCSPServiceResponse to get private key and certificate chain to sign the ocsp response
+<span class="nc" id="L1682">            final BasicOCSPResp ocspresp = generateBasicOcspResp(exts, responseList, sigAlg, signerCert, ocspSigningCacheEntry, producedAt);</span>
+<span class="nc bnc" id="L1683" title="All 2 branches missed.">            if (CertTools.isCertificateValid(signerCert, false)) { // Don't warn about signer validity for each OCSP response...</span>
+<span class="nc" id="L1684">                return ocspresp;</span>
+            } else {
+<span class="nc" id="L1686">                throw new OcspFailureException(&quot;Response was not validly signed.&quot;);</span>
+            }
+<span class="nc" id="L1688">        } catch (OCSPException ocspe) {</span>
+<span class="nc" id="L1689">            throw new OcspFailureException(ocspe);</span>
+<span class="nc" id="L1690">        } catch (NoSuchProviderException nspe) {</span>
+<span class="nc" id="L1691">            throw new OcspFailureException(nspe);</span>
+<span class="nc" id="L1692">        } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L1693">            log.error(&quot;IllegalArgumentException: &quot;, e);</span>
+<span class="nc" id="L1694">            throw new OcspFailureException(e);</span>
+        }
+    }
+    
+    private BasicOCSPResp generateBasicOcspResp(Extensions exts, List&lt;OCSPResponseItem&gt; responses, String sigAlg,
+                        X509Certificate signerCert, OcspSigningCacheEntry ocspSigningCacheEntry, Date producedAt)
+                                throws OCSPException, NoSuchProviderException, CryptoTokenOfflineException {
+<span class="nc" id="L1701">        final PrivateKey signerKey = ocspSigningCacheEntry.getPrivateKey();</span>
+<span class="nc" id="L1702">        final String provider = ocspSigningCacheEntry.getSignatureProviderName();</span>
+<span class="nc" id="L1703">        BasicOCSPResp returnval = null;</span>
+<span class="nc" id="L1704">        BasicOCSPRespBuilder basicRes = new BasicOCSPRespBuilder(ocspSigningCacheEntry.getRespId());</span>
+<span class="nc bnc" id="L1705" title="All 2 branches missed.">        if (responses != null) {</span>
+<span class="nc bnc" id="L1706" title="All 2 branches missed.">            for (OCSPResponseItem item : responses) {</span>
+<span class="nc" id="L1707">                Date nextUpdate = item.getNextUpdate();</span>
+                // Adjust nextUpdate so that it can never exceed the OCSP responder signing certificate validity
+<span class="nc bnc" id="L1709" title="All 6 branches missed.">                if (signerCert != null &amp;&amp; nextUpdate != null &amp;&amp; signerCert.getNotAfter().before(nextUpdate)) {</span>
+<span class="nc" id="L1710">                    nextUpdate = signerCert.getNotAfter();</span>
+                }
+<span class="nc" id="L1712">                basicRes.addResponse(item.getCertID(), item.getCertStatus(), item.getThisUpdate(), nextUpdate, item.buildExtensions());</span>
+<span class="nc" id="L1713">            }</span>
+        }
+<span class="nc bnc" id="L1715" title="All 2 branches missed.">        if (exts != null) {</span>
+            @SuppressWarnings(&quot;rawtypes&quot;)
+<span class="nc" id="L1717">            Enumeration oids = exts.oids();</span>
+<span class="nc bnc" id="L1718" title="All 2 branches missed.">            if (oids.hasMoreElements()) {</span>
+<span class="nc" id="L1719">                basicRes.setResponseExtensions(exts);</span>
+            }
+        }
+<span class="nc" id="L1722">        final X509Certificate[] chain = ocspSigningCacheEntry.getResponseCertChain();</span>
+<span class="nc bnc" id="L1723" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1724">            log.debug(&quot;The response certificate chain contains &quot; + chain.length + &quot; certificates&quot;);</span>
+        }
+        /*
+         * The below code breaks the EJB standard by creating its own thread pool and creating a single thread (of the HsmResponseThread 
+         * type). The reason for this is that the HSM may deadlock when requesting an OCSP response, which we need to guard against. Since 
+         * there is no way of performing this action within the EJB3.0 standard, we are consciously creating threads here. 
+         * 
+         * Note that this does in no way break the spirit of the EJB standard, which is to not interrupt EJB's transaction handling by 
+         * competing with its own thread pool, since these operations have no database impact.
+         */
+<span class="nc" id="L1734">        final Future&lt;BasicOCSPResp&gt; task = service.submit(new HsmResponseThread(basicRes, sigAlg, signerKey, chain, provider, producedAt));</span>
+        try {
+<span class="nc" id="L1736">            returnval = task.get(HsmResponseThread.HSM_TIMEOUT_SECONDS, TimeUnit.SECONDS);</span>
+<span class="nc" id="L1737">        } catch (InterruptedException e) {</span>
+<span class="nc" id="L1738">            task.cancel(true);</span>
+<span class="nc" id="L1739">            throw new Error(&quot;OCSP response retrieval was interrupted while running. This should not happen&quot;, e);</span>
+<span class="nc" id="L1740">        } catch (ExecutionException e) {</span>
+<span class="nc" id="L1741">            task.cancel(true);</span>
+<span class="nc" id="L1742">            throw new OcspFailureException(&quot;Failure encountered while retrieving OCSP response.&quot;, e);</span>
+<span class="nc" id="L1743">        } catch (TimeoutException e) {</span>
+<span class="nc" id="L1744">            task.cancel(true);</span>
+<span class="nc" id="L1745">            throw new CryptoTokenOfflineException(&quot;HSM timed out while trying to get OCSP response&quot;, e);</span>
+<span class="nc" id="L1746">        }</span>
+<span class="nc bnc" id="L1747" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1748">            log.debug(&quot;Signing OCSP response with OCSP signer cert: &quot; + signerCert.getSubjectDN().getName());</span>
+        }
+<span class="nc bnc" id="L1750" title="All 2 branches missed.">        if (!returnval.getResponderId().equals(ocspSigningCacheEntry.getRespId())) {</span>
+<span class="nc" id="L1751">            log.error(&quot;Response responderId does not match signer certificate responderId!&quot;);</span>
+<span class="nc" id="L1752">            throw new OcspFailureException(&quot;Response responderId does not match signer certificate responderId!&quot;);</span>
+        }
+<span class="nc bnc" id="L1754" title="All 2 branches missed.">        if (!ocspSigningCacheEntry.checkResponseSignatureVerified()) {</span>
+            // We only check the response signature the first time for each OcspSigningCacheEntry to detect a misbehaving HSM.
+            // The client is still responsible for validating the signature, see RFC 6960 Section 3.2.2
+            boolean verify;
+            try {
+<span class="nc" id="L1759">                verify = returnval.isSignatureValid(CertTools.genContentVerifierProvider(signerCert.getPublicKey()));</span>
+<span class="nc" id="L1760">            } catch (OperatorCreationException e) {</span>
+                // Very fatal error
+<span class="nc" id="L1762">                throw new EJBException(&quot;Can not create Jca content signer: &quot;, e);</span>
+<span class="nc" id="L1763">            }</span>
+<span class="nc bnc" id="L1764" title="All 2 branches missed.">            if (verify) {</span>
+<span class="nc bnc" id="L1765" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1766">                    log.debug(&quot;The OCSP response is verifying.&quot;);</span>
+                }
+            } else {
+<span class="nc" id="L1769">                log.error(&quot;The response is NOT verifying! Attempted to sign using &quot; + CertTools.getSubjectDN(signerCert) + &quot; but signature was not valid.&quot;);</span>
+<span class="nc" id="L1770">                throw new OcspFailureException(&quot;Attempted to sign using &quot; + CertTools.getSubjectDN(signerCert) + &quot; but signature was not valid.&quot;);</span>
+            }
+        }
+<span class="nc" id="L1773">        return returnval;</span>
+    }
+
+    /**
+     * Method that checks with ProbableErrorHandler if an error has happened since a certain time. Uses reflection to call ProbableErrorHandler
+     * because it is dependent on JBoss log4j logging, which is not available on other application servers.
+     * 
+     * @param startTime time
+     * @return true if an error has occurred since startTime
+     */
+    private boolean hasErrorHandlerFailedSince(Date startTime) {
+<span class="nc" id="L1784">        boolean result = true; // Default true. If something goes wrong we will fail</span>
+<span class="nc" id="L1785">        result = ProbableErrorHandler.hasFailedSince(startTime);</span>
+<span class="nc bnc" id="L1786" title="All 2 branches missed.">        if (result) {</span>
+<span class="nc" id="L1787">            log.error(&quot;Audit and/or account logging failed since &quot; + startTime);</span>
+        }
+<span class="nc" id="L1789">        return result;</span>
+    }
+    
+    /**
+     * Returns a signing algorithm to use selecting from a list of possible algorithms.
+     * 
+     * @param sigalgs the list of possible algorithms, ;-separated. Example &quot;SHA1WithRSA;SHA1WithECDSA&quot;.
+     * @param pk public key of signer, so we can choose between RSA, DSA and ECDSA algorithms
+     * @return A single algorithm to use Example: SHA1WithRSA, SHA1WithDSA or SHA1WithECDSA
+     */
+    private static String getSigningAlgFromAlgSelection(String sigalgs, PublicKey pk) {
+<span class="nc" id="L1800">        String sigAlg = null;</span>
+<span class="nc" id="L1801">        String[] algs = StringUtils.split(sigalgs, ';');</span>
+<span class="nc bnc" id="L1802" title="All 2 branches missed.">        for (int i = 0; i &lt; algs.length; i++) {</span>
+<span class="nc bnc" id="L1803" title="All 2 branches missed.">            if (AlgorithmTools.isCompatibleSigAlg(pk, algs[i])) {</span>
+<span class="nc" id="L1804">                sigAlg = algs[i];</span>
+<span class="nc" id="L1805">                break;</span>
+            }
+        }
+<span class="nc" id="L1808">        log.debug(&quot;Using signature algorithm for response: &quot; + sigAlg);</span>
+<span class="nc" id="L1809">        return sigAlg;</span>
+    }
+    
+<span class="nc" id="L1812">    private static enum CanLogCache {</span>
+<span class="nc" id="L1813">        INSTANCE;</span>
+
+        private boolean canLog;
+
+<span class="nc" id="L1817">        private CanLogCache() {</span>
+<span class="nc" id="L1818">            this.canLog = true;</span>
+<span class="nc" id="L1819">        }</span>
+
+        public boolean canLog() {
+<span class="nc" id="L1822">            return canLog;</span>
+        }
+
+        public void setCanLog(boolean canLog) {
+<span class="nc" id="L1826">            this.canLog = canLog;</span>
+<span class="nc" id="L1827">        }</span>
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @Deprecated //Remove this method once upgrading from 5-6 is dropped
+    public void adhocUpgradeFromPre60(char[] activationPassword) {
+<span class="nc" id="L1834">        AuthenticationToken authenticationToken = new AlwaysAllowLocalAuthenticationToken(new UsernamePrincipal(</span>
+<span class="nc" id="L1835">                OcspResponseGeneratorSessionBean.class.getSimpleName() + &quot;.adhocUpgradeFromPre60&quot;));</span>
+        // Check if there are any OcspKeyBindings already, if so return
+<span class="nc bnc" id="L1837" title="All 2 branches missed.">        if (!internalKeyBindingDataSession.getIds(OcspKeyBinding.IMPLEMENTATION_ALIAS).isEmpty()) {</span>
+<span class="nc" id="L1838">            return;</span>
+        }
+        // If ocsp.activation.doNotStorePasswordsInMemory=true, new Crypto Tokens should not be auto-actived
+<span class="nc" id="L1841">        final boolean globalDoNotStorePasswordsInMemory = OcspConfiguration.getDoNotStorePasswordsInMemory();</span>
+<span class="nc bnc" id="L1842" title="All 4 branches missed.">        if (globalDoNotStorePasswordsInMemory &amp;&amp; activationPassword == null) {</span>
+<span class="nc" id="L1843">            log.info(&quot;Postponing conversion of ocsp.properties configuration to OcspKeyBindings since password is not yet available.&quot;);</span>
+<span class="nc" id="L1844">            return;</span>
+        }
+<span class="nc" id="L1846">        log.info(&quot;No OcspKeyBindings found. Processing ocsp.properties to see if we need to perform conversion.&quot;);</span>
+<span class="nc" id="L1847">        final List&lt;InternalKeyBindingTrustEntry&gt; trustDefaults = getOcspKeyBindingTrustDefaults();</span>
+        // Create CryptoTokens and AuthenticationKeyBinding from:
+        //  ocsp.rekeying.swKeystorePath = wsKeyStore.jks
+        //  ocsp.rekeying.swKeystorePassword = foo123
+        //  if &quot;ocsp.rekeying.swKeystorePath&quot; isn't set, search the p11 slot later on for an entry with an SSL certificate and use this
+<span class="nc" id="L1852">        final String swKeystorePath = ConfigurationHolder.getString(&quot;ocsp.rekeying.swKeystorePath&quot;);</span>
+<span class="nc" id="L1853">        final String swKeystorePassword = ConfigurationHolder.getString(&quot;ocsp.rekeying.swKeystorePassword&quot;);</span>
+<span class="nc bnc" id="L1854" title="All 6 branches missed.">        if (swKeystorePath != null &amp;&amp; (swKeystorePassword != null || activationPassword!=null)) {</span>
+<span class="nc bnc" id="L1855" title="All 2 branches missed.">            final String password = swKeystorePassword==null ? new String(activationPassword) : swKeystorePassword;</span>
+<span class="nc" id="L1856">            processSoftKeystore(authenticationToken, new File(swKeystorePath), password, password, globalDoNotStorePasswordsInMemory, trustDefaults);</span>
+        }
+<span class="nc bnc" id="L1858" title="All 4 branches missed.">        if (OcspConfiguration.getP11Password() != null || activationPassword != null) {</span>
+<span class="nc" id="L1859">            log.info(&quot; Processing PKCS#11..&quot;);</span>
+<span class="nc" id="L1860">            final String p11SharedLibrary = OcspConfiguration.getP11SharedLibrary();</span>
+<span class="nc" id="L1861">            final String sunP11ConfigurationFile = OcspConfiguration.getSunP11ConfigurationFile();</span>
+            try {
+<span class="nc bnc" id="L1863" title="All 2 branches missed.">                final String p11password = OcspConfiguration.getP11Password() == null ? new String(activationPassword) : OcspConfiguration.getP11Password();</span>
+<span class="nc" id="L1864">                String cryptoTokenName = null;</span>
+<span class="nc" id="L1865">                final Properties cryptoTokenProperties = new Properties();</span>
+<span class="nc bnc" id="L1866" title="All 4 branches missed.">                if (p11SharedLibrary != null &amp;&amp; p11SharedLibrary.length()!=0) {</span>
+<span class="nc" id="L1867">                    log.info(&quot; Processing PKCS#11 with shared library &quot; + p11SharedLibrary);</span>
+<span class="nc" id="L1868">                    final String p11slot = OcspConfiguration.getP11SlotIndex();       </span>
+<span class="nc" id="L1869">                    cryptoTokenProperties.put(PKCS11CryptoToken.SHLIB_LABEL_KEY, p11SharedLibrary);</span>
+<span class="nc" id="L1870">                    cryptoTokenProperties.put(PKCS11CryptoToken.SLOT_LABEL_VALUE, p11slot);</span>
+                    // Guess label type in order index, number or label 
+                    Pkcs11SlotLabelType type;
+<span class="nc bnc" id="L1873" title="All 2 branches missed.">                    if(Pkcs11SlotLabelType.SLOT_NUMBER.validate(p11slot)) {</span>
+<span class="nc" id="L1874">                        type = Pkcs11SlotLabelType.SLOT_NUMBER;</span>
+<span class="nc bnc" id="L1875" title="All 2 branches missed.">                    } else if(Pkcs11SlotLabelType.SLOT_INDEX.validate(p11slot)) {</span>
+<span class="nc" id="L1876">                        type = Pkcs11SlotLabelType.SLOT_INDEX;</span>
+                    } else {
+<span class="nc" id="L1878">                        type = Pkcs11SlotLabelType.SLOT_LABEL;</span>
+                    }
+<span class="nc" id="L1880">                    cryptoTokenProperties.put(PKCS11CryptoToken.SLOT_LABEL_TYPE, type.getKey());</span>
+<span class="nc" id="L1881">                    cryptoTokenName = &quot;PKCS11 slot &quot;+p11slot;</span>
+<span class="nc bnc" id="L1882" title="All 4 branches missed.">                } else if (sunP11ConfigurationFile != null &amp;&amp; sunP11ConfigurationFile.length()!=0) {</span>
+<span class="nc" id="L1883">                    log.info(&quot; Processing PKCS#11 with Sun property file &quot; + sunP11ConfigurationFile);</span>
+                    // The following properties are of interest from this file
+                    // We will bravely ignore attributes.. it wouldn't be to hard for the user to change the CryptoToken's attributes file later on
+                    // name=SafeNet
+                    // library=/opt/PTK/lib/libcryptoki.so
+                    // slot=1
+                    // slotListIndex=1
+                    // attributes(...) = {..} 
+                    // ...
+<span class="nc" id="L1892">                    final Properties p11ConfigurationFileProperties = new Properties();</span>
+<span class="nc" id="L1893">                    p11ConfigurationFileProperties.load(new FileInputStream(sunP11ConfigurationFile));</span>
+<span class="nc" id="L1894">                    String p11slot = p11ConfigurationFileProperties.getProperty(&quot;slot&quot;);</span>
+<span class="nc" id="L1895">                    cryptoTokenProperties.put(PKCS11CryptoToken.SLOT_LABEL_VALUE, p11slot);</span>
+                    // Guess label type in order index, number or label 
+                    Pkcs11SlotLabelType type;
+<span class="nc bnc" id="L1898" title="All 2 branches missed.">                    if(Pkcs11SlotLabelType.SLOT_NUMBER.validate(p11slot)) {</span>
+<span class="nc" id="L1899">                        type = Pkcs11SlotLabelType.SLOT_NUMBER;</span>
+<span class="nc bnc" id="L1900" title="All 2 branches missed.">                    } else if(Pkcs11SlotLabelType.SLOT_INDEX.validate(p11slot)) {</span>
+<span class="nc" id="L1901">                        type = Pkcs11SlotLabelType.SLOT_INDEX;</span>
+                    } else {
+<span class="nc" id="L1903">                        type = Pkcs11SlotLabelType.SLOT_LABEL;</span>
+                    }
+<span class="nc" id="L1905">                    cryptoTokenProperties.put(PKCS11CryptoToken.SLOT_LABEL_TYPE, type.getKey());</span>
+                    
+<span class="nc" id="L1907">                    cryptoTokenProperties.put(PKCS11CryptoToken.SHLIB_LABEL_KEY, p11ConfigurationFileProperties.getProperty(&quot;library&quot;));</span>
+                    //cryptoTokenProperties.put(PKCS11CryptoToken.ATTRIB_LABEL_KEY, null);
+<span class="nc" id="L1909">                    log.warn(&quot;Any attributes(..) = { ... } will be ignored and system defaults will be used.&quot;+</span>
+                            &quot; You should reconfigure the CryptoToken later if this is not sufficient.&quot;);
+<span class="nc" id="L1911">                    cryptoTokenName = &quot;PKCS11 slot &quot;+p11ConfigurationFileProperties.getProperty(&quot;slot&quot;, &quot;i&quot; + p11ConfigurationFileProperties.getProperty(&quot;slotListIndex&quot;));</span>
+                }
+<span class="nc bnc" id="L1913" title="All 4 branches missed.">                if (cryptoTokenName != null &amp;&amp; cryptoTokenManagementSession.getIdFromName(cryptoTokenName) == null) {</span>
+<span class="nc bnc" id="L1914" title="All 2 branches missed.">                    if (!globalDoNotStorePasswordsInMemory) {</span>
+<span class="nc" id="L1915">                        log.info(&quot; Auto-activation will be used.&quot;);</span>
+<span class="nc" id="L1916">                        BaseCryptoToken.setAutoActivatePin(cryptoTokenProperties, new String(p11password), true);</span>
+                    } else {
+<span class="nc" id="L1918">                        log.info(&quot; Auto-activation will not be used.&quot;);</span>
+                    }
+<span class="nc" id="L1920">                    final int p11CryptoTokenId = cryptoTokenManagementSession.createCryptoToken(authenticationToken, cryptoTokenName,</span>
+<span class="nc" id="L1921">                            PKCS11CryptoToken.class.getName(), cryptoTokenProperties, null, p11password.toCharArray());</span>
+                    // Use reflection to dig out the certificate objects for each alias so we can create an internal key binding for it
+<span class="nc" id="L1923">                    final Method m = BaseCryptoToken.class.getDeclaredMethod(&quot;getKeyStore&quot;);</span>
+<span class="nc" id="L1924">                    m.setAccessible(true);</span>
+<span class="nc" id="L1925">                    final CachingKeyStoreWrapper cachingKeyStoreWrapper = (CachingKeyStoreWrapper) m.invoke(cryptoTokenManagementSession.getCryptoToken(p11CryptoTokenId));</span>
+<span class="nc" id="L1926">                    createInternalKeyBindings(authenticationToken, p11CryptoTokenId, cachingKeyStoreWrapper.getKeyStore(), trustDefaults);</span>
+                }
+<span class="nc" id="L1928">            } catch (Exception e) {</span>
+<span class="nc" id="L1929">                log.error(&quot;&quot;, e);</span>
+<span class="nc" id="L1930">            }</span>
+        }
+<span class="nc bnc" id="L1932" title="All 6 branches missed.">        if (OcspConfiguration.getSoftKeyDirectoryName() != null &amp;&amp; (OcspConfiguration.getStorePassword() != null || activationPassword != null)) {</span>
+<span class="nc bnc" id="L1933" title="All 2 branches missed.">            final String softStorePassword = OcspConfiguration.getStorePassword() == null ? new String(activationPassword) : OcspConfiguration.getStorePassword();</span>
+<span class="nc bnc" id="L1934" title="All 2 branches missed.">            final String softKeyPassword = OcspConfiguration.getKeyPassword() == null ? new String(activationPassword) : OcspConfiguration.getKeyPassword();</span>
+<span class="nc" id="L1935">            final String dirName = OcspConfiguration.getSoftKeyDirectoryName();</span>
+<span class="nc bnc" id="L1936" title="All 2 branches missed.">            if (dirName != null) {</span>
+<span class="nc" id="L1937">                final File directory = new File(dirName);</span>
+<span class="nc bnc" id="L1938" title="All 2 branches missed.">                if (directory.isDirectory()) {</span>
+<span class="nc" id="L1939">                    log.info(&quot; Processing Soft KeyStores..&quot;);</span>
+<span class="nc bnc" id="L1940" title="All 2 branches missed.">                    for (final File file : directory.listFiles()) {</span>
+<span class="nc" id="L1941">                        processSoftKeystore(authenticationToken, file, softStorePassword, softKeyPassword, globalDoNotStorePasswordsInMemory, trustDefaults);</span>
+                    }
+                }
+            }
+        }
+<span class="nc" id="L1946">    }</span>
+    
+    @Deprecated //Remove this method as soon as upgrading from 5.0-&gt;6.x is dropped
+    private void processSoftKeystore(AuthenticationToken authenticationToken, File file, String softStorePassword, String softKeyPassword,
+            boolean doNotStorePasswordsInMemory, List&lt;InternalKeyBindingTrustEntry&gt; trustDefaults) {
+     KeyStore keyStore;
+<span class="nc" id="L1952">        final char[] passwordChars = softStorePassword.toCharArray();</span>
+        // Load keystore (JKS or PKCS#12)
+        try {
+<span class="nc" id="L1955">            keyStore = KeyStore.getInstance(&quot;JKS&quot;);</span>
+<span class="nc" id="L1956">            keyStore.load(new FileInputStream(file), passwordChars);</span>
+<span class="nc" id="L1957">        } catch (Exception e) {</span>
+            try {
+<span class="nc" id="L1959">                keyStore = KeyStore.getInstance(&quot;PKCS12&quot;, &quot;BC&quot;);</span>
+<span class="nc" id="L1960">                keyStore.load(new FileInputStream(file), passwordChars);</span>
+<span class="nc" id="L1961">            } catch (Exception e2) {</span>
+                try {
+<span class="nc" id="L1963">                    log.info(&quot;Unable to process &quot; + file.getCanonicalPath() + &quot; as a KeyStore.&quot;);</span>
+<span class="nc" id="L1964">                } catch (IOException e3) {</span>
+<span class="nc" id="L1965">                    log.warn(e3.getMessage());</span>
+<span class="nc" id="L1966">                }</span>
+<span class="nc" id="L1967">                return;</span>
+<span class="nc" id="L1968">            }</span>
+<span class="nc" id="L1969">        }</span>
+        
+        // Strip issuer certs, etc. and convert to PKCS#12
+        try {
+<span class="nc" id="L1973">            keyStore = makeKeysOnlyP12(keyStore, passwordChars);</span>
+<span class="nc" id="L1974">        } catch (Exception e) {</span>
+<span class="nc" id="L1975">            throw new RuntimeException(&quot;failed to convert keystore to P12 during keybindings upgrade&quot;, e);</span>
+<span class="nc" id="L1976">        }</span>
+        
+<span class="nc" id="L1978">        final String name = file.getName();</span>
+<span class="nc bnc" id="L1979" title="All 2 branches missed.">        if (cryptoTokenManagementSession.getIdFromName(name) != null) {</span>
+<span class="nc" id="L1980">            return; // already upgraded</span>
+        }
+<span class="nc" id="L1982">        log.info(&quot; Processing Soft KeyStore '&quot; + name + &quot;' of type &quot; + keyStore.getType());</span>
+        try {
+<span class="nc" id="L1984">            final ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+            // Save the store using the same password as the keys are protected with (not the store password)
+            // so we don't have to replace the protection for each key
+<span class="nc" id="L1987">            keyStore.store(baos, softKeyPassword.toCharArray());</span>
+<span class="nc" id="L1988">            final Properties cryptoTokenProperties = new Properties();</span>
+<span class="nc bnc" id="L1989" title="All 2 branches missed.">            if (!doNotStorePasswordsInMemory) {</span>
+<span class="nc" id="L1990">                log.info(&quot; Auto-activation will be used.&quot;);</span>
+<span class="nc" id="L1991">                BaseCryptoToken.setAutoActivatePin(cryptoTokenProperties, new String(softKeyPassword), true);</span>
+            } else {
+<span class="nc" id="L1993">                log.info(&quot; Auto-activation will not be used.&quot;);</span>
+            }
+<span class="nc" id="L1995">            final int softCryptoTokenId = cryptoTokenManagementSession.createCryptoToken(authenticationToken, name,</span>
+<span class="nc" id="L1996">                    SoftCryptoToken.class.getName(), cryptoTokenProperties, baos.toByteArray(), softKeyPassword.toCharArray());</span>
+<span class="nc" id="L1997">            createInternalKeyBindings(authenticationToken, softCryptoTokenId, keyStore, trustDefaults);</span>
+<span class="nc" id="L1998">        } catch (Exception e) {</span>
+<span class="nc" id="L1999">            log.warn(e.getMessage());</span>
+<span class="nc" id="L2000">        }</span>
+<span class="nc" id="L2001">    }</span>
+    
+    /** Creates a PKCS#12 KeyStore with keys only from an JKS file (no issuer certs or trusted certs) 
+     * @param keyStore key store
+     * @param password  password
+     * @return new key store
+     * @throws KeyStoreException on key store error 
+     * @throws NoSuchAlgorithmException if algo not found
+     * @throws UnrecoverableEntryException if key store is corrupt
+     * @throws NoSuchProviderException if algo not found
+     * @throws CertificateException if cert is corrupt
+     * @throws IOException On IO fail */
+    @Deprecated  //Remove this method as soon as upgrading from 5-&gt;6 is dropped
+    private KeyStore makeKeysOnlyP12(KeyStore keyStore, char[] password) throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableEntryException, NoSuchProviderException, CertificateException, IOException {
+<span class="nc" id="L2015">        final KeyStore p12 = KeyStore.getInstance(&quot;PKCS12&quot;, &quot;BC&quot;);</span>
+        final KeyStore.ProtectionParameter protParam =
+<span class="nc bnc" id="L2017" title="All 2 branches missed.">            (password != null ? new KeyStore.PasswordProtection(password) : null);</span>
+<span class="nc" id="L2018">        p12.load(null, password); // initialize</span>
+        
+<span class="nc" id="L2020">        final Enumeration&lt;String&gt; en = keyStore.aliases();</span>
+<span class="nc bnc" id="L2021" title="All 2 branches missed.">        while (en.hasMoreElements()) {</span>
+<span class="nc" id="L2022">            final String alias = en.nextElement();</span>
+<span class="nc bnc" id="L2023" title="All 2 branches missed.">            if (!keyStore.isKeyEntry(alias)) continue;</span>
+            try {
+<span class="nc" id="L2025">                KeyStore.PrivateKeyEntry entry = (KeyStore.PrivateKeyEntry)keyStore.getEntry(alias, protParam);</span>
+<span class="nc" id="L2026">                Certificate[] chain = new Certificate[] { entry.getCertificate() };</span>
+<span class="nc" id="L2027">                p12.setKeyEntry(alias, entry.getPrivateKey(), password, chain);</span>
+<span class="nc" id="L2028">            } catch (UnsupportedOperationException uoe) {</span>
+<span class="nc" id="L2029">                KeyStore.PrivateKeyEntry entry = (KeyStore.PrivateKeyEntry)keyStore.getEntry(alias, null);</span>
+<span class="nc" id="L2030">                Certificate[] chain = new Certificate[] { entry.getCertificate() };</span>
+<span class="nc" id="L2031">                p12.setKeyEntry(alias, entry.getPrivateKey(), null, chain);</span>
+<span class="nc" id="L2032">            }</span>
+<span class="nc" id="L2033">        }</span>
+<span class="nc" id="L2034">        return p12;</span>
+    }
+    
+    /** Create InternalKeyBindings for Ocsp signing and SSL client authentication certs during ad-hoc upgrades. 
+     * @param authenticationToken Auth
+     * @param cryptoTokenId Token ID
+     * @param keyStore Key store
+     * @param trustDefaults Defaults
+     *  @throws KeyStoreException on key store error 
+     * @throws CryptoTokenOfflineException if offline
+     * @throws InternalKeyBindingNameInUseException if binding name is in use
+     * @throws AuthorizationDeniedException if access denied
+     * @throws CertificateEncodingException If cert is corrupt
+     * @throws CertificateImportException if import fails
+     * @throws InvalidAlgorithmException if algo cannot be found */
+    @Deprecated //Remove this method as soon as upgrading from 5-&gt;6 is dropped
+    private void createInternalKeyBindings(AuthenticationToken authenticationToken, int cryptoTokenId, KeyStore keyStore, List&lt;InternalKeyBindingTrustEntry&gt; trustDefaults) throws KeyStoreException, CryptoTokenOfflineException, InternalKeyBindingNameInUseException, AuthorizationDeniedException, CertificateEncodingException, CertificateImportException, InvalidAlgorithmException {
+<span class="nc" id="L2051">        final Enumeration&lt;String&gt; aliases = keyStore.aliases();</span>
+<span class="nc" id="L2052">        boolean noAliases = true;</span>
+<span class="nc bnc" id="L2053" title="All 2 branches missed.">        while (aliases.hasMoreElements()) {</span>
+<span class="nc" id="L2054">            final String keyPairAlias = aliases.nextElement();</span>
+<span class="nc" id="L2055">            noAliases = false;</span>
+<span class="nc" id="L2056">            log.info(&quot;Found alias &quot; + keyPairAlias + &quot;, trying to figure out if this is something we should convert into a new KeyBinding...&quot;);</span>
+<span class="nc" id="L2057">            final Certificate[] chain = keyStore.getCertificateChain(keyPairAlias);</span>
+<span class="nc bnc" id="L2058" title="All 4 branches missed.">            if (chain == null || chain.length==0) {</span>
+<span class="nc" id="L2059">                log.info(&quot;Alias &quot; + keyPairAlias + &quot; does not contain any certificate and will be ignored.&quot;);</span>
+<span class="nc" id="L2060">                continue;   // Ignore entry</span>
+            }
+            // Extract the default signature algorithm
+<span class="nc" id="L2063">            final String signatureAlgorithm = getSigningAlgFromAlgSelection(OcspConfiguration.getSignatureAlgorithm(), chain[0].getPublicKey());</span>
+<span class="nc bnc" id="L2064" title="All 2 branches missed.">            if (OcspKeyBinding.isOcspSigningCertificate(chain[0], </span>
+<span class="nc" id="L2065">                    (AvailableExtendedKeyUsagesConfiguration) globalConfigurationSession.getCachedConfiguration(AvailableExtendedKeyUsagesConfiguration.CONFIGURATION_ID))) {</span>
+                // Create the actual OcspKeyBinding
+<span class="nc" id="L2067">                log.info(&quot;Alias &quot; + keyPairAlias + &quot; contains an OCSP certificate and will be converted to an OcspKeyBinding.&quot;);</span>
+<span class="nc" id="L2068">                int internalKeyBindingId = internalKeyBindingMgmtSession.createInternalKeyBinding(authenticationToken, OcspKeyBinding.IMPLEMENTATION_ALIAS,</span>
+                        &quot;OcspKeyBinding for &quot; + keyPairAlias, InternalKeyBindingStatus.DISABLED, null, cryptoTokenId, keyPairAlias, signatureAlgorithm,
+<span class="nc" id="L2070">                        getOcspKeyBindingDefaultProperties(), trustDefaults);</span>
+<span class="nc" id="L2071">                internalKeyBindingMgmtSession.importCertificateForInternalKeyBinding(authenticationToken, internalKeyBindingId, chain[0].getEncoded());</span>
+<span class="nc" id="L2072">                internalKeyBindingMgmtSession.setStatus(authenticationToken, internalKeyBindingId, InternalKeyBindingStatus.ACTIVE);</span>
+<span class="nc bnc" id="L2073" title="All 2 branches missed.">            } else if (AuthenticationKeyBinding.isClientSSLCertificate(chain[0], (AvailableExtendedKeyUsagesConfiguration) globalConfigurationSession.getCachedConfiguration(AvailableExtendedKeyUsagesConfiguration.CONFIGURATION_ID))) {</span>
+<span class="nc" id="L2074">                log.info(&quot;Alias &quot; + keyPairAlias + &quot; contains an SSL client certificate and will be converted to an AuthenticationKeyBinding.&quot;);</span>
+                // We are looking for an SSL cert, use this to create an AuthenticationKeyBinding
+<span class="nc" id="L2076">                int internalKeyBindingId = internalKeyBindingMgmtSession.createInternalKeyBinding(authenticationToken, AuthenticationKeyBinding.IMPLEMENTATION_ALIAS,</span>
+                        &quot;AuthenticationKeyBinding for &quot; + keyPairAlias, InternalKeyBindingStatus.DISABLED, null, cryptoTokenId, keyPairAlias,
+                        signatureAlgorithm, null, null);
+<span class="nc" id="L2079">                internalKeyBindingMgmtSession.importCertificateForInternalKeyBinding(authenticationToken, internalKeyBindingId, chain[0].getEncoded());</span>
+<span class="nc" id="L2080">                internalKeyBindingMgmtSession.setStatus(authenticationToken, internalKeyBindingId, InternalKeyBindingStatus.ACTIVE);</span>
+<span class="nc" id="L2081">            } else {</span>
+<span class="nc" id="L2082">                log.info(&quot;Alias &quot; + keyPairAlias + &quot; contains certificate of unknown type and will be ignored.&quot;);</span>
+            }
+<span class="nc" id="L2084">        }</span>
+<span class="nc bnc" id="L2085" title="All 2 branches missed.">        if (noAliases) {</span>
+<span class="nc" id="L2086">            log.info(&quot;No aliases to process were found in the key store.&quot;);</span>
+        }
+<span class="nc" id="L2088">    }</span>
+
+    /** @return a list of trusted signers or CAs */
+    @Deprecated //This method is only used for upgrading to version 6
+    private List&lt;InternalKeyBindingTrustEntry&gt; getOcspKeyBindingTrustDefaults() {
+        // Import certificates used to verify OCSP request signatures and add these to each OcspKeyBinding's trust-list
+        //  ocsp.signtrustdir=signtrustdir
+        //  ocsp.signtrustvalidtime should be ignored
+<span class="nc" id="L2096">        final List&lt;InternalKeyBindingTrustEntry&gt; trustedCertificateReferences = new ArrayList&lt;InternalKeyBindingTrustEntry&gt;();</span>
+<span class="nc bnc" id="L2097" title="All 4 branches missed.">        if (OcspConfiguration.getEnforceRequestSigning() &amp;&amp; OcspConfiguration.getRestrictSignatures()) {</span>
+            // Import certificates and configure Issuer+serialnumber in trustlist for each
+<span class="nc" id="L2099">            final String dirName = OcspConfiguration.getSignTrustDir();</span>
+<span class="nc bnc" id="L2100" title="All 2 branches missed.">            if (dirName != null) {</span>
+<span class="nc" id="L2101">                final File directory = new File(dirName);</span>
+<span class="nc bnc" id="L2102" title="All 2 branches missed.">                if (directory.isDirectory()) {</span>
+<span class="nc bnc" id="L2103" title="All 2 branches missed.">                    for (final File file : directory.listFiles()) {</span>
+                        try {
+<span class="nc" id="L2105">                            final List&lt;Certificate&gt; chain = CertTools.getCertsFromPEM(new FileInputStream(file));</span>
+<span class="nc bnc" id="L2106" title="All 2 branches missed.">                            if (!chain.isEmpty()) {</span>
+<span class="nc" id="L2107">                                final String issuerDn = CertTools.getIssuerDN(chain.get(0));</span>
+<span class="nc" id="L2108">                                final String subjectDn = CertTools.getSubjectDN(chain.get(0));</span>
+<span class="nc bnc" id="L2109" title="All 2 branches missed.">                                if (OcspConfiguration.getRestrictSignaturesByMethod()==OcspConfiguration.RESTRICTONSIGNER) {</span>
+<span class="nc" id="L2110">                                    final int caId = issuerDn.hashCode();</span>
+<span class="nc" id="L2111">                                    final BigInteger serialNumber = CertTools.getSerialNumber(chain.get(0));</span>
+<span class="nc bnc" id="L2112" title="All 2 branches missed.">                                    if(!caSession.existsCa(caId)) { </span>
+<span class="nc" id="L2113">                                        log.warn(&quot;Trusted certificate with serialNumber &quot; + serialNumber.toString(16) +</span>
+                                                &quot; is issued by an unknown CA with subject '&quot; + issuerDn +
+                                                &quot;'. You should import this CA certificate as en external CA to make it known to the system.&quot;);
+                                    }
+<span class="nc" id="L2117">                                    trustedCertificateReferences.add(new InternalKeyBindingTrustEntry(caId, serialNumber));</span>
+<span class="nc" id="L2118">                                } else {</span>
+<span class="nc" id="L2119">                                    final int caId = subjectDn.hashCode();</span>
+<span class="nc bnc" id="L2120" title="All 2 branches missed.">                                    if(!caSession.existsCa(caId)) { </span>
+<span class="nc" id="L2121">                                        log.warn(&quot;Trusted CA certificate with with subject '&quot; + subjectDn +</span>
+                                                &quot;' should be imported as en external CA to make it known to the system.&quot;);
+                                    }
+<span class="nc" id="L2124">                                    trustedCertificateReferences.add(new InternalKeyBindingTrustEntry(caId, null));</span>
+                                }
+                            }
+<span class="nc" id="L2127">                        } catch (CertificateException e) {</span>
+<span class="nc" id="L2128">                            log.warn(e.getMessage());</span>
+<span class="nc" id="L2129">                        } catch (FileNotFoundException e) {</span>
+<span class="nc" id="L2130">                            log.warn(e.getMessage());</span>
+<span class="nc" id="L2131">                        } </span>
+                    }
+                }
+            }
+        }
+<span class="nc" id="L2136">        return trustedCertificateReferences;</span>
+    }
+    
+    /** @return OcspKeyBinding properties set to the current file-based configuration (per cert profile config is ignored here) */
+    @SuppressWarnings(&quot;deprecation&quot;)
+    private Map&lt;String, Serializable&gt; getOcspKeyBindingDefaultProperties() {
+        // Use global config as defaults for each new OcspKeyBinding
+<span class="nc" id="L2143">        final Map&lt;String, Serializable&gt; dataMap = new HashMap&lt;String, Serializable&gt;();</span>
+<span class="nc" id="L2144">        dataMap.put(OcspKeyBinding.PROPERTY_INCLUDE_CERT_CHAIN, Boolean.valueOf(OcspConfiguration.getIncludeCertChain()));</span>
+<span class="nc bnc" id="L2145" title="All 2 branches missed.">        if (OcspConfiguration.getResponderIdType()==OcspConfiguration.RESPONDERIDTYPE_NAME) {</span>
+<span class="nc" id="L2146">            dataMap.put(OcspKeyBinding.PROPERTY_RESPONDER_ID_TYPE, ResponderIdType.NAME.name());</span>
+        } else {
+<span class="nc" id="L2148">            dataMap.put(OcspKeyBinding.PROPERTY_RESPONDER_ID_TYPE, ResponderIdType.KEYHASH.name());</span>
+        }
+<span class="nc" id="L2150">        dataMap.put(OcspKeyBinding.PROPERTY_MAX_AGE, (long)(OcspConfiguration.getMaxAge(CertificateProfileConstants.CERTPROFILE_NO_PROFILE)/1000L));</span>
+<span class="nc" id="L2151">        dataMap.put(OcspKeyBinding.PROPERTY_NON_EXISTING_GOOD, Boolean.valueOf(OcspConfiguration.getNonExistingIsGood()));</span>
+<span class="nc" id="L2152">        dataMap.put(OcspKeyBinding.PROPERTY_NON_EXISTING_REVOKED, Boolean.valueOf(OcspConfiguration.getNonExistingIsRevoked()));</span>
+<span class="nc" id="L2153">        dataMap.put(OcspKeyBinding.PROPERTY_UNTIL_NEXT_UPDATE, (long)(OcspConfiguration.getUntilNextUpdate(CertificateProfileConstants.CERTPROFILE_NO_PROFILE)/1000L));</span>
+<span class="nc" id="L2154">        dataMap.put(OcspKeyBinding.PROPERTY_REQUIRE_TRUSTED_SIGNATURE, Boolean.valueOf(OcspConfiguration.getEnforceRequestSigning()));</span>
+<span class="nc" id="L2155">        return dataMap;</span>
+    }
+    
+    @Override
+    public String healthCheck() {
+<span class="nc" id="L2160">        final StringBuilder sb = new StringBuilder();</span>
+        // Check that there are no ACTIVE OcspKeyBindings that are not in the cache before checking usability..
+<span class="nc bnc" id="L2162" title="All 2 branches missed.">        for (InternalKeyBindingInfo internalKeyBindingInfo : internalKeyBindingMgmtSession</span>
+<span class="nc" id="L2163">                .getAllInternalKeyBindingInfos(OcspKeyBinding.IMPLEMENTATION_ALIAS)) {</span>
+<span class="nc bnc" id="L2164" title="All 2 branches missed.">            if (internalKeyBindingInfo.getStatus().equals(InternalKeyBindingStatus.ACTIVE)) {</span>
+<span class="nc" id="L2165">                final Certificate ocspCertificate = certificateStoreSession.findCertificateByFingerprint(internalKeyBindingInfo.getCertificateId());</span>
+<span class="nc" id="L2166">                final X509Certificate issuingCertificate = certificateStoreSession.findLatestX509CertificateBySubject(CertTools</span>
+<span class="nc" id="L2167">                        .getIssuerDN(ocspCertificate));</span>
+<span class="nc" id="L2168">                OcspSigningCacheEntry ocspSigningCacheEntry = null;</span>
+<span class="nc bnc" id="L2169" title="All 2 branches missed.">                if (issuingCertificate != null) {</span>
+<span class="nc" id="L2170">                    final List&lt;CertificateID&gt; certIds = OcspSigningCache.getCertificateIDFromCertificate(issuingCertificate);</span>
+                    // We only need to use the first certId type to find an entry in the cache, certIds.get(0), since all of them should be in the cache
+<span class="nc" id="L2172">                    ocspSigningCacheEntry = OcspSigningCache.INSTANCE.getEntry(certIds.get(0));</span>
+<span class="nc bnc" id="L2173" title="All 2 branches missed.">                    if (ocspSigningCacheEntry == null) {</span>
+                        //Could be a cache issue?
+                        try {
+<span class="nc" id="L2176">                            ocspSigningCacheEntry = findAndAddMissingCacheEntry(certIds.get(0));</span>
+<span class="nc" id="L2177">                        } catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L2178">                           throw new IllegalStateException(&quot;Could not process certificate&quot;, e);</span>
+<span class="nc" id="L2179">                        }</span>
+                    }                    
+<span class="nc" id="L2181">                } else {</span>
+<span class="nc" id="L2182">                    log.info(&quot;Can not find issuer certificate from subject DN '&quot;+CertTools.getIssuerDN(ocspCertificate)+&quot;'.&quot;);</span>
+                }
+                
+<span class="nc bnc" id="L2185" title="All 2 branches missed.">                if (ocspSigningCacheEntry == null) {</span>
+<span class="nc" id="L2186">                    final String errMsg = intres.getLocalizedMessage(&quot;ocsp.signingkeynotincache&quot;, internalKeyBindingInfo.getName());</span>
+<span class="nc" id="L2187">                    sb.append('\n').append(errMsg);</span>
+<span class="nc" id="L2188">                    log.error(errMsg);</span>
+                }
+            }
+<span class="nc" id="L2191">        }</span>
+<span class="nc bnc" id="L2192" title="All 2 branches missed.">        if(!sb.toString().equals(&quot;&quot;)) {</span>
+<span class="nc" id="L2193">            return sb.toString();</span>
+        }
+        try {
+<span class="nc" id="L2196">            final Collection&lt;OcspSigningCacheEntry&gt; ocspSigningCacheEntries = OcspSigningCache.INSTANCE.getEntries();</span>
+<span class="nc bnc" id="L2197" title="All 2 branches missed.">            if (ocspSigningCacheEntries.isEmpty()) {</span>
+                // Only report this in the server log. It is not an erroneous state to have no ACTIVE OcspKeyBindings.
+<span class="nc bnc" id="L2199" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L2200">                    log.debug(intres.getLocalizedMessage(&quot;ocsp.errornosignkeys&quot;));</span>
+                }
+            } else {
+<span class="nc bnc" id="L2203" title="All 2 branches missed.">                for (OcspSigningCacheEntry ocspSigningCacheEntry : ocspSigningCacheEntries) {</span>
+                    // Only verify non-CA responders
+<span class="nc" id="L2205">                    final X509Certificate ocspSigningCertificate = ocspSigningCacheEntry.getOcspSigningCertificate();</span>
+<span class="nc bnc" id="L2206" title="All 2 branches missed.">                    if (ocspSigningCertificate == null) {</span>
+<span class="nc" id="L2207">                        continue;</span>
+                    }
+<span class="nc" id="L2209">                    final String subjectDn = CertTools.getSubjectDN(ocspSigningCacheEntry.getCaCertificateChain().get(0));</span>
+<span class="nc" id="L2210">                    final String serialNumberForLog = CertTools.getSerialNumberAsString(ocspSigningCacheEntry.getOcspSigningCertificate());</span>
+<span class="nc" id="L2211">                    final String errMsg = intres.getLocalizedMessage(&quot;ocsp.errorocspkeynotusable&quot;, subjectDn, serialNumberForLog);</span>
+<span class="nc" id="L2212">                    final PrivateKey privateKey = ocspSigningCacheEntry.getPrivateKey();</span>
+<span class="nc bnc" id="L2213" title="All 2 branches missed.">                    if (privateKey == null) {</span>
+<span class="nc" id="L2214">                        sb.append('\n').append(errMsg);</span>
+<span class="nc" id="L2215">                        log.error(&quot;No key available. &quot; + errMsg);</span>
+<span class="nc" id="L2216">                        continue;</span>
+                    }
+<span class="nc bnc" id="L2218" title="All 4 branches missed.">                    if (OcspConfiguration.getHealthCheckCertificateValidity() &amp;&amp; !CertTools.isCertificateValid(ocspSigningCertificate, true) ) {</span>
+<span class="nc" id="L2219">                        sb.append('\n').append(errMsg);</span>
+<span class="nc" id="L2220">                        continue;</span>
+                    }
+<span class="nc bnc" id="L2222" title="All 2 branches missed.">                    if (OcspConfiguration.getHealthCheckSignTest()) {</span>
+                        try {
+<span class="nc" id="L2224">                            final String providerName = ocspSigningCacheEntry.getSignatureProviderName();</span>
+<span class="nc" id="L2225">                            KeyTools.testKey(privateKey, ocspSigningCertificate.getPublicKey(), providerName);</span>
+<span class="nc" id="L2226">                        } catch (InvalidKeyException e) {</span>
+                            // thrown by testKey
+<span class="nc" id="L2228">                            sb.append('\n').append(errMsg);</span>
+<span class="nc" id="L2229">                            log.error(&quot;Key not working. SubjectDN '&quot;+subjectDn+&quot;'. Error comment '&quot;+errMsg+&quot;'. Message '&quot;+e.getMessage());</span>
+<span class="nc" id="L2230">                            continue;                   </span>
+<span class="nc" id="L2231">                        }</span>
+                    }
+<span class="nc bnc" id="L2233" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L2234">                        final String name = ocspSigningCacheEntry.getOcspKeyBinding().getName();</span>
+<span class="nc" id="L2235">                        log.debug(&quot;Test of \&quot;&quot;+name+&quot;\&quot; OK!&quot;);                          </span>
+                    }
+<span class="nc" id="L2237">                }</span>
+            }
+<span class="nc" id="L2239">        } catch (Exception e) {</span>
+<span class="nc" id="L2240">            final String errMsg = intres.getLocalizedMessage(&quot;ocsp.errorloadsigningcerts&quot;);</span>
+<span class="nc" id="L2241">            log.error(errMsg, e);</span>
+<span class="nc" id="L2242">            sb.append(errMsg).append(&quot;: &quot;).append(errMsg);</span>
+<span class="nc" id="L2243">        }</span>
+<span class="nc" id="L2244">        return sb.toString();</span>
+    }
+
+}
+
+class CardKeyHolder {
+<span class="nc" id="L2250">    private static final InternalResources intres = InternalResources.getInstance();</span>
+<span class="nc" id="L2251">    private static CardKeyHolder instance = null;</span>
+<span class="nc" id="L2252">    private CardKeys cardKeys = null;</span>
+
+<span class="nc" id="L2254">    private CardKeyHolder() {</span>
+<span class="nc" id="L2255">        Logger log = Logger.getLogger(CardKeyHolder.class);</span>
+<span class="nc" id="L2256">        String hardTokenClassName = OcspConfiguration.getHardTokenClassName();</span>
+        try {
+<span class="nc" id="L2258">            this.cardKeys = (CardKeys) OcspResponseGeneratorSessionBean.class.getClassLoader().loadClass(hardTokenClassName).getConstructor().newInstance();</span>
+<span class="nc" id="L2259">            this.cardKeys.autenticate(OcspConfiguration.getCardPassword());</span>
+<span class="nc" id="L2260">        } catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L2261">            log.debug(intres.getLocalizedMessage(&quot;ocsp.classnotfound&quot;, hardTokenClassName));</span>
+<span class="nc" id="L2262">        } catch (Exception e) {</span>
+<span class="nc" id="L2263">            log.info(&quot;Could not create CardKeyHolder&quot;, e);</span>
+<span class="nc" id="L2264">        }</span>
+<span class="nc" id="L2265">    }</span>
+
+    public static synchronized CardKeyHolder getInstance() {
+<span class="nc bnc" id="L2268" title="All 2 branches missed.">        if (instance == null) {</span>
+<span class="nc" id="L2269">            instance = new CardKeyHolder();</span>
+        }
+<span class="nc" id="L2271">        return instance;</span>
+    }
+
+    public CardKeys getCardKeys() {
+<span class="nc" id="L2275">        return cardKeys;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

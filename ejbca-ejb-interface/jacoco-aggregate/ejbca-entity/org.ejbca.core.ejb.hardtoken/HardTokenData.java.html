@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>HardTokenData.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-ejb-interface</a> &gt; <a href="../index.html" class="el_bundle">ejbca-entity</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.hardtoken</a> &gt; <span class="el_source">HardTokenData.java</span></div><h1>HardTokenData.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.ejb.hardtoken;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.PostLoad;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
+import javax.persistence.Query;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.apache.log4j.Logger;
+import org.cesecore.dbprotection.ProtectedData;
+import org.cesecore.dbprotection.ProtectionStringBuilder;
+import org.cesecore.util.Base64;
+import org.cesecore.util.StringTools;
+
+/**
+ * Representation of a hard token.
+ * 
+ * @version $Id: HardTokenData.java 34415 2020-01-30 12:29:30Z aminkh $
+ */
+@Entity
+@Table(name=&quot;HardTokenData&quot;)
+public class HardTokenData extends ProtectedData implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+<span class="fc" id="L47">	private static final Logger log = Logger.getLogger(HardTokenData.class);</span>
+
+    public static final String ENCRYPTEDDATA = &quot;ENCRYPTEDDATA&quot;;
+
+	private String tokenSN;
+	private String username;
+	private long cTime;
+	private long mTime;
+	private int tokenType;
+	private String significantIssuerDN;
+	private Serializable data;
+<span class="pc" id="L58">	private int rowVersion = 0;</span>
+	private String rowProtection;
+
+	/**
+	 * Entity holding data of a hard token issuer.
+	 * @param tokensn SN
+	 * @param username User
+	 * @param createtime Created
+	 * @param modifytime Modified
+	 * @param tokentype Type
+	 * @param significantissuerdn DN 
+	 * @param data Data
+	 */
+<span class="nc" id="L71">	public HardTokenData(String tokensn, String username, Date createtime, Date modifytime, int tokentype, String significantissuerdn, LinkedHashMap&lt;?, ?&gt; data) {</span>
+<span class="nc" id="L72">		setTokenSN(tokensn);</span>
+<span class="nc" id="L73">		setUsername(username);</span>
+<span class="nc" id="L74">		setCtime(createtime.getTime());</span>
+<span class="nc" id="L75">		setMtime(modifytime.getTime());</span>
+<span class="nc" id="L76">		setTokenType(tokentype);</span>
+<span class="nc" id="L77">		setSignificantIssuerDN(significantissuerdn);</span>
+<span class="nc" id="L78">		setData(data);</span>
+<span class="nc" id="L79">		log.debug(&quot;Created Hard Token &quot;+ tokensn );</span>
+<span class="nc" id="L80">	}</span>
+	
+<span class="fc" id="L82">	public HardTokenData() { }</span>
+	
+	//@Id @Column
+<span class="fc" id="L85">	public String getTokenSN() { return tokenSN; }</span>
+<span class="fc" id="L86">	public void setTokenSN(String tokenSN) { this.tokenSN = tokenSN; }</span>
+
+	//@Column
+<span class="fc" id="L89">	public String getUsername() { return username; }</span>
+<span class="fc" id="L90">	public void setUsername(String username) { this.username = StringTools.stripUsername(username); }</span>
+
+	//@Column
+<span class="fc" id="L93">	public long getCtime() { return cTime; }</span>
+<span class="fc" id="L94">	public void setCtime(long createTime) { this.cTime = createTime; }</span>
+
+	//@Column
+<span class="fc" id="L97">	public long getMtime() { return mTime; } </span>
+<span class="fc" id="L98">	public void setMtime(long modifyTime) { this.mTime = modifyTime; }</span>
+
+	//@Column
+<span class="fc" id="L101">	public int getTokenType() { return tokenType; }</span>
+<span class="fc" id="L102">	public void setTokenType(int tokenType) { this.tokenType = tokenType; }</span>
+
+	//@Column
+<span class="fc" id="L105">	public String getSignificantIssuerDN() { return significantIssuerDN; }</span>
+<span class="fc" id="L106">	public void setSignificantIssuerDN(String significantIssuerDN) { this.significantIssuerDN = significantIssuerDN; }</span>
+
+	//@Column @Lob
+<span class="fc" id="L109">	public Serializable getDataUnsafe() { return data; }</span>
+	/** DO NOT USE! Stick with setData(HashMap data) instead. 
+	 * @param data Data*/
+<span class="fc" id="L112">	public void setDataUnsafe(Serializable data) { this.data = data; }</span>
+
+	//@Version @Column
+<span class="fc" id="L115">	public int getRowVersion() { return rowVersion; }</span>
+<span class="fc" id="L116">	public void setRowVersion(int rowVersion) { this.rowVersion = rowVersion; }</span>
+
+	//@Column @Lob
+	@Override
+<span class="fc" id="L120">	public String getRowProtection() { return rowProtection; }</span>
+	@Override
+<span class="fc" id="L122">	public void setRowProtection(String rowProtection) { this.rowProtection = rowProtection; }</span>
+
+	@Transient
+    public LinkedHashMap&lt;?, ?&gt; getData() {
+<span class="nc" id="L126">        final Serializable map = getDataUnsafe();</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">        if (map instanceof LinkedHashMap&lt;?, ?&gt;) {</span>
+<span class="nc" id="L128">            return (LinkedHashMap&lt;?, ?&gt;) map;</span>
+        } else {
+<span class="nc" id="L130">            return new LinkedHashMap&lt;&gt;((Map&lt;?, ?&gt;) map);</span>
+        }
+    }
+
+<span class="fc" id="L134">	public void setData(LinkedHashMap&lt;?, ?&gt; data) { setDataUnsafe(data); }</span>
+
+	@Transient
+<span class="nc" id="L137">	public Date getCreateTime() { return new Date(getCtime()); }</span>
+<span class="nc" id="L138">	public void setCreateTime(Date createtime){ setCtime(createtime.getTime()); }</span>
+
+	@Transient
+<span class="nc" id="L141">	public Date getModifyTime(){ return new Date(getCtime()); }</span>
+<span class="nc" id="L142">	public void setModifyTime(Date modifytime){ setMtime(modifytime.getTime()); }</span>
+
+    //
+    // Start Database integrity protection methods
+    //
+
+    @Transient
+    @Override
+    protected String getProtectString(final int version) {
+<span class="nc" id="L151">        final ProtectionStringBuilder build = new ProtectionStringBuilder();</span>
+        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
+<span class="nc" id="L153">        build.append(getTokenSN()).append(getUsername()).append(getCtime()).append(getMtime()).append(getTokenType()).append(getSignificantIssuerDN());</span>
+<span class="nc" id="L154">        LinkedHashMap&lt;?, ?&gt; data = getData();</span>
+        // We must have special handling here if the data is encrypted because the byte[] is a binary byte array 
+        // in this case, when doing getData().toString in this case a reference to the byte array is printed, and 
+        // this is different for every invocation so signature verification fail.
+        final String dataStr;
+<span class="nc bnc" id="L159" title="All 2 branches missed.">        if (data.get(ENCRYPTEDDATA) != null) {</span>
+<span class="nc" id="L160">            byte[] encdata = (byte[]) data.get(org.ejbca.core.ejb.hardtoken.HardTokenData.ENCRYPTEDDATA);</span>
+<span class="nc" id="L161">            dataStr = new String(Base64.encode(encdata, false));</span>
+<span class="nc" id="L162">        } else {</span>
+<span class="nc" id="L163">            dataStr = getData().toString(); </span>
+        }
+<span class="nc" id="L165">        build.append(dataStr);</span>
+<span class="nc" id="L166">        return build.toString();</span>
+    }
+
+    @Transient
+    @Override
+    protected int getProtectVersion() {
+<span class="nc" id="L172">        return 1;</span>
+    }
+
+    @PrePersist
+    @PreUpdate
+    @Override
+    protected void protectData() {
+<span class="fc" id="L179">        super.protectData();</span>
+<span class="fc" id="L180">    }</span>
+
+    @PostLoad
+    @Override
+    protected void verifyData() {
+<span class="nc" id="L185">        super.verifyData();</span>
+<span class="nc" id="L186">    }</span>
+
+    @Override
+    @Transient
+    protected String getRowId() {
+<span class="nc" id="L191">        return String.valueOf(getTokenSN());</span>
+    }
+
+    //
+    // End Database integrity protection methods
+    //
+
+	//
+    // Search functions. 
+    //
+
+	/** @param entityManager EM
+	 * @param tokenSN SN
+	 * @return the found entity instance or null if the entity does not exist */
+    public static HardTokenData findByTokenSN(EntityManager entityManager, String tokenSN) {
+<span class="nc" id="L206">    	return entityManager.find(HardTokenData.class, tokenSN);</span>
+    }
+
+	/** @param entityManager EM
+	 * @param username User
+	 * @return return the query results as a List. */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public static List&lt;HardTokenData&gt; findByUsername(EntityManager entityManager, String username) {
+<span class="nc" id="L214">    	Query query = entityManager.createQuery(&quot;SELECT a FROM HardTokenData a WHERE a.username=:username&quot;);</span>
+<span class="nc" id="L215">    	query.setParameter(&quot;username&quot;, username);</span>
+<span class="nc" id="L216">    	return query.getResultList();</span>
+    }
+
+	/** @param entityManager EM
+	 * @param searchPattern Pattern
+	 * @param maxResults Max results
+	 * @return return a List&amp;lt;String&amp;gt; of all usernames where the searchPattern matches the token serial number. */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public static List&lt;String&gt; findUsernamesByHardTokenSerialNumber(EntityManager entityManager, String searchPattern, int maxResults) {
+<span class="nc" id="L225">        Query query = entityManager.createNativeQuery(&quot;SELECT DISTINCT a.username FROM HardTokenData a WHERE tokenSN LIKE :search&quot;);</span>
+        // To use parameterized values in LIKE queries we must put the % in the parameter
+<span class="nc" id="L227">        final String parameter = &quot;%&quot; + searchPattern + &quot;%&quot;;</span>
+<span class="nc" id="L228">        query.setParameter(&quot;search&quot;, parameter);</span>
+<span class="nc" id="L229">    	query.setMaxResults(maxResults);</span>
+<span class="nc" id="L230">    	return query.getResultList();</span>
+	}
+
+	/** @param entityManager EM
+	 * @return return the query results as a List. */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public static List&lt;String&gt; findAllTokenSN(EntityManager entityManager) {
+<span class="nc" id="L237">    	return entityManager.createQuery(&quot;SELECT a.tokenSN FROM HardTokenData a&quot;).getResultList();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

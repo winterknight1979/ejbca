@@ -1,0 +1,1440 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>KeyTools.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-common-entity-tests</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.keys.util</a> &gt; <span class="el_source">KeyTools.java</span></div><h1>KeyTools.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.keys.util;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.nio.charset.Charset;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.Provider;
+import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.security.Security;
+import java.security.Signature;
+import java.security.SignatureException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.CertificateParsingException;
+import java.security.cert.X509Certificate;
+import java.security.interfaces.DSAParams;
+import java.security.interfaces.DSAPrivateKey;
+import java.security.interfaces.DSAPublicKey;
+import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.ECPublicKey;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.AlgorithmParameterSpec;
+import java.security.spec.DSAParameterSpec;
+import java.security.spec.ECFieldFp;
+import java.security.spec.ECGenParameterSpec;
+import java.security.spec.ECParameterSpec;
+import java.security.spec.ECPoint;
+import java.security.spec.EllipticCurve;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.RSAKeyGenParameterSpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.List;
+
+import javax.crypto.interfaces.DHPrivateKey;
+import javax.crypto.interfaces.DHPublicKey;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.DERBMPString;
+import org.bouncycastle.asn1.DERBitString;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.SubjectKeyIdentifier;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.asn1.x9.X9ECParameters;
+import org.bouncycastle.cert.X509ExtensionUtils;
+import org.bouncycastle.cert.bc.BcX509ExtensionUtils;
+import org.bouncycastle.crypto.ec.CustomNamedCurves;
+import org.bouncycastle.crypto.util.PublicKeyFactory;
+import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey;
+import org.bouncycastle.jcajce.provider.asymmetric.util.EC5Util;
+import org.bouncycastle.jcajce.provider.asymmetric.util.ECUtil;
+import org.bouncycastle.jce.ECGOST3410NamedCurveTable;
+import org.bouncycastle.jce.ECNamedCurveTable;
+import org.bouncycastle.jce.interfaces.PKCS12BagAttributeCarrier;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.jce.provider.JCEECPublicKey;
+import org.bouncycastle.jce.spec.ECNamedCurveSpec;
+import org.bouncycastle.jce.spec.ECPublicKeySpec;
+import org.bouncycastle.math.ec.ECCurve;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
+import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
+import org.bouncycastle.util.encoders.Hex;
+import org.cesecore.certificates.util.AlgorithmConstants;
+import org.cesecore.certificates.util.AlgorithmTools;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.internal.InternalResources;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.ejbca.cvc.PublicKeyEC;
+
+/**
+ * Tools to handle common key and keystore operations.
+ * 
+ * @version $Id: KeyTools.java 29338 2018-06-26 05:55:57Z samuellb $
+ */
+public final class KeyTools {
+<span class="fc" id="L118">    private static final Logger log = Logger.getLogger(KeyTools.class);</span>
+<span class="fc" id="L119">    private static final InternalResources intres = InternalResources.getInstance();</span>
+
+<span class="fc" id="L121">    private static final byte[] BAG_ATTRIBUTES = &quot;Bag Attributes\n&quot;.getBytes();</span>
+<span class="fc" id="L122">    private static final byte[] FRIENDLY_NAME = &quot;    friendlyName: &quot;.getBytes();</span>
+<span class="fc" id="L123">    private static final byte[] SUBJECT_ATTRIBUTE = &quot;subject=/&quot;.getBytes();</span>
+<span class="fc" id="L124">    private static final byte[] ISSUER_ATTRIBUTE = &quot;issuer=/&quot;.getBytes();</span>
+<span class="fc" id="L125">    private static final byte[] BEGIN_CERTIFICATE = &quot;-----BEGIN CERTIFICATE-----&quot;.getBytes();</span>
+<span class="fc" id="L126">    private static final byte[] END_CERTIFICATE = &quot;-----END CERTIFICATE-----&quot;.getBytes();</span>
+<span class="fc" id="L127">    private static final byte[] BEGIN_PRIVATE_KEY = &quot;-----BEGIN PRIVATE KEY-----&quot;.getBytes();</span>
+<span class="fc" id="L128">    private static final byte[] END_PRIVATE_KEY = &quot;-----END PRIVATE KEY-----&quot;.getBytes();</span>
+<span class="fc" id="L129">    private static final byte[] NL = &quot;\n&quot;.getBytes();</span>
+
+    /**
+     * Prevent from creating new KeyTools object
+     */
+    private KeyTools() {
+        // should never be called
+    }
+
+    /**
+     * Generates a keypair
+     * 
+     * @param keySpec
+     *            string specification of keys to generate, typical value is 2048 for RSA keys,
+     *            1024 for DSA keys, secp256r1 for ECDSA keys, or null if algspec is to be used.
+     * @param algSpec
+     *            AlgorithmParameterSpec of keys to generate, typically an EXParameterSpec for EC keys, or null if keySpec is to be used.
+     * @param keyAlg
+     *            algorithm of keys to generate, typical value is RSA, DSA or ECDSA, see AlgorithmConstants.KEYALGORITHM_XX
+     * 
+     * @see org.cesecore.certificates.util.AlgorithmConstants
+     * @see org.bouncycastle.asn1.x9.X962NamedCurves
+     * @see org.bouncycastle.asn1.nist.NISTNamedCurves
+     * @see org.bouncycastle.asn1.sec.SECNamedCurves
+     * 
+     * @return KeyPair the generated keypair
+     * @throws InvalidAlgorithmParameterException  if the given parameters are inappropriate for this key pair generator.
+     * @see org.cesecore.certificates.util.AlgorithmConstants#KEYALGORITHM_RSA
+     */
+    public static KeyPair genKeys(final String keySpec, final AlgorithmParameterSpec algSpec, final String keyAlg) throws InvalidAlgorithmParameterException {
+<span class="pc bpc" id="L159" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L160">            log.trace(&quot;&gt;genKeys(&quot; + keySpec + &quot;, &quot; + keyAlg + &quot;)&quot;);</span>
+        }
+
+        final KeyPairGenerator keygen;
+        try {
+<span class="fc" id="L165">            keygen = KeyPairGenerator.getInstance(keyAlg, BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="nc" id="L166">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L167">            throw new IllegalStateException(&quot;Algorithm &quot; + keyAlg + &quot; was not recognized.&quot;, e);</span>
+<span class="nc" id="L168">        } catch (NoSuchProviderException e) {</span>
+<span class="nc" id="L169">            throw new IllegalStateException(&quot;BouncyCastle was not found as a provider.&quot;, e);</span>
+<span class="fc" id="L170">        }</span>
+<span class="fc bfc" id="L171" title="All 4 branches covered.">        if (StringUtils.equals(keyAlg, AlgorithmConstants.KEYALGORITHM_ECDSA) || StringUtils.equals(keyAlg, AlgorithmConstants.KEYALGORITHM_EC)) {</span>
+<span class="fc bfc" id="L172" title="All 4 branches covered.">            if ((keySpec != null) &amp;&amp; !StringUtils.equals(keySpec, &quot;implicitlyCA&quot;)) {</span>
+<span class="fc" id="L173">                log.debug(&quot;Generating named curve ECDSA key pair: &quot; + keySpec);</span>
+                // Check if we have an OID for this named curve
+<span class="fc bfc" id="L175" title="All 2 branches covered.">                if (ECUtil.getNamedCurveOid(keySpec) != null) {</span>
+<span class="fc" id="L176">                    ECGenParameterSpec bcSpec = new ECGenParameterSpec(keySpec);</span>
+<span class="fc" id="L177">                    keygen.initialize(bcSpec, new SecureRandom());                    </span>
+<span class="fc" id="L178">                } else {</span>
+<span class="pc bpc" id="L179" title="1 of 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L180">                        log.debug(&quot;Curve did not have an OID in BC, trying to pick up Parameter spec: &quot; + keySpec);</span>
+                    }
+                    // This may be a new curve without OID, like curve25519 and we have to do something a bit different
+<span class="fc" id="L183">                    X9ECParameters ecP = CustomNamedCurves.getByName(keySpec);</span>
+<span class="pc bpc" id="L184" title="1 of 2 branches missed.">                    if (ecP == null) {</span>
+<span class="fc" id="L185">                        throw new InvalidAlgorithmParameterException(&quot;Can not generate EC curve, no OID and no ECParameters found: &quot;+keySpec);</span>
+                    }
+<span class="nc" id="L187">                    org.bouncycastle.jce.spec.ECParameterSpec ecSpec = new org.bouncycastle.jce.spec.ECParameterSpec(</span>
+<span class="nc" id="L188">                            ecP.getCurve(), ecP.getG(), ecP.getN(), ecP.getH(), ecP.getSeed()); </span>
+<span class="nc" id="L189">                    keygen.initialize(ecSpec, new SecureRandom());                    </span>
+<span class="nc" id="L190">                }</span>
+                // The old code should work in BC v1.50b6 and later, but in versions prior to that the below produces a key with explicit parameter encoding instead of named curves.
+                // There is a test for this in KeyToolsTest.testGenKeysECDSAx9
+                //                ecSpec = ECNamedCurveTable.getParameterSpec(keySpec);
+                //                if (ecSpec == null) {
+                //                    throw new InvalidAlgorithmParameterException(&quot;keySpec &quot; + keySpec + &quot; is invalid for ECDSA.&quot;);
+                //                }
+                //                keygen.initialize(ecSpec, new SecureRandom());
+<span class="fc bfc" id="L198" title="All 2 branches covered.">            } else if (algSpec != null) {</span>
+<span class="fc" id="L199">                log.debug(&quot;Generating ECDSA key pair from AlgorithmParameterSpec: &quot; + algSpec);</span>
+<span class="fc" id="L200">                keygen.initialize(algSpec, new SecureRandom());</span>
+<span class="fc bfc" id="L201" title="All 2 branches covered.">            } else if (StringUtils.equals(keySpec, &quot;implicitlyCA&quot;)) {</span>
+<span class="fc" id="L202">                log.debug(&quot;Generating implicitlyCA encoded ECDSA key pair&quot;);</span>
+                // If the keySpec is null, we have &quot;implicitlyCA&quot; defined EC parameters
+                // The parameters were already installed when we installed the provider
+                // We just make sure that ecSpec == null here
+<span class="fc" id="L206">                keygen.initialize(null, new SecureRandom());</span>
+            } else {
+<span class="fc" id="L208">                throw new InvalidAlgorithmParameterException(&quot;No keySpec no algSpec and no implicitlyCA specified&quot;);</span>
+            }
+<span class="pc bpc" id="L210" title="1 of 2 branches missed.">        } else if(keyAlg.equals(AlgorithmConstants.KEYALGORITHM_ECGOST3410)) {</span>
+            final AlgorithmParameterSpec ecSpec;
+<span class="nc bnc" id="L212" title="All 2 branches missed.">            if(keySpec != null) {</span>
+<span class="nc" id="L213">                log.debug(&quot;Generating keys from given key specifications : &quot; + keySpec);</span>
+<span class="nc" id="L214">                ecSpec = ECGOST3410NamedCurveTable.getParameterSpec(keySpec);</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">                if(ecSpec == null) throw new InvalidAlgorithmParameterException(</span>
+                        &quot;Key specification &quot; + keySpec + &quot; is invalid for ECGOST3410&quot;);
+<span class="nc bnc" id="L217" title="All 2 branches missed.">            } else if(algSpec != null) {</span>
+<span class="nc" id="L218">                log.debug(&quot;Generating keys from given algorithm parameters : &quot; + algSpec);</span>
+<span class="nc" id="L219">                ecSpec = algSpec;</span>
+            } else {
+<span class="nc" id="L221">                throw new InvalidAlgorithmParameterException(&quot;No key or algorithm specifications&quot;);</span>
+            }
+<span class="nc" id="L223">            keygen.initialize(ecSpec, new SecureRandom());</span>
+<span class="pc bpc" id="L224" title="1 of 2 branches missed.">        } else if(keyAlg.equals(AlgorithmConstants.KEYALGORITHM_DSTU4145)) {</span>
+            final AlgorithmParameterSpec ecSpec;
+<span class="nc bnc" id="L226" title="All 2 branches missed.">            if(keySpec != null) {</span>
+<span class="nc" id="L227">                log.debug(&quot;Generating keys from given key specifications : &quot; + keySpec);</span>
+<span class="nc" id="L228">                ecSpec = dstuOidToAlgoParams(keySpec);</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">                if(ecSpec == null) throw new InvalidAlgorithmParameterException(</span>
+                        &quot;Key specification &quot; + keySpec + &quot; is invalid for DSTU4145&quot;);
+<span class="nc bnc" id="L231" title="All 2 branches missed.">            } else if(algSpec != null) {</span>
+<span class="nc" id="L232">                log.debug(&quot;Generating keys from given algorithm parameters : &quot; + algSpec);</span>
+<span class="nc" id="L233">                ecSpec = algSpec;</span>
+            } else {
+<span class="nc" id="L235">                throw new InvalidAlgorithmParameterException(&quot;No key or algorithm specifications&quot;);</span>
+            }
+<span class="nc" id="L237">            keygen.initialize(ecSpec, new SecureRandom());</span>
+<span class="pc bpc" id="L238" title="1 of 2 branches missed.">        } else if (keySpec.startsWith(&quot;DSA&quot;)) {</span>
+            // DSA key with &quot;DSA&quot; in keyspec
+<span class="nc" id="L240">            final int keysize = Integer.parseInt(keySpec.substring(3));</span>
+<span class="nc" id="L241">            keygen.initialize(keysize);</span>
+<span class="nc" id="L242">        } else {</span>
+            // RSA or DSA key where keyspec is simply the key length
+<span class="fc" id="L244">            final int keysize = Integer.parseInt(keySpec);</span>
+<span class="fc" id="L245">            keygen.initialize(keysize);</span>
+        }
+
+<span class="fc" id="L248">        final KeyPair keys = keygen.generateKeyPair();</span>
+
+<span class="pc bpc" id="L250" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L251">            final PublicKey pk = keys.getPublic();</span>
+<span class="nc" id="L252">            final int len = getKeyLength(pk);</span>
+<span class="nc" id="L253">            log.debug(&quot;Generated &quot; + keys.getPublic().getAlgorithm() + &quot; keys with length &quot; + len);</span>
+        }
+<span class="fc" id="L255">        log.trace(&quot;&lt;genKeys()&quot;);</span>
+<span class="fc" id="L256">        return keys;</span>
+    } // genKeys
+
+    /**
+     * @param keySpec Spec
+     * @param keyAlg Algorithm
+     * @return Key pair
+     * @see KeyTools#genKeys(String,AlgorithmParameterSpec,String)
+     * 
+     * @throws InvalidAlgorithmParameterException  if the given parameters are inappropriate for this key pair generator.
+     */
+    public static KeyPair genKeys(final String keySpec, final String keyAlg) throws InvalidAlgorithmParameterException {
+<span class="fc" id="L268">       return genKeys(keySpec, null, keyAlg);</span>
+    }
+
+    /**
+     * An ECDSA key can be stripped of the curve parameters so it only contains the public point, and this is not enough to use the key for
+     * verification. However, if we know the curve name we can fill in the curve parameters and get a usable EC public key
+     * 
+     * @param pk
+     *            PublicKey, org.ejbca.cvc.PublicKeyEC, that might miss parameters, if parameters are there we do not touch the public key just return it unchanged
+     * @param keySpec
+     *            name of curve for example brainpoolp224r1
+     * @return PublicKey with parameters from the named curve
+     * @throws NoSuchProviderException if provider not found
+     * @throws NoSuchAlgorithmException if algorithm not found
+     * @throws InvalidKeySpecException if spec is invalid
+     */
+    public static PublicKey getECPublicKeyWithParams(final PublicKey pk, final String keySpec) throws NoSuchAlgorithmException,
+            NoSuchProviderException, InvalidKeySpecException {
+<span class="fc" id="L286">        PublicKey ret = pk;</span>
+<span class="pc bpc" id="L287" title="1 of 4 branches missed.">        if ((pk instanceof PublicKeyEC) &amp;&amp; (keySpec != null)) {</span>
+<span class="fc" id="L288">            final PublicKeyEC pkec = (PublicKeyEC) pk;</span>
+            // The public key of IS and DV certificate do not have any parameters so we have to do some magic to get a complete EC public key
+<span class="fc" id="L290">            final ECParameterSpec spec = pkec.getParams();</span>
+<span class="pc bpc" id="L291" title="1 of 2 branches missed.">            if (spec == null) {</span>
+                // we did not have the parameter specs, lets create them because we know which curve we are using
+<span class="fc" id="L293">                final org.bouncycastle.jce.spec.ECParameterSpec bcspec = ECNamedCurveTable.getParameterSpec(keySpec);</span>
+<span class="fc" id="L294">                final java.security.spec.ECPoint p = pkec.getW();</span>
+<span class="fc" id="L295">                final org.bouncycastle.math.ec.ECPoint ecp = EC5Util.convertPoint(bcspec.getCurve(), p, false);</span>
+<span class="fc" id="L296">                final ECPublicKeySpec pubKey = new ECPublicKeySpec(ecp, bcspec);</span>
+<span class="fc" id="L297">                final KeyFactory keyfact = KeyFactory.getInstance(&quot;ECDSA&quot;, &quot;BC&quot;);</span>
+<span class="fc" id="L298">                ret = keyfact.generatePublic(pubKey);</span>
+            }
+        }
+<span class="fc" id="L301">        return ret;</span>
+    }
+    /**
+     * An ECDSA key can be stripped of the curve parameters so it only contains the public point, and this is not enough to use the key for
+     * verification. However, if we know the curve name we can fill in the curve parameters and get a usable EC public key
+     * 
+     * @param pk
+     *            PublicKey, org.ejbca.cvc.PublicKeyEC, that might miss parameters, if parameters are there we do not touch the public key just return it unchanged
+     * @param pkwithparams
+     *            PublicKey, org.ejbca.cvc.PublicKeyEC, that contains all parameters.
+     * @return PublicKey with parameters from the named curve
+     *
+     * @throws InvalidKeySpecException if the key specification in pkwithparams was invalid
+     */
+    public static PublicKey getECPublicKeyWithParams(final PublicKey pk, final PublicKey pkwithparams) throws InvalidKeySpecException {
+<span class="pc bpc" id="L316" title="1 of 4 branches missed.">        if ( !(pk instanceof PublicKeyEC) || !(pkwithparams instanceof PublicKeyEC) ) {</span>
+<span class="fc" id="L317">            log.info(&quot;Either pk or pkwithparams is not a PublicKeyEC: &quot; + pk.toString() + &quot;, &quot; + pkwithparams.toString());</span>
+<span class="fc" id="L318">            return pk;</span>
+        }
+<span class="fc" id="L320">        final PublicKeyEC pkec = (PublicKeyEC) pk;</span>
+<span class="fc" id="L321">        final ECParameterSpec spec = pkec.getParams();</span>
+<span class="pc bpc" id="L322" title="1 of 2 branches missed.">        if (spec != null) {</span>
+<span class="nc" id="L323">            return pk;// the key allready has its parameters.</span>
+        }
+        // The public key of IS and DV certificate do not have any parameters so we have to do some magic to get a complete EC public key
+<span class="fc" id="L326">        final PublicKeyEC pkecp = (PublicKeyEC) pkwithparams;</span>
+<span class="fc" id="L327">        final ECParameterSpec pkspec = pkecp.getParams();</span>
+<span class="fc bfc" id="L328" title="All 2 branches covered.">        if (pkspec == null) {</span>
+<span class="fc" id="L329">            log.info(&quot;pkwithparams does not have any params.&quot;);</span>
+<span class="fc" id="L330">            return pk;</span>
+        }
+<span class="fc" id="L332">        final org.bouncycastle.jce.spec.ECParameterSpec bcspec = EC5Util.convertSpec(pkspec, false);</span>
+<span class="fc" id="L333">        final java.security.spec.ECPoint p = pkec.getW();</span>
+<span class="fc" id="L334">        final org.bouncycastle.math.ec.ECPoint ecp = EC5Util.convertPoint(pkspec, p, false);</span>
+<span class="fc" id="L335">        final ECPublicKeySpec pubKey = new ECPublicKeySpec(ecp, bcspec);</span>
+        final KeyFactory keyfact;
+        try {
+<span class="fc" id="L338">            keyfact = KeyFactory.getInstance(&quot;ECDSA&quot;, BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="nc" id="L339">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L340">            throw new IllegalStateException(&quot;ECDSA was an unknown algorithm&quot;, e);</span>
+<span class="nc" id="L341">        } catch (NoSuchProviderException e) {</span>
+<span class="nc" id="L342">            throw new IllegalStateException(&quot;BouncyCastle was not found as a provider.&quot;, e);</span>
+<span class="fc" id="L343">        }</span>
+<span class="fc" id="L344">        return keyfact.generatePublic(pubKey);</span>
+    }
+
+    /**
+     * Gets the key length of supported keys
+     * 
+     * @param pk
+     *            PublicKey used to derive the keysize
+     * @return -1 if key is unsupported, otherwise a number &amp;gt;= 0. 0 usually means the length can not be calculated, for example if the key is an EC
+     *         key and the &quot;implicitlyCA&quot; encoding is used.
+     */
+    public static int getKeyLength(final PublicKey pk) {
+<span class="fc bfc" id="L356" title="All 2 branches covered.">        if (pk instanceof RSAPublicKey) {</span>
+<span class="fc" id="L357">            final RSAPublicKey rsapub = (RSAPublicKey) pk;</span>
+<span class="fc" id="L358">            return rsapub.getModulus().bitLength();</span>
+        }
+<span class="pc bpc" id="L360" title="1 of 2 branches missed.">        if (pk instanceof JCEECPublicKey) {</span>
+<span class="nc" id="L361">            final JCEECPublicKey ecpriv = (JCEECPublicKey) pk;</span>
+<span class="nc" id="L362">            final org.bouncycastle.jce.spec.ECParameterSpec spec = ecpriv.getParameters();</span>
+<span class="nc bnc" id="L363" title="All 2 branches missed.">            if (spec != null) {</span>
+<span class="nc" id="L364">                return spec.getN().bitLength();</span>
+            }
+            // We support the key, but we don't know the key length
+<span class="nc" id="L367">            return 0;</span>
+        }
+<span class="fc bfc" id="L369" title="All 2 branches covered.">        if (pk instanceof BCECPublicKey) {</span>
+<span class="fc" id="L370">            final BCECPublicKey ecpriv = (BCECPublicKey) pk;</span>
+<span class="fc" id="L371">            final org.bouncycastle.jce.spec.ECParameterSpec spec = ecpriv.getParameters();</span>
+<span class="fc bfc" id="L372" title="All 2 branches covered.">            if (spec != null) {</span>
+<span class="fc" id="L373">                return spec.getN().bitLength();</span>
+            }
+            // We support the key, but we don't know the key length
+<span class="fc" id="L376">            return 0;</span>
+        }
+<span class="pc bpc" id="L378" title="1 of 2 branches missed.">        if (pk instanceof ECPublicKey) {</span>
+<span class="nc" id="L379">            final ECPublicKey ecpriv = (ECPublicKey) pk;</span>
+<span class="nc" id="L380">            final java.security.spec.ECParameterSpec spec = ecpriv.getParams();</span>
+<span class="nc bnc" id="L381" title="All 2 branches missed.">            if (spec != null) {</span>
+<span class="nc" id="L382">                return spec.getOrder().bitLength(); // does this really return something we expect?</span>
+            }
+            // We support the key, but we don't know the key length
+<span class="nc" id="L385">            return 0;</span>
+        }
+<span class="pc bpc" id="L387" title="1 of 2 branches missed.">        if (pk instanceof DSAPublicKey) {</span>
+<span class="fc" id="L388">            final DSAPublicKey dsapub = (DSAPublicKey) pk;</span>
+<span class="pc bpc" id="L389" title="1 of 2 branches missed.">            if (dsapub.getParams() != null) {</span>
+<span class="fc" id="L390">                return dsapub.getParams().getP().bitLength();</span>
+            }
+<span class="nc" id="L392">            return dsapub.getY().bitLength();</span>
+        }
+        // Unknown key type
+<span class="nc" id="L395">        return -1;</span>
+    }
+
+    /**
+     * Gets the key AlgorithmParameterSpec of supported keys. Can be used to initialize a KeyPairGenerator to generate a key of equal type and size.
+     * 
+     * @param pk
+     *            PublicKey used to derive the AlgorithmParameterSpec
+     * @return null if key is unsupported or pk is null, otherwise a AlgorithmParameterSpec.
+     */
+    public static AlgorithmParameterSpec getKeyGenSpec(final PublicKey pk) {
+<span class="pc bpc" id="L406" title="1 of 2 branches missed.">        if (pk == null) {</span>
+<span class="nc" id="L407">            return null;</span>
+        }
+<span class="fc bfc" id="L409" title="All 2 branches covered.">        if (pk instanceof RSAPublicKey) {</span>
+<span class="fc" id="L410">            log.debug(&quot;getKeyGenSpec: RSA&quot;);</span>
+<span class="fc" id="L411">            final RSAPublicKey rpk = (RSAPublicKey) pk;</span>
+<span class="fc" id="L412">            return new RSAKeyGenParameterSpec(getKeyLength(pk), rpk.getPublicExponent());</span>
+        }
+<span class="fc bfc" id="L414" title="All 2 branches covered.">        if (pk instanceof DSAPublicKey) {</span>
+<span class="fc" id="L415">            log.debug(&quot;getKeyGenSpec: DSA&quot;);</span>
+<span class="fc" id="L416">            final DSAPublicKey dpk = (DSAPublicKey) pk;</span>
+<span class="fc" id="L417">            final DSAParams params = dpk.getParams();</span>
+<span class="fc" id="L418">            return new DSAParameterSpec(params.getP(), params.getQ(), params.getG());</span>
+        }
+<span class="pc bpc" id="L420" title="1 of 2 branches missed.">        if (pk instanceof ECPublicKey) {</span>
+<span class="fc" id="L421">            log.debug(&quot;getKeyGenSpec: ECPublicKey&quot;);</span>
+<span class="fc" id="L422">            final ECPublicKey ecpub = (ECPublicKey) pk;</span>
+<span class="fc" id="L423">            final java.security.spec.ECParameterSpec sunsp = ecpub.getParams();</span>
+<span class="fc" id="L424">            final EllipticCurve ecurve = new EllipticCurve(sunsp.getCurve().getField(), sunsp.getCurve().getA(), sunsp.getCurve().getB());</span>
+            // ECParameterSpec par = new ECNamedCurveSpec(null, sunsp.getCurve(), sunsp.getGenerator(), sunsp.getOrder(),
+            // BigInteger.valueOf(sunsp.getCofactor()));
+<span class="fc" id="L427">            final ECParameterSpec params = new ECParameterSpec(ecurve, sunsp.getGenerator(), sunsp.getOrder(), sunsp.getCofactor());</span>
+<span class="pc bpc" id="L428" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L429">                log.debug(&quot;Fieldsize: &quot; + params.getCurve().getField().getFieldSize());</span>
+<span class="nc" id="L430">                final EllipticCurve curve = params.getCurve();</span>
+<span class="nc" id="L431">                log.debug(&quot;CurveA: &quot; + curve.getA().toString(16));</span>
+<span class="nc" id="L432">                log.debug(&quot;CurveB: &quot; + curve.getB().toString(16));</span>
+<span class="nc" id="L433">                log.debug(&quot;CurveSeed: &quot; + curve.getSeed());</span>
+<span class="nc" id="L434">                final ECFieldFp field = (ECFieldFp) curve.getField();</span>
+<span class="nc" id="L435">                log.debug(&quot;CurveSfield: &quot; + field.getP().toString(16));</span>
+<span class="nc" id="L436">                final ECPoint p = params.getGenerator();</span>
+<span class="nc" id="L437">                log.debug(&quot;Generator: &quot; + p.getAffineX().toString(16) + &quot;, &quot; + p.getAffineY().toString(16));</span>
+<span class="nc" id="L438">                log.debug(&quot;Order: &quot; + params.getOrder().toString(16));</span>
+<span class="nc" id="L439">                log.debug(&quot;CoFactor: &quot; + params.getCofactor());</span>
+            }
+<span class="fc" id="L441">            return params;</span>
+        }
+<span class="nc bnc" id="L443" title="All 2 branches missed.">        if (pk instanceof JCEECPublicKey) {</span>
+<span class="nc" id="L444">            log.debug(&quot;getKeyGenSpec: JCEECPublicKey&quot;);</span>
+<span class="nc" id="L445">            final JCEECPublicKey ecpub = (JCEECPublicKey) pk;</span>
+<span class="nc" id="L446">            final org.bouncycastle.jce.spec.ECParameterSpec bcsp = ecpub.getParameters();</span>
+<span class="nc" id="L447">            final ECCurve curve = bcsp.getCurve();</span>
+            // TODO: this probably does not work for key generation with the Sun PKCS#11 provider. Maybe seed needs to be set to null as above? Or
+            // something else, the BC curve is it the same?
+<span class="nc" id="L450">            final ECParameterSpec params = new ECNamedCurveSpec(null, curve, bcsp.getG(), bcsp.getN(), bcsp.getH());</span>
+<span class="nc" id="L451">            return params;</span>
+            // EllipticCurve ecc = new EllipticCurve(curve.)
+            // ECParameterSpec sp = new ECParameterSpec(, bcsp.getG(), bcsp.getN(), bcsp.getH().intValue());
+        }
+<span class="nc" id="L455">        return null;</span>
+    }
+
+    /**
+     * Creates PKCS12-file that can be imported in IE or Firefox. The alias for the private key is set to 'privateKey' and the private key password is
+     * null.
+     * 
+     * @param alias
+     *            the alias used for the key entry
+     * @param privKey
+     *            RSA private key
+     * @param cert
+     *            user certificate
+     * @param cacert
+     *            CA-certificate or null if only one cert in chain, in that case use 'cert'.
+     * 
+     * @return KeyStore containing PKCS12-keystore
+     * @throws CertificateException if the certificate couldn't be parsed
+     * @throws CertificateEncodingException if the encoded bytestream of the certificate couldn't be retrieved
+     * @throws NoSuchAlgorithmException if the algorithm defined in privKey couldn't be found
+     * @throws InvalidKeySpecException if the key specification defined in privKey couldn't be found
+     */
+    public static KeyStore createP12(final String alias, final PrivateKey privKey, final Certificate cert, final Certificate cacert)
+            throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
+        final Certificate[] chain;
+
+<span class="pc bpc" id="L481" title="1 of 2 branches missed.">        if (cacert == null) {</span>
+<span class="fc" id="L482">            chain = null;</span>
+        } else {
+<span class="nc" id="L484">            chain = new Certificate[1];</span>
+<span class="nc" id="L485">            chain[0] = cacert;</span>
+        }
+
+<span class="fc" id="L488">        return createP12(alias, privKey, cert, chain);</span>
+    } // createP12
+
+    /**
+     * Creates PKCS12-file that can be imported in IE or Firefox. The alias for the private key is set to 'privateKey' and the private key password is
+     * null.
+     * 
+     * @param alias
+     *            the alias used for the key entry
+     * @param privKey
+     *            RSA private key
+     * @param cert
+     *            user certificate
+     * @param cacerts
+     *            Collection of X509Certificate, or null if only one cert in chain, in that case use 'cert'.
+     * @return KeyStore containing PKCS12-keystore
+     * @throws CertificateException if the certificate couldn't be parsed
+     * @throws CertificateEncodingException if the encoded bytestream of the certificate couldn't be retrieved
+     * @throws NoSuchAlgorithmException if the algorithm defined in privKey couldn't be found
+     * @throws InvalidKeySpecException if the key specification defined in privKey couldn't be found
+     */
+    public static KeyStore createP12(final String alias, final PrivateKey privKey, final Certificate cert, final Collection&lt;Certificate&gt; cacerts)
+            throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
+        final Certificate[] chain;
+<span class="nc bnc" id="L512" title="All 2 branches missed.">        if (cacerts == null) {</span>
+<span class="nc" id="L513">            chain = null;</span>
+        } else {
+<span class="nc" id="L515">            chain = cacerts.toArray(new Certificate[cacerts.size()]);</span>
+        }
+<span class="nc" id="L517">        return createP12(alias, privKey, cert, chain);</span>
+    } // createP12
+
+    /**
+     * Creates PKCS12-file that can be imported in IE or Firefox. The alias for the private key is set to 'privateKey' and the private key password is
+     * null.
+     * 
+     * @param alias
+     *            the alias used for the key entry
+     * @param privKey
+     *            RSA private key
+     * @param cert
+     *            user certificate
+     * @param cachain
+     *            CA-certificate chain or null if only one cert in chain, in that case use 'cert'.
+     * @return KeyStore containing PKCS12-keystore
+     * @throws CertificateException if the certificate couldn't be parsed
+     * @throws CertificateEncodingException if the encoded bytestream of the certificate couldn't be retrieved
+     * @throws NoSuchAlgorithmException if the algorithm defined in privKey couldn't be found
+     * @throws InvalidKeySpecException if the key specification defined in privKey couldn't be found
+
+     */
+    public static KeyStore createP12(final String alias, final PrivateKey privKey, final Certificate cert, final Certificate[] cachain)
+            throws CertificateEncodingException, CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
+<span class="pc bpc" id="L541" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L542">            log.trace(&quot;&gt;createP12: alias=&quot; + alias + &quot;, privKey, cert=&quot; + CertTools.getSubjectDN(cert) + &quot;, cachain.length=&quot;</span>
+<span class="nc bnc" id="L543" title="All 2 branches missed.">                    + ((cachain == null) ? 0 : cachain.length));</span>
+        }
+        // Certificate chain
+<span class="pc bpc" id="L546" title="1 of 2 branches missed.">        if (cert == null) {</span>
+<span class="nc" id="L547">            throw new IllegalArgumentException(&quot;Parameter cert cannot be null.&quot;);</span>
+        }
+<span class="fc" id="L549">        int len = 1;</span>
+<span class="pc bpc" id="L550" title="1 of 2 branches missed.">        if (cachain != null) {</span>
+<span class="nc" id="L551">            len += cachain.length;</span>
+        }
+<span class="fc" id="L553">        final Certificate[] chain = new Certificate[len];</span>
+        // To not get a ClassCastException we need to generate a real new certificate with BC
+<span class="fc" id="L555">        final CertificateFactory cf = CertTools.getCertificateFactory();</span>
+<span class="fc" id="L556">        chain[0] = cf.generateCertificate(new ByteArrayInputStream(cert.getEncoded()));</span>
+
+<span class="pc bpc" id="L558" title="1 of 2 branches missed.">        if (cachain != null) {</span>
+<span class="nc bnc" id="L559" title="All 2 branches missed.">            for (int i = 0; i &lt; cachain.length; i++) {</span>
+<span class="nc" id="L560">                final X509Certificate tmpcert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(cachain[i].getEncoded()));</span>
+<span class="nc" id="L561">                chain[i + 1] = tmpcert;</span>
+            }
+        }
+<span class="pc bpc" id="L564" title="1 of 2 branches missed.">        if (chain.length &gt; 1) {</span>
+<span class="nc bnc" id="L565" title="All 2 branches missed.">            for (int i = 1; i &lt; chain.length; i++) {</span>
+<span class="nc" id="L566">                final X509Certificate cacert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(chain[i].getEncoded()));</span>
+                // Set attributes on CA-cert
+                try {
+<span class="nc" id="L569">                    final PKCS12BagAttributeCarrier caBagAttr = (PKCS12BagAttributeCarrier) chain[i];</span>
+                    // We construct a friendly name for the CA, and try with some parts from the DN if they exist.
+<span class="nc" id="L571">                    String cafriendly = CertTools.getPartFromDN(CertTools.getSubjectDN(cacert), &quot;CN&quot;);</span>
+                    // On the ones below we +i to make it unique, O might not be otherwise
+<span class="nc bnc" id="L573" title="All 2 branches missed.">                    if (cafriendly == null) {</span>
+<span class="nc" id="L574">                        cafriendly = CertTools.getPartFromDN(CertTools.getSubjectDN(cacert), &quot;O&quot;);</span>
+<span class="nc bnc" id="L575" title="All 2 branches missed.">                        if (cafriendly == null) {</span>
+<span class="nc" id="L576">                            cafriendly = CertTools.getPartFromDN(CertTools.getSubjectDN(cacert), &quot;OU&quot;);</span>
+<span class="nc bnc" id="L577" title="All 2 branches missed.">                            if (cafriendly == null) {</span>
+<span class="nc" id="L578">                                cafriendly = &quot;CA_unknown&quot; + i;</span>
+                            } else {
+<span class="nc" id="L580">                                cafriendly = cafriendly +i;</span>
+                            }
+                        } else {
+<span class="nc" id="L583">                            cafriendly = cafriendly +i;</span>
+                        }
+                    }
+<span class="nc" id="L586">                    caBagAttr.setBagAttribute(PKCSObjectIdentifiers.pkcs_9_at_friendlyName, new DERBMPString(cafriendly));</span>
+<span class="nc" id="L587">                } catch (ClassCastException e) {</span>
+<span class="nc" id="L588">                    log.error(&quot;ClassCastException setting BagAttributes, can not set friendly name: &quot;, e);</span>
+<span class="nc" id="L589">                }</span>
+            }
+        }
+
+        // Set attributes on user-cert
+        try {
+<span class="fc" id="L595">            final PKCS12BagAttributeCarrier certBagAttr = (PKCS12BagAttributeCarrier) chain[0];</span>
+<span class="fc" id="L596">            certBagAttr.setBagAttribute(PKCSObjectIdentifiers.pkcs_9_at_friendlyName, new DERBMPString(alias));</span>
+            // in this case we just set the local key id to that of the public key
+<span class="fc" id="L598">            certBagAttr.setBagAttribute(PKCSObjectIdentifiers.pkcs_9_at_localKeyId, createSubjectKeyId(chain[0].getPublicKey()));</span>
+<span class="nc" id="L599">        } catch (ClassCastException e) {</span>
+<span class="nc" id="L600">            log.error(&quot;ClassCastException setting BagAttributes, can not set friendly name: &quot;, e);</span>
+<span class="fc" id="L601">        }</span>
+        try {
+        // &quot;Clean&quot; private key, i.e. remove any old attributes
+<span class="fc" id="L604">        final KeyFactory keyfact = KeyFactory.getInstance(privKey.getAlgorithm(), BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="fc" id="L605">        final PrivateKey pk = keyfact.generatePrivate(new PKCS8EncodedKeySpec(privKey.getEncoded()));</span>
+        // Set attributes for private key
+            try {
+<span class="fc" id="L608">                final PKCS12BagAttributeCarrier keyBagAttr = (PKCS12BagAttributeCarrier) pk;</span>
+                // in this case we just set the local key id to that of the public key
+<span class="fc" id="L610">                keyBagAttr.setBagAttribute(PKCSObjectIdentifiers.pkcs_9_at_friendlyName, new DERBMPString(alias));</span>
+<span class="fc" id="L611">                keyBagAttr.setBagAttribute(PKCSObjectIdentifiers.pkcs_9_at_localKeyId, createSubjectKeyId(chain[0].getPublicKey()));</span>
+<span class="nc" id="L612">            } catch (ClassCastException e) {</span>
+<span class="nc" id="L613">                log.error(&quot;ClassCastException setting BagAttributes, can not set friendly name: &quot;, e);</span>
+<span class="fc" id="L614">            }</span>
+            // store the key and the certificate chain
+            // BC PKCS12 uses 3DES for key protection and 40 bit RC2 for protecting the certificates
+<span class="fc" id="L617">            final KeyStore store = KeyStore.getInstance(&quot;PKCS12&quot;, BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="fc" id="L618">            store.load(null, null);</span>
+<span class="fc" id="L619">            store.setKeyEntry(alias, pk, null, chain);</span>
+<span class="pc bpc" id="L620" title="1 of 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L621">                log.trace(&quot;&lt;createP12: alias=&quot; + alias + &quot;, privKey, cert=&quot; + CertTools.getSubjectDN(cert) + &quot;, cachain.length=&quot;</span>
+<span class="nc bnc" id="L622" title="All 2 branches missed.">                        + ((cachain == null) ? 0 : cachain.length));</span>
+            }
+<span class="fc" id="L624">            return store;</span>
+<span class="nc" id="L625">        } catch (NoSuchProviderException e) {</span>
+<span class="nc" id="L626">            throw new IllegalStateException(&quot;BouncyCastle provider was not found.&quot;, e);</span>
+<span class="nc" id="L627">        } catch (KeyStoreException e) {</span>
+<span class="nc" id="L628">            throw new IllegalStateException(&quot;PKCS12 keystore type could not be instanced.&quot;, e);</span>
+<span class="nc" id="L629">        } catch (IOException e) {</span>
+<span class="nc" id="L630">            throw new IllegalStateException(&quot;IOException should not be thrown when instancing an empty keystore.&quot;, e);</span>
+        }
+    } // createP12
+
+    /**
+     * Creates JKS-file that can be used with JDK. The alias for the private key is set to 'privateKey' and the private key password is null.
+     * 
+     * @param alias
+     *            the alias used for the key entry
+     * @param privKey
+     *            RSA private key
+     * @param password
+     *            user's password
+     * @param cert
+     *            user certificate
+     * @param cachain
+     *            CA-certificate chain or null if only one cert in chain, in that case use 'cert'.
+     * 
+     * @return KeyStore containing JKS-keystore
+     * @throws KeyStoreException is storing the certificate failed, perhaps because the alias is already being used?
+     */
+    public static KeyStore createJKS(final String alias, final PrivateKey privKey, final String password, final X509Certificate cert,
+            final Certificate[] cachain) throws KeyStoreException {
+<span class="pc bpc" id="L653" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L654">            log.trace(&quot;&gt;createJKS: alias=&quot; + alias + &quot;, privKey, cert=&quot; + CertTools.getSubjectDN(cert) + &quot;, cachain.length=&quot;</span>
+<span class="nc bnc" id="L655" title="All 2 branches missed.">                    + ((cachain == null) ? 0 : cachain.length));</span>
+        }
+<span class="fc" id="L657">        final String caAlias = &quot;cacert&quot;;</span>
+
+        // Certificate chain
+<span class="pc bpc" id="L660" title="1 of 2 branches missed.">        if (cert == null) {</span>
+<span class="nc" id="L661">            throw new IllegalArgumentException(&quot;Parameter cert cannot be null.&quot;);</span>
+        }
+<span class="fc" id="L663">        int len = 1;</span>
+<span class="pc bpc" id="L664" title="1 of 2 branches missed.">        if (cachain != null) {</span>
+<span class="nc" id="L665">            len += cachain.length;</span>
+        }
+<span class="fc" id="L667">        final Certificate[] chain = new Certificate[len];</span>
+<span class="fc" id="L668">        chain[0] = cert;</span>
+<span class="pc bpc" id="L669" title="1 of 2 branches missed.">        if (cachain != null) {</span>
+<span class="nc" id="L670">            System.arraycopy(cachain, 0, chain, 1, cachain.length);</span>
+        }
+
+        // store the key and the certificate chain
+        final KeyStore store;
+        try {
+<span class="fc" id="L676">            store = KeyStore.getInstance(&quot;JKS&quot;);</span>
+<span class="nc" id="L677">        } catch (KeyStoreException e) {</span>
+<span class="nc" id="L678">            throw new IllegalStateException(&quot;No JKS implementation found in provider&quot;, e);</span>
+<span class="fc" id="L679">        }</span>
+        try {
+<span class="fc" id="L681">            store.load(null, null);</span>
+<span class="nc" id="L682">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L683">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L684">        } catch (CertificateException e) {</span>
+<span class="nc" id="L685">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L686">        } catch (IOException e) {</span>
+<span class="nc" id="L687">            throw new IllegalStateException(e);</span>
+<span class="fc" id="L688">        }</span>
+
+        // First load the key entry
+<span class="fc" id="L691">        final X509Certificate[] usercert = new X509Certificate[1];</span>
+<span class="fc" id="L692">        usercert[0] = cert;</span>
+        try {
+<span class="fc" id="L694">            store.setKeyEntry(alias, privKey, password.toCharArray(), usercert);</span>
+<span class="nc" id="L695">        } catch (KeyStoreException e) {</span>
+<span class="nc" id="L696">            throw new IllegalStateException(&quot;Keystore apparently hasn't been loaded?&quot;, e);</span>
+ 
+<span class="fc" id="L698">        }</span>
+
+        // Add the root cert as trusted
+<span class="pc bpc" id="L701" title="1 of 2 branches missed.">        if (cachain != null) {</span>
+<span class="nc bnc" id="L702" title="All 2 branches missed.">            if (!CertTools.isSelfSigned(cachain[cachain.length - 1])) {</span>
+<span class="nc" id="L703">                throw new IllegalArgumentException(&quot;Root cert is not self-signed.&quot;);</span>
+            }
+<span class="nc" id="L705">            store.setCertificateEntry(caAlias, cachain[cachain.length - 1]);</span>
+        }
+
+        // Set the complete chain
+<span class="fc" id="L709">        log.debug(&quot;Storing cert chain of length &quot; + chain.length);</span>
+<span class="fc" id="L710">        store.setKeyEntry(alias, privKey, password.toCharArray(), chain);</span>
+<span class="pc bpc" id="L711" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L712">            log.trace(&quot;&lt;createJKS: alias=&quot; + alias + &quot;, privKey, cert=&quot; + CertTools.getSubjectDN(cert) + &quot;, cachain.length=&quot;</span>
+<span class="nc bnc" id="L713" title="All 2 branches missed.">                    + ((cachain == null) ? 0 : cachain.length));</span>
+        }
+<span class="fc" id="L715">        return store;</span>
+    } // createJKS
+
+    /**
+     * Generates KeyStore from key store byte array. Token type (JKS / P12) is determined 
+     * automatically by the byte array content
+     * @param keyStoreBytes byte array containing key store
+     * @param password of the key store
+     * @return JKS or P12 KeyStore depending of input content
+     * @throws KeyStoreException If store fails
+     * @throws NoSuchProviderException If provider not found
+     * @throws IOException On I/O error
+     * @throws NoSuchAlgorithmException If algorithm not found 
+     * @throws CertificateException on invalid certificate
+     */
+    public static KeyStore createKeyStore(byte[] keyStoreBytes, String password) throws KeyStoreException, 
+            NoSuchProviderException, IOException, NoSuchAlgorithmException, CertificateException {
+<span class="nc" id="L732">        final byte PKCS12_MAGIC = (byte)48;</span>
+<span class="nc" id="L733">        final byte JKS_MAGIC = (byte)(0xfe);</span>
+
+        final KeyStore keyStore;
+<span class="nc bnc" id="L736" title="All 2 branches missed.">        if (keyStoreBytes[0] == PKCS12_MAGIC) {</span>
+<span class="nc" id="L737">            keyStore = KeyStore.getInstance(&quot;PKCS12&quot;, &quot;BC&quot;);</span>
+<span class="nc bnc" id="L738" title="All 2 branches missed.">        } else if (keyStoreBytes[0] == JKS_MAGIC) {</span>
+<span class="nc" id="L739">            keyStore = KeyStore.getInstance(&quot;JKS&quot;);</span>
+        } else {
+<span class="nc" id="L741">            throw new IOException(&quot;Unsupported keystore type. Must be PKCS12 or JKS&quot;);</span>
+        }
+<span class="nc" id="L743">        keyStore.load(new ByteArrayInputStream(keyStoreBytes), password.toCharArray());</span>
+<span class="nc" id="L744">        return keyStore;</span>
+    }
+    
+    
+    /**
+     * Convert a KeyStore to PEM format.
+     * @param ks Key store
+     * @param password password
+     * @return PEM
+     * @throws KeyStoreException if store fails 
+     * @throws CertificateEncodingException If cert cannot be parsed
+     * @throws IOException on i/o error
+     * @throws UnrecoverableKeyException if key cannot be read 
+     * @throws NoSuchAlgorithmException if algorithm not found
+     */
+    public static byte[] getSinglePemFromKeyStore(final KeyStore ks, final char[] password) throws KeyStoreException, CertificateEncodingException,
+    IOException, UnrecoverableKeyException, NoSuchAlgorithmException {
+<span class="fc" id="L761">        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();</span>
+
+        // Find the key private key entry in the keystore
+<span class="fc" id="L764">        final Enumeration&lt;String&gt; e = ks.aliases();</span>
+<span class="fc" id="L765">        Object o = null;</span>
+<span class="fc" id="L766">        String alias = &quot;&quot;;</span>
+<span class="fc" id="L767">        PrivateKey serverPrivKey = null;</span>
+<span class="pc bpc" id="L768" title="1 of 2 branches missed.">        while (e.hasMoreElements()) {</span>
+<span class="fc" id="L769">            o = e.nextElement();</span>
+<span class="pc bpc" id="L770" title="1 of 2 branches missed.">            if (o instanceof String) {</span>
+<span class="pc bpc" id="L771" title="2 of 4 branches missed.">                if ((ks.isKeyEntry((String) o)) &amp;&amp; ((serverPrivKey = (PrivateKey) ks.getKey((String) o, password)) != null)) {</span>
+<span class="fc" id="L772">                    alias = (String) o;</span>
+<span class="fc" id="L773">                    break;</span>
+                }
+            }
+        }
+
+<span class="pc bpc" id="L778" title="1 of 2 branches missed.">        final byte[] privKeyEncoded = serverPrivKey!=null ? serverPrivKey.getEncoded() : &quot;&quot;.getBytes();</span>
+
+<span class="fc" id="L780">        final Certificate[] chain = KeyTools.getCertChain(ks, (String) o);</span>
+<span class="fc" id="L781">        final X509Certificate userX509Certificate = (X509Certificate) chain[0];</span>
+        {
+<span class="fc" id="L783">            final byte[] output = userX509Certificate.getEncoded();</span>
+<span class="fc" id="L784">            final String sn = CertTools.getSubjectDN(userX509Certificate);</span>
+
+<span class="fc" id="L786">            final String subjectdnpem = sn.replace(',', '/');</span>
+<span class="fc" id="L787">            final String issuerdnpem = CertTools.getIssuerDN(userX509Certificate).replace(',', '/');</span>
+
+<span class="fc" id="L789">            buffer.write(BAG_ATTRIBUTES);</span>
+<span class="fc" id="L790">            buffer.write(FRIENDLY_NAME);</span>
+<span class="fc" id="L791">            buffer.write(alias.getBytes());</span>
+<span class="fc" id="L792">            buffer.write(NL);</span>
+<span class="fc" id="L793">            buffer.write(BEGIN_PRIVATE_KEY);</span>
+<span class="fc" id="L794">            buffer.write(NL);</span>
+
+<span class="fc" id="L796">            final byte[] privKey = Base64.encode(privKeyEncoded);</span>
+<span class="fc" id="L797">            buffer.write(privKey);</span>
+<span class="fc" id="L798">            buffer.write(NL);</span>
+<span class="fc" id="L799">            buffer.write(END_PRIVATE_KEY);</span>
+<span class="fc" id="L800">            buffer.write(NL);</span>
+<span class="fc" id="L801">            buffer.write(BAG_ATTRIBUTES);</span>
+<span class="fc" id="L802">            buffer.write(FRIENDLY_NAME);</span>
+<span class="fc" id="L803">            buffer.write(alias.getBytes());</span>
+<span class="fc" id="L804">            buffer.write(NL);</span>
+<span class="fc" id="L805">            buffer.write(SUBJECT_ATTRIBUTE);</span>
+<span class="fc" id="L806">            buffer.write(subjectdnpem.getBytes());</span>
+<span class="fc" id="L807">            buffer.write(NL);</span>
+<span class="fc" id="L808">            buffer.write(ISSUER_ATTRIBUTE);</span>
+<span class="fc" id="L809">            buffer.write(issuerdnpem.getBytes());</span>
+<span class="fc" id="L810">            buffer.write(NL);</span>
+<span class="fc" id="L811">            buffer.write(BEGIN_CERTIFICATE);</span>
+<span class="fc" id="L812">            buffer.write(NL);</span>
+
+<span class="fc" id="L814">            final byte[] userCertB64 = Base64.encode(output);</span>
+<span class="fc" id="L815">            buffer.write(userCertB64);</span>
+<span class="fc" id="L816">            buffer.write(NL);</span>
+<span class="fc" id="L817">            buffer.write(END_CERTIFICATE);</span>
+<span class="fc" id="L818">            buffer.write(NL);</span>
+        }
+<span class="pc bpc" id="L820" title="1 of 2 branches missed.">        if (!CertTools.isSelfSigned(userX509Certificate)) {</span>
+<span class="nc bnc" id="L821" title="All 2 branches missed.">            for (int num = 1; num &lt; chain.length; num++) {</span>
+<span class="nc" id="L822">                final X509Certificate tmpX509Cert = (X509Certificate) chain[num];</span>
+<span class="nc" id="L823">                final String sn = CertTools.getSubjectDN(tmpX509Cert);</span>
+
+<span class="nc" id="L825">                final String cnTmp = CertTools.getPartFromDN(sn, &quot;CN&quot;);</span>
+<span class="nc bnc" id="L826" title="All 2 branches missed.">                final String cn = StringUtils.isEmpty(cnTmp) ? cnTmp : &quot;Unknown&quot;;</span>
+
+<span class="nc" id="L828">                final String subjectdnpem = sn.replace(',', '/');</span>
+<span class="nc" id="L829">                final String issuerdnpem = CertTools.getIssuerDN(tmpX509Cert).replace(',', '/');</span>
+
+<span class="nc" id="L831">                buffer.write(BAG_ATTRIBUTES);</span>
+<span class="nc" id="L832">                buffer.write(FRIENDLY_NAME);</span>
+<span class="nc" id="L833">                buffer.write(cn.getBytes());</span>
+<span class="nc" id="L834">                buffer.write(NL);</span>
+<span class="nc" id="L835">                buffer.write(SUBJECT_ATTRIBUTE);</span>
+<span class="nc" id="L836">                buffer.write(subjectdnpem.getBytes());</span>
+<span class="nc" id="L837">                buffer.write(NL);</span>
+<span class="nc" id="L838">                buffer.write(ISSUER_ATTRIBUTE);</span>
+<span class="nc" id="L839">                buffer.write(issuerdnpem.getBytes());</span>
+<span class="nc" id="L840">                buffer.write(NL);</span>
+
+<span class="nc" id="L842">                final byte[] tmpOutput = tmpX509Cert.getEncoded();</span>
+<span class="nc" id="L843">                buffer.write(BEGIN_CERTIFICATE);</span>
+<span class="nc" id="L844">                buffer.write(NL);</span>
+
+<span class="nc" id="L846">                final byte[] tmpCACertB64 = Base64.encode(tmpOutput);</span>
+<span class="nc" id="L847">                buffer.write(tmpCACertB64);</span>
+<span class="nc" id="L848">                buffer.write(NL);</span>
+<span class="nc" id="L849">                buffer.write(END_CERTIFICATE);</span>
+<span class="nc" id="L850">                buffer.write(NL);</span>
+            }
+        }
+<span class="fc" id="L853">        return buffer.toByteArray();</span>
+    }
+
+    /** @param publicKey Key
+     * @return a buffer with the public key in PEM format 
+     * @throws IOException on I/O error */
+    public static String getAsPem(final PublicKey publicKey) throws IOException {
+<span class="nc" id="L860">        final ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+<span class="nc" id="L861">        try ( final JcaPEMWriter pemWriter = new JcaPEMWriter(new OutputStreamWriter(baos)) ) {</span>
+<span class="nc" id="L862">            pemWriter.writeObject(publicKey);</span>
+        }
+<span class="nc" id="L864">        return new String(baos.toByteArray(), &quot;UTF8&quot;);</span>
+    }
+
+    /**
+     * Retrieves the certificate chain from a keystore.
+     * 
+     * @param keyStore
+     *            the keystore, which has been loaded and opened.
+     * @param privateKeyAlias
+     *            the alias of the privatekey for which the certchain belongs.
+     * 
+     * @return array of Certificate, or null if no certificates are found.
+     * @throws KeyStoreException on fail
+     */
+    public static Certificate[] getCertChain(final KeyStore keyStore, final String privateKeyAlias) throws KeyStoreException {
+<span class="pc bpc" id="L879" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L880">            log.trace(&quot;&gt;getCertChain: alias='&quot; + privateKeyAlias + &quot;'&quot;);</span>
+        }
+<span class="fc" id="L882">        final Certificate[] certchain = keyStore.getCertificateChain(privateKeyAlias);</span>
+<span class="pc bpc" id="L883" title="1 of 2 branches missed.">        if (certchain == null) {</span>
+<span class="nc" id="L884">            return null;</span>
+        }
+<span class="fc" id="L886">        log.debug(&quot;Certchain retrieved from alias '&quot; + privateKeyAlias + &quot;' has length &quot; + certchain.length);</span>
+
+<span class="pc bpc" id="L888" title="1 of 2 branches missed.">        if (certchain.length &lt; 1) {</span>
+<span class="nc" id="L889">            log.error(&quot;Cannot load certificate chain with alias '&quot; + privateKeyAlias + &quot;' from keystore.&quot;);</span>
+<span class="nc bnc" id="L890" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L891">                log.trace(&quot;&lt;getCertChain: alias='&quot; + privateKeyAlias + &quot;', retlength=&quot; + certchain.length);</span>
+            }
+<span class="nc" id="L893">            return certchain;</span>
+<span class="pc bpc" id="L894" title="1 of 2 branches missed.">        } else if (certchain.length &gt; 0) {</span>
+<span class="pc bpc" id="L895" title="1 of 2 branches missed.">            if (CertTools.isSelfSigned(certchain[certchain.length - 1])) {</span>
+<span class="pc bpc" id="L896" title="1 of 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L897">                    log.debug(&quot;Issuer='&quot; + CertTools.getIssuerDN(certchain[certchain.length - 1]) + &quot;'.&quot;);</span>
+<span class="nc" id="L898">                    log.debug(&quot;Subject='&quot; + CertTools.getSubjectDN(certchain[certchain.length - 1]) + &quot;'.&quot;);</span>
+                }
+<span class="pc bpc" id="L900" title="1 of 2 branches missed.">                if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L901">                    log.trace(&quot;&lt;getCertChain: alias='&quot; + privateKeyAlias + &quot;', retlength=&quot; + certchain.length);</span>
+                }
+<span class="fc" id="L903">                return certchain;</span>
+            }
+        }
+
+        // If we came here, we have a cert which is not root cert in 'cert'
+<span class="nc" id="L908">        final ArrayList&lt;Certificate&gt; array = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L910" title="All 2 branches missed.">        for (int i = 0; i &lt; certchain.length; i++) {</span>
+<span class="nc" id="L911">            array.add(certchain[i]);</span>
+        }
+
+        while ( true ) {
+<span class="nc" id="L915">            final X509Certificate cert = (X509Certificate) array.get(array.size() - 1);</span>
+<span class="nc" id="L916">            final String ialias = CertTools.getPartFromDN(CertTools.getIssuerDN(cert), &quot;CN&quot;);</span>
+<span class="nc" id="L917">            final Certificate[] chain1 = keyStore.getCertificateChain(ialias);</span>
+
+<span class="nc bnc" id="L919" title="All 2 branches missed.">            if (chain1 == null) {</span>
+<span class="nc" id="L920">                break;</span>
+            }
+<span class="nc bnc" id="L922" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L923">                log.debug(&quot;Loaded certificate chain with length &quot; + chain1.length + &quot; with alias '&quot; + ialias + &quot;'.&quot;);</span>
+            }
+
+<span class="nc bnc" id="L926" title="All 2 branches missed.">            if (chain1.length == 0) {</span>
+<span class="nc" id="L927">                log.error(&quot;No RootCA certificate found!&quot;);</span>
+<span class="nc" id="L928">                break;</span>
+            }
+<span class="nc" id="L930">            boolean isSelfSigned = false;</span>
+<span class="nc bnc" id="L931" title="All 4 branches missed.">            for (int j = 0; j &lt; chain1.length &amp;&amp; !isSelfSigned; j++) {</span>
+<span class="nc" id="L932">                array.add(chain1[j]);</span>
+
+                // If one cert is slefsigned, we have found a root certificate, we don't need to go on anymore
+<span class="nc bnc" id="L935" title="All 2 branches missed.">                if (CertTools.isSelfSigned(chain1[j])) {</span>
+<span class="nc" id="L936">                    isSelfSigned = true;</span>
+                }
+            }
+<span class="nc bnc" id="L939" title="All 2 branches missed.">            if ( isSelfSigned ) {</span>
+<span class="nc" id="L940">                break;</span>
+            }
+<span class="nc" id="L942">        }</span>
+
+<span class="nc" id="L944">        final Certificate[] ret = new Certificate[array.size()];</span>
+
+<span class="nc bnc" id="L946" title="All 2 branches missed.">        for (int i = 0; i &lt; ret.length; i++) {</span>
+<span class="nc" id="L947">            ret[i] = array.get(i);</span>
+<span class="nc bnc" id="L948" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L949">                log.debug(&quot;Issuer='&quot; + CertTools.getIssuerDN(ret[i]) + &quot;'.&quot;);</span>
+<span class="nc" id="L950">                log.debug(&quot;Subject='&quot; + CertTools.getSubjectDN(ret[i]) + &quot;'.&quot;);</span>
+            }
+        }
+<span class="nc bnc" id="L953" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L954">            log.trace(&quot;&lt;getCertChain: alias='&quot; + privateKeyAlias + &quot;', retlength=&quot; + ret.length);</span>
+        }
+<span class="nc" id="L956">        return ret;</span>
+    } // getCertChain
+
+    /**
+     * create the subject key identifier.
+     * 
+     * @param pubKey
+     *            the public key
+     * 
+     * @return SubjectKeyIdentifer asn.1 structure
+     */
+    public static SubjectKeyIdentifier createSubjectKeyId(final PublicKey pubKey) {
+        try {
+            final ASN1Sequence keyASN1Sequence;
+<span class="fc" id="L970">            try( final ASN1InputStream pubKeyAsn1InputStream = new ASN1InputStream(new ByteArrayInputStream(pubKey.getEncoded())); ) {</span>
+<span class="fc" id="L971">                final Object keyObject = pubKeyAsn1InputStream.readObject();</span>
+<span class="pc bpc" id="L972" title="1 of 2 branches missed.">                if (keyObject instanceof ASN1Sequence) {</span>
+<span class="fc" id="L973">                    keyASN1Sequence = (ASN1Sequence) keyObject;</span>
+                } else {
+                    // PublicKey key that doesn't encode to a ASN1Sequence. Fix this by creating a BC object instead.
+<span class="nc" id="L976">                    final PublicKey altKey = (PublicKey) KeyFactory.getInstance(pubKey.getAlgorithm(), BouncyCastleProvider.PROVIDER_NAME).translateKey(pubKey);</span>
+<span class="nc" id="L977">                    try ( final ASN1InputStream altKeyAsn1InputStream = new ASN1InputStream(new ByteArrayInputStream(altKey.getEncoded())) ) {</span>
+<span class="nc" id="L978">                        keyASN1Sequence = (ASN1Sequence) altKeyAsn1InputStream.readObject();</span>
+                    }
+                }
+<span class="fc" id="L981">                X509ExtensionUtils x509ExtensionUtils = new BcX509ExtensionUtils();</span>
+<span class="fc" id="L982">                return x509ExtensionUtils.createSubjectKeyIdentifier(SubjectPublicKeyInfo.getInstance(keyASN1Sequence));</span>
+            }
+<span class="nc" id="L984">        } catch (Exception e) {</span>
+<span class="nc" id="L985">            final RuntimeException e2 = new RuntimeException(&quot;error creating key&quot;); // NOPMD</span>
+<span class="nc" id="L986">            e2.initCause(e);</span>
+<span class="nc" id="L987">            throw e2;</span>
+        }
+    } 
+
+    /**
+     * Detect if &quot;Unlimited Strength&quot; Policy files has bean properly installed.
+     * 
+     * @return true if key strength is limited
+     */
+    public static boolean isUsingExportableCryptography() {
+<span class="nc" id="L997">        return CryptoProviderTools.isUsingExportableCryptography();</span>
+    }
+
+    /**
+     * Sign provided data with specified private key and algortihm
+     * 
+     * @param privateKey
+     *            the private key
+     * @param signatureAlgorithm a valid signature algorithm such as AlgorithmConstants.SIGALG_SHA256_WITH_RSA
+     * @param data
+     *            the data to sign
+     * @return the signature
+     * @throws SignatureException If sig is invalid
+     * @throws NoSuchAlgorithmException If algorithm not found
+     * @throws InvalidKeyException if key is invalid
+     * @throws NoSuchProviderException if BouncyCastleProvider is not installed 
+     */
+    public static byte[] signData(final PrivateKey privateKey, final String signatureAlgorithm, final byte[] data) throws SignatureException,
+            NoSuchAlgorithmException, InvalidKeyException, NoSuchProviderException {
+<span class="nc" id="L1016">        final Signature signer = Signature.getInstance(signatureAlgorithm, BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="nc" id="L1017">        signer.initSign(privateKey);</span>
+<span class="nc" id="L1018">        signer.update(data);</span>
+<span class="nc" id="L1019">        return (signer.sign());</span>
+    }
+
+    /**
+     * Verify signed data with specified public key, algorith and signature
+     * 
+     * @param publicKey
+     *            the public key
+     * @param signatureAlgorithm a valid signature algorithm
+     * @param data
+     *            the data to verify
+     * @param signature
+     *            the signature
+     * @return true if the signature is ok
+     * @throws SignatureException if signature is invalid
+     * @throws NoSuchAlgorithmException if algo not found
+     * @throws InvalidKeyException if key is invalid
+     * @throws NoSuchProviderException if BouncyCastleProvider is not installed 
+     */
+    public static boolean verifyData(final PublicKey publicKey, final String signatureAlgorithm, final byte[] data, final byte[] signature)
+            throws SignatureException, NoSuchAlgorithmException, InvalidKeyException, NoSuchProviderException {
+<span class="nc" id="L1040">        final Signature signer = Signature.getInstance(signatureAlgorithm, BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="nc" id="L1041">        signer.initVerify(publicKey);</span>
+<span class="nc" id="L1042">        signer.update(data);</span>
+<span class="nc" id="L1043">        return (signer.verify(signature));</span>
+
+    }
+
+    private static class SignDataOperation implements ISignOperation {
+
+<span class="fc" id="L1049">        public SignDataOperation( final PrivateKey _key, final byte _dataToBeSigned[] ) {</span>
+<span class="fc" id="L1050">            this.key = _key;</span>
+<span class="fc" id="L1051">            this.dataToBeSigned = _dataToBeSigned;</span>
+<span class="fc" id="L1052">        }</span>
+        final private PrivateKey key;
+        final private byte dataToBeSigned[];
+        private byte[] signatureBV;
+        private String signatureAlgorithm;
+        @Override
+        public void taskWithSigning(String signAlgorithm, Provider provider) throws TaskWithSigningException {
+            final Signature signature;
+            try {
+<span class="fc" id="L1061">                signature = Signature.getInstance(signAlgorithm, provider);</span>
+<span class="fc" id="L1062">                signature.initSign(this.key);</span>
+<span class="fc" id="L1063">                signature.update(this.dataToBeSigned);</span>
+<span class="fc" id="L1064">                this.signatureBV = signature.sign();</span>
+<span class="fc" id="L1065">            } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {</span>
+<span class="fc" id="L1066">                throw new TaskWithSigningException(String.format(&quot;Signing of data failed: %s&quot;, e.getMessage()), e);</span>
+<span class="fc" id="L1067">            }</span>
+<span class="fc" id="L1068">            this.signatureAlgorithm = signAlgorithm;</span>
+<span class="fc" id="L1069">        }</span>
+        public byte[] getSignature() {
+<span class="fc" id="L1071">            return this.signatureBV;</span>
+        }
+        public String getSignatureAlgorithm() {
+<span class="fc" id="L1074">            return this.signatureAlgorithm;</span>
+        }
+    }
+    private static Provider getProvider(final String sProvider) {
+<span class="fc bfc" id="L1078" title="All 2 branches covered.">        if ( sProvider==null ) {</span>
+<span class="fc" id="L1079">            return Security.getProvider(BouncyCastleProvider.PROVIDER_NAME);</span>
+        }
+<span class="fc" id="L1081">        final Provider provider = Security.getProvider(sProvider);</span>
+<span class="pc bpc" id="L1082" title="1 of 2 branches missed.">        if ( provider!=null ) {</span>
+<span class="fc" id="L1083">            return provider;</span>
+        }
+<span class="nc" id="L1085">        return Security.getProvider(BouncyCastleProvider.PROVIDER_NAME);</span>
+    }
+    /**
+     * Testing a key pair to verify that it is possible to first sign and then verify with it.
+     * 
+     * @param priv
+     *            private key to sign a string with
+     * @param pub
+     *            public key to verify the signature with
+     * @param sProvider
+     *            A provider used for signing with the private key, or null if &quot;BC&quot; should be used.
+     * 
+     * @throws InvalidKeyException
+     *             if the public key can not be used to verify a string signed by the private key, because the key is wrong or the signature operation
+     *             fails for other reasons such as a NoSuchAlgorithmException or SignatureException.
+     *             if the provider is not installed.
+     */
+    public static void testKey(final PrivateKey priv, final PublicKey pub, final String sProvider) throws InvalidKeyException { // NOPMD:this is not a junit test
+<span class="fc" id="L1103">        final byte input[] = &quot;Lillan gick pa vagen ut, motte dar en katt...&quot;.getBytes();</span>
+        final byte signBV[];
+        final String testSigAlg;
+        try {
+<span class="pc bpc" id="L1107" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1108">                final StringWriter sw = new StringWriter();</span>
+<span class="nc" id="L1109">                try( final PrintWriter pw = new PrintWriter(sw) ) {</span>
+<span class="nc" id="L1110">                    pw.println(&quot;Testing a key:&quot;);</span>
+<span class="nc" id="L1111">                    pw.println(String.format(&quot;\tTesting keys with algorithm: %s&quot;, pub.getAlgorithm()));</span>
+<span class="nc" id="L1112">                    pw.println(String.format(&quot;\tprovider: %s&quot;, sProvider));</span>
+<span class="nc" id="L1113">                    pw.println(String.format(&quot;\tprivateKey: %s&quot;, priv));</span>
+<span class="nc" id="L1114">                    pw.println(String.format(&quot;\tprivateKey class: %s&quot;, priv.getClass().getName()));</span>
+<span class="nc" id="L1115">                    pw.println(String.format(&quot;\tpublicKey: %s&quot;, pub));</span>
+<span class="nc" id="L1116">                    pw.println(String.format(&quot;\tpublicKey class: %s&quot;, pub.getClass().getName()));</span>
+<span class="nc" id="L1117">                    pw.flush();</span>
+                }
+<span class="nc" id="L1119">                log.debug(sw.toString());</span>
+            }
+            {
+<span class="fc" id="L1122">                final SignDataOperation operation = new SignDataOperation(priv, input);</span>
+                // Candidate algorithms. The first working one will be selected by SignWithWorkingAlgorithm
+<span class="fc" id="L1124">                final List&lt;String&gt; availableSignAlgorithms = AlgorithmTools.getSignatureAlgorithms(pub);</span>
+<span class="fc" id="L1125">                SignWithWorkingAlgorithm.doSignTask(availableSignAlgorithms, getProvider(sProvider), operation);</span>
+<span class="fc" id="L1126">                signBV = operation.getSignature();</span>
+<span class="fc" id="L1127">                testSigAlg = operation.getSignatureAlgorithm();</span>
+<span class="fc bfc" id="L1128" title="All 2 branches covered.">                if (signBV == null) {</span>
+<span class="fc" id="L1129">                    throw new InvalidKeyException(&quot;Result from signing is null.&quot;);</span>
+                }
+<span class="pc bpc" id="L1131" title="1 of 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1132">                    log.trace(&quot;Created signature of size: &quot; + signBV.length);</span>
+<span class="nc" id="L1133">                    log.trace(&quot;Created signature: &quot; + new String(Hex.encode(signBV)));</span>
+                }
+            }
+            {
+                final Signature signature;
+                try {
+<span class="fc" id="L1139">                    signature = Signature.getInstance(testSigAlg, &quot;BC&quot;);</span>
+<span class="nc" id="L1140">                } catch (NoSuchProviderException | NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L1141">                    throw new IllegalStateException(&quot;BouncyCastle was not found as a provider.&quot;, e);</span>
+<span class="fc" id="L1142">                }</span>
+<span class="fc" id="L1143">                signature.initVerify(pub);</span>
+<span class="fc" id="L1144">                signature.update(input);</span>
+<span class="fc bfc" id="L1145" title="All 2 branches covered.">                if (!signature.verify(signBV)) {</span>
+<span class="fc" id="L1146">                    throw new InvalidKeyException(&quot;Signature was not correctly verified.&quot;);</span>
+                }
+            }
+<span class="fc" id="L1149">        } catch ( InvalidKeyException e ) {</span>
+<span class="fc" id="L1150">            throw e;</span>
+<span class="fc" id="L1151">        } catch (  TaskWithSigningException | SignatureException e ) {</span>
+<span class="fc" id="L1152">            throw new InvalidKeyException(String.format(&quot;Exception testing key: %s&quot;, e.getMessage()), e);</span>
+<span class="fc" id="L1153">        }</span>
+<span class="fc" id="L1154">    }</span>
+
+    /**
+     * Print parameters of public part of a key.
+     * 
+     * @param publK
+     *            the key
+     * @param ps
+     *            stream to print to.
+     */
+    public static void printPublicKeyInfo(final PublicKey publK, final PrintStream ps) {
+<span class="fc bfc" id="L1165" title="All 2 branches covered.">        if (publK instanceof RSAPublicKey) {</span>
+<span class="fc" id="L1166">            ps.println(&quot;RSA key:&quot;);</span>
+<span class="fc" id="L1167">            final RSAPublicKey rsa = (RSAPublicKey) publK;</span>
+<span class="fc" id="L1168">            ps.println(&quot;  modulus: &quot; + rsa.getModulus().toString(16));</span>
+<span class="fc" id="L1169">            ps.println(&quot;  public exponent: &quot; + rsa.getPublicExponent().toString(16));</span>
+<span class="fc" id="L1170">            return;</span>
+        }
+<span class="fc bfc" id="L1172" title="All 2 branches covered.">        if (publK instanceof ECPublicKey) {</span>
+<span class="fc" id="L1173">            ps.println(&quot;Elliptic curve key:&quot;);</span>
+<span class="fc" id="L1174">            final ECPublicKey ec = (ECPublicKey) publK;</span>
+<span class="fc" id="L1175">            ps.println(&quot;  Named curve: &quot;+AlgorithmTools.getKeySpecification(ec));</span>
+<span class="fc" id="L1176">            ps.println(&quot;  the affine x-coordinate: &quot; + ec.getW().getAffineX().toString(16));</span>
+<span class="fc" id="L1177">            ps.println(&quot;  the affine y-coordinate: &quot; + ec.getW().getAffineY().toString(16));</span>
+<span class="fc" id="L1178">            return;</span>
+        }
+<span class="pc bpc" id="L1180" title="1 of 2 branches missed.">        if (publK instanceof DHPublicKey) {</span>
+<span class="nc" id="L1181">            ps.println(&quot;DH key:&quot;);</span>
+<span class="nc" id="L1182">            final DHPublicKey dh = (DHPublicKey) publK;</span>
+<span class="nc" id="L1183">            ps.println(&quot;  the public value y: &quot; + dh.getY().toString(16));</span>
+<span class="nc" id="L1184">            return;</span>
+        }
+<span class="pc bpc" id="L1186" title="1 of 2 branches missed.">        if (publK instanceof DSAPublicKey) {</span>
+<span class="fc" id="L1187">            ps.println(&quot;DSA key:&quot;);</span>
+<span class="fc" id="L1188">            final DSAPublicKey dsa = (DSAPublicKey) publK;</span>
+<span class="fc" id="L1189">            ps.println(&quot;  the public value y: &quot; + dsa.getY().toString(16));</span>
+<span class="fc" id="L1190">            return;</span>
+        }
+<span class="nc" id="L1192">    }</span>
+
+    /**
+     * Test if a private key is extractable (could be stored).
+     * 
+     * @param privK
+     *            key to test.
+     * @return true if the key is extractable.
+     */
+    public static boolean isPrivateKeyExtractable(final PrivateKey privK) {
+<span class="fc bfc" id="L1202" title="All 2 branches covered.">        if (privK instanceof RSAPrivateKey) {</span>
+<span class="fc" id="L1203">            final RSAPrivateKey rsa = (RSAPrivateKey) privK;</span>
+<span class="fc" id="L1204">            final BigInteger result = rsa.getPrivateExponent();</span>
+<span class="pc bpc" id="L1205" title="2 of 4 branches missed.">            return result != null &amp;&amp; result.bitLength() &gt; 0;</span>
+        }
+<span class="fc bfc" id="L1207" title="All 2 branches covered.">        if (privK instanceof ECPrivateKey) {</span>
+<span class="fc" id="L1208">            final ECPrivateKey ec = (ECPrivateKey) privK;</span>
+<span class="fc" id="L1209">            final BigInteger result = ec.getS();</span>
+<span class="pc bpc" id="L1210" title="2 of 4 branches missed.">            return result != null &amp;&amp; result.bitLength() &gt; 0;</span>
+        }
+<span class="pc bpc" id="L1212" title="1 of 2 branches missed.">        if (privK instanceof DHPrivateKey) {</span>
+<span class="nc" id="L1213">            final DHPrivateKey dh = (DHPrivateKey) privK;</span>
+<span class="nc" id="L1214">            final BigInteger result = dh.getX();</span>
+<span class="nc bnc" id="L1215" title="All 4 branches missed.">            return result != null &amp;&amp; result.bitLength() &gt; 0;</span>
+        }
+<span class="pc bpc" id="L1217" title="1 of 2 branches missed.">        if (privK instanceof DSAPrivateKey) {</span>
+<span class="fc" id="L1218">            final DSAPrivateKey dsa = (DSAPrivateKey) privK;</span>
+<span class="fc" id="L1219">            final BigInteger result = dsa.getX();</span>
+<span class="pc bpc" id="L1220" title="2 of 4 branches missed.">            return result != null &amp;&amp; result.bitLength() &gt; 0;</span>
+        }
+<span class="nc" id="L1222">        return false;</span>
+    }
+
+    public static void checkValidKeyLength(String keyspec) throws InvalidKeyException, InvalidAlgorithmParameterException {
+<span class="nc" id="L1226">        final String keyAlg = keyspecToKeyalg(keyspec);</span>
+        final int len;
+<span class="nc bnc" id="L1228" title="All 2 branches missed.">        if (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
+<span class="nc" id="L1229">            len = Integer.parseInt(keyspec); </span>
+<span class="nc bnc" id="L1230" title="All 2 branches missed.">        } else if (keyAlg.equals(AlgorithmConstants.KEYALGORITHM_DSA)) {</span>
+<span class="nc" id="L1231">            len = Integer.parseInt(keyspec.substring(3));</span>
+        } else {
+            // Assume it's elliptic curve
+<span class="nc" id="L1234">            final KeyPair kp = KeyTools.genKeys(keyspec, keyAlg);</span>
+<span class="nc" id="L1235">            len = KeyTools.getKeyLength(kp.getPublic());</span>
+        }
+<span class="nc" id="L1237">        checkValidKeyLength(keyAlg, len);</span>
+<span class="nc" id="L1238">    }</span>
+
+    public static void checkValidKeyLength(final PublicKey pk) throws InvalidKeyException {
+<span class="nc" id="L1241">        final String keyAlg = AlgorithmTools.getKeyAlgorithm(pk);</span>
+<span class="nc" id="L1242">        final int len = KeyTools.getKeyLength(pk);</span>
+<span class="nc" id="L1243">        checkValidKeyLength(keyAlg, len);</span>
+<span class="nc" id="L1244">    }</span>
+
+    public static void checkValidKeyLength(final String keyAlg, final int len) throws InvalidKeyException {
+<span class="nc" id="L1247">        final boolean isEcdsa = AlgorithmConstants.KEYALGORITHM_ECDSA.equals(keyAlg);</span>
+<span class="nc bnc" id="L1248" title="All 4 branches missed.">        final boolean isGost3410 = AlgorithmTools.isGost3410Enabled() &amp;&amp; AlgorithmConstants.KEYALGORITHM_ECGOST3410.equals(keyAlg);</span>
+<span class="nc bnc" id="L1249" title="All 4 branches missed.">        final boolean isDstu4145 = AlgorithmTools.isDstu4145Enabled() &amp;&amp; keyAlg.startsWith(CesecoreConfiguration.getOidDstu4145()+&quot;.&quot;);</span>
+<span class="nc bnc" id="L1250" title="All 6 branches missed.">        if (isEcdsa || isGost3410 || isDstu4145) {</span>
+            // We allow key lengths of 0, because that means that implicitlyCA is used. 
+            // for ImplicitlyCA we have no idea what the key length is, on the other hand only real professionals
+            // will ever use that to we will allow it.
+<span class="nc bnc" id="L1254" title="All 4 branches missed.">            if ((len &gt; 0) &amp;&amp; (len &lt; 224)) {</span>
+<span class="nc" id="L1255">                final String msg = intres.getLocalizedMessage(&quot;catoken.invalidkeylength&quot;, &quot;ECDSA&quot;, &quot;224&quot;, Integer.valueOf(len));</span>
+<span class="nc" id="L1256">                throw new InvalidKeyException(msg);</span>
+            }                            
+<span class="nc bnc" id="L1258" title="All 4 branches missed.">        } else if (AlgorithmConstants.KEYALGORITHM_RSA.equals(keyAlg) || AlgorithmConstants.KEYALGORITHM_DSA.equals(keyAlg)) {</span>
+<span class="nc bnc" id="L1259" title="All 2 branches missed.">            if (len &lt; 1024) {</span>
+<span class="nc" id="L1260">                final String msg = intres.getLocalizedMessage(&quot;catoken.invalidkeylength&quot;, &quot;RSA/DSA&quot;, &quot;1024&quot;, Integer.valueOf(len));</span>
+<span class="nc" id="L1261">                throw new InvalidKeyException(msg);</span>
+            }
+        }
+<span class="nc" id="L1264">    }</span>
+    
+    /**
+     * Gets the parameter spec from a given OID of a DSTU curve (they don't have names) 
+     * @param dstuOid OIS
+     * @return spec
+     */
+    public static AlgorithmParameterSpec dstuOidToAlgoParams(String dstuOid) {
+<span class="nc" id="L1272">        return new ECGenParameterSpec(dstuOid);</span>
+    }
+    
+    public static String keyspecToKeyalg(String keyspec) {
+<span class="nc bnc" id="L1276" title="All 2 branches missed.">        if (StringUtils.isNumeric(keyspec)) {</span>
+<span class="nc" id="L1277">            return AlgorithmConstants.KEYALGORITHM_RSA;</span>
+        }
+<span class="nc bnc" id="L1279" title="All 2 branches missed.">        if (keyspec.startsWith(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
+<span class="nc" id="L1280">            return AlgorithmConstants.KEYALGORITHM_RSA;</span>
+        }
+<span class="nc bnc" id="L1282" title="All 2 branches missed.">        if (keyspec.startsWith(AlgorithmConstants.KEYALGORITHM_DSA)) {</span>
+<span class="nc" id="L1283">            return AlgorithmConstants.KEYALGORITHM_DSA;</span>
+        }
+<span class="nc bnc" id="L1285" title="All 4 branches missed.">        if (AlgorithmTools.isGost3410Enabled() &amp;&amp; keyspec.startsWith(AlgorithmConstants.KEYSPECPREFIX_ECGOST3410)) {</span>
+<span class="nc" id="L1286">            return AlgorithmConstants.KEYALGORITHM_ECGOST3410;</span>
+        }
+<span class="nc bnc" id="L1288" title="All 4 branches missed.">        if (AlgorithmTools.isDstu4145Enabled() &amp;&amp; keyspec.startsWith(CesecoreConfiguration.getOidDstu4145()+&quot;.&quot;)) {</span>
+<span class="nc" id="L1289">            return AlgorithmConstants.KEYALGORITHM_DSTU4145;</span>
+        }
+<span class="nc" id="L1291">        return AlgorithmConstants.KEYALGORITHM_ECDSA;</span>
+    }
+    
+    /**
+     * Converts a standalone specspec that starts with the keyalg to a short keyspec which
+     * is to be used together with a separate &quot;keyalg&quot; value.
+     * @param keyspec spec
+     * @return short spec
+     */
+    public static String shortenKeySpec(String keyspec) {
+<span class="nc bnc" id="L1301" title="All 4 branches missed.">        if (keyspec.startsWith(AlgorithmConstants.KEYALGORITHM_DSA) || keyspec.startsWith(AlgorithmConstants.KEYALGORITHM_RSA) ) {</span>
+<span class="nc" id="L1302">            return keyspec.substring(3);</span>
+        }
+<span class="nc" id="L1304">        return keyspec;</span>
+    }
+    
+    /**
+     * Converts a keyalg/keyspec pair into a standalone specspec.
+     * @param keyalg algorithm
+     * @param keyspec spec
+     * @return specspec
+     */
+    public static String keyalgspecToKeyspec(String keyalg, String keyspec) {
+<span class="nc bnc" id="L1314" title="All 2 branches missed.">        if (&quot;DSA&quot;.equals(keyalg)) {</span>
+<span class="nc" id="L1315">            return &quot;DSA&quot; + keyspec;</span>
+        }
+<span class="nc" id="L1317">        return keyspec;</span>
+    }
+
+    /** 
+     * Get the ASN.1 encoded PublicKey as a Java PublicKey Object.
+     * @param asn1EncodedPublicKey the ASN.1 encoded PublicKey
+     * @return the ASN.1 encoded PublicKey as a Java Object
+     */
+    public static PublicKey getPublicKeyFromBytes(byte[] asn1EncodedPublicKey) {
+        try {
+            final SubjectPublicKeyInfo keyInfo;
+<span class="nc" id="L1328">            keyInfo = SubjectPublicKeyInfo.getInstance(asn1EncodedPublicKey);</span>
+<span class="nc" id="L1329">            final AlgorithmIdentifier keyAlg = keyInfo.getAlgorithm();</span>
+<span class="nc" id="L1330">            final X509EncodedKeySpec xKeySpec = new X509EncodedKeySpec(new DERBitString(keyInfo).getBytes());</span>
+<span class="nc" id="L1331">            final KeyFactory keyFact = KeyFactory.getInstance(keyAlg.getAlgorithm().getId(), BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="nc" id="L1332">            return keyFact.generatePublic(xKeySpec);</span>
+<span class="nc" id="L1333">        } catch (IOException | NoSuchAlgorithmException | NoSuchProviderException | InvalidKeySpecException e) {</span>
+<span class="nc" id="L1334">            log.debug(&quot;Unable to decode PublicKey.&quot;, e);</span>
+        }
+<span class="nc" id="L1336">        return null;</span>
+    }
+    
+    /**
+     * Extracts the binary data from a PEM of a specified kind, e.g. public key.
+     *  
+     * @param pem PEM data to extract from. May contain other types of data as well.
+     * @param beginMarker E.g. CertTools.BEGIN_PUBLIC_KEY
+     * @param endMarker E.g. CertTools.END_PUBLIC_KEY
+     * @return The first entry of the matching type, or null if it couldn't be parsed.
+     */
+    public static byte[] getBytesFromPEM(String pem, String beginMarker, String endMarker) {
+<span class="fc" id="L1348">        final int start = pem.indexOf(beginMarker);</span>
+<span class="fc" id="L1349">        final int end = pem.indexOf(endMarker, start);</span>
+<span class="fc bfc" id="L1350" title="All 4 branches covered.">        if (start == -1 || end == -1) {</span>
+<span class="fc" id="L1351">            log.debug(&quot;Could not find &quot;+beginMarker+&quot; and &quot;+endMarker+&quot; lines in PEM&quot;);</span>
+<span class="fc" id="L1352">            return null;</span>
+        }
+        
+<span class="fc" id="L1355">        final String base64 = pem.substring(start + beginMarker.length(), end);</span>
+        try {
+<span class="fc" id="L1357">            return Base64.decode(base64.getBytes(&quot;ASCII&quot;));</span>
+<span class="nc" id="L1358">        } catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L1359">            log.debug(String.format(&quot;Invalid byte in PEM data: %s&quot;, e.getMessage()));</span>
+<span class="nc" id="L1360">            return null;</span>
+        }
+    }
+    
+    /**
+     * Extracts the binary DER data from a public key file. The file may be either in PEM format
+     * or in DER format. In the latter case, the file contents is returned as-is.
+     *  
+     * @param file Data of a PEM or DER file.
+     * @return DER encoded public key.
+     * @throws CertificateParsingException If the data isn't a public key in either PEM or DER format.
+     */
+    public static byte[] getBytesFromPublicKeyFile(final byte[] file) throws CertificateParsingException {
+<span class="fc" id="L1373">        final String fileText = Charset.forName(&quot;ASCII&quot;).decode(java.nio.ByteBuffer.wrap(file)).toString();</span>
+        final byte[] asn1bytes;
+        {
+<span class="fc" id="L1376">            final byte[] tmpBytes = getBytesFromPEM(fileText, CertTools.BEGIN_PUBLIC_KEY, CertTools.END_PUBLIC_KEY);</span>
+<span class="fc bfc" id="L1377" title="All 2 branches covered.">            asn1bytes = tmpBytes!=null ? tmpBytes : file; // Assume it's in ASN1 format already if null</span>
+        }
+        try {
+<span class="fc" id="L1380">            PublicKeyFactory.createKey(asn1bytes); // Check that it's a valid public key</span>
+<span class="fc" id="L1381">            return asn1bytes;</span>
+<span class="fc" id="L1382">        } catch (IOException e) {</span>
+<span class="fc" id="L1383">            throw new CertificateParsingException(e);</span>
+        }
+    }
+    
+    /**
+     * Returns the modulus of the public key.
+     * @param publicKey public key
+     * @return modulus of the public key
+     */
+    public static String getKeyModulus(final PublicKey publicKey) {
+<span class="nc" id="L1393">        String modulus = null;</span>
+<span class="nc bnc" id="L1394" title="All 2 branches missed.">        if ( publicKey instanceof RSAPublicKey ) {</span>
+<span class="nc" id="L1395">            byte[] modulusBytes = ((RSAPublicKey) publicKey).getModulus().toByteArray();</span>
+<span class="nc" id="L1396">            modulus = new String(Hex.encode(modulusBytes));</span>
+<span class="nc bnc" id="L1397" title="All 2 branches missed.">        } else if(publicKey instanceof DSAPublicKey) {</span>
+<span class="nc" id="L1398">            byte[] modulusBytes = ((DSAPublicKey)publicKey).getY().toByteArray();</span>
+<span class="nc" id="L1399">            modulus = new String(Hex.encode(modulusBytes));</span>
+<span class="nc bnc" id="L1400" title="All 2 branches missed.">        } else if(publicKey instanceof ECPublicKey) {</span>
+<span class="nc" id="L1401">            byte[] modulusBytesX = ((ECPublicKey)publicKey).getW().getAffineX().toByteArray();</span>
+<span class="nc" id="L1402">            byte[] modulusBytesY = ((ECPublicKey)publicKey).getW().getAffineY().toByteArray();</span>
+<span class="nc" id="L1403">            modulus = new String(Hex.encode(modulusBytesX)).concat(new String(Hex.encode(modulusBytesY)));</span>
+        }
+<span class="nc" id="L1405">        return modulus;</span>
+    }
+    
+    /**
+     * Returns the exponent of the public key.
+     * @param publicKey public key
+     * @return modulus of the public key
+     */
+    public static String getKeyPublicExponent(final PublicKey publicKey) {
+<span class="nc" id="L1414">        String exponent = null;</span>
+<span class="nc bnc" id="L1415" title="All 2 branches missed.">        if ( publicKey instanceof RSAPublicKey ) {</span>
+<span class="nc" id="L1416">            exponent = ((RSAPublicKey) publicKey).getPublicExponent().toString();</span>
+        }
+<span class="nc" id="L1418">        return exponent;</span>
+    }
+    
+    /**
+     * Generates the SHA256 fingerprint of the given text string.
+     * @param text input on what to generate the fingerprint
+     * @return SHA256 fingerprint of given input string 
+     */
+    public static String getSha256Fingerprint(String text) {
+<span class="nc" id="L1427">        byte[] sha256Fingerprint = CertTools.generateSHA256Fingerprint(text.getBytes());</span>
+<span class="nc" id="L1428">        return new String(Hex.encode(sha256Fingerprint));</span>
+    }
+    
+    /**
+     * Returns the signature of the given JcaPKCS10CertificationRequest.
+     * @param certificationRequest BouncyCastle JcaPKCS10CertificationRequest certification request
+     * @return signature of given certification request
+     */
+    public static String getCertificateRequestSignature(JcaPKCS10CertificationRequest certificationRequest) {
+<span class="nc" id="L1437">        return new String(Hex.encode(certificationRequest.getSignature()));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

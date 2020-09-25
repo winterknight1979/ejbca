@@ -1,0 +1,534 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>PerformanceTest.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-ws-common</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util</a> &gt; <span class="el_source">PerformanceTest.java</span></div><h1>PerformanceTest.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.util;
+
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+/**
+ * @version $Id: PerformanceTest.java 26158 2017-07-18 05:46:19Z mikekushner $
+ */
+@SuppressWarnings(&quot;synthetic-access&quot;)
+public class PerformanceTest {
+
+<span class="nc" id="L37">    private final int STATISTIC_UPDATE_PERIOD_IN_SECONDS = 10;</span>
+    private final Log log;
+    private final Random random;
+    private boolean isSomeThreadUsingRandom;
+<span class="nc" id="L41">    public PerformanceTest() {</span>
+<span class="nc" id="L42">        this.log =new Log();</span>
+<span class="nc" id="L43">        this.random = new Random();</span>
+<span class="nc" id="L44">        this.isSomeThreadUsingRandom = false;</span>
+<span class="nc" id="L45">    }</span>
+    public long nextLong() {
+<span class="nc" id="L47">        synchronized (this.random) {</span>
+<span class="nc bnc" id="L48" title="All 2 branches missed.">            while ( this.isSomeThreadUsingRandom ) {</span>
+                try {
+<span class="nc" id="L50">                    this.random.wait();</span>
+<span class="nc" id="L51">                } catch (InterruptedException e) {</span>
+                    // should never ever happen
+<span class="nc" id="L53">                    throw new Error(e);</span>
+<span class="nc" id="L54">                }</span>
+            }
+<span class="nc" id="L56">            this.isSomeThreadUsingRandom = true;</span>
+<span class="nc" id="L57">            final long result = this.random.nextLong();</span>
+<span class="nc" id="L58">            this.isSomeThreadUsingRandom = false;</span>
+<span class="nc" id="L59">            this.random.notifyAll();</span>
+<span class="nc" id="L60">            return result;        </span>
+        }
+    }
+    public Log getLog() {
+<span class="nc" id="L64">        return this.log;</span>
+    }
+    public Random getRandom() {
+<span class="nc" id="L67">        return this.random;</span>
+    }
+    public interface CommandFactory {
+        Command[] getCommands() throws Exception;
+    }
+    public interface Command {
+        boolean doIt() throws Exception;
+
+        String getJobTimeDescription();
+    }
+    private class JobRunner implements Runnable { // NOPMD this is a standalone test, not run in jee app
+        final private Command command;
+        private boolean bIsFinished;
+        private int time;
+<span class="nc" id="L81">        private boolean isSuccess = false;</span>
+<span class="nc" id="L82">        JobRunner( Command _command ) throws Exception {</span>
+<span class="nc" id="L83">            this.bIsFinished = false;</span>
+<span class="nc" id="L84">            this.command = _command;</span>
+<span class="nc" id="L85">        }</span>
+        boolean execute() throws Exception {
+<span class="nc" id="L87">            final Thread thread = new Thread(this); // NOPMD this is a standalone test, not run in jee app</span>
+<span class="nc" id="L88">            synchronized(this) {</span>
+<span class="nc" id="L89">                thread.start();</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">                if ( !this.bIsFinished ) {</span>
+<span class="nc" id="L91">                    this.wait(300000);</span>
+                }
+<span class="nc bnc" id="L93" title="All 2 branches missed.">                if ( !this.bIsFinished ) {</span>
+<span class="nc" id="L94">                    thread.interrupt();</span>
+<span class="nc" id="L95">                    throw new Exception(&quot;Command not finished. See the error printout just above.&quot;);</span>
+                }
+<span class="nc" id="L97">            }</span>
+<span class="nc" id="L98">            return this.isSuccess;</span>
+        }
+        @Override
+        public void run() {
+            try {
+<span class="nc" id="L103">                final long startTime = new Date().getTime();</span>
+<span class="nc" id="L104">                this.isSuccess = this.command.doIt();</span>
+<span class="nc" id="L105">                this.time = (int)(new Date().getTime()-startTime);</span>
+<span class="nc" id="L106">                this.bIsFinished = true;</span>
+<span class="nc" id="L107">            } catch (Throwable t) { // NOPMD: keep on testing </span>
+<span class="nc" id="L108">                PerformanceTest.this.log.error(&quot;Command failure. &quot;+this.command, t);</span>
+            } finally {
+<span class="nc" id="L110">                synchronized(this) {</span>
+<span class="nc" id="L111">                    this.notifyAll();</span>
+<span class="nc" id="L112">                }</span>
+            }
+<span class="nc" id="L114">        }</span>
+        public int getTimeConsumed() {
+<span class="nc" id="L116">            return this.time;</span>
+        }
+    }
+    private class TestInstance implements Runnable { // NOPMD this is a standalone test, not run in jee app
+        final private int nr;
+        final private int maxWaitTime;
+        final private Statistic statistic;
+        final private Command commands[];
+        /**
+         * @param _nr NR
+         * @param _waitTime Time 
+         * @param _statistic Stat
+         * @param commandFactory Factory
+         * @throws Exception On fail
+         */
+        public TestInstance(int _nr, int _waitTime, Statistic _statistic,
+<span class="nc" id="L132">                            CommandFactory commandFactory) throws Exception {</span>
+<span class="nc" id="L133">            this.nr = _nr;</span>
+<span class="nc" id="L134">            this.maxWaitTime = _waitTime;</span>
+<span class="nc" id="L135">            this.statistic = _statistic;</span>
+<span class="nc" id="L136">            this.commands = commandFactory.getCommands();</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">            if ( this.nr &gt; 0 ) {</span>
+<span class="nc" id="L138">                return;</span>
+            }
+<span class="nc" id="L140">            final StringWriter sw = new StringWriter();</span>
+<span class="nc" id="L141">            final PrintWriter pw = new PrintWriter(sw);</span>
+<span class="nc" id="L142">            pw.println(&quot;Performance test started. The following \&quot;Command\&quot; classes are used for each test:&quot;);</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">            for (int i=0; i&lt;this.commands.length; i++) {</span>
+<span class="nc" id="L144">                pw.println(this.commands[i].getClass().getCanonicalName());</span>
+            }
+<span class="nc" id="L146">            PerformanceTest.this.log.info(sw.toString());</span>
+<span class="nc" id="L147">        }</span>
+
+        @Override
+        public void run() {
+<span class="nc" id="L151">            PerformanceTest.this.log.info(&quot;Thread nr &quot;+ this.nr +&quot; started.&quot;);</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">            while(this.statistic.doMoreTests()) {</span>
+                try {
+<span class="nc" id="L154">                    final long startTime = new Date().getTime();</span>
+<span class="nc" id="L155">                    Command failingCommand = null;</span>
+<span class="nc bnc" id="L156" title="All 4 branches missed.">                    for (int i=0; failingCommand==null &amp;&amp; i&lt;this.commands.length; i++) {</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">                        if ( this.maxWaitTime &gt; 0 ) {</span>
+<span class="nc" id="L158">                            final int waitTime = (int)(this.maxWaitTime*PerformanceTest.this.random.nextFloat());</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">                            if ( waitTime &gt; 0) {</span>
+<span class="nc" id="L160">                                synchronized(this) {</span>
+<span class="nc" id="L161">                                    wait(waitTime);</span>
+<span class="nc" id="L162">                                }</span>
+<span class="nc" id="L163">                                this.statistic.addTime(&quot;Time waiting between jobs&quot;,waitTime);</span>
+                            }
+                        }
+<span class="nc" id="L166">                        final Command command = this.commands[i];</span>
+<span class="nc" id="L167">                        final JobRunner jobRunner = new JobRunner(command);</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">                        if ( !jobRunner.execute() ) {</span>
+<span class="nc" id="L169">                            failingCommand = command;</span>
+                        }
+<span class="nc" id="L171">                        this.statistic.addTime(command.getJobTimeDescription(), jobRunner.getTimeConsumed());</span>
+                    }
+<span class="nc" id="L173">                    String sResult = &quot;Test in thread &quot;+this.nr+&quot; completed &quot;;</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">                    if ( failingCommand==null ) {</span>
+<span class="nc" id="L175">                        this.statistic.taskFinished();</span>
+<span class="nc" id="L176">                        sResult += &quot;successfully&quot;;</span>
+                    } else {
+<span class="nc" id="L178">                        this.statistic.taskFailed();</span>
+<span class="nc" id="L179">                        sResult += &quot;but failed when the command '&quot;+failingCommand.getClass().getCanonicalName()+&quot;' was executed&quot;;</span>
+                    }
+<span class="nc" id="L181">                    sResult += &quot;. The time it took was &quot;+(new Date().getTime()-startTime) + &quot; ms.&quot;;</span>
+<span class="nc bnc" id="L182" title="All 2 branches missed.">                    if ( failingCommand==null ) {</span>
+<span class="nc" id="L183">                        PerformanceTest.this.log.info(sResult);</span>
+                    } else {
+<span class="nc" id="L185">                        PerformanceTest.this.log.error(sResult);</span>
+                    }
+<span class="nc" id="L187">                } catch( Throwable t ) { // NOPMD: keep on testing...</span>
+<span class="nc" id="L188">                    this.statistic.taskFailed();</span>
+<span class="nc" id="L189">                    PerformanceTest.this.log.error(&quot;Exeption in thread &quot;+this.nr+&quot;.&quot;, t);</span>
+<span class="nc" id="L190">                }</span>
+            }
+<span class="nc" id="L192">        }</span>
+    }
+
+    public void execute(CommandFactory commandFactory, int numberOfThreads, int numberOfTests, int waitTime, PrintStream printStream) throws Exception {
+
+<span class="nc" id="L197">        final Statistic statistic = new Statistic(numberOfThreads, numberOfTests, printStream);</span>
+<span class="nc" id="L198">        final Thread threads[] = new Thread[numberOfThreads]; // NOPMD this is a standalone test, not run in jee app</span>
+<span class="nc bnc" id="L199" title="All 2 branches missed.">        for(int i=0; i &lt; numberOfThreads;i++) {</span>
+<span class="nc" id="L200">            threads[i] = new Thread(new TestInstance(i, waitTime, statistic, commandFactory)); // NOPMD this is a standalone test, not run in jee app</span>
+        }
+<span class="nc bnc" id="L202" title="All 2 branches missed.">        for(int i=0; i &lt; numberOfThreads;i++) {</span>
+<span class="nc" id="L203">            threads[i].start();</span>
+        }
+<span class="nc" id="L205">        new Thread(statistic).start(); // NOPMD this is a standalone test, not run in jee app</span>
+<span class="nc" id="L206">        printStream.println(&quot;Test client started, tail info and error files in this directory for output.&quot;);</span>
+<span class="nc" id="L207">        printStream.println(&quot;Statistic will be written to standard output each &quot;+this.STATISTIC_UPDATE_PERIOD_IN_SECONDS+&quot; second.&quot;);</span>
+<span class="nc" id="L208">        printStream.println(&quot;The test was started at &quot;+ new Date());</span>
+<span class="nc" id="L209">        printStream.format(&quot;%d number of threads will be started and %d number of tests will be performed. Each thread will wait between 0 and %d milliseconds between each test.%n&quot;, numberOfThreads, numberOfTests, waitTime);</span>
+<span class="nc" id="L210">        synchronized(this) {</span>
+<span class="nc" id="L211">            wait();</span>
+<span class="nc" id="L212">        }</span>
+<span class="nc" id="L213">        printStream.format(&quot;Test exited with %d number of failures.%n&quot;, statistic.getNrOfFailures());</span>
+<span class="nc" id="L214">        System.exit( statistic.getNrOfFailures() );</span>
+<span class="nc" id="L215">    }</span>
+    private class Statistic implements Runnable { // NOPMD this is a standalone test, not run in jee app
+        private final int nrOfThreads;
+        private final int nrOfTests;
+        private final Map&lt;String, Job&gt; jobs;
+<span class="nc" id="L220">        private int nrOfStarted = 0;</span>
+<span class="nc" id="L221">        private int nrOfSuccesses = 0;</span>
+<span class="nc" id="L222">        private int nrOfSuccessesLastTime = 0;</span>
+<span class="nc" id="L223">        private int nrOfFailures = 0;</span>
+        private final PrintStream printStream;
+<span class="nc" id="L225">        Statistic(int _nrOfThreads, int _nrOfTests, PrintStream _printStream) {</span>
+<span class="nc" id="L226">            this.nrOfThreads = _nrOfThreads;</span>
+<span class="nc" id="L227">            this.nrOfTests = _nrOfTests;</span>
+<span class="nc" id="L228">            this.jobs = new HashMap&lt;String, Job&gt;();</span>
+<span class="nc" id="L229">            this.printStream = _printStream;</span>
+<span class="nc" id="L230">        }</span>
+        private class Job {
+            private final String name;
+            private long totalTime;
+<span class="nc" id="L234">            private long minTime = Long.MAX_VALUE;</span>
+<span class="nc" id="L235">            private long maxTime = Long.MIN_VALUE;</span>
+            private Date minTimeAt;
+            private Date maxTimeAt;
+<span class="nc" id="L238">            private Job(String _name) {</span>
+<span class="nc" id="L239">                this.name = _name;</span>
+<span class="nc" id="L240">                this.totalTime = 0;</span>
+<span class="nc" id="L241">            }</span>
+            void addTime(long duration) {
+<span class="nc" id="L243">                this.totalTime += duration;</span>
+<span class="nc" id="L244">                final Date now = new Date();</span>
+
+<span class="nc bnc" id="L246" title="All 2 branches missed.">                if (duration &lt; this.minTime) {</span>
+<span class="nc" id="L247">                    this.minTime = duration;</span>
+<span class="nc" id="L248">                    this.minTimeAt = now;</span>
+                }
+<span class="nc bnc" id="L250" title="All 2 branches missed.">                if (duration &gt; this.maxTime) {</span>
+<span class="nc" id="L251">                    this.maxTime = duration;</span>
+<span class="nc" id="L252">                    this.maxTimeAt = now;</span>
+                }
+<span class="nc" id="L254">            }</span>
+            long getTimeSpent() {
+<span class="nc" id="L256">                return this.totalTime;</span>
+            }
+            void printRelativeTime(long allThreadsTime) {
+<span class="nc" id="L259">                printLine(this.name, Float.valueOf((float)this.totalTime / allThreadsTime));</span>
+<span class="nc" id="L260">            }</span>
+            void printMinMaxTime() {
+<span class="nc" id="L262">                printLine(&quot;Min time for job '&quot;+this.name+&quot;' (ms)&quot;, Long.toString(this.minTime), this.minTimeAt);</span>
+<span class="nc" id="L263">                printLine(&quot;Max time per job '&quot;+this.name+&quot;' (ms)&quot;, Long.toString(this.maxTime), this.maxTimeAt);</span>
+<span class="nc" id="L264">            }</span>
+        }
+        private Job getJob(String name) {
+<span class="nc" id="L267">            Job job = this.jobs.get(name);</span>
+<span class="nc bnc" id="L268" title="All 2 branches missed.">            if ( job!=null ) {</span>
+<span class="nc" id="L269">                return job;</span>
+            }
+<span class="nc" id="L271">            job = new Job(name);</span>
+<span class="nc" id="L272">            this.jobs.put(name, job);</span>
+<span class="nc" id="L273">            return job;</span>
+        }
+        private boolean isNotReady() {
+<span class="nc bnc" id="L276" title="All 4 branches missed.">            return this.nrOfTests&lt;0 || (this.nrOfFailures+this.nrOfSuccesses)&lt;this.nrOfTests;</span>
+        }
+        private void killMeIfReady() {
+<span class="nc bnc" id="L279" title="All 2 branches missed.">            if ( isNotReady() ) {</span>
+<span class="nc" id="L280">                return;</span>
+            }
+<span class="nc" id="L282">            this.notifyAll();</span>
+<span class="nc" id="L283">        }</span>
+        synchronized void taskFailed() {
+<span class="nc" id="L285">            this.nrOfFailures++;</span>
+<span class="nc" id="L286">            killMeIfReady();</span>
+<span class="nc" id="L287">        }</span>
+        synchronized void taskFinished() {
+<span class="nc" id="L289">            this.nrOfSuccesses++;</span>
+<span class="nc" id="L290">            killMeIfReady();</span>
+<span class="nc" id="L291">        }</span>
+        synchronized boolean doMoreTests() {
+<span class="nc bnc" id="L293" title="All 4 branches missed.">            return this.nrOfTests&lt;0 || this.nrOfStarted++&lt;this.nrOfTests;</span>
+        }
+        void addTime(String timeName, long duration) {
+<span class="nc" id="L296">            getJob(timeName).addTime(duration);</span>
+<span class="nc" id="L297">        }</span>
+        private void printLine(String description, Object value) {
+<span class="nc" id="L299">        	printLine(description, value, null);</span>
+<span class="nc" id="L300">        }</span>
+        private void printLine(String description, Object value, Object value2) {
+<span class="nc" id="L302">            String padding = new String();</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">            for ( int i=description.length(); i&lt;50; i++ ) {</span>
+<span class="nc" id="L304">                padding += ' ';</span>
+            }
+<span class="nc bnc" id="L306" title="All 2 branches missed.">            if (value2 == null) {</span>
+<span class="nc" id="L307">                this.printStream.println(description+&quot;: &quot;+padding+value);</span>
+            } else {            	
+<span class="nc" id="L309">                this.printStream.println(description+&quot;: &quot;+padding+value+&quot; (&quot;+value2+&quot;)&quot;);</span>
+            }
+<span class="nc" id="L311">        }</span>
+        private void printStatistics(final long startTime, final long periodStartTime, final long endTime) {
+<span class="nc" id="L313">            final long time = (int)(endTime-startTime);</span>
+<span class="nc" id="L314">            final long allThreadsTime = this.nrOfThreads*time;</span>
+<span class="nc" id="L315">            final Float testsPerSecond = Float.valueOf((float)this.nrOfSuccesses*1000/time);</span>
+<span class="nc" id="L316">            final Float testsPerSecondInLastPeriod = Float.valueOf((float)(this.nrOfSuccesses - this.nrOfSuccessesLastTime)*1000/(endTime-periodStartTime));</span>
+<span class="nc" id="L317">            this.nrOfSuccessesLastTime = this.nrOfSuccesses;</span>
+            final float relativeWork; 
+            {
+<span class="nc" id="L320">                long tmp = 0;</span>
+<span class="nc" id="L321">                Iterator&lt;Job&gt; i=this.jobs.values().iterator();</span>
+<span class="nc bnc" id="L322" title="All 2 branches missed.">                while (i.hasNext() ) {</span>
+<span class="nc" id="L323">                    tmp += i.next().getTimeSpent();</span>
+                }
+<span class="nc" id="L325">                relativeWork = (float)(allThreadsTime-tmp) / allThreadsTime;</span>
+            }
+<span class="nc" id="L327">            final String CSI = &quot;\u001B[&quot;;</span>
+
+<span class="nc" id="L329">            this.printStream.println(CSI+&quot;J&quot;); // clear rest of screen on VT100 terminals.</span>
+<span class="nc" id="L330">            printLine(&quot;Total # of successfully performed tests&quot;, Integer.valueOf(this.nrOfSuccesses));</span>
+<span class="nc" id="L331">            printLine(&quot;Total # of failed tests&quot;, Integer.valueOf(this.nrOfFailures));</span>
+<span class="nc" id="L332">            printLine(&quot;# of tests completed each second&quot;, testsPerSecond);</span>
+<span class="nc" id="L333">            printLine(&quot;# of tests completed each second in last period&quot;, testsPerSecondInLastPeriod);</span>
+<span class="nc" id="L334">            this.printStream.println();</span>
+<span class="nc" id="L335">            this.printStream.println(&quot;Relative average time for different tasks (all should sum up to 1):&quot;);</span>
+            {
+<span class="nc" id="L337">                final Iterator&lt;Job&gt; i = this.jobs.values().iterator();</span>
+<span class="nc bnc" id="L338" title="All 2 branches missed.">                while( i.hasNext() ) {</span>
+<span class="nc" id="L339">                    i.next().printRelativeTime(allThreadsTime);</span>
+                }
+            }
+<span class="nc" id="L342">            printLine(&quot;Time spent with test client work&quot;, Float.valueOf(relativeWork));</span>
+<span class="nc" id="L343">            this.printStream.println();</span>
+<span class="nc" id="L344">            this.printStream.println(&quot;Absolute extremes:&quot;);</span>
+            {
+<span class="nc" id="L346">                final Iterator&lt;Job&gt; i = this.jobs.values().iterator();</span>
+<span class="nc bnc" id="L347" title="All 2 branches missed.">                while( i.hasNext() ) {</span>
+<span class="nc" id="L348">                    i.next().printMinMaxTime();</span>
+                }
+            }
+<span class="nc bnc" id="L351" title="All 2 branches missed.">            if ( isNotReady() ) { // move up if test is not finished.</span>
+<span class="nc" id="L352">                this.printStream.print(CSI+(10+this.jobs.size()*3)+&quot;A&quot;); // move up. 3 lines for each job. relative max min</span>
+            }
+<span class="nc" id="L354">            this.printStream.flush();</span>
+<span class="nc" id="L355">        }</span>
+        @Override
+        public void run() {
+<span class="nc" id="L358">            final long startTime = new Date().getTime();</span>
+<span class="nc" id="L359">            long periodStartTime = startTime;</span>
+<span class="nc bnc" id="L360" title="All 2 branches missed.">            while(isNotReady()) {</span>
+<span class="nc" id="L361">                synchronized(this) {</span>
+                    try {
+<span class="nc" id="L363">                        wait(PerformanceTest.this.STATISTIC_UPDATE_PERIOD_IN_SECONDS*1000);</span>
+<span class="nc" id="L364">                    } catch (InterruptedException e) {</span>
+                        // do nothing
+<span class="nc" id="L366">                    }</span>
+<span class="nc" id="L367">                }</span>
+<span class="nc" id="L368">                final long endTime = new Date().getTime();</span>
+<span class="nc" id="L369">                printStatistics(startTime, periodStartTime, endTime);</span>
+<span class="nc" id="L370">                periodStartTime = endTime;</span>
+<span class="nc" id="L371">            }</span>
+<span class="nc" id="L372">            PerformanceTest.this.log.deActivate();</span>
+<span class="nc" id="L373">        }</span>
+        public int getNrOfFailures() {
+<span class="nc" id="L375">            return this.nrOfFailures;</span>
+        }
+    }
+    public class Log {
+        private final PrintWriter errorPrinter;
+        private final PrintWriter infoPrinter;
+        private final PrintWriter allPrinter;
+        private final ObjectOutput resultObject;
+        private final LogThread thread;
+<span class="nc" id="L384">        Log() {</span>
+            try {
+<span class="nc" id="L386">                this.errorPrinter = new PrintWriter(new FileWriter(&quot;error.log&quot;));</span>
+<span class="nc" id="L387">                this.infoPrinter = new PrintWriter(new FileWriter(&quot;info.log&quot;));</span>
+<span class="nc" id="L388">                this.allPrinter = new PrintWriter(new FileWriter(&quot;all.log&quot;));</span>
+<span class="nc" id="L389">                this.resultObject = new ObjectOutputStream(new FileOutputStream(&quot;result.log&quot;, true));</span>
+<span class="nc" id="L390">                this.thread = new LogThread();</span>
+<span class="nc" id="L391">                final Thread t = new Thread(this.thread); // NOPMD this is a standalone test, not run in jee app</span>
+<span class="nc" id="L392">                t.setPriority(Thread.MIN_PRIORITY);</span>
+<span class="nc" id="L393">                t.start();</span>
+<span class="nc" id="L394">            } catch (IOException e) {</span>
+<span class="nc" id="L395">                System.out.println(&quot;Error opening log file. &quot;+e.getMessage());</span>
+<span class="nc" id="L396">                System.exit(-1); // NOPMD this is a test cli command</span>
+<span class="nc" id="L397">                throw new Error(e);</span>
+<span class="nc" id="L398">            }</span>
+<span class="nc" id="L399">        }</span>
+        public void close() {
+<span class="nc" id="L401">            this.errorPrinter.close();</span>
+<span class="nc" id="L402">            this.infoPrinter.close();</span>
+<span class="nc" id="L403">            this.allPrinter.close();</span>
+<span class="nc" id="L404">        }</span>
+<span class="nc" id="L405">        private class LogThread implements Runnable { // NOPMD this is a standalone test, not run in jee app</span>
+<span class="nc" id="L406">            final List&lt;Data&gt; lData = new LinkedList&lt;Data&gt;();</span>
+<span class="nc" id="L407">            boolean active = true;</span>
+            private class Data {
+                final Object msg;
+                final Throwable t;
+                final PrintWriter printer;
+                final ObjectOutput objectOutput;
+                final boolean doPrintDate;
+<span class="nc" id="L414">                Data(Object _msg,Throwable _t, PrintWriter _printer, ObjectOutput _objectOutput, boolean _doPrintDate) {</span>
+<span class="nc" id="L415">                    this.msg=_msg;</span>
+<span class="nc" id="L416">                    this.t=_t;</span>
+<span class="nc" id="L417">                    this.printer=_printer;</span>
+<span class="nc" id="L418">                    this.doPrintDate = _doPrintDate;</span>
+<span class="nc" id="L419">                    this.objectOutput = _objectOutput;                    </span>
+<span class="nc" id="L420">                }</span>
+            }
+            synchronized private void log(Object msg,Throwable t, PrintWriter printer, ObjectOutput objectOutput, boolean doPrintDate) {
+<span class="nc" id="L423">                this.lData.add(new Data(msg, t, printer, objectOutput, doPrintDate));</span>
+<span class="nc" id="L424">                this.notifyAll();</span>
+<span class="nc" id="L425">            }</span>
+            synchronized void deActivate() {
+<span class="nc" id="L427">                this.active = false;</span>
+<span class="nc" id="L428">                this.notifyAll();</span>
+<span class="nc" id="L429">            }</span>
+            void log(String msg, Throwable t, PrintWriter printer, boolean doPrintDate) {
+<span class="nc" id="L431">                log(msg, t, printer, null, doPrintDate);</span>
+<span class="nc" id="L432">            }</span>
+            void log(Object msg, ObjectOutput objectOutput) {
+<span class="nc" id="L434">                log(msg, null, null, objectOutput, false);</span>
+<span class="nc" id="L435">            }</span>
+            private void log() {
+                final Data data;
+<span class="nc" id="L438">                synchronized(this) {</span>
+<span class="nc bnc" id="L439" title="All 4 branches missed.">                    while ( this.active &amp;&amp; this.lData.size()&lt;1 ) {</span>
+                        try {
+<span class="nc" id="L441">                            this.wait();</span>
+<span class="nc" id="L442">                        } catch (InterruptedException e) {</span>
+<span class="nc" id="L443">                            e.printStackTrace();</span>
+<span class="nc" id="L444">                            System.exit(-2); // NOPMD this is a test cli command</span>
+<span class="nc" id="L445">                            throw new Error(e);</span>
+<span class="nc" id="L446">                        }</span>
+                    }
+<span class="nc bnc" id="L448" title="All 2 branches missed.">                    if ( !this.active ) {</span>
+<span class="nc" id="L449">                        return;</span>
+                    }
+<span class="nc" id="L451">                    data = this.lData.remove(0);</span>
+<span class="nc" id="L452">                }</span>
+<span class="nc" id="L453">                final Date currentDate = new Date();</span>
+                try {
+<span class="nc bnc" id="L455" title="All 2 branches missed.">                    if ( data.printer!=null ) {</span>
+<span class="nc bnc" id="L456" title="All 2 branches missed.">                        if ( data.doPrintDate ) {</span>
+<span class="nc" id="L457">                            data.printer.print(currentDate + &quot; : &quot;);</span>
+                        }
+<span class="nc" id="L459">                        data.printer.println(data.msg);</span>
+<span class="nc bnc" id="L460" title="All 2 branches missed.">                        if(data.t != null){</span>
+<span class="nc" id="L461">                            data.t.printStackTrace(data.printer);</span>
+<span class="nc" id="L462">                            data.printer.println();</span>
+                        }
+<span class="nc" id="L464">                        data.printer.flush();</span>
+                    }
+<span class="nc bnc" id="L466" title="All 2 branches missed.">                    if ( data.objectOutput!=null ) {</span>
+<span class="nc" id="L467">                        data.objectOutput.writeObject(data.msg);</span>
+                    }
+<span class="nc" id="L469">                } catch( IOException e ) {</span>
+<span class="nc" id="L470">                    error(&quot;Logging fault&quot;, e);</span>
+<span class="nc" id="L471">                }</span>
+<span class="nc" id="L472">            }</span>
+            @Override
+            public void run() {
+<span class="nc bnc" id="L475" title="All 2 branches missed.">                while( this.active ) {</span>
+<span class="nc" id="L476">                    log();</span>
+                }
+<span class="nc" id="L478">                synchronized (PerformanceTest.this) {</span>
+                    // stop wait in main thread.
+<span class="nc" id="L480">                    PerformanceTest.this.notifyAll();</span>
+<span class="nc" id="L481">                }</span>
+<span class="nc" id="L482">            }</span>
+        }
+        private void log(String msg,Throwable t, PrintWriter printer)  {
+<span class="nc" id="L485">             this.thread.log(msg, t, printer, true);</span>
+<span class="nc" id="L486">        }</span>
+        public void result(Object object ) {
+<span class="nc" id="L488">            this.thread.log(object, this.resultObject);</span>
+<span class="nc" id="L489">        }</span>
+        public void error(String msg,Throwable t)  {
+<span class="nc" id="L491">            log(msg, t, this.errorPrinter);</span>
+<span class="nc" id="L492">            log(msg, t, this.allPrinter);</span>
+<span class="nc" id="L493">        }</span>
+        public void error(String msg)  {
+<span class="nc" id="L495">            error(msg, null);</span>
+<span class="nc" id="L496">        }</span>
+        public void info(String msg,Throwable t) {
+<span class="nc" id="L498">            log(msg, t, this.infoPrinter);</span>
+<span class="nc" id="L499">            log(msg, t, this.allPrinter);</span>
+<span class="nc" id="L500">        }</span>
+        public void info(String msg) {
+<span class="nc" id="L502">            info(msg,null);</span>
+<span class="nc" id="L503">        }</span>
+        public void deActivate() {
+<span class="nc" id="L505">            this.thread.deActivate();</span>
+<span class="nc" id="L506">        }</span>
+    }
+    /**
+     * This class will be removed when the new CLI with arguments identifiers
+     * is introduces.
+     *
+     */
+    public static class NrOfThreadsAndNrOfTests {
+<span class="nc" id="L514">        public NrOfThreadsAndNrOfTests(final String _s) {</span>
+<span class="nc bnc" id="L515" title="All 2 branches missed.">            if ( _s==null ) {</span>
+<span class="nc" id="L516">                this.threads = 1;</span>
+<span class="nc" id="L517">                this.tests = -1;</span>
+<span class="nc" id="L518">                return;</span>
+            }
+<span class="nc" id="L520">            final String s = _s.trim();</span>
+<span class="nc" id="L521">            final int sepPos = s.indexOf(':');</span>
+<span class="nc bnc" id="L522" title="All 2 branches missed.">            if ( sepPos&lt;0 ) {</span>
+<span class="nc" id="L523">                this.threads = Integer.parseInt(s);</span>
+<span class="nc" id="L524">                this.tests = -1;</span>
+<span class="nc" id="L525">                return;</span>
+            }
+<span class="nc" id="L527">            this.threads = Integer.parseInt(s.substring(0, sepPos));</span>
+<span class="nc" id="L528">            this.tests = Integer.parseInt(s.substring(sepPos+1));</span>
+<span class="nc" id="L529">        }</span>
+        final public int threads;
+        final public int tests;
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

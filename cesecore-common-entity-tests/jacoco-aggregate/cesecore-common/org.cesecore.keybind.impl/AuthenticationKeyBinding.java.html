@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AuthenticationKeyBinding.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-common-entity-tests</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.keybind.impl</a> &gt; <span class="el_source">AuthenticationKeyBinding.java</span></div><h1>AuthenticationKeyBinding.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.keybind.impl;
+
+import java.security.cert.Certificate;
+import java.security.cert.CertificateParsingException;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.x509.KeyPurposeId;
+import org.cesecore.config.AvailableExtendedKeyUsagesConfiguration;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.keybind.CertificateImportException;
+import org.cesecore.keybind.InternalKeyBindingBase;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.ui.DynamicUiProperty;
+
+/**
+ * Used when this EJBCA instance authenticates to other instances.
+ * 
+ * @version $Id: AuthenticationKeyBinding.java 26192 2017-08-02 07:59:40Z anatom $
+ */
+<span class="nc" id="L34">public class AuthenticationKeyBinding extends InternalKeyBindingBase {</span>
+
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L37">    private static final Logger log = Logger.getLogger(AuthenticationKeyBinding.class);</span>
+
+    public static final String IMPLEMENTATION_ALIAS = &quot;AuthenticationKeyBinding&quot;; // This should not change, even if we rename the class in EJBCA 5.3+..
+    public static final String PROPERTY_PROTOCOL_AND_CIPHER_SUITE = &quot;protocolAndCipherSuite&quot;;
+
+    {
+<span class="nc" id="L43">        final String[] CIPHER_SUITES_SUBSET = CesecoreConfiguration.getAvailableCipherSuites();</span>
+<span class="nc" id="L44">        addProperty(new DynamicUiProperty&lt;String&gt;(PROPERTY_PROTOCOL_AND_CIPHER_SUITE, CIPHER_SUITES_SUBSET[0], Arrays.asList(CIPHER_SUITES_SUBSET)));</span>
+<span class="nc" id="L45">    }</span>
+
+    /** @return an array of supported protocols named according to JSSE */
+    public String[] getSupportedProtocols() {
+<span class="nc" id="L49">        return getSelectedProtocolOrSuite(0);</span>
+    }
+
+    /** @return an array of supported cipher suites named according to JSSE */
+    public String[] getSupportedCipherTextSuites() {
+<span class="nc" id="L54">        return getSelectedProtocolOrSuite(1);</span>
+    }
+
+    private String[] getSelectedProtocolOrSuite(final int pos) {
+<span class="nc" id="L58">        final String value = (String) getProperty(PROPERTY_PROTOCOL_AND_CIPHER_SUITE).getValue();</span>
+<span class="nc" id="L59">        final String[] values = value.split(CesecoreConfiguration.AVAILABLE_CIPHER_SUITES_SPLIT_CHAR);</span>
+<span class="nc bnc" id="L60" title="All 4 branches missed.">        if (log.isDebugEnabled() &amp;&amp; pos==0) {</span>
+<span class="nc" id="L61">            log.debug(&quot;Configured cipher suite for this AuthenticationKeyBinding: &quot; + value);</span>
+        }
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        if (values.length==2) {</span>
+<span class="nc" id="L64">            return new String[] { values[pos] };</span>
+        }
+<span class="nc" id="L66">        return new String[0];</span>
+    }
+
+    @Override
+    public String getImplementationAlias() {
+<span class="nc" id="L71">        return IMPLEMENTATION_ALIAS;</span>
+    }
+
+    @Override
+    public float getLatestVersion() {
+<span class="nc" id="L76">        return serialVersionUID;</span>
+    }
+
+    @Override
+    public void assertCertificateCompatability(Certificate certificate, final AvailableExtendedKeyUsagesConfiguration ekuConfig) throws CertificateImportException {
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (!isClientSSLCertificate(certificate, ekuConfig)) {</span>
+<span class="nc" id="L82">            throw new CertificateImportException(&quot;Not a valid Client SSL authentication certificate.&quot;);</span>
+        }
+<span class="nc" id="L84">    }</span>
+
+    @Override
+    protected void upgrade(float latestVersion, float currentVersion) {
+        // Nothing to do   
+<span class="nc" id="L89">    }</span>
+
+    public static boolean isClientSSLCertificate(Certificate certificate, final AvailableExtendedKeyUsagesConfiguration ekuConfig) {
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        if (certificate == null) {</span>
+<span class="nc" id="L93">            log.debug(&quot;No certificate provided.&quot;);</span>
+<span class="nc" id="L94">            return false;</span>
+        }
+<span class="nc bnc" id="L96" title="All 2 branches missed.">        if (!(certificate instanceof X509Certificate)) {</span>
+<span class="nc" id="L97">            log.debug(&quot;Only X509 supported.&quot;);</span>
+<span class="nc" id="L98">            return false;</span>
+        }
+        try {
+<span class="nc" id="L101">            final X509Certificate x509Certificate = (X509Certificate) certificate;</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L103">                log.debug(&quot;SubjectDN: &quot; + CertTools.getSubjectDN(x509Certificate) + &quot; IssuerDN: &quot; + CertTools.getIssuerDN(x509Certificate));</span>
+            }
+<span class="nc" id="L105">            final boolean[] ku = x509Certificate.getKeyUsage();</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">            if (ku != null) {</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L108">                    log.debug(&quot;Key usages: &quot; + Arrays.toString(ku));</span>
+<span class="nc" id="L109">                    log.debug(&quot;Key usage (digitalSignature): &quot; + ku[0]);</span>
+<span class="nc" id="L110">                    log.debug(&quot;Key usage (keyEncipherment): &quot; + ku[2]);</span>
+                }
+            } else {
+<span class="nc" id="L113">                log.debug(&quot;No Key Usage to verify.&quot;);</span>
+<span class="nc" id="L114">                return false;            	</span>
+            }
+<span class="nc bnc" id="L116" title="All 2 branches missed.">            if (x509Certificate.getExtendedKeyUsage() == null) {</span>
+<span class="nc" id="L117">                log.debug(&quot;No EKU to verify.&quot;);</span>
+<span class="nc" id="L118">                return false;</span>
+            }
+<span class="nc bnc" id="L120" title="All 2 branches missed.">            for (String extendedKeyUsage : x509Certificate.getExtendedKeyUsage()) {</span>
+<span class="nc" id="L121">                log.debug(&quot;EKU: &quot; + extendedKeyUsage + &quot; (&quot; +</span>
+<span class="nc" id="L122">                        ekuConfig.getAllEKUOidsAndNames().get(extendedKeyUsage) + &quot;)&quot;);</span>
+<span class="nc" id="L123">            }</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">            if (!x509Certificate.getExtendedKeyUsage().contains(KeyPurposeId.id_kp_clientAuth.getId())) {</span>
+<span class="nc" id="L125">                log.debug(&quot;Extended Key Usage 1.3.6.1.5.5.7.3.2 (EKU_PKIX_CLIENTAUTH) is required.&quot;);</span>
+<span class="nc" id="L126">                return false;</span>
+            }
+            // For TLS _client_ certificates you can actually be without KU completely, but we take the safe route here and require digitalSignature
+            // for TLS _server_ certificates also keyEncipherment is required, but not for client (it doesn't hurt it it's there for clients as well though)
+<span class="nc bnc" id="L130" title="All 2 branches missed.">            if (!ku[0]) {</span>
+<span class="nc" id="L131">                log.debug(&quot;Key usage digitalSignature is required.&quot;);</span>
+<span class="nc" id="L132">                return false;</span>
+            }
+<span class="nc" id="L134">        } catch (CertificateParsingException e) {</span>
+<span class="nc" id="L135">            log.debug(e.getMessage());</span>
+<span class="nc" id="L136">            return false;</span>
+<span class="nc" id="L137">        }</span>
+<span class="nc" id="L138">        return true;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

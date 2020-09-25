@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>EndEntityProfileData.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-ejb-interface</a> &gt; <a href="../index.html" class="el_bundle">ejbca-entity</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.ra.raadmin</a> &gt; <span class="el_source">EndEntityProfileData.java</span></div><h1>EndEntityProfileData.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.ejb.ra.raadmin;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.PostLoad;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
+import javax.persistence.Query;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.apache.log4j.Logger;
+import org.cesecore.dbprotection.ProtectedData;
+import org.cesecore.dbprotection.ProtectionStringBuilder;
+import org.cesecore.internal.UpgradeableDataHashMap;
+import org.cesecore.util.QueryResultWrapper;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
+
+/**
+ * Representation of an End Entity Profile.
+ * 
+ * @version $Id: EndEntityProfileData.java 34415 2020-01-30 12:29:30Z aminkh $
+ */ 
+@Entity
+@Table(name=&quot;EndEntityProfileData&quot;)
+public class EndEntityProfileData extends ProtectedData implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+<span class="fc" id="L48">	private static final Logger log = Logger.getLogger(EndEntityProfileData.class);</span>
+
+	private int id;
+	private String profileName;
+	private Serializable data;
+<span class="pc" id="L53">	private int rowVersion = 0;</span>
+	private String rowProtection;
+
+	/**
+	 * Entity holding data of a end entity profile.
+	 * @param id ID
+	 * @param profileName Profile 
+	 * @param endEntityProfile Entity
+	 */
+<span class="nc" id="L62">	public EndEntityProfileData(int id, String profileName, EndEntityProfile endEntityProfile) {</span>
+<span class="nc" id="L63">		setId(id);</span>
+<span class="nc" id="L64">		setProfileName(profileName);</span>
+<span class="nc" id="L65">		setProfile(endEntityProfile);</span>
+<span class="nc" id="L66">		log.debug(&quot;Created profile &quot; + profileName);</span>
+<span class="nc" id="L67">	}</span>
+	
+<span class="fc" id="L69">	public EndEntityProfileData() { }</span>
+
+	//@Id @Column
+<span class="fc" id="L72">	public int getId() { return id; }</span>
+<span class="fc" id="L73">	public void setId(int id) { this.id = id; }</span>
+
+	//@Column
+<span class="fc" id="L76">	public String getProfileName() { return profileName; }</span>
+<span class="fc" id="L77">	public void setProfileName(String profileName) { this.profileName = profileName; }</span>
+
+	//@Column @Lob
+<span class="fc" id="L80">	public Serializable getDataUnsafe() { return data; }</span>
+	/** DO NOT USE! Stick with setData(HashMap data) instead. 
+	 * @param data Data*/
+<span class="fc" id="L83">	public void setDataUnsafe(Serializable data) { this.data = data; }</span>
+
+	//@Version @Column
+<span class="fc" id="L86">	public int getRowVersion() { return rowVersion; }</span>
+<span class="fc" id="L87">	public void setRowVersion(int rowVersion) { this.rowVersion = rowVersion; }</span>
+
+	//@Column @Lob
+	@Override
+<span class="fc" id="L91">	public String getRowProtection() { return rowProtection; }</span>
+	@Override
+<span class="fc" id="L93">	public void setRowProtection(String rowProtection) { this.rowProtection = rowProtection; }</span>
+
+	@Transient
+	private LinkedHashMap&lt;?, ?&gt; getData() {
+<span class="nc" id="L97">        final Serializable map = getDataUnsafe();</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (map instanceof LinkedHashMap&lt;?, ?&gt;) {</span>
+<span class="nc" id="L99">            return (LinkedHashMap&lt;?, ?&gt;) map;</span>
+        } else {
+<span class="nc" id="L101">            return new LinkedHashMap&lt;&gt;((Map&lt;?, ?&gt;) map);</span>
+        }	    
+	}
+
+<span class="nc" id="L105">	private void setData(LinkedHashMap&lt;?, ?&gt; data) { setDataUnsafe(data); }</span>
+
+    /**
+     * Method that returns the end entity profile and updates it if necessary.
+     * @return Profile
+     */
+	@Transient
+    public EndEntityProfile getProfile() {
+<span class="nc" id="L113">    	return readAndUpgradeProfileInternal();</span>
+    }
+
+    /**
+     * Method that saves the end entity profile.
+     * @param profile profile
+     */
+    public void setProfile(EndEntityProfile profile) {
+<span class="nc" id="L121">        setData((LinkedHashMap&lt;?, ?&gt;) profile.saveData());</span>
+<span class="nc" id="L122">    }</span>
+
+    /** 
+     * Method that upgrades a EndEntity Profile, if needed.
+     */
+    public void upgradeProfile() {
+<span class="nc" id="L128">    	readAndUpgradeProfileInternal();</span>
+<span class="nc" id="L129">    }</span>
+
+    /**
+     * We have an internal method for this read operation with a side-effect. 
+     * This is because getProfile() is a read-only method, so the possible side-effect of upgrade will not happen,
+     * and therefore this internal method can be called from another non-read-only method, upgradeProfile().
+     * @return EndEntityProfile
+     * TODO: Still true with JPA?
+     */
+    private EndEntityProfile readAndUpgradeProfileInternal() {
+<span class="nc" id="L139">        EndEntityProfile returnval = new EndEntityProfile(0);</span>
+<span class="nc" id="L140">        HashMap&lt;?, ?&gt; data = getData();</span>
+        // If EndEntityProfile-data is upgraded we want to save the new data, so we must get the old version before loading the data 
+        // and perhaps upgrading
+<span class="nc" id="L143">        float oldversion = ((Float) data.get(UpgradeableDataHashMap.VERSION)).floatValue();</span>
+        // Load the profile data, this will potentially upgrade the CertificateProfile
+<span class="nc" id="L145">        returnval.loadData(data);</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">        if (Float.compare(oldversion, returnval.getVersion()) != 0) {</span>
+        	// Save new data versions differ
+<span class="nc" id="L148">        	setProfile(returnval);</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">        	if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L150">            	log.debug(&quot;Saved upgraded profile, old version=&quot;+oldversion+&quot;, new version=&quot;+returnval.getVersion());        		</span>
+        	}
+        }
+<span class="nc" id="L153">        return returnval;</span>
+    }
+
+    //
+    // Start Database integrity protection methods
+    //
+
+    @Transient
+    @Override
+    protected String getProtectString(final int version) {
+<span class="nc" id="L163">        final ProtectionStringBuilder build = new ProtectionStringBuilder();</span>
+        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
+<span class="nc" id="L165">        build.append(getId()).append(getProfileName()).append(getData());</span>
+<span class="nc" id="L166">        return build.toString();</span>
+    }
+
+    @Transient
+    @Override
+    protected int getProtectVersion() {
+<span class="nc" id="L172">        return 1;</span>
+    }
+
+    @PrePersist
+    @PreUpdate
+    @Override
+    protected void protectData() {
+<span class="fc" id="L179">        super.protectData();</span>
+<span class="fc" id="L180">    }</span>
+
+    @PostLoad
+    @Override
+    protected void verifyData() {
+<span class="nc" id="L185">        super.verifyData();</span>
+<span class="nc" id="L186">    }</span>
+
+    @Override
+    @Transient
+    protected String getRowId() {
+<span class="nc" id="L191">        return String.valueOf(getId());</span>
+    }
+
+    //
+    // End Database integrity protection methods
+    //
+
+	//
+	// Search functions. 
+	//
+
+	/** @param entityManager EM
+	 * @param id ID
+	 * @return the found entity instance or null if the entity does not exist */
+	public static EndEntityProfileData findById(EntityManager entityManager, int id) {
+<span class="nc" id="L206">		return entityManager.find(EndEntityProfileData.class, id);</span>
+	}
+	
+	/**
+	 * @param entityManager EM
+	 * @param profileName Name
+	 * @throws javax.persistence.NonUniqueResultException if more than one entity with the name exists
+	 * @return the found entity instance or null if the entity does not exist
+	 */
+	public static EndEntityProfileData findByProfileName(EntityManager entityManager, String profileName) {
+<span class="nc" id="L216">		Query query = entityManager.createQuery(&quot;SELECT a FROM EndEntityProfileData a WHERE a.profileName=:profileName&quot;);</span>
+<span class="nc" id="L217">		query.setParameter(&quot;profileName&quot;, profileName);</span>
+<span class="nc" id="L218">		return (EndEntityProfileData) QueryResultWrapper.getSingleResult(query);</span>
+	}
+
+	/** @param entityManager EM
+	 * @return return the query results as a List. */
+	@SuppressWarnings(&quot;unchecked&quot;)
+    public static List&lt;EndEntityProfileData&gt; findAll(EntityManager entityManager) {
+<span class="nc" id="L225">		Query query = entityManager.createQuery(&quot;SELECT a FROM EndEntityProfileData a&quot;);</span>
+<span class="nc" id="L226">		return query.getResultList();</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

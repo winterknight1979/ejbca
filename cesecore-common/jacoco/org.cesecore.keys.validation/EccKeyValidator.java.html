@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EccKeyValidator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.keys.validation</a> &gt; <span class="el_source">EccKeyValidator.java</span></div><h1>EccKeyValidator.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General                  *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.cesecore.keys.validation;
+
+import java.security.PublicKey;
+import java.security.interfaces.ECPublicKey;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.jcajce.provider.asymmetric.util.EC5Util;
+import org.bouncycastle.math.ec.ECPoint;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.util.AlgorithmConstants;
+import org.cesecore.certificates.util.AlgorithmTools;
+import org.cesecore.profiles.Profile;
+import org.cesecore.util.ui.DynamicUiActionCallback;
+import org.cesecore.util.ui.DynamicUiCallbackException;
+import org.cesecore.util.ui.DynamicUiModel;
+import org.cesecore.util.ui.DynamicUiProperty;
+
+/**
+ * Default ECC key validator using the Bouncy Castle BCECPublicKey implementation 
+ * (see org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey). 
+ * 
+ * The key validator is used to implement the CA/B-Forum requirements for RSA public 
+ * key quality requirements, including FIPS 186-4 and NIST (SP 800-89 and NIST SP 56A: Revision 2)
+ * requirements. See: https://cabforum.org/wp-content/uploads/CA-Browser-Forum-BR-1.4.2.pdf section 6.1.6
+ * 
+ * @version $Id: EccKeyValidator.java 29467 2018-07-05 16:23:04Z mikekushner $
+ */
+public class EccKeyValidator extends KeyValidatorBase {
+
+    private static final long serialVersionUID = -335429158339811928L;
+
+<span class="fc" id="L49">    private static final Logger log = Logger.getLogger(EccKeyValidator.class);</span>
+
+    /** The key validator type. */
+    private static final String TYPE_IDENTIFIER = &quot;ECC_KEY_VALIDATOR&quot;;
+
+    protected static final String CURVES = &quot;ecCurves&quot;;
+
+    protected static final String USE_FULL_PUBLIC_KEY_VALIDATION_ROUTINE = &quot;useFullPublicKeyValidationRoutine&quot;;
+        
+    /**
+     * Public constructor needed for deserialization.
+     */
+    public EccKeyValidator() {
+<span class="fc" id="L62">        super();</span>
+<span class="fc" id="L63">    }</span>
+    
+    /**
+     * Creates a new instance.
+     * @param name name
+     */
+    public EccKeyValidator(final String name) {
+<span class="nc" id="L70">        super(name);</span>
+<span class="nc" id="L71">    }</span>
+
+    /**
+     * Initializes uninitialized data fields.
+     */
+    @Override
+    public void init() {
+<span class="fc" id="L78">        super.init();</span>
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">        if (null == data.get(CURVES)) {</span>
+<span class="fc" id="L80">            setCurves(new ArrayList&lt;String&gt;());</span>
+        }
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">        if (data.get(USE_FULL_PUBLIC_KEY_VALIDATION_ROUTINE) == null) {</span>
+<span class="fc" id="L83">            setUseFullPublicKeyValidationRoutine(true);</span>
+        }
+<span class="fc" id="L85">    }</span>
+
+    @Override
+    @SuppressWarnings({&quot;serial&quot;, &quot;unchecked&quot;})
+    public void initDynamicUiModel() {
+<span class="nc" id="L90">        uiModel = new DynamicUiModel(data);</span>
+<span class="nc" id="L91">        uiModel.add(new DynamicUiProperty&lt;String&gt;(&quot;settings&quot;));</span>
+<span class="nc" id="L92">        final DynamicUiProperty&lt;Integer&gt; settingsTemplate = new DynamicUiProperty&lt;Integer&gt;(Integer.class, SETTINGS_TEMPLATE, getSettingsTemplate(), KeyValidatorSettingsTemplate.types());</span>
+<span class="nc" id="L93">        settingsTemplate.setRenderingHint(DynamicUiProperty.RENDER_SELECT_ONE);</span>
+<span class="nc" id="L94">        settingsTemplate.setLabels(KeyValidatorSettingsTemplate.map());</span>
+<span class="nc" id="L95">        settingsTemplate.setRequired(true);</span>
+<span class="nc" id="L96">        settingsTemplate.setActionCallback(new DynamicUiActionCallback() {</span>
+            @Override
+            public void action(final Object parameter) throws DynamicUiCallbackException {
+<span class="nc" id="L99">                final Map&lt;Object, Object&gt; oldValues = (Map&lt;Object, Object&gt;) data.clone();</span>
+<span class="nc" id="L100">                setKeyValidatorSettingsTemplate(KeyValidatorSettingsTemplate.optionOf(Integer.parseInt((String) parameter)));</span>
+<span class="nc" id="L101">                uiModel.firePropertyChange(oldValues, data);</span>
+<span class="nc" id="L102">            }</span>
+            @Override
+            public List&lt;String&gt; getRender() {
+<span class="nc" id="L105">                return null;</span>
+            }
+        });
+<span class="nc" id="L108">        uiModel.add(settingsTemplate);</span>
+<span class="nc" id="L109">        final DynamicUiProperty&lt;String&gt; curves = new DynamicUiProperty&lt;String&gt;(String.class, CURVES, getCurvesAsString(), </span>
+<span class="nc" id="L110">                new ArrayList&lt;String&gt;(AlgorithmTools.getFlatNamedEcCurvesMap(false).keySet())) {</span>
+                    @Override
+<span class="nc" id="L112">                    public boolean isDisabled() { return isCurvesDisabled(); }</span>
+        };
+<span class="nc" id="L114">        curves.setLabels(AlgorithmTools.getFlatNamedEcCurvesMap(false));</span>
+<span class="nc" id="L115">        curves.setHasMultipleValues(true);</span>
+<span class="nc" id="L116">        curves.setRequired(true);</span>
+<span class="nc" id="L117">        uiModel.add(curves);</span>
+<span class="nc" id="L118">        uiModel.add(new DynamicUiProperty&lt;Boolean&gt;(Boolean.class, USE_FULL_PUBLIC_KEY_VALIDATION_ROUTINE, isUseFullPublicKeyValidationRoutine()) {</span>
+            @Override
+<span class="nc" id="L120">            public boolean isDisabled() { return isPropertyDisabled(); }</span>
+        });
+<span class="nc" id="L122">    }</span>
+    
+    /**
+     * Returns true if the dynamic property fields for this validator are supposed to be disabled.
+     * @return true if disabled.
+     */
+    private final boolean isPropertyDisabled() {
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        return KeyValidatorSettingsTemplate.USE_CAB_FORUM_SETTINGS.getOption() == getSettingsTemplate();</span>
+    }
+    
+    /**
+     * Returns true if the dynamic property fields for this validator are supposed to be disabled.
+     * @return true if disabled.
+     */
+    private final boolean isCurvesDisabled() {
+<span class="nc bnc" id="L137" title="All 2 branches missed.">        return KeyValidatorSettingsTemplate.USE_CUSTOM_SETTINGS.getOption() != getSettingsTemplate();</span>
+    }
+        
+    @Override
+    public void setKeyValidatorSettingsTemplate(final KeyValidatorSettingsTemplate template) {
+<span class="nc" id="L142">        setSettingsTemplate(template.getOption());</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L144">            log.debug(&quot;Set configuration template for ECC key validator settings option: &quot;</span>
+<span class="nc" id="L145">                    + intres.getLocalizedMessage(template.getLabel()));</span>
+        }
+<span class="nc bnc" id="L147" title="All 2 branches missed.">        if (KeyValidatorSettingsTemplate.USE_CUSTOM_SETTINGS.equals(template)) {</span>
+            // NOOP: In the validation method, the key specification is matched against the certificate profile.
+<span class="nc bnc" id="L149" title="All 2 branches missed.">        } else if (KeyValidatorSettingsTemplate.USE_CAB_FORUM_SETTINGS.equals(template)) {</span>
+<span class="nc" id="L150">            setCABForumBaseLineRequirements142Settings();</span>
+<span class="nc" id="L151">            setUseFullPublicKeyValidationRoutine(true);</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        } else if (KeyValidatorSettingsTemplate.USE_CERTIFICATE_PROFILE_SETTINGS.equals(template)) {</span>
+            // NOOP: In the validation method, the key specification is matched against the certificate profile.
+        } else {
+            // NOOP
+        }
+<span class="nc" id="L157">    }</span>
+
+    /**
+     * Sets the CA/B Forum requirements chapter 6.1.6 for RSA public keys.
+     * @see &lt;a href=&quot;https://cabforum.org/wp-content/uploads/CA-Browser-Forum-BR-1.4.2.pdf&quot;&gt; CA/B-Forum Baseline Requirements &lt;/a&gt;
+     */
+    public void setCABForumBaseLineRequirements142Settings() {
+<span class="nc" id="L164">        setCurves(AlgorithmTools.getNistCurves());</span>
+<span class="nc" id="L165">        setUseFullPublicKeyValidationRoutine(true);</span>
+<span class="nc" id="L166">    }</span>
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public List&lt;String&gt; getCurves() {
+<span class="fc" id="L170">        return (List&lt;String&gt;) data.get(CURVES);</span>
+    }
+    
+    public String getCurvesAsString() {
+<span class="nc bnc" id="L174" title="All 2 branches missed.">        return getCurves() != null ? StringUtils.join(getCurves(), LIST_SEPARATOR) : StringUtils.EMPTY;</span>
+    }
+
+    public void setCurves(List&lt;String&gt; values) {
+<span class="fc" id="L178">        data.put(CURVES, values);</span>
+<span class="fc" id="L179">    }</span>
+
+    /**
+     * Use full public key validation routine.
+     * @return true if has to be used.
+     */
+    public boolean isUseFullPublicKeyValidationRoutine() {
+<span class="fc" id="L186">        return ((Boolean) data.get(USE_FULL_PUBLIC_KEY_VALIDATION_ROUTINE)).booleanValue();</span>
+    }
+
+    /**
+     * Use full public key validation routine.
+     * @see &lt;a href=&quot;https://cabforum.org/wp-content/uploads/CA-Browser-Forum-BR-1.4.2.pdf&quot;&gt;CA/B-Forum Baseline Requirements 1.4.2 Chapter 5.6.2.3.3s&lt;/a&gt;
+     * @param allowed boolean
+     */
+    public void setUseFullPublicKeyValidationRoutine(boolean allowed) {
+<span class="fc" id="L195">        data.put(USE_FULL_PUBLIC_KEY_VALIDATION_ROUTINE, Boolean.valueOf(allowed));</span>
+<span class="fc" id="L196">    }</span>
+
+    @Override
+    public void upgrade() {
+<span class="nc" id="L200">        super.upgrade();</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L202">            log.trace(&quot;&gt;upgrade: &quot; + getLatestVersion() + &quot;, &quot; + getVersion());</span>
+        }
+<span class="nc bnc" id="L204" title="All 2 branches missed.">        if (Float.compare(LATEST_VERSION, getVersion()) != 0) {</span>
+            // New version of the class, upgrade.
+<span class="nc" id="L206">            log.info(intres.getLocalizedMessage(&quot;ecckeyvalidator.upgrade&quot;, Float.valueOf(getVersion())));</span>
+<span class="nc" id="L207">            init();</span>
+        }
+<span class="nc" id="L209">    }</span>
+
+    @Override
+    public List&lt;String&gt; validate(final PublicKey publicKey, final CertificateProfile certificateProfile) throws ValidatorNotApplicableException, ValidationException {
+<span class="fc" id="L213">        List&lt;String&gt; messages = new ArrayList&lt;String&gt;();</span>
+<span class="pc bpc" id="L214" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L215">            log.debug(&quot;Validating public key with algorithm &quot; + publicKey.getAlgorithm() + &quot;, format &quot; + publicKey.getFormat() + &quot;, implementation &quot;</span>
+<span class="nc" id="L216">                    + publicKey.getClass().getName());</span>
+        }
+<span class="pc bpc" id="L218" title="2 of 6 branches missed.">        if (!(AlgorithmConstants.KEYALGORITHM_ECDSA.equals(publicKey.getAlgorithm()) || AlgorithmConstants.KEYALGORITHM_EC.equals(publicKey.getAlgorithm())) || !(publicKey instanceof ECPublicKey)) {</span>
+<span class="nc" id="L219">            final String message = &quot;Invalid: Public key is not ECC algorithm or could not be parsed: &quot; + publicKey.getAlgorithm() + &quot;, format &quot;</span>
+<span class="nc" id="L220">                    + publicKey.getFormat();</span>
+<span class="nc" id="L221">            messages.add(message);</span>
+<span class="nc" id="L222">            throw new ValidatorNotApplicableException(message);</span>
+        }
+<span class="fc" id="L224">        final ECPublicKey bcEcPublicKey = (ECPublicKey) publicKey;</span>
+<span class="pc bpc" id="L225" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L226">            log.debug(&quot;ECC Key algorithm &quot; + bcEcPublicKey.getAlgorithm());</span>
+<span class="nc" id="L227">            log.debug(&quot;ECC format &quot; + bcEcPublicKey.getFormat());</span>
+<span class="nc" id="L228">            log.debug(&quot;ECC affine X &quot; + bcEcPublicKey.getW().getAffineX());</span>
+<span class="nc" id="L229">            log.debug(&quot;ECC affine Y &quot; + bcEcPublicKey.getW().getAffineY());</span>
+<span class="nc" id="L230">            log.debug(&quot;ECC co factor &quot; + bcEcPublicKey.getParams().getCofactor());</span>
+<span class="nc" id="L231">            log.debug(&quot;ECC order &quot; + bcEcPublicKey.getParams().getOrder());</span>
+<span class="nc" id="L232">            log.debug(&quot;ECC generator &quot; + bcEcPublicKey.getParams().getGenerator());</span>
+<span class="nc" id="L233">            log.debug(&quot;ECC curve seed &quot; + bcEcPublicKey.getParams().getCurve().getSeed());</span>
+<span class="nc" id="L234">            log.debug(&quot;ECC curve A &quot; + bcEcPublicKey.getParams().getCurve().getA());</span>
+<span class="nc" id="L235">            log.debug(&quot;ECC curve B &quot; + bcEcPublicKey.getParams().getCurve().getB());</span>
+<span class="nc" id="L236">            log.debug(&quot;ECC curve field size &quot; + bcEcPublicKey.getParams().getCurve().getField().getFieldSize());</span>
+        }
+
+        final List&lt;String&gt; availableEcCurves;
+<span class="fc" id="L240">        final int settingsOption = getSettingsTemplate();</span>
+<span class="pc bpc" id="L241" title="1 of 2 branches missed.">        if (KeyValidatorSettingsTemplate.USE_CERTIFICATE_PROFILE_SETTINGS.getOption() == settingsOption) {</span>
+<span class="nc" id="L242">            availableEcCurves = certificateProfile.getAvailableEcCurvesAsList();</span>
+        } else {
+<span class="fc" id="L244">            availableEcCurves = getCurves();</span>
+        }
+<span class="fc" id="L246">        final String keySpecification = AlgorithmTools.getKeySpecification(publicKey);</span>
+<span class="pc bpc" id="L247" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L248">            log.debug(&quot;Matching key specification &quot; + keySpecification + &quot; against allowed ECC curves: &quot; + availableEcCurves);</span>
+        }
+<span class="pc bpc" id="L250" title="1 of 2 branches missed.">        if (!availableEcCurves.contains(CertificateProfile.ANY_EC_CURVE)) {</span>
+<span class="fc" id="L251">            boolean found = false;</span>
+<span class="fc bfc" id="L252" title="All 2 branches covered.">            for (final String ecNamedCurveAlias : AlgorithmTools.getEcKeySpecAliases(keySpecification)) {</span>
+<span class="fc bfc" id="L253" title="All 2 branches covered.">                if (availableEcCurves.contains(ecNamedCurveAlias)) {</span>
+<span class="fc" id="L254">                    found = true;</span>
+                }
+<span class="fc" id="L256">            }</span>
+<span class="fc bfc" id="L257" title="All 2 branches covered.">            if (!found) {</span>
+<span class="fc" id="L258">                messages.add(&quot;Invalid: ECDSA curve &quot;+AlgorithmTools.getEcKeySpecAliases(keySpecification)+&quot;: Use one of the following &quot; + availableEcCurves + &quot;.&quot;);</span>
+            }
+        }
+        
+<span class="pc bpc" id="L262" title="1 of 2 branches missed.">        if (isUseFullPublicKeyValidationRoutine()) {</span>
+<span class="pc bpc" id="L263" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L264">                log.debug(&quot;Performing full EC public key validation.&quot;);</span>
+            }
+            // The FullPublicKeyValidationRoutine test is copied from org.bouncycastle.crypto.asymmetric.KeyUtils in the BC-FIPS package.
+            // If we move to use the FIPS provider we can use the methods directly instead
+
+            // Source-wise org.bouncycastle.crypto.asymmetric.KeyUtils in the BCFIPS
+            // library is the place with - the code refers to SP 800-89 which is the
+            // same validation (the full one) referred to in SP 800-56A, the original
+            // source document for both is actually X9.62.
+            // org.bouncycastle.math.ec.ECPoint has the &quot;business end&quot; of the code on
+            // starting on line 286, implIsValid(). For key validation purposes
+            // checkOrder is true so subgroup membership is always checked
+
+            // First convert the Java.security publicKey into a BC ECPoint
+<span class="fc" id="L278">            ECPoint q = EC5Util.convertPoint(bcEcPublicKey.getParams(), bcEcPublicKey.getW(), false);</span>
+
+            // --- Begin BC code
+            // FSM_STATE:5.9, &quot;FIPS 186-3/SP 800-89 ASSURANCES&quot;, &quot;The module is performing FIPS 186-3/SP 800-89 Assurances self-test&quot;
+            // FSM_TRANS:5.14, &quot;CONDITIONAL TEST&quot;, &quot;FIPS 186-3/SP 800-89 ASSURANCES CHECK&quot;, &quot;Invoke FIPS 186-3/SP 800-89 Assurances test&quot;
+<span class="pc bpc" id="L283" title="1 of 2 branches missed.">            if (q == null)</span>
+            {
+                // FSM_TRANS:5.16, &quot;FIPS 186-3/SP 800-89 ASSURANCES CHECK&quot;, &quot;CONDITIONAL TEST&quot;, &quot;FIPS 186-3/SP 800-89 Assurances test failed&quot;
+<span class="nc" id="L286">                messages.add(&quot;Invalid: EC key point has null value.&quot;);</span>
+            } else {
+<span class="fc" id="L288">                log.trace(&quot;EC point has value test passed&quot;);</span>
+            }
+
+<span class="pc bpc" id="L291" title="1 of 2 branches missed.">            if (q.isInfinity())</span>
+            {
+                // FSM_TRANS:5.16, &quot;FIPS 186-3/SP 800-89 ASSURANCES CHECK&quot;, &quot;CONDITIONAL TEST&quot;, &quot;FIPS 186-3/SP 800-89 Assurances test failed&quot;
+<span class="nc" id="L294">                messages.add(&quot;Invalid: EC key point at infinity.&quot;);</span>
+            } else {
+<span class="fc" id="L296">                log.trace(&quot;EC point not on infinity test passed&quot;);</span>
+            }
+
+<span class="fc" id="L299">            q = q.normalize();</span>
+
+<span class="pc bpc" id="L301" title="1 of 2 branches missed.">            if (!q.isValid())</span>
+            {
+                // FSM_TRANS:5.16, &quot;FIPS 186-3/SP 800-89 ASSURANCES CHECK&quot;, &quot;CONDITIONAL TEST&quot;, &quot;FIPS 186-3/SP 800-89 Assurances test failed&quot;
+<span class="nc" id="L304">                messages.add(&quot;Invalid: EC key point not on curve.&quot;);</span>
+            } else {
+<span class="fc" id="L306">                log.trace(&quot;EC point not on curve test passed&quot;);</span>
+            }
+        }
+        // FSM_TRANS:5.15, &quot;FIPS 186-3/SP 800-89 ASSURANCES CHECK&quot;, &quot;CONDITIONAL TEST&quot;, &quot;FIPS 186-3/SP 800-89 Assurances test successful&quot;
+        // --- End BC code
+
+<span class="pc bpc" id="L312" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc bnc" id="L313" title="All 2 branches missed.">            for (String message : messages) {</span>
+<span class="nc" id="L314">                log.debug(message);</span>
+<span class="nc" id="L315">            }</span>
+        }
+<span class="fc" id="L317">        return messages;</span>
+    }
+
+    /**
+     * Sets the CA/B Forum requirements chapter 6.1.6 for ECC public keys.
+     * @see &lt;a href=&quot;https://cabforum.org/wp-content/uploads/CA-Browser-Forum-BR-1.4.2.pdf&quot;&gt; CA/B-Forum Baseline Requirements &lt;/a&gt;
+     */
+    public final void setCABForumBaseLineRequirements142() {
+<span class="nc" id="L325">        setUseFullPublicKeyValidationRoutine(true);</span>
+<span class="nc" id="L326">    }</span>
+    
+    @Override
+    public String getLabel() {
+<span class="nc" id="L330">        return intres.getLocalizedMessage(&quot;validator.implementation.key.ecc&quot;);</span>
+    }
+
+    @Override
+    public String getValidatorTypeIdentifier() {
+<span class="nc" id="L335">        return TYPE_IDENTIFIER;</span>
+    }
+
+    @Override
+    protected Class&lt;? extends Profile&gt; getImplementationClass() {
+<span class="fc" id="L340">        return EccKeyValidator.class;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

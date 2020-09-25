@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>DatabaseProtectionException.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-common-entity-tests</a> &gt; <a href="../index.html" class="el_bundle">cesecore-entity</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.dbprotection</a> &gt; <span class="el_source">DatabaseProtectionException.java</span></div><h1>DatabaseProtectionException.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/ 
+package org.cesecore.dbprotection;
+
+
+
+/**
+ * An exception thrown when there is an error with database protection, this error is fatal and should lead to 
+ * application not working, thus the use of RuntimeException.
+ *
+ * @version $Id: DatabaseProtectionException.java 17625 2013-09-20 07:12:06Z netmackan $
+ */
+public class DatabaseProtectionException extends RuntimeException {
+    
+    private static final long serialVersionUID = -1L;
+
+    /* We don't want to send raw database entries outside the JVM. */
+    private transient final ProtectedData entity;
+
+    /**
+     * Constructs an instance of exception with a simple details message
+     * and the read entity causing the error.
+     * @param msg msg
+     * @param entity Entitt
+     */
+    public DatabaseProtectionException(final String msg, final ProtectedData entity) {
+<span class="nc" id="L37">        super(msg);</span>
+<span class="nc" id="L38">        this.entity = entity;</span>
+<span class="nc" id="L39">    }</span>
+
+    
+    /**
+     * Constructs an instance of exception with a simple details message
+     * and the underlying exception
+     * @param msg message
+     * @param e cause
+     */
+    public DatabaseProtectionException(final String msg, final Exception e) {
+<span class="nc" id="L49">        super(msg, e);</span>
+<span class="nc" id="L50">        this.entity = null;</span>
+<span class="nc" id="L51">    }</span>
+    /**
+     * Constructs an instance of exception with a simple details message
+     * @param msg message
+     */
+    public DatabaseProtectionException(final String msg) {
+<span class="nc" id="L57">        super(msg);</span>
+<span class="nc" id="L58">        this.entity = null;</span>
+<span class="nc" id="L59">    }</span>
+
+    /**
+     * Constructs an instance of exception wrapping the causing error
+     * @param e cause
+     */
+    public DatabaseProtectionException(final Exception e) {
+<span class="nc" id="L66">        super(e);</span>
+<span class="nc" id="L67">        this.entity = null;</span>
+<span class="nc" id="L68">    }</span>
+    
+    /** @return the entity that we tried to read that failed the verification. */
+    public ProtectedData getEntity() {
+<span class="nc" id="L72">    	return entity;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

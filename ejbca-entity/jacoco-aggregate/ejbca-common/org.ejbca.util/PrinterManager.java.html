@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>PrinterManager.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-entity</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util</a> &gt; <span class="el_source">PrinterManager.java</span></div><h1>PrinterManager.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.util;
+
+import java.awt.print.PageFormat;
+import java.awt.print.Paper;
+import java.awt.print.PrinterException;
+import java.awt.print.PrinterJob;
+import java.io.IOException;
+import java.io.StringReader;
+
+import javax.print.DocFlavor;
+import javax.print.PrintService;
+import javax.print.PrintServiceLookup;
+import javax.print.attribute.HashPrintRequestAttributeSet;
+import javax.print.attribute.PrintRequestAttributeSet;
+
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.ejbca.core.model.hardtoken.profiles.SVGImageManipulator;
+
+/**
+ * Class managing EJBCA print functionality, such as listing printers
+ * and managing printjobs
+ * 
+ * @author Philip Vendil 2006 sep 20
+ *
+ * @version $Id: PrinterManager.java 22117 2015-10-29 10:53:42Z mikekushner $
+ */
+<span class="nc" id="L40">public class PrinterManager {</span>
+	
+<span class="nc" id="L42">	private static Logger log = Logger.getLogger(PrinterManager.class);</span>
+
+<span class="nc" id="L44">	private static transient PrintService currentService = null;	</span>
+<span class="nc" id="L45">	private static transient String currentPrinterName = null;</span>
+<span class="nc" id="L46">	private static transient String currentSVGTemplateName = null;</span>
+<span class="nc" id="L47">	private static transient SVGImageManipulator sVGImagemanipulator = null;</span>
+	
+	/**
+	 * Method that returns the names of all the available printers or an empty list if
+	 * no printers were found or an error occurred.
+	 * @return printers
+	 */
+	public static String[] listPrinters(){
+<span class="nc" id="L55">		String[] printerNames = new String[0];</span>
+		try {
+<span class="nc" id="L57">			PrintRequestAttributeSet pras = new HashPrintRequestAttributeSet();</span>
+<span class="nc" id="L58">			DocFlavor flavor = DocFlavor.BYTE_ARRAY.AUTOSENSE;</span>
+<span class="nc" id="L59">			PrintService printService[] =  PrintServiceLookup.lookupPrintServices(flavor, pras);</span>
+<span class="nc" id="L60">			printerNames = new String[printService.length];</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">			for(int i=0;i&lt;printService.length;i++){</span>
+<span class="nc" id="L62">				String name = &quot;Error&quot;;</span>
+<span class="nc" id="L63">				PrintService service = printService[i];</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">				if (service != null) {</span>
+<span class="nc" id="L65">					name = service.getName();</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">					if (name == null) {</span>
+<span class="nc" id="L67">						name = &quot;Undefined&quot;;</span>
+					}
+				}
+<span class="nc" id="L70">				printerNames[i] = name;					</span>
+			}			
+<span class="nc" id="L72">		} catch (Throwable e) { // NOPMD: printers will give all sorts of wacky errors.</span>
+<span class="nc" id="L73">			String msg = &quot;There might be a problem with one of the printers' configuration: &quot;;</span>
+<span class="nc" id="L74">			log.warn(msg + e.getMessage());</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">			if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L76">				log.debug(msg, e);</span>
+			}
+<span class="nc" id="L78">		}		</span>
+<span class="nc" id="L79">		return printerNames;</span>
+	}
+
+
+	
+	/**
+	 * Method performin the actual processing and
+	 * printing of an SVG Template
+	 * 
+	 * Imporant the method is caching template data
+	 * so to subsekvent calls with the samt svtTemplate name
+	 * will result in the same SVG data being processed.
+	 * Avoid the same svgTemplate name for two different
+	 * SVG files
+	 * 
+	 * @param printerName the name of the printer to use
+	 * @param svtTemplateName the filname of the SVG file.
+	 * @param sVGData the actual SVG data.
+	 * @param copies number of copies to print
+	 * @param visualVaildity the visual validity use 0 if not used
+	 * @param endEntityInformation the userdata
+	 * @param pINs the PINS (or password)
+	 * @param pUKs the PUKS, optional
+	 * @param hardTokenSerialPrefix the prefix of the hardtoken, optional
+	 * @param hardTokenSN optional
+	 * @param copyOfHardTokenSN optional
+	 * @throws PrinterException throws if any printer problems occur.
+	 */
+	public static void print(String printerName, String svtTemplateName, 
+			String sVGData, int copies,
+			int visualVaildity,  EndEntityInformation endEntityInformation, 
+			String[] pINs, String[] pUKs, String hardTokenSerialPrefix,
+			String hardTokenSN, String copyOfHardTokenSN) throws PrinterException{
+<span class="nc bnc" id="L112" title="All 2 branches missed.">	    if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L113">            log.trace(&quot;&gt;print: &quot;+endEntityInformation.getUsername()+&quot;, &quot;+printerName);</span>
+	    }
+<span class="nc bnc" id="L115" title="All 4 branches missed.">		if(currentService == null </span>
+		   || currentPrinterName == null 
+<span class="nc bnc" id="L117" title="All 2 branches missed.">		   || !printerName.equals(currentPrinterName)){</span>
+<span class="nc" id="L118">			PrintRequestAttributeSet pras = new HashPrintRequestAttributeSet();</span>
+<span class="nc" id="L119">			DocFlavor flavor = DocFlavor.BYTE_ARRAY.AUTOSENSE;</span>
+<span class="nc" id="L120">			PrintService printService[] =  PrintServiceLookup.lookupPrintServices(flavor, pras);</span>
+<span class="nc" id="L121">			int i = 0;</span>
+<span class="nc" id="L122">			String trimemdPrinterName = printerName.trim();</span>
+<span class="nc bnc" id="L123" title="All 4 branches missed.">			while ( i&lt;printService.length &amp;&amp; !trimemdPrinterName.equalsIgnoreCase(printService[i].getName()) ){</span>
+<span class="nc" id="L124">				i++;</span>
+			}
+<span class="nc bnc" id="L126" title="All 2 branches missed.">			currentService = i&lt;printService.length ? printService[i] : null;	</span>
+<span class="nc" id="L127">			currentPrinterName = printerName;</span>
+		}	
+		try{
+<span class="nc bnc" id="L130" title="All 4 branches missed.">			if(currentSVGTemplateName == null || !currentSVGTemplateName.equals(svtTemplateName)){</span>
+<span class="nc" id="L131">				sVGImagemanipulator = new SVGImageManipulator(new StringReader(sVGData),visualVaildity,hardTokenSerialPrefix);</span>
+			}
+
+<span class="nc bnc" id="L134" title="All 2 branches missed.">			if(currentService != null){</span>
+<span class="nc" id="L135">				PrinterJob job = PrinterJob.getPrinterJob();</span>
+
+<span class="nc" id="L137">				job.setPrintService(currentService);</span>
+<span class="nc" id="L138">				PageFormat pf = job.defaultPage();</span>
+<span class="nc" id="L139">				Paper paper = new Paper();</span>
+<span class="nc" id="L140">				paper.setSize(pf.getWidth(), pf.getHeight());</span>
+<span class="nc" id="L141">				paper.setImageableArea(0.0,0.0,pf.getWidth(), pf.getHeight());				</span>
+
+<span class="nc" id="L143">				pf.setPaper(paper);	   	  </span>
+<span class="nc" id="L144">				job.setPrintable(sVGImagemanipulator.print(endEntityInformation,pINs,pUKs,hardTokenSN, copyOfHardTokenSN),pf);	   	  </span>
+<span class="nc" id="L145">                job.setCopies(copies);</span>
+<span class="nc" id="L146">				job.print();</span>
+<span class="nc" id="L147">				log.info(&quot;Sent print job for end entity '&quot;+endEntityInformation.getUsername()+&quot;' to printer '&quot;+currentService.getName()+&quot;'.&quot;);</span>
+<span class="nc" id="L148">			}else{</span>
+<span class="nc" id="L149">				throw new PrinterException(&quot;Error, couldn't find the right printer&quot;);		  	   	</span>
+			}	
+<span class="nc" id="L151">		}catch(IOException e){</span>
+<span class="nc" id="L152">			log.error(e);</span>
+<span class="nc" id="L153">			throw new PrinterException(&quot;Error occured when processing the SVG data :&quot; + e.getMessage());		</span>
+<span class="nc" id="L154">		}</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L156">            log.trace(&quot;&lt;print: &quot;+endEntityInformation.getUsername()+&quot;, &quot;+printerName);</span>
+        }
+<span class="nc" id="L158">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

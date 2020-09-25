@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RoleMemberData.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-common-entity-tests</a> &gt; <a href="../index.html" class="el_bundle">cesecore-entity</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.roles.member</a> &gt; <span class="el_source">RoleMemberData.java</span></div><h1>RoleMemberData.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.cesecore.roles.member;
+
+import java.io.Serializable;
+
+import javax.persistence.Entity;
+import javax.persistence.PostLoad;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.builder.CompareToBuilder;
+import org.cesecore.dbprotection.ProtectedData;
+import org.cesecore.dbprotection.ProtectionStringBuilder;
+
+/**
+ * Entity bean for Role members. Does not correspond to a physical entity, but rather to an individual credential linked to an entity. The same 
+ * individuals may share the same credential (such as belonging to the same organization, or sharing an account, while one individual may have access
+ * to several credentials (such as a user using several different certificates for identification depending on location). 
+ * 
+ *  Each member is linked to a Role, though not intrinsically so via foreign keys 
+ * 
+ * @version $Id: RoleMemberData.java 25634 2017-04-03 12:02:08Z jeklund $
+ */
+@Entity
+@Table(name = &quot;RoleMemberData&quot;)
+public class RoleMemberData extends ProtectedData implements Serializable, Comparable&lt;RoleMemberData&gt; {
+
+    private static final long serialVersionUID = 1L;
+   
+    private int primaryKey;
+
+    private String tokenType;
+    private int tokenIssuerId;
+    private int tokenMatchKey;
+    private int tokenMatchOperator;
+    private String tokenMatchValueColumn;
+    private int roleId;
+    private String descriptionColumn;
+    
+<span class="nc" id="L55">    private int rowVersion = 0;</span>
+    private String rowProtection;
+
+<span class="nc" id="L58">    public RoleMemberData() {</span>
+<span class="nc" id="L59">    }</span>
+
+    /** Construct the object from RoleMember value object 
+     * @param roleMember member*/
+<span class="nc" id="L63">    public RoleMemberData(final RoleMember roleMember) {</span>
+<span class="nc" id="L64">        setPrimaryKey(roleMember.getId());</span>
+<span class="nc" id="L65">        updateValuesFromValueObject(roleMember);</span>
+<span class="nc" id="L66">    }</span>
+
+    /**
+     * Slightly more verbose constructor used for upgrades.
+     * 
+     * @param primaryKey the primary key for this object. It's required to check the database for any objects with the same key, otherwise that 
+     *  object will be overridden
+     * @param tokenType a string which defined the implementation of AcceessMatchValue used by this member
+     * @param tokenIssuerId the issuer of token if relevant or 0 (RoleMember.NO_ISSUER) otherwise
+     * @param tokenMatchKey the integer value determining how to interpret the tokenMatchValue, defined in a class that inherits the interface AcceessMatchValue
+     * @param tokenMatchOperator how to perform the match. 0 (AccessMatchType.UNUSED.getNumericValue())to let the determine this from tokenSubType.
+     * @param tokenMatchValue the actual value with which to match
+     * @param roleId the ID of the role to which this member belongs. May be null.
+     * @param description a human readable description of this role member. Null will be treated as an empty String.
+     */
+    public RoleMemberData(final int primaryKey, final String tokenType, final int tokenIssuerId, final int tokenMatchKey, final int tokenMatchOperator,
+<span class="nc" id="L82">            final String tokenMatchValue, final int roleId, String description) {</span>
+<span class="nc" id="L83">        this.primaryKey = primaryKey;</span>
+<span class="nc" id="L84">        this.tokenType = tokenType;</span>
+<span class="nc" id="L85">        this.tokenIssuerId = tokenIssuerId;</span>
+<span class="nc" id="L86">        this.tokenMatchKey = tokenMatchKey;</span>
+<span class="nc" id="L87">        this.tokenMatchOperator = tokenMatchOperator;</span>
+<span class="nc" id="L88">        this.tokenMatchValueColumn = tokenMatchValue;</span>
+<span class="nc" id="L89">        this.roleId = roleId;</span>
+<span class="nc" id="L90">        this.setDescription(description);</span>
+<span class="nc" id="L91">    }</span>
+
+    /** @return the primary key of this entity bean, a pseudo-random integer */
+    public int getPrimaryKey() {
+<span class="nc" id="L95">        return primaryKey;</span>
+    }
+
+    public void setPrimaryKey(int primaryKey) {
+<span class="nc" id="L99">        this.primaryKey = primaryKey;</span>
+<span class="nc" id="L100">    }</span>
+
+    /** @return the authentication token type that this member identifies to (such as X509CertificateAuthenticationToken) */
+    public String getTokenType() {
+<span class="nc" id="L104">        return tokenType;</span>
+    }
+    
+    public void setTokenType(final String tokenType) {
+<span class="nc" id="L108">        this.tokenType = tokenType;</span>
+<span class="nc" id="L109">    }</span>
+
+    /** @return issuer identifier of this token or 0 (RoleMember.NO_ISSUER) if this is not relevant for this token type */
+    public int getTokenIssuerId() {
+<span class="nc" id="L113">        return tokenIssuerId;</span>
+    }
+
+    public void setTokenIssuerId(int tokenIssuerId) {
+<span class="nc" id="L117">        this.tokenIssuerId = tokenIssuerId;</span>
+<span class="nc" id="L118">    }</span>
+
+    /** @return the match value type with to match, i.e. CN, serial number, or username */
+    public int getTokenMatchKey() {
+<span class="nc" id="L122">        return tokenMatchKey;</span>
+    }
+
+    public void setTokenMatchKey(final int tokenMatchKey) {
+<span class="nc" id="L126">        this.tokenMatchKey = tokenMatchKey;</span>
+<span class="nc" id="L127">    }</span>
+        
+    /** @return what kind of operator to apply to the match value */
+    public int getTokenMatchOperator() {
+<span class="nc" id="L131">        return tokenMatchOperator;</span>
+    }
+
+    public void setTokenMatchOperator(final int tokenMatchOperator) {
+<span class="nc" id="L135">        this.tokenMatchOperator = tokenMatchOperator;</span>
+<span class="nc" id="L136">    }</span>
+
+    //@Column(name=&quot;tokenMatchValue&quot;)
+    @Deprecated
+    /** @deprecated (Only for database mapping) {@link #getTokenMatchValue()} */
+    public String getTokenMatchValueColumn() {
+<span class="nc" id="L142">        return tokenMatchValueColumn;</span>
+    }
+    @Deprecated
+    /** @deprecated (Only for database mapping) {@link #setTokenMatchValue(String)} */
+    public void setTokenMatchValueColumn(final String tokenMatchValueColumn) {
+<span class="nc" id="L147">        this.tokenMatchValueColumn = tokenMatchValueColumn;</span>
+<span class="nc" id="L148">    }</span>
+
+    @Transient
+    /** @return the actual value with which we match (never returns null) */
+    public String getTokenMatchValue() {
+<span class="nc" id="L153">        return StringUtils.defaultIfEmpty(getTokenMatchValueColumn(), &quot;&quot;);</span>
+    }
+    
+    @Transient
+    public void setTokenMatchValue(final String tokenMatchValue) {
+<span class="nc" id="L158">        this.setTokenMatchValueColumn(StringUtils.defaultIfEmpty(tokenMatchValue, null));</span>
+<span class="nc" id="L159">    }</span>
+
+    /** @return the role to which this member belongs or 0 if it is not assigned to a role. */
+    public int getRoleId() {
+<span class="nc" id="L163">        return roleId;</span>
+    }
+    
+    public void setRoleId(final int roleId) {
+<span class="nc" id="L167">        this.roleId = roleId;</span>
+<span class="nc" id="L168">    }</span>
+
+    //@Column(name=&quot;description&quot;)
+    @Deprecated
+    /** @deprecated (Only for database mapping) {@link #getDescription()} */
+    public String getDescriptionColumn() {
+<span class="nc" id="L174">        return descriptionColumn;</span>
+    }
+    @Deprecated
+    /** @deprecated (Only for database mapping) {@link #setDescription(String)} */
+    public void setDescriptionColumn(final String descriptionColumn) {
+<span class="nc" id="L179">        this.descriptionColumn = descriptionColumn;</span>
+<span class="nc" id="L180">    }</span>
+
+    @Transient
+    /** @return a human readable description of the role member */
+    public String getDescription() {
+<span class="nc" id="L185">        return StringUtils.defaultIfEmpty(getDescriptionColumn(), &quot;&quot;);</span>
+    }
+
+    @Transient
+    public void setDescription(final String description) {
+<span class="nc" id="L190">        this.setDescriptionColumn(StringUtils.defaultIfEmpty(description, null));</span>
+<span class="nc" id="L191">    }</span>
+    
+    public int getRowVersion() {
+<span class="nc" id="L194">        return rowVersion;</span>
+    }
+
+    public void setRowVersion(final int rowVersion) {
+<span class="nc" id="L198">        this.rowVersion = rowVersion;</span>
+<span class="nc" id="L199">    }</span>
+
+    /** @return the row integrity protection String */
+    public String getRowProtection() {
+<span class="nc" id="L203">        return getZzzRowProtection();</span>
+    }
+    public void setRowProtection(final String rowProtection) {
+<span class="nc" id="L206">        this.setZzzRowProtection(rowProtection);</span>
+<span class="nc" id="L207">    }</span>
+
+    /** 
+     * Horrible work-around due to the fact that Oracle needs to have (LONG and) CLOB values last in order to avoid ORA-24816.
+     * 
+     * Since Hibernate sorts columns by the property names, naming this Z-something will apparently ensure that this column is used last.
+     * @return string
+     * @deprecated Use {@link #getRowProtection()} instead
+     */
+    @Deprecated
+    public String getZzzRowProtection() {
+<span class="nc" id="L218">        return rowProtection;</span>
+    }
+    /** @param zzzRowProtection string
+     * @deprecated Use {@link #setRowProtection(String)} instead */
+    @Deprecated
+    public void setZzzRowProtection(final String zzzRowProtection) {
+<span class="nc" id="L224">        this.rowProtection = zzzRowProtection;</span>
+<span class="nc" id="L225">    }</span>
+
+    // Start Database integrity protection methods
+    @Transient
+    @Override
+    protected String getProtectString(final int version) {
+<span class="nc" id="L231">        final ProtectionStringBuilder build = new ProtectionStringBuilder();</span>
+        // What is important to protect here is the data that we define
+        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
+<span class="nc" id="L234">        build.append(getPrimaryKey()).append(getTokenType()).append(getTokenIssuerId()).append(getTokenMatchKey()).append(getTokenMatchOperator()).</span>
+<span class="nc" id="L235">            append(getTokenMatchValue()).append(getRoleId()).append(getDescription());</span>
+<span class="nc" id="L236">        return build.toString();</span>
+    }
+
+    @Transient
+    @Override
+    protected int getProtectVersion() {
+<span class="nc" id="L242">        return 1;</span>
+    }
+
+    @PrePersist
+    @PreUpdate
+    @Override
+    protected void protectData() {
+<span class="nc" id="L249">        super.protectData();</span>
+<span class="nc" id="L250">    }</span>
+
+    @PostLoad
+    @Override
+    protected void verifyData() {
+<span class="nc" id="L255">        super.verifyData();</span>
+<span class="nc" id="L256">    }</span>
+
+    @Override
+    @Transient
+    protected String getRowId() {
+<span class="nc" id="L261">        return String.valueOf(getPrimaryKey());</span>
+    }
+
+    //
+    // End Database integrity protection methods
+    //
+
+    @Override
+    public int compareTo(RoleMemberData o) {
+<span class="nc" id="L270">        return new CompareToBuilder().append(this.tokenType, o.tokenType).append(this.tokenIssuerId, o.tokenIssuerId).append(this.tokenMatchKey, o.tokenMatchKey)</span>
+<span class="nc" id="L271">                .append(this.tokenMatchOperator, o.tokenMatchOperator).append(this.tokenMatchValueColumn, o.tokenMatchValueColumn).toComparison();</span>
+    }
+    
+    @Transient
+    public RoleMember asValueObject() {
+<span class="nc" id="L276">        return new RoleMember(primaryKey, tokenType, tokenIssuerId, tokenMatchKey, tokenMatchOperator, getTokenMatchValue(), roleId, getDescription());</span>
+    }
+    
+    /** Sets all fields except the ID 
+     * @param roleMember member*/
+    @Transient
+    public void updateValuesFromValueObject(final RoleMember roleMember) {
+<span class="nc" id="L283">        setTokenType(roleMember.getTokenType());</span>
+<span class="nc" id="L284">        setTokenIssuerId(roleMember.getTokenIssuerId());</span>
+<span class="nc" id="L285">        setTokenMatchKey(roleMember.getTokenMatchKey());</span>
+<span class="nc" id="L286">        setTokenMatchOperator(roleMember.getTokenMatchOperator());</span>
+<span class="nc" id="L287">        setTokenMatchValue(roleMember.getTokenMatchValue());</span>
+<span class="nc" id="L288">        setRoleId(roleMember.getRoleId());</span>
+<span class="nc" id="L289">        setDescription(roleMember.getDescription());</span>
+<span class="nc" id="L290">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

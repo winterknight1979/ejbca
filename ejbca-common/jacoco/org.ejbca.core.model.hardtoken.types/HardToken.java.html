@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HardToken.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.hardtoken.types</a> &gt; <span class="el_source">HardToken.java</span></div><h1>HardToken.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.model.hardtoken.types;
+
+import java.io.Serializable;
+
+import org.cesecore.internal.UpgradeableDataHashMap;
+import org.ejbca.core.model.hardtoken.HardTokenConstants;
+
+
+
+/**
+ * HardToken is a base class that all HardToken classes is supposed to inherit.  It function is to
+ * define the data the token is supposed contain.
+ *
+ * @author TomSelleck
+ * @version $Id: HardToken.java 19901 2014-09-30 14:29:38Z anatom $
+ */
+public abstract class HardToken extends UpgradeableDataHashMap implements Serializable, Cloneable {
+    private static final long serialVersionUID = 3354480892183271060L;
+    // Default Values
+    public static final float LATEST_VERSION = 0;
+    public static final String TOKENTYPE = &quot;TOKENTYPE&quot;;
+    
+	public static final String LABEL_REGULARCARD   = HardTokenConstants.LABEL_REGULARCARD;	//&quot;LABEL_REGULARCARD&quot;;
+	public static final String LABEL_TEMPORARYCARD = HardTokenConstants.LABEL_TEMPORARYCARD;	//&quot;LABEL_TEMPORARYCARD&quot;;
+	public static final String LABEL_PROJECTCARD   = HardTokenConstants.LABEL_PROJECTCARD;	//&quot;LABEL_PROJECTCARD&quot;;
+
+    
+    public static final String TOKENPROFILE = &quot;TOKENPROFILE&quot;;
+    public static final String LABEL        = &quot;LABEL&quot;;
+
+<span class="nc" id="L44">    protected boolean includePUK = true;</span>
+    
+    // Public Constants.
+
+    /* Constants used to define how the stored data should be represented in the web-gui.*/
+    public static final int INTEGER = 0;
+    public static final int LONG = 1;
+    public static final int STRING = 2;
+    public static final int BOOLEAN = 3;
+    public static final int DATE = 4;
+    public static final int EMPTYROW = 5;
+    public static final String EMPTYROW_FIELD = &quot;EMTPYROW&quot;;
+
+<span class="nc" id="L57">    public HardToken(boolean includePUK){</span>
+<span class="nc" id="L58">    	this.includePUK = includePUK;</span>
+<span class="nc" id="L59">    }</span>
+    
+    // Public Methods
+    public Object getField(String field) {
+<span class="nc" id="L63">        return data.get(field);</span>
+    }
+    	
+    public abstract String[] getFields(boolean includePUK);
+    public abstract int[] getDataTypes(boolean includePUK);
+    public abstract String[] getFieldTexts(boolean includePUK);
+    
+    public int getNumberOfFields() {
+<span class="nc" id="L71">    	return getFields(includePUK).length;</span>
+    }
+
+    public String getFieldText(int index) {
+<span class="nc" id="L75">    	return getFieldTexts(includePUK)[index];</span>
+    }
+
+    public String getFieldPointer(int index) {
+<span class="nc" id="L79">    	return getFields(includePUK)[index];</span>
+    }
+
+
+    public int getFieldDataType(int index) {
+<span class="nc" id="L84">    	return getDataTypes(includePUK)[index];</span>
+    }
+		
+
+    public void setField(String field, Object value) {
+<span class="nc" id="L89">        data.put(field, value);</span>
+<span class="nc" id="L90">    }</span>
+
+    
+    public int getTokenProfileId() {
+<span class="nc bnc" id="L94" title="All 2 branches missed.">    	if(data.get(HardToken.TOKENPROFILE) == null) {</span>
+<span class="nc" id="L95">    		return 0;</span>
+    	}
+<span class="nc" id="L97">        return ((Integer) data.get(HardToken.TOKENPROFILE)).intValue();</span>
+    }
+    
+	public void setTokenProfileId(int hardtokenprofileid) {
+<span class="nc" id="L101">	  data.put(HardToken.TOKENPROFILE, Integer.valueOf(hardtokenprofileid));</span>
+<span class="nc" id="L102">	}</span>
+	
+	/**
+	 * 
+	 * @return one of the LABEL_ constants or null of no label is set.
+	 */
+    public String getLabel() {    	
+<span class="nc" id="L109">        return (String) data.get(HardToken.LABEL);</span>
+    }
+
+    /**
+     * 
+     * @param hardTokenLabel should be one of the LABEL_ constants
+     */
+	public void setLabel(String hardTokenLabel) {
+<span class="nc" id="L117">		  data.put(HardToken.LABEL, hardTokenLabel);</span>
+<span class="nc" id="L118">	}</span>
+
+    /**
+     * Implementation of UpgradableDataHashMap function getLatestVersion
+     *
+     */
+    public float getLatestVersion() {
+<span class="nc" id="L125">        return LATEST_VERSION;</span>
+    }
+
+    /**
+     * Implementation of UpgradableDataHashMap function upgrade.
+     */
+    public void upgrade() {
+<span class="nc" id="L132">    }</span>
+    
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

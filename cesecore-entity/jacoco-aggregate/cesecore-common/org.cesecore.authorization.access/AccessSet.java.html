@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AccessSet.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-entity</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.authorization.access</a> &gt; <span class="el_source">AccessSet.java</span></div><h1>AccessSet.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.authorization.access;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.log4j.Logger;
+import org.cesecore.roles.AccessRulesHelper;
+
+/**
+ * Represents all access rules that a given AuthenticationToken is allowed to access.
+ *
+ * @version $Id: AccessSet.java 25591 2017-03-23 13:13:02Z jeklund $
+ * @deprecated since EJBCA 6.8.0
+ */
+@Deprecated
+public final class AccessSet implements Serializable {
+
+<span class="fc" id="L39">    private static final Logger log = Logger.getLogger(AccessSet.class);</span>
+    private static final long serialVersionUID = -6522714939328731306L;
+
+    /**
+     * Wildcard meaning: Access is granted to some items. Used only in calls to isAuthorized to query
+     * whether we have access to any of the items (and in AccessSet objects for faster access control checks).
+     * &lt;p&gt;
+     * Example: &quot;/cryptotoken/use/*SOME&quot;, which would check if we have access to use any cryptotoken.
+     */
+    public static final String WILDCARD_SOME = &quot;*SOME&quot;;
+
+    /**
+     * Wildcard meaning: Access is granted recursively to all subresources (but not the resource itself, for performance reasons).
+     * Used internally only, never in calls to isAuthorized (AccessSets don't have anything like the requireRecursive parameter).
+     * &lt;p&gt;
+     * Example: &quot;/*RECURSIVE&quot; together with &quot;/&quot;, which would grant access to everything
+     * @deprecated Since 6.8.0
+     */
+    @Deprecated
+    static final String WILDCARD_RECURSIVE = &quot;*RECURSIVE&quot;;
+
+<span class="fc" id="L60">    private static final Pattern idInRulename = Pattern.compile(&quot;^/(.+)/(-?[0-9]+)(/|$)&quot;);</span>
+
+    /** Legacy storage of access rules in the AccessSet, used in EJBCA 6.6.0 and 6.7.0 */
+    @Deprecated
+    private Collection&lt;String&gt; set;
+
+    /** No-args constructor for deserialization only.  */
+<span class="nc" id="L67">    public AccessSet() { }</span>
+
+    /**
+     * Creates an AccessSet with a legacy 6.6.0 access rule set, which can't contain deny rules and works using the old access rule system.
+     * @param legacySet Rule set
+     * @deprecated Since 6.8.0
+     */
+    @Deprecated
+<span class="fc" id="L75">    public AccessSet(final Collection&lt;String&gt; legacySet) {</span>
+<span class="fc" id="L76">        this.set = new HashSet&lt;&gt;(legacySet);</span>
+<span class="fc" id="L77">    }</span>
+
+    /** Creates an access set merged from two access sets. 
+     * @param a Set a
+     * @param b Set b */
+<span class="nc" id="L82">    public AccessSet(final AccessSet a, final AccessSet b) {</span>
+<span class="nc" id="L83">        set = new HashSet&lt;&gt;(a.set.size() + b.set.size());</span>
+<span class="nc" id="L84">        set.addAll(a.set);</span>
+<span class="nc" id="L85">        set.addAll(b.set);</span>
+<span class="nc" id="L86">    }</span>
+
+    public boolean isAuthorized(final String... resources) {
+        // Note that &quot;*SOME&quot; rules are added when the rules for the AccessSet are built, and don't need to be handled here
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        NEXT_RESOURCE: for (final String resource : resources) {</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">            if (resource.charAt(0) != '/') {</span>
+<span class="nc" id="L92">                throw new IllegalArgumentException(&quot;Resource must start with /&quot;);</span>
+<span class="nc bnc" id="L93" title="All 4 branches missed.">            } else if (resource.length() != 1 &amp;&amp; resource.charAt(resource.length() - 1) == '/') {</span>
+<span class="nc" id="L94">                throw new IllegalArgumentException(&quot;Resource should not end with /&quot;);</span>
+            }
+
+            // Check for exact rule
+<span class="nc bnc" id="L98" title="All 2 branches missed.">            if (set.contains(resource)) {</span>
+<span class="nc" id="L99">                continue NEXT_RESOURCE; // OK. Check next resource</span>
+            }
+
+            // Check for recursive rules
+<span class="nc" id="L103">            int depth = 0;</span>
+<span class="nc" id="L104">            String parentResource = resource;</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">            while (++depth &lt; 100) { // never split more than 100 times</span>
+<span class="nc" id="L106">                int slash = parentResource.lastIndexOf('/');</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">                if (slash == -1) {</span>
+<span class="nc" id="L108">                    break;</span>
+                }
+<span class="nc" id="L110">                parentResource = parentResource.substring(0, slash);</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">                if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L112">                    log.trace(&quot;Checking for '&quot;+ parentResource + &quot;/&quot; + WILDCARD_RECURSIVE + &quot;'&quot;);</span>
+                }
+<span class="nc bnc" id="L114" title="All 2 branches missed.">                if (set.contains(parentResource + &quot;/&quot; + WILDCARD_RECURSIVE)) {</span>
+<span class="nc" id="L115">                    continue NEXT_RESOURCE; // OK. Check next resource</span>
+                }
+<span class="nc" id="L117">            }</span>
+<span class="nc bnc" id="L118" title="All 4 branches missed.">            if (depth == 100 &amp;&amp; log.isDebugEnabled()) {</span>
+                // Recursive rules are always accept rules, so it's safe to ignore some of them and continue
+<span class="nc" id="L120">                log.debug(&quot;Resource had more than 100 components, only the first 100 were checked for recursive accept access: &quot; + resource);</span>
+            }
+
+<span class="nc bnc" id="L123" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L124">                log.trace(&quot;No access rule for &quot; + resource + &quot;. Denying access. Number of allowed resources=&quot; + set.size());</span>
+            }
+<span class="nc" id="L126">            return false;</span>
+        }
+<span class="nc" id="L128">        return true; // all resources match</span>
+    }
+
+    /** Use in tests only */
+    public void dumpRules() {
+<span class="nc" id="L133">        final List&lt;String&gt; resources = new ArrayList&lt;&gt;(set);</span>
+<span class="nc" id="L134">        Collections.sort(resources);</span>
+<span class="nc" id="L135">        log.debug(&quot;Legacy set&quot;);</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        for (final String resource : resources) {</span>
+<span class="nc" id="L137">            log.debug(&quot;Resource: &quot; + resource);</span>
+<span class="nc" id="L138">        }</span>
+<span class="nc" id="L139">    }</span>
+
+    @Override
+    public String toString() {
+<span class="nc" id="L143">        return Arrays.toString(set.toArray());</span>
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        if (this == obj) {</span>
+<span class="nc" id="L149">            return true;</span>
+        }
+<span class="nc bnc" id="L151" title="All 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L152">            return false;</span>
+        }
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        if (!(obj instanceof AccessSet)) {</span>
+<span class="nc" id="L155">            return false;</span>
+        }
+<span class="nc" id="L157">        AccessSet other = (AccessSet) obj;</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">        if (set == null) {</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">            if (other.set != null) {</span>
+<span class="nc" id="L160">                return false;</span>
+            }
+<span class="nc bnc" id="L162" title="All 2 branches missed.">        } else if (!set.equals(other.set)) {</span>
+<span class="nc" id="L163">            return false;</span>
+        }
+<span class="nc" id="L165">        return true;</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="nc" id="L170">        final int prime = 31;</span>
+<span class="nc" id="L171">        int result = 1;</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">        result = prime * result + ((set == null) ? 0 : set.hashCode());</span>
+<span class="nc" id="L173">        return result;</span>
+    }
+
+    /**
+     * Converts from EJBCA 6.8.0+ access rules to the old version of AccessSet introduced in EJBCA 6.6.0,
+     * for compatibility with old RA clients. The result of the conversion is written to &quot;set&quot;, which is a
+     * HashSet of every single accepted resource enriched with &quot;*SOME&quot; but no &quot;*RECURSIVE&quot;.
+     *
+     * Before calling this method, the &quot;accessMap&quot; variable is expected to contain the 6.8.0+ access rule structure.
+     *
+     * Note:
+     * - The legacy set created via this method will not grant access to a configured rules that don't exist on the system.
+     * - ...and this means that access to non-existing resources will not be granted to old RA clients.
+     *
+     * @param accessRules the EJBCA 6.8.0+ style access rules
+     * @param allResources whole universe of resources that exists
+     * @return an AccessSet of every single accepted resource enriched with &quot;*SOME&quot;, but no &quot;*RECURSIVE&quot;
+     */
+    public static AccessSet fromAccessRules(final HashMap&lt;String, Boolean&gt; accessRules, final Set&lt;String&gt; allResources) {
+<span class="nc" id="L192">        final Set&lt;String&gt; set = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">        for (final String current : allResources) {</span>
+            // De-normalize if needed
+<span class="nc bnc" id="L195" title="All 4 branches missed.">            final String resource = (current.length()&gt;1 &amp;&amp; current.charAt(current.length()-1)=='/') ? current.substring(0, current.length()-1) : current;</span>
+<span class="nc" id="L196">            final boolean authorizedToResource = AccessRulesHelper.hasAccessToResource(accessRules, resource);</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">            if (authorizedToResource) {</span>
+<span class="nc" id="L198">                set.add(resource);</span>
+                // Check if we have an (integer) ID in the resource
+<span class="nc" id="L200">                final Matcher matcher = idInRulename.matcher(resource);</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">                if (matcher.find()) {</span>
+                    // Add &quot;*SOME&quot; resource
+<span class="nc" id="L203">                    final String someResource = matcher.replaceFirst(&quot;/$1/&quot; + WILDCARD_SOME + &quot;$3&quot;);</span>
+<span class="nc" id="L204">                    set.add(someResource);</span>
+                }
+            }
+<span class="nc" id="L207">        }</span>
+        // Since expect the whole universe of rules to be provided, there should be no need to add the WILDCARD_RECURSIVE rule
+<span class="nc" id="L209">        return new AccessSet(set);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

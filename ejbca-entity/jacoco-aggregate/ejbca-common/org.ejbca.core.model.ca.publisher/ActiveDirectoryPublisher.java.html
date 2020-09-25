@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ActiveDirectoryPublisher.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-entity</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.ca.publisher</a> &gt; <span class="el_source">ActiveDirectoryPublisher.java</span></div><h1>ActiveDirectoryPublisher.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.model.ca.publisher;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateParsingException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.certificates.util.DNFieldExtractor;
+import org.cesecore.util.CertTools;
+
+import com.novell.ldap.LDAPAttribute;
+import com.novell.ldap.LDAPAttributeSet;
+import com.novell.ldap.LDAPEntry;
+import com.novell.ldap.LDAPModification;
+
+/**
+ * ActiveDirectoryPublisher is a class handling a publishing to Active Directory catalouges.  
+ *
+ * @version $Id: ActiveDirectoryPublisher.java 22117 2015-10-29 10:53:42Z mikekushner $
+ */
+public class ActiveDirectoryPublisher extends LdapPublisher{
+	
+	private static final long serialVersionUID = 1081937637762724531L;
+
+<span class="nc" id="L44">    private static final Logger log = Logger.getLogger(ActiveDirectoryPublisher.class);</span>
+	 	
+	public static final float LATEST_VERSION = 1;
+	
+	// Constants indicating characteristics of created user accounts
+	public static final int UAC_DISABLE           = 2;
+	public static final int UAC_NORMAL            = 512;
+	public static final int UAC_NEVEREXPIRE       = 66048;
+	public static final int UAC_SMARTCARDREQUIRED = 0x40000;
+	
+	// Default Values	
+	public static final int DEFAULT_UAC         = UAC_NEVEREXPIRE;
+    
+    protected static final String USEPASSWORD                = &quot;usepassword&quot;;
+    protected static final String USERACCOUNTCONTROL         = &quot;useraccountcontrol&quot;;
+    protected static final String SAMACCOUNTNAME             = &quot;samaccountname&quot;;
+    protected static final String USERDESCRIPTION            = &quot;userdescription&quot;;
+
+	public static final String DEFAULT_USEROBJECTCLASS       = &quot;top;person;organizationalPerson;user&quot;;
+	public static final String DEFAULT_CAOBJECTCLASS         = &quot;top;cRLDistributionPoint&quot;;
+    
+
+    
+    public ActiveDirectoryPublisher(){
+<span class="nc" id="L68">    	super();</span>
+<span class="nc" id="L69">    	data.put(TYPE, Integer.valueOf(PublisherConst.TYPE_ADPUBLISHER));</span>
+    	    	
+<span class="nc" id="L71">        setUserObjectClass(DEFAULT_USEROBJECTCLASS);</span>
+<span class="nc" id="L72">        setCAObjectClass(DEFAULT_CAOBJECTCLASS);</span>
+<span class="nc" id="L73">        setUseUserPassword(true);</span>
+<span class="nc" id="L74">        setUserAccountControl(DEFAULT_UAC);</span>
+<span class="nc" id="L75">        setSAMAccountName(DNFieldExtractor.UPN);</span>
+<span class="nc" id="L76">        setUserDescription(&quot;&quot;);</span>
+<span class="nc" id="L77">    }</span>
+    
+    
+    
+    /**
+     *  @return true if user password should be set when creating users.
+     */    
+    public boolean getUseUserPassword (){
+<span class="nc" id="L85">    	return ((Boolean) data.get(USEPASSWORD)).booleanValue();</span>
+    }
+
+    /**
+     *  @param useuserpassword if user password should be set when creating users.
+     */        
+    public void setUseUserPassword (boolean useuserpassword){
+<span class="nc" id="L92">    	data.put(USEPASSWORD, Boolean.valueOf(useuserpassword));	</span>
+<span class="nc" id="L93">    }</span>
+
+    /**
+     *  @return the value of the user account control
+     */    
+    public int getUserAccountControl (){
+<span class="nc" id="L99">    	return ((Integer) data.get(USERACCOUNTCONTROL)).intValue();</span>
+    }
+
+    /**
+     *  @param useraccountcontrol the value of the user account control, (mask)
+     */        
+    public void setUserAccountControl(int useraccountcontrol){
+<span class="nc" id="L106">    	data.put(USERACCOUNTCONTROL, Integer.valueOf(useraccountcontrol));	</span>
+<span class="nc" id="L107">    }</span>
+
+    /**
+     *  @return a DNFieldExtractor constant indicating which DN field to
+     *  use as SAM Account Name.
+     */    
+    public int getSAMAccountName (){
+<span class="nc" id="L114">    	return ((Integer) data.get(SAMACCOUNTNAME)).intValue();</span>
+    }
+
+    /**
+     *  Sets the SAM account name.
+     * 
+     *  @param samaccountname is one a DNFieldExtractor constant indicating
+     *  which field to use as SAM Account Name.
+     */        
+    public void setSAMAccountName(int samaccountname){
+<span class="nc" id="L124">    	data.put(SAMACCOUNTNAME, Integer.valueOf(samaccountname));	</span>
+<span class="nc" id="L125">    }</span>
+
+    /**
+     *  @return the description used for created users
+     */    
+    public String getUserDescription (){
+<span class="nc" id="L131">    	return (String) data.get(USERDESCRIPTION);</span>
+    }
+
+    /**
+     *  @param userdescription the value of the user account control, (mask)
+     */        
+    public void setUserDescription(String userdescription){
+<span class="nc" id="L138">    	data.put(USERDESCRIPTION, userdescription);	</span>
+<span class="nc" id="L139">    }</span>
+    
+    /** Overrides LdapPublisher.getAttributeSet
+     * Creates an LDAPAttributeSet.
+     * 
+     * @param cert is the certificate about to be published
+     * @param objectclass the objectclass the attribute set should be of.
+     * @param dn dn of the LDAP entry.
+     * @param extra if we should add extra attributes except the objectclass to the attributeset.
+     * @param person true if this is a person-entry, false if it is a CA.
+     * @param password to set for the user, if null no password is set.
+     * @param extendedinformation for future use...
+     *
+     * @return LDAPAtributeSet created...
+     */
+    protected LDAPAttributeSet getAttributeSet(Certificate cert, String objectclass, String dn, String email, boolean extra, boolean person, 
+    		                                   String password, ExtendedInformation extendedinformation) {
+<span class="nc" id="L156">    	log.debug(&quot;ADPublisher : getAttributeSet&quot;);</span>
+    	
+<span class="nc" id="L158">        LDAPAttributeSet attributeSet = super.getAttributeSet(cert, objectclass, dn, email, extra, person, password, extendedinformation);</span>
+        
+<span class="nc" id="L160">        String cn = CertTools.getPartFromDN(dn, &quot;CN&quot;);</span>
+        // Add AD specific attributes
+        //attributeSet.add(new LDAPAttribute(&quot;userAccountControl&quot;, Integer.toString(getUserAccountControl())));
+        
+<span class="nc bnc" id="L164" title="All 4 branches missed.">        if(cert!= null &amp;&amp; cert instanceof X509Certificate){</span>
+<span class="nc" id="L165">          String upn = null;</span>
+		try {
+<span class="nc" id="L167">			upn = CertTools.getUPNAltName((X509Certificate) cert);</span>
+<span class="nc" id="L168">		} catch (CertificateParsingException e) {}</span>
+<span class="nc" id="L169">		  catch (IOException e) {}</span>
+<span class="nc" id="L170">		String samaccountname = upn;</span>
+<span class="nc bnc" id="L171" title="All 4 branches missed.">		if(upn != null &amp;&amp; upn.indexOf('@') != -1){</span>
+		  // only use name part of UPN.
+<span class="nc" id="L173">			samaccountname = samaccountname.substring(0, upn.indexOf('@'));	</span>
+		}
+		
+		
+<span class="nc bnc" id="L177" title="All 3 branches missed.">          switch(getSAMAccountName()){</span>
+        	case DNFieldExtractor.CN:
+<span class="nc" id="L179">              samaccountname = cn;   </span>
+<span class="nc" id="L180">              break;</span>
+            case DNFieldExtractor.UID:  
+<span class="nc" id="L182">              samaccountname = CertTools.getPartFromDN(dn, &quot;UID&quot;);   </span>
+              break;        	
+          }
+<span class="nc bnc" id="L185" title="All 2 branches missed.">          if(samaccountname !=null){</span>
+<span class="nc" id="L186">            attributeSet.add(new LDAPAttribute(&quot;samaccountname&quot;, samaccountname));</span>
+          }
+          
+<span class="nc bnc" id="L189" title="All 2 branches missed.">          if(upn != null) {</span>
+<span class="nc" id="L190">          	attributeSet.add(new LDAPAttribute(&quot;userPrincipalName&quot;, upn));    </span>
+          } else {
+<span class="nc" id="L192">          	attributeSet.add(new LDAPAttribute(&quot;userPrincipalName&quot;, cn));</span>
+          }
+        }
+<span class="nc" id="L195">        attributeSet.add(new LDAPAttribute(&quot;displayName&quot;, cn));</span>
+<span class="nc bnc" id="L196" title="All 4 branches missed.">        if(getUserDescription() != null &amp;&amp; !getUserDescription().trim().equals(&quot;&quot;)){</span>
+<span class="nc" id="L197">          attributeSet.add(new LDAPAttribute(&quot;description&quot;, getUserDescription()));</span>
+        }
+
+<span class="nc bnc" id="L200" title="All 4 branches missed.">        if(getConnectionSecurity() == ConnectionSecurity.SSL  &amp;&amp; password != null){</span>
+          //Can only set password through SSL connection
+        	
+        	//attributeSet.add(new LDAPAttribute(&quot;userPassword&quot;, password));	
+          
+
+          //Start out by taking the password and enclosing it in quotes, as in
+<span class="nc" id="L207">            String newVal = new String(&quot;\&quot;&quot; + password + &quot;\&quot;&quot;);</span>
+
+          //Then, you need to get the octet string of the Unicode representation of
+          //that.  You need to leave off the extra two bytes Java uses as length:
+            
+<span class="nc" id="L212">            byte _bytes[] = null;</span>
+			try {
+<span class="nc" id="L214">				_bytes = newVal.getBytes(&quot;Unicode&quot;);</span>
+<span class="nc" id="L215">			} catch (UnsupportedEncodingException e) {}</span>
+<span class="nc" id="L216">			byte bytes[] = new byte[_bytes.length - 2];</span>
+<span class="nc" id="L217">            System.arraycopy(_bytes, 2, bytes, 0, _bytes.length - 2);</span>
+
+          //Take that value and stuff it into the unicodePwd attribute:          
+<span class="nc" id="L220">            attributeSet.add(new LDAPAttribute(&quot;unicodePwd&quot;, bytes));                   </span>
+          
+        }  
+        
+        
+<span class="nc" id="L225">        return attributeSet;</span>
+    } // getAttributeSet
+	
+	
+    /** Overrides LdapPublisher.getModificationSet
+     */
+    @Override
+    protected ArrayList&lt;LDAPModification&gt; getModificationSet(LDAPEntry oldEntry, String dn, String email, boolean extra, boolean person, String password, Certificate cert) {
+<span class="nc" id="L233">    	ArrayList&lt;LDAPModification&gt; modSet = super.getModificationSet(oldEntry, dn, email, false, person, null, cert);</span>
+
+		// Modify AD specific attributes
+		
+<span class="nc" id="L237">        return modSet;</span>
+    } // getModificationSet
+
+         
+    
+    
+    // Private methods
+		
+	/** 
+	 * @see org.ejbca.core.model.ca.publisher.BasePublisher#clone()
+	 */
+	public Object clone() throws CloneNotSupportedException {
+<span class="nc" id="L249">		ActiveDirectoryPublisher clone = new ActiveDirectoryPublisher();</span>
+		@SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L251">        HashMap&lt;Object, Object&gt; clonedata = (HashMap&lt;Object, Object&gt;) clone.saveData();</span>
+
+<span class="nc" id="L253">		Iterator&lt;Object&gt; i = (data.keySet()).iterator();</span>
+<span class="nc bnc" id="L254" title="All 2 branches missed.">		while(i.hasNext()){</span>
+<span class="nc" id="L255">			Object key = i.next();</span>
+<span class="nc" id="L256">			clonedata.put(key, data.get(key));</span>
+<span class="nc" id="L257">		}</span>
+
+<span class="nc" id="L259">		clone.loadData(clonedata);</span>
+<span class="nc" id="L260">		return clone;	</span>
+		}
+
+	/* *
+	 * @see org.ejbca.core.model.ca.publisher.BasePublisher#getLatestVersion()
+	 */
+	public float getLatestVersion() {		
+<span class="nc" id="L267">		return LATEST_VERSION;</span>
+	}
+	
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

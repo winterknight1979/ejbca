@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>OcspSigningCacheEntry.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-entity</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.ocsp.cache</a> &gt; <span class="el_source">OcspSigningCacheEntry.java</span></div><h1>OcspSigningCacheEntry.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.ocsp.cache;
+
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.cert.ocsp.CertificateID;
+import org.bouncycastle.cert.ocsp.OCSPException;
+import org.bouncycastle.cert.ocsp.RespID;
+import org.bouncycastle.cert.ocsp.jcajce.JcaRespID;
+import org.cesecore.certificates.certificate.CertificateStatus;
+import org.cesecore.certificates.ocsp.SHA1DigestCalculator;
+import org.cesecore.config.OcspConfiguration;
+import org.cesecore.keybind.impl.OcspKeyBinding;
+import org.cesecore.util.CertTools;
+
+/**
+ * Hold information needed for creating an OCSP response without database lookups.
+ * 
+ * @version $Id: OcspSigningCacheEntry.java 28643 2018-04-06 08:53:57Z samuellb $
+ */
+public class OcspSigningCacheEntry {
+
+<span class="nc" id="L38">    private static final Logger log = Logger.getLogger(OcspSigningCacheEntry.class);</span>
+    
+    private final List&lt;CertificateID&gt; certificateID;
+    private final List&lt;X509Certificate&gt; caCertificateChain;
+    private final X509Certificate ocspSigningCertificate;
+    private final List&lt;X509Certificate&gt; fullCertificateChain;
+    private final X509Certificate signingCertificate;
+    private final String signingCertificateIssuerDn;
+    private final String signingCertificateIssuerDnRaw;
+    private final transient PrivateKey privateKey;
+    private final String signatureProviderName;
+    private final OcspKeyBinding ocspKeyBinding;
+    private final X509Certificate issuerCaCertificate;
+    private final CertificateStatus issuerCaCertificateStatus;
+<span class="nc" id="L52">    private boolean responseSignatureVerified = false;</span>
+    private final OcspKeyBinding.ResponderIdType responderIdType;
+    private RespID respId;
+    private final X509Certificate[] responseCertChain;
+    private final boolean signingCertificateForOcspSigning;
+
+    public OcspSigningCacheEntry(X509Certificate issuerCaCertificate, CertificateStatus issuerCaCertificateStatus,
+            List&lt;X509Certificate&gt; signingCaCertificateChain, X509Certificate ocspSigningCertificate, PrivateKey privateKey,
+<span class="nc" id="L60">            String signatureProviderName, OcspKeyBinding ocspKeyBinding, OcspKeyBinding.ResponderIdType responderIdType) {</span>
+<span class="nc" id="L61">        this.caCertificateChain = signingCaCertificateChain;</span>
+<span class="nc" id="L62">        this.ocspSigningCertificate = ocspSigningCertificate;</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        if (ocspSigningCertificate == null) {</span>
+            // We will sign with a CA key
+<span class="nc" id="L65">            fullCertificateChain = signingCaCertificateChain;</span>
+        } else {
+            // We will sign with an OCSP Key Binding
+<span class="nc" id="L68">            fullCertificateChain = new ArrayList&lt;X509Certificate&gt;();</span>
+<span class="nc" id="L69">            fullCertificateChain.add(ocspSigningCertificate);</span>
+<span class="nc" id="L70">            fullCertificateChain.addAll(signingCaCertificateChain);</span>
+        }
+<span class="nc bnc" id="L72" title="All 2 branches missed.">        if (fullCertificateChain==null) {</span>
+            // This is just a placeholder cache entry
+<span class="nc" id="L74">            signingCertificate = null;</span>
+        } else {
+            // Get the certificate that corresponds to the private key
+<span class="nc" id="L77">            signingCertificate = fullCertificateChain.get(0);</span>
+        }
+<span class="nc" id="L79">        this.privateKey = privateKey;</span>
+<span class="nc" id="L80">        this.signatureProviderName = signatureProviderName;</span>
+<span class="nc" id="L81">        this.ocspKeyBinding = ocspKeyBinding;</span>
+<span class="nc" id="L82">        this.issuerCaCertificate = issuerCaCertificate;</span>
+<span class="nc" id="L83">        this.certificateID = OcspSigningCache.getCertificateIDFromCertificate(issuerCaCertificate);</span>
+<span class="nc" id="L84">        this.issuerCaCertificateStatus = issuerCaCertificateStatus;</span>
+<span class="nc" id="L85">        this.responderIdType = responderIdType;</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (signingCertificate==null) {</span>
+            // This is just a placeholder cache entry
+<span class="nc" id="L88">            respId = null;</span>
+<span class="nc" id="L89">            signingCertificateForOcspSigning = true;</span>
+<span class="nc" id="L90">            signingCertificateIssuerDn = null;</span>
+<span class="nc" id="L91">            signingCertificateIssuerDnRaw = null;</span>
+        } else {
+            // Pre-calculate the Responder ID
+<span class="nc bnc" id="L94" title="All 2 branches missed.">            if (OcspKeyBinding.ResponderIdType.NAME.equals(responderIdType)) {</span>
+<span class="nc" id="L95">                respId = new JcaRespID(signingCertificate.getSubjectX500Principal());</span>
+            } else {
+                try {
+<span class="nc" id="L98">                    respId = new JcaRespID(signingCertificate.getPublicKey(), SHA1DigestCalculator.buildSha1Instance());</span>
+<span class="nc" id="L99">                } catch (OCSPException e) {</span>
+<span class="nc" id="L100">                    log.warn(&quot;Unable to contruct responder Id of type 'hash', falling back to using 'name' as responder Id.&quot;, e);</span>
+<span class="nc" id="L101">                    respId = new JcaRespID(signingCertificate.getSubjectX500Principal());</span>
+<span class="nc" id="L102">                }</span>
+            }
+<span class="nc bnc" id="L104" title="All 2 branches missed.">            if (ocspSigningCertificate==null) {</span>
+<span class="nc" id="L105">                signingCertificateForOcspSigning = true;    // CA cert</span>
+            } else {
+<span class="nc" id="L107">                signingCertificateForOcspSigning = CertTools.isOCSPCert(signingCertificate);</span>
+            }
+<span class="nc" id="L109">            signingCertificateIssuerDn = CertTools.getIssuerDN(signingCertificate);</span>
+<span class="nc" id="L110">            signingCertificateIssuerDnRaw = signingCertificate.getIssuerDN().getName();</span>
+        }
+<span class="nc bnc" id="L112" title="All 2 branches missed.">        if (fullCertificateChain==null) {</span>
+<span class="nc" id="L113">            responseCertChain = null;</span>
+        } else {
+<span class="nc" id="L115">            responseCertChain = getResponseCertChain(fullCertificateChain.toArray(new X509Certificate[0]));</span>
+        }
+<span class="nc" id="L117">    }</span>
+
+    /** @return certificate of the CA that we want to respond for */
+<span class="nc" id="L120">    public X509Certificate getIssuerCaCertificate() { return issuerCaCertificate; }</span>
+
+    /** @return certificate ID of the CA that we want to respond for */
+<span class="nc" id="L123">    public List&lt;CertificateID&gt; getCertificateID() { return certificateID; }</span>
+
+    /** @return the certificate revocation status for the CA that we want to respond for at the time of cache reload */
+<span class="nc" id="L126">    public CertificateStatus getIssuerCaCertificateStatus() { return issuerCaCertificateStatus; }</span>
+
+    /** @return the chain of all CA certificates */
+<span class="nc" id="L129">    public List&lt;X509Certificate&gt; getCaCertificateChain() { return caCertificateChain; }</span>
+
+    /** @return a OCSP signing certificate or null if this cache entry will use a CA key to sign the response */
+<span class="nc" id="L132">    public X509Certificate getOcspSigningCertificate() { return ocspSigningCertificate; }</span>
+
+    /** @return the full certificate chain that will be used to sign the OCSP response. The first position is either an OCSP signing certificate or a CA certificate. */
+<span class="nc" id="L135">    public List&lt;X509Certificate&gt; getFullCertificateChain() { return fullCertificateChain; }</span>
+
+    /** @return the certificate that will be used to sign the OCSP response. This is either an OCSP signing certificate or a CA certificate. */
+<span class="nc" id="L138">    public X509Certificate getSigningCertificate() { return signingCertificate; }</span>
+
+    /** @return the Issuer DN of the certificate that will be used to sign the OCSP response. BC normalized. */
+<span class="nc" id="L141">    public String getSigningCertificateIssuerDn() { return signingCertificateIssuerDn; }</span>
+
+    /** @return the Issuer DN of the certificate that will be used to sign the OCSP response. Not normalized. */
+<span class="nc" id="L144">    public String getSigningCertificateIssuerDnRaw() { return signingCertificateIssuerDnRaw; }</span>
+
+    /** @return the private key that will be used to sign the OCSP response. */
+<span class="nc" id="L147">    public PrivateKey getPrivateKey() { return privateKey; }</span>
+
+    /** @return the signature provider that should be used with this cache entries private key. */
+<span class="nc" id="L150">    public String getSignatureProviderName() { return signatureProviderName; }</span>
+
+    /** @return the OCSP key binding mapped by this entry or null if the private key belongs to a CA. */
+<span class="nc" id="L153">    public OcspKeyBinding getOcspKeyBinding() { return ocspKeyBinding; }</span>
+
+    /** @return one of the OcspConfiguration.RESPONDERIDTYPE_* values used by this cache entry */
+<span class="nc" id="L156">    public OcspKeyBinding.ResponderIdType getResponderIdType() { return responderIdType; }</span>
+
+    /** @return the actual responder type ASN1 object used by this cache entry */
+<span class="nc" id="L159">    public RespID getRespId() { return respId; }</span>
+
+    /** @return the part of the full certificate chain that has been configured to be included in the response. */
+<span class="nc" id="L162">    public X509Certificate[] getResponseCertChain() { return responseCertChain; }</span>
+    /**
+     * Checks if the entry has a OCSP signing certificate separate from the certificate chain.
+     * Only entries with a keybinding can have a separate certificate.
+     * @return boolean
+     */
+<span class="nc bnc" id="L168" title="All 2 branches missed.">    public boolean isUsingSeparateOcspSigningCertificate() { return ocspSigningCertificate != null; }</span>
+
+    /** @return false when we are using a non-CA signing certificate and the certificate lacks the OCSP signing EKU */
+<span class="nc" id="L171">    public boolean isSigningCertificateForOcspSigning() { return signingCertificateForOcspSigning; }</span>
+
+    /** @return true if this entry is just a temporary placeholder that should be replaced with the default responder when rebuilding the cache. */
+<span class="nc bnc" id="L174" title="All 2 branches missed.">    public boolean isPlaceholder() { return privateKey == null; }</span>
+
+    /** @return false for the first thread that invokes this method (a caller that gets a false return value should verify the response signature) */
+    public boolean checkResponseSignatureVerified() {
+        // There is a small race condition here, so multiple callers might get a &quot;false&quot; return value, but since this
+        // is a hot-path we don't want the overhead of synchronization for a large majority of the invocations
+<span class="nc bnc" id="L180" title="All 2 branches missed.">        if (responseSignatureVerified) {</span>
+<span class="nc" id="L181">            return true;</span>
+        }
+<span class="nc" id="L183">        responseSignatureVerified = true;</span>
+<span class="nc" id="L184">        return false;</span>
+    }
+
+    /**
+     * This method construct the certificate chain that will be included in the OCSP response according to the following rules:
+     * - If includeSignCert &amp;&amp; includeChain --&gt; include entire chain except for the root CA certificate
+     * - If includeSignCert &amp;&amp; !includeChain --&gt; include only the signing certificate whatever it is (even if it was a root CA cert)
+     * - If !includingSignCert --&gt; not including any certificate or chain no matter what value includeChain has. The value of the 
+     *   certificate chain  will then be an empty array.
+     *   
+     * @param certChain certificate chain
+     * @return the certificate chain that will be included in the OCSP response
+     */
+    private X509Certificate[] getResponseCertChain(X509Certificate[] certChain) {
+        X509Certificate[] chain;
+<span class="nc" id="L199">        boolean includeSignCert = OcspConfiguration.getIncludeSignCert();</span>
+<span class="nc" id="L200">        boolean includeChain = OcspConfiguration.getIncludeCertChain();</span>
+        // If we have an OcspKeyBinding we use this configuration to override the default
+<span class="nc bnc" id="L202" title="All 2 branches missed.">        if (isUsingSeparateOcspSigningCertificate()) {</span>
+<span class="nc" id="L203">            includeSignCert = getOcspKeyBinding().getIncludeSignCert();</span>
+<span class="nc" id="L204">            includeChain = getOcspKeyBinding().getIncludeCertChain();</span>
+        }
+<span class="nc bnc" id="L206" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L207">            log.debug(&quot;Include signing cert: &quot; + includeSignCert);</span>
+<span class="nc" id="L208">            log.debug(&quot;Include chain: &quot; + includeChain);</span>
+        }
+<span class="nc bnc" id="L210" title="All 2 branches missed.">        if (includeSignCert) {</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">            if (includeChain) {</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">                if (certChain.length &gt; 1) { // certChain contained more than the root cert</span>
+                    //create a new array containing all the certs in certChain except for the root cert
+<span class="nc" id="L214">                    chain = new X509Certificate[certChain.length-1];</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">                    for(int i=0; i&lt;chain.length; i++) {</span>
+<span class="nc" id="L216">                        chain[i] = certChain[i];</span>
+                    }
+                } else { // certChain contains only the root cert
+<span class="nc" id="L219">                    chain = certChain;</span>
+                }
+            } else { // only the signing cert should be included in the OCSP response and not the entire cert chain
+<span class="nc" id="L222">                chain = new X509Certificate[1];</span>
+<span class="nc" id="L223">                chain[0] = certChain[0];</span>
+            }
+        } else {
+<span class="nc bnc" id="L226" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L227">                log.debug(&quot;OCSP signing certificate is not included in the response&quot;);</span>
+            }
+<span class="nc" id="L229">            chain = new X509Certificate[0];</span>
+        }
+<span class="nc" id="L231">        return chain;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

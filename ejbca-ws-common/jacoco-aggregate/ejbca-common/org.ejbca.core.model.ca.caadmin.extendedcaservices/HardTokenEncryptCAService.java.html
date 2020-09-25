@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>HardTokenEncryptCAService.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-ws-common</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.ca.caadmin.extendedcaservices</a> &gt; <span class="el_source">HardTokenEncryptCAService.java</span></div><h1>HardTokenEncryptCAService.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.model.ca.caadmin.extendedcaservices;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.cms.CMSException;
+import org.cesecore.certificates.ca.CA;
+import org.cesecore.certificates.ca.catoken.CATokenConstants;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAService;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceInfo;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceNotActiveException;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceRequest;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceRequestException;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceResponse;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypes;
+import org.cesecore.certificates.ca.extendedservices.IllegalExtendedCAServiceRequestException;
+import org.cesecore.certificates.certificate.certextensions.AvailableCustomCertificateExtensionsConfiguration;
+import org.cesecore.keys.token.CryptoToken;
+import org.cesecore.util.CryptoProviderTools;
+import org.ejbca.core.model.InternalEjbcaResources;
+
+/** Handles and maintains the CA-part of the Hard token encrypt functionality
+ * 
+ * @version $Id: HardTokenEncryptCAService.java 21784 2015-09-02 19:53:03Z aveen4711 $
+ */
+public class HardTokenEncryptCAService extends ExtendedCAService implements Serializable {
+
+    private static final long serialVersionUID = 2126714932597569623L;
+<span class="nc" id="L44">    private static Logger log = Logger.getLogger(HardTokenEncryptCAService.class);</span>
+	/** Internal localization of logs and errors */
+<span class="nc" id="L46">	private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+
+	public static final float LATEST_VERSION = 1; 
+
+	public static final String SERVICENAME = &quot;HARDTOKENENCRYPTCASERVICE&quot;;
+
+	public HardTokenEncryptCAService(final ExtendedCAServiceInfo serviceinfo)  {
+<span class="nc" id="L53">		super(serviceinfo);</span>
+<span class="nc" id="L54">		log.debug(&quot;HardTokenEncryptCAService : constructor &quot; + serviceinfo.getStatus());</span>
+<span class="nc" id="L55">		CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+<span class="nc" id="L56">		data = new LinkedHashMap&lt;Object, Object&gt;();</span>
+<span class="nc" id="L57">		data.put(ExtendedCAServiceInfo.IMPLEMENTATIONCLASS, this.getClass().getName());</span>
+<span class="nc" id="L58">		data.put(EXTENDEDCASERVICETYPE, Integer.valueOf(ExtendedCAServiceTypes.TYPE_HARDTOKENENCEXTENDEDSERVICE));</span>
+<span class="nc" id="L59">		data.put(VERSION, Float.valueOf(LATEST_VERSION));</span>
+<span class="nc" id="L60">		setStatus(serviceinfo.getStatus());</span>
+<span class="nc" id="L61">	}</span>
+
+	public HardTokenEncryptCAService(final HashMap&lt;?, ?&gt; data) {
+<span class="nc" id="L64">		super(data);</span>
+<span class="nc" id="L65">		CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+<span class="nc" id="L66">		loadData(data);</span>
+<span class="nc" id="L67">	}</span>
+
+	@Override
+	public void init(final CryptoToken cryptoToken, final CA ca, final AvailableCustomCertificateExtensionsConfiguration cceConfig) throws Exception {
+<span class="nc" id="L71">		log.debug(&quot;OCSPCAService : init &quot;);</span>
+<span class="nc" id="L72">		setCA(ca);</span>
+<span class="nc" id="L73">		final ExtendedCAServiceInfo info = getExtendedCAServiceInfo();</span>
+<span class="nc" id="L74">		setStatus(info.getStatus());</span>
+<span class="nc" id="L75">	}   </span>
+
+	@Override
+	public void update(final CryptoToken cryptoToken, final ExtendedCAServiceInfo serviceinfo, final CA ca, final AvailableCustomCertificateExtensionsConfiguration cceConfig) {		   
+<span class="nc" id="L79">		log.debug(&quot;OCSPCAService : update &quot; + serviceinfo.getStatus());</span>
+<span class="nc" id="L80">		setStatus(serviceinfo.getStatus());</span>
+<span class="nc" id="L81">		setCA(ca);</span>
+<span class="nc" id="L82">	}</span>
+
+	@Override
+	public ExtendedCAServiceResponse extendedService(final CryptoToken cryptoToken, final ExtendedCAServiceRequest request) throws ExtendedCAServiceRequestException, IllegalExtendedCAServiceRequestException,ExtendedCAServiceNotActiveException {
+<span class="nc" id="L86">		log.trace(&quot;&gt;extendedService&quot;);</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">		if (this.getStatus() != ExtendedCAServiceInfo.STATUS_ACTIVE) {</span>
+<span class="nc" id="L88">			String msg = intres.getLocalizedMessage(&quot;caservice.notactive&quot;, &quot;HardTokenEncrypt&quot;);</span>
+<span class="nc" id="L89">			log.error(msg);</span>
+<span class="nc" id="L90">			throw new ExtendedCAServiceNotActiveException(msg);                            </span>
+		}
+<span class="nc bnc" id="L92" title="All 2 branches missed.">		if (!(request instanceof HardTokenEncryptCAServiceRequest)) {</span>
+<span class="nc" id="L93">			throw new IllegalExtendedCAServiceRequestException(&quot;Not a HardTokenEncryptCAServiceRequest: &quot;+request.getClass().getName());            </span>
+		}
+
+<span class="nc" id="L96">		final HardTokenEncryptCAServiceRequest serviceReq = (HardTokenEncryptCAServiceRequest)request;</span>
+<span class="nc" id="L97">		ExtendedCAServiceResponse returnval = null; </span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">    	if(serviceReq.getCommand() == HardTokenEncryptCAServiceRequest.COMMAND_ENCRYPTDATA){</span>
+    		try{	
+<span class="nc" id="L100">    			returnval = new HardTokenEncryptCAServiceResponse(HardTokenEncryptCAServiceResponse.TYPE_ENCRYPTRESPONSE, </span>
+<span class="nc" id="L101">    					getCa().encryptData(cryptoToken, serviceReq.getData(), CATokenConstants.CAKEYPURPOSE_HARDTOKENENCRYPT));	</span>
+<span class="nc" id="L102">    		}catch(CMSException e){</span>
+<span class="nc" id="L103">    			log.error(&quot;encrypt:&quot;, e.getUnderlyingException());</span>
+<span class="nc" id="L104">    			throw new IllegalExtendedCAServiceRequestException(e);</span>
+<span class="nc" id="L105">    		}catch(Exception e){</span>
+<span class="nc" id="L106">    			throw new IllegalExtendedCAServiceRequestException(e);</span>
+<span class="nc" id="L107">    		}</span>
+    	}else{
+<span class="nc bnc" id="L109" title="All 2 branches missed.">    		if(serviceReq.getCommand() == HardTokenEncryptCAServiceRequest.COMMAND_DECRYPTDATA){</span>
+            try{
+<span class="nc" id="L111">            	returnval = new HardTokenEncryptCAServiceResponse(HardTokenEncryptCAServiceResponse.TYPE_DECRYPTRESPONSE, </span>
+<span class="nc" id="L112">            			getCa().decryptData(cryptoToken, serviceReq.getData(), CATokenConstants.CAKEYPURPOSE_HARDTOKENENCRYPT));</span>
+<span class="nc" id="L113">    		  }catch(CMSException e){</span>
+<span class="nc" id="L114">    			 log.error(&quot;decrypt:&quot;, e.getUnderlyingException());</span>
+<span class="nc" id="L115">  		  	 throw new IllegalExtendedCAServiceRequestException(e);</span>
+<span class="nc" id="L116">   		  }catch(Exception e){</span>
+<span class="nc" id="L117">    		  	 throw new IllegalExtendedCAServiceRequestException(e);</span>
+<span class="nc" id="L118">    		  }</span>
+    		}else{
+<span class="nc" id="L120">    		  throw new IllegalExtendedCAServiceRequestException(&quot;Illegal command: &quot;+serviceReq.getCommand()); </span>
+    		}
+    	}          	
+<span class="nc" id="L123">		return returnval;</span>
+	}
+
+	@Override
+	public float getLatestVersion() {		
+<span class="nc" id="L128">		return LATEST_VERSION;</span>
+	}
+
+	@Override
+	public void upgrade() {
+<span class="nc bnc" id="L133" title="All 2 branches missed.">		if (Float.compare(LATEST_VERSION, getVersion()) != 0) {</span>
+<span class="nc" id="L134">			String msg = intres.getLocalizedMessage(&quot;caservice.upgrade&quot;, Float.valueOf(getVersion()));</span>
+<span class="nc" id="L135">			log.info(msg);</span>
+<span class="nc" id="L136">			data.put(VERSION, Float.valueOf(LATEST_VERSION));</span>
+		}  		
+<span class="nc" id="L138">	}</span>
+
+	@Override
+	public ExtendedCAServiceInfo getExtendedCAServiceInfo() {	
+<span class="nc" id="L142">		return new HardTokenEncryptCAServiceInfo(getStatus());</span>
+	}
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

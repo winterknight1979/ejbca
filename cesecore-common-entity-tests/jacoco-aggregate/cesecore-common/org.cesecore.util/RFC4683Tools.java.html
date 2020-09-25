@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RFC4683Tools.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-common-entity-tests</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.util</a> &gt; <span class="el_source">RFC4683Tools.java</span></div><h1>RFC4683Tools.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.cesecore.util;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1EncodableVector;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.ASN1OctetString;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.DEROctetString;
+import org.bouncycastle.asn1.DERSequence;
+import org.bouncycastle.asn1.DERTaggedObject;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.tsp.TSPAlgorithms;
+import org.cesecore.certificates.ca.internal.SernoGeneratorRandom;
+import org.cesecore.certificates.util.DnComponents;
+
+/**
+ * Helper class to handle operations for RFC4683 certificate extension Subject Identification method (SIM) for 
+ * including a privacy-sensitive identifier in the subjectAltName extension of a certificate. The SIM is 
+ * an optional feature that may be used by relying parties to determine whether the subject of a particular 
+ * certificate is also the person corresponding to a particular sensitive identifier 
+ * (@see &lt;a href=&quot;https://tools.ietf.org/html/rfc4683&quot;&gt;RFC4683&lt;/a&gt;.)
+ * 
+ * @version $Id: RFC4683Tools.java 31882 2019-03-18 13:50:56Z anatom $
+ */
+public final class RFC4683Tools {
+
+    /** List separator to separate the SIM tokens in the internal storage format (also has to be entered by the user). */
+    public static final String LIST_SEPARATOR = &quot;::&quot;;
+
+    /** Label for SIM rendered in the certificate. */
+    public static final String SUBJECTIDENTIFICATIONMETHOD = &quot;subjectIdentificationMethod&quot;;
+
+    /** OID for SIM written into the certificate. */
+    public static final String SUBJECTIDENTIFICATIONMETHOD_OBJECTID = &quot;1.3.6.1.5.5.7.8.6&quot;;
+
+<span class="fc" id="L59">    private static final Logger LOG = Logger.getLogger(RFC4683Tools.class);</span>
+
+    /**
+     * Gets the allowed hash algorithm object identifiers (@see &lt;a href=&quot;https://tools.ietf.org/html/rfc4683#section-4.3&quot;&gt;RFC4683&lt;/a&gt;).
+     * @return a list of ASN1ObjectIdentifier {@link TSPAlgorithms#ALLOWED}.
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public static final List&lt;ASN1ObjectIdentifier&gt; getAllowedHashAlgorithms() {
+<span class="fc" id="L67">        return new ArrayList&lt;ASN1ObjectIdentifier&gt;(TSPAlgorithms.ALLOWED);</span>
+    }
+
+    /**
+     * Gets the allowed hash algorithm OID strings.
+     * @return a list of OID strings {@link TSPAlgorithms#ALLOWED}.
+     */
+    public static final List&lt;String&gt; getAllowedHashAlgorithmOidStrings() {
+<span class="fc" id="L75">        final List&lt;ASN1ObjectIdentifier&gt; identifiers = getAllowedHashAlgorithms();</span>
+<span class="fc" id="L76">        final List&lt;String&gt; result = new ArrayList&lt;String&gt;(identifiers.size());</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">        for (ASN1ObjectIdentifier identifier : identifiers) {</span>
+<span class="fc" id="L78">            result.add(identifier.getId());</span>
+<span class="fc" id="L79">        }</span>
+<span class="fc" id="L80">        return result;</span>
+    }
+
+    /** This method reads the internal storage format for SAN. 
+     * If the SAN contains SIM parameters (list of 4 tokens, separated by '::'), the parameters are replaced by 
+     * the generated SIM strings (list of 3 tokens, separated by '::') {@link RFC4683Tools#generateInternalSimString(String, String, String, String)}
+     * 
+     * @param san the SAN string in internal storage format with SIM as user parameters.
+     * @return SAN string in internal storage format with generated SIM strings.
+     * @throws IllegalArgumentException on illegal request
+     * @throws NoSuchProviderException If provider not found
+     * @throws NoSuchAlgorithmException If algorithm not found
+     */
+    public static final String generateSimForInternalSanFormat(String san)
+            throws IllegalArgumentException, NoSuchProviderException, NoSuchAlgorithmException {
+<span class="fc bfc" id="L95" title="All 4 branches covered.">        if (StringUtils.isNotBlank(san) &amp;&amp; san.contains(DnComponents.SUBJECTIDENTIFICATIONMETHOD)) {</span>
+<span class="fc" id="L96">            final List&lt;String&gt; sims = CertTools.getPartsFromDN(san, DnComponents.SUBJECTIDENTIFICATIONMETHOD);</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">            for (String sim : sims) {</span>
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">                if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L99">                    LOG.info(&quot;Store user SIM strings: &quot; + sims);</span>
+                }
+<span class="fc bfc" id="L101" title="All 2 branches covered.">                if (StringUtils.isNotBlank(sim)) {</span>
+<span class="fc" id="L102">                    final String[] tokens = sim.split(LIST_SEPARATOR);</span>
+                    // was entered as hash, password, SSIType and SSI, so generate the SIM
+<span class="fc bfc" id="L104" title="All 2 branches covered.">                    if (tokens.length == 4) {</span>
+<span class="fc" id="L105">                        final String newSim = generateInternalSimString(tokens[0], tokens[1], tokens[2], tokens[3]);</span>
+<span class="fc" id="L106">                        san = san.replace(sim, newSim);</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">                    } else if (tokens.length == 3) {</span>
+                        // NOOP
+                    } else {
+<span class="fc" id="L110">                        throw new IllegalArgumentException(&quot;Wrong SIM input string with &quot; + tokens.length + &quot; tokens.&quot;);</span>
+                    }
+                }
+<span class="fc" id="L113">            }</span>
+        }
+<span class="fc" id="L115">        return san;</span>
+    }
+
+    /**
+     * Creates a '::' separated string of hashAlogrithmOidString, Authority Random (R) and Privacy-Enhanced Protected Subject Information (PEPSI). 
+     * Note: RFC4683 Subject Identification Method (SIM = R || PEPSI), and PEPSI = H(H( P || R || SIItype || SII)). The resulting String is used 
+     * for internal storage.
+     * 
+     * Where R is the Authority Random hash and PEPSI the Privacy-Enhanced Protected Subject Information:
+     * PEPSI = H(H( P || R || SIItype || SII))
+     * Where P is the user chosen password, SSI the Sensitive Identification Information and SIIType its type.
+     * 
+     * @param hashAlogrithmOidString i.e '1.3.14.3.2.26' for SHA-1
+     * @param userChosenPassword (P) FIPS 112 and FIPS 180-1 compliant password up to 28 characters (see https://tools.ietf.org/html/rfc4683#section-4.2)
+     * @param ssiType OID string of an SSI type (see https://tools.ietf.org/html/rfc4683#section-4.1).
+     * @param ssi Sensitive Identification Information (SII) (see https://tools.ietf.org/html/rfc4683#section-4.1).
+     * @return a '::' separated string of hashAlogrithmOidString, R and PEPSI.
+     * @throws IllegalArgumentException on illegal request
+     * @throws NoSuchProviderException If provider not found
+     * @throws NoSuchAlgorithmException If algorithm not found
+     */
+    public static final String generateInternalSimString(final String hashAlogrithmOidString, final String userChosenPassword, final String ssiType,
+            final String ssi) throws IllegalArgumentException, NoSuchProviderException, NoSuchAlgorithmException {
+<span class="fc bfc" id="L138" title="All 2 branches covered.">        if (StringUtils.isBlank(hashAlogrithmOidString)) {</span>
+<span class="fc" id="L139">            throw new IllegalArgumentException(&quot;Hash algorithm OID string must not be null or empty: '&quot; + hashAlogrithmOidString + &quot;'.&quot;);</span>
+        }
+<span class="fc bfc" id="L141" title="All 2 branches covered.">        if (!getAllowedHashAlgorithmOidStrings().contains(hashAlogrithmOidString)) {</span>
+<span class="fc" id="L142">            throw new IllegalArgumentException(&quot;Hash algorithm with OID '&quot; + hashAlogrithmOidString + &quot;' is not supparted for RFC4683 (SIM).&quot;);</span>
+        }
+        // TODO Insert check for FIPS 180-1 compliant passwords (better current standards ...)
+<span class="fc bfc" id="L145" title="All 4 branches covered.">        if (StringUtils.isBlank(userChosenPassword) || userChosenPassword.length() &lt; 8) {</span>
+<span class="fc" id="L146">            throw new IllegalArgumentException(&quot;The user chosen password must not be null or empty: '&quot; + hashAlogrithmOidString + &quot;'.&quot;);</span>
+        }
+<span class="fc bfc" id="L148" title="All 2 branches covered.">        if (StringUtils.isBlank(ssiType)) {</span>
+<span class="fc" id="L149">            throw new IllegalArgumentException(&quot;The sensitve identification information type must not be null or empty: '&quot; + ssiType + &quot;'.&quot;);</span>
+        }
+<span class="fc bfc" id="L151" title="All 2 branches covered.">        if (StringUtils.isBlank(ssi)) {</span>
+<span class="fc" id="L152">            throw new IllegalArgumentException(&quot;The sensitve identification information must not be null or empty: '&quot; + ssi + &quot;'.&quot;);</span>
+        }
+<span class="fc" id="L154">        final StringBuilder result = new StringBuilder();</span>
+<span class="fc" id="L155">        result.append(hashAlogrithmOidString);</span>
+
+        // 1. Create authority random.
+<span class="fc" id="L158">        final String authorityRandomSource = Long.toHexString(SernoGeneratorRandom.instance(16).getSerno().longValue());</span>
+<span class="pc bpc" id="L159" title="1 of 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L160">            LOG.debug(&quot;Authority random source created: &quot; + authorityRandomSource);</span>
+        }
+
+        // 1b. Get HEX by hash of authority random.
+<span class="fc" id="L164">        final MessageDigest digester = MessageDigest.getInstance(new ASN1ObjectIdentifier(hashAlogrithmOidString).getId(),</span>
+                BouncyCastleProvider.PROVIDER_NAME);
+<span class="fc" id="L166">        digester.update(authorityRandomSource.getBytes());</span>
+<span class="fc" id="L167">        final String authorityRandom = toHexString(digester.digest());</span>
+<span class="fc" id="L168">        result.append(LIST_SEPARATOR).append(authorityRandom);</span>
+<span class="pc bpc" id="L169" title="1 of 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L170">            LOG.debug(&quot;Authority random hash created: &quot; + authorityRandom);</span>
+        }
+
+        // 2. Create SIM HEX string, and hash 2 times.
+<span class="fc" id="L174">        digester.update(</span>
+<span class="fc" id="L175">                new StringBuilder().append(userChosenPassword).append(authorityRandomSource).append(ssiType).append(ssi).toString().getBytes());</span>
+<span class="fc" id="L176">        digester.update(digester.digest());</span>
+<span class="fc" id="L177">        final String pepsi = toHexString(digester.digest());</span>
+<span class="fc" id="L178">        result.append(LIST_SEPARATOR).append(pepsi);</span>
+<span class="pc bpc" id="L179" title="1 of 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L180">            LOG.debug(&quot;SIM string PEPSI created: &quot; + pepsi);</span>
+        }
+<span class="fc" id="L182">        return result.toString();</span>
+    }
+
+    /**
+     * Creates a SIM GeneralName by the internal SIM storage format ('hashAlgorithmOIDString::R::PEPSI')
+     * SIM ::= SEQUENCE { hashAlg AlgorithmIdentifier, authorityRandom OCTET
+     * STRING, -- RA-chosen random number -- used in computation of -- pEPSI
+     * pEPSI OCTET STRING -- hash of HashContent -- with algorithm hashAlg }
+     * @param hashAlgorithmIdentifier the OID string for the hash algorithm used to hash R and PEPSI.
+     * @param authorityRandom the registration authority chosen random value, hashed with hash of hashAlogrithmOidString (see https://tools.ietf.org/html/rfc4683#section-4.3).
+     * @param pepsi Privacy-Enhanced Protected Subject Information (PEPSI), with SIM = R || PEPSI.
+     * @return the RFC4683 SIM GeneralName (@see &lt;a href=&quot;https://tools.ietf.org/html/rfc4683&quot;&gt;RFC4683&lt;/a&gt;.).
+     */
+    public static final ASN1Primitive createSimGeneralName(final String hashAlgorithmIdentifier, final String authorityRandom, final String pepsi) {
+<span class="pc bpc" id="L196" title="1 of 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L197">            LOG.debug(&quot;Creating SIM with hash algorithem identifier &quot; + hashAlgorithmIdentifier + &quot;, authority random &quot; + authorityRandom</span>
+                    + &quot; and PEPSI &quot; + pepsi);
+        }
+<span class="fc" id="L200">        final ASN1EncodableVector otherName = new ASN1EncodableVector();</span>
+<span class="fc" id="L201">        otherName.add(new ASN1ObjectIdentifier(SUBJECTIDENTIFICATIONMETHOD_OBJECTID));</span>
+<span class="fc" id="L202">        final ASN1EncodableVector simVector = new ASN1EncodableVector();</span>
+<span class="fc" id="L203">        simVector.add(new AlgorithmIdentifier(new ASN1ObjectIdentifier(hashAlgorithmIdentifier))); // new DERTaggedObject(true, 0, </span>
+<span class="fc" id="L204">        simVector.add(new DEROctetString((authorityRandom).getBytes()));</span>
+<span class="fc" id="L205">        simVector.add(new DEROctetString((pepsi).getBytes()));</span>
+<span class="fc" id="L206">        otherName.add(new DERTaggedObject(true, 0, new DERSequence(simVector)));</span>
+<span class="fc" id="L207">        final ASN1Primitive generalName = new DERTaggedObject(false, 0, new DERSequence(otherName));</span>
+<span class="pc bpc" id="L208" title="1 of 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L209">            LOG.debug(&quot;GeneralName (type 0 - OtherName) for SIM created &quot; + generalName.toString());</span>
+        }
+<span class="fc" id="L211">        return generalName;</span>
+    }
+
+    /**
+     * Helper method for getting the SIM name from SAN ASN.1 sequence.
+     * 
+     * @param sequence the OtherName sequence
+     * @return the SIM string by the otherName.
+     */
+    public static String getSimStringSequence(final ASN1Sequence sequence) {
+<span class="pc bpc" id="L221" title="1 of 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L222">            LOG.debug(&quot;Parsing RFC4683 (SIM) from SAN ASN.1 sequence: &quot; + sequence);</span>
+        }
+<span class="fc" id="L224">        String result = null;</span>
+<span class="pc bpc" id="L225" title="1 of 2 branches missed.">        if (sequence != null) {</span>
+            // First in sequence is the object identifier, that we must check
+<span class="fc" id="L227">            final ASN1ObjectIdentifier id = ASN1ObjectIdentifier.getInstance(sequence.getObjectAt(0));</span>
+<span class="pc bpc" id="L228" title="1 of 2 branches missed.">            if (SUBJECTIDENTIFICATIONMETHOD_OBJECTID.equals(id.getId())) {</span>
+<span class="fc" id="L229">                final ASN1Sequence simVector = (ASN1Sequence) ((DERTaggedObject) sequence.getObjectAt(1)).getObject();</span>
+                // 1. After certificate issuance the method is called with an algorithm identifier in its ASN.1 sequence.
+                // 2. But after reading a stored certificate (PEM or DER) the ASN.1 sequence contains a DERSeqence instead.
+<span class="fc" id="L232">                String algorithmIdentifier = null;</span>
+<span class="fc bfc" id="L233" title="All 2 branches covered.">                if (simVector.getObjectAt(0) instanceof AlgorithmIdentifier) {</span>
+<span class="fc" id="L234">                    algorithmIdentifier = ((AlgorithmIdentifier) simVector.getObjectAt(0)).getAlgorithm().getId();</span>
+                } else {
+<span class="fc" id="L236">                    final ASN1Encodable encodable = ((ASN1Sequence) simVector.getObjectAt(0)).getObjectAt(0);</span>
+<span class="fc" id="L237">                    algorithmIdentifier = encodable.toASN1Primitive().toString();</span>
+                }
+<span class="fc" id="L239">                final ASN1OctetString hash = (ASN1OctetString) simVector.getObjectAt(1);</span>
+<span class="fc" id="L240">                final ASN1OctetString pepsi = (ASN1OctetString) simVector.getObjectAt(2);</span>
+<span class="fc" id="L241">                final String hashString = new String(hash.getOctets());</span>
+<span class="fc" id="L242">                final String pepsiString = new String(pepsi.getOctets());</span>
+<span class="fc" id="L243">                final StringBuilder builder = new StringBuilder();</span>
+<span class="fc" id="L244">                result = builder.append(algorithmIdentifier).append(LIST_SEPARATOR).append(hashString).append(LIST_SEPARATOR).append(pepsiString)</span>
+<span class="fc" id="L245">                        .toString();</span>
+            }
+        }
+<span class="pc bpc" id="L248" title="1 of 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L249">            LOG.debug(&quot;SIM parsed from other name: &quot; + result);</span>
+        }
+<span class="fc" id="L251">        return result;</span>
+    }
+
+    /**
+     * The method generates the HEX string by digestResult. 
+     * @param digestResult the resulting byte[] of the digester.
+     * @return the HEX string.
+     */
+    public static final String toHexString(final byte[] digestResult) {
+<span class="fc" id="L260">        final StringBuffer buf = new StringBuffer(digestResult.length * 2);</span>
+<span class="fc bfc" id="L261" title="All 2 branches covered.">        for (int i = 0; i &lt; digestResult.length; i++) {</span>
+<span class="fc" id="L262">            int intVal = digestResult[i] &amp; 0xff;</span>
+<span class="fc bfc" id="L263" title="All 2 branches covered.">            if (intVal &lt; 0x10) {</span>
+<span class="fc" id="L264">                buf.append(&quot;0&quot;);</span>
+            }
+<span class="fc" id="L266">            buf.append(Integer.toHexString(intVal).toUpperCase());</span>
+        }
+<span class="fc" id="L268">        return buf.toString();</span>
+    }
+
+    /** Avoid instantiation. */
+    private RFC4683Tools() {
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

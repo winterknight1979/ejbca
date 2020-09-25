@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OCSPUnidResponse.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ocsp.extension.unid</a> &gt; <span class="el_source">OCSPUnidResponse.java</span></div><h1>OCSPUnidResponse.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.ocsp.extension.unid;
+
+import java.util.Date;
+
+import org.bouncycastle.cert.ocsp.BasicOCSPResp;
+import org.bouncycastle.cert.ocsp.OCSPException;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.cert.ocsp.RevokedStatus;
+import org.bouncycastle.cert.ocsp.SingleResp;
+import org.bouncycastle.cert.ocsp.UnknownStatus;
+
+/** Class holding data returned by the OCSPUnidExtension
+ * 
+ * @version $Id: OCSPUnidResponse.java 28652 2018-04-09 14:35:21Z aminkh $
+ *
+ */
+public class OCSPUnidResponse {
+	
+    /** Constants capturing the OCSP response status. 
+     * These are the return codes defined in the RFC. 
+     * The codes are just used for simple access to the OCSP return value. 
+     */
+    public static final int OCSP_GOOD = 0;
+    public static final int OCSP_REVOKED = 1;
+    public static final int OCSP_UNKNOWN = 2;
+
+    //
+    // Constants for error status
+    //
+    /**
+     * This is the standard code when no error occurred. Ideally this should always be the returned value.
+     */
+    public static final int ERROR_NO_ERROR = 0;
+    /**
+     * An unknown error has occurred (for example internal server error on the OCSP responder) .
+     */
+	public static final int ERROR_UNKNOWN = 1;
+    /**
+     * You are not authorized to perform a FNR/UNID lookup.
+     */
+	public static final int ERROR_UNAUTHORIZED = 2;
+    /**
+     * There was no response from the server.
+     */
+	public static final int ERROR_NO_RESPONSE = 3;
+    /**
+     * This error is returned when the signature of the OCSP-response sent by the server has an invalid 
+     * signature. This should typically never happen unless the OCSP-server is compromised in someway, 
+     * a fake OCSP-server is installed or something went wrong with the communication so the response 
+     * was truncated.
+     */
+	public static final int ERROR_INVALID_SIGNATURE = 4;
+    /**
+     * This error is returned when the signerId in the OCSP-response sent by the server does not match
+     * the first certificate in the chain in the response. 
+     * This should typically never happen unless the OCSP-server is broken. 
+     */
+	public static final int ERROR_INVALID_SIGNERID = 5;
+    /**
+     * This error is returned when the OCSP signers certificate can not be verified using the CA-certificate.
+     * This should typically never happen unless the OCSP-server is broken or compromised. 
+     */
+	public static final int ERROR_INVALID_SIGNERCERT = 6;
+    /**
+     * You did not specify a URI in the call, and there is not one embedded in the certificate.
+     */
+    public static final int ERROR_NO_OCSP_URI = 7;
+    /**
+     * The nonce in the response did not match the nonce sent in the request.
+     */
+    public static final int ERROR_INVALID_NONCE = 8;
+
+	/*
+	 * Private variables
+	 */
+<span class="nc" id="L89">	private OCSPResp resp = null;</span>
+<span class="nc" id="L90">	private String fnr = null;</span>
+<span class="nc" id="L91">	private int httpReturnCode = 200;</span>
+<span class="nc" id="L92">	private int errCode = OCSPUnidResponse.ERROR_NO_ERROR;</span>
+	
+<span class="nc" id="L94">	public OCSPUnidResponse() {</span>
+<span class="nc" id="L95">	}</span>
+<span class="nc" id="L96">	public OCSPUnidResponse(OCSPResp ocspresp) {</span>
+<span class="nc" id="L97">		this.resp = ocspresp;</span>
+<span class="nc" id="L98">	}</span>
+	public int getHttpReturnCode() {
+<span class="nc" id="L100">		return httpReturnCode;</span>
+	}
+	public void setHttpReturnCode(int code) {
+<span class="nc" id="L103">		httpReturnCode = code;</span>
+<span class="nc" id="L104">	}</span>
+	public int getErrorCode() {
+<span class="nc" id="L106">		return errCode;</span>
+	}
+	public void setErrorCode(int code) {
+<span class="nc" id="L109">		errCode = code;</span>
+<span class="nc" id="L110">	}</span>
+	public String getFnr() {
+<span class="nc" id="L112">		return fnr;</span>
+	}
+	public void setFnr(String fnr) {
+<span class="nc" id="L115">		this.fnr = fnr;</span>
+<span class="nc" id="L116">	}</span>
+	public OCSPResp getResp() {
+<span class="nc" id="L118">		return resp;</span>
+	}
+	public void setResp(OCSPResp resp) {
+<span class="nc" id="L121">		this.resp = resp;</span>
+<span class="nc" id="L122">	}</span>
+	public int getStatus() {
+<span class="nc bnc" id="L124" title="All 2 branches missed.">        if (resp == null) {</span>
+<span class="nc" id="L125">            return OCSPUnidResponse.OCSP_UNKNOWN;</span>
+        }
+		try {
+			BasicOCSPResp brep;
+<span class="nc" id="L129">			brep = (BasicOCSPResp) resp.getResponseObject();</span>
+<span class="nc" id="L130">			SingleResp[] singleResps = brep.getResponses();</span>
+<span class="nc" id="L131">			SingleResp singleResp = singleResps[0];</span>
+<span class="nc" id="L132">			Object status = singleResp.getCertStatus();</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">			if (status == null) {</span>
+<span class="nc" id="L134">				return OCSPUnidResponse.OCSP_GOOD;</span>
+			}
+<span class="nc bnc" id="L136" title="All 2 branches missed.">			if (status instanceof RevokedStatus) {</span>
+<span class="nc" id="L137">				return OCSPUnidResponse.OCSP_REVOKED;</span>
+			}
+<span class="nc bnc" id="L139" title="All 2 branches missed.">			if (status instanceof UnknownStatus) {</span>
+<span class="nc" id="L140">				return OCSPUnidResponse.OCSP_UNKNOWN;</span>
+			}
+<span class="nc" id="L142">		} catch (OCSPException e) {</span>
+			// Ignore, default return
+<span class="nc" id="L144">		}</span>
+<span class="nc" id="L145">		return OCSPUnidResponse.OCSP_UNKNOWN;</span>
+		
+	}
+	
+	/** Returns the OCSP response status
+	 * 
+	 * @return the response code of the OCSP message, OCSPRespBuilder.XX for example OCSPRespBuilder.SIG_REQUIRED
+	 */
+	public int getResponseStatus() {
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        if (resp == null) {</span>
+<span class="nc" id="L155">            return OCSPUnidResponse.ERROR_UNKNOWN;</span>
+        }
+<span class="nc" id="L157">        return resp.getStatus();</span>
+	}
+	
+	public Date getProducedAt() throws OCSPException {
+<span class="nc" id="L161">		return ((BasicOCSPResp)resp.getResponseObject()).getProducedAt();</span>
+	}
+	
+	public Date getThisUpdate() throws OCSPException {
+<span class="nc" id="L165">		return ((BasicOCSPResp)resp.getResponseObject()).getResponses()[0].getThisUpdate();</span>
+	}
+	
+	public Date getNextUpdate() throws OCSPException {
+<span class="nc" id="L169">		return ((BasicOCSPResp)resp.getResponseObject()).getResponses()[0].getNextUpdate();</span>
+	}
+	
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

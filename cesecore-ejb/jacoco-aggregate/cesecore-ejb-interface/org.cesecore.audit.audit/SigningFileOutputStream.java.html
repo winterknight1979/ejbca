@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>SigningFileOutputStream.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-ejb</a> &gt; <a href="../index.html" class="el_bundle">cesecore-ejb-interface</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.audit.audit</a> &gt; <span class="el_source">SigningFileOutputStream.java</span></div><h1>SigningFileOutputStream.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.audit.audit;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.Signature;
+import java.security.SignatureException;
+import java.security.cert.Certificate;
+import java.util.Map;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.cesecore.keys.token.CryptoToken;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.util.Base64;
+
+/**
+ * Wrapper of a FileOutputStream that also produces a signature for the same data
+ * that was written to disk. This way we know that we are not signing manipulated
+ * data read back from the disk.
+ * 
+ * The signature is written as raw data to a separate file with the extension &quot;.sig&quot;.
+ * 
+ * @version $Id: SigningFileOutputStream.java 27947 2018-01-15 14:20:08Z mikekushner $
+ */
+/* TODO: Rename/move to org.cesecore.audit.impl.BasicSigningFileOutputStream
+ * TODO: Extract reasonable interface to allow different implementations.
+ * TODO: Perhaps pass properties from config?
+ */
+public class SigningFileOutputStream extends FileOutputStream {
+
+	public static final String EXPORT_SIGN_CERT     = &quot;cert&quot;;
+    public static final String EXPORT_SIGN_ALG      = &quot;alg&quot;;
+    public static final String EXPORT_SIGN_KEYALIAS = &quot;key&quot;;
+
+	final Signature signature;
+	final Signature signValidate;
+	final String signatureFilename;
+	
+    /**
+     * Generates a signature file with the same name as the export file but with .sig extension.
+     * 
+     * @param file the exported file.
+     * @param cryptoToken the crypto token that will be used to fetch the necessary keys.
+     * @param signatureDetails
+     *            Set properties containing signature details like
+     *            keyAlias(EXPORT_SIGN_KEYALIAS), algorithm(EXPORT_SIGN_ALG) and
+     *            certificate( EXPORT_SIGN_CERT ).
+     * @throws FileNotFoundException If signature file not found
+     * @throws CryptoTokenOfflineException If offline
+     * @throws NoSuchAlgorithmException If algorithm not found
+     * @throws NoSuchProviderException If provider not found
+     * @throws InvalidKeyException If key is invalid
+     */
+    public SigningFileOutputStream(final File file, final CryptoToken cryptoToken, final Map&lt;String, Object&gt; signatureDetails) throws FileNotFoundException, CryptoTokenOfflineException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
+<span class="nc" id="L75">		super(file);</span>
+<span class="nc" id="L76">    	signatureFilename = String.format(&quot;%s.sig&quot;, FilenameUtils.removeExtension(file.getAbsolutePath()));</span>
+<span class="nc" id="L77">    	final String keyAlias = (String) signatureDetails.get(SigningFileOutputStream.EXPORT_SIGN_KEYALIAS);</span>
+<span class="nc" id="L78">    	final PrivateKey privateKey = cryptoToken.getPrivateKey(keyAlias);</span>
+<span class="nc" id="L79">    	final PublicKey publicKey = cryptoToken.getPublicKey(keyAlias);</span>
+<span class="nc" id="L80">    	final String algorithm = (String) signatureDetails.get(SigningFileOutputStream.EXPORT_SIGN_ALG);</span>
+<span class="nc" id="L81">    	signature = Signature.getInstance(algorithm, cryptoToken.getSignProviderName());</span>
+<span class="nc" id="L82">    	signature.initSign(privateKey);</span>
+<span class="nc" id="L83">    	signValidate = Signature.getInstance(algorithm, cryptoToken.getSignProviderName());</span>
+<span class="nc" id="L84">    	final Certificate cert = (Certificate) signatureDetails.get(SigningFileOutputStream.EXPORT_SIGN_CERT);</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">    	if (cert != null) {</span>
+<span class="nc" id="L86">    		signValidate.initVerify(cert);</span>
+    	} else {
+<span class="nc" id="L88">    		signValidate.initVerify(publicKey);</span>
+    	}
+<span class="nc" id="L90">	}</span>
+    
+    @Override
+    public void write(final byte[] b) throws IOException {
+<span class="nc" id="L94">    	super.write(b);</span>
+    	try {
+<span class="nc" id="L96">			signature.update(b);</span>
+<span class="nc" id="L97">			signValidate.update(b);</span>
+<span class="nc" id="L98">		} catch (SignatureException e) {</span>
+<span class="nc" id="L99">			throw new IOException(e);</span>
+<span class="nc" id="L100">		}</span>
+<span class="nc" id="L101">    }</span>
+    
+    @Override
+    public void write(final int b) throws IOException {
+<span class="nc" id="L105">    	super.write(b);</span>
+    	try {
+<span class="nc" id="L107">			signature.update((byte) b);</span>
+<span class="nc" id="L108">			signValidate.update((byte) b);</span>
+<span class="nc" id="L109">		} catch (SignatureException e) {</span>
+<span class="nc" id="L110">			throw new IOException(e);</span>
+<span class="nc" id="L111">		}</span>
+<span class="nc" id="L112">    }</span>
+
+    @Override
+    public void write(final byte[] b, final int off, final int len) throws IOException {
+<span class="nc" id="L116">    	super.write(b, off, len);</span>
+    	try {
+<span class="nc" id="L118">			signature.update(b, off, len);</span>
+<span class="nc" id="L119">			signValidate.update(b, off, len);</span>
+<span class="nc" id="L120">		} catch (SignatureException e) {</span>
+<span class="nc" id="L121">			throw new IOException(e);</span>
+<span class="nc" id="L122">		}</span>
+<span class="nc" id="L123">    }</span>
+    
+    public String writeSignature() throws SignatureException, AuditLogExporterException, IOException {
+<span class="nc" id="L126">    	byte[] signedData = signature.sign();</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">    	if (!signValidate.verify(signedData)) {</span>
+<span class="nc" id="L128">    		throw new AuditLogExporterException(&quot;export file signature mismatch&quot;);</span>
+    	}
+<span class="nc" id="L130">    	FileUtils.writeStringToFile(new File(signatureFilename), new String(Base64.encode(signedData)), Charset.defaultCharset());</span>
+<span class="nc" id="L131">    	return signatureFilename;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

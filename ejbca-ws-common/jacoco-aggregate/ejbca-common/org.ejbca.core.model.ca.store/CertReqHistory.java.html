@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CertReqHistory.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-ws-common</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.ca.store</a> &gt; <span class="el_source">CertReqHistory.java</span></div><h1>CertReqHistory.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.ca.store;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import org.cesecore.certificates.endentity.EndEntityInformation;
+
+/**
+ * Value object class containing the data stored in the 
+ * CertReqHistory Entity Bean. See constructor for details of its fields.
+ * 
+ * @version $Id: CertReqHistory.java 22117 2015-10-29 10:53:42Z mikekushner $
+ */
+
+public class CertReqHistory implements Serializable{
+    private static final long serialVersionUID = -5449568418691275341L;
+    private String fingerprint;
+    private String serialNumber;
+    private String issuerDN;
+    private String username;
+    private Date timestamp;
+    private EndEntityInformation endEntityInformation;
+    
+    /**
+     * @param fingerprint the PK of the certificate in the CertificateDataBean
+     * @param serialNumber of the certificate 
+     * @param issuerDN DN of the CA issuing the certificate
+     * @param username of the user used in the certificate request.
+     * @param timestamp when the certicate was created.
+     * @param endEntityInformation the userdata used to create the certificate.
+     */
+    public CertReqHistory(String fingerprint, String serialNumber,
+            String issuerDN, String username, Date timestamp,
+            EndEntityInformation endEntityInformation) {
+<span class="nc" id="L47">        super();</span>
+<span class="nc" id="L48">        this.fingerprint = fingerprint;</span>
+<span class="nc" id="L49">        this.serialNumber = serialNumber;</span>
+<span class="nc" id="L50">        this.issuerDN = issuerDN;</span>
+<span class="nc" id="L51">        this.username = username;</span>
+<span class="nc" id="L52">        this.timestamp = timestamp;</span>
+<span class="nc" id="L53">        this.endEntityInformation = endEntityInformation;</span>
+<span class="nc" id="L54">    }</span>
+    /**
+     * @return Returns the issuerDN.
+     */
+    public String getFingerprint() {
+<span class="nc" id="L59">        return fingerprint;</span>
+    }
+    /**
+     * @return Returns the issuerDN.
+     */
+    public String getIssuerDN() {
+<span class="nc" id="L65">        return issuerDN;</span>
+    }
+    /**
+     * @return Returns the serialNumber.
+     */
+    public String getSerialNumber() {
+<span class="nc" id="L71">        return serialNumber;</span>
+    }
+    /**
+     * @return Returns the timestamp.
+     */
+    public Date getTimestamp() {
+<span class="nc" id="L77">        return timestamp;</span>
+    }
+    /**
+     * @return Returns the EndEntityInformation.
+     */
+    public EndEntityInformation getEndEntityInformation() {
+<span class="nc" id="L83">        return endEntityInformation;</span>
+    }
+    /**
+     * @return Returns the username.
+     */
+    public String getUsername() {
+<span class="nc" id="L89">        return username;</span>
+    }
+    
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

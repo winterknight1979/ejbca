@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RFC4387URL.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.protocol</a> &gt; <span class="el_source">RFC4387URL.java</span></div><h1>RFC4387URL.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.protocol;
+
+import org.cesecore.certificates.certificate.HashID;
+
+
+/**
+ * Create RFC4387 URLs and HTML references to such URLs. 
+ * @author Lars Silven PrimeKey
+ * @version  $Id: RFC4387URL.java 19901 2014-09-30 14:29:38Z anatom $
+ */
+<span class="nc" id="L23">public enum RFC4387URL {</span>
+<span class="nc" id="L24">	sHash,</span>
+<span class="nc" id="L25">	iHash,</span>
+<span class="nc" id="L26">	sKIDHash;</span>
+	private String getID(HashID hash, boolean isDelta, boolean isHTML) {
+<span class="nc bnc" id="L28" title="All 2 branches missed.">		final String theAmp = isHTML ? &quot;&amp;amp;&quot; : &quot;&amp;&quot;;</span>
+<span class="nc bnc" id="L29" title="All 2 branches missed.">		final String deltaParam = isDelta ? theAmp+&quot;delta=&quot; : &quot;&quot;;</span>
+<span class="nc" id="L30">		return hash.getB64url() + deltaParam;</span>
+	}
+	private String appendQueryToURL(String url, String id) {
+<span class="nc" id="L33">		return url+&quot;?&quot;+this.toString()+&quot;=&quot;+id;</span>
+	}
+	/**
+	 * Append the query of the RFC hash to a URL
+	 * @param url The URL except the query
+	 * @param hash of the object to fetch
+	 * @param isDelta true if it is a link to a delta CRL.
+	 * @return URL to fetch certificate or CRL.
+	 */
+	public String appendQueryToURL(String url, HashID hash, boolean isDelta) {
+<span class="nc" id="L43">		final String id = getID(hash, isDelta, false);</span>
+<span class="nc" id="L44">		return appendQueryToURL(url, id);</span>
+	}
+	/**
+	 * See {@link #appendQueryToURL(String, HashID, boolean)}, isDelta is false.
+	 * @param url The URL except the query
+	 * @param hash of the object to fetch
+	 * @return URL to fetch certificate or CRL.
+	 */
+	public String appendQueryToURL(String url, HashID hash) {
+<span class="nc" id="L53">		return appendQueryToURL(url, hash, false);</span>
+	}
+	/**
+	 * HTML string that show the reference to fetch a certificate or CRL.
+	 * @param url The URL except the query
+	 * @param hash of the object to fetch
+	 * @param isDelta true if it is a link to a delta CRL.
+	 * @return URL to fetch certificate or CRL.
+	 */
+	public String getRef(String url, HashID hash, boolean isDelta) {
+<span class="nc" id="L63">		final String resURL = appendQueryToURL(url, getID(hash, isDelta, true));</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">		return this.toString()+&quot; = &quot;+hash.getB64()+(isDelta ? &quot; delta&quot;:&quot;&quot;)+&quot; &lt;a href=\&quot;&quot;+resURL+&quot;\&quot;&gt;Download&lt;/a&gt;&quot;;</span>
+	}
+	/**
+	 * See {@link #getRef(String, HashID, boolean)}, isDelta is false.
+	 * @param url The URL except the query
+	 * @param hash of the object to fetch
+	 * @return URL to fetch certificate or CRL.
+	 */
+	public String getRef(String url, HashID hash) {
+<span class="nc" id="L73">		return getRef(url, hash, false);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

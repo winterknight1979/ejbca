@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PublisherQueueData.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.ca.publisher</a> &gt; <span class="el_source">PublisherQueueData.java</span></div><h1>PublisherQueueData.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.model.ca.publisher;
+
+import java.io.Serializable;
+import java.util.Date;
+
+
+/**
+ * Value object holding the data contained in a PublisherQueueData record in the database. 
+ *
+ * @version $Id: PublisherQueueData.java 22117 2015-10-29 10:53:42Z mikekushner $
+ */
+public class PublisherQueueData implements Serializable {
+
+    /**
+     * Determines if a de-serialized file is compatible with this class.
+     *
+     * Maintainers must change this value if and only if the new version
+     * of this class is not compatible with old versions. See Sun docs
+     * for &lt;a href=http://java.sun.com/products/jdk/1.1/docs/guide
+     * /serialization/spec/version.doc.html&gt; details. &lt;/a&gt;
+     *
+     */
+    private static final long serialVersionUID = 101L;
+    
+    // private fields.
+    private String pk;
+	private Date timeCreated;
+    private Date lastUpdate;
+    /** PublisherQueueData.STATUS_SUCCESS etc */
+    private int publishStatus;
+    private int tryCounter;
+    /** PublisherQueueData.PUBLISH_TYPE_CERT etc */
+    private int publishType;
+    private String fingerprint;
+    private int publisherId;
+    private PublisherQueueVolatileInformation volatileData;
+            
+    
+    // Public constants
+
+    // Public methods.
+    
+	public PublisherQueueData(String pk, Date timeCreated, Date lastUpdate,
+			int publishStatus, int tryCounter, int publishType, String fingerprint,
+			int publisherId, PublisherQueueVolatileInformation volatileData) {
+<span class="nc" id="L59">		super();</span>
+<span class="nc" id="L60">		this.pk = pk;</span>
+<span class="nc" id="L61">		this.timeCreated = timeCreated;</span>
+<span class="nc" id="L62">		this.lastUpdate = lastUpdate;</span>
+<span class="nc" id="L63">		this.publishStatus = publishStatus;</span>
+<span class="nc" id="L64">		this.tryCounter = tryCounter;</span>
+<span class="nc" id="L65">		this.publishType = publishType;</span>
+<span class="nc" id="L66">		this.fingerprint = fingerprint;</span>
+<span class="nc" id="L67">		this.publisherId = publisherId;</span>
+<span class="nc" id="L68">		this.volatileData = volatileData;</span>
+<span class="nc" id="L69">	}</span>
+    
+    public int getPublishType() {
+<span class="nc" id="L72">		return publishType;</span>
+	}
+
+	public void setPublishType(int publishType) {
+<span class="nc" id="L76">		this.publishType = publishType;</span>
+<span class="nc" id="L77">	}</span>
+
+	public String getPk() {
+<span class="nc" id="L80">		return pk;</span>
+	}
+	public void setPk(String pk) {
+<span class="nc" id="L83">		this.pk = pk;</span>
+<span class="nc" id="L84">	}</span>
+	public Date getTimeCreated() {
+<span class="nc" id="L86">		return timeCreated;</span>
+	}
+	public void setTimeCreated(Date timeCreated) {
+<span class="nc" id="L89">		this.timeCreated = timeCreated;</span>
+<span class="nc" id="L90">	}</span>
+	public Date getLastUpdate() {
+<span class="nc" id="L92">		return lastUpdate;</span>
+	}
+	public void setLastUpdate(Date lastUpdate) {
+<span class="nc" id="L95">		this.lastUpdate = lastUpdate;</span>
+<span class="nc" id="L96">	}</span>
+	public int getPublishStatus() {
+<span class="nc" id="L98">		return publishStatus;</span>
+	}
+	public void setPublishStatus(int publishStatus) {
+<span class="nc" id="L101">		this.publishStatus = publishStatus;</span>
+<span class="nc" id="L102">	}</span>
+	public int getTryCounter() {
+<span class="nc" id="L104">		return tryCounter;</span>
+	}
+	public void setTryCounter(int tryCounter) {
+<span class="nc" id="L107">		this.tryCounter = tryCounter;</span>
+<span class="nc" id="L108">	}</span>
+	public String getFingerprint() {
+<span class="nc" id="L110">		return fingerprint;</span>
+	}
+	public void setFingerprint(String fingerprint) {
+<span class="nc" id="L113">		this.fingerprint = fingerprint;</span>
+<span class="nc" id="L114">	}</span>
+	public int getPublisherId() {
+<span class="nc" id="L116">		return publisherId;</span>
+	}
+	public void setPublisherId(int publisherId) {
+<span class="nc" id="L119">		this.publisherId = publisherId;</span>
+<span class="nc" id="L120">	}</span>
+	public PublisherQueueVolatileInformation getVolatileData() {
+<span class="nc" id="L122">		return volatileData;</span>
+	}
+	public void setVolatileData(PublisherQueueVolatileInformation volatileData) {
+<span class="nc" id="L125">		this.volatileData = volatileData;</span>
+<span class="nc" id="L126">	}   </span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CMS.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-ws-common</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util</a> &gt; <span class="el_source">CMS.java</span></div><h1>CMS.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.util;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+import java.util.Date;
+import java.util.Iterator;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.cms.Attribute;
+import org.bouncycastle.asn1.cms.CMSAttributes;
+import org.bouncycastle.asn1.cms.Time;
+import org.bouncycastle.cms.CMSEnvelopedDataParser;
+import org.bouncycastle.cms.CMSEnvelopedDataStreamGenerator;
+import org.bouncycastle.cms.CMSSignedDataParser;
+import org.bouncycastle.cms.CMSSignedDataStreamGenerator;
+import org.bouncycastle.cms.CMSSignedGenerator;
+import org.bouncycastle.cms.CMSTypedStream;
+import org.bouncycastle.cms.RecipientInformation;
+import org.bouncycastle.cms.SignerId;
+import org.bouncycastle.cms.SignerInformation;
+import org.bouncycastle.cms.bc.BcCMSContentEncryptorBuilder;
+import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder;
+import org.bouncycastle.cms.jcajce.JcaSignerInfoVerifierBuilder;
+import org.bouncycastle.cms.jcajce.JceKeyTransEnvelopedRecipient;
+import org.bouncycastle.cms.jcajce.JceKeyTransRecipientInfoGenerator;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.bc.BcDigestCalculatorProvider;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
+import org.cesecore.certificates.util.AlgorithmTools;
+
+/**
+ * CMS utils.
+ * @version $Id: CMS.java 26780 2017-10-10 09:37:56Z mikekushner $
+ *
+ */
+<span class="nc" id="L57">public class CMS {</span>
+<span class="nc" id="L58">    final static private Logger log = Logger.getLogger(CMS.class);</span>
+    final static private int bufferSize = 0x20000;
+    private static void fromInToOut( InputStream in, OutputStream out) throws IOException {
+<span class="nc" id="L61">        byte[] buf = new byte[bufferSize];</span>
+        while (true) {
+<span class="nc" id="L63">            int len = in.read(buf);</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">            if ( len&lt;0 ) {</span>
+<span class="nc" id="L65">                break;</span>
+            }
+<span class="nc" id="L67">            out.write(buf,0, len);</span>
+<span class="nc" id="L68">        }</span>
+<span class="nc" id="L69">        out.close();</span>
+<span class="nc" id="L70">    }</span>
+    /**
+     * @param is data to be encrypted
+     * @param os encrypted data
+     * @param cert certificate with the public key to be used for the encryption
+     * @param symmAlgOid the symmetric encryption algorithm to use, for example CMSEnvelopedGenerator.AES128_CBC
+     * @throws Exception Fail
+     */
+    public static void encrypt(final InputStream is, final OutputStream os, final X509Certificate cert, final String symmAlgOid) throws Exception {
+<span class="nc" id="L79">        final InputStream bis = new BufferedInputStream(is, bufferSize);</span>
+<span class="nc" id="L80">        final OutputStream bos = new BufferedOutputStream(os, bufferSize);</span>
+<span class="nc" id="L81">        final CMSEnvelopedDataStreamGenerator edGen = new CMSEnvelopedDataStreamGenerator(); </span>
+<span class="nc" id="L82">        edGen.addRecipientInfoGenerator(new JceKeyTransRecipientInfoGenerator(&quot;hej&quot;.getBytes(), cert.getPublicKey()));</span>
+<span class="nc" id="L83">        BcCMSContentEncryptorBuilder bcCMSContentEncryptorBuilder = new BcCMSContentEncryptorBuilder(new  ASN1ObjectIdentifier(symmAlgOid));</span>
+<span class="nc" id="L84">        final OutputStream out = edGen.open(bos, bcCMSContentEncryptorBuilder.build());</span>
+<span class="nc" id="L85">        fromInToOut(bis, out);</span>
+<span class="nc" id="L86">        bos.close();</span>
+<span class="nc" id="L87">        os.close();</span>
+<span class="nc" id="L88">    }</span>
+    /**
+     * @param is data to be decrypted
+     * @param os decrypted data
+     * @param key to be used for the decryption
+     * @param providerName the provider that should do the decryption
+     * @throws Exception Fail
+     */
+    public static void decrypt(final InputStream is, OutputStream os, PrivateKey key, String providerName) throws Exception  {
+<span class="nc" id="L97">        final InputStream bis = new BufferedInputStream(is, bufferSize);</span>
+<span class="nc" id="L98">        final OutputStream bos = new BufferedOutputStream(os, bufferSize);</span>
+<span class="nc" id="L99">        final Iterator&lt;RecipientInformation&gt;  it = new CMSEnvelopedDataParser(bis).getRecipientInfos().getRecipients().iterator();</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        if (it.hasNext()) {</span>
+<span class="nc" id="L101">            final RecipientInformation recipientInformation = it.next();</span>
+<span class="nc" id="L102">            JceKeyTransEnvelopedRecipient rec = new JceKeyTransEnvelopedRecipient(key);</span>
+<span class="nc" id="L103">            rec.setProvider(providerName);</span>
+<span class="nc" id="L104">            rec.setContentProvider(BouncyCastleProvider.PROVIDER_NAME);</span>
+            // Option we must set to prevent Java PKCS#11 provider to try to make the symmetric decryption in the HSM, 
+            // even though we set content provider to BC. Symm decryption in HSM varies between different HSMs and at least for this case is known 
+            // to not work in SafeNet Luna (JDK behavior changed in JDK 7_75 where they introduced imho a buggy behavior)
+<span class="nc" id="L108">            rec.setMustProduceEncodableUnwrappedKey(true);            </span>
+<span class="nc" id="L109">            final CMSTypedStream recData = recipientInformation.getContentStream(rec);</span>
+<span class="nc" id="L110">            final InputStream ris = recData.getContentStream();</span>
+<span class="nc" id="L111">            fromInToOut(ris, bos);</span>
+        }
+<span class="nc" id="L113">        os.close();</span>
+<span class="nc" id="L114">    }</span>
+    /**
+     * @param is data to be signed
+     * @param os signed data
+     * @param key to do be used for signing
+     * @param providerName the provider that should do the signing
+     * @param cert Cert
+     * @throws Exception fail
+     */
+    public static void sign(final InputStream is, OutputStream os, PrivateKey key, String providerName, X509Certificate cert) throws Exception {
+<span class="nc" id="L124">        final InputStream bis = new BufferedInputStream(is, bufferSize);</span>
+<span class="nc" id="L125">        final OutputStream bos = new BufferedOutputStream(os, bufferSize);</span>
+<span class="nc" id="L126">        final CMSSignedDataStreamGenerator gen = new CMSSignedDataStreamGenerator();</span>
+<span class="nc" id="L127">        JcaDigestCalculatorProviderBuilder calculatorProviderBuilder = new JcaDigestCalculatorProviderBuilder().setProvider(BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="nc" id="L128">        JcaSignerInfoGeneratorBuilder builder = new JcaSignerInfoGeneratorBuilder(calculatorProviderBuilder.build());</span>
+<span class="nc" id="L129">        final String digest = CMSSignedGenerator.DIGEST_SHA256;</span>
+<span class="nc" id="L130">        String signatureAlgorithmName = AlgorithmTools.getAlgorithmNameFromDigestAndKey(digest, key.getAlgorithm());</span>
+<span class="nc" id="L131">        ContentSigner contentSigner = new JcaContentSignerBuilder(signatureAlgorithmName).setProvider(providerName).build(key);</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">        if ( cert!=null ) {      </span>
+<span class="nc" id="L133">            gen.addSignerInfoGenerator(builder.build(contentSigner, cert));          </span>
+        } else {
+<span class="nc" id="L135">            gen.addSignerInfoGenerator(builder.build(contentSigner, &quot;hej&quot;.getBytes()));          </span>
+        }
+<span class="nc" id="L137">        final OutputStream out = gen.open(bos, true);</span>
+<span class="nc" id="L138">        fromInToOut(bis, out);</span>
+<span class="nc" id="L139">        bos.close();</span>
+<span class="nc" id="L140">        os.close();</span>
+<span class="nc" id="L141">    }</span>
+    public static class VerifyResult {
+        public final Date signDate;
+        public final boolean isVerifying;
+        public final SignerId signerId;
+<span class="nc" id="L146">        public VerifyResult(Date _signDate, boolean _isVerifying, SignerId _signerId) {</span>
+<span class="nc" id="L147">            this.signDate = _signDate;</span>
+<span class="nc" id="L148">            this.isVerifying = _isVerifying;</span>
+<span class="nc" id="L149">            this.signerId = _signerId;</span>
+<span class="nc" id="L150">        }</span>
+    }
+    /**
+     * @param is signed data to be verified
+     * @param os signature removed from signed data
+     * @param cert the certificate with the public key that should do the verification
+     * @return true if the signing was to with the private key corresponding to the public key in the certificate.
+     * @throws Exception Fail
+     */
+    public static VerifyResult verify(final InputStream is, OutputStream os, X509Certificate cert) throws Exception  {
+<span class="nc" id="L160">        final InputStream bis = new BufferedInputStream(is, bufferSize);</span>
+<span class="nc" id="L161">        final OutputStream bos = new BufferedOutputStream(os, bufferSize);</span>
+<span class="nc" id="L162">        final CMSSignedDataParser sp = new CMSSignedDataParser(new BcDigestCalculatorProvider(), bis);</span>
+<span class="nc" id="L163">        final CMSTypedStream sc = sp.getSignedContent();</span>
+<span class="nc" id="L164">        final InputStream ris = sc.getContentStream();</span>
+<span class="nc" id="L165">        fromInToOut(ris, bos);</span>
+<span class="nc" id="L166">        os.close();</span>
+<span class="nc" id="L167">        sc.drain();</span>
+        @SuppressWarnings(&quot;rawtypes&quot;)
+<span class="nc" id="L169">        final Iterator  it = sp.getSignerInfos().getSigners().iterator();</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">        if ( !it.hasNext() ) {</span>
+<span class="nc" id="L171">            return null;</span>
+        }
+<span class="nc" id="L173">        final SignerInformation signerInfo = (SignerInformation)it.next();</span>
+<span class="nc" id="L174">        final Attribute attribute = (Attribute)signerInfo.getSignedAttributes().getAll(CMSAttributes.signingTime).get(0);</span>
+<span class="nc" id="L175">        final Date date = Time.getInstance(attribute.getAttrValues().getObjectAt(0).toASN1Primitive()).getDate();</span>
+<span class="nc" id="L176">        final SignerId id = signerInfo.getSID();</span>
+<span class="nc" id="L177">        boolean result = false;</span>
+        try {
+<span class="nc" id="L179">            JcaDigestCalculatorProviderBuilder calculatorProviderBuilder = new JcaDigestCalculatorProviderBuilder().setProvider(BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="nc" id="L180">            JcaSignerInfoVerifierBuilder jcaSignerInfoVerifierBuilder = new JcaSignerInfoVerifierBuilder(calculatorProviderBuilder.build()).setProvider(BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="nc" id="L181">            result = signerInfo.verify(jcaSignerInfoVerifierBuilder.build(cert.getPublicKey()));</span>
+<span class="nc" id="L182">        } catch ( Throwable t ) { // NOPMD</span>
+<span class="nc" id="L183">            log.debug(&quot;Exception when verifying&quot;, t);</span>
+<span class="nc" id="L184">        }</span>
+<span class="nc" id="L185">        return new VerifyResult(date, result, id);            </span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

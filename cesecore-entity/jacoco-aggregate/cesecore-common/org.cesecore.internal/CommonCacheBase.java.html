@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CommonCacheBase.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-entity</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.internal</a> &gt; <span class="el_source">CommonCacheBase.java</span></div><h1>CommonCacheBase.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.internal;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+
+/**
+ * Object and name to id lookup cache base implementation.
+ * 
+ * Note that this type of cache is not optimized for short-lived objects, but
+ * will prevent memory leaks to some extent through checking for stale data
+ * during updates.
+ * 
+ * @version $Id: CommonCacheBase.java 28332 2018-02-20 14:40:52Z anatom $
+ * @param &lt;T&gt; type
+ */
+<span class="nc" id="L35">public abstract class CommonCacheBase&lt;T&gt; implements CommonCache&lt;T&gt; {</span>
+    
+    private class CacheEntry {
+        long lastUpdate;
+        final int digest;
+        final String name;
+        final T object;
+<span class="nc" id="L42">        CacheEntry(long lastUpdate, int digest, String name, T object) {</span>
+<span class="nc" id="L43">            this.lastUpdate = lastUpdate;</span>
+<span class="nc" id="L44">            this.digest = digest;</span>
+<span class="nc" id="L45">            this.name = name;</span>
+<span class="nc" id="L46">            this.object = object;</span>
+<span class="nc" id="L47">        }</span>
+    }
+    
+<span class="nc" id="L50">    private final Logger log = Logger.getLogger(CommonCacheBase.class);</span>
+<span class="nc" id="L51">    private Map&lt;Integer, CacheEntry&gt; cache = new HashMap&lt;Integer, CacheEntry&gt;();</span>
+<span class="nc" id="L52">    private Map&lt;String, Integer&gt; nameToIdMap = new HashMap&lt;String, Integer&gt;();</span>
+
+    /** @return how long to cache objects in milliseconds. */
+    protected abstract long getCacheTime();
+    
+    /** @return the maximum allowed time an object may reside in the cache before it is purged. 0 means live forever. */
+    protected abstract long getMaxCacheLifeTime();
+
+    @Override
+    public T getEntry(final Integer id) {
+<span class="nc" id="L62">        final CacheEntry cacheEntry = getCacheEntry(id);</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        if (cacheEntry == null) {</span>
+<span class="nc" id="L64">            return null;</span>
+        }
+<span class="nc" id="L66">        return cacheEntry.object;</span>
+    }
+
+    @Override
+    public T getEntry(final int id) {
+<span class="nc" id="L71">        return getEntry(Integer.valueOf(id));</span>
+    }
+
+    public Set&lt;T&gt; getAllEntries() {
+<span class="nc" id="L75">        Set&lt;T&gt; result = new HashSet&lt;T&gt;();</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        for(CacheEntry cacheEntry : cache.values()) {</span>
+<span class="nc" id="L77">            result.add(cacheEntry.object);</span>
+<span class="nc" id="L78">        }</span>
+<span class="nc" id="L79">        return result;</span>
+    }
+
+    @Override
+    public boolean shouldCheckForUpdates(final int id) {
+<span class="nc" id="L84">        final long now = System.currentTimeMillis();</span>
+<span class="nc" id="L85">        final long cacheTime = getCacheTime();</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (cacheTime&lt;0) {</span>
+            // Cache is disabled, caller should check db
+<span class="nc" id="L88">            return true;</span>
+        }
+<span class="nc" id="L90">        final Integer key = Integer.valueOf(id);</span>
+<span class="nc" id="L91">        final CacheEntry cacheEntry = cache.get(key);</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        if (cacheEntry == null) {</span>
+            // No such object in cache, caller should check db
+<span class="nc" id="L94">            return true;</span>
+        }
+<span class="nc bnc" id="L96" title="All 2 branches missed.">        if (cacheEntry.lastUpdate+cacheTime&lt;now) {</span>
+            // We probably need to update, but re-check using synchronization
+<span class="nc" id="L98">            synchronized (cacheEntry) {</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">                if (cacheEntry.lastUpdate+cacheTime&lt;now) {</span>
+                    // Object is present in cache, but cache has expired so the caller should update the cache
+                    // To prevent other threads to ask the database for the same thing, we reset the cache time.
+<span class="nc" id="L102">                    cacheEntry.lastUpdate = now;</span>
+<span class="nc" id="L103">                    return true;</span>
+                }
+<span class="nc" id="L105">            }</span>
+        }
+<span class="nc" id="L107">        return false;</span>
+    }
+
+
+    @Override
+    public void removeEntry(int id) {
+<span class="nc" id="L113">        updateWith(id, 0, null, null);</span>
+<span class="nc" id="L114">    }</span>
+
+    @Override
+    public boolean willUpdate(int id, int digest) {
+        // Same version in cache as provided Object?
+<span class="nc" id="L119">        final Integer key = Integer.valueOf(id);</span>
+<span class="nc" id="L120">        final CacheEntry cacheEntry = getCacheEntry(key);</span>
+<span class="nc bnc" id="L121" title="All 4 branches missed.">        if (cacheEntry == null || cacheEntry.digest != digest) {</span>
+<span class="nc" id="L122">            return true;</span>
+        } else {
+<span class="nc bnc" id="L124" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">                log.debug(&quot;Update not needed &quot; + cacheEntry.object.getClass().getSimpleName() + &quot; in cache. Digest was &quot; + digest + &quot;, cacheEntry digest was &quot; + (cacheEntry == null ? &quot;null&quot; : cacheEntry.digest));</span>
+            }
+<span class="nc" id="L127">            return false;</span>
+        }
+    }
+    
+    @Override
+    public void updateWith(int id, int digest, String name, T object) {
+<span class="nc" id="L133">        final Integer key = Integer.valueOf(id);</span>
+<span class="nc bnc" id="L134" title="All 6 branches missed.">        if (name==null || object == null || getCacheTime()&lt;0) {</span>
+            // Remove from cache
+<span class="nc" id="L136">            setCacheEntry(key, null);</span>
+        } else {
+            // Same version in cache as provided Object?
+<span class="nc bnc" id="L139" title="All 2 branches missed.">            if (willUpdate(id, digest)) {</span>
+<span class="nc" id="L140">                final CacheEntry cacheEntry = getCacheEntry(key);</span>
+                // Create new object and store it in the cache.
+<span class="nc" id="L142">                final CacheEntry newCacheEntry = new CacheEntry(System.currentTimeMillis(), digest, name, object);</span>
+<span class="nc" id="L143">                setCacheEntry(key, newCacheEntry);</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">                    log.debug(&quot;Updated &quot; + object.getClass().getSimpleName() + &quot; cache. Digest was &quot; + digest + &quot;, cacheEntry digest was &quot; + (cacheEntry == null ? &quot;null&quot; : cacheEntry.digest));</span>
+                }
+            }
+        }
+<span class="nc" id="L149">    }</span>
+    
+    @Override
+    public String getName(int id) {
+<span class="nc" id="L153">        final CacheEntry entry = getCacheEntry(id);</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        return entry != null ? entry.name : null;</span>
+    }
+    
+    /** @param key key
+     * @return cache entry for the requested key or null */
+    private CacheEntry getCacheEntry(final Integer key) {
+<span class="nc" id="L160">        return cache.get(key);</span>
+    }
+    
+    /** Set or remove cache entry. 
+     * @param key key
+     * @param cacheEntry entry */
+    private void setCacheEntry(final Integer key, final CacheEntry cacheEntry) {
+<span class="nc" id="L167">        final Map&lt;Integer, CacheEntry&gt; cacheStage = new HashMap&lt;Integer, CacheEntry&gt;();</span>
+<span class="nc" id="L168">        final Map&lt;String, Integer&gt; nameToIdMapStage = new HashMap&lt;String, Integer&gt;();</span>
+<span class="nc" id="L169">        final long maxCacheLifeTime = getMaxCacheLifeTime();</span>
+<span class="nc" id="L170">        final long staleCutOffTime = System.currentTimeMillis()-maxCacheLifeTime;</span>
+<span class="nc" id="L171">        synchronized (this) {</span>
+            // Process all entries except for the one that will change
+<span class="nc bnc" id="L173" title="All 2 branches missed.">            for (final Entry&lt;Integer,CacheEntry&gt; entry : cache.entrySet()) {</span>
+<span class="nc" id="L174">                final Integer currentId = entry.getKey();</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">                if (!key.equals(currentId)) {</span>
+<span class="nc" id="L176">                    final CacheEntry currentCacheEntry = entry.getValue();</span>
+                    // By flushing older entries we at least limit how much
+                    // this registry will grow when used for short-lived objects
+                    // in a clustered environment.
+<span class="nc bnc" id="L180" title="All 4 branches missed.">                    if (maxCacheLifeTime&lt;1 || currentCacheEntry.lastUpdate &gt;= staleCutOffTime) {</span>
+                        // Keep using the current entry in the new cache
+<span class="nc" id="L182">                        cacheStage.put(entry.getKey(), currentCacheEntry);</span>
+<span class="nc" id="L183">                        nameToIdMapStage.put(currentCacheEntry.name, entry.getKey());</span>
+                    }
+                }
+<span class="nc" id="L186">            }</span>
+            // Process the one that will change
+<span class="nc bnc" id="L188" title="All 2 branches missed.">            if (cacheEntry == null) {</span>
+                // Don't add if to the new version of the cache if it existed (e.g. remove it)
+            } else {
+<span class="nc" id="L191">                cacheStage.put(key, cacheEntry);</span>
+<span class="nc" id="L192">                nameToIdMapStage.put(cacheEntry.name, key);</span>
+            }
+<span class="nc" id="L194">            cache = cacheStage;</span>
+<span class="nc" id="L195">            nameToIdMap = Collections.unmodifiableMap(nameToIdMapStage);</span>
+<span class="nc" id="L196">        }</span>
+<span class="nc" id="L197">    }</span>
+
+    @Override
+    public Map&lt;String,Integer&gt; getNameToIdMap() {
+<span class="nc" id="L201">        return nameToIdMap;</span>
+    }
+
+    @Override
+    public void flush() {
+<span class="nc" id="L206">        final Map&lt;Integer, CacheEntry&gt; cacheStage = new HashMap&lt;Integer, CacheEntry&gt;();</span>
+<span class="nc" id="L207">        final Map&lt;String, Integer&gt; nameToIdMapStage = new HashMap&lt;String, Integer&gt;();</span>
+<span class="nc" id="L208">        replaceCache(cacheStage, nameToIdMapStage);</span>
+<span class="nc" id="L209">    }</span>
+    
+    @Override
+    public void replaceCacheWith(List&lt;Integer&gt; keys) {
+<span class="nc" id="L213">        Map&lt;Integer, CacheEntry&gt; cacheStage = new HashMap&lt;Integer, CacheEntry&gt;();</span>
+<span class="nc" id="L214">        Map&lt;String, Integer&gt; nameToIdMapStage = new HashMap&lt;String, Integer&gt;();</span>
+        
+<span class="nc bnc" id="L216" title="All 2 branches missed.">        for(Integer key : keys) {</span>
+<span class="nc" id="L217">            CacheEntry entry = cache.get(key);</span>
+<span class="nc" id="L218">            cacheStage.put(key, entry);</span>
+            
+<span class="nc" id="L220">            String name = entry.name;</span>
+<span class="nc" id="L221">            nameToIdMapStage.put(name, nameToIdMap.get(name));</span>
+<span class="nc" id="L222">        }</span>
+        
+<span class="nc" id="L224">        replaceCache(cacheStage, nameToIdMapStage);</span>
+<span class="nc" id="L225">    }</span>
+    
+    private void replaceCache(Map&lt;Integer, CacheEntry&gt; cacheStage, Map&lt;String, Integer&gt; nameToIdMapStage) {
+<span class="nc" id="L228">        synchronized (this) {</span>
+<span class="nc" id="L229">            cache = cacheStage;</span>
+<span class="nc" id="L230">            nameToIdMap = nameToIdMapStage;</span>
+<span class="nc" id="L231">        }</span>
+<span class="nc" id="L232">    }</span>
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

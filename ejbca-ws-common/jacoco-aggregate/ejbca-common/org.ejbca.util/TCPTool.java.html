@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>TCPTool.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-ws-common</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util</a> &gt; <span class="el_source">TCPTool.java</span></div><h1>TCPTool.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.util;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+
+import org.apache.log4j.Logger;
+
+import com.novell.ldap.LDAPException;
+
+/**
+ * @author johan
+ * @version $Id: TCPTool.java 22117 2015-10-29 10:53:42Z mikekushner $
+ */
+<span class="nc" id="L27">public class TCPTool {</span>
+<span class="nc" id="L28">    private static final Logger log = Logger.getLogger(TCPTool.class);</span>
+
+	/**
+	 * Probe a TCP port connection at hostname:port.  
+	 * @param hostname Host
+	 * @param port Port
+	 * @param timeout in milliseconds
+	 * @throws LDAPException if the connection fails
+	 */
+	public static void probeConnectionLDAP(String hostname, int port, int timeout) throws LDAPException {
+		try {
+<span class="nc" id="L39">			probeConnectionRaw(hostname, port, timeout);</span>
+<span class="nc" id="L40">		} catch (IOException e) {</span>
+<span class="nc" id="L41">			String msg = &quot;Unable to connect to &quot; + hostname + &quot;:&quot; + port + &quot;.&quot;;</span>
+<span class="nc" id="L42">			throw new LDAPException(msg ,LDAPException.CONNECT_ERROR, msg);</span>
+<span class="nc" id="L43">		} </span>
+<span class="nc" id="L44">	}</span>
+
+	/**
+	 * Probe a TCP port connection at hostname:port.  
+	 * @param hostname Host
+	 * @param port Port
+	 * @param timeout in milliseconds
+	 * @throws IOException if the connection fails
+	 */
+	private static void probeConnectionRaw(String hostname, int port, int timeout) throws IOException {
+<span class="nc bnc" id="L54" title="All 2 branches missed.">		if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L55">			log.trace(&quot;&gt;probeConnectionRaw(&quot;+hostname+&quot;, &quot;+port+&quot;, &quot;+timeout+&quot;)&quot;);			</span>
+		}
+<span class="nc" id="L57">		Socket probeSocket = new Socket();</span>
+<span class="nc" id="L58">		probeSocket.connect(new InetSocketAddress(hostname, port), timeout);</span>
+<span class="nc" id="L59">		probeSocket.close();</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">		if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L61">			log.trace(&quot;&lt;probeConnectionRaw&quot;);			</span>
+		}
+<span class="nc" id="L63">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

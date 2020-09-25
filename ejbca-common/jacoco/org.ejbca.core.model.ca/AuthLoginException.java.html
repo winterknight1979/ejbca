@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthLoginException.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.ca</a> &gt; <span class="el_source">AuthLoginException.java</span></div><h1>AuthLoginException.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.model.ca;
+
+import org.cesecore.ErrorCode;
+import org.ejbca.core.EjbcaException;
+
+
+
+/**
+ * Authentication error due to wrong credentials of user object. To authenticate a user the user
+ * must have valid credentials, i.e. password.
+ *
+ * @version $Id: AuthLoginException.java 24270 2016-09-01 08:34:40Z anatom $
+ */
+public class AuthLoginException extends EjbcaException {
+    private static final long serialVersionUID = -1950899421562556793L;
+
+    /**
+     * Constructor used to create exception with an errormessage. Calls the same constructor in
+     * baseclass &lt;code&gt;Exception&lt;/code&gt;.
+     *
+     * @param message Human redable error message, can not be NULL.
+     */
+    public AuthLoginException(String message) {
+<span class="nc" id="L37">        super(message);</span>
+<span class="nc" id="L38">    }</span>
+    
+    /** Constructor taking an ErrorCode and the message. Use ErrorCode.LOGIN_ERROR
+     * @param errorCode Code
+     * @param msg Message
+     * @see ErrorCode
+     */
+    public AuthLoginException(ErrorCode errorCode, String msg) {
+<span class="nc" id="L46">        super(errorCode, msg);</span>
+<span class="nc" id="L47">     }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

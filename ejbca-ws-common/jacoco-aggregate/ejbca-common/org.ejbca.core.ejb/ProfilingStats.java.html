@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ProfilingStats.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-ws-common</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb</a> &gt; <span class="el_source">ProfilingStats.java</span></div><h1>ProfilingStats.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.ejb;
+
+import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * see org.ejbca.core.ejb.ProfileAndTraceInterceptor (in ejbca-ejb)
+ * 
+ * Limitations:
+ * - Maximum allowed sum of duration is 292471 years.. :)
+ * - Retrieval of stats is not a perfect point in time snapshot
+ * 
+ * @version $Id: ProfilingStats.java 23718 2016-06-22 14:36:22Z anatom $
+ */
+<span class="nc" id="L33">public enum ProfilingStats {</span>
+<span class="nc" id="L34">    INSTANCE;</span>
+
+<span class="nc" id="L36">    private final ConcurrentHashMap&lt;String,Entry&lt;Long,Long&gt;&gt; sums = new ConcurrentHashMap&lt;String,Entry&lt;Long,Long&gt;&gt;();</span>
+
+    public void add(final String key, final long invocationDuration) {
+<span class="nc" id="L39">        Entry&lt;Long, Long&gt; expectedValue = null;</span>
+<span class="nc" id="L40">        Entry&lt;Long,Long&gt; currentEntry = null;</span>
+        // Since there are likely many parallel invocations to different methods but rarely to the same
+        // we use a ConcurrentHashMap to allow concurrent modifications.
+        // The drawback is that we another thread might have updated the map while we were doing preparations
+        // and in this case we have to retry.
+        do {
+<span class="nc" id="L46">            currentEntry = sums.get(key);</span>
+            final Entry&lt;Long,Long&gt; newEntry;
+<span class="nc bnc" id="L48" title="All 2 branches missed.">            if (currentEntry == null) {</span>
+                // Populate with a first entry for this key. We expect that the old value should be null
+<span class="nc" id="L50">                newEntry = new SimpleImmutableEntry&lt;Long,Long&gt;(Long.valueOf(invocationDuration), Long.valueOf(1L));</span>
+<span class="nc" id="L51">                expectedValue = sums.putIfAbsent(key, newEntry);</span>
+            } else {
+<span class="nc" id="L53">                newEntry = new SimpleImmutableEntry&lt;Long,Long&gt;(Long.valueOf(currentEntry.getKey().longValue()+invocationDuration),</span>
+<span class="nc" id="L54">                        Long.valueOf(currentEntry.getValue().longValue()+1L));</span>
+<span class="nc" id="L55">                expectedValue = sums.replace(key, newEntry);</span>
+            }
+<span class="nc bnc" id="L57" title="All 4 branches missed.">        } while (expectedValue!=null &amp;&amp; !expectedValue.equals(currentEntry));</span>
+<span class="nc" id="L58">    }</span>
+
+    /**
+     * Get a shallow copy of the current invocation statistics as a Maps with full method names as keys.
+     * The key of the Entry is the sum of durations (µs) and the value is the number of invocations.
+     * Since the copy operation is non-locking, this will not be a perfect point in time snapshot.
+     * @return Map
+     */
+    private Map&lt;String,Entry&lt;Long,Long&gt;&gt; getBestEffortShallowCopyOfStats() {
+<span class="nc" id="L67">        return new HashMap&lt;String,Entry&lt;Long,Long&gt;&gt;(sums);</span>
+    }
+
+    /**
+     * Get a shallow copy of the current invocation statistics as a list if caller friendly objects.
+     * Since the copy operation is non-locking, this will not be a perfect point in time snapshot.
+     * @return List
+     */
+    public List&lt;ProfilingStat&gt; getEjbInvocationStats() {
+<span class="nc" id="L76">        final Map&lt;String,Entry&lt;Long,Long&gt;&gt; sums = getBestEffortShallowCopyOfStats();</span>
+<span class="nc" id="L77">        final Set&lt;String&gt; keys = sums.keySet();</span>
+<span class="nc" id="L78">        final List&lt;ProfilingStat&gt; ret = new ArrayList&lt;ProfilingStat&gt;(keys.size());</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        for (final String key : keys) {</span>
+<span class="nc" id="L80">            final Entry&lt;Long, Long&gt; durationAndInvocations = sums.get(key);</span>
+<span class="nc" id="L81">            final ProfilingStat profilingStat = new ProfilingStat(key, durationAndInvocations.getKey(), durationAndInvocations.getValue());</span>
+<span class="nc" id="L82">            ret.add(profilingStat);</span>
+<span class="nc" id="L83">        }</span>
+<span class="nc" id="L84">        return ret;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

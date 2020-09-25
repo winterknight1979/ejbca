@@ -1,0 +1,3 @@
+org.cesecore.certificates.ca.internal
+org.cesecore.certificates.ocsp
+org.cesecore.keys.validation

@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BaseWorker.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.services</a> &gt; <span class="el_source">BaseWorker.java</span></div><h1>BaseWorker.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.services;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Properties;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.services.intervals.DummyInterval;
+
+/**
+ * Abstract base class that initializes the worker and its interval and action.
+ *  
+ * @version $Id: BaseWorker.java 24488 2016-10-10 09:14:05Z anatom $
+ */
+<span class="nc" id="L30">public abstract class BaseWorker implements IWorker {</span>
+
+<span class="nc" id="L32">	private static final Logger log = Logger.getLogger(BaseWorker.class);</span>
+    /** Internal localization of logs and errors */
+<span class="nc" id="L34">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+
+<span class="nc" id="L36">    protected Properties properties = null;</span>
+<span class="nc" id="L37">    protected String serviceName = null;</span>
+<span class="nc" id="L38">    protected ServiceConfiguration serviceConfiguration = null;</span>
+    /** The time this service should have been running. Usually this is 'now'. But is the appserver was down it can have been delayed execution */
+    protected long runTimeStamp;
+    /** The next time the service is scheduled to run */
+    protected long nextRunTimeStamp;
+<span class="nc" id="L43">    private IAction action = null;</span>
+<span class="nc" id="L44">    private IInterval interval = null;</span>
+    
+<span class="nc" id="L46">    protected AuthenticationToken admin = null;</span>
+
+<span class="nc" id="L48">	private transient Collection&lt;Integer&gt; cAIdsToCheck = null;</span>
+<span class="nc" id="L49">	private transient long timeBeforeExpire = -1;</span>
+
+	/**
+	 * @see org.ejbca.core.model.services.IWorker#init
+	 */
+	@Override
+	public void init(AuthenticationToken admin, ServiceConfiguration serviceConfiguration,
+			String serviceName, long runTimeStamp, long nextRunTimeStamp) {
+<span class="nc" id="L57">		this.admin = admin;</span>
+<span class="nc" id="L58">		this.serviceName = serviceName;</span>
+<span class="nc" id="L59">		this.runTimeStamp = runTimeStamp;</span>
+<span class="nc" id="L60">		this.nextRunTimeStamp = nextRunTimeStamp;</span>
+<span class="nc" id="L61">		this.serviceConfiguration = serviceConfiguration;</span>
+<span class="nc" id="L62">		this.properties = serviceConfiguration.getWorkerProperties();</span>
+		
+<span class="nc" id="L64">		String actionClassPath = serviceConfiguration.getActionClassPath();</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">		if(actionClassPath != null){</span>
+			try {
+<span class="nc" id="L67">				action = (IAction) Thread.currentThread().getContextClassLoader().loadClass(actionClassPath).getConstructor().newInstance();</span>
+<span class="nc" id="L68">				action.init(serviceConfiguration.getActionProperties(), serviceName);</span>
+<span class="nc" id="L69">			} catch (Exception e) {</span>
+<span class="nc" id="L70">				String msg = intres.getLocalizedMessage(&quot;services.erroractionclasspath&quot;, serviceName);</span>
+<span class="nc" id="L71">				log.error(msg,e);</span>
+<span class="nc" id="L72">			}       </span>
+		}else{
+<span class="nc" id="L74">			log.debug(&quot;Warning no action class i defined for the service &quot; + serviceName);</span>
+		}
+		
+<span class="nc" id="L77">		String intervalClassPath = serviceConfiguration.getIntervalClassPath();</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">		if(intervalClassPath != null){</span>
+			try {
+<span class="nc" id="L80">				interval = (IInterval) Thread.currentThread().getContextClassLoader().loadClass(intervalClassPath).getConstructor().newInstance();</span>
+<span class="nc" id="L81">				interval.init(serviceConfiguration.getIntervalProperties(), serviceName);</span>
+<span class="nc" id="L82">			} catch (Exception e) {</span>
+<span class="nc" id="L83">				String msg = intres.getLocalizedMessage(&quot;services.errorintervalclasspath&quot;, serviceName);</span>
+<span class="nc" id="L84">				log.error(msg,e);</span>
+<span class="nc" id="L85">			}       </span>
+		}else{
+<span class="nc" id="L87">			String msg = intres.getLocalizedMessage(&quot;services.errorintervalclasspath&quot;, serviceName);</span>
+<span class="nc" id="L88">			log.error(msg);</span>
+		}
+		
+<span class="nc bnc" id="L91" title="All 2 branches missed.">		if(interval == null){</span>
+<span class="nc" id="L92">			interval = new DummyInterval();</span>
+		}
+
+<span class="nc" id="L95">	}</span>
+
+	
+	/**
+	 * @see org.ejbca.core.model.services.IWorker#getNextInterval()
+	 */
+	@Override
+	public long getNextInterval() {		
+<span class="nc" id="L103">		return interval.getTimeToExecution();</span>
+	}
+	
+	protected IAction getAction(){
+<span class="nc bnc" id="L107" title="All 2 branches missed.">		if(action == null){</span>
+<span class="nc" id="L108">			String msg = intres.getLocalizedMessage(&quot;services.erroractionclasspath&quot;, serviceName);</span>
+<span class="nc" id="L109">			log.error(msg);</span>
+		}
+<span class="nc" id="L111">		return action;</span>
+	}
+	
+	/**
+	 * Returns the admin that should be used for other calls.
+	 * @return token
+	 */
+	protected AuthenticationToken getAdmin(){
+<span class="nc" id="L119">		return admin;</span>
+	}
+	
+    /**
+     * Returns the amount of time, in milliseconds that the expire time of
+     * configured for
+     * @return timw
+     * @throws ServiceExecutionFailedException fail
+     */
+    protected long getTimeBeforeExpire() throws ServiceExecutionFailedException {
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        if (timeBeforeExpire == -1) {</span>
+<span class="nc" id="L130">            String unit = properties.getProperty(PROP_TIMEUNIT);</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">            if (unit == null) {</span>
+<span class="nc" id="L132">                String msg = intres.getLocalizedMessage(&quot;services.errorexpireworker.errorconfig&quot;, serviceName, &quot;UNIT&quot;);</span>
+<span class="nc" id="L133">                throw new ServiceExecutionFailedException(msg);</span>
+            }
+<span class="nc" id="L135">            int unitval = 0;</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">            for (int i = 0; i &lt; AVAILABLE_UNITS.length; i++) {</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">                if (AVAILABLE_UNITS[i].equalsIgnoreCase(unit)) {</span>
+<span class="nc" id="L138">                    unitval = AVAILABLE_UNITSVALUES[i];</span>
+<span class="nc" id="L139">                    break;</span>
+                }
+            }
+<span class="nc bnc" id="L142" title="All 2 branches missed.">            if (unitval == 0) {</span>
+<span class="nc" id="L143">                String msg = intres.getLocalizedMessage(&quot;services.errorexpireworker.errorconfig&quot;, serviceName, &quot;UNIT&quot;);</span>
+<span class="nc" id="L144">                throw new ServiceExecutionFailedException(msg);</span>
+            }
+
+
+<span class="nc" id="L148">            int intvalue = 0;</span>
+            try {
+<span class="nc" id="L150">                intvalue = Integer.parseInt(properties.getProperty(PROP_TIMEBEFOREEXPIRING));</span>
+<span class="nc" id="L151">            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L152">                String msg = intres.getLocalizedMessage(&quot;services.errorexpireworker.errorconfig&quot;, serviceName, &quot;VALUE&quot;);</span>
+<span class="nc" id="L153">                throw new ServiceExecutionFailedException(msg);</span>
+<span class="nc" id="L154">            }</span>
+
+<span class="nc bnc" id="L156" title="All 2 branches missed.">            if (intvalue == 0) {</span>
+<span class="nc" id="L157">                String msg = intres.getLocalizedMessage(&quot;services.errorexpireworker.errorconfig&quot;, serviceName, &quot;VALUE&quot;);</span>
+<span class="nc" id="L158">                throw new ServiceExecutionFailedException(msg);</span>
+            }
+<span class="nc" id="L160">            timeBeforeExpire = intvalue * unitval;</span>
+        }
+
+<span class="nc" id="L163">        return timeBeforeExpire * 1000;</span>
+    }
+
+	/** returns a collection of String with CAIds as gotten from the property  BaseWorker.PROP_CAIDSTOCHECK.
+	 * @param includeAllCAsIfNull set to true if the 'catch all' SecConst.ALLCAS should be included in the list IF there does not exist a list. This CAId is not recognized by all recipients...
+     * This is due to that the feature of selecting CAs was enabled in EJBCA 3.9.1, and we want the service to keep working even after an upgrade from an earlier version.
+	 * 
+	 * @return Collection&amp;lt;String&amp;gt; of integer CA ids in String form, use Integer.valueOf to convert to int.
+	 * @throws ServiceExecutionFailedException fail
+	 */
+	protected Collection&lt;Integer&gt; getCAIdsToCheck(boolean includeAllCAsIfNull) throws ServiceExecutionFailedException {
+<span class="nc bnc" id="L174" title="All 2 branches missed.">		if(cAIdsToCheck == null){</span>
+<span class="nc" id="L175">			cAIdsToCheck = new ArrayList&lt;Integer&gt;();</span>
+<span class="nc" id="L176">			String cas = properties.getProperty(PROP_CAIDSTOCHECK);</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">		    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L178">		    	log.debug(&quot;CAIds to check: &quot;+cas);</span>
+		    }
+<span class="nc bnc" id="L180" title="All 2 branches missed.">			if (cas != null) {</span>
+<span class="nc" id="L181">				String[] caids = cas.split(&quot;;&quot;);</span>
+<span class="nc bnc" id="L182" title="All 2 branches missed.">				for(int i=0;i&lt;caids.length;i++ ){</span>
+					try {
+<span class="nc" id="L184">						Integer.valueOf(caids[i]);</span>
+<span class="nc" id="L185">					} catch (Exception e) {</span>
+<span class="nc" id="L186">						String msg = intres.getLocalizedMessage(&quot;services.errorexpireworker.errorconfig&quot;, serviceName, PROP_CAIDSTOCHECK);</span>
+<span class="nc" id="L187">						throw new ServiceExecutionFailedException(msg, e);						</span>
+<span class="nc" id="L188">					}</span>
+<span class="nc" id="L189">					cAIdsToCheck.add(Integer.valueOf(caids[i]));</span>
+				}				
+<span class="nc bnc" id="L191" title="All 2 branches missed.">			} else if (includeAllCAsIfNull) {</span>
+<span class="nc" id="L192">				cAIdsToCheck.add(Integer.valueOf(SecConst.ALLCAS));</span>
+			}
+		}
+<span class="nc" id="L195">		return cAIdsToCheck;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CertificateCreateException.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-common-entity-tests</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.certificate</a> &gt; <span class="el_source">CertificateCreateException.java</span></div><h1>CertificateCreateException.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.certificate;
+
+import javax.ejb.ApplicationException;
+
+import org.cesecore.CesecoreException;
+import org.cesecore.ErrorCode;
+
+/**
+ * An exception thrown when a serious error happens creating a certificate. 
+ * If this happens any transaction depending on this should be rolled back.
+ * 
+ * @version $Id: CertificateCreateException.java 26230 2017-08-07 12:36:32Z anatom $
+ */
+@ApplicationException(rollback = true)
+public class CertificateCreateException extends CesecoreException {
+
+    private static final long serialVersionUID = -642610825885468919L;
+
+    /**
+     * Creates a new instance of exception without detail message. Marked as rollback=true
+     * 
+     * @see CertificateCreateException
+     */
+    public CertificateCreateException() {
+<span class="nc" id="L37">        super();</span>
+<span class="nc" id="L38">    }</span>
+
+    /**
+     * Constructs an instance of exception with the specified detail message. Marked as rollback=true
+     * 
+     * @see CertificateCreateException
+     * @param msg the detail message.
+     */
+    public CertificateCreateException(String msg) {
+<span class="nc" id="L47">        super(msg);</span>
+<span class="nc" id="L48">    }</span>
+
+    /**
+     * Marked as rollback=true
+     * 
+     * @see CertificateCreateException
+     * @param e causing exception that will be wrapped
+     */
+    public CertificateCreateException(Exception e) {
+<span class="nc" id="L57">        super(e);</span>
+<span class="nc" id="L58">    }</span>
+
+    /**
+     * Marked as rollback=true
+     * 
+     * @see CertificateCreateException
+     * @param errorCode defines the cause of the exception.
+     * @param e causing exception that will be wrapped
+     */
+    public CertificateCreateException(ErrorCode errorCode, Exception e) {
+<span class="nc" id="L68">        super(errorCode, e);</span>
+<span class="nc" id="L69">    }</span>
+
+    /**
+     * Marked as rollback=true
+     * 
+     * @see CertificateCreateException
+     * @param e causing exception that will be wrapped
+     * @param msg the detail message.
+     */
+    public CertificateCreateException(String msg, Exception e) {
+<span class="nc" id="L79">        super(msg, e);</span>
+<span class="nc" id="L80">    }</span>
+
+    /**
+     * Marked as rollback=true
+     *
+     * @see CertificateCreateException
+     * @param errorCode defines the cause of the exception.
+     * @param msg Human readable error message, can not be NULL.
+     */
+    public CertificateCreateException(ErrorCode errorCode, String msg) {
+<span class="nc" id="L90">       super(errorCode, msg);</span>
+<span class="nc" id="L91">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

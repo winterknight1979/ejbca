@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProfileSessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cesecore-ejb</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.profiles</a> &gt; <span class="el_source">ProfileSessionBean.java</span></div><h1>ProfileSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General                  *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.profiles;
+
+import java.util.Collection;
+import java.util.List;
+
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+
+import org.apache.log4j.Logger;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.internal.InternalResources;
+import org.cesecore.util.ProfileID;
+
+/**
+ * 
+ * Basic CRUD bean for ProfileData objects
+ * 
+ * @version $Id: ProfileSessionBean.java 26289 2017-08-14 08:31:09Z mikekushner $
+ *
+ */
+@Stateless
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L39">public class ProfileSessionBean implements ProfileSessionLocal {</span>
+
+<span class="nc" id="L41">    private static final Logger log = Logger.getLogger(ProfileSessionBean.class);</span>
+    
+    @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+    private EntityManager entityManager;
+    
+    /** Internal localization of logs and errors */
+<span class="nc" id="L47">    private static final InternalResources INTRES = InternalResources.getInstance();</span>
+    
+       
+    @Override
+    public int addProfile(final Profile profile) {
+<span class="nc" id="L52">        final int id = findFreeProfileId();</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        if (isFreeProfileId(id)) {</span>
+<span class="nc" id="L54">            entityManager.persist(new ProfileData(Integer.valueOf(id), profile));</span>
+<span class="nc" id="L55">            return id;</span>
+        } else {
+<span class="nc" id="L57">            final String msg = INTRES.getLocalizedMessage(&quot;profile.store.error.profile_with_id_exists&quot;, id);</span>
+<span class="nc" id="L58">            throw new IllegalStateException(msg);</span>
+        }
+    }
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public ProfileData findById(int id) {
+<span class="nc" id="L65">        return entityManager.find(ProfileData.class, id);</span>
+    }
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public List&lt;ProfileData&gt; findByIds(final Collection&lt;Integer&gt; identifiers) {
+<span class="nc" id="L71">        final TypedQuery&lt;ProfileData&gt; query = entityManager.createQuery(&quot;SELECT a FROM ProfileData a WHERE a.id IN (:ids)&quot;, ProfileData.class);</span>
+<span class="nc" id="L72">        query.setParameter(&quot;ids&quot;, identifiers);</span>
+<span class="nc" id="L73">        return query.getResultList();</span>
+    }
+    
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void changeProfile( final Profile profile) {
+<span class="nc" id="L79">        Integer profileId = profile.getProfileId();</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (profileId == null) {</span>
+<span class="nc" id="L81">            throw new IllegalArgumentException(&quot;Profile did not contain a valid ID&quot;);</span>
+        }
+<span class="nc" id="L83">        String name = profile.getProfileName();</span>
+
+<span class="nc" id="L85">        final ProfileData profileData = findById(profile.getProfileId());</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (profileData == null) {</span>
+<span class="nc" id="L87">            String msg = INTRES.getLocalizedMessage(&quot;profile.store.error.profile_not_found&quot;, name);</span>
+<span class="nc" id="L88">            log.info(msg);</span>
+<span class="nc" id="L89">        } else {         </span>
+            // Do the actual change
+<span class="nc" id="L91">            profileData.setProfile(profile);</span>
+<span class="nc" id="L92">            entityManager.merge(profileData);</span>
+<span class="nc" id="L93">            entityManager.flush();</span>
+        }
+<span class="nc" id="L95">    }</span>
+    
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void removeProfile(final ProfileData profileData) {
+<span class="nc" id="L100">        entityManager.remove(profileData);</span>
+<span class="nc" id="L101">    }</span>
+    
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void renameProfile(final Profile profile, final String newName) throws ProfileDoesNotExistException {
+<span class="nc" id="L106">        final ProfileData profileData = findById(profile.getProfileId());</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        if (profileData == null) {</span>
+<span class="nc" id="L108">            final String msg = INTRES.getLocalizedMessage(&quot;profile.store.error.profile_not_found&quot;, profile.getProfileName());</span>
+<span class="nc" id="L109">            throw new ProfileDoesNotExistException(msg);</span>
+        } else {
+            // This changes the name in the database column
+<span class="nc" id="L112">            profileData.setProfileName(newName);</span>
+            // This changes the name in the profile XML data
+<span class="nc" id="L114">            Profile original = profileData.getProfile();</span>
+<span class="nc" id="L115">            original.setProfileName(newName);</span>
+<span class="nc" id="L116">            profileData.setProfile(original);</span>
+        }
+<span class="nc" id="L118">    }</span>
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public List&lt;ProfileData&gt; findByNameAndType(final String name, final String type) {
+<span class="nc" id="L123">        TypedQuery&lt;ProfileData&gt; query = entityManager.createQuery(&quot;SELECT a FROM ProfileData a WHERE a.profileName=:name AND a.profileType=:profileType&quot;, ProfileData.class);</span>
+<span class="nc" id="L124">        query.setParameter(&quot;name&quot;, name);</span>
+<span class="nc" id="L125">        query.setParameter(&quot;profileType&quot;, type);</span>
+<span class="nc" id="L126">        return query.getResultList();</span>
+    }
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public List&lt;ProfileData&gt; findAllProfiles(final String profileType) {
+<span class="nc" id="L132">        TypedQuery&lt;ProfileData&gt; query = entityManager.createQuery(&quot;SELECT a FROM ProfileData a WHERE a.profileType=:profileType&quot;, ProfileData.class);</span>
+<span class="nc" id="L133">        query.setParameter(&quot;profileType&quot;, profileType);</span>
+<span class="nc" id="L134">        List&lt;ProfileData&gt; ret = query.getResultList();</span>
+<span class="nc" id="L135">        return ret;</span>
+    }
+    
+    private boolean isFreeProfileId(final int id) {
+<span class="nc" id="L139">        boolean foundfree = false;</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">        if (findById(id) == null) {</span>
+<span class="nc" id="L141">            foundfree = true;</span>
+        }
+<span class="nc" id="L143">        return foundfree;</span>
+    }
+    
+    private int findFreeProfileId() {
+<span class="nc" id="L147">        final ProfileID.DB db = new ProfileID.DB() {</span>
+            @Override
+            public boolean isFree(int i) {
+<span class="nc bnc" id="L150" title="All 2 branches missed.">                return findById(i) == null;</span>
+            }
+        };
+<span class="nc" id="L153">        return ProfileID.getNotUsedID(db);</span>
+    }
+    
+    
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

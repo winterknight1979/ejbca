@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CertificateValidity.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-entity</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.ca.internal</a> &gt; <span class="el_source">CertificateValidity.java</span></div><h1>CertificateValidity.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/ 
+package org.cesecore.certificates.ca.internal;
+
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.text.ParseException;
+import java.util.Arrays;
+import java.util.Date;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1GeneralizedTime;
+import org.bouncycastle.asn1.x509.PrivateKeyUsagePeriod;
+import org.cesecore.certificates.ca.CAOfflineException;
+import org.cesecore.certificates.ca.IllegalValidityException;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.internal.InternalResources;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.SimpleTime;
+import org.cesecore.util.ValidityDate;
+
+/** Class used to construct validity times based on a range of different input parameters and configuration. 
+ * 
+ * @version $Id: CertificateValidity.java 28114 2018-01-26 14:51:20Z samuellb $
+ */
+public class CertificateValidity {
+
+	/** Class logger. */
+<span class="fc" id="L43">    private static final Logger log = Logger.getLogger(CertificateValidity.class);</span>
+    
+    /** Internal localization of logs and errors */
+<span class="fc" id="L46">    private static final InternalResources intres = InternalResources.getInstance();</span>
+    
+    /** Issuing certificates with 'notAfter' greater than this value throws an exception. */
+    private static Date TOO_LATE_EXPIRE_DATE;
+    static {
+<span class="fc" id="L51">        final String value = CesecoreConfiguration.getCaTooLateExpireDate();</span>
+        try {
+<span class="fc" id="L53">            TOO_LATE_EXPIRE_DATE = ValidityDate.parseCaLatestValidDateTime(value);</span>
+<span class="nc" id="L54">        } catch (Exception e) {</span>
+<span class="nc" id="L55">            final String newValue = ValidityDate.formatAsISO8601(new Date(Long.MAX_VALUE), ValidityDate.TIMEZONE_SERVER);</span>
+<span class="nc" id="L56">            TOO_LATE_EXPIRE_DATE = ValidityDate.parseCaLatestValidDateTime(newValue);</span>
+<span class="nc" id="L57">            log.warn(&quot;cesecore.properties ca.toolateexpiredate '&quot; + value + &quot;' could not be parsed Using default value '&quot;+newValue+&quot;'.&quot;, e);</span>
+<span class="fc" id="L58">        }</span>
+    }
+    
+    /** 
+     * Validity offset in milliseconds (offset for the 'notBefore' value)
+     * The default start date is set 10 minutes back to avoid some problems with unsynchronized clocks.
+     */
+    private static long DEFAULT_VALIDITY_OFFSET;
+    static {
+<span class="fc" id="L67">        final String value = CesecoreConfiguration.getCertificateValidityOffset();</span>
+        try {
+<span class="fc" id="L69">            DEFAULT_VALIDITY_OFFSET = SimpleTime.getSecondsFormat().parseMillis( value);</span>
+<span class="nc" id="L70">        } catch (Exception e) {</span>
+            // Use old value for compatibility reasons!
+<span class="nc" id="L72">            DEFAULT_VALIDITY_OFFSET = -10L * 60 * 1000;</span>
+<span class="nc" id="L73">            log.warn(&quot;cesecore.properties certificate.validityoffset '&quot; + value + &quot;' could not be parsed as relative time string. Using default value '-10m' = -60000ms&quot;, e);</span>
+<span class="fc" id="L74">        }</span>
+<span class="fc" id="L75">    }</span>
+    
+    /**
+     * Gets the default validity offset.
+     * @return the offset as relative time.
+     * @see org.cesecore.util.SimpleTime SimpleTime
+     */
+    public static final long getValidityOffset() {
+<span class="fc" id="L83">        return DEFAULT_VALIDITY_OFFSET;</span>
+    }
+    
+    /**
+     * Gets the maximum possible value for the certificates 'notAfter' value.
+     * @return ISO8601 date
+     */
+    public static Date getToolLateExpireDate() {
+<span class="fc" id="L91">        return TOO_LATE_EXPIRE_DATE;</span>
+    }
+    
+    /**
+     * Sets the maximum possible value for the certificates 'notAfter' value. This method MUST NOT BE CALLED, except for unit testing.
+     * @param date the date to set.
+     */
+    public static void setTooLateExpireDate(final Date date) {
+<span class="fc" id="L99">        TOO_LATE_EXPIRE_DATE = date;</span>
+<span class="fc" id="L100">    }</span>
+    
+    /** The certificates 'notAfter' value. */
+    private Date lastDate;
+
+    /** The certificates 'notBefore' value. */
+    private Date firstDate;
+   
+    public CertificateValidity(final EndEntityInformation subject, final CertificateProfile certProfile, 
+            final Date notBefore, final Date notAfter, final Certificate cacert, final boolean isRootCA, final boolean isLinkCertificate) throws IllegalValidityException {
+<span class="fc" id="L110">        this(new Date(), subject, certProfile, notBefore, notAfter, cacert, isRootCA, isLinkCertificate);</span>
+<span class="fc" id="L111">    }</span>
+   
+    /** Constructor that injects the reference point (now). This constructor mainly is used for unit testing. 
+     * @param now Now
+     * @param subject Subject 
+     * @param certProfile Profila
+     * @param notBefore Start date
+     * @param notAfter End date
+     * @param cacert CA Certificate
+     * @param isRootCA  bool
+     * @param isLinkCertificate bool 
+     * @throws IllegalValidityException on fail */
+	public CertificateValidity(Date now, final EndEntityInformation subject, final CertificateProfile certProfile, 
+<span class="fc" id="L124">			final Date notBefore, final Date notAfter, final Certificate cacert, final boolean isRootCA, final boolean isLinkCertificate) throws IllegalValidityException {</span>
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">		if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L126">		    log.debug(&quot;Requested notBefore: &quot;+notBefore);</span>
+<span class="nc" id="L127">			log.debug(&quot;Requested notAfter: &quot;+notAfter);</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">			if (null != subject.getExtendedInformation()) {</span>
+<span class="nc" id="L129">			    log.debug(&quot;End entity extended information 'notBefore': &quot;+subject.getExtendedInformation().getCustomData(ExtendedInformation.CUSTOM_STARTTIME));</span>
+			}
+<span class="nc bnc" id="L131" title="All 2 branches missed.">			if (null != subject.getExtendedInformation()) {</span>
+<span class="nc" id="L132">                log.debug(&quot;End entity extended information 'notAfter': &quot;+subject.getExtendedInformation().getCustomData(ExtendedInformation.CUSTOM_ENDTIME));</span>
+            }
+<span class="nc" id="L134">			log.debug(&quot;Default validty offset: &quot;+DEFAULT_VALIDITY_OFFSET);</span>
+<span class="nc" id="L135">			log.debug(&quot;Certificate profile validty: &quot;+certProfile.getEncodedValidity());</span>
+<span class="nc" id="L136">			log.debug(&quot;Certificate profile use validty offset: &quot;+certProfile.getUseCertificateValidityOffset());</span>
+<span class="nc" id="L137">			log.debug(&quot;Certificate profile validty offset: &quot;+certProfile.getCertificateValidityOffset());</span>
+<span class="nc" id="L138">			log.debug(&quot;Certificate profile use expiration restrictions for weekdays: &quot;+certProfile.getUseExpirationRestrictionForWeekdays());</span>
+<span class="nc" id="L139">			log.debug(&quot;Certificate profile expiration restrictions weekdays: &quot;+Arrays.toString(certProfile.getExpirationRestrictionWeekdays()));</span>
+<span class="nc" id="L140">			log.debug(&quot;Certificate profile expiration restrictions for weekdays before: &quot;+certProfile.getExpirationRestrictionForWeekdaysExpireBefore());</span>
+		}
+<span class="pc bpc" id="L142" title="1 of 2 branches missed.">		if ( TOO_LATE_EXPIRE_DATE==null ) {</span>
+<span class="nc" id="L143">		    throw new IllegalStateException(&quot;ca.toolateexpiredate in cesecore.properties is not a valid date.&quot;);</span>
+		}
+        
+		// ECA-3554 add the offset
+<span class="fc" id="L147">		now = getNowWithOffset(now, certProfile);</span>
+<span class="pc bpc" id="L148" title="1 of 2 branches missed.">		if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L149">		    log.debug(&quot;Using new start time including offset: &quot; + now);</span>
+		}
+         
+		// Find out what start and end time to actually use..
+<span class="fc bfc" id="L153" title="All 2 branches covered.">        if (certProfile.getAllowValidityOverride()) {</span>
+            // First Priority has information supplied in Extended information object. This allows RA-users to set the time-span.
+            // Second Priority has the information supplied in the method arguments
+<span class="fc" id="L156">            firstDate = getExtendedInformationStartTime(now, subject);</span>
+<span class="fc bfc" id="L157" title="All 2 branches covered.">            if (firstDate == null) {</span>
+<span class="fc" id="L158">            	firstDate = notBefore;</span>
+            }
+<span class="fc bfc" id="L160" title="All 2 branches covered.">            if ((lastDate = getExtendedInformationEndTime(now, subject)) == null) {</span>
+<span class="fc" id="L161">            	lastDate = notAfter;</span>
+            }    	
+<span class="pc bpc" id="L163" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L164">                log.debug(&quot;Allow validity override, notBefore: &quot;+firstDate);</span>
+<span class="nc" id="L165">                log.debug(&quot;Allow validity override, notAfter: &quot;+lastDate);</span>
+            }
+        }
+        // Third priority: If nothing could be set by external information have the default  3 is default values
+<span class="fc bfc" id="L169" title="All 2 branches covered.">        if (firstDate == null) {</span>
+<span class="fc" id="L170">        	firstDate = now;</span>
+        }
+<span class="fc" id="L172">        Date certProfileLastDate = new Date(getCertificateProfileValidtyEndDate(certProfile, firstDate));</span>
+        // Limit validity: ECA-5330 Apply expiration restriction for weekdays 
+<span class="fc bfc" id="L174" title="All 4 branches covered.">        if (certProfile.getUseExpirationRestrictionForWeekdays() &amp;&amp; isRelativeTime(certProfile.getEncodedValidity())) {</span>
+<span class="fc" id="L175">            log.info(&quot;Applying expiration restrictions for weekdays: &quot; + Arrays.asList(certProfile.getExpirationRestrictionWeekdays()));</span>
+            try {
+<span class="fc" id="L177">                final Date newDate = ValidityDate.applyExpirationRestrictionForWeekdays(certProfileLastDate, </span>
+<span class="fc" id="L178">                    certProfile.getExpirationRestrictionWeekdays(), certProfile.getExpirationRestrictionForWeekdaysExpireBefore());</span>
+<span class="pc bpc" id="L179" title="1 of 2 branches missed.">                if (!firstDate.before(newDate)) {</span>
+<span class="nc" id="L180">                    log.warn(&quot;Expiration restriction of certificate profile could not be applied because it's before start date!&quot;);    </span>
+<span class="pc bpc" id="L181" title="1 of 2 branches missed.">                } else if (!TOO_LATE_EXPIRE_DATE.after(newDate)) {</span>
+<span class="nc" id="L182">                    log.warn(&quot;Expiration restriction of certificate profile could not be applied because it's after latest possible end date!&quot;);</span>
+                } else {
+<span class="fc" id="L184">                    certProfileLastDate = newDate;</span>
+                }
+<span class="nc" id="L186">            } catch(Exception e) {</span>
+<span class="nc" id="L187">                log.warn(&quot;Expiration restriction of certificate profile could not be applied!&quot;);</span>
+<span class="fc" id="L188">            }</span>
+        }
+        //If it is a link certificate that we create, we use the old ca's expire date, as requested, as link certificate expire date
+<span class="fc bfc" id="L191" title="All 2 branches covered.">        if (isLinkCertificate) {</span>
+<span class="fc" id="L192">            lastDate = notAfter;</span>
+        }
+<span class="fc bfc" id="L194" title="All 2 branches covered.">        if (lastDate == null) {</span>
+<span class="fc" id="L195">        	lastDate = certProfileLastDate;</span>
+        }
+        // Limit validity: Do not allow last date to be before first date
+<span class="pc bpc" id="L198" title="1 of 2 branches missed.">        if (lastDate.before(firstDate)) {</span>
+<span class="nc" id="L199">			log.info(intres.getLocalizedMessage(&quot;createcert.errorinvalidcausality&quot;,firstDate,lastDate));</span>
+<span class="nc" id="L200">        	Date tmp = lastDate;</span>
+<span class="nc" id="L201">        	lastDate = firstDate;</span>
+<span class="nc" id="L202">        	firstDate = tmp;</span>
+        }
+		// Limit validity: We do not allow a certificate to be valid before the current date, i.e. not back dated start dates
+        // Unless allowValidityOverride is set, then we allow everything
+        // So this check is probably completely unneeded and can never be true
+<span class="pc bpc" id="L207" title="1 of 4 branches missed.">    	if (firstDate.before(now) &amp;&amp; !certProfile.getAllowValidityOverride()) {</span>
+<span class="nc" id="L208">			log.error(intres.getLocalizedMessage(&quot;createcert.errorbeforecurrentdate&quot;,firstDate,subject.getUsername()));</span>
+<span class="nc" id="L209">    		firstDate = now;</span>
+    		// Update valid length from the profile since the starting point has changed
+<span class="nc" id="L211">			certProfileLastDate = new Date(getCertificateProfileValidtyEndDate(certProfile, firstDate));</span>
+    		// Update lastDate if we use maximum validity
+    	}
+		// Limit validity: We do not allow a certificate to be valid after the the validity of the certificate profile
+<span class="fc bfc" id="L215" title="All 2 branches covered.">    	if (lastDate.after(certProfileLastDate)) {</span>
+<span class="fc" id="L216">    		log.info(intres.getLocalizedMessage(&quot;createcert.errorbeyondmaxvalidity&quot;,lastDate,subject.getUsername(),certProfileLastDate));</span>
+<span class="fc" id="L217">    		lastDate = certProfileLastDate;</span>
+    	}
+		// Limit validity: We do not allow a certificate to be valid after the the validity of the CA (unless it's RootCA during renewal)
+<span class="fc bfc" id="L220" title="All 4 branches covered.">    	if (cacert != null &amp;&amp; !isRootCA) {</span>
+<span class="fc" id="L221">    	    final Date caNotAfter = CertTools.getNotAfter(cacert);</span>
+<span class="fc bfc" id="L222" title="All 2 branches covered.">    	    if (lastDate.after(caNotAfter)) {</span>
+<span class="fc" id="L223">    	        log.info(intres.getLocalizedMessage(&quot;createcert.limitingvalidity&quot;, lastDate.toString(), caNotAfter));</span>
+<span class="fc" id="L224">    	        lastDate = caNotAfter;</span>
+    	    }
+    	}
+    	// Limit validity: We do not allow a certificate to be valid before the the CA becomes valid (unless it's RootCA during renewal)
+<span class="fc bfc" id="L228" title="All 4 branches covered.">    	if (cacert != null &amp;&amp; !isRootCA) {</span>
+<span class="fc" id="L229">    	    final Date caNotBefore = CertTools.getNotBefore(cacert);</span>
+<span class="fc bfc" id="L230" title="All 2 branches covered.">    	    if (firstDate.before(caNotBefore)) {</span>
+<span class="fc" id="L231">    	        log.info(intres.getLocalizedMessage(&quot;createcert.limitingvaliditystart&quot;, firstDate.toString(), caNotBefore));</span>
+<span class="fc" id="L232">    	        firstDate = caNotBefore;</span>
+    	    }
+        }
+<span class="fc bfc" id="L235" title="All 2 branches covered.">        if ( !lastDate.before(CertificateValidity.TOO_LATE_EXPIRE_DATE) ) {</span>
+<span class="fc" id="L236">        	String msg = intres.getLocalizedMessage(&quot;createcert.errorbeyondtoolateexpiredate&quot;, lastDate.toString(), CertificateValidity.TOO_LATE_EXPIRE_DATE.toString()); </span>
+<span class="fc" id="L237">        	log.info(msg);</span>
+<span class="fc" id="L238">            throw new IllegalValidityException(msg);</span>
+        }
+<span class="fc" id="L240">	}</span>
+
+	/** 
+	 * Gets the certificates 'notAter' value.
+	 * @return the 'notAfter' date.
+	 */
+	public Date getNotAfter() {
+<span class="fc" id="L247">		return lastDate;</span>
+	}
+
+	/** 
+     * Gets the certificates 'notBefore' value.
+     * @return the 'notBefore' date.
+     */
+	public Date getNotBefore() {
+<span class="fc" id="L255">		return firstDate;</span>
+	}
+	
+	/**
+     * Gets the validity end date for the certificate using the certificate profiles encoded validity.
+     * @param profile the certificate profile
+     * @param firstDate the start time.
+     * @return the encoded validity.
+     */
+	@SuppressWarnings(&quot;deprecation&quot;)
+    private long getCertificateProfileValidtyEndDate(CertificateProfile profile, Date firstDate) {
+<span class="fc" id="L266">        final String encodedValidity = profile.getEncodedValidity();</span>
+<span class="fc" id="L267">        Date date = null;</span>
+<span class="pc bpc" id="L268" title="1 of 2 branches missed.">        if (StringUtils.isNotBlank(encodedValidity)) {</span>
+<span class="fc" id="L269">            date = ValidityDate.getDate( encodedValidity, firstDate);</span>
+        } else {
+<span class="nc" id="L271">            date = ValidityDate.getDateBeforeVersion661(profile.getValidity(),firstDate);</span>
+        }
+<span class="fc" id="L273">        return date.getTime();</span>
+	}
+	
+	/**
+	 * Offsets the certificates 'notBefore' (reference point) with the global offset or the offset of the certificate profile.
+	 * @param now the reference point
+	 * @param profile the certificate profile
+	 * @return the offset reference point
+	 */
+	private Date getNowWithOffset(final Date now, final CertificateProfile profile) {
+<span class="fc" id="L283">        Date result = null;</span>
+<span class="fc bfc" id="L284" title="All 2 branches covered.">        if (profile.getUseCertificateValidityOffset()) {</span>
+<span class="fc" id="L285">            final String offset = profile.getCertificateValidityOffset();</span>
+            try {
+<span class="fc" id="L287">                result = new Date(now.getTime() + SimpleTime.parseMillies(offset));</span>
+<span class="pc bpc" id="L288" title="1 of 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L289">                    log.debug( &quot;Using validity offset by certificate profile: &quot; + offset);</span>
+                }
+<span class="nc" id="L291">            } catch(NumberFormatException e) {</span>
+<span class="nc" id="L292">                log.warn(&quot;Could not parse certificate validity offset &quot; + offset + &quot;; using default &quot; + DEFAULT_VALIDITY_OFFSET);</span>
+<span class="fc" id="L293">            }</span>
+<span class="fc" id="L294">        } else {</span>
+<span class="fc" id="L295">            result = new Date(now.getTime() + DEFAULT_VALIDITY_OFFSET);</span>
+<span class="pc bpc" id="L296" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L297">                log.debug( &quot;Using validity offset by cesecore.properties: &quot; + SimpleTime.toString(DEFAULT_VALIDITY_OFFSET, SimpleTime.TYPE_DAYS));</span>
+            }
+        }
+<span class="fc" id="L300">        return result;</span>
+	}
+	 
+	/**
+	 * Gets the start time by the extended entity information.
+	 * @param now the reference point.
+	 * @param subject the end entity information.
+	 * @return Start time
+	 */
+	private Date getExtendedInformationStartTime(final Date now, final EndEntityInformation subject) {
+<span class="fc" id="L310">	    Date result = null;</span>
+<span class="fc" id="L311">        final ExtendedInformation extendedInformation = subject.getExtendedInformation();</span>
+<span class="fc bfc" id="L312" title="All 2 branches covered.">        if (extendedInformation != null) {</span>
+<span class="fc" id="L313">            result = parseExtendedInformationEncodedValidity(now, extendedInformation.getCustomData(ExtendedInformation.CUSTOM_STARTTIME));</span>
+        }
+<span class="pc bpc" id="L315" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L316">            log.debug(&quot;Using ExtendedInformationStartTime: &quot; + result);</span>
+        }
+<span class="fc" id="L318">        return result;</span>
+	}
+	
+	/**
+     * Gets the end time by the extended entity information.
+     * @param now the reference point.
+     * @param subject the end entity information.
+	 * @return End time
+     */
+	private Date getExtendedInformationEndTime(final Date now, final EndEntityInformation subject) {
+<span class="fc" id="L328">        Date result = null;</span>
+<span class="fc" id="L329">        final ExtendedInformation extendedInformation = subject.getExtendedInformation();</span>
+<span class="fc bfc" id="L330" title="All 2 branches covered.">        if (extendedInformation != null) {</span>
+<span class="fc" id="L331">            result = parseExtendedInformationEncodedValidity(now, extendedInformation.getCustomData(ExtendedInformation.CUSTOM_ENDTIME));</span>
+        }
+<span class="pc bpc" id="L333" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L334">            log.debug(&quot;Using ExtendedInformationEndTime: &quot; + result);</span>
+        }
+<span class="fc" id="L336">        return result;</span>
+	}
+	
+	
+	/**
+	 * Checks that the PrivateKeyUsagePeriod of the certificate is valid at this time
+	 * @param cert Certificate
+
+	 * @throws CAOfflineException if PrivateKeyUsagePeriod either is not valid yet or has expired, exception message gives details
+	 */
+	public static void checkPrivateKeyUsagePeriod(final X509Certificate cert) throws CAOfflineException {
+<span class="fc" id="L347">	    checkPrivateKeyUsagePeriod(cert, new Date());</span>
+<span class="fc" id="L348">	}</span>
+	
+    public static void checkPrivateKeyUsagePeriod(final X509Certificate cert, final Date checkDate) throws CAOfflineException {
+<span class="pc bpc" id="L351" title="1 of 2 branches missed.">        if (cert != null) {</span>
+<span class="fc" id="L352">            final PrivateKeyUsagePeriod pku = CertTools.getPrivateKeyUsagePeriod(cert);</span>
+<span class="fc bfc" id="L353" title="All 2 branches covered.">            if (pku != null) {</span>
+<span class="fc" id="L354">                final ASN1GeneralizedTime notBefore = pku.getNotBefore();</span>
+                final Date pkuNotBefore;
+                final Date pkuNotAfter;
+                try {
+<span class="fc bfc" id="L358" title="All 2 branches covered.">                    if (notBefore == null) {</span>
+<span class="fc" id="L359">                        pkuNotBefore = null;</span>
+                    } else {
+<span class="fc" id="L361">                        pkuNotBefore = notBefore.getDate();</span>
+                    }
+<span class="pc bpc" id="L363" title="1 of 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L364">                        log.debug(&quot;PrivateKeyUsagePeriod.notBefore is &quot; + pkuNotBefore);</span>
+                    }
+<span class="fc bfc" id="L366" title="All 4 branches covered.">                    if (pkuNotBefore != null &amp;&amp; checkDate.before(pkuNotBefore)) {</span>
+<span class="fc" id="L367">                        final String msg = intres.getLocalizedMessage(&quot;createcert.privatekeyusagenotvalid&quot;, pkuNotBefore.toString(), cert</span>
+<span class="fc" id="L368">                                .getSubjectDN().toString());</span>
+<span class="pc bpc" id="L369" title="1 of 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L370">                            log.debug(msg);</span>
+                        }
+<span class="fc" id="L372">                        throw new CAOfflineException(msg);</span>
+                    }
+<span class="fc" id="L374">                    final ASN1GeneralizedTime notAfter = pku.getNotAfter();</span>
+
+<span class="fc bfc" id="L376" title="All 2 branches covered.">                    if (notAfter == null) {</span>
+<span class="fc" id="L377">                        pkuNotAfter = null;</span>
+                    } else {
+<span class="fc" id="L379">                        pkuNotAfter = notAfter.getDate();</span>
+                    }
+<span class="nc" id="L381">                } catch (ParseException e) {</span>
+<span class="nc" id="L382">                    throw new IllegalStateException(&quot;Could not parse dates.&quot;, e);</span>
+<span class="fc" id="L383">                } </span>
+<span class="pc bpc" id="L384" title="1 of 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L385">                    log.debug(&quot;PrivateKeyUsagePeriod.notAfter is &quot; + pkuNotAfter);</span>
+                }
+<span class="fc bfc" id="L387" title="All 4 branches covered.">                if (pkuNotAfter != null &amp;&amp; checkDate.after(pkuNotAfter)) {</span>
+<span class="fc" id="L388">                    final String msg = intres.getLocalizedMessage(&quot;createcert.privatekeyusageexpired&quot;, pkuNotAfter.toString(), cert.getSubjectDN().toString());</span>
+<span class="pc bpc" id="L389" title="1 of 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L390">                        log.debug(msg);</span>
+                    }
+<span class="fc" id="L392">                    throw new CAOfflineException(msg);</span>
+                }
+<span class="pc bpc" id="L394" title="1 of 2 branches missed.">            } else if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L395">                log.debug(&quot;No PrivateKeyUsagePeriod available in certificate.&quot;);</span>
+            }
+<span class="pc bnc" id="L397" title="All 2 branches missed.">        } else if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L398">            log.debug(&quot;No CA certificate available, not checking PrivateKeyUsagePeriod.&quot;);       </span>
+        }
+<span class="fc" id="L400">    }</span>
+    
+    /**
+     * Checks if the encoded validity is an ISO8601 date or a relative time.
+     * @param encodedValidity the validity
+     * @return Boolean.TRUE if it is a relative time, Boolean.FALSE if it is an ISO8601 date, otherwise NULL.
+     * @See {@link org.cesecore.util.ValidityDate ValidityDate}
+     * @See {@link org.cesecore.util.SimpleTime SimpleTime}
+     */
+    private static final Boolean isRelativeTime(final String encodedValidity) {
+        try {
+        	// Try the most likely setting first, for fail-fast
+<span class="fc" id="L412">            SimpleTime.parseMillies(encodedValidity);</span>
+<span class="fc" id="L413">            return Boolean.TRUE;</span>
+<span class="fc" id="L414">        } catch(NumberFormatException nfe) {</span>
+            // NOOP
+        }
+        try {
+<span class="fc" id="L418">            ValidityDate.parseAsIso8601(encodedValidity);</span>
+<span class="fc" id="L419">            return Boolean.FALSE;</span>
+<span class="nc" id="L420">        } catch(ParseException e) {</span>
+<span class="nc" id="L421">            return null;</span>
+        }
+    }
+    
+    /**
+     * Parses the entity extended information start and end time format and offsets it with the reference point.
+     * @param now the reference point
+     * @param timeString the value in form of 'days:hours:minutes'
+     * @return the parse value offset with now (reference point).
+     */
+    private static final Date parseExtendedInformationEncodedValidity(final Date now, final String timeString) {
+<span class="fc" id="L432">        Date result = null;</span>
+<span class="fc bfc" id="L433" title="All 2 branches covered.">        if (timeString != null) {</span>
+<span class="fc bfc" id="L434" title="All 2 branches covered.">            if (timeString.matches(&quot;^\\d+:\\d?\\d:\\d?\\d$&quot;)) {</span>
+<span class="fc" id="L435">                final String[] endTimeArray = timeString.split(&quot;:&quot;);</span>
+<span class="fc" id="L436">                long relative = (Long.parseLong(endTimeArray[0])*24*60 </span>
+<span class="fc" id="L437">                              + Long.parseLong(endTimeArray[1])*60 </span>
+<span class="fc" id="L438">                              + Long.parseLong(endTimeArray[2])) * 60 * 1000;</span>
+<span class="fc" id="L439">                result = new Date(now.getTime() + relative);</span>
+<span class="fc" id="L440">            } else {</span>
+                try {
+                    // Try parsing data as &quot;yyyy-MM-dd HH:mm&quot; assuming UTC
+<span class="fc" id="L443">                    result = ValidityDate.parseAsUTC(timeString);</span>
+<span class="nc" id="L444">                } catch (ParseException e) {</span>
+<span class="nc" id="L445">                    log.error(intres.getLocalizedMessage(&quot;createcert.errorinvalidstarttime&quot;,timeString));</span>
+<span class="fc" id="L446">                }</span>
+            }
+<span class="pc bpc" id="L448" title="1 of 2 branches missed.">            if ((log.isDebugEnabled())) {</span>
+<span class="nc" id="L449">                log.debug(&quot;Time string by end entity extended Information: &quot;+result);</span>
+            }
+        }
+<span class="fc" id="L452">        return result;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ConfigurationHolder.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-ejb</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.config</a> &gt; <span class="el_source">ConfigurationHolder.java</span></div><h1>ConfigurationHolder.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.cesecore.config;
+
+import java.io.File;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.configuration.CompositeConfiguration;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.SystemConfiguration;
+import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
+import org.apache.log4j.Logger;
+
+/**
+ * This is a singleton. Used to configure common-configuration with our sources.
+ *
+ * Use like this: String value = ConfigurationHolder.getString(&quot;my.conf.property.key&quot;); or String value =
+ * ConfigurationHolder.getString(&quot;my.conf.property.key&quot;, &quot;default value&quot;); or String value =
+ * ConfigurationHolder.getExpandedString(&quot;my.conf.property.key&quot;, &quot;default value&quot;); to be able to parse values containing ${property}
+ *
+ * See in-line comments below for the sources added to the configuration.
+ *
+ * @version $Id: ConfigurationHolder.java 31725 2019-03-07 10:05:50Z tarmo_r_helmes $
+ */
+public final class ConfigurationHolder {
+
+<span class="fc" id="L49">    private static final Logger log = Logger.getLogger(ConfigurationHolder.class);</span>
+
+    private static volatile CompositeConfiguration defaultValues;
+
+<span class="fc" id="L53">    private static volatile CompositeConfiguration config = null;</span>
+<span class="fc" id="L54">    private static CompositeConfiguration configBackup = null;</span>
+
+    /** cesecore.properties must be first in this file, because CONFIGALLOWEXTERNAL is defined in there.
+     * NOTE: diff between EJBCA and CESeCore*/
+<span class="fc" id="L58">    private static final String[] CONFIG_FILES = { &quot;cesecore.properties&quot;, &quot;extendedkeyusage.properties&quot;,</span>
+            &quot;cache.properties&quot;, &quot;database.properties&quot;, &quot;databaseprotection.properties&quot;, &quot;backup.properties&quot;, &quot;va.properties&quot;, &quot;ocsp.properties&quot;};
+
+    /** Configuration property that enables dynamic reading of properties from the file system. This is not allowed by default for security reasons. */
+    private static final String CONFIGALLOWEXTERNAL = &quot;allow.external-dynamic.configuration&quot;;
+
+    private static final String DEFAULT_CONFIG_FILE = &quot;/defaultvalues.properties&quot;;
+
+    /** This is a singleton so it's not allowed to create an instance explicitly */
+    private ConfigurationHolder() {
+    }
+
+    public static synchronized Configuration instance() {
+<span class="fc bfc" id="L71" title="All 2 branches covered.">        if (config == null) {</span>
+            // Read in default values
+<span class="fc" id="L73">            defaultValues = new CompositeConfiguration();</span>
+<span class="fc" id="L74">            final URL defaultConfigUrl = ConfigurationHolder.class.getResource(DEFAULT_CONFIG_FILE);</span>
+            try {
+<span class="fc" id="L76">                defaultValues.addConfiguration(new PropertiesConfiguration(defaultConfigUrl));</span>
+<span class="nc" id="L77">            } catch (ConfigurationException e) {</span>
+<span class="nc" id="L78">                log.error(&quot;Error encountered when loading default properties. Could not load configuration from &quot; + defaultConfigUrl, e);</span>
+<span class="fc" id="L79">            }</span>
+
+            // read cesecore.properties, from config file built into jar, and see if we allow configuration by external files
+<span class="fc" id="L82">            boolean allowexternal = false;</span>
+            try {
+<span class="fc" id="L84">                final URL url = ConfigurationHolder.class.getResource(&quot;/conf/&quot;+CONFIG_FILES[0]);</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">                if (url != null) {</span>
+<span class="nc" id="L86">                    final PropertiesConfiguration pc = new PropertiesConfiguration(url);</span>
+<span class="nc" id="L87">                    allowexternal = &quot;true&quot;.equalsIgnoreCase(pc.getString(CONFIGALLOWEXTERNAL, &quot;false&quot;));</span>
+<span class="nc" id="L88">                    log.info(&quot;Allow external re-configuration: &quot; + allowexternal);</span>
+                }
+<span class="nc" id="L90">            } catch (ConfigurationException e) {</span>
+<span class="nc" id="L91">                log.error(&quot;Error intializing configuration: &quot;, e);</span>
+<span class="fc" id="L92">            }</span>
+<span class="fc" id="L93">            config = new CompositeConfiguration();</span>
+
+            // Only add these config sources if we allow external configuration
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">            if (allowexternal) {</span>
+                // Override with system properties, this is prio 1 if it exists (java -Dscep.test=foo)
+<span class="nc" id="L98">                config.addConfiguration(new SystemConfiguration());</span>
+<span class="nc" id="L99">                log.info(&quot;Added system properties to configuration source (java -Dfoo.prop=bar).&quot;);</span>
+
+                // Override with file in &quot;application server home directory&quot;/conf, this is prio 2
+<span class="nc bnc" id="L102" title="All 2 branches missed.">                for (int i = 0; i &lt; CONFIG_FILES.length; i++) {</span>
+<span class="nc" id="L103">                    File f = null;</span>
+                    try {
+<span class="nc" id="L105">                        f = new File(&quot;conf&quot; + File.separator + CONFIG_FILES[i]);</span>
+<span class="nc" id="L106">                        final PropertiesConfiguration pc = new PropertiesConfiguration(f);</span>
+<span class="nc" id="L107">                        pc.setReloadingStrategy(new FileChangedReloadingStrategy());</span>
+<span class="nc" id="L108">                        config.addConfiguration(pc);</span>
+<span class="nc" id="L109">                        log.info(&quot;Added file to configuration source: &quot; + f.getAbsolutePath());</span>
+<span class="nc" id="L110">                    } catch (ConfigurationException e) {</span>
+<span class="nc" id="L111">                        log.error(&quot;Failed to load configuration from file &quot; + f.getAbsolutePath());</span>
+<span class="nc" id="L112">                    }</span>
+                }
+                // Override with file in &quot;/etc/cesecore/conf/, this is prio 3
+<span class="nc bnc" id="L115" title="All 2 branches missed.">                for (int i = 0; i &lt; CONFIG_FILES.length; i++) {</span>
+<span class="nc" id="L116">                    File f = null;</span>
+                    try {
+<span class="nc" id="L118">                        f = new File(&quot;/etc/cesecore/conf/&quot; + CONFIG_FILES[i]);</span>
+<span class="nc" id="L119">                        final PropertiesConfiguration pc = new PropertiesConfiguration(f);</span>
+<span class="nc" id="L120">                        pc.setReloadingStrategy(new FileChangedReloadingStrategy());</span>
+<span class="nc" id="L121">                        config.addConfiguration(pc);</span>
+<span class="nc" id="L122">                        log.info(&quot;Added file to configuration source: &quot; + f.getAbsolutePath());</span>
+<span class="nc" id="L123">                    } catch (ConfigurationException e) {</span>
+<span class="nc" id="L124">                        log.error(&quot;Failed to load configuration from file &quot; + f.getAbsolutePath());</span>
+<span class="nc" id="L125">                    }</span>
+                }
+            } // if (allowexternal)
+
+            // Default values build into jar file, this is last prio used if no of the other sources override this
+<span class="fc bfc" id="L130" title="All 2 branches covered.">            for (int i = 0; i &lt; CONFIG_FILES.length; i++) {</span>
+<span class="fc" id="L131">                addConfigurationResource(&quot;/conf/&quot;+CONFIG_FILES[i]);</span>
+            }
+            // Load internal.properties only from built in configuration file
+            try {
+<span class="fc" id="L135">                final URL url = ConfigurationHolder.class.getResource(&quot;/internal.properties&quot;);</span>
+<span class="pc bpc" id="L136" title="1 of 2 branches missed.">                if (url != null) {</span>
+<span class="fc" id="L137">                    final PropertiesConfiguration pc = new PropertiesConfiguration(url);</span>
+<span class="fc" id="L138">                    config.addConfiguration(pc);</span>
+<span class="fc" id="L139">                    log.debug(&quot;Added url to configuration source: &quot; + url);</span>
+                }
+<span class="nc" id="L141">            } catch (ConfigurationException e) {</span>
+<span class="nc" id="L142">                log.error(&quot;Failed to load configuration from resource internal.properties&quot;, e);</span>
+<span class="fc" id="L143">            }</span>
+        }
+<span class="fc" id="L145">        return config;</span>
+    }
+    
+    private static synchronized void addConfiguration(final PropertiesConfiguration pc) {
+        // The try/catch is needed with commons-configuration 1.10 (but not with 1.06)
+//        try {
+<span class="fc" id="L151">            final CompositeConfiguration cfgClone = (CompositeConfiguration) config.clone();</span>
+<span class="fc" id="L152">            cfgClone.addConfiguration(pc);</span>
+<span class="fc" id="L153">            config = cfgClone; // atomic replacement, since we don't want to require all the get*() methods to be synchronized</span>
+//        } catch (ConfigurationRuntimeException e) {
+//            // Appears to happen due to some bug in MapConfiguration (on certain systems only)
+//            if (log.isDebugEnabled()) {
+//                log.debug(&quot;Configuration class &quot; + config.getClass().getName() + &quot; is not cloneable. Falling back to not fully thread safe code.&quot;, e);
+//            }
+//            config.addConfiguration(pc);
+//        }
+<span class="fc" id="L161">    }</span>
+
+    /**
+     * Method used primarily for JUnit testing, where we can add a new properties file (in tmp directory) to the configuration.
+     *
+     * @param filename the full path to the properties file used for configuration.
+     */
+    public static void addConfigurationFile(final String filename) {
+        // Make sure the basic initialization has been done
+<span class="fc" id="L170">        instance();</span>
+<span class="fc" id="L171">        File f = null;</span>
+        try {
+<span class="fc" id="L173">            f = new File(filename);</span>
+<span class="fc" id="L174">            final PropertiesConfiguration pc = new PropertiesConfiguration(f);</span>
+<span class="fc" id="L175">            pc.setReloadingStrategy(new FileChangedReloadingStrategy());</span>
+<span class="fc" id="L176">            addConfiguration(pc);</span>
+<span class="fc" id="L177">            log.info(&quot;Added file to configuration source: &quot; + f.getAbsolutePath());</span>
+<span class="nc" id="L178">        } catch (ConfigurationException e) {</span>
+<span class="nc" id="L179">            log.error(&quot;Failed to load configuration from file &quot; + f.getAbsolutePath());</span>
+<span class="fc" id="L180">        }</span>
+<span class="fc" id="L181">    }</span>
+
+    /**
+     * Add built in config file
+     * @param resourcename name
+     */
+    public static void addConfigurationResource(final String resourcename) {
+        // Make sure the basic initialization has been done
+<span class="fc" id="L189">        instance();</span>
+<span class="pc bpc" id="L190" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L191">            log.debug(&quot;Add resource to configuration: &quot; + resourcename);</span>
+        }
+        try {
+<span class="fc" id="L194">            final URL url = ConfigurationHolder.class.getResource(resourcename);</span>
+<span class="pc bpc" id="L195" title="1 of 2 branches missed.">            if (url != null) {</span>
+<span class="nc" id="L196">                final PropertiesConfiguration pc = new PropertiesConfiguration(url);</span>
+<span class="nc" id="L197">                addConfiguration(pc);</span>
+<span class="nc bnc" id="L198" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L199">                    log.debug(&quot;Added url to configuration source: &quot; + url);</span>
+                }
+            }
+<span class="nc" id="L202">        } catch (ConfigurationException e) {</span>
+<span class="nc" id="L203">            log.error(&quot;Failed to load configuration from resource &quot; + resourcename, e);</span>
+<span class="fc" id="L204">        }</span>
+<span class="fc" id="L205">    }</span>
+
+    /**
+     * @return the configuration as a regular Properties object
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+	public static Properties getAsProperties() {
+<span class="nc" id="L212">        final Properties properties = new Properties();</span>
+<span class="nc" id="L213">        final Iterator&lt;String&gt; i = instance().getKeys();</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">        while (i.hasNext()) {</span>
+<span class="nc" id="L215">            final String key = i.next();</span>
+<span class="nc" id="L216">            properties.setProperty(key, instance().getString(key));</span>
+<span class="nc" id="L217">        }</span>
+<span class="nc" id="L218">        return properties;</span>
+    }
+
+    /**
+     * @param property the property to look for
+     * @return String configured for property, or the default value defined in defaultvalues.properties, or null if no such value exists
+     */
+    public static String getString(final String property) {
+     // Commons configuration interprets ','-separated values as an array of Strings, but we need the whole String for example SubjectDNs.
+<span class="fc" id="L227">        final StringBuilder str = new StringBuilder();</span>
+<span class="fc" id="L228">        String rets[] = instance().getStringArray(property);</span>
+<span class="fc bfc" id="L229" title="All 2 branches covered.">        if (rets.length == 0) {</span>
+<span class="fc" id="L230">            rets = defaultValues.getStringArray(property);</span>
+        }
+<span class="fc bfc" id="L232" title="All 2 branches covered.">        for (int i = 0; i &lt; rets.length; i++) {</span>
+<span class="fc bfc" id="L233" title="All 2 branches covered.">            if (i != 0) {</span>
+<span class="fc" id="L234">                str.append(',');</span>
+            }
+<span class="fc" id="L236">            str.append(rets[i]);</span>
+        }
+        final String ret;
+<span class="fc bfc" id="L239" title="All 2 branches covered.">        if (str.length() != 0) {</span>
+<span class="fc" id="L240">            ret = str.toString();</span>
+        } else {
+<span class="fc" id="L242">            ret = defaultValues.getString(property);</span>
+        }
+<span class="fc" id="L244">        return ret;</span>
+    }
+
+    /**
+     * @param property the property to look for
+     * @return String configured for property. If the value is not configured, return null. (DOES NOT LOOK FOR FALLBACK VALUE FROM defaultvalues.properties)
+     */
+    public static String getConfiguredString(final String property) {
+        // Commons configuration interprets ','-separated values as an array of Strings, but we need the whole String for example SubjectDNs.
+<span class="fc" id="L253">        final StringBuilder str = new StringBuilder();</span>
+<span class="fc" id="L254">        String rets[] = instance().getStringArray(property);</span>
+<span class="pc bpc" id="L255" title="1 of 2 branches missed.">        for (int i = 0; i &lt; rets.length; i++) {</span>
+<span class="nc bnc" id="L256" title="All 2 branches missed.">            if (i != 0) {</span>
+<span class="nc" id="L257">                str.append(',');</span>
+            }
+<span class="nc" id="L259">            str.append(rets[i]);</span>
+        }
+<span class="fc" id="L261">        String ret = null;</span>
+<span class="pc bpc" id="L262" title="1 of 2 branches missed.">        if (str.length() != 0) {</span>
+<span class="nc" id="L263">            ret = str.toString();</span>
+        }
+<span class="fc" id="L265">        return ret;</span>
+    }
+    
+    public static String getDefaultValue(final String property) {
+<span class="fc" id="L269">        instance();</span>
+<span class="fc" id="L270">        return defaultValues.getString(property);</span>
+    }
+
+    public static String[] getDefaultValueArray(final String property) {
+<span class="nc" id="L274">        instance();</span>
+<span class="nc" id="L275">        return defaultValues.getStringArray(property);</span>
+    }
+
+    /**
+     * Return a the expanded version of a property. E.g. property1=foo property2=${property1}bar would return &quot;foobar&quot; for property2
+     *
+     * @param property the property to look for
+     * @return String configured for property, or the default value defined in defaultvalues.properties, or null if no such value exists
+     */
+    public static String getExpandedString(final String property) {
+<span class="fc" id="L285">        String ret = getString(property);</span>
+<span class="pc bpc" id="L286" title="1 of 2 branches missed.">        if (ret != null) {</span>
+<span class="pc bpc" id="L287" title="1 of 2 branches missed.">            while (ret.indexOf(&quot;${&quot;) != -1) {</span>
+<span class="nc" id="L288">                ret = interpolate(ret);</span>
+            }
+        }
+<span class="fc" id="L291">        return ret;</span>
+    }
+
+    private static String interpolate(final String orderString) {
+<span class="nc" id="L295">        final Pattern PATTERN = Pattern.compile(&quot;\\$\\{(.+?)\\}&quot;);</span>
+<span class="nc" id="L296">        final Matcher m = PATTERN.matcher(orderString);</span>
+<span class="nc" id="L297">        final StringBuffer sb = new StringBuffer(orderString.length());</span>
+<span class="nc" id="L298">        m.reset();</span>
+<span class="nc bnc" id="L299" title="All 2 branches missed.">        while (m.find()) {</span>
+            // when the pattern is ${identifier}, group 0 is 'identifier'
+<span class="nc" id="L301">            final String key = m.group(1);</span>
+<span class="nc" id="L302">            final String value = getExpandedString(key);</span>
+
+            // if the pattern does exists, replace it by its value
+            // otherwise keep the pattern ( it is group(0) )
+<span class="nc bnc" id="L306" title="All 2 branches missed.">            if (value != null) {</span>
+<span class="nc" id="L307">                m.appendReplacement(sb, value);</span>
+            } else {
+                // I'm doing this to avoid the backreference problem as there will be a $
+                // if I replace directly with the group 0 (which is also a pattern)
+<span class="nc" id="L311">                m.appendReplacement(sb, &quot;&quot;);</span>
+<span class="nc" id="L312">                final String unknown = m.group(0);</span>
+<span class="nc" id="L313">                sb.append(unknown);</span>
+            }
+<span class="nc" id="L315">        }</span>
+<span class="nc" id="L316">        m.appendTail(sb);</span>
+<span class="nc" id="L317">        return sb.toString();</span>
+    }
+
+    /**
+     * Given the prefix &quot;something&quot;, in a list of properties named &quot;something.NAME.xxx.yyy&quot;, returns all
+     * unique names (the NAME part only) in sorted order.
+     * @param prefix prefix
+     * @return list of properties
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+	public static List&lt;String&gt; getPrefixedPropertyNames(String prefix) {
+<span class="fc" id="L328">        Set&lt;String&gt; algs = new HashSet&lt;String&gt;();</span>
+        // Just get the keys from configuration that starts with prefix, we assume below that it has a . following the prefix
+<span class="fc" id="L330">        Iterator&lt;String&gt; iterator = config.getKeys(prefix);</span>
+<span class="pc bpc" id="L331" title="1 of 2 branches missed.">        while (iterator.hasNext()) {</span>
+<span class="nc" id="L332">            final String key = iterator.next();</span>
+<span class="nc" id="L333">            final int dot = key.indexOf(&quot;.&quot;, prefix.length()+1); // +1 to skip the . directly following prefix</span>
+<span class="nc" id="L334">            algs.add(key.substring(prefix.length()+1, dot));</span>
+<span class="nc" id="L335">        }</span>
+<span class="fc" id="L336">        ArrayList&lt;String&gt; list = new ArrayList&lt;String&gt;(algs);</span>
+<span class="fc" id="L337">        Collections.sort(list);</span>
+<span class="fc" id="L338">        return list;</span>
+    }
+
+    /**
+     * Backups the original configuration in a non thread safe way. This backup stores the current configuration in a variable, this makes it possible
+     * to test a configuration change and revert to the original configuration (cancel change). It is used in conjunction with updateConfiguration and
+     * restore configuration.
+     *
+     * Normally used by functional (system) tests, but can also be used to &quot;try&quot; configuraiton settings in a live system.
+     * @return boolean
+     */
+    public static boolean backupConfiguration() {
+<span class="fc bfc" id="L350" title="All 2 branches covered.">        if (configBackup != null) {</span>
+<span class="fc" id="L351">            return false;</span>
+        }
+<span class="fc" id="L353">        instance();</span>
+<span class="fc" id="L354">        configBackup = (CompositeConfiguration) config.clone();</span>
+<span class="fc" id="L355">        return true;</span>
+    }
+
+    /**
+     * Restores the original configuration in a non thread safe way. It restores a previously backed up configuration. The backup stores the current
+     * configuration in a variable, this makes it possible to test a configuration change and revert to the original configuration (cancel change). It
+     * is used in conjunction with updateConfiguration and backup configuration.
+     *
+     * Normally used by functional (system) tests, but can also be used to &quot;try&quot; configuration settings in a live system.
+     * @return boolean
+     */
+    public static boolean restoreConfiguration() {
+<span class="pc bpc" id="L367" title="1 of 2 branches missed.">        if (configBackup == null) {</span>
+<span class="nc" id="L368">            return false;</span>
+        }
+<span class="fc" id="L370">        config = configBackup;</span>
+<span class="fc" id="L371">        configBackup = null;</span>
+<span class="fc" id="L372">        return true;</span>
+    }
+
+    /**
+     * Takes a backup of the active configuration if necessary and updates the active configuration. Does not persist the configuration change to disk
+     * or database, so it is volatile during the running of the application. Persisting the configuration must be handles outside of this method.
+     *
+     * Normally used by functional (system) tests, but can also be used to &quot;try&quot; configuration settings in a live system.
+     * @param properties Properties
+     * @return boolean
+     */
+    public static boolean updateConfiguration(final Properties properties) {
+<span class="nc" id="L384">        backupConfiguration(); // Only takes a backup if necessary.</span>
+<span class="nc" id="L385">        return updateConfigurationWithoutBackup(properties);</span>
+    }
+
+    /**
+     * Takes a backup of the active configuration if necessary and updates the active configuration. Does not persist the configuration change to disk
+     * or database, so it is volatile during the running of the application. Persisting the configuration must be handles outside of this method.
+     *
+     * Normally used by functional (system) tests, but can also be used to &quot;try&quot; configuration settings in a live system.
+     * @param key key
+     * @param value value
+     * @return boolwan
+     */
+    public static boolean updateConfiguration(final String key, final String value) {
+<span class="fc" id="L398">        backupConfiguration(); // Only takes a backup if necessary.</span>
+<span class="fc" id="L399">        return updateConfigurationWithoutBackup(key, value);</span>
+    }
+
+    /**
+     * Updates the active configuration. Does not persist the configuration change to disk or database, so it is volatile during the running of the application.
+     * Persisting the configuration must be handles outside of this method.
+     * @param properties Properties
+     * @return boolean
+     */
+    public static boolean updateConfigurationWithoutBackup(final Properties properties) {
+<span class="nc bnc" id="L409" title="All 2 branches missed.">        for (Object key : properties.keySet()) {</span>
+
+<span class="nc" id="L411">            final String value = (String) properties.get(key);</span>
+<span class="nc" id="L412">            config.setProperty((String) key, value);</span>
+<span class="nc" id="L413">        }</span>
+<span class="nc" id="L414">        return true;</span>
+    }
+
+    /**
+     * Updates the active configuration. Does not persist the configuration change to disk or database, so it is volatile during the running of the application.
+     * Persisting the configuration must be handles outside of this method.
+     * @param key key
+     * @param value value
+     * @return boolean
+     */
+    public static boolean updateConfigurationWithoutBackup(final String key, final String value) {
+<span class="fc" id="L425">        config.setProperty(key, value);</span>
+<span class="fc" id="L426">        return true;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

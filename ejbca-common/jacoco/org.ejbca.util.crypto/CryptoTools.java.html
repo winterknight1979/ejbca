@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CryptoTools.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util.crypto</a> &gt; <span class="el_source">CryptoTools.java</span></div><h1>CryptoTools.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.util.crypto;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.util.encoders.Hex;
+import org.ejbca.config.EjbcaConfiguration;
+
+/**
+ * This utility class contains static utility methods related to cryptographic functions.
+ * 
+ * @version $Id: CryptoTools.java 24678 2016-11-10 11:25:43Z jeklund $
+ * 
+ */
+<span class="nc" id="L28">public class CryptoTools {</span>
+    
+    public static final String BCRYPT_PREFIX = &quot;$2a$&quot;;
+    
+<span class="fc" id="L32">    private static final Logger log = Logger.getLogger(CryptoTools.class);</span>
+
+    /**
+     * Creates the hashed password using the bcrypt algorithm, http://www.mindrot.org/projects/jBCrypt/
+     * @param password PWD
+     * @return Hash
+     */
+    public static String makePasswordHash(String password) {
+<span class="nc bnc" id="L40" title="All 2 branches missed.">        if (password == null) {</span>
+<span class="nc" id="L41">            return null;</span>
+        }
+<span class="nc" id="L43">        final int rounds = EjbcaConfiguration.getPasswordLogRounds();</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        if (rounds &gt; 0) {</span>
+<span class="nc" id="L45">            return BCrypt.hashpw(password, BCrypt.gensalt(rounds));</span>
+        } else {
+<span class="nc" id="L47">            return makeOldPasswordHash(password);</span>
+        }
+    }
+
+    /**
+     * Creates the hashed password using the old hashing, which is a plain SHA1 password.
+     * 
+     * This was used for password creation until the EJBCA 4.0 release.
+     * @param password PWD
+     * @return Hash
+     */
+    public static String makeOldPasswordHash(String password) {
+<span class="pc bpc" id="L59" title="1 of 2 branches missed.">        if (password == null) {</span>
+<span class="nc" id="L60">            return null;</span>
+        }
+<span class="fc" id="L62">        String ret = null;</span>
+        try {
+<span class="fc" id="L64">            final MessageDigest md = MessageDigest.getInstance(&quot;SHA1&quot;);</span>
+<span class="fc" id="L65">            final byte[] pwdhash = md.digest(password.trim().getBytes());</span>
+<span class="fc" id="L66">            ret = new String(Hex.encode(pwdhash));</span>
+<span class="nc" id="L67">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L68">            log.error(&quot;SHA1 algorithm not supported.&quot;, e);</span>
+<span class="nc" id="L69">            throw new Error(&quot;SHA1 algorithm not supported.&quot;, e);</span>
+<span class="fc" id="L70">        }</span>
+<span class="fc" id="L71">        return ret;</span>
+    }
+
+    /**
+     * This method takes a BCrypt-generated password hash and extracts the salt element into cleartext.
+     * 
+     * @param passwordHash a BCrypt generated password hash.
+     * @return the salt in cleartext.
+     */
+    public static String extractSaltFromPasswordHash(String passwordHash) {
+<span class="pc bpc" id="L81" title="1 of 2 branches missed.">        if(!passwordHash.startsWith(BCRYPT_PREFIX)) {</span>
+<span class="nc" id="L82">            throw new IllegalArgumentException(&quot;Provided string is not a BCrypt hash.&quot;);</span>
+        }
+        //Locate the third '$', this is where the rounds declaration ends.
+<span class="fc" id="L85">        int offset = passwordHash.indexOf('$', BCRYPT_PREFIX.length())+1;</span>
+<span class="fc" id="L86">        return passwordHash.substring(0, offset+22);            </span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

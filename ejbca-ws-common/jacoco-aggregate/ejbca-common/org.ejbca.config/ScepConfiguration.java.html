@@ -1,0 +1,534 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ScepConfiguration.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-ws-common</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.config</a> &gt; <span class="el_source">ScepConfiguration.java</span></div><h1>ScepConfiguration.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.config;
+
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.configuration.ConfigurationBase;
+
+/**
+ * 
+ * @version $Id: ScepConfiguration.java 22117 2015-10-29 10:53:42Z mikekushner $
+ *
+ */
+
+public class ScepConfiguration extends ConfigurationBase implements Serializable {
+    
+    private static final long serialVersionUID = -2051789798029184421L;
+
+<span class="nc" id="L39">    private static final Logger log = Logger.getLogger(ScepConfiguration.class);</span>
+    
+<span class="nc" id="L41">    public enum Mode {</span>
+<span class="nc" id="L42">        CA(&quot;CA&quot;), RA(&quot;RA&quot;);</span>
+
+        private final String resource;
+
+<span class="nc" id="L46">        private Mode(final String resource) {</span>
+<span class="nc" id="L47">            this.resource = resource;</span>
+<span class="nc" id="L48">        }</span>
+
+        public String getResource() {
+<span class="nc" id="L51">            return resource;</span>
+        }
+        
+        @Override
+        public String toString() {
+<span class="nc" id="L56">            return resource;</span>
+        }
+    }
+    
+    // Constants: Configuration keys
+    public static final String SCEP_PREFIX = &quot;scep.&quot;;
+    public static final String SCEP_RAMODE_OLD = &quot;ra.createOrEditUser&quot;;
+    public static final String SCEP_OPERATIONMODE = &quot;operationmode&quot;;
+    public static final String SCEP_INCLUDE_CA = &quot;includeca&quot;;
+    public static final String SCEP_RA_CERTPROFILE = &quot;ra.certificateProfile&quot;;
+    public static final String SCEP_RA_ENTITYPROFILE = &quot;ra.entityProfile&quot;;
+    public static final String SCEP_RA_AUTHPWD = &quot;ra.authPwd&quot;;
+    public static final String SCEP_RA_DEFAULTCA = &quot;ra.defaultCA&quot;;
+    public static final String SCEP_RA_NAME_GENERATION_SCHEME = &quot;ra.namegenerationscheme&quot;;
+    public static final String SCEP_RA_NAME_GENERATION_PARAMETERS = &quot;ra.namegenerationparameters&quot;;
+    public static final String SCEP_RA_NAME_GENERATION_PREFIX = &quot;ra.namegenerationprefix&quot;;
+    public static final String SCEP_RA_NAME_GENERATION_POSTFIX = &quot;ra.namegenerationpostfix&quot;;
+    public static final String SCEP_CLIENT_CERTIFICATE_RENEWAL = &quot;clientCertificateRenewal&quot;;
+    public static final String SCEP_CLIENT_CERTIFICATE_RENEWAL_WITH_OLD_KEY = &quot;clientCertificateRenewalWithOldKey&quot;;
+       
+    // This List is used in the command line handling of updating a config value to insure a correct value.
+<span class="nc" id="L77">    public static final List&lt;String&gt; SCEP_BOOLEAN_KEYS = Arrays.asList(SCEP_INCLUDE_CA);</span>
+    
+    public static final String SCEP_CONFIGURATION_ID = &quot;2&quot;;
+    
+
+<span class="nc" id="L82">    private final String ALIAS_LIST = &quot;aliaslist&quot;;</span>
+ 
+    // Default Values
+    public static final float LATEST_VERSION = 3f;
+<span class="nc" id="L86">    public static final String EJBCA_VERSION = InternalConfiguration.getAppVersion();</span>
+    
+    
+<span class="nc" id="L89">    public static final Set&lt;String&gt; DEFAULT_ALIAS_LIST      = new LinkedHashSet&lt;String&gt;();</span>
+<span class="nc" id="L90">    public static final String DEFAULT_OPERATION_MODE = Mode.CA.getResource();</span>
+<span class="nc" id="L91">    public static final String DEFAULT_INCLUDE_CA = Boolean.TRUE.toString();</span>
+<span class="nc" id="L92">    public static final String DEFAULT_CLIENT_CERTIFICATE_RENEWAL = Boolean.FALSE.toString();</span>
+<span class="nc" id="L93">    public static final String DEFAULT_ALLOW_CLIENT_CERTIFICATE_RENEWAL_WITH_OLD_KEY = Boolean.FALSE.toString();</span>
+    public static final String DEFAULT_RA_CERTPROFILE = &quot;ENDUSER&quot;;
+    public static final String DEFAULT_RA_ENTITYPROFILE = &quot;EMPTY&quot;;
+    public static final String DEFAULT_RA_DEFAULTCA = &quot;&quot;;
+    public static final String DEFAULT_RA_AUTHPWD = &quot;&quot;;
+    public static final String DEFAULT_RA_NAME_GENERATION_SCHEME = &quot;DN&quot;;
+    public static final String DEFAULT_RA_NAME_GENERATION_PARAMETERS = &quot;CN&quot;;
+    public static final String DEFAULT_RA_NAME_GENERATION_PREFIX = &quot;&quot;;
+    public static final String DEFAULT_RA_NAME_GENERATION_POSTFIX = &quot;&quot;;
+    
+    
+    /** Creates a new instance of ScepConfiguration */
+    public ScepConfiguration()  {
+<span class="nc" id="L106">       super();</span>
+<span class="nc" id="L107">    }</span>
+    
+<span class="nc" id="L109">    public ScepConfiguration(Serializable dataobj) {</span>
+        @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L111">        LinkedHashMap&lt;Object, Object&gt; d = (LinkedHashMap&lt;Object, Object&gt;) dataobj;</span>
+<span class="nc" id="L112">        data = d;</span>
+<span class="nc" id="L113">    }</span>
+    
+    
+    /** Initializes a new scep configuration with default values. 
+     * @param alias Alias*/
+    public void initialize(String alias){
+<span class="nc" id="L119">        alias += &quot;.&quot;;</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        if(StringUtils.isNotEmpty(alias)) {</span>
+<span class="nc" id="L121">            data.put(alias + SCEP_OPERATIONMODE, DEFAULT_OPERATION_MODE);</span>
+<span class="nc" id="L122">            data.put(alias + SCEP_INCLUDE_CA, DEFAULT_INCLUDE_CA);</span>
+<span class="nc" id="L123">            data.put(alias + SCEP_RA_CERTPROFILE, DEFAULT_RA_CERTPROFILE);</span>
+<span class="nc" id="L124">            data.put(alias + SCEP_RA_ENTITYPROFILE, DEFAULT_RA_ENTITYPROFILE);</span>
+<span class="nc" id="L125">            data.put(alias + SCEP_RA_DEFAULTCA, DEFAULT_RA_DEFAULTCA);</span>
+<span class="nc" id="L126">            data.put(alias + SCEP_RA_AUTHPWD, DEFAULT_RA_AUTHPWD);</span>
+<span class="nc" id="L127">            data.put(alias + SCEP_RA_NAME_GENERATION_SCHEME, DEFAULT_RA_NAME_GENERATION_SCHEME);</span>
+<span class="nc" id="L128">            data.put(alias + SCEP_RA_NAME_GENERATION_PARAMETERS, DEFAULT_RA_NAME_GENERATION_PARAMETERS);</span>
+<span class="nc" id="L129">            data.put(alias + SCEP_RA_NAME_GENERATION_PREFIX, DEFAULT_RA_NAME_GENERATION_PREFIX);</span>
+<span class="nc" id="L130">            data.put(alias + SCEP_RA_NAME_GENERATION_POSTFIX, DEFAULT_RA_NAME_GENERATION_POSTFIX);</span>
+<span class="nc" id="L131">            data.put(alias + SCEP_CLIENT_CERTIFICATE_RENEWAL, DEFAULT_CLIENT_CERTIFICATE_RENEWAL);</span>
+<span class="nc" id="L132">            data.put(alias + SCEP_CLIENT_CERTIFICATE_RENEWAL_WITH_OLD_KEY, DEFAULT_ALLOW_CLIENT_CERTIFICATE_RENEWAL_WITH_OLD_KEY);</span>
+        }
+<span class="nc" id="L134">    }</span>
+    
+    // return all the key with an alias
+    public static Set&lt;String&gt; getAllAliasKeys(String alias) {
+<span class="nc" id="L138">        alias += &quot;.&quot;;</span>
+<span class="nc" id="L139">        Set&lt;String&gt; keys = new LinkedHashSet&lt;String&gt;();</span>
+<span class="nc" id="L140">        keys.add(alias + SCEP_OPERATIONMODE);</span>
+<span class="nc" id="L141">        keys.add(alias + SCEP_INCLUDE_CA);</span>
+<span class="nc" id="L142">        keys.add(alias + SCEP_RA_CERTPROFILE);</span>
+<span class="nc" id="L143">        keys.add(alias + SCEP_RA_ENTITYPROFILE);</span>
+<span class="nc" id="L144">        keys.add(alias + SCEP_RA_DEFAULTCA);</span>
+<span class="nc" id="L145">        keys.add(alias + SCEP_RA_AUTHPWD);</span>
+<span class="nc" id="L146">        keys.add(alias + SCEP_RA_NAME_GENERATION_SCHEME);</span>
+<span class="nc" id="L147">        keys.add(alias + SCEP_RA_NAME_GENERATION_PARAMETERS);</span>
+<span class="nc" id="L148">        keys.add(alias + SCEP_RA_NAME_GENERATION_PREFIX);</span>
+<span class="nc" id="L149">        keys.add(alias + SCEP_RA_NAME_GENERATION_POSTFIX);</span>
+<span class="nc" id="L150">        keys.add(alias + SCEP_CLIENT_CERTIFICATE_RENEWAL);</span>
+<span class="nc" id="L151">        keys.add(alias + SCEP_CLIENT_CERTIFICATE_RENEWAL_WITH_OLD_KEY);</span>
+<span class="nc" id="L152">        return keys;</span>
+    }
+    
+    /**
+     * Client Certificate Renewal is defined in the SCEP draft as the capability of a certificate enrollment request to be interpreted as a 
+     * certificate renewal request if the previous certificate has passed half its validity. 
+     * 
+     * @param alias A SCEP configuration alias
+     * @return true of SCEP Client Certificate Renewal is enabled
+     */
+    public boolean getClientCertificateRenewal(final String alias) {
+<span class="nc" id="L163">        String key = alias + &quot;.&quot; + SCEP_CLIENT_CERTIFICATE_RENEWAL;</span>
+<span class="nc" id="L164">        String value = getValue(key, alias);</span>
+        //Lazy initialization for SCEP configurations older than 6.3.1
+<span class="nc bnc" id="L166" title="All 2 branches missed.">        if(value == null) {</span>
+<span class="nc" id="L167">            data.put(alias + &quot;.&quot; + SCEP_CLIENT_CERTIFICATE_RENEWAL, DEFAULT_CLIENT_CERTIFICATE_RENEWAL);</span>
+<span class="nc" id="L168">            return Boolean.getBoolean(DEFAULT_CLIENT_CERTIFICATE_RENEWAL);</span>
+        }
+<span class="nc" id="L170">        return Boolean.valueOf(value);</span>
+    }
+    /**
+     * @see ScepConfiguration#getClientCertificateRenewal(String)
+     * 
+     * @param alias A SCEP configuration alias
+     * @param clientCertificateRenewal true of Client Certificate Renewal is to be enabled
+     */
+    public void setClientCertificateRenewal(String alias, boolean clientCertificateRenewal) {
+<span class="nc" id="L179">        String key = alias + &quot;.&quot; + SCEP_CLIENT_CERTIFICATE_RENEWAL;</span>
+<span class="nc" id="L180">        setValue(key,  Boolean.toString(clientCertificateRenewal), alias);</span>
+<span class="nc" id="L181">    }</span>
+
+    /**
+     * @see ScepConfiguration#getClientCertificateRenewal(String) for information about Client Certificate Renewal
+     * 
+     * The SCEP draft makes it optional whether or not old keys may be reused during Client Certificate Renewal
+     * 
+     * @param alias A SCEP configuration alias
+     * @return true of old keys are allowed Client Certificate Renewal
+     */
+    public boolean getAllowClientCertificateRenewalWithOldKey(final String alias) {
+<span class="nc" id="L192">        String key = alias + &quot;.&quot; + SCEP_CLIENT_CERTIFICATE_RENEWAL_WITH_OLD_KEY;</span>
+<span class="nc" id="L193">        String value = getValue(key, alias);</span>
+        //Lazy initialization for SCEP configurations older than 6.3.1
+<span class="nc bnc" id="L195" title="All 2 branches missed.">        if(value == null) {</span>
+<span class="nc" id="L196">            data.put(alias + &quot;.&quot; + SCEP_CLIENT_CERTIFICATE_RENEWAL_WITH_OLD_KEY, DEFAULT_ALLOW_CLIENT_CERTIFICATE_RENEWAL_WITH_OLD_KEY);</span>
+<span class="nc" id="L197">            return Boolean.getBoolean(DEFAULT_ALLOW_CLIENT_CERTIFICATE_RENEWAL_WITH_OLD_KEY);</span>
+        }
+<span class="nc" id="L199">        return Boolean.valueOf(value);</span>
+    }
+    
+    /**
+     * @see ScepConfiguration#getAllowClientCertificateRenewalWithOldKey(String)
+     * 
+     * @param alias A SCEP configuration alias
+     * @param allowClientCertificateRenewalWithOldKey set true to allow Client Certificate Renewal using old keys
+     */
+    public void setAllowClientCertificateRenewalWithOldKey(String alias, boolean allowClientCertificateRenewalWithOldKey) {
+<span class="nc" id="L209">        String key = alias + &quot;.&quot; + SCEP_CLIENT_CERTIFICATE_RENEWAL_WITH_OLD_KEY;</span>
+<span class="nc" id="L210">        setValue(key, Boolean.toString(allowClientCertificateRenewalWithOldKey), alias);</span>
+<span class="nc" id="L211">    }</span>
+    
+    /** Method used by the Admin GUI. 
+     * @param alias Alias
+     * @return Mode */
+    public boolean getRAMode(String alias) {
+<span class="nc" id="L217">        String key = alias + &quot;.&quot; + SCEP_OPERATIONMODE;</span>
+<span class="nc" id="L218">        String value = getValue(key, alias);</span>
+<span class="nc" id="L219">        return StringUtils.equalsIgnoreCase(value, Mode.RA.getResource());</span>
+    }
+    public void setRAMode(String alias, boolean ramode) {
+<span class="nc" id="L222">        String key = alias + &quot;.&quot; + SCEP_OPERATIONMODE;</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">        setValue(key, ramode ? Mode.RA.getResource() : Mode.CA.getResource(), alias);</span>
+<span class="nc" id="L224">    }</span>
+    
+    public boolean getIncludeCA(String alias) {
+<span class="nc" id="L227">        String key = alias + &quot;.&quot; + SCEP_INCLUDE_CA;</span>
+<span class="nc" id="L228">        String value = getValue(key, alias);</span>
+<span class="nc" id="L229">        return StringUtils.equalsIgnoreCase(value, &quot;true&quot;);</span>
+    }
+    public void setIncludeCA(String alias, boolean includeca) {
+<span class="nc" id="L232">        String key = alias + &quot;.&quot; + SCEP_INCLUDE_CA;</span>
+<span class="nc" id="L233">        setValue(key, Boolean.toString(includeca), alias);</span>
+<span class="nc" id="L234">    }</span>
+
+    public String getRACertProfile(String alias) {
+<span class="nc" id="L237">        String key = alias + &quot;.&quot; + SCEP_RA_CERTPROFILE;</span>
+<span class="nc" id="L238">        return getValue(key, alias);</span>
+    }
+    public void setRACertProfile(String alias, String cp) {
+<span class="nc" id="L241">        String key = alias + &quot;.&quot; + SCEP_RA_CERTPROFILE;</span>
+<span class="nc" id="L242">        setValue(key, cp, alias);</span>
+<span class="nc" id="L243">    }</span>
+    
+    public String getRAEndEntityProfile(String alias) {
+<span class="nc" id="L246">        String key = alias + &quot;.&quot; + SCEP_RA_ENTITYPROFILE;</span>
+<span class="nc" id="L247">        return getValue(key, alias);</span>
+    }
+    public void setRAEndEntityProfile(String alias, String eep) {
+<span class="nc" id="L250">        String key = alias + &quot;.&quot; + SCEP_RA_ENTITYPROFILE;</span>
+<span class="nc" id="L251">        setValue(key, eep, alias);</span>
+<span class="nc" id="L252">    }</span>
+    
+    public String getRADefaultCA(String alias) {
+<span class="nc" id="L255">        String key = alias + &quot;.&quot; + SCEP_RA_DEFAULTCA;</span>
+<span class="nc" id="L256">        return getValue(key, alias);</span>
+    }
+    public void setRADefaultCA(String alias, String ca) {
+<span class="nc" id="L259">        String key = alias + &quot;.&quot; + SCEP_RA_DEFAULTCA;</span>
+<span class="nc" id="L260">        setValue(key, ca, alias);</span>
+<span class="nc" id="L261">    }</span>
+
+    public String getRAAuthPassword(String alias) {
+<span class="nc" id="L264">        String key = alias + &quot;.&quot; + SCEP_RA_AUTHPWD;</span>
+<span class="nc" id="L265">        return getValue(key, alias);</span>
+    }
+    public void setRAAuthpassword(String alias, String pwd) {
+<span class="nc" id="L268">        String key = alias + &quot;.&quot; + SCEP_RA_AUTHPWD;</span>
+<span class="nc" id="L269">        setValue(key, pwd, alias);</span>
+<span class="nc" id="L270">    }</span>
+
+    public String getRANameGenerationScheme(String alias) {
+<span class="nc" id="L273">        String key = alias + &quot;.&quot; + SCEP_RA_NAME_GENERATION_SCHEME;</span>
+<span class="nc" id="L274">        return getValue(key, alias);</span>
+    }
+    public void setRANameGenerationScheme(String alias, String scheme) {
+<span class="nc" id="L277">        String key = alias + &quot;.&quot; + SCEP_RA_NAME_GENERATION_SCHEME;</span>
+<span class="nc" id="L278">        setValue(key, scheme, alias);</span>
+<span class="nc" id="L279">    }</span>
+
+    public String getRANameGenerationParameters(String alias) {
+<span class="nc" id="L282">        String key = alias + &quot;.&quot; + SCEP_RA_NAME_GENERATION_PARAMETERS;</span>
+<span class="nc" id="L283">        return getValue(key, alias);</span>
+    }
+    public void setRANameGenerationParameters(String alias, String parameters) {
+<span class="nc" id="L286">        String key = alias + &quot;.&quot; + SCEP_RA_NAME_GENERATION_PARAMETERS;</span>
+<span class="nc" id="L287">        setValue(key, parameters, alias);</span>
+<span class="nc" id="L288">    }</span>
+
+    public String getRANameGenerationPrefix(String alias) {
+<span class="nc" id="L291">        String key = alias + &quot;.&quot; + SCEP_RA_NAME_GENERATION_PREFIX;</span>
+<span class="nc" id="L292">        return getValue(key, alias);</span>
+    }
+    public void setRANameGenerationPrefix(String alias, String prefix) {
+<span class="nc" id="L295">        String key = alias + &quot;.&quot; + SCEP_RA_NAME_GENERATION_PREFIX;</span>
+<span class="nc" id="L296">        setValue(key, prefix, alias);</span>
+<span class="nc" id="L297">    }</span>
+
+    public String getRANameGenerationPostfix(String alias) {
+<span class="nc" id="L300">        String key = alias + &quot;.&quot; + SCEP_RA_NAME_GENERATION_POSTFIX;</span>
+<span class="nc" id="L301">        return getValue(key, alias);</span>
+    }
+    public void setRANameGenerationPostfix(String alias, String postfix) {
+<span class="nc" id="L304">        String key = alias + &quot;.&quot; + SCEP_RA_NAME_GENERATION_POSTFIX;</span>
+<span class="nc" id="L305">        setValue(key, postfix, alias);</span>
+<span class="nc" id="L306">    }</span>
+    
+    
+    
+    
+    
+    
+    public String getValue(String key, String alias) {
+<span class="nc bnc" id="L314" title="All 2 branches missed.">        if(aliasExists(alias)) {</span>
+<span class="nc bnc" id="L315" title="All 2 branches missed.">            if(data.containsKey(key)) {</span>
+<span class="nc" id="L316">                return (String) data.get(key);</span>
+            } else {
+<span class="nc" id="L318">                log.error(&quot;Could not find key '&quot; + key + &quot;' in the SCEP configuration data&quot;);</span>
+            }
+        } else {
+<span class="nc" id="L321">            log.error(&quot;SCEP alias '&quot; + alias + &quot;' does not exist&quot;);</span>
+        }
+<span class="nc" id="L323">        return null;</span>
+    }
+    public void setValue(String key, String value, String alias) {
+<span class="nc bnc" id="L326" title="All 2 branches missed.">        if(aliasExists(alias)) {</span>
+<span class="nc bnc" id="L327" title="All 2 branches missed.">            if(data.containsKey(key)) {</span>
+<span class="nc" id="L328">                data.put(key, value);</span>
+<span class="nc bnc" id="L329" title="All 2 branches missed.">                if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L330">                    log.debug(&quot;Added '&quot; + key + &quot;=&quot; + value + &quot;' to the SCEP configuration data&quot;);</span>
+                }
+            } else {
+<span class="nc" id="L333">                log.error(&quot;Key '&quot; + key + &quot;' does not exist in the SCEP configuration data&quot;);</span>
+            }
+        } else {
+<span class="nc" id="L336">            log.error(&quot;SCEP alias '&quot; + alias + &quot;' does not exist&quot;);</span>
+        }
+<span class="nc" id="L338">    }</span>
+    
+    
+    
+    
+    
+    public void setAliasList(final Set&lt;String&gt; aliaslist) { 
+<span class="nc" id="L345">        data.put(ALIAS_LIST, aliaslist); </span>
+<span class="nc" id="L346">    }</span>
+    public Set&lt;String&gt; getAliasList() {
+        @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L349">        Set&lt;String&gt; ret = (Set&lt;String&gt;) data.get(ALIAS_LIST);</span>
+<span class="nc bnc" id="L350" title="All 2 branches missed.">        return (ret == null ? DEFAULT_ALIAS_LIST : ret);</span>
+    }
+    public boolean aliasExists(String alias) {
+<span class="nc bnc" id="L353" title="All 2 branches missed.">        if(StringUtils.isNotEmpty(alias)) {</span>
+<span class="nc" id="L354">            Set&lt;String&gt; aliases = getAliasList();</span>
+<span class="nc" id="L355">            return aliases.contains(alias);</span>
+        }
+<span class="nc" id="L357">        return false;</span>
+    }
+
+    public void addAlias(String alias) {
+<span class="nc bnc" id="L361" title="All 2 branches missed.">        if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L362">            log.debug(&quot;Adding SCEP alias: &quot; + alias);</span>
+        }   
+            
+<span class="nc bnc" id="L365" title="All 2 branches missed.">        if(StringUtils.isEmpty(alias)) {</span>
+<span class="nc bnc" id="L366" title="All 2 branches missed.">            if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L367">                log.debug(&quot;No alias is added because no alias was provided.&quot;);</span>
+            }
+<span class="nc" id="L369">            return;</span>
+        }
+            
+<span class="nc" id="L372">        Set&lt;String&gt; aliases = getAliasList();</span>
+<span class="nc bnc" id="L373" title="All 2 branches missed.">        if(aliases.contains(alias)) {</span>
+<span class="nc bnc" id="L374" title="All 2 branches missed.">            if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L375">                log.debug(&quot;SCEP alias '&quot; + alias + &quot;' already exists.&quot;);</span>
+            }
+<span class="nc" id="L377">            return;</span>
+        }
+        
+<span class="nc" id="L380">        initialize(alias);</span>
+<span class="nc" id="L381">        aliases.add(alias);</span>
+<span class="nc" id="L382">        data.put(ALIAS_LIST, aliases);</span>
+<span class="nc" id="L383">    }</span>
+    public void removeAlias(String alias) {
+<span class="nc bnc" id="L385" title="All 2 branches missed.">        if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L386">            log.debug(&quot;Removing SCEP alias: &quot; + alias);</span>
+        }
+        
+<span class="nc bnc" id="L389" title="All 2 branches missed.">        if(StringUtils.isEmpty(alias)) {</span>
+<span class="nc bnc" id="L390" title="All 2 branches missed.">            if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L391">                log.debug(&quot;No alias is removed because no alias was provided.&quot;);</span>
+            }
+<span class="nc" id="L393">            return;</span>
+        }
+        
+<span class="nc" id="L396">        Set&lt;String&gt; aliases = getAliasList();</span>
+<span class="nc bnc" id="L397" title="All 2 branches missed.">        if(!aliases.contains(alias)) {</span>
+<span class="nc bnc" id="L398" title="All 2 branches missed.">            if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L399">                log.debug(&quot;SCEP alias '&quot; + alias + &quot;' does not exist&quot;);</span>
+            }
+<span class="nc" id="L401">            return;</span>
+        }
+        
+<span class="nc" id="L404">        Set&lt;String&gt; removeKeys = getAllAliasKeys(alias);</span>
+<span class="nc" id="L405">        Iterator&lt;String&gt; itr = removeKeys.iterator();</span>
+<span class="nc bnc" id="L406" title="All 2 branches missed.">        while(itr.hasNext()) {</span>
+<span class="nc" id="L407">            String key = itr.next();</span>
+<span class="nc" id="L408">            data.remove(key);</span>
+<span class="nc" id="L409">        }</span>
+<span class="nc" id="L410">        aliases.remove(alias);</span>
+<span class="nc" id="L411">        data.put(ALIAS_LIST, aliases);</span>
+<span class="nc" id="L412">    }</span>
+    public void renameAlias(String oldAlias, String newAlias) {
+<span class="nc bnc" id="L414" title="All 2 branches missed.">        if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L415">            log.debug(&quot;Renaming SCEP alias '&quot; + oldAlias + &quot;' to '&quot; + newAlias + &quot;'&quot;);</span>
+        }
+        
+<span class="nc bnc" id="L418" title="All 4 branches missed.">        if(StringUtils.isEmpty(oldAlias) || StringUtils.isEmpty(newAlias)) {</span>
+<span class="nc" id="L419">            log.info(&quot;No alias is renamed because one or both aliases were not provided.&quot;);</span>
+<span class="nc" id="L420">            return;</span>
+        }
+        
+<span class="nc" id="L423">        Set&lt;String&gt; aliases = getAliasList();</span>
+<span class="nc bnc" id="L424" title="All 2 branches missed.">        if(!aliases.contains(oldAlias)) {</span>
+<span class="nc" id="L425">            log.info(&quot;Cannot rename. SCEP alias '&quot; + oldAlias + &quot;' does not exists.&quot;);</span>
+<span class="nc" id="L426">            return;</span>
+        }
+        
+<span class="nc bnc" id="L429" title="All 2 branches missed.">        if(aliases.contains(newAlias)) {</span>
+<span class="nc" id="L430">            log.info(&quot;Cannot rename. SCEP alias '&quot; + newAlias + &quot;' already exists.&quot;);</span>
+<span class="nc" id="L431">            return;</span>
+        }
+        
+<span class="nc" id="L434">        Set&lt;String&gt; oldKeys = getAllAliasKeys(oldAlias);</span>
+<span class="nc" id="L435">        Iterator&lt;String&gt; itr = oldKeys.iterator();</span>
+<span class="nc bnc" id="L436" title="All 2 branches missed.">        while(itr.hasNext()) {</span>
+<span class="nc" id="L437">            String oldkey = itr.next();</span>
+<span class="nc" id="L438">            String newkey = oldkey;</span>
+<span class="nc" id="L439">            newkey = StringUtils.replace(newkey, oldAlias, newAlias);</span>
+<span class="nc" id="L440">            Object value = data.get(oldkey);</span>
+<span class="nc" id="L441">            data.put(newkey, value);</span>
+<span class="nc" id="L442">        }</span>
+<span class="nc" id="L443">        removeAlias(oldAlias);</span>
+<span class="nc" id="L444">        aliases.remove(oldAlias);</span>
+<span class="nc" id="L445">        aliases.add(newAlias);</span>
+<span class="nc" id="L446">        data.put(ALIAS_LIST, aliases);</span>
+<span class="nc" id="L447">    }</span>
+    public void cloneAlias(String originAlias, String cloneAlias) {
+<span class="nc bnc" id="L449" title="All 2 branches missed.">        if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L450">            log.debug(&quot;Cloning SCEP alias '&quot; + originAlias + &quot;' to '&quot; + cloneAlias + &quot;'&quot;);</span>
+        }
+        
+<span class="nc bnc" id="L453" title="All 4 branches missed.">        if(StringUtils.isEmpty(originAlias) || StringUtils.isEmpty(cloneAlias)) {</span>
+<span class="nc" id="L454">            log.info(&quot;No alias is cloned because one or both aliased were not provided&quot;);</span>
+<span class="nc" id="L455">            return;</span>
+        }
+        
+<span class="nc" id="L458">        Set&lt;String&gt; aliases = getAliasList();</span>
+<span class="nc bnc" id="L459" title="All 2 branches missed.">        if(!aliases.contains(originAlias)) {</span>
+<span class="nc" id="L460">            log.info(&quot;Cannot clone. SCEP alias '&quot; + originAlias + &quot;' does not exist.&quot;);</span>
+<span class="nc" id="L461">            return;</span>
+        }
+        
+<span class="nc bnc" id="L464" title="All 2 branches missed.">        if(aliases.contains(cloneAlias)) {</span>
+<span class="nc" id="L465">            log.info(&quot;Cannot clone. SCEP alias '&quot; + cloneAlias + &quot;' already exists.&quot;);</span>
+<span class="nc" id="L466">            return;</span>
+        }
+        
+<span class="nc" id="L469">        Iterator&lt;String&gt; itr = getAllAliasKeys(originAlias).iterator();</span>
+<span class="nc bnc" id="L470" title="All 2 branches missed.">        while(itr.hasNext()) {</span>
+<span class="nc" id="L471">            String originalKey = itr.next();</span>
+<span class="nc" id="L472">            String cloneKey = originalKey;</span>
+<span class="nc" id="L473">            cloneKey = StringUtils.replace(cloneKey, originAlias, cloneAlias);</span>
+<span class="nc" id="L474">            Object value = data.get(originalKey);</span>
+<span class="nc" id="L475">            data.put(cloneKey, value);</span>
+<span class="nc" id="L476">        }</span>
+<span class="nc" id="L477">        aliases.add(cloneAlias);</span>
+<span class="nc" id="L478">        data.put(ALIAS_LIST, aliases);</span>
+<span class="nc" id="L479">    }</span>
+    
+    
+    
+    /**
+     * @return the configuration as a regular Properties object
+     */
+    public Properties getAsProperties() {
+<span class="nc" id="L487">        final Properties properties = new Properties();</span>
+<span class="nc" id="L488">        Set&lt;String&gt; aliases = getAliasList();</span>
+<span class="nc" id="L489">        Iterator&lt;String&gt; itr = aliases.iterator();</span>
+<span class="nc bnc" id="L490" title="All 2 branches missed.">        while(itr.hasNext()) {</span>
+<span class="nc" id="L491">            String alias = itr.next();</span>
+<span class="nc" id="L492">            Properties aliasp = getAsProperties(alias);</span>
+<span class="nc" id="L493">            properties.putAll(aliasp);</span>
+<span class="nc" id="L494">        }   </span>
+<span class="nc" id="L495">        return properties;</span>
+    }
+    
+    public Properties getAsProperties(String alias) {
+<span class="nc bnc" id="L499" title="All 2 branches missed.">        if(aliasExists(alias)) {</span>
+<span class="nc" id="L500">            final Properties properties = new Properties();</span>
+<span class="nc" id="L501">            final Iterator&lt;String&gt; i = getAllAliasKeys(alias).iterator();</span>
+<span class="nc bnc" id="L502" title="All 2 branches missed.">            while (i.hasNext()) {</span>
+<span class="nc" id="L503">                final String key = i.next();</span>
+<span class="nc" id="L504">                final Object value = data.get(key);</span>
+<span class="nc bnc" id="L505" title="All 2 branches missed.">                properties.setProperty(key, value == null? &quot;&quot; : value.toString());</span>
+<span class="nc" id="L506">            }</span>
+<span class="nc" id="L507">            return properties;</span>
+        }
+<span class="nc" id="L509">        return null;</span>
+    }
+    
+    
+    
+     
+    /** Implementation of UpgradableDataHashMap function getLatestVersion */
+    public float getLatestVersion(){
+<span class="nc" id="L517">       return LATEST_VERSION;</span>
+    }
+
+    /** Implemtation of UpgradableDataHashMap function upgrade. */
+
+    public void upgrade(){
+<span class="nc bnc" id="L523" title="All 2 branches missed.">        if(Float.compare(LATEST_VERSION, getVersion()) != 0) {</span>
+<span class="nc" id="L524">            data.put(VERSION,  Float.valueOf(LATEST_VERSION));          </span>
+        }
+<span class="nc" id="L526">    }</span>
+
+    @Override
+    public String getConfigurationId() {
+<span class="nc" id="L530">        return SCEP_CONFIGURATION_ID;</span>
+    }
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

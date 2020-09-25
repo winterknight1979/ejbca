@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ApprovalNotificationParameterGenerator.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-ws-common</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.approval</a> &gt; <span class="el_source">ApprovalNotificationParameterGenerator.java</span></div><h1>ApprovalNotificationParameterGenerator.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.approval;
+
+import org.ejbca.core.model.approval.profile.ApprovalPartitionWorkflowState;
+import org.ejbca.util.NotificationParamGen;
+
+
+/**
+ * Parameters for notification of partition owners in the approval request work flow.
+ * 
+ * ${approvalRequest.ID}            The approval request identifier.
+ * ${approvalRequest.STEP_ID}       The approval step that this notification concerns.
+ * ${approvalRequest.PARTITION_ID}  The approval partition in the step that this notification concerns.
+ * ${approvalRequest.PARTITION_NAME} The approval partition in the step that this notification concerns.
+ * ${approvalRequest.TYPE}          The type of approval request.
+ * ${approvalRequest.WORKFLOWSTATE} The work flow state from the perspective of the one(s) responsible for handling the partition.
+ * ${approvalRequest.REQUESTOR}     The human readable version of the authentication token that was used to create the request.
+ * ${approvalRequest.APPROVALADMIN} The human readable version of the authentication token that was used to last approved the request, if any.
+ * 
+ * @see ApprovalPartitionWorkflowState
+ * @version $Id: ApprovalNotificationParameterGenerator.java 24431 2016-09-28 12:10:34Z anatom $
+ */
+public class ApprovalNotificationParameterGenerator extends NotificationParamGen {
+
+    /**
+     * 
+     * @param approvalRequestID approval request ID, is the ID of the ApprovalData
+     * @param approvalStepId Step
+     * @param approvalPartitionId Partition
+     * @param approvalPartitionName Name
+     * @param approvalType one of the ApprovalDataVO.APPROVALTYPENAMES
+     * @param workflowState &quot;APPROVAL_WFSTATE_&quot; + approvalPartitionWorkflowState.name(), where approvalPartitionWorkflowState.name() typically is &quot;approved&quot;, &quot;rejected&quot;
+     * @param requestor AuthenticationToken.toString() of the admin who created the approval request
+     * @param lastApprovedBy AuthenticationToken.toString() of the admin who last approved the request, or empty string/null if none
+     */
+    public ApprovalNotificationParameterGenerator(final int approvalRequestID, final int approvalStepId, final int approvalPartitionId,
+<span class="fc" id="L48">            final String approvalPartitionName, final String approvalType, final String workflowState, final String requestor, final String lastApprovedBy) {</span>
+<span class="fc" id="L49">        paramPut(&quot;approvalRequest.ID&quot;, approvalRequestID);</span>
+<span class="fc" id="L50">        paramPut(&quot;approvalRequest.STEP_ID&quot;, approvalStepId);</span>
+<span class="fc" id="L51">        paramPut(&quot;approvalRequest.PARTITION_ID&quot;, approvalPartitionId);</span>
+<span class="fc" id="L52">        paramPut(&quot;approvalRequest.PARTITION_NAME&quot;, approvalPartitionName);</span>
+<span class="fc" id="L53">        paramPut(&quot;approvalRequest.TYPE&quot;, approvalType);</span>
+<span class="fc" id="L54">        paramPut(&quot;approvalRequest.WORKFLOWSTATE&quot;, workflowState);</span>
+<span class="fc" id="L55">        paramPut(&quot;approvalRequest.REQUESTOR&quot;, requestor);</span>
+<span class="fc" id="L56">        paramPut(&quot;approvalRequest.APPROVALADMIN&quot;, lastApprovedBy);</span>
+<span class="fc" id="L57">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

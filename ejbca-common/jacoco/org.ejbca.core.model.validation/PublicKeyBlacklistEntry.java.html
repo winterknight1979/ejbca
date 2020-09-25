@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PublicKeyBlacklistEntry.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.validation</a> &gt; <span class="el_source">PublicKeyBlacklistEntry.java</span></div><h1>PublicKeyBlacklistEntry.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General                  *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.model.validation;
+
+import java.io.Serializable;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.interfaces.RSAPublicKey;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.util.encoders.Hex;
+import org.cesecore.internal.InternalResources;
+import org.cesecore.util.CertTools;
+
+/**
+ * Domain class representing a public key blacklist entry.
+ *  
+ *
+ * @version $Id: PublicKeyBlacklistEntry.java 26302 2017-08-14 14:35:32Z anatom $
+ */
+public class PublicKeyBlacklistEntry extends BlacklistEntry implements Serializable, Cloneable {
+
+    private static final long serialVersionUID = -315759758359854900L;
+
+    /** Class logger. */
+<span class="nc" id="L38">    private static final Logger log = Logger.getLogger(PublicKeyBlacklistEntry.class);</span>
+
+    /** Public key fingerprint digest algorithm. Matching blacklists created by debian:
+     * https://launchpad.net/ubuntu/+source/openssl-blacklist/
+     * https://launchpad.net/ubuntu/+source/openssh-blacklist
+     * https://launchpad.net/ubuntu/+source/openvpn-blacklist/
+     * The blacklists contains the SHA1 hash with the first 20 bytes remove, i.e. the last 20 bytes
+     */
+    public static final String DIGEST_ALGORITHM = &quot;SHA-256&quot;;
+
+    public static final String TYPE=&quot;PUBLICKEY&quot;;
+
+<span class="nc" id="L50">    protected static final InternalResources intres = InternalResources.getInstance();</span>
+
+    /** Public key reference (set while validate). */
+    private transient PublicKey publicKey;
+
+    /**
+     * Creates a new instance.
+     */
+    public PublicKeyBlacklistEntry() {
+<span class="nc" id="L59">        super(PublicKeyBlacklistEntry.TYPE);</span>
+<span class="nc" id="L60">    }</span>
+
+    /**
+     * Creates a new instance.
+     * @param id ID
+     * @param fingerprint  FP
+     * @param keyspec Key
+     */
+    public PublicKeyBlacklistEntry(int id, String fingerprint, String keyspec) {
+<span class="nc" id="L69">        super(id, PublicKeyBlacklistEntry.TYPE, fingerprint, keyspec);</span>
+<span class="nc" id="L70">    }</span>
+
+    @Override
+    public String getType() {
+<span class="nc" id="L74">        return PublicKeyBlacklistEntry.TYPE;</span>
+    }
+
+
+    /**
+     * Gets the key spec
+     * @return the key spec string (i.e. 'RSA2048', 'secp256r1').
+     */
+    public String getKeyspec() {
+<span class="nc" id="L83">        return getData();</span>
+    }
+
+    /**
+     * Sets the key spec, RSA2048, secp256r1 etc
+     * @param keyspec the key spec string.
+     */
+    public void setKeyspec(String keyspec) {
+<span class="nc" id="L91">        setData(keyspec);</span>
+<span class="nc" id="L92">    }</span>
+    
+    /**
+     * Gets the fingerprint.
+     * Fingerprint of the key to compare, this is not just a normal fingerprint over the DER encoding
+     * For RSA keys this is the hash (see {@link #DIGEST_ALGORITHM}) over the binary bytes of the public key modulus.
+     * This because blacklist is typically due to weak random number generator (Debian weak keys) and we then want to capture all keys 
+     * generated by this, so we don't want to include the chosen e, only the randomly generated n.
+     * For other keys (ECDSA and DSA) it's a fingerprint over the public key encoding.
+     * @return fingerprint
+     */
+    public String getFingerprint() {
+<span class="nc" id="L104">        return getValue();</span>
+    }
+
+    /**
+     * Sets the fingerprint
+     * Fingerprint of the key to compare, this is not just a normal fingerprint over the DER encoding
+     * For RSA keys this is the hash (see {@link #DIGEST_ALGORITHM}) over the binary bytes of the public key modulus.
+     * This because blacklist is typically due to weak random number generator (Debian weak keys) and we then want to capture all keys 
+     * generated by this, so we don't want to include the chosen e, only the randomly generated n.
+     * For other keys (ECDSA and DSA) it's a fingerprint over the public key encoding.
+     * @param fingerprint FP
+     */
+    public void setFingerprint(String fingerprint) {
+<span class="nc" id="L117">        setValue(fingerprint);</span>
+<span class="nc" id="L118">    }</span>
+
+    /** 
+     * Sets the fingerprint in the correct format from a public key object
+     * see {@link #setFingerprint(String)}
+     * @param publicKey an RSA public key
+     */
+    public void setFingerprint(PublicKey publicKey) {
+<span class="nc" id="L126">        setValue(createFingerprint(publicKey));</span>
+<span class="nc" id="L127">    }</span>
+    
+    /** Creates the fingerprint in the correct format from a public key object
+     * see {@link #setFingerprint(String)}
+     * @param pk a public key, can be RSA, ECDSA or DSA 
+     * @return public key fingerprint, as required by Blacklist, or null of no fingerprint can be created (due to unhandled key type for example)
+     */
+    public static String createFingerprint(PublicKey pk) {
+<span class="nc bnc" id="L135" title="All 2 branches missed.">        if (pk == null) {</span>
+<span class="nc" id="L136">            return null;</span>
+        }
+<span class="nc bnc" id="L138" title="All 2 branches missed.">        if (pk instanceof RSAPublicKey) {</span>
+            // Fingerprint of the key to compare, this is not just a normal fingerprint over the DER encoding
+            // For RSA keys this is the hash (see {@link #DIGEST_ALGORITHM}) over the binary bytes of the public key modulus.
+            // This because blacklist is typically due to weak random number generator (Debian weak keys) and we then want to capture all keys 
+            // generated by this, so we don't want to include the chosen e, only the randomly generated n.
+<span class="nc" id="L143">            RSAPublicKey rsapk = (RSAPublicKey)pk;</span>
+<span class="nc" id="L144">            byte[] modulusBytes = rsapk.getModulus().toByteArray();</span>
+            MessageDigest digest;
+            try {
+<span class="nc" id="L147">                digest = MessageDigest.getInstance(PublicKeyBlacklistEntry.DIGEST_ALGORITHM);</span>
+<span class="nc" id="L148">            } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L149">                throw new RuntimeException(&quot;Unable to create hash &quot;+PublicKeyBlacklistEntry.DIGEST_ALGORITHM, e);</span>
+<span class="nc" id="L150">            }</span>
+<span class="nc" id="L151">            digest.reset();</span>
+<span class="nc" id="L152">            digest.update(modulusBytes);</span>
+<span class="nc" id="L153">            final String fingerprint = Hex.toHexString(digest.digest());</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L155">                log.trace(&quot;Created fingerprint for RSA public key: &quot;+fingerprint);</span>
+            }
+<span class="nc" id="L157">            return fingerprint;</span>
+        } else {
+<span class="nc" id="L159">            final String fingerprint = CertTools.createPublicKeyFingerprint(pk, PublicKeyBlacklistEntry.DIGEST_ALGORITHM);</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L161">                log.trace(&quot;Created fingerprint for &quot;+pk.getFormat()+&quot; public key: &quot;+fingerprint);</span>
+            }
+<span class="nc" id="L163">            return fingerprint;</span>
+        }
+    }
+    
+    /**
+     * Gets the public key, have to be set transient with {@link #setPublicKey(PublicKey)}, not available after serialization
+     * or storage.
+     * @return the public key.
+     */
+    public PublicKey getPublicKey() {
+<span class="nc" id="L173">        return publicKey;</span>
+    }
+
+    /**
+     * Sets the transient public key, see {@link #getPublicKey()}
+     * @param publicKey the public key.
+     */
+    public void setPublicKey(PublicKey publicKey) {
+<span class="nc" id="L181">        this.publicKey = publicKey;</span>
+<span class="nc" id="L182">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

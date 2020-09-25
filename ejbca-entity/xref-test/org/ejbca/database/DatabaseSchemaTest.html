@@ -1,0 +1,718 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>DatabaseSchemaTest xref</title>
+<link type="text/css" rel="stylesheet" href="../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../testapidocs/org/ejbca/database/DatabaseSchemaTest.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <em class="jxr_javadoccomment">/*************************************************************************</em>
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <em class="jxr_javadoccomment"> *  EJBCA Community: The OpenSource Certificate Authority                *</em>
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <em class="jxr_javadoccomment"> *  This software is free software; you can redistribute it and/or       *</em>
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <em class="jxr_javadoccomment"> *  modify it under the terms of the GNU Lesser General Public           *</em>
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <em class="jxr_javadoccomment"> *  License as published by the Free Software Foundation; either         *</em>
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <em class="jxr_javadoccomment"> *  version 2.1 of the License, or any later version.                    *</em>
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_javadoccomment"> *  See terms of license at gnu.org.                                     *</em>
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <em class="jxr_javadoccomment"> *************************************************************************/</em>
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">package</strong> org.ejbca.database;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.junit.Assert.assertTrue;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> java.lang.annotation.Annotation;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> java.lang.reflect.Method;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> java.util.LinkedHashMap;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> javax.persistence.EntityManager;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> javax.persistence.EntityManagerFactory;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> javax.persistence.EntityTransaction;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> javax.persistence.Persistence;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.apache.log4j.Logger;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.bouncycastle.util.Arrays;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.cesecore.authorization.rules.AccessRuleData;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.cesecore.authorization.rules.AccessRuleState;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.cesecore.authorization.user.AccessMatchType;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> org.cesecore.authorization.user.AccessUserAspectData;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> org.cesecore.authorization.user.matchvalues.X500PrincipalAccessMatchValue;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.ca.CAData;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.certificate.CertificateData;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.certificateprofile.CertificateProfileData;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.crl.CRLData;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.endentity.EndEntityInformation;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.endentity.ExtendedInformation;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> org.cesecore.configuration.GlobalConfigurationData;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> org.cesecore.internal.UpgradeableDataHashMap;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> org.cesecore.keybind.InternalKeyBindingData;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> org.cesecore.keys.token.CryptoTokenData;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> org.cesecore.roles.AdminGroupData;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> org.cesecore.roles.RoleData;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> org.cesecore.roles.member.RoleMemberData;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.approval.ApprovalData;
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.ca.publisher.PublisherData;
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.ca.publisher.PublisherQueueData;
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.ca.store.CertReqHistoryData;
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.hardtoken.HardTokenCertificateMap;
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.hardtoken.HardTokenData;
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.hardtoken.HardTokenIssuerData;
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.hardtoken.HardTokenProfileData;
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.hardtoken.HardTokenPropertyData;
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.hardtoken.HardTokenPropertyDataPK;
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.keyrecovery.KeyRecoveryData;
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.keyrecovery.KeyRecoveryDataPK;
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.ra.UserData;
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.ra.raadmin.AdminPreferencesData;
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.ra.raadmin.EndEntityProfileData;
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.ra.userdatasource.UserDataSourceData;
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.services.ServiceData;
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>  <strong class="jxr_keyword">import</strong> org.junit.After;
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>  <strong class="jxr_keyword">import</strong> org.junit.AfterClass;
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>  <strong class="jxr_keyword">import</strong> org.junit.Before;
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>  <strong class="jxr_keyword">import</strong> org.junit.BeforeClass;
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>  <strong class="jxr_keyword">import</strong> org.junit.FixMethodOrder;
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  <strong class="jxr_keyword">import</strong> org.junit.Test;
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  <strong class="jxr_keyword">import</strong> org.junit.runners.MethodSorters;
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>  <em class="jxr_javadoccomment"> * Simple class to trigger Hibernate's JPA schema validation.</em>
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>  <em class="jxr_javadoccomment"> * </em>
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>  <em class="jxr_javadoccomment"> * run with "ant test:dbschema"</em>
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>  <em class="jxr_javadoccomment"> * </em>
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>  <em class="jxr_javadoccomment"> * We also validate that all fields can hold the values that we assume they can.</em>
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>  <em class="jxr_javadoccomment"> * </em>
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>  <em class="jxr_javadoccomment"> * Must have 'max_allowed_packet' size set to a large value, &amp;gt;2MB</em>
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>  <em class="jxr_javadoccomment"> * </em>
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>  <em class="jxr_javadoccomment"> * @version $Id: DatabaseSchemaTest.java 26474 2017-08-30 18:21:20Z anatom $</em>
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>  @SuppressWarnings(<span class="jxr_string">"deprecation"</span>)
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>  @FixMethodOrder(MethodSorters.NAME_ASCENDING)
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="DatabaseSchemaTest" href="../../../org/ejbca/database/DatabaseSchemaTest.html#DatabaseSchemaTest">DatabaseSchemaTest</a> {
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>  
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger LOG = Logger.getLogger(DatabaseSchemaTest.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>  
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> String VARCHAR_80B;
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> String VARCHAR_250B;
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> String VARCHAR_400B;
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> String VARCHAR_2000B;
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> String CLOB_10KiB;
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> String CLOB_100KiB;
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> String CLOB_1MiB;
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> LinkedHashMap&lt;String, Object&gt; HASHMAP_200K = <strong class="jxr_keyword">new</strong> LinkedHashMap&lt;String, Object&gt;();
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> LinkedHashMap&lt;String, Object&gt; HASHMAP_1M = <strong class="jxr_keyword">new</strong> LinkedHashMap&lt;String, Object&gt;();
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> BOGUS_INT = -32; <em class="jxr_comment">// Very random..</em>
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Integer BOGUS_INTEGER = Integer.valueOf(BOGUS_INT);
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> EntityManagerFactory entityManagerFactory;
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>     <strong class="jxr_keyword">private</strong> EntityManager entityManager;
+<a class="jxr_linenumber" name="L102" href="#L102">102</a> 
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>     @BeforeClass
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> beforeClass() <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>         LOG.trace(<span class="jxr_string">"&gt;setup"</span>);
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>         <strong class="jxr_keyword">if</strong> (entityManagerFactory == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>             entityManagerFactory = Persistence.createEntityManagerFactory(<span class="jxr_string">"ejbca-pu"</span>);
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>         }
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>         LOG.trace(<span class="jxr_string">"&lt;setup"</span>);
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>     }
+<a class="jxr_linenumber" name="L111" href="#L111">111</a> 
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>     @Before
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> before() {
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>         entityManager = entityManagerFactory.createEntityManager();
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>     }
+<a class="jxr_linenumber" name="L116" href="#L116">116</a> 
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>     @After
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> tearDown() <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>         LOG.trace(<span class="jxr_string">"&gt;tearDown"</span>);
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>         entityManager.close();
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>         LOG.trace(<span class="jxr_string">"&lt;tearDown"</span>);
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>     }
+<a class="jxr_linenumber" name="L123" href="#L123">123</a> 
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>     @AfterClass
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> afterClass() <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>         <strong class="jxr_keyword">if</strong> (entityManagerFactory != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L127" href="#L127">127</a>             <strong class="jxr_keyword">if</strong> (entityManagerFactory.isOpen()) {
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>                 entityManagerFactory.close();
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>             }
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>         }
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>         logMemStats();
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>     }
+<a class="jxr_linenumber" name="L133" href="#L133">133</a> 
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>     @Test
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> test000Setup() <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>         LOG.trace(<span class="jxr_string">"&gt;test000Setup"</span>);
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>         logMemStats();
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>         LOG.debug(<span class="jxr_string">"Allocating memory.."</span>);
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>         VARCHAR_80B = getClob(80);
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>         VARCHAR_250B = getClob(250);
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>         VARCHAR_400B = getClob(400);
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>         VARCHAR_2000B = getClob(2000);
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>         CLOB_10KiB = getClob(10 * 1024);
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>         CLOB_100KiB = getClob(100 * 1024);
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>         CLOB_1MiB = getClob(1024 * 1024);
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>         LOG.debug(<span class="jxr_string">"VARCHAR_80B   is      "</span> + VARCHAR_80B.length() + <span class="jxr_string">" chars and     "</span> + VARCHAR_80B.getBytes().length + <span class="jxr_string">" bytes."</span>);
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>         LOG.debug(<span class="jxr_string">"VARCHAR_250B  is     "</span> + VARCHAR_250B.length() + <span class="jxr_string">" chars and     "</span> + VARCHAR_250B.getBytes().length + <span class="jxr_string">" bytes."</span>);
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>         LOG.debug(<span class="jxr_string">"VARCHAR_400B  is     "</span> + VARCHAR_400B.length() + <span class="jxr_string">" chars and     "</span> + VARCHAR_400B.getBytes().length + <span class="jxr_string">" bytes."</span>);
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>         LOG.debug(<span class="jxr_string">"VARCHAR_2000B is    "</span> + VARCHAR_2000B.length() + <span class="jxr_string">" chars and    "</span> + VARCHAR_2000B.getBytes().length + <span class="jxr_string">" bytes."</span>);
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>         LOG.debug(<span class="jxr_string">"CLOB_10KiB    is   "</span> + CLOB_10KiB.length()     + <span class="jxr_string">" chars and   "</span> + CLOB_10KiB.getBytes().length + <span class="jxr_string">" bytes."</span>);
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>         LOG.debug(<span class="jxr_string">"CLOB_100KiB   is  "</span> + CLOB_100KiB.length()     + <span class="jxr_string">" chars and  "</span> + CLOB_100KiB.getBytes().length + <span class="jxr_string">" bytes."</span>);
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>         LOG.debug(<span class="jxr_string">"CLOB_1MiB     is "</span> + CLOB_1MiB.length()        + <span class="jxr_string">" chars and "</span> + CLOB_1MiB.getBytes().length + <span class="jxr_string">" bytes."</span>);
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>         LOG.debug(<span class="jxr_string">"Filling HashMaps.."</span>);
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>         <em class="jxr_comment">// Make them mimic "real" UpgradeablaHashMap's, because that's what is usaully stored</em>
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>         Float f = Float.valueOf(<span class="jxr_string">"9999"</span>); <em class="jxr_comment">// high number so not to trigger any UpgradeableHashMap.upgrade()'s</em>
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>         HASHMAP_200K.put(<span class="jxr_string">"object"</span>, <strong class="jxr_keyword">new</strong> String(getLob(196 * 1024))); <em class="jxr_comment">// It need to be less than 200KiB in Serialized format..</em>
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>         HASHMAP_200K.put(UpgradeableDataHashMap.VERSION, f);
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>         <em class="jxr_comment">// make it look also like a UserData.ExtendedInformation</em>
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>         HASHMAP_200K.put(ExtendedInformation.TYPE, Integer.valueOf(ExtendedInformation.TYPE_BASIC));
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>         HASHMAP_1M.put(<span class="jxr_string">"object"</span>, <strong class="jxr_keyword">new</strong> String(getLob(996 * 1024))); <em class="jxr_comment">// It need to be less than 1MiB in Serialized format.. </em>
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>         HASHMAP_1M.put(UpgradeableDataHashMap.VERSION, f);
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>         HASHMAP_1M.put(ExtendedInformation.TYPE, Integer.valueOf(ExtendedInformation.TYPE_BASIC));
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>         logMemStats();
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>         LOG.trace(<span class="jxr_string">"&lt;test000Setup"</span>);
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>     }
+<a class="jxr_linenumber" name="L166" href="#L166">166</a> 
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>     <strong class="jxr_keyword">private</strong> byte[] getLob(<strong class="jxr_keyword">int</strong> size) {
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>         byte[] ret = <strong class="jxr_keyword">new</strong> byte[size];
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>         Arrays.fill(ret, (byte) '0');
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>         <strong class="jxr_keyword">return</strong> ret;
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>     }
+<a class="jxr_linenumber" name="L172" href="#L172">172</a> 
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>     <strong class="jxr_keyword">private</strong> String getClob(<strong class="jxr_keyword">int</strong> size) {
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> String(getLob(size));
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>     }
+<a class="jxr_linenumber" name="L176" href="#L176">176</a> 
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>     @Test
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testApprovalData() {
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>         LOG.trace(<span class="jxr_string">"&gt;testApprovalData"</span>);
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>         logMemStats();
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>         ApprovalData entity = <strong class="jxr_keyword">new</strong> ApprovalData();
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>         entity.setApprovalid(0);
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>         entity.setApprovaldata(CLOB_1MiB);
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>         entity.setApprovaltype(0);
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>         entity.setCaid(0);
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>         entity.setEndentityprofileid(0);
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>         entity.setExpiredate(0);
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>         entity.setId(Integer.valueOf(0));
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>         entity.setRemainingapprovals(0);
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>         entity.setReqadmincertissuerdn(VARCHAR_250B);
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>         entity.setReqadmincertsn(VARCHAR_250B);
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>         entity.setRequestdata(CLOB_1MiB);
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>         entity.setRequestdate(0);
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>         entity.setStatus(0);
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>         LOG.trace(<span class="jxr_string">"&lt;testApprovalData"</span>);
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>     }
+<a class="jxr_linenumber" name="L200" href="#L200">200</a> 
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>     @Test
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testAccessRulesData() {
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>         LOG.trace(<span class="jxr_string">"&gt;testAccessRulesData"</span>);
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>         logMemStats();
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>         AccessRuleData entity = <strong class="jxr_keyword">new</strong> AccessRuleData(BOGUS_INTEGER.intValue(), VARCHAR_250B, AccessRuleState.RULE_ACCEPT, false);
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>         LOG.trace(<span class="jxr_string">"&lt;testAccessRulesData"</span>);
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>     }
+<a class="jxr_linenumber" name="L211" href="#L211">211</a> 
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>     @Test
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testAdminEntityData() {
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>         LOG.trace(<span class="jxr_string">"&gt;testAdminEntityData"</span>);
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>         logMemStats();
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>         AccessUserAspectData entity = <strong class="jxr_keyword">new</strong> AccessUserAspectData(VARCHAR_250B, BOGUS_INTEGER, X500PrincipalAccessMatchValue.WITH_SERIALNUMBER,
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>                 AccessMatchType.TYPE_EQUALCASE, VARCHAR_250B);
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>         LOG.trace(<span class="jxr_string">"&lt;testAdminEntityData"</span>);
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>     }
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>     
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>     @Test
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testRoleMemberData() {
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>         LOG.trace(<span class="jxr_string">"&gt;testAdminEntityData"</span>);
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>         logMemStats();
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>         RoleMemberData entity = <strong class="jxr_keyword">new</strong> RoleMemberData(BOGUS_INT, VARCHAR_250B, BOGUS_INT, BOGUS_INT, BOGUS_INT, VARCHAR_2000B, BOGUS_INT, VARCHAR_250B);
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>         LOG.trace(<span class="jxr_string">"&lt;testAdminEntityData"</span>);
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>     }
+<a class="jxr_linenumber" name="L234" href="#L234">234</a> 
+<a class="jxr_linenumber" name="L235" href="#L235">235</a>     @Test
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testAdminGroupData() {
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>         LOG.trace(<span class="jxr_string">"&gt;testAdminGroupData"</span>);
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>         logMemStats();
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>         AdminGroupData entity = <strong class="jxr_keyword">new</strong> AdminGroupData(BOGUS_INTEGER, VARCHAR_250B);
+<a class="jxr_linenumber" name="L240" href="#L240">240</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L242" href="#L242">242</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L243" href="#L243">243</a>         LOG.trace(<span class="jxr_string">"&lt;testAdminGroupData"</span>);
+<a class="jxr_linenumber" name="L244" href="#L244">244</a>     }
+<a class="jxr_linenumber" name="L245" href="#L245">245</a> 
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>     @Test
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testRoleData() {
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>         LOG.trace(<span class="jxr_string">"&gt;testRoleData"</span>);
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>         logMemStats();
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>         RoleData entity = <strong class="jxr_keyword">new</strong> RoleData();
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>         entity.setId(123);
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>         entity.setNameSpace(VARCHAR_250B);
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>         entity.setRoleName(VARCHAR_250B);
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>         entity.setRawData(CLOB_1MiB);
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>         LOG.trace(<span class="jxr_string">"&lt;testRoleData"</span>);
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>     }
+<a class="jxr_linenumber" name="L260" href="#L260">260</a> 
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>     @Test
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testCAData() {
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>         LOG.trace(<span class="jxr_string">"&gt;testCAData"</span>);
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>         logMemStats();
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>         CAData entity = <strong class="jxr_keyword">new</strong> CAData();
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>         entity.setCaId(BOGUS_INTEGER);
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>         entity.setData(CLOB_100KiB);
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>         entity.setExpireTime(0);
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>         entity.setName(VARCHAR_250B);
+<a class="jxr_linenumber" name="L270" href="#L270">270</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>         entity.setStatus(0);
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>         entity.setSubjectDN(VARCHAR_250B);
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>         entity.setUpdateTime(0);
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>         LOG.trace(<span class="jxr_string">"&lt;testCAData"</span>);
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>     }
+<a class="jxr_linenumber" name="L278" href="#L278">278</a> 
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>     @Test
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testCertificateProfileData() {
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>         LOG.trace(<span class="jxr_string">"&gt;testCertificateProfileData"</span>);
+<a class="jxr_linenumber" name="L282" href="#L282">282</a>         logMemStats();
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>         CertificateProfileData entity = <strong class="jxr_keyword">new</strong> CertificateProfileData();
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>         entity.setCertificateProfileName(VARCHAR_250B);
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>         entity.setDataUnsafe(HASHMAP_1M);
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>         entity.setId(BOGUS_INTEGER);
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>         LOG.trace(<span class="jxr_string">"&lt;testCertificateProfileData"</span>);
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>     }
+<a class="jxr_linenumber" name="L292" href="#L292">292</a> 
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>     @Test
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testPublisherData() {
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>         LOG.trace(<span class="jxr_string">"&gt;testPublisherData"</span>);
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>         logMemStats();
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>         PublisherData entity = <strong class="jxr_keyword">new</strong> PublisherData();
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>         entity.setData(CLOB_100KiB);
+<a class="jxr_linenumber" name="L299" href="#L299">299</a>         entity.setId(BOGUS_INTEGER);
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>         entity.setName(VARCHAR_250B);
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>         entity.setUpdateCounter(0);
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>         LOG.trace(<span class="jxr_string">"&lt;testPublisherData"</span>);
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>     }
+<a class="jxr_linenumber" name="L307" href="#L307">307</a> 
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>     @Test
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testPublisherQueueData() {
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>         LOG.trace(<span class="jxr_string">"&gt;testPublisherQueueData"</span>);
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>         logMemStats();
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>         PublisherQueueData entity = <strong class="jxr_keyword">new</strong> PublisherQueueData();
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>         entity.setFingerprint(VARCHAR_250B);
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>         entity.setLastUpdate(0);
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>         entity.setPk(VARCHAR_250B);
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>         entity.setPublisherId(0);
+<a class="jxr_linenumber" name="L317" href="#L317">317</a>         entity.setPublishStatus(0);
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>         entity.setPublishType(0);
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>         entity.setTimeCreated(0);
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>         entity.setTryCounter(0);
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>         entity.setVolatileData(CLOB_100KiB);
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>         LOG.trace(<span class="jxr_string">"&lt;testPublisherQueueData"</span>);
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>     }
+<a class="jxr_linenumber" name="L327" href="#L327">327</a> 
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>     @Test
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testCertificateData() {
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>         LOG.trace(<span class="jxr_string">"&gt;testCertificateData"</span>);
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>         logMemStats();
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>         CertificateData entity = <strong class="jxr_keyword">new</strong> CertificateData();
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>         entity.setBase64Cert(CLOB_1MiB);
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>         entity.setCaFingerprint(VARCHAR_250B);
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>         entity.setCertificateProfileId(BOGUS_INTEGER);
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>         entity.setExpireDate(0L);
+<a class="jxr_linenumber" name="L337" href="#L337">337</a>         entity.setFingerprint(VARCHAR_250B);
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>         entity.setIssuerDN(VARCHAR_250B);
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>         <em class="jxr_comment">//setPrivateField(entity, "issuerDN", VARCHAR_250B);</em>
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>         entity.setRevocationDate(0L);
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>         entity.setRevocationReason(0);
+<a class="jxr_linenumber" name="L342" href="#L342">342</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>         entity.setSerialNumber(VARCHAR_250B);
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>         entity.setStatus(0);
+<a class="jxr_linenumber" name="L346" href="#L346">346</a>         entity.setSubjectDN(VARCHAR_400B);
+<a class="jxr_linenumber" name="L347" href="#L347">347</a>         entity.setSubjectAltName(VARCHAR_2000B);
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>         entity.setSubjectKeyId(VARCHAR_250B);
+<a class="jxr_linenumber" name="L349" href="#L349">349</a>         entity.setTag(VARCHAR_250B);
+<a class="jxr_linenumber" name="L350" href="#L350">350</a>         entity.setType(0);
+<a class="jxr_linenumber" name="L351" href="#L351">351</a>         entity.setUpdateTime(Long.valueOf(0L));
+<a class="jxr_linenumber" name="L352" href="#L352">352</a>         entity.setUsername(VARCHAR_250B);
+<a class="jxr_linenumber" name="L353" href="#L353">353</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L354" href="#L354">354</a>         LOG.trace(<span class="jxr_string">"&lt;testCertificateData"</span>);
+<a class="jxr_linenumber" name="L355" href="#L355">355</a>     }
+<a class="jxr_linenumber" name="L356" href="#L356">356</a> 
+<a class="jxr_linenumber" name="L357" href="#L357">357</a>     @Test
+<a class="jxr_linenumber" name="L358" href="#L358">358</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testCertReqHistoryData() {
+<a class="jxr_linenumber" name="L359" href="#L359">359</a>         LOG.trace(<span class="jxr_string">"&gt;testCertReqHistoryData"</span>);
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>         logMemStats();
+<a class="jxr_linenumber" name="L361" href="#L361">361</a>         CertReqHistoryData entity = <strong class="jxr_keyword">new</strong> CertReqHistoryData();
+<a class="jxr_linenumber" name="L362" href="#L362">362</a>         entity.setIssuerDN(VARCHAR_250B);
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>         entity.setFingerprint(VARCHAR_250B);
+<a class="jxr_linenumber" name="L364" href="#L364">364</a>         <em class="jxr_comment">//setPrivateField(entity, "issuerDN", VARCHAR_250B);</em>
+<a class="jxr_linenumber" name="L365" href="#L365">365</a>         <em class="jxr_comment">//setPrivateField(entity, "fingerprint", VARCHAR_250B);</em>
+<a class="jxr_linenumber" name="L366" href="#L366">366</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L368" href="#L368">368</a>         entity.setSerialNumber(VARCHAR_250B);
+<a class="jxr_linenumber" name="L369" href="#L369">369</a>         <em class="jxr_comment">//setPrivateField(entity, "serialNumber", VARCHAR_250B);</em>
+<a class="jxr_linenumber" name="L370" href="#L370">370</a>         entity.setTimestamp(0L);
+<a class="jxr_linenumber" name="L371" href="#L371">371</a>         entity.setUserDataVO(CLOB_1MiB);
+<a class="jxr_linenumber" name="L372" href="#L372">372</a>         entity.setUsername(VARCHAR_250B);
+<a class="jxr_linenumber" name="L373" href="#L373">373</a>         <em class="jxr_comment">//setPrivateField(entity, "username", VARCHAR_250B);</em>
+<a class="jxr_linenumber" name="L374" href="#L374">374</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L375" href="#L375">375</a>         LOG.trace(<span class="jxr_string">"&lt;testCertReqHistoryData"</span>);
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>     }
+<a class="jxr_linenumber" name="L377" href="#L377">377</a> 
+<a class="jxr_linenumber" name="L378" href="#L378">378</a>     @Test
+<a class="jxr_linenumber" name="L379" href="#L379">379</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testCryptoTokenData() {
+<a class="jxr_linenumber" name="L380" href="#L380">380</a>         LOG.trace(<span class="jxr_string">"&gt;testCryptoTokenData"</span>);
+<a class="jxr_linenumber" name="L381" href="#L381">381</a>         logMemStats();
+<a class="jxr_linenumber" name="L382" href="#L382">382</a>         CryptoTokenData entity = <strong class="jxr_keyword">new</strong> CryptoTokenData();
+<a class="jxr_linenumber" name="L383" href="#L383">383</a>         entity.setId(BOGUS_INT);
+<a class="jxr_linenumber" name="L384" href="#L384">384</a>         entity.setLastUpdate(0L);
+<a class="jxr_linenumber" name="L385" href="#L385">385</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L386" href="#L386">386</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L387" href="#L387">387</a>         entity.setTokenData(CLOB_1MiB);
+<a class="jxr_linenumber" name="L388" href="#L388">388</a>         entity.setTokenName(VARCHAR_250B);
+<a class="jxr_linenumber" name="L389" href="#L389">389</a>         entity.setTokenProps(CLOB_10KiB);
+<a class="jxr_linenumber" name="L390" href="#L390">390</a>         entity.setTokenType(VARCHAR_250B);
+<a class="jxr_linenumber" name="L391" href="#L391">391</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L392" href="#L392">392</a>         LOG.trace(<span class="jxr_string">"&lt;testCryptoTokenData"</span>);
+<a class="jxr_linenumber" name="L393" href="#L393">393</a>     }
+<a class="jxr_linenumber" name="L394" href="#L394">394</a> 
+<a class="jxr_linenumber" name="L395" href="#L395">395</a>     <em class="jxr_comment">// ZZ to run this test last, since we often run out of memory here and mess up the database connection.</em>
+<a class="jxr_linenumber" name="L396" href="#L396">396</a>     @Test
+<a class="jxr_linenumber" name="L397" href="#L397">397</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testZZCRLData() {
+<a class="jxr_linenumber" name="L398" href="#L398">398</a>         LOG.trace(<span class="jxr_string">"&gt;testCRLData"</span>);
+<a class="jxr_linenumber" name="L399" href="#L399">399</a>         logMemStats();
+<a class="jxr_linenumber" name="L400" href="#L400">400</a>         String CLOB_10MiB = getClob(10 * 1024 * 1024);
+<a class="jxr_linenumber" name="L401" href="#L401">401</a>         CRLData entity = <strong class="jxr_keyword">new</strong> CRLData();
+<a class="jxr_linenumber" name="L402" href="#L402">402</a>         entity.setBase64Crl(CLOB_10MiB);
+<a class="jxr_linenumber" name="L403" href="#L403">403</a>         CLOB_10MiB = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L404" href="#L404">404</a>         System.gc();
+<a class="jxr_linenumber" name="L405" href="#L405">405</a>         entity.setCaFingerprint(VARCHAR_250B);
+<a class="jxr_linenumber" name="L406" href="#L406">406</a>         entity.setCrlNumber(0);
+<a class="jxr_linenumber" name="L407" href="#L407">407</a>         entity.setDeltaCRLIndicator(0);
+<a class="jxr_linenumber" name="L408" href="#L408">408</a>         entity.setFingerprint(VARCHAR_250B);
+<a class="jxr_linenumber" name="L409" href="#L409">409</a>         entity.setIssuerDN(VARCHAR_250B);
+<a class="jxr_linenumber" name="L410" href="#L410">410</a>         <em class="jxr_comment">//setPrivateField(entity, "issuerDN", VARCHAR_250B);</em>
+<a class="jxr_linenumber" name="L411" href="#L411">411</a>         entity.setNextUpdate(0L);
+<a class="jxr_linenumber" name="L412" href="#L412">412</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L413" href="#L413">413</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L414" href="#L414">414</a>         entity.setThisUpdate(0L);
+<a class="jxr_linenumber" name="L415" href="#L415">415</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L416" href="#L416">416</a>         LOG.trace(<span class="jxr_string">"&lt;testCRLData"</span>);
+<a class="jxr_linenumber" name="L417" href="#L417">417</a>     }
+<a class="jxr_linenumber" name="L418" href="#L418">418</a> 
+<a class="jxr_linenumber" name="L419" href="#L419">419</a>     @Test
+<a class="jxr_linenumber" name="L420" href="#L420">420</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testHardTokenCertificateMap() {
+<a class="jxr_linenumber" name="L421" href="#L421">421</a>         LOG.trace(<span class="jxr_string">"&gt;testHardTokenCertificateMap"</span>);
+<a class="jxr_linenumber" name="L422" href="#L422">422</a>         logMemStats();
+<a class="jxr_linenumber" name="L423" href="#L423">423</a>         HardTokenCertificateMap entity = <strong class="jxr_keyword">new</strong> HardTokenCertificateMap();
+<a class="jxr_linenumber" name="L424" href="#L424">424</a>         entity.setCertificateFingerprint(VARCHAR_250B);
+<a class="jxr_linenumber" name="L425" href="#L425">425</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L426" href="#L426">426</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L427" href="#L427">427</a>         entity.setTokenSN(VARCHAR_250B);
+<a class="jxr_linenumber" name="L428" href="#L428">428</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L429" href="#L429">429</a>         LOG.trace(<span class="jxr_string">"&lt;testHardTokenCertificateMap"</span>);
+<a class="jxr_linenumber" name="L430" href="#L430">430</a>     }
+<a class="jxr_linenumber" name="L431" href="#L431">431</a> 
+<a class="jxr_linenumber" name="L432" href="#L432">432</a>     @Test
+<a class="jxr_linenumber" name="L433" href="#L433">433</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testHardTokenData() {
+<a class="jxr_linenumber" name="L434" href="#L434">434</a>         LOG.trace(<span class="jxr_string">"&gt;testHardTokenData"</span>);
+<a class="jxr_linenumber" name="L435" href="#L435">435</a>         logMemStats();
+<a class="jxr_linenumber" name="L436" href="#L436">436</a>         HardTokenData entity = <strong class="jxr_keyword">new</strong> HardTokenData();
+<a class="jxr_linenumber" name="L437" href="#L437">437</a>         entity.setCtime(0L);
+<a class="jxr_linenumber" name="L438" href="#L438">438</a>         entity.setData(HASHMAP_200K);
+<a class="jxr_linenumber" name="L439" href="#L439">439</a>         entity.setMtime(0L);
+<a class="jxr_linenumber" name="L440" href="#L440">440</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L441" href="#L441">441</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L442" href="#L442">442</a>         entity.setSignificantIssuerDN(VARCHAR_250B);
+<a class="jxr_linenumber" name="L443" href="#L443">443</a>         entity.setTokenSN(VARCHAR_250B);
+<a class="jxr_linenumber" name="L444" href="#L444">444</a>         entity.setTokenType(0);
+<a class="jxr_linenumber" name="L445" href="#L445">445</a>         entity.setUsername(VARCHAR_250B);
+<a class="jxr_linenumber" name="L446" href="#L446">446</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L447" href="#L447">447</a>         LOG.trace(<span class="jxr_string">"&lt;testHardTokenData"</span>);
+<a class="jxr_linenumber" name="L448" href="#L448">448</a>     }
+<a class="jxr_linenumber" name="L449" href="#L449">449</a> 
+<a class="jxr_linenumber" name="L450" href="#L450">450</a>     @Test
+<a class="jxr_linenumber" name="L451" href="#L451">451</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testHardTokenIssuerData() {
+<a class="jxr_linenumber" name="L452" href="#L452">452</a>         LOG.trace(<span class="jxr_string">"&gt;testHardTokenIssuerData"</span>);
+<a class="jxr_linenumber" name="L453" href="#L453">453</a>         logMemStats();
+<a class="jxr_linenumber" name="L454" href="#L454">454</a>         HardTokenIssuerData entity = <strong class="jxr_keyword">new</strong> HardTokenIssuerData();
+<a class="jxr_linenumber" name="L455" href="#L455">455</a>         entity.setAdminGroupId(0);
+<a class="jxr_linenumber" name="L456" href="#L456">456</a>         entity.setAlias(VARCHAR_250B);
+<a class="jxr_linenumber" name="L457" href="#L457">457</a>         entity.setDataUnsafe(HASHMAP_200K);
+<a class="jxr_linenumber" name="L458" href="#L458">458</a>         entity.setId(BOGUS_INTEGER);
+<a class="jxr_linenumber" name="L459" href="#L459">459</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L460" href="#L460">460</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L461" href="#L461">461</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L462" href="#L462">462</a>         LOG.trace(<span class="jxr_string">"&lt;testHardTokenIssuerData"</span>);
+<a class="jxr_linenumber" name="L463" href="#L463">463</a>     }
+<a class="jxr_linenumber" name="L464" href="#L464">464</a> 
+<a class="jxr_linenumber" name="L465" href="#L465">465</a>     @Test
+<a class="jxr_linenumber" name="L466" href="#L466">466</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testHardTokenProfileData() {
+<a class="jxr_linenumber" name="L467" href="#L467">467</a>         LOG.trace(<span class="jxr_string">"&gt;testHardTokenProfileData"</span>);
+<a class="jxr_linenumber" name="L468" href="#L468">468</a>         logMemStats();
+<a class="jxr_linenumber" name="L469" href="#L469">469</a>         HardTokenProfileData entity = <strong class="jxr_keyword">new</strong> HardTokenProfileData();
+<a class="jxr_linenumber" name="L470" href="#L470">470</a>         entity.setData(CLOB_1MiB);
+<a class="jxr_linenumber" name="L471" href="#L471">471</a>         entity.setId(BOGUS_INTEGER);
+<a class="jxr_linenumber" name="L472" href="#L472">472</a>         entity.setName(VARCHAR_250B);
+<a class="jxr_linenumber" name="L473" href="#L473">473</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L474" href="#L474">474</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L475" href="#L475">475</a>         entity.setUpdateCounter(0);
+<a class="jxr_linenumber" name="L476" href="#L476">476</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L477" href="#L477">477</a>         LOG.trace(<span class="jxr_string">"&lt;testHardTokenProfileData"</span>);
+<a class="jxr_linenumber" name="L478" href="#L478">478</a>     }
+<a class="jxr_linenumber" name="L479" href="#L479">479</a> 
+<a class="jxr_linenumber" name="L480" href="#L480">480</a>     @Test
+<a class="jxr_linenumber" name="L481" href="#L481">481</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testHardTokenPropertyData() {
+<a class="jxr_linenumber" name="L482" href="#L482">482</a>         LOG.trace(<span class="jxr_string">"&gt;testHardTokenPropertyData"</span>);
+<a class="jxr_linenumber" name="L483" href="#L483">483</a>         logMemStats();
+<a class="jxr_linenumber" name="L484" href="#L484">484</a>         HardTokenPropertyData entity = <strong class="jxr_keyword">new</strong> HardTokenPropertyData();
+<a class="jxr_linenumber" name="L485" href="#L485">485</a>         <em class="jxr_comment">// Combined primary key id+property has to be less than 1000 bytes on MyISAM (UTF8: 3*(80+250) &lt; 1000 bytes)</em>
+<a class="jxr_linenumber" name="L486" href="#L486">486</a>         entity.setHardTokenPropertyDataPK(<strong class="jxr_keyword">new</strong> HardTokenPropertyDataPK(VARCHAR_80B, VARCHAR_250B));
+<a class="jxr_linenumber" name="L487" href="#L487">487</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L488" href="#L488">488</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L489" href="#L489">489</a>         entity.setValue(VARCHAR_250B);
+<a class="jxr_linenumber" name="L490" href="#L490">490</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L491" href="#L491">491</a>         LOG.trace(<span class="jxr_string">"&lt;testHardTokenPropertyData"</span>);
+<a class="jxr_linenumber" name="L492" href="#L492">492</a>     }
+<a class="jxr_linenumber" name="L493" href="#L493">493</a> 
+<a class="jxr_linenumber" name="L494" href="#L494">494</a>     @Test
+<a class="jxr_linenumber" name="L495" href="#L495">495</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testInternalKeyBindingData() {
+<a class="jxr_linenumber" name="L496" href="#L496">496</a>         LOG.trace(<span class="jxr_string">"&gt;testInternalKeyBindingData"</span>);
+<a class="jxr_linenumber" name="L497" href="#L497">497</a>         logMemStats();
+<a class="jxr_linenumber" name="L498" href="#L498">498</a>         InternalKeyBindingData entity = <strong class="jxr_keyword">new</strong> InternalKeyBindingData();
+<a class="jxr_linenumber" name="L499" href="#L499">499</a>         entity.setCertificateId(VARCHAR_250B);
+<a class="jxr_linenumber" name="L500" href="#L500">500</a>         entity.setCryptoTokenId(BOGUS_INT);
+<a class="jxr_linenumber" name="L501" href="#L501">501</a>         entity.setId(BOGUS_INT);
+<a class="jxr_linenumber" name="L502" href="#L502">502</a>         entity.setKeyBindingType(VARCHAR_250B);
+<a class="jxr_linenumber" name="L503" href="#L503">503</a>         entity.setKeyPairAlias(VARCHAR_250B);
+<a class="jxr_linenumber" name="L504" href="#L504">504</a>         entity.setLastUpdate(0L);
+<a class="jxr_linenumber" name="L505" href="#L505">505</a>         entity.setName(VARCHAR_250B);
+<a class="jxr_linenumber" name="L506" href="#L506">506</a>         entity.setRawData(CLOB_1MiB);
+<a class="jxr_linenumber" name="L507" href="#L507">507</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L508" href="#L508">508</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L509" href="#L509">509</a>         entity.setStatus(VARCHAR_250B);
+<a class="jxr_linenumber" name="L510" href="#L510">510</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L511" href="#L511">511</a>         LOG.trace(<span class="jxr_string">"&lt;testInternalKeyBindingData"</span>);
+<a class="jxr_linenumber" name="L512" href="#L512">512</a>     }
+<a class="jxr_linenumber" name="L513" href="#L513">513</a> 
+<a class="jxr_linenumber" name="L514" href="#L514">514</a>     @Test
+<a class="jxr_linenumber" name="L515" href="#L515">515</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testKeyRecoveryData() {
+<a class="jxr_linenumber" name="L516" href="#L516">516</a>         LOG.trace(<span class="jxr_string">"&gt;testKeyRecoveryData"</span>);
+<a class="jxr_linenumber" name="L517" href="#L517">517</a>         logMemStats();
+<a class="jxr_linenumber" name="L518" href="#L518">518</a>         KeyRecoveryData entity = <strong class="jxr_keyword">new</strong> KeyRecoveryData();
+<a class="jxr_linenumber" name="L519" href="#L519">519</a>         entity.setKeyRecoveryDataPK(<strong class="jxr_keyword">new</strong> KeyRecoveryDataPK(VARCHAR_80B, VARCHAR_250B));
+<a class="jxr_linenumber" name="L520" href="#L520">520</a>         entity.setKeyData(CLOB_1MiB);
+<a class="jxr_linenumber" name="L521" href="#L521">521</a>         entity.setMarkedAsRecoverable(false);
+<a class="jxr_linenumber" name="L522" href="#L522">522</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L523" href="#L523">523</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L524" href="#L524">524</a>         entity.setUsername(VARCHAR_250B);
+<a class="jxr_linenumber" name="L525" href="#L525">525</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L526" href="#L526">526</a>         LOG.trace(<span class="jxr_string">"&lt;testKeyRecoveryData"</span>);
+<a class="jxr_linenumber" name="L527" href="#L527">527</a>     }
+<a class="jxr_linenumber" name="L528" href="#L528">528</a> 
+<a class="jxr_linenumber" name="L529" href="#L529">529</a>     @Test
+<a class="jxr_linenumber" name="L530" href="#L530">530</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testUserData() {
+<a class="jxr_linenumber" name="L531" href="#L531">531</a>         LOG.trace(<span class="jxr_string">"&gt;testUserData"</span>);
+<a class="jxr_linenumber" name="L532" href="#L532">532</a>         logMemStats();
+<a class="jxr_linenumber" name="L533" href="#L533">533</a>         UserData entity = <strong class="jxr_keyword">new</strong> UserData();
+<a class="jxr_linenumber" name="L534" href="#L534">534</a>         entity.setCaId(0);
+<a class="jxr_linenumber" name="L535" href="#L535">535</a>         entity.setCardNumber(VARCHAR_250B);
+<a class="jxr_linenumber" name="L536" href="#L536">536</a>         entity.setCertificateProfileId(0);
+<a class="jxr_linenumber" name="L537" href="#L537">537</a>         entity.setClearPassword(VARCHAR_250B);
+<a class="jxr_linenumber" name="L538" href="#L538">538</a>         entity.setEndEntityProfileId(0);
+<a class="jxr_linenumber" name="L539" href="#L539">539</a>         <em class="jxr_comment">// Create a very large extendedInformation, that is still valid XML</em>
+<a class="jxr_linenumber" name="L540" href="#L540">540</a>         ExtendedInformation ei = <strong class="jxr_keyword">new</strong> ExtendedInformation();
+<a class="jxr_linenumber" name="L541" href="#L541">541</a>         ei.loadData(HASHMAP_1M);
+<a class="jxr_linenumber" name="L542" href="#L542">542</a>         String eiString = EndEntityInformation.extendedInformationToStringData(ei);
+<a class="jxr_linenumber" name="L543" href="#L543">543</a>         assertTrue(eiString.length() &gt; 900000);
+<a class="jxr_linenumber" name="L544" href="#L544">544</a>         entity.setExtendedInformationData(eiString);
+<a class="jxr_linenumber" name="L545" href="#L545">545</a>         entity.setHardTokenIssuerId(0);
+<a class="jxr_linenumber" name="L546" href="#L546">546</a>         entity.setKeyStorePassword(VARCHAR_250B);
+<a class="jxr_linenumber" name="L547" href="#L547">547</a>         entity.setPasswordHash(VARCHAR_250B);
+<a class="jxr_linenumber" name="L548" href="#L548">548</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L549" href="#L549">549</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L550" href="#L550">550</a>         entity.setStatus(0);
+<a class="jxr_linenumber" name="L551" href="#L551">551</a>         entity.setSubjectAltName(VARCHAR_2000B);
+<a class="jxr_linenumber" name="L552" href="#L552">552</a>         entity.setSubjectDN(VARCHAR_400B);
+<a class="jxr_linenumber" name="L553" href="#L553">553</a>         entity.setSubjectEmail(VARCHAR_250B);
+<a class="jxr_linenumber" name="L554" href="#L554">554</a>         entity.setTimeCreated(0L);
+<a class="jxr_linenumber" name="L555" href="#L555">555</a>         entity.setTimeModified(0L);
+<a class="jxr_linenumber" name="L556" href="#L556">556</a>         entity.setTokenType(0);
+<a class="jxr_linenumber" name="L557" href="#L557">557</a>         entity.setType(0);
+<a class="jxr_linenumber" name="L558" href="#L558">558</a>         entity.setUsername(VARCHAR_250B);
+<a class="jxr_linenumber" name="L559" href="#L559">559</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L560" href="#L560">560</a>         LOG.trace(<span class="jxr_string">"&lt;testUserData"</span>);
+<a class="jxr_linenumber" name="L561" href="#L561">561</a>     }
+<a class="jxr_linenumber" name="L562" href="#L562">562</a> 
+<a class="jxr_linenumber" name="L563" href="#L563">563</a>     @Test
+<a class="jxr_linenumber" name="L564" href="#L564">564</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testAdminPreferencesData() {
+<a class="jxr_linenumber" name="L565" href="#L565">565</a>         LOG.trace(<span class="jxr_string">"&gt;testAdminPreferencesData"</span>);
+<a class="jxr_linenumber" name="L566" href="#L566">566</a>         logMemStats();
+<a class="jxr_linenumber" name="L567" href="#L567">567</a>         AdminPreferencesData entity = <strong class="jxr_keyword">new</strong> AdminPreferencesData();
+<a class="jxr_linenumber" name="L568" href="#L568">568</a>         entity.setDataUnsafe(HASHMAP_200K);
+<a class="jxr_linenumber" name="L569" href="#L569">569</a>         entity.setId(VARCHAR_250B);
+<a class="jxr_linenumber" name="L570" href="#L570">570</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L571" href="#L571">571</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L572" href="#L572">572</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L573" href="#L573">573</a>         LOG.trace(<span class="jxr_string">"&lt;testAdminPreferencesData"</span>);
+<a class="jxr_linenumber" name="L574" href="#L574">574</a>     }
+<a class="jxr_linenumber" name="L575" href="#L575">575</a> 
+<a class="jxr_linenumber" name="L576" href="#L576">576</a>     @Test
+<a class="jxr_linenumber" name="L577" href="#L577">577</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testEndEntityProfileData() {
+<a class="jxr_linenumber" name="L578" href="#L578">578</a>         LOG.trace(<span class="jxr_string">"&gt;testEndEntityProfileData"</span>);
+<a class="jxr_linenumber" name="L579" href="#L579">579</a>         logMemStats();
+<a class="jxr_linenumber" name="L580" href="#L580">580</a>         EndEntityProfileData entity = <strong class="jxr_keyword">new</strong> EndEntityProfileData();
+<a class="jxr_linenumber" name="L581" href="#L581">581</a>         entity.setDataUnsafe(HASHMAP_200K);
+<a class="jxr_linenumber" name="L582" href="#L582">582</a>         entity.setId(BOGUS_INTEGER);
+<a class="jxr_linenumber" name="L583" href="#L583">583</a>         entity.setProfileName(VARCHAR_250B);
+<a class="jxr_linenumber" name="L584" href="#L584">584</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L585" href="#L585">585</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L586" href="#L586">586</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L587" href="#L587">587</a>         LOG.trace(<span class="jxr_string">"&lt;testEndEntityProfileData"</span>);
+<a class="jxr_linenumber" name="L588" href="#L588">588</a>     }
+<a class="jxr_linenumber" name="L589" href="#L589">589</a> 
+<a class="jxr_linenumber" name="L590" href="#L590">590</a>     @Test
+<a class="jxr_linenumber" name="L591" href="#L591">591</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testGlobalConfigurationData() {
+<a class="jxr_linenumber" name="L592" href="#L592">592</a>         LOG.trace(<span class="jxr_string">"&gt;testGlobalConfigurationData"</span>);
+<a class="jxr_linenumber" name="L593" href="#L593">593</a>         logMemStats();
+<a class="jxr_linenumber" name="L594" href="#L594">594</a>         GlobalConfigurationData entity = <strong class="jxr_keyword">new</strong> GlobalConfigurationData();
+<a class="jxr_linenumber" name="L595" href="#L595">595</a>         entity.setConfigurationId(VARCHAR_250B);
+<a class="jxr_linenumber" name="L596" href="#L596">596</a>         entity.setObjectUnsafe(HASHMAP_200K);
+<a class="jxr_linenumber" name="L597" href="#L597">597</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L598" href="#L598">598</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L599" href="#L599">599</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L600" href="#L600">600</a>         LOG.trace(<span class="jxr_string">"&lt;testGlobalConfigurationData"</span>);
+<a class="jxr_linenumber" name="L601" href="#L601">601</a>     }
+<a class="jxr_linenumber" name="L602" href="#L602">602</a> 
+<a class="jxr_linenumber" name="L603" href="#L603">603</a>     @Test
+<a class="jxr_linenumber" name="L604" href="#L604">604</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testUserDataSourceData() {
+<a class="jxr_linenumber" name="L605" href="#L605">605</a>         LOG.trace(<span class="jxr_string">"&gt;testUserDataSourceData"</span>);
+<a class="jxr_linenumber" name="L606" href="#L606">606</a>         logMemStats();
+<a class="jxr_linenumber" name="L607" href="#L607">607</a>         UserDataSourceData entity = <strong class="jxr_keyword">new</strong> UserDataSourceData();
+<a class="jxr_linenumber" name="L608" href="#L608">608</a>         entity.setData(CLOB_100KiB);
+<a class="jxr_linenumber" name="L609" href="#L609">609</a>         entity.setId(BOGUS_INTEGER);
+<a class="jxr_linenumber" name="L610" href="#L610">610</a>         entity.setName(VARCHAR_250B);
+<a class="jxr_linenumber" name="L611" href="#L611">611</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L612" href="#L612">612</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L613" href="#L613">613</a>         entity.setUpdateCounter(0);
+<a class="jxr_linenumber" name="L614" href="#L614">614</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L615" href="#L615">615</a>         LOG.trace(<span class="jxr_string">"&lt;testUserDataSourceData"</span>);
+<a class="jxr_linenumber" name="L616" href="#L616">616</a>     }
+<a class="jxr_linenumber" name="L617" href="#L617">617</a> 
+<a class="jxr_linenumber" name="L618" href="#L618">618</a>     @Test
+<a class="jxr_linenumber" name="L619" href="#L619">619</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testServiceData() {
+<a class="jxr_linenumber" name="L620" href="#L620">620</a>         LOG.trace(<span class="jxr_string">"&gt;testServiceData"</span>);
+<a class="jxr_linenumber" name="L621" href="#L621">621</a>         logMemStats();
+<a class="jxr_linenumber" name="L622" href="#L622">622</a>         ServiceData entity = <strong class="jxr_keyword">new</strong> ServiceData();
+<a class="jxr_linenumber" name="L623" href="#L623">623</a>         entity.setData(CLOB_100KiB);
+<a class="jxr_linenumber" name="L624" href="#L624">624</a>         entity.setId(BOGUS_INTEGER);
+<a class="jxr_linenumber" name="L625" href="#L625">625</a>         entity.setName(VARCHAR_250B);
+<a class="jxr_linenumber" name="L626" href="#L626">626</a>         entity.setNextRunTimeStamp(0L);
+<a class="jxr_linenumber" name="L627" href="#L627">627</a>         entity.setRowProtection(CLOB_10KiB);
+<a class="jxr_linenumber" name="L628" href="#L628">628</a>         entity.setRowVersion(0);
+<a class="jxr_linenumber" name="L629" href="#L629">629</a>         entity.setRunTimeStamp(0L);
+<a class="jxr_linenumber" name="L630" href="#L630">630</a>         storeAndRemoveEntity(entity);
+<a class="jxr_linenumber" name="L631" href="#L631">631</a>         LOG.trace(<span class="jxr_string">"&lt;testServiceData"</span>);
+<a class="jxr_linenumber" name="L632" href="#L632">632</a>     }
+<a class="jxr_linenumber" name="L633" href="#L633">633</a> 
+<a class="jxr_linenumber" name="L634" href="#L634">634</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L635" href="#L635">635</a> <em class="jxr_javadoccomment">     * Outputs which method it is run from.</em>
+<a class="jxr_linenumber" name="L636" href="#L636">636</a> <em class="jxr_javadoccomment">     * Validates that all getters on the entity that is annotated with @javax.persistence.Column is set. </em>
+<a class="jxr_linenumber" name="L637" href="#L637">637</a> <em class="jxr_javadoccomment">     * Commits the entity in one transaction and then removes it in another transaction.</em>
+<a class="jxr_linenumber" name="L638" href="#L638">638</a> <em class="jxr_javadoccomment">     * @param entity Entity</em>
+<a class="jxr_linenumber" name="L639" href="#L639">639</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L640" href="#L640">640</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> storeAndRemoveEntity(Object entity) {
+<a class="jxr_linenumber" name="L641" href="#L641">641</a>         LOG.trace(<span class="jxr_string">"&gt;storeAndRemoveEntity"</span>);
+<a class="jxr_linenumber" name="L642" href="#L642">642</a>         logMemStats();
+<a class="jxr_linenumber" name="L643" href="#L643">643</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L644" href="#L644">644</a>             Class&lt;?&gt; entityClass = entity.getClass();
+<a class="jxr_linenumber" name="L645" href="#L645">645</a>             LOG.info(<span class="jxr_string">"  - verifying that all getter has an assigned value for "</span> + entityClass.getName());
+<a class="jxr_linenumber" name="L646" href="#L646">646</a>             <strong class="jxr_keyword">boolean</strong> allOk = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L647" href="#L647">647</a>             <strong class="jxr_keyword">for</strong> (Method m : entityClass.getDeclaredMethods()) {
+<a class="jxr_linenumber" name="L648" href="#L648">648</a>                 <strong class="jxr_keyword">for</strong> (Annotation a : m.getAnnotations()) {
+<a class="jxr_linenumber" name="L649" href="#L649">649</a>                     <strong class="jxr_keyword">if</strong> (a.annotationType().equals(javax.persistence.Column.<strong class="jxr_keyword">class</strong>) &amp;&amp; m.getName().startsWith(<span class="jxr_string">"get"</span>)) {
+<a class="jxr_linenumber" name="L650" href="#L650">650</a>                         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L651" href="#L651">651</a>                             m.setAccessible(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L652" href="#L652">652</a>                             <strong class="jxr_keyword">if</strong> (m.invoke(entity) == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L653" href="#L653">653</a>                                 LOG.warn(m.getName() + <span class="jxr_string">" was annotated with @Column, but value was null. Test should be updated!"</span>);
+<a class="jxr_linenumber" name="L654" href="#L654">654</a>                                 allOk = false;
+<a class="jxr_linenumber" name="L655" href="#L655">655</a>                             }
+<a class="jxr_linenumber" name="L656" href="#L656">656</a>                         } <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a class="jxr_linenumber" name="L657" href="#L657">657</a>                             LOG.error(m.getName() + <span class="jxr_string">" was annotated with @Column and could not be read. "</span> + e.getMessage());
+<a class="jxr_linenumber" name="L658" href="#L658">658</a>                             allOk = false;
+<a class="jxr_linenumber" name="L659" href="#L659">659</a>                         }
+<a class="jxr_linenumber" name="L660" href="#L660">660</a>                     }
+<a class="jxr_linenumber" name="L661" href="#L661">661</a>                 }
+<a class="jxr_linenumber" name="L662" href="#L662">662</a>             }
+<a class="jxr_linenumber" name="L663" href="#L663">663</a>             assertTrue(<span class="jxr_string">"There is a problem with a @Column annotated getter. Please refer to log output for further info."</span>, allOk);
+<a class="jxr_linenumber" name="L664" href="#L664">664</a>             LOG.info(<span class="jxr_string">"  - adding entity."</span>);
+<a class="jxr_linenumber" name="L665" href="#L665">665</a>             EntityTransaction transaction = entityManager.getTransaction();
+<a class="jxr_linenumber" name="L666" href="#L666">666</a>             transaction.begin();
+<a class="jxr_linenumber" name="L667" href="#L667">667</a>             entityManager.persist(entity);
+<a class="jxr_linenumber" name="L668" href="#L668">668</a>             transaction.commit();
+<a class="jxr_linenumber" name="L669" href="#L669">669</a>             LOG.info(<span class="jxr_string">"  - removing entity."</span>);
+<a class="jxr_linenumber" name="L670" href="#L670">670</a>             transaction = entityManager.getTransaction();
+<a class="jxr_linenumber" name="L671" href="#L671">671</a>             transaction.begin();
+<a class="jxr_linenumber" name="L672" href="#L672">672</a>             entityManager.remove(entity);
+<a class="jxr_linenumber" name="L673" href="#L673">673</a>             transaction.commit();
+<a class="jxr_linenumber" name="L674" href="#L674">674</a>         } <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="L675" href="#L675">675</a>             <strong class="jxr_keyword">if</strong> (entityManager.getTransaction().isActive()) {
+<a class="jxr_linenumber" name="L676" href="#L676">676</a>                 entityManager.getTransaction().rollback();
+<a class="jxr_linenumber" name="L677" href="#L677">677</a>             }
+<a class="jxr_linenumber" name="L678" href="#L678">678</a>             logMemStats();
+<a class="jxr_linenumber" name="L679" href="#L679">679</a>         }
+<a class="jxr_linenumber" name="L680" href="#L680">680</a>         LOG.trace(<span class="jxr_string">"&lt;storeAndRemoveEntity"</span>);
+<a class="jxr_linenumber" name="L681" href="#L681">681</a>     }
+<a class="jxr_linenumber" name="L682" href="#L682">682</a> 
+<a class="jxr_linenumber" name="L683" href="#L683">683</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> logMemStats() {
+<a class="jxr_linenumber" name="L684" href="#L684">684</a>         System.gc();
+<a class="jxr_linenumber" name="L685" href="#L685">685</a>         <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> maxMemory = Runtime.getRuntime().maxMemory() / 1024 / 1024;
+<a class="jxr_linenumber" name="L686" href="#L686">686</a>         <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> freeMemory = Runtime.getRuntime().freeMemory() / 1024 / 1024;
+<a class="jxr_linenumber" name="L687" href="#L687">687</a>         LOG.info(<span class="jxr_string">"JVM Runtime reports: freeMemory="</span> + freeMemory + <span class="jxr_string">"MiB, maxMemory="</span> + maxMemory + <span class="jxr_string">"MiB, ("</span> + (maxMemory - freeMemory) * 100
+<a class="jxr_linenumber" name="L688" href="#L688">688</a>                 / maxMemory + <span class="jxr_string">"% used)"</span>);
+<a class="jxr_linenumber" name="L689" href="#L689">689</a>     }
+<a class="jxr_linenumber" name="L690" href="#L690">690</a> 
+<a class="jxr_linenumber" name="L691" href="#L691">691</a>     <em class="jxr_comment">/* * Used in order to bypass validity check of different private fields that are access via transient setters. * /</em>
+<a class="jxr_linenumber" name="L692" href="#L692">692</a> <em class="jxr_comment">    private void setPrivateField(Object entity, String fieldName, Object value) {</em>
+<a class="jxr_linenumber" name="L693" href="#L693">693</a> <em class="jxr_comment">    	LOG.trace("&gt;setPrivateField");</em>
+<a class="jxr_linenumber" name="L694" href="#L694">694</a> <em class="jxr_comment">    	try {</em>
+<a class="jxr_linenumber" name="L695" href="#L695">695</a> <em class="jxr_comment">    		Field field = entity.getClass().getDeclaredField(fieldName);</em>
+<a class="jxr_linenumber" name="L696" href="#L696">696</a> <em class="jxr_comment">    		field.setAccessible(true);</em>
+<a class="jxr_linenumber" name="L697" href="#L697">697</a> <em class="jxr_comment">    		field.set(entity, value);</em>
+<a class="jxr_linenumber" name="L698" href="#L698">698</a> <em class="jxr_comment">    	} catch (Exception e) {</em>
+<a class="jxr_linenumber" name="L699" href="#L699">699</a> <em class="jxr_comment">    		LOG.error("", e);</em>
+<a class="jxr_linenumber" name="L700" href="#L700">700</a> <em class="jxr_comment">    		assertTrue("Could not set " + fieldName + " to " + value + ": " + e.getMessage(), false);</em>
+<a class="jxr_linenumber" name="L701" href="#L701">701</a> <em class="jxr_comment">    	}</em>
+<a class="jxr_linenumber" name="L702" href="#L702">702</a> <em class="jxr_comment">    	LOG.trace("&lt;setPrivateField");</em>
+<a class="jxr_linenumber" name="L703" href="#L703">703</a> <em class="jxr_comment">    }</em>
+<a class="jxr_linenumber" name="L704" href="#L704">704</a> <em class="jxr_comment">    */</em>
+<a class="jxr_linenumber" name="L705" href="#L705">705</a> }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2020. All rights reserved.</div>
+</body>
+</html>

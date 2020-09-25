@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>LogEntry.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-ws-common</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.log</a> &gt; <span class="el_source">LogEntry.java</span></div><h1>LogEntry.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+/*
+ * LogEntry.java
+ *
+ * Created on den 28 aug 2002, 10:02
+ */
+
+package org.ejbca.core.model.log;
+
+import java.io.Serializable;
+import java.util.Date;
+
+/**
+ *  This is a  class containing information about one log event in the database. Used mainly during database queries by the web interface.
+ *
+ * @author  TomSelleck
+ * @version $Id: LogEntry.java 26057 2017-06-22 08:08:34Z anatom $
+ */
+public class LogEntry implements Serializable {
+
+    // Indicates the type of administrator.
+    /** An administrator authenticated with client certificate */
+    public static final int TYPE_CLIENTCERT_USER = 0;
+    /** A user of the public web pages */
+    public static final int TYPE_PUBLIC_WEB_USER = 1;
+    /** An internal RA function, such as cmd line or CMP */
+    public static final int TYPE_RA_USER = 2;
+    /** An internal CA admin function, such as cms line */
+    public static final int TYPE_CACOMMANDLINE_USER = 3;
+    /** Batch generation tool */
+    public static final int TYPE_BATCHCOMMANDLINE_USER = 4;
+    /** Internal user in EJBCA, such as automatic job */
+    public static final int TYPE_INTERNALUSER = 5;
+
+    private int id;
+    /** One of LogEntry.TYPE_ constants */
+    private int admintype;
+    private String admindata;
+    private int caid;
+    private int module;
+    private Date time;
+    private String username;
+    private String certificatesnr;
+    private int event;
+    private String comment;
+
+    /**
+     * Determines if a de-serialized file is compatible with this class.
+     *
+     * Maintainers must change this value if and only if the new version
+     * of this class is not compatible with old versions. See Sun docs
+     * for &lt;a href=http://java.sun.com/products/jdk/1.1/docs/guide
+     * /serialization/spec/version.doc.html&gt; details. &lt;/a&gt;
+     *
+     */
+	private static final long serialVersionUID = -1L;
+
+
+    /**
+     * Function used by EJBCA to log information.
+     * @param id ID
+     *
+     * @param admintype is pricipally the type of data stored in the admindata field, should be one of org.ejbca.core.model.log.Admin.TYPE_ constants.
+     * @param admindata is the data identifying the administrator, should be certificate snr or ip-address when no certificate could be retrieved.
+     * @param caid CA ID
+     * @param module indicates from which module the event was logged. i.e one of the constans LogConstants.MODULE_RA, LogConstants.MODULE_CA ....
+     * @param time the time the event occured.
+     * @param username the name of the user involved or null if no user is involved.
+     * @param certificatesnr the certificate involved in the event or null if no certificate is involved.
+     * @param event id of the event, should be one of the org.ejbca.core.model.log.LogConstants.EVENT_ constants.
+     * @param comment comment of the event.
+     */
+
+<span class="nc" id="L86">    public LogEntry(int id, int admintype, String admindata, int caid, int module, Date time, String username, String certificatesnr, int event, String comment) {</span>
+<span class="nc" id="L87">        this.id = id;</span>
+<span class="nc" id="L88">    	this.admintype = admintype;</span>
+<span class="nc" id="L89">        this.admindata = admindata;</span>
+<span class="nc" id="L90">        this.caid = caid;</span>
+<span class="nc" id="L91">        this.module = module;</span>
+<span class="nc" id="L92">        this.time = time;</span>
+<span class="nc" id="L93">        this.username = username;</span>
+<span class="nc" id="L94">        this.certificatesnr = certificatesnr;</span>
+<span class="nc" id="L95">        this.event = event;</span>
+<span class="nc" id="L96">        this.comment = comment;</span>
+<span class="nc" id="L97">    }</span>
+
+    // Public methods
+
+    /**
+     * Method used to map between event id and a string representation of event
+     *
+     * @return a string representation of the event.
+     */
+    public String getEventName() {
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        if (this.event &lt; LogConstants.EVENT_ERROR_BOUNDRARY) {</span>
+<span class="nc" id="L108">            return LogConstants.EVENTNAMES_INFO[this.event];</span>
+        }
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        if (this.event &lt; LogConstants.EVENT_SYSTEM_BOUNDRARY) {</span>
+<span class="nc" id="L111">            return LogConstants.EVENTNAMES_ERROR[this.event - LogConstants.EVENT_ERROR_BOUNDRARY];</span>
+        }
+<span class="nc" id="L113">        return LogConstants.EVENTNAMES_SYSTEM[this.event - LogConstants.EVENT_SYSTEM_BOUNDRARY];</span>
+    }
+
+    /**
+     * Method used to map between event id and a string representation of event
+     * @param eventId ID
+     *
+     * @return a string representation of the event.
+     */
+    static public String getEventName(int eventId) {
+<span class="nc bnc" id="L123" title="All 2 branches missed.">        if (eventId &lt; LogConstants.EVENT_ERROR_BOUNDRARY) {</span>
+<span class="nc" id="L124">            return LogConstants.EVENTNAMES_INFO[eventId];</span>
+        }
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        if (eventId &lt; LogConstants.EVENT_SYSTEM_BOUNDRARY) {</span>
+<span class="nc" id="L127">            return LogConstants.EVENTNAMES_ERROR[eventId - LogConstants.EVENT_ERROR_BOUNDRARY];</span>
+        }
+<span class="nc" id="L129">        return LogConstants.EVENTNAMES_SYSTEM[eventId - LogConstants.EVENT_SYSTEM_BOUNDRARY];</span>
+    }
+
+	public int getId() {
+<span class="nc" id="L133">		return this.id;</span>
+	}
+
+    public int getAdminType() {
+<span class="nc" id="L137">        return this.admintype;</span>
+    }
+
+    public String getAdminData() {
+<span class="nc" id="L141">        return this.admindata;</span>
+    }
+
+    public int getCAId() {
+<span class="nc" id="L145">        return this.caid;</span>
+    }
+
+    public int getModule() {
+<span class="nc" id="L149">        return this.module;</span>
+    }
+
+    public Date getTime() {
+<span class="nc" id="L153">        return this.time;</span>
+    }
+
+    public String getUsername() {
+<span class="nc" id="L157">        return this.username;</span>
+    }
+
+    public String getCertificateSNR() {
+<span class="nc" id="L161">        return this.certificatesnr;</span>
+    }
+
+    public int getEvent() {
+<span class="nc" id="L165">        return this.event;</span>
+    }
+
+    public String getComment() {
+<span class="nc" id="L169">        return this.comment;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

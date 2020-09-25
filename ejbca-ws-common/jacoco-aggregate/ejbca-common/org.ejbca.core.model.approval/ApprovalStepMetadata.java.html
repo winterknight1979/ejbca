@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ApprovalStepMetadata.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-ws-common</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.approval</a> &gt; <span class="el_source">ApprovalStepMetadata.java</span></div><h1>ApprovalStepMetadata.java</h1><pre class="source lang-java linenums">package org.ejbca.core.model.approval;
+
+import java.io.Serializable;
+import java.util.List;
+
+/**
+ * Holds data of metadata of an approval step
+ * 
+ *  @version $Id: ApprovalStepMetadata.java 26057 2017-06-22 08:08:34Z anatom $
+ */
+public class ApprovalStepMetadata implements Serializable {
+    private static final long serialVersionUID = -8320579875930271365L;
+    
+    public static final int METADATATYPE_CHECKBOX = 1;
+    public static final int METADATATYPE_RADIOBUTTON = 2;
+    public static final int METADATATYPE_TEXTBOX = 3;
+    
+    private int metadataId;
+    private String instruction;
+    private List&lt;String&gt; options;
+    private int optionsType;
+    private String optionValue;
+    private String optionNote;
+    
+<span class="nc" id="L25">    public ApprovalStepMetadata(final int id, final String instruction, final List&lt;String&gt; options, final int type) {</span>
+<span class="nc" id="L26">        this.metadataId = id;</span>
+<span class="nc" id="L27">        this.instruction = instruction;</span>
+<span class="nc" id="L28">        this.options = options;</span>
+<span class="nc" id="L29">        this.optionsType = type;</span>
+<span class="nc" id="L30">        this.optionValue = &quot;&quot;;</span>
+<span class="nc" id="L31">        this.optionNote = &quot;&quot;;</span>
+<span class="nc" id="L32">    }</span>
+    
+<span class="nc" id="L34">    public int getMetadataId() { return metadataId; }</span>
+<span class="nc" id="L35">    public String getInstruction() { return instruction; }</span>
+<span class="nc" id="L36">    public void setDescription(final String instruction) { this.instruction = instruction; }</span>
+<span class="nc" id="L37">    public List&lt;String&gt; getOptions() {return options; }</span>
+<span class="nc" id="L38">    public void setOptions(final List&lt;String&gt; options) { this.options = options; }</span>
+<span class="nc" id="L39">    public int getOptionsType() { return optionsType; }</span>
+<span class="nc" id="L40">    public void setOptionsType(final int type) { optionsType = type; }</span>
+<span class="nc" id="L41">    public String getOptionValue() { return optionValue; }</span>
+<span class="nc" id="L42">    public void setOptionValue(final String value) { optionValue = value; }</span>
+<span class="nc" id="L43">    public String getOptionNote() { return optionNote; }</span>
+<span class="nc" id="L44">    public void setOptionNote(final String note) { optionNote = note; }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

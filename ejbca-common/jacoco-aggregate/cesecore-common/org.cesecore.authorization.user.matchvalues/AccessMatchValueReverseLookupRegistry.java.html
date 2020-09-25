@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AccessMatchValueReverseLookupRegistry.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-common</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.authorization.user.matchvalues</a> &gt; <span class="el_source">AccessMatchValueReverseLookupRegistry.java</span></div><h1>AccessMatchValueReverseLookupRegistry.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.authorization.user.matchvalues;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ServiceLoader;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationTokenMetaData;
+
+/**
+ * This enum-pattern singleton acts as a lookup registry for AccessMatchValue implementations. 
+ * Any AccessMatchValue willing to be used has to register itself and its token type here.
+ * 
+ * @version $Id: AccessMatchValueReverseLookupRegistry.java 25313 2017-02-21 20:51:59Z jeklund $
+ *
+ */
+<span class="fc" id="L30">public enum AccessMatchValueReverseLookupRegistry {</span>
+<span class="fc" id="L31">    INSTANCE;</span>
+    
+<span class="fc" id="L33">    private final Logger log = Logger.getLogger(AccessMatchValueReverseLookupRegistry.class);</span>
+    
+    // Registry of methods used to look up database values
+<span class="fc" id="L36">    private final Map&lt;String, AuthenticationTokenMetaData&gt; metaDatas = new HashMap&lt;&gt;();</span>
+
+<span class="fc" id="L38">    private AccessMatchValueReverseLookupRegistry() {</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">        for (final AuthenticationTokenMetaData metaData : ServiceLoader.load(AuthenticationTokenMetaData.class)) {</span>
+<span class="fc" id="L40">            register(metaData);</span>
+<span class="fc" id="L41">        }</span>
+<span class="fc" id="L42">    }</span>
+
+    /** package accessible register class also for use from JUnit test 
+     * @param metaData metadata*/
+    void register(final AuthenticationTokenMetaData metaData) {
+<span class="pc bpc" id="L47" title="4 of 8 branches missed.">        if (metaData!=null &amp;&amp; metaData.getTokenType()!=null &amp;&amp; metaData.getAccessMatchValues()!=null &amp;&amp; !metaData.getAccessMatchValues().isEmpty()) {</span>
+<span class="fc" id="L48">            metaDatas.put(metaData.getTokenType(), metaData);</span>
+<span class="pc bpc" id="L49" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L50">                log.debug(&quot;Registered AuthenticationToken of type &quot; + metaData.getTokenType() +&quot; with match keys &quot; + metaData.getAccessMatchValues().toString());</span>
+            }
+        }
+<span class="fc" id="L53">    }</span>
+
+    public Set&lt;String&gt; getAllTokenTypes() {
+<span class="nc" id="L56">        return metaDatas.keySet();</span>
+    }
+    
+    /** @param tokenType type
+     * @return the meta data for the specified tokenType or null if none exists */
+    public AuthenticationTokenMetaData getMetaData(final String tokenType) {
+<span class="nc" id="L62">        return metaDatas.get(tokenType);</span>
+    }
+    
+    /**
+     * This method performs a reverse lookup given a token type and an integer, by using already registered callback method
+     * to translate those values into an AccessMatchValue. If no corresponding callback method has been registered, this method
+     * will return null.
+     * 
+     * @param tokenType A string identifier 
+     * @param databaseValue the numeric value from the database.
+     * @return The AccessMatchValue-extending enum returned by the corresponding lookup method, null if token type isn't registered. 
+     */
+    public AccessMatchValue performReverseLookup(final String tokenType, final int databaseValue) {
+<span class="fc" id="L75">        final AuthenticationTokenMetaData metaData = metaDatas.get(tokenType);</span>
+<span class="fc bfc" id="L76" title="All 2 branches covered.">        return metaData == null ? null : metaData.getAccessMatchValueIdMap().get(databaseValue);</span>
+    }
+    
+    /**
+     * Returns the AccessMatchValue for a given token type and value name
+     * 
+     * @param tokenType a name representing the sought token type.
+     * @param matchValueName the name of the match value
+     * @return the sought AccessMatchValue. Returns null if match value not found for the given token type.
+     */
+    public AccessMatchValue lookupMatchValueFromTokenTypeAndName(final String tokenType, final String matchValueName) {
+<span class="nc" id="L87">        final AuthenticationTokenMetaData metaData = metaDatas.get(tokenType);</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        return metaData == null ? null : metaData.getAccessMatchValueNameMap().get(matchValueName);</span>
+    }
+
+    /**
+     * @param tokenType Type
+     * @return the nameLookupMap for a given token type. Never returns null.
+     */
+    public Map&lt;String, AccessMatchValue&gt; getNameLookupRegistryForTokenType(final String tokenType) {
+<span class="nc" id="L96">        final AuthenticationTokenMetaData metaData = metaDatas.get(tokenType);</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        if (metaData == null) {</span>
+<span class="nc" id="L98">            throw new ReverseMatchValueLookupException(&quot;Token type of name &quot; + tokenType + &quot; not found.&quot;);</span>
+        }
+<span class="nc" id="L100">        return metaData.getAccessMatchValueNameMap();</span>
+    }
+    
+    /**
+     * The default value for the given token type. 
+     * 
+     * @param tokenType the token type asked for 
+     * @return the default value for the given token type. May return null if such a value is registered as default.
+     */
+    public AccessMatchValue getDefaultValueForTokenType(final String tokenType) {
+<span class="nc" id="L110">        final AuthenticationTokenMetaData metaData = metaDatas.get(tokenType);</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        if (metaData == null) {</span>
+<span class="nc" id="L112">            throw new ReverseMatchValueLookupException(&quot;Token type of name &quot; + tokenType + &quot; not found.&quot;);</span>
+        }
+<span class="nc" id="L114">        return metaData.getAccessMatchValueDefault();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,534 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ExternalCommandCertificateValidator.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-ejb-interface</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.keys.validation</a> &gt; <span class="el_source">ExternalCommandCertificateValidator.java</span></div><h1>ExternalCommandCertificateValidator.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General                  *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.cesecore.keys.validation;
+
+import java.io.File;
+import java.io.IOException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateParsingException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.ListUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.ca.CA;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.profiles.Profile;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.ExternalProcessException;
+import org.cesecore.util.ExternalProcessTools;
+import org.cesecore.util.ui.DynamicUiActionCallback;
+import org.cesecore.util.ui.DynamicUiCallbackException;
+import org.cesecore.util.ui.DynamicUiModel;
+import org.cesecore.util.ui.DynamicUiProperty;
+
+/**
+ * External command certificate validator for multiple platforms.
+ *
+ * @version $Id: ExternalCommandCertificateValidator.java 34150 2019-12-20 14:17:40Z henriks $
+ */
+public class ExternalCommandCertificateValidator extends CertificateValidatorBase {
+
+    private static final long serialVersionUID = -135859158339811678L;
+
+    /** Class logger. */
+<span class="nc" id="L52">    private static final Logger log = Logger.getLogger(ExternalCommandCertificateValidator.class);</span>
+
+    public static final float LATEST_VERSION = 4F;
+
+    /** The validator type. */
+    private static final String TYPE_IDENTIFIER = &quot;EXTERNAL_CERTIFICATE_VALIDATOR&quot;;
+
+    /** Literal for external command storage key. */
+    protected static final String EXTERNAL_COMMAND = &quot;externalCommand&quot;;
+
+    /** Literal for fail on error code storage key. */
+    protected static final String FAIL_ON_ERROR_CODE = &quot;failOnErrorCode&quot;;
+
+    /** Literal for fail on standard error storage key. */
+    protected static final String FAIL_ON_STANDARD_ERROR = &quot;failOnStandardError&quot;;
+
+    /** Literal for external log to STDOUT storage key. */
+    protected static final String LOG_STANDARD_OUT = &quot;logStandardOut&quot;;
+
+    /** Literal for external log to ERROUT storage key. */
+    protected static final String LOG_ERROR_OUT = &quot;logErrorOut&quot;;
+
+    /** Holds the test certificates uploaded by the user. */
+    private List&lt;Certificate&gt; testCertificates;
+
+    static {
+<span class="nc" id="L78">        APPLICABLE_CA_TYPES.add(CAInfo.CATYPE_X509);</span>
+<span class="nc" id="L79">    }</span>
+
+    /**
+     * Public constructor needed for deserialization.
+     */
+    public ExternalCommandCertificateValidator() {
+<span class="nc" id="L85">        super();</span>
+<span class="nc" id="L86">    }</span>
+
+    /**
+     * Creates a new instance.
+     * @param name name
+     */
+    public ExternalCommandCertificateValidator(final String name) {
+<span class="nc" id="L93">        super(name);</span>
+<span class="nc" id="L94">    }</span>
+
+    /**
+     * Initializes uninitialized data fields.
+     */
+    @Override
+    public void init() {
+<span class="nc" id="L101">        super.init();</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">        if (data.get(EXTERNAL_COMMAND) == null) {</span>
+<span class="nc" id="L103">            setExternalCommand(StringUtils.EMPTY);</span>
+        }
+<span class="nc bnc" id="L105" title="All 2 branches missed.">        if (data.get(FAIL_ON_ERROR_CODE) == null) {</span>
+<span class="nc" id="L106">            setFailOnErrorCode(true);</span>
+        }
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        if (data.get(FAIL_ON_STANDARD_ERROR) == null) {</span>
+<span class="nc" id="L109">            setFailOnStandardError(true);</span>
+        }
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        if (data.get(LOG_STANDARD_OUT) == null) {</span>
+<span class="nc" id="L112">            setLogStandardOut(true);</span>
+        }
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        if (data.get(LOG_ERROR_OUT) == null) {</span>
+<span class="nc" id="L115">            setLogErrorOut(true);</span>
+        }
+<span class="nc" id="L117">    }</span>
+
+    @Override
+    public void initDynamicUiModel() {
+<span class="nc" id="L121">        uiModel = new DynamicUiModel(data);</span>
+<span class="nc" id="L122">        uiModel.add(new DynamicUiProperty&lt;String&gt;(&quot;settings&quot;));</span>
+<span class="nc" id="L123">        final DynamicUiProperty&lt;String&gt; cmd = new DynamicUiProperty&lt;String&gt;(String.class, EXTERNAL_COMMAND, getExternalCommand());</span>
+<span class="nc" id="L124">        cmd.setRequired(true);</span>
+<span class="nc" id="L125">        uiModel.add(cmd);</span>
+<span class="nc" id="L126">        uiModel.add(new DynamicUiProperty&lt;Boolean&gt;(Boolean.class, FAIL_ON_ERROR_CODE, isFailOnErrorCode()));</span>
+<span class="nc" id="L127">        uiModel.add(new DynamicUiProperty&lt;Boolean&gt;(Boolean.class, FAIL_ON_STANDARD_ERROR, isFailOnStandardError()));</span>
+<span class="nc" id="L128">        uiModel.add(new DynamicUiProperty&lt;Boolean&gt;(Boolean.class, LOG_STANDARD_OUT, isLogStandardOut()));</span>
+<span class="nc" id="L129">        uiModel.add(new DynamicUiProperty&lt;Boolean&gt;(Boolean.class, LOG_ERROR_OUT, isLogErrorOut()));</span>
+<span class="nc" id="L130">        uiModel.add(new DynamicUiProperty&lt;String&gt;(&quot;test&quot;));</span>
+<span class="nc" id="L131">        final DynamicUiProperty&lt;byte[]&gt; testPath = new DynamicUiProperty&lt;&gt;(byte[].class, &quot;testPath&quot;, null);</span>
+<span class="nc" id="L132">        testPath.setTransientValue(true);</span>
+<span class="nc" id="L133">        uiModel.add(testPath);</span>
+        // ECA-6320 Bug. MyFaces HtmlOutputText and HtmlOutputLabel throw NPE in JSF life cycle -&gt; use disabled text field.
+//        final DynamicUiProperty&lt;String&gt; testOut = new DynamicUiProperty&lt;String&gt;(&quot;testOut&quot;);
+//        testOut.setLabelOnly(false);
+//        testOut.setRenderingHint(DynamicUiProperty.RENDER_LABEL);
+//        uiModel.add(testOut);
+<span class="nc" id="L139">        final DynamicUiProperty&lt;String&gt; testOut = new DynamicUiProperty&lt;String&gt;(&quot;testOut&quot;);</span>
+<span class="nc" id="L140">        testOut.setLabelOnly(false);</span>
+<span class="nc" id="L141">        testOut.setRenderingHint(DynamicUiProperty.RENDER_TEXTFIELD);</span>
+<span class="nc" id="L142">        testOut.setDisabled(true);</span>
+<span class="nc" id="L143">        final DynamicUiProperty&lt;String&gt; testButton = new DynamicUiProperty&lt;String&gt;(String.class, &quot;testCommand&quot;, &quot;testCommand&quot;);</span>
+<span class="nc" id="L144">        testButton.setRenderingHint(DynamicUiProperty.RENDER_BUTTON);</span>
+<span class="nc" id="L145">        testButton.setActionCallback(new DynamicUiActionCallback() {</span>
+            @Override
+            @SuppressWarnings(&quot;unchecked&quot;)
+            public void action(final Object parameter) throws DynamicUiCallbackException {
+<span class="nc" id="L149">                final List&lt;String&gt; out = testCommand();</span>
+<span class="nc" id="L150">                final Map&lt;Object, Object&gt; oldValues = (Map&lt;Object, Object&gt;) data.clone();</span>
+<span class="nc" id="L151">                final Map&lt;Object, Object&gt; newValues = (Map&lt;Object, Object&gt;) data.clone();</span>
+<span class="nc" id="L152">                newValues.put(&quot;testOut&quot;, StringUtils.join(out, System.getProperty(&quot;line.separator&quot;)));</span>
+<span class="nc" id="L153">                newValues.put(&quot;testPath&quot;, &quot;&quot;);</span>
+<span class="nc" id="L154">                uiModel.firePropertyChange(oldValues, newValues);</span>
+<span class="nc" id="L155">                setTestCertificates(ListUtils.EMPTY_LIST);</span>
+<span class="nc" id="L156">            }</span>
+            @Override
+            public List&lt;String&gt; getRender() {
+<span class="nc" id="L159">                return null;</span>
+            }
+        });
+<span class="nc" id="L162">        uiModel.add(testButton);</span>
+<span class="nc" id="L163">        uiModel.add(testOut);</span>
+<span class="nc" id="L164">    }</span>
+
+    @Override
+    public float getLatestVersion() {
+<span class="nc" id="L168">        return LATEST_VERSION;</span>
+    }
+
+    @Override
+    public void upgrade() {
+<span class="nc" id="L173">        super.upgrade();</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L175">            log.trace(&quot;&gt;upgrade: &quot; + getLatestVersion() + &quot;, &quot; + getVersion());</span>
+        }
+<span class="nc bnc" id="L177" title="All 2 branches missed.">        if (Float.compare(LATEST_VERSION, getVersion()) != 0) {</span>
+            // New version of the class, upgrade.
+<span class="nc" id="L179">            log.info(intres.getLocalizedMessage(&quot;validator.implementation.certificate.external&quot;, Float.valueOf(getVersion())));</span>
+<span class="nc" id="L180">            init();</span>
+        }
+<span class="nc" id="L182">    }</span>
+
+    @Override
+    public List&lt;String&gt; validate(final CA ca, final Certificate certificate, final ExternalScriptsWhitelist externalScriptsWhitelist)
+            throws ValidatorNotApplicableException, ValidationException, CertificateException {
+<span class="nc" id="L187">        final List&lt;String&gt; messages = new ArrayList&lt;String&gt;();</span>
+<span class="nc" id="L188">        log.debug(&quot;Validating certificate with external command &quot; + getExternalCommand());</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L190">            log.debug(&quot;Validating certificate with external command (cert):&quot; + certificate);</span>
+        }
+        // Add CA certificate chain, that may be processed.
+<span class="nc" id="L193">        final List&lt;Certificate&gt; certificates = new ArrayList&lt;Certificate&gt;();</span>
+<span class="nc" id="L194">        certificates.add(certificate);</span>
+<span class="nc" id="L195">        final String cmd = getExternalCommand();</span>
+<span class="nc" id="L196">        final List&lt;String&gt; out = new ArrayList&lt;String&gt;();</span>
+        // Run external scripts (is used by publishers as well, writes certificate to disk!).
+        try {
+<span class="nc" id="L199">            out.addAll(runExternalCommandInternal(cmd, externalScriptsWhitelist, certificates));</span>
+<span class="nc" id="L200">        } catch(ExternalProcessException e) {</span>
+<span class="nc" id="L201">            throw new ValidatorNotApplicableException( &quot;External command could not be called, because it does not exit, command can not be found, access was denied, certificate not written, or another error occured: &quot;+e.getMessage());</span>
+<span class="nc" id="L202">        }</span>
+        // Validator was applicable but something bad must have happened, no exit code was returned -&gt; validation failed.
+<span class="nc" id="L204">        boolean broken = false;</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">        if (CollectionUtils.isNotEmpty(out)) {</span>
+            try {
+<span class="nc bnc" id="L207" title="All 2 branches missed.">                if (isLogStandardOut()) {</span>
+<span class="nc" id="L208">                    String stdOutput = null;</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">                    for (String str : out) {</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">                        if (str.startsWith(ExternalProcessTools.STDOUT_PREFIX)) {</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">                            if (stdOutput == null) {</span>
+<span class="nc" id="L212">                                stdOutput = str;</span>
+                            } else {
+<span class="nc" id="L214">                                stdOutput += &quot;\n&quot; + str;</span>
+                            }
+                        }
+<span class="nc" id="L217">                    }</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">                    if (stdOutput != null) {</span>
+<span class="nc" id="L219">                        log.info(&quot;External command logged to STDOUT: &quot;+stdOutput);</span>
+                    }
+                }
+<span class="nc" id="L222">                String errOutput = null;</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">                if (isLogErrorOut()) {</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">                    for (String str : out) {</span>
+<span class="nc bnc" id="L225" title="All 2 branches missed.">                        if (str.startsWith(ExternalProcessTools.ERROUT_PREFIX)) {</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">                            if (errOutput == null) {</span>
+<span class="nc" id="L227">                                errOutput = str;</span>
+                            } else {
+<span class="nc" id="L229">                                errOutput += &quot;\n&quot; + str;</span>
+                            }
+                        }
+<span class="nc" id="L232">                    }</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">                    if (errOutput != null) {</span>
+<span class="nc" id="L234">                        log.info(&quot;External command logged to ERROUT: &quot;+errOutput);</span>
+                    }
+                }
+<span class="nc" id="L237">                final int exitCode = Integer.parseInt(out.get(0).replaceFirst(ExternalProcessTools.EXIT_CODE_PREFIX, StringUtils.EMPTY));</span>
+<span class="nc bnc" id="L238" title="All 4 branches missed.">                if (exitCode != 0 &amp;&amp; isFailOnErrorCode()) { // Validation failed: -1 is command could not be found or access denied.</span>
+<span class="nc" id="L239">                    messages.add(&quot;Invalid: External command exit code was &quot; + exitCode);</span>
+<span class="nc bnc" id="L240" title="All 2 branches missed.">                    if (errOutput != null) {</span>
+<span class="nc" id="L241">                        messages.add(&quot;ERROUT was: &quot; + errOutput);</span>
+                    }
+<span class="nc bnc" id="L243" title="All 4 branches missed.">                } else if (isFailOnStandardError() &amp;&amp; ExternalProcessTools.containsErrout(out)) {</span>
+<span class="nc" id="L244">                    messages.add(&quot;Invalid: External command logged to ERROUT. Exit code was &quot; + exitCode);</span>
+<span class="nc bnc" id="L245" title="All 2 branches missed.">                    if (errOutput != null) {</span>
+<span class="nc" id="L246">                        messages.add(&quot;ERROUT was: &quot; + errOutput);</span>
+                    }
+                }
+<span class="nc" id="L249">            } catch(Exception e2) { // In case exit code could not be parsed.</span>
+<span class="nc" id="L250">                broken = true;</span>
+<span class="nc" id="L251">            }</span>
+        } else {
+<span class="nc" id="L253">            broken = true;</span>
+        }
+<span class="nc bnc" id="L255" title="All 2 branches missed.">        if (broken) {</span>
+<span class="nc" id="L256">            messages.add(&quot;Invalid: External command could not be initialized: '&quot; + cmd + &quot;'. Command failed.&quot;);</span>
+        }
+<span class="nc" id="L258">        return messages;</span>
+    }
+
+    @Override
+    public String getLabel() {
+<span class="nc" id="L263">        return intres.getLocalizedMessage(&quot;validator.implementation.certificate.external&quot;);</span>
+    }
+
+    @Override
+    public String getValidatorTypeIdentifier() {
+<span class="nc" id="L268">        return TYPE_IDENTIFIER;</span>
+    }
+
+    @Override
+    protected Class&lt;? extends Profile&gt; getImplementationClass() {
+<span class="nc" id="L273">        return ExternalCommandCertificateValidator.class;</span>
+    }
+
+    /**
+     * Sets the external script path.
+     * @param path the path.
+     */
+    public void setExternalCommand(final String path) {
+<span class="nc" id="L281">        data.put(EXTERNAL_COMMAND, path);</span>
+<span class="nc" id="L282">    }</span>
+
+    /**
+     * Gets the external script path
+     * @return the path.
+     */
+    public String getExternalCommand() {
+<span class="nc" id="L289">        return (String) data.get(EXTERNAL_COMMAND);</span>
+    }
+
+    /**
+     * Denotes if the STDOUT of the external command or script has to be logged.
+     * @param state true if enabled.
+     */
+    public void setLogStandardOut(final boolean state) {
+<span class="nc" id="L297">        data.put(LOG_STANDARD_OUT, Boolean.valueOf(state));</span>
+<span class="nc" id="L298">    }</span>
+
+    /**
+     * Denotes if the STDOUT of the external command or script has to be logged.
+     * @return true if enabled.
+     */
+    public boolean isLogStandardOut() {
+<span class="nc" id="L305">        return ((Boolean) data.get(LOG_STANDARD_OUT)).booleanValue();</span>
+    }
+
+    /**
+     * Denotes if the ERROUT of the external command or script has to be logged.
+     * @param state true if enabled.
+     */
+    public void setLogErrorOut(final boolean state) {
+<span class="nc" id="L313">        data.put(LOG_ERROR_OUT, Boolean.valueOf(state));</span>
+<span class="nc" id="L314">    }</span>
+
+    /**
+     * Denotes if the ERROUT of the external command or script has to be logged.
+     * @return true if enabled.
+     */
+    public boolean isLogErrorOut() {
+<span class="nc" id="L321">        return ((Boolean) data.get(LOG_ERROR_OUT)).booleanValue();</span>
+    }
+
+    /**
+     * Denotes if the command or script has to be considered as failed if the exit code is larger than 0.
+     * @param state true if enabled.
+     */
+    public void setFailOnErrorCode(final boolean state) {
+<span class="nc" id="L329">        data.put(FAIL_ON_ERROR_CODE, Boolean.valueOf(state));</span>
+<span class="nc" id="L330">    }</span>
+
+    /**
+     * Denotes if the command or script has to be considered as failed if the exit code is larger than 0.
+     * @return true if enabled.
+     */
+    public boolean isFailOnErrorCode() {
+<span class="nc" id="L337">        return ((Boolean) data.get(FAIL_ON_ERROR_CODE)).booleanValue();</span>
+    }
+
+    /**
+     * Denotes if the command or script has to be considered as failed if a log was written to ERROUT.
+     * @param state true if enabled.
+     */
+    public void setFailOnStandardError(final boolean state) {
+<span class="nc" id="L345">        data.put(FAIL_ON_STANDARD_ERROR, Boolean.valueOf(state));</span>
+<span class="nc" id="L346">    }</span>
+
+    /**
+     * Denotes if the command or script has to be considered as failed if a log was written to ERROUT
+     * @return true if enabled.
+     */
+    public boolean isFailOnStandardError() {
+<span class="nc" id="L353">        return ((Boolean) data.get(FAIL_ON_STANDARD_ERROR)).booleanValue();</span>
+    }
+
+    /**
+     * Tests the external command with the uploaded test certificate.
+     * @return a list with size &amp;gt; 0 and the exit code in field with index 0 and STDOUT and ERROR appended subsequently.
+     * @throws DynamicUiCallbackException if the external script path does not exist or accessible or the script call fails otherwise.
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public List&lt;String&gt; testCommand() throws DynamicUiCallbackException {
+<span class="nc" id="L363">        log.info(&quot;Test external command certificate validator: &quot; + getProfileName());</span>
+<span class="nc" id="L364">        final DynamicUiProperty&lt;byte[]&gt; property = (DynamicUiProperty&lt;byte[]&gt;) uiModel.getProperties().get(&quot;testPath&quot;);</span>
+<span class="nc" id="L365">        final List&lt;String&gt; out = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L366">        byte[] data = null;</span>
+<span class="nc" id="L367">        String message = null;</span>
+<span class="nc bnc" id="L368" title="All 4 branches missed.">        if (property != null &amp;&amp; (data=property.getValue()) != null) {</span>
+            final File file;
+            try {
+<span class="nc" id="L371">                file = ExternalProcessTools.writeTemporaryFileToDisk(data, &quot;validator_test_cert&quot;, /* use .tmp as file extension */ null);</span>
+<span class="nc" id="L372">            } catch (ExternalProcessException e) {</span>
+<span class="nc" id="L373">                throw new IllegalStateException(&quot;Failed to save upload to temporary file&quot;, e);</span>
+<span class="nc" id="L374">            }</span>
+            try {
+<span class="nc bnc" id="L376" title="All 2 branches missed.">                if (!file.canRead()) {</span>
+<span class="nc" id="L377">                    message = intres.getLocalizedMessage(&quot;validator.certificate.externalcommand.testfilenopermission&quot;, file.getAbsolutePath());</span>
+                }
+<span class="nc bnc" id="L379" title="All 2 branches missed.">                if (message == null) {</span>
+                    try {
+<span class="nc" id="L381">                        setTestCertificates(CertTools.getCertsFromPEM(file.getAbsolutePath(), Certificate.class));</span>
+<span class="nc" id="L382">                    } catch(IOException e) {</span>
+<span class="nc" id="L383">                        message = intres.getLocalizedMessage(&quot;process.certificate.filenotfound&quot;, file.getAbsolutePath());</span>
+<span class="nc" id="L384">                        log.warn(message, e);</span>
+<span class="nc" id="L385">                    } catch(CertificateParsingException e) {</span>
+<span class="nc" id="L386">                        message = intres.getLocalizedMessage(&quot;process.certificate.couldnotbeparsed&quot;, file.getAbsolutePath());</span>
+<span class="nc" id="L387">                        log.warn(message, e);</span>
+<span class="nc" id="L388">                    }</span>
+                }
+<span class="nc bnc" id="L390" title="All 2 branches missed.">                if (message == null) { // Run command.</span>
+                    try {
+<span class="nc" id="L392">                        out.addAll(runExternalCommandInternal(getExternalCommand(), ExternalScriptsWhitelist.permitAll(), getTestCertificates()));</span>
+<span class="nc bnc" id="L393" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L394">                            log.debug(&quot;Tested certificate with external command STOUT/ERROUT:&quot; + System.getProperty(&quot;line.separator&quot;) + out);</span>
+                        }
+<span class="nc" id="L396">                    } catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L397">                        message = intres.getLocalizedMessage(&quot;process.certificate.couldnotbeencoded&quot;, file.getAbsolutePath());</span>
+<span class="nc" id="L398">                        log.info(message, e);</span>
+                    // 1. command not found, no permission or other exception; 2. not in whitelist.
+<span class="nc" id="L400">                    } catch (ExternalProcessException | ValidatorNotApplicableException e) {</span>
+<span class="nc" id="L401">                        message = e.getMessage();</span>
+<span class="nc" id="L402">                        log.info(message, e);</span>
+<span class="nc" id="L403">                    }</span>
+                }
+            } finally {
+                // Delete temporary file (file is written because of file upload).
+<span class="nc bnc" id="L407" title="All 2 branches missed.">                if (file != null) {</span>
+                    try {
+<span class="nc" id="L409">                        file.delete();</span>
+<span class="nc" id="L410">                    } catch (RuntimeException e) {</span>
+<span class="nc" id="L411">                        log.trace(&quot;Could not delete temporary file: &quot; + file.getAbsolutePath(), e);</span>
+<span class="nc" id="L412">                    }</span>
+                }
+            }
+<span class="nc" id="L415">        } else {</span>
+<span class="nc" id="L416">            message = intres.getLocalizedMessage(&quot;validator.certificate.externalcommand.testfilemissing&quot;, getExternalCommand());</span>
+<span class="nc" id="L417">            log.info(message);</span>
+        }
+<span class="nc bnc" id="L419" title="All 2 branches missed.">        if (StringUtils.isNotBlank(message)) {</span>
+<span class="nc" id="L420">            throw new DynamicUiCallbackException(message);</span>
+        }
+<span class="nc" id="L422">        return out;</span>
+    }
+
+    /**
+     * Gets the list of test certificates uploaded by the user.
+     * @return the list of test certificates.
+     */
+    public List&lt;Certificate&gt; getTestCertificates() {
+<span class="nc" id="L430">        return testCertificates;</span>
+    }
+
+    /**
+     * Sets the list of test certificates uploaded by the user.
+     * @param testCertificates the list.
+     */
+    public void setTestCertificates(final List&lt;Certificate&gt; testCertificates) {
+<span class="nc" id="L438">        this.testCertificates = testCertificates;</span>
+<span class="nc bnc" id="L439" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L440">            log.debug(&quot;Test certificates uploaded: &quot; + testCertificates);</span>
+        }
+<span class="nc" id="L442">    }</span>
+
+    public String getPlatform() {
+<span class="nc" id="L445">        return ExternalProcessTools.getPlatformString();</span>
+    }
+
+    /**
+     * Runs the external command
+     * @param externalCommand the external command.
+     * @param externalScriptsWhitelist whitelist
+     * @param certificates the list of certificates.
+     * @return a string list holding exit code at index 0, and the STDOUT and ERROUT appended.
+     * @throws CertificateEncodingException if the certificates could not be encoded.
+     * @throws ExternalProcessException if the command wasn't found
+     * @throws ValidatorNotApplicableException if external scripts whitelist wasn't permitted
+     */
+    private List&lt;String&gt; runExternalCommandInternal(final String externalCommand, final ExternalScriptsWhitelist externalScriptsWhitelist,
+            final List&lt;Certificate&gt; certificates) throws CertificateEncodingException, ExternalProcessException, ValidatorNotApplicableException {
+<span class="nc" id="L460">        final String cmd = extractCommand(externalCommand);</span>
+<span class="nc bnc" id="L461" title="All 2 branches missed.">        if (!externalScriptsWhitelist.isPermitted(cmd)) {</span>
+<span class="nc" id="L462">             throw new ValidatorNotApplicableException(intres.getLocalizedMessage(&quot;process.whitelist.error.notlisted&quot;, cmd));</span>
+        }
+        // Test if specified script file exists and is executable (hits files and symbolic links, but no aliases).
+<span class="nc bnc" id="L465" title="All 2 branches missed.">        if (StringUtils.isNotBlank(cmd)) {</span>
+<span class="nc" id="L466">            final File file = new File(cmd);</span>
+            String message;
+<span class="nc bnc" id="L468" title="All 2 branches missed.">            if (!file.exists()) {</span>
+<span class="nc" id="L469">                message = intres.getLocalizedMessage(&quot;process.commandnotfound&quot;, cmd);</span>
+<span class="nc" id="L470">                log.info(message);</span>
+<span class="nc" id="L471">                throw new ExternalProcessException(message);</span>
+            }
+<span class="nc bnc" id="L473" title="All 2 branches missed.">            if (!file.canExecute()) {</span>
+<span class="nc" id="L474">                message = intres.getLocalizedMessage(&quot;process.commandnopermission&quot;, cmd);</span>
+<span class="nc" id="L475">                log.info(message);</span>
+<span class="nc" id="L476">                throw new ExternalProcessException(message);</span>
+            }
+        }
+        // Extract arguments and run external script.
+<span class="nc" id="L480">        final List&lt;String&gt; arguments = extractArguments(externalCommand);</span>
+<span class="nc" id="L481">        final List&lt;String&gt; out = new ArrayList&lt;String&gt;();</span>
+        try {
+<span class="nc" id="L483">            out.addAll(ExternalProcessTools.launchExternalCommand(cmd, certificates.get(0).getEncoded(),</span>
+<span class="nc" id="L484">                    isFailOnErrorCode(), isFailOnStandardError(), isLogStandardOut(), isLogErrorOut(), arguments, ExternalCommandCertificateValidator.class.getName()));</span>
+<span class="nc" id="L485">        } catch(ExternalProcessException e) {</span>
+<span class="nc" id="L486">            log.info(&quot;Could not call external command '&quot; + cmd + &quot;' with arguments &quot; + arguments + &quot; sucessfully: &quot; + e.getMessage());</span>
+<span class="nc bnc" id="L487" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L488">                log.debug(&quot;Failed with exception: &quot;, e);</span>
+            }
+<span class="nc bnc" id="L490" title="All 2 branches missed.">            if (e.getOut() != null) {</span>
+<span class="nc" id="L491">                out.addAll(e.getOut());</span>
+            }
+<span class="nc" id="L493">        }</span>
+<span class="nc" id="L494">        return out;</span>
+    }
+
+    /**
+     * Extracts the script path.
+     *
+     * @param cmd the external command.
+     * @return the script path (first token in command).
+     */
+    private final String extractCommand(String cmd) {
+<span class="nc" id="L504">        cmd = cmd.trim();</span>
+<span class="nc" id="L505">        final int index = cmd.indexOf(&quot; &quot;);</span>
+<span class="nc bnc" id="L506" title="All 2 branches missed.">        if (index &gt; 0) {</span>
+<span class="nc" id="L507">            cmd  = cmd.substring(0, index).trim();</span>
+        }
+<span class="nc bnc" id="L509" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L510">            log.debug(&quot;Command extracted: &quot; + cmd);</span>
+        }
+<span class="nc" id="L512">        return cmd;</span>
+    }
+
+    /**
+     * Extracts the arguments.
+     *
+     * @param cmd the external command.
+     * @return the list of arguments (second token to end).
+     */
+    private final List&lt;String&gt; extractArguments(String cmd) {
+<span class="nc" id="L522">        cmd = cmd.trim();</span>
+<span class="nc" id="L523">        final List&lt;String&gt; arguments = new ArrayList&lt;String&gt;();</span>
+<span class="nc" id="L524">        final int index = cmd.indexOf(&quot; &quot;);</span>
+<span class="nc bnc" id="L525" title="All 2 branches missed.">        if (index &gt; 0) {</span>
+<span class="nc" id="L526">            arguments.addAll( Arrays.asList(StringUtils.split( cmd.substring(index, cmd.length()).trim(), &quot; &quot;)));</span>
+        }
+<span class="nc bnc" id="L528" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L529">            log.debug(&quot;Arguments extracted: &quot; + arguments);</span>
+        }
+<span class="nc" id="L531">        return arguments;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

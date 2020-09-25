@@ -1,0 +1,2599 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EndEntityProfile.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.ra.raadmin</a> &gt; <span class="el_source">EndEntityProfile.java</span></div><h1>EndEntityProfile.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.model.ra.raadmin;
+
+import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.DateUtils;
+import org.apache.commons.lang.time.FastDateFormat;
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.ca.CAConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
+import org.cesecore.certificates.crl.RevocationReasons;
+import org.cesecore.certificates.crl.RevokedCertInfo;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.certificates.util.DNFieldExtractor;
+import org.cesecore.certificates.util.DnComponents;
+import org.cesecore.internal.UpgradeableDataHashMap;
+import org.cesecore.util.Base64;
+import org.cesecore.util.StringTools;
+import org.cesecore.util.ValidityDate;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.ra.ExtendedInformationFields;
+import org.ejbca.core.model.ra.raadmin.validators.RegexFieldValidator;
+import org.ejbca.util.passgen.PasswordGeneratorFactory;
+
+/**
+ * The model representation of an end entity profile.
+ * 
+ * The algorithm for constants in the EndEntityProfile is:
+ * Values are stored as 100*parameternumber+parameter, so the first COMMONNAME value is 105, the second 205 etc.
+ * Use flags are stored as 10000+100*parameternumber+parameter, so the first USE_COMMONNAME value is 10105, the second 10205 etc.
+ * Required flags are stored as 20000+100*parameternumber+parameter, so the first REQUIRED_COMMONNAME value is 20105, the second 20205 etc.
+ * Modifyable flags are stored as 30000+100*parameternumber+parameter, so the first MODIFYABLE_COMMONNAME value is 30105, the second 30205 etc.
+ *
+ * Parsing an exported End Entity Profile XML (or from the getProfile method in the web service):
+ * The End Entity Profile XML data is encoded using the standard Java XMLEncoder. To decode it you can use the SecureXMLDecoder class,
+ * which is part of CESeCore. The result will be a Map&amp;lt;Object,Object&amp;gt;.
+ * 
+ * In the map there's for example a field SUBJECTDNFIELDORDER which contains a list of defined DN components, as integers. 
+ * The algorithm is:
+ * 100*parameter + index
+ * 
+ * So for example if SUBJECTDNFIELDORDER contains the two values &quot;500, 1100&quot; this means there is one CN and one OU. 
+ * Numbers are defined in src/java/profilemappings.properties and CN=5 and OU=11, so 100*5+0 = 500 and 100*11+0 = 1100.
+ * If there would be two OU fields there would also be one 1101 (100*11+1) in the SUBJECTDNFIELDORDER.
+ *
+ * For getting more detailed information (e.g. whether the field is required) or to look up a non-DN field (such as username), you will need to compute
+ * and index and get that key from the map (instead of SUBJECTDNFIELDORDER). For example you can see if the first
+ * CN field is required by finding a key in the XML with the formula:
+ * 20000+100*0+5 = 20005
+ * if the value of this key is true, the first CN field is required and not optional.
+ * etc, for the second CN field (if there was a second one in SUBJECTDNFIELDORDER) it would be 20000+100*1+5.
+ * 
+ * Instead of 20000 you may use the values X*10000 where X may be (0 = value, 1 = use, 2 = required, 3 = modifiable, 4 = validation regexp).
+ * If you want to access a field which is not a DN field, see the &quot;dataConstants.put&quot; lines below (e.g. Available CAs = 38)
+ *
+ * @version $Id: EndEntityProfile.java 28619 2018-04-03 12:57:23Z mikekushner $
+ */
+public class EndEntityProfile extends UpgradeableDataHashMap implements Serializable, Cloneable {
+
+<span class="fc" id="L91">    private static final Logger log = Logger.getLogger(EndEntityProfile.class);</span>
+    /** Internal localization of logs and errors */
+<span class="fc" id="L93">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+
+    public static final float LATEST_VERSION = 14;
+
+    /**
+     * Determines if a de-serialized file is compatible with this class.
+     *
+     * Maintainers must change this value if and only if the new version
+     * of this class is not compatible with old versions. See Sun docs
+     * for &lt;a href=http://java.sun.com/products/jdk/1.1/docs/guide
+     * /serialization/spec/version.doc.html&gt; details. &lt;/a&gt;
+     *
+     */
+    private static final long serialVersionUID = -8356152324295231463L;
+    
+    /** Constant values for end entity profile. */
+<span class="fc" id="L109">    private static final HashMap&lt;String, Integer&gt; dataConstants = new HashMap&lt;&gt;();</span>
+
+    // Field constants, used in the map below
+    public static final String USERNAME           = &quot;USERNAME&quot;;
+    public static final String PASSWORD           = &quot;PASSWORD&quot;;
+    public static final String CLEARTEXTPASSWORD  = &quot;CLEARTEXTPASSWORD&quot;;
+    public static final String AUTOGENPASSWORDTYPE   = &quot;AUTOGENPASSWORDTYPE&quot;;
+    public static final String AUTOGENPASSWORDLENGTH = &quot;AUTOGENPASSWORDLENGTH&quot;;
+    
+    public static final String EMAIL              = &quot;EMAIL&quot;;
+    public static final String KEYRECOVERABLE     = &quot;KEYRECOVERABLE&quot;;
+    public static final String DEFAULTCERTPROFILE = &quot;DEFAULTCERTPROFILE&quot;;
+    /** A list of available certificate profile names can be retrieved with getAvailableCertificateProfileNames() */
+    public static final String AVAILCERTPROFILES  = &quot;AVAILCERTPROFILES&quot;;
+    public static final String DEFKEYSTORE        = &quot;DEFKEYSTORE&quot;;
+    public static final String AVAILKEYSTORE      = &quot;AVAILKEYSTORE&quot;;
+    public static final String DEFAULTTOKENISSUER = &quot;DEFAULTTOKENISSUER&quot;;
+    public static final String AVAILTOKENISSUER   = &quot;AVAILTOKENISSUER&quot;;
+    public static final String SENDNOTIFICATION   = &quot;SENDNOTIFICATION&quot;;
+    public static final String CARDNUMBER         = &quot;CARDNUMBER&quot;;
+    public static final String DEFAULTCA          = &quot;DEFAULTCA&quot;;
+    public static final String AVAILCAS           = &quot;AVAILCAS&quot;;
+    public static final String STARTTIME          = ExtendedInformation.CUSTOM_STARTTIME;	//&quot;STARTTIME&quot;
+    public static final String ENDTIME            = ExtendedInformation.CUSTOM_ENDTIME;	//&quot;ENDTIME&quot;
+    public static final String CERTSERIALNR       = &quot;CERTSERIALNR&quot;;
+    public static final String NAMECONSTRAINTS_PERMITTED = &quot;NAMECONSTRAINTS_PERMITTED&quot;;
+    public static final String NAMECONSTRAINTS_EXCLUDED  = &quot;NAMECONSTRAINTS_EXCLUDED&quot;;
+    /** A maximum value of the (optional) counter specifying how many certificate requests can be processed
+     * before user is finalized (status set to GENERATED). Counter is only used when finishUser is
+     * enabled in the CA (by default it is)
+     */
+    public static final String ALLOWEDREQUESTS    = &quot;ALLOWEDREQUESTS&quot;;
+    /** A revocation reason that will be applied immediately to certificates issued to a user. With this we can issue
+     * a certificate that is &quot;on hold&quot; directly when the user gets the certificate.
+     */
+    public static final String ISSUANCEREVOCATIONREASON = &quot;ISSUANCEREVOCATIONREASON&quot;;
+    
+    public static final String MAXFAILEDLOGINS	 = &quot;MAXFAILEDLOGINS&quot;;
+
+    /** Minimum password strength in bits */
+    public static final String MINPWDSTRENGTH    = &quot;MINPWDSTRENGTH&quot;;
+
+    // Default values
+    // These must be in a strict order that can never change 
+    // Custom values configurable in a properties file (profilemappings.properties)
+    static {
+<span class="fc" id="L155">    	dataConstants.put(USERNAME, Integer.valueOf(0));</span>
+<span class="fc" id="L156">    	dataConstants.put(PASSWORD, Integer.valueOf(1));</span>
+<span class="fc" id="L157">    	dataConstants.put(CLEARTEXTPASSWORD, Integer.valueOf(2));</span>
+<span class="fc" id="L158">    	dataConstants.put(AUTOGENPASSWORDTYPE, Integer.valueOf(95));</span>
+<span class="fc" id="L159">    	dataConstants.put(AUTOGENPASSWORDLENGTH, Integer.valueOf(96));</span>
+        // DN components
+    
+<span class="fc" id="L162">    	dataConstants.put(EMAIL, Integer.valueOf(26));</span>
+<span class="fc" id="L163">    	dataConstants.put(KEYRECOVERABLE, Integer.valueOf(28));</span>
+<span class="fc" id="L164">    	dataConstants.put(DEFAULTCERTPROFILE, Integer.valueOf(29));</span>
+<span class="fc" id="L165">    	dataConstants.put(AVAILCERTPROFILES, Integer.valueOf(30));</span>
+<span class="fc" id="L166">    	dataConstants.put(DEFKEYSTORE, Integer.valueOf(31));</span>
+<span class="fc" id="L167">    	dataConstants.put(AVAILKEYSTORE, Integer.valueOf(32));</span>
+<span class="fc" id="L168">    	dataConstants.put(DEFAULTTOKENISSUER, Integer.valueOf(33));</span>
+<span class="fc" id="L169">    	dataConstants.put(AVAILTOKENISSUER, Integer.valueOf(34));</span>
+<span class="fc" id="L170">    	dataConstants.put(SENDNOTIFICATION, Integer.valueOf(35));</span>
+
+<span class="fc" id="L172">    	dataConstants.put(DEFAULTCA, Integer.valueOf(37));</span>
+<span class="fc" id="L173">    	dataConstants.put(AVAILCAS, Integer.valueOf(38));</span>
+    	
+    	// Load all DN, altName and directoryAttributes from DnComponents.
+<span class="fc" id="L176">    	dataConstants.putAll(DnComponents.getProfilenameIdMap());</span>
+    	
+<span class="fc" id="L178">    	dataConstants.put(ISSUANCEREVOCATIONREASON, Integer.valueOf(94));</span>
+<span class="fc" id="L179">    	dataConstants.put(ALLOWEDREQUESTS, Integer.valueOf(97));</span>
+<span class="fc" id="L180">    	dataConstants.put(STARTTIME, Integer.valueOf(98));</span>
+<span class="fc" id="L181">    	dataConstants.put(ENDTIME, Integer.valueOf(99));</span>
+<span class="fc" id="L182">    	dataConstants.put(CARDNUMBER, Integer.valueOf(91));</span>
+<span class="fc" id="L183">    	dataConstants.put(MAXFAILEDLOGINS, Integer.valueOf(93));</span>
+<span class="fc" id="L184">    	dataConstants.put(CERTSERIALNR, Integer.valueOf(92));</span>
+<span class="fc" id="L185">    	dataConstants.put(MINPWDSTRENGTH, Integer.valueOf(90));</span>
+<span class="fc" id="L186">    	dataConstants.put(NAMECONSTRAINTS_PERMITTED, Integer.valueOf(89));</span>
+<span class="fc" id="L187">    	dataConstants.put(NAMECONSTRAINTS_EXCLUDED, Integer.valueOf(88));</span>
+    }
+	// The max value in dataConstants (we only want to do this once)
+<span class="fc" id="L190">    private static final int dataConstantsMaxValue = Collections.max(dataConstants.values()).intValue();</span>
+    // The keys used when we create an empty profile (we only want to do this once)
+<span class="fc" id="L192">    private static final List&lt;String&gt; dataConstantsUsedInEmpty = new LinkedList&lt;&gt;(dataConstants.keySet());</span>
+    static {
+<span class="fc" id="L194">    	dataConstantsUsedInEmpty.remove(SENDNOTIFICATION);</span>
+<span class="fc" id="L195">    	dataConstantsUsedInEmpty.remove(DnComponents.OTHERNAME);</span>
+<span class="fc" id="L196">    	dataConstantsUsedInEmpty.remove(DnComponents.X400ADDRESS);</span>
+<span class="fc" id="L197">    	dataConstantsUsedInEmpty.remove(DnComponents.EDIPARTYNAME);</span>
+    }
+
+    // Type of data constants.
+    private static final int VALUE      = 0;
+    private static final int USE        = 1;
+    private static final int ISREQUIRED = 2;
+    private static final int MODIFYABLE = 3;
+    private static final int VALIDATION = 4;
+
+    // Private Constants.
+    private static final int FIELDBOUNDRARY  = 10000;
+    private static final int NUMBERBOUNDRARY = 100;
+    
+    // Pre-calculated constants
+    private static final int FIELDBOUNDRARY_VALUE  = FIELDBOUNDRARY * VALUE;
+    private static final int FIELDBOUNDRARY_USE  = FIELDBOUNDRARY * USE;
+    private static final int FIELDBOUNDRARY_ISREQUIRED  = FIELDBOUNDRARY * ISREQUIRED;
+    private static final int FIELDBOUNDRARY_MODIFYABLE  = FIELDBOUNDRARY * MODIFYABLE;
+    private static final int FIELDBOUNDRARY_VALIDATION  = FIELDBOUNDRARY * VALIDATION;
+
+    public static final String SPLITCHAR       = &quot;;&quot;;
+
+    public static final String TRUE  = &quot;true&quot;;
+    public static final String FALSE = &quot;false&quot;;
+
+    // Constants used with field ordering
+    public static final int FIELDTYPE = 0;
+    public static final int NUMBER    = 1;
+
+
+    /** Number array keeps track of how many fields there are of a specific type, for example 2 OranizationUnits, 0 TelephoneNumber */
+    private static final String NUMBERARRAY               = &quot;NUMBERARRAY&quot;;
+    private static final String SUBJECTDNFIELDORDER       = &quot;SUBJECTDNFIELDORDER&quot;;
+    private static final String SUBJECTALTNAMEFIELDORDER  = &quot;SUBJECTALTNAMEFIELDORDER&quot;;
+    private static final String SUBJECTDIRATTRFIELDORDER  = &quot;SUBJECTDIRATTRFIELDORDER&quot;;
+    
+    private static final String USERNOTIFICATIONS         = &quot;USERNOTIFICATIONS&quot;;
+
+    private static final String REUSECERTIFICATE = &quot;REUSECERTIFICATE&quot;;
+    private static final String REVERSEFFIELDCHECKS = &quot;REVERSEFFIELDCHECKS&quot;; 
+    private static final String ALLOW_MERGEDN_WEBSERVICES = &quot;ALLOW_MERGEDN_WEBSERVICES&quot;;
+    
+    private static final String PRINTINGUSE            = &quot;PRINTINGUSE&quot;;
+    private static final String PRINTINGDEFAULT        = &quot;PRINTINGDEFAULT&quot;;
+    private static final String PRINTINGREQUIRED       = &quot;PRINTINGREQUIRED&quot;;
+    private static final String PRINTINGCOPIES         = &quot;PRINTINGCOPIES&quot;;
+    private static final String PRINTINGPRINTERNAME    = &quot;PRINTINGPRINTERNAME&quot;;
+    private static final String PRINTINGSVGFILENAME    = &quot;PRINTINGSVGFILENAME&quot;;
+    private static final String PRINTINGSVGDATA        = &quot;PRINTINGSVGDATA&quot;;
+
+    /** 
+     * If it should be possible to add/edit certificate extension data
+     * when adding/editing an end entity using the admin web or not.
+     */
+    private static final String USEEXTENSIONDATA       = &quot;USEEXTENSIONDATA&quot;;
+
+    // String constants that never change, so we can do the String concat/conversion once
+<span class="fc" id="L255">    private static final String CONST_DEFAULTCERTPROFILE = Integer.toString(CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER);</span>
+    private static final String CONST_AVAILCERTPROFILES1 =
+            CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER + &quot;;&quot; + 
+            CertificateProfileConstants.CERTPROFILE_FIXED_OCSPSIGNER + &quot;;&quot; +
+            CertificateProfileConstants.CERTPROFILE_FIXED_SERVER;
+<span class="fc" id="L260">    private static final String CONST_DEFKEYSTORE = Integer.toString(SecConst.TOKEN_SOFT_BROWSERGEN);</span>
+    private static final String CONST_AVAILKEYSTORE = SecConst.TOKEN_SOFT_BROWSERGEN + &quot;;&quot; + SecConst.TOKEN_SOFT_P12 +  &quot;;&quot; + SecConst.TOKEN_SOFT_JKS + &quot;;&quot; + SecConst.TOKEN_SOFT_PEM;
+<span class="fc" id="L262">    private static final String CONST_AVAILCAS = Integer.toString(SecConst.ALLCAS);</span>
+<span class="fc" id="L263">    private static final String CONST_ISSUANCEREVOCATIONREASON = Integer.toString(RevokedCertInfo.NOT_REVOKED);</span>
+    private static final String CONST_AVAILCERTPROFILES2 =
+            CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER + &quot;;&quot; +
+            CertificateProfileConstants.CERTPROFILE_FIXED_SUBCA + &quot;;&quot; +
+            CertificateProfileConstants.CERTPROFILE_FIXED_ROOTCA;
+    
+    /** Creates a new instance of EndEntity Profile with the default fields set. */
+    public EndEntityProfile() {
+<span class="fc" id="L271">    	super();</span>
+<span class="fc" id="L272">    	init(false);</span>
+<span class="fc" id="L273">    }</span>
+
+    /** Creates a default empty end entity profile with all standard fields added to it. 
+     * @param emptyprofile profile */
+    public EndEntityProfile(final boolean emptyprofile){
+<span class="nc" id="L278">    	super();</span>
+<span class="nc" id="L279">    	init(emptyprofile);</span>
+<span class="nc" id="L280">    }</span>
+
+    /** Creates a new instance of EndEntity Profile used during cloning or when we load all the data from the database. 
+     * @param unused unused */
+<span class="nc" id="L284">    public EndEntityProfile(final int unused) {</span>
+<span class="nc" id="L285">    }</span>
+
+    private void init(final boolean emptyprofile){
+<span class="pc bpc" id="L288" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L289">        	log.debug(&quot;The highest number in dataConstants is: &quot; + dataConstantsMaxValue);</span>
+        }
+        // Common initialization of profile
+<span class="fc" id="L292">        final List&lt;Integer&gt; numberoffields = new ArrayList&lt;&gt;(dataConstantsMaxValue);</span>
+<span class="fc" id="L293">        Collections.fill(numberoffields, Integer.valueOf(0));</span>
+<span class="fc" id="L294">        data.put(NUMBERARRAY, numberoffields);</span>
+<span class="fc" id="L295">        data.put(SUBJECTDNFIELDORDER, new ArrayList&lt;Integer&gt;());</span>
+<span class="fc" id="L296">        data.put(SUBJECTALTNAMEFIELDORDER, new ArrayList&lt;Integer&gt;());</span>
+<span class="fc" id="L297">        data.put(SUBJECTDIRATTRFIELDORDER, new ArrayList&lt;Integer&gt;());</span>
+        
+<span class="pc bpc" id="L299" title="1 of 2 branches missed.">        if (emptyprofile) {</span>
+<span class="nc bnc" id="L300" title="All 2 branches missed.">        	for (final String key : dataConstantsUsedInEmpty) {</span>
+<span class="nc" id="L301">        		addFieldWithDefaults(key, &quot;&quot;, Boolean.FALSE, Boolean.TRUE, Boolean.TRUE);</span>
+<span class="nc" id="L302">        	}</span>
+        	// Add another DC-field since (if used) more than one is always used
+<span class="nc" id="L304">    		addFieldWithDefaults(DnComponents.DOMAINCOMPONENT, &quot;&quot;, Boolean.FALSE, Boolean.TRUE, Boolean.TRUE);</span>
+            // Add another SAN DNSname field, for the server certificates (ref. RFC 6125)
+<span class="nc" id="L306">            addFieldWithDefaults(DnComponents.DNSNAME, &quot;&quot;, Boolean.FALSE, Boolean.TRUE, Boolean.TRUE);</span>
+        	// Set required fields
+<span class="nc" id="L308">        	setRequired(USERNAME,0,true);</span>
+<span class="nc" id="L309">        	setRequired(PASSWORD,0,true);</span>
+<span class="nc" id="L310">        	setRequired(DnComponents.COMMONNAME,0,true);</span>
+<span class="nc" id="L311">        	setRequired(DEFAULTCERTPROFILE,0,true);</span>
+<span class="nc" id="L312">        	setRequired(AVAILCERTPROFILES,0,true);</span>
+<span class="nc" id="L313">        	setRequired(DEFKEYSTORE,0,true);</span>
+<span class="nc" id="L314">        	setRequired(AVAILKEYSTORE,0,true);</span>
+<span class="nc" id="L315">        	setRequired(DEFAULTCA,0,true);</span>
+<span class="nc" id="L316">        	setRequired(AVAILCAS,0,true);</span>
+<span class="nc" id="L317">        	setRequired(ISSUANCEREVOCATIONREASON,0,false);</span>
+<span class="nc" id="L318">        	setRequired(STARTTIME,0,false);</span>
+<span class="nc" id="L319">        	setRequired(ENDTIME,0,false);</span>
+<span class="nc" id="L320">        	setRequired(ALLOWEDREQUESTS,0,false);</span>
+<span class="nc" id="L321">        	setRequired(CARDNUMBER,0,false);</span>
+<span class="nc" id="L322">        	setRequired(MAXFAILEDLOGINS,0,false);</span>
+<span class="nc" id="L323">        	setRequired(NAMECONSTRAINTS_EXCLUDED,0,false);</span>
+<span class="nc" id="L324">        	setRequired(NAMECONSTRAINTS_PERMITTED,0,false);</span>
+<span class="nc" id="L325">        	setValue(DEFAULTCERTPROFILE,0, CONST_DEFAULTCERTPROFILE);</span>
+<span class="nc" id="L326">        	setValue(AVAILCERTPROFILES,0, CONST_AVAILCERTPROFILES1);</span>
+<span class="nc" id="L327">        	setValue(DEFKEYSTORE,0, CONST_DEFKEYSTORE);</span>
+<span class="nc" id="L328">        	setValue(AVAILKEYSTORE,0, CONST_AVAILKEYSTORE);</span>
+<span class="nc" id="L329">        	setValue(AVAILCAS,0, CONST_AVAILCAS);</span>
+<span class="nc" id="L330">        	setValue(ISSUANCEREVOCATIONREASON, 0, CONST_ISSUANCEREVOCATIONREASON);</span>
+        	// Do not use hard token issuers by default.
+<span class="nc" id="L332">        	setUse(AVAILTOKENISSUER, 0, false);</span>
+<span class="nc" id="L333">        	setUse(STARTTIME,0,false);</span>
+<span class="nc" id="L334">        	setUse(ENDTIME,0,false);</span>
+<span class="nc" id="L335">        	setUse(ALLOWEDREQUESTS,0,false);</span>
+<span class="nc" id="L336">        	setUse(CARDNUMBER,0,false);</span>
+<span class="nc" id="L337">        	setUse(ISSUANCEREVOCATIONREASON,0,false);</span>
+<span class="nc" id="L338">        	setUse(MAXFAILEDLOGINS,0,false);</span>
+<span class="nc" id="L339">            setValue(MAXFAILEDLOGINS, 0, Integer.toString(ExtendedInformation.DEFAULT_MAXLOGINATTEMPTS));</span>
+<span class="nc" id="L340">        	setUse(MINPWDSTRENGTH,0,false);</span>
+<span class="nc" id="L341">        	setUse(NAMECONSTRAINTS_PERMITTED,0,false);</span>
+<span class="nc" id="L342">        	setUse(NAMECONSTRAINTS_EXCLUDED,0,false);</span>
+        } else {
+        	// initialize profile data
+<span class="fc" id="L345">        	addFieldWithDefaults(USERNAME, &quot;&quot;, Boolean.TRUE, Boolean.TRUE, Boolean.TRUE);</span>
+<span class="fc" id="L346">        	addFieldWithDefaults(PASSWORD, &quot;&quot;, Boolean.TRUE, Boolean.TRUE, Boolean.TRUE);</span>
+<span class="fc" id="L347">        	addField(AUTOGENPASSWORDTYPE);</span>
+<span class="fc" id="L348">        	addFieldWithDefaults(AUTOGENPASSWORDLENGTH, &quot;8&quot;, Boolean.FALSE, Boolean.TRUE, Boolean.TRUE);</span>
+<span class="fc" id="L349">        	addFieldWithDefaults(DnComponents.COMMONNAME, &quot;&quot;, Boolean.TRUE, Boolean.TRUE, Boolean.TRUE);</span>
+<span class="fc" id="L350">        	addField(EMAIL);</span>
+<span class="fc" id="L351">        	addFieldWithDefaults(DEFAULTCERTPROFILE, CONST_DEFAULTCERTPROFILE, Boolean.TRUE, Boolean.TRUE, Boolean.TRUE);</span>
+<span class="fc" id="L352">        	addFieldWithDefaults(AVAILCERTPROFILES, CONST_AVAILCERTPROFILES2, Boolean.TRUE, Boolean.TRUE, Boolean.TRUE);</span>
+<span class="fc" id="L353">        	addFieldWithDefaults(DEFKEYSTORE, CONST_DEFKEYSTORE, Boolean.TRUE, Boolean.TRUE, Boolean.TRUE);</span>
+<span class="fc" id="L354">        	addFieldWithDefaults(AVAILKEYSTORE, CONST_AVAILKEYSTORE, Boolean.TRUE, Boolean.TRUE, Boolean.TRUE);</span>
+<span class="fc" id="L355">        	addField(DEFAULTTOKENISSUER);</span>
+        	// Do not use hard token issuers by default.
+<span class="fc" id="L357">        	addFieldWithDefaults(AVAILTOKENISSUER, &quot;&quot;, Boolean.TRUE, Boolean.FALSE, Boolean.TRUE);</span>
+<span class="fc" id="L358">        	addFieldWithDefaults(AVAILCAS, &quot;&quot;, Boolean.TRUE, Boolean.TRUE, Boolean.TRUE);</span>
+<span class="fc" id="L359">        	addFieldWithDefaults(DEFAULTCA, &quot;&quot;, Boolean.TRUE, Boolean.TRUE, Boolean.TRUE);</span>
+<span class="fc" id="L360">        	addFieldWithDefaults(STARTTIME, &quot;&quot;, Boolean.FALSE, Boolean.FALSE, Boolean.TRUE);</span>
+<span class="fc" id="L361">        	addFieldWithDefaults(ENDTIME, &quot;&quot;, Boolean.FALSE, Boolean.FALSE, Boolean.TRUE);</span>
+<span class="fc" id="L362">        	addFieldWithDefaults(ALLOWEDREQUESTS, &quot;&quot;, Boolean.FALSE, Boolean.FALSE, Boolean.TRUE);</span>
+<span class="fc" id="L363">        	addFieldWithDefaults(CARDNUMBER, &quot;&quot;, Boolean.FALSE, Boolean.FALSE, Boolean.TRUE);</span>
+<span class="fc" id="L364">        	addFieldWithDefaults(ISSUANCEREVOCATIONREASON, CONST_ISSUANCEREVOCATIONREASON, Boolean.FALSE, Boolean.FALSE, Boolean.TRUE);</span>
+<span class="fc" id="L365">        	addFieldWithDefaults(MAXFAILEDLOGINS, Integer.toString(ExtendedInformation.DEFAULT_MAXLOGINATTEMPTS), Boolean.FALSE, Boolean.FALSE, Boolean.TRUE);</span>
+<span class="fc" id="L366">        	addFieldWithDefaults(NAMECONSTRAINTS_PERMITTED, &quot;&quot;, Boolean.FALSE, Boolean.FALSE, Boolean.TRUE);</span>
+<span class="fc" id="L367">        	addFieldWithDefaults(NAMECONSTRAINTS_EXCLUDED, &quot;&quot;, Boolean.FALSE, Boolean.FALSE, Boolean.TRUE);</span>
+        }
+<span class="fc" id="L369">    }</span>
+
+    /** Add a field with value=&quot;&quot;, required=false, use=true, modifyable=true, if the parameter exists, ignored otherwise 
+     * @param parameter param*/
+    public void addField(final String parameter){
+<span class="fc" id="L374">        final int num = getParameterNumber(parameter);</span>
+<span class="fc bfc" id="L375" title="All 2 branches covered.">        if (num &gt; 0) {</span>
+<span class="fc" id="L376">            addField(num, parameter);</span>
+        } else {
+<span class="fc" id="L378">            log.debug(&quot;Parameter does not exist (0 returned as parameter number; &quot;+parameter);</span>
+        }
+<span class="fc" id="L380">    }</span>
+    
+    /**
+     * Function that adds a field to the profile.
+     *
+     * @param parameter is the field and one of the field constants.
+     */
+    public void addField(final int parameter){
+<span class="nc" id="L388">    	addField(parameter, getParameter(parameter));</span>
+<span class="nc" id="L389">    }</span>
+    
+    /** Add a field with value=&quot;&quot;, required=false, use=true, modifyable=true 
+     * @param parameter param
+     * @param parameterName name */
+    private void addField(final int parameter, final String parameterName) {
+<span class="fc" id="L395">    	addFieldWithDefaults(parameter, parameterName, &quot;&quot;, Boolean.FALSE, Boolean.TRUE, Boolean.TRUE, null);</span>
+<span class="fc" id="L396">    }</span>
+    
+    private void addFieldWithDefaults(final String parameterName, final String value, final Boolean required, final Boolean use, final Boolean modifyable) {
+<span class="fc" id="L399">        addFieldWithDefaults(getParameterNumber(parameterName), parameterName, value, required, use, modifyable, null);</span>
+<span class="fc" id="L400">    }</span>
+
+    private void addFieldWithDefaults(final int parameter, final String parameterName, final String value, final Boolean required, final Boolean use, final Boolean modifyable, final LinkedHashMap&lt;String,Object&gt; validation) {
+<span class="fc" id="L403">    	final int size = getNumberOfField(parameter);</span>
+    	// Perform operations directly on &quot;data&quot; to save some cycles..
+<span class="fc" id="L405">    	final int offset = (NUMBERBOUNDRARY*size) + parameter;</span>
+<span class="fc" id="L406">   		data.put(Integer.valueOf(FIELDBOUNDRARY_VALUE + offset), value);</span>
+<span class="fc" id="L407">    	data.put(Integer.valueOf(FIELDBOUNDRARY_ISREQUIRED + offset), required);</span>
+<span class="fc" id="L408">    	data.put(Integer.valueOf(FIELDBOUNDRARY_USE + offset), use);</span>
+<span class="fc" id="L409">    	data.put(Integer.valueOf(FIELDBOUNDRARY_MODIFYABLE + offset), modifyable);</span>
+<span class="pc bpc" id="L410" title="1 of 2 branches missed.">    	if (validation != null) {</span>
+    	    // validation should be a map of a validator class name (excluding package name) and a validator-specific object.
+<span class="nc" id="L412">    	    data.put(Integer.valueOf(FIELDBOUNDRARY_VALIDATION + offset), validation);</span>
+    	} else {
+<span class="fc" id="L414">    	    data.remove(Integer.valueOf(FIELDBOUNDRARY_VALIDATION + offset));</span>
+    	}
+<span class="fc bfc" id="L416" title="All 2 branches covered.">    	if (DnComponents.isDnProfileField(parameterName)) {</span>
+    		@SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L418">            final ArrayList&lt;Integer&gt; fieldorder = (ArrayList&lt;Integer&gt;) data.get(SUBJECTDNFIELDORDER);</span>
+<span class="fc" id="L419">    		final Integer val = Integer.valueOf((NUMBERBOUNDRARY*parameter) + size);</span>
+<span class="fc" id="L420">    		fieldorder.add(val);</span>
+<span class="fc bfc" id="L421" title="All 2 branches covered.">    	} else if (DnComponents.isAltNameField(parameterName)) {</span>
+    		@SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L423">            final ArrayList&lt;Integer&gt; fieldorder = (ArrayList&lt;Integer&gt;) data.get(SUBJECTALTNAMEFIELDORDER);</span>
+<span class="fc" id="L424">    		final Integer val = Integer.valueOf((NUMBERBOUNDRARY*parameter) + size);</span>
+<span class="fc" id="L425">    		fieldorder.add(val);</span>
+<span class="fc bfc" id="L426" title="All 2 branches covered.">    	} else if (DnComponents.isDirAttrField(parameterName)) {</span>
+    		@SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L428">            final ArrayList&lt;Integer&gt; fieldorder = (ArrayList&lt;Integer&gt;) data.get(SUBJECTDIRATTRFIELDORDER);</span>
+<span class="fc" id="L429">    		final Integer val = Integer.valueOf((NUMBERBOUNDRARY*parameter) + size);</span>
+<span class="fc" id="L430">    		fieldorder.add(val);</span>
+    	}
+<span class="fc" id="L432">    	incrementFieldnumber(parameter);</span>
+<span class="fc" id="L433">    }</span>
+
+    public void removeField(final String parameter, final int number){
+<span class="nc" id="L436">    	removeField(getParameterNumber(parameter), number);</span>
+<span class="nc" id="L437">    }</span>
+
+    /**
+     * Function that removes a field from the end entity profile.
+     *
+     * @param parameter is the field to remove.
+     * @param number is the number of field.
+     */
+    public void removeField(final int parameter, final int number){
+    	// Remove field and move all file ids above.
+<span class="nc" id="L447">    	final int size = getNumberOfField(parameter);</span>
+<span class="nc bnc" id="L448" title="All 2 branches missed.">    	if (size&gt;0) {</span>
+<span class="nc bnc" id="L449" title="All 2 branches missed.">    		for (int n = number; n &lt; size-1; n++) {</span>
+<span class="nc" id="L450">    			setValue(parameter,n,getValue(parameter,n+1));</span>
+<span class="nc" id="L451">    			setRequired(parameter,n,isRequired(parameter,n+1));</span>
+<span class="nc" id="L452">    			setUse(parameter,n,getUse(parameter,n+1));</span>
+<span class="nc" id="L453">    			setModifyable(parameter,n,isModifyable(parameter,n+1));</span>
+    		}
+<span class="nc" id="L455">    		final String param = getParameter(parameter);</span>
+    		// Remove last element from Subject DN order list.
+<span class="nc bnc" id="L457" title="All 2 branches missed.">    		if (DnComponents.isDnProfileField(param)) {</span>
+    			@SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L459">                final ArrayList&lt;Integer&gt; fieldorder = (ArrayList&lt;Integer&gt;) data.get(SUBJECTDNFIELDORDER);</span>
+<span class="nc" id="L460">    			final int value = (NUMBERBOUNDRARY*parameter) + size -1;</span>
+<span class="nc" id="L461">    			fieldorder.remove(Integer.valueOf(value));</span>
+    		}
+    		// Remove last element from Subject AltName order list.
+<span class="nc bnc" id="L464" title="All 2 branches missed.">    		if (DnComponents.isAltNameField(param)) {</span>
+    			@SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L466">                final ArrayList&lt;Integer&gt; fieldorder = (ArrayList&lt;Integer&gt;) data.get(SUBJECTALTNAMEFIELDORDER);</span>
+<span class="nc" id="L467">    			final int value = (NUMBERBOUNDRARY*parameter) + size -1;	//number;</span>
+<span class="nc" id="L468">    			fieldorder.remove(Integer.valueOf(value));</span>
+    		}
+    		// Remove last element from Subject DirAttr order list.
+<span class="nc bnc" id="L471" title="All 2 branches missed.">    		if (DnComponents.isDirAttrField(param)) {</span>
+    			@SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L473">                final ArrayList&lt;Integer&gt; fieldorder = (ArrayList&lt;Integer&gt;) data.get(SUBJECTDIRATTRFIELDORDER);</span>
+<span class="nc" id="L474">    			final int value = (NUMBERBOUNDRARY*parameter) + size -1;	//number;</span>
+<span class="nc" id="L475">    			fieldorder.remove(Integer.valueOf(value));</span>
+    		}
+    		// Remove last element of the type from hashmap
+<span class="nc" id="L478">    		data.remove(Integer.valueOf(FIELDBOUNDRARY_VALUE + (NUMBERBOUNDRARY*(size-1)) + parameter));</span>
+<span class="nc" id="L479">    		data.remove(Integer.valueOf(FIELDBOUNDRARY_USE + (NUMBERBOUNDRARY*(size-1)) + parameter));</span>
+<span class="nc" id="L480">    		data.remove(Integer.valueOf(FIELDBOUNDRARY_ISREQUIRED + (NUMBERBOUNDRARY*(size-1)) + parameter));</span>
+<span class="nc" id="L481">    		data.remove(Integer.valueOf(FIELDBOUNDRARY_MODIFYABLE + (NUMBERBOUNDRARY*(size-1)) + parameter));</span>
+<span class="nc" id="L482">    		decrementFieldnumber(parameter);</span>
+    	}
+<span class="nc" id="L484">    }</span>
+
+    /**
+     * @param parameter the name of a field from profilemappings.properties, see DnComponents
+     * @return the number of one kind of field in the profile, or 0 if it does not exist.
+     * @see DnComponents
+     */
+    public int getNumberOfField(final String parameter){
+<span class="fc" id="L492">        final int num = getParameterNumber(parameter);</span>
+<span class="pc bpc" id="L493" title="1 of 2 branches missed.">        if (num != -1) {</span>
+<span class="fc" id="L494">            return getNumberOfField(num);</span>
+        } else {
+<span class="nc" id="L496">            return 0;</span>
+        }
+    }
+    /**
+     * @param parameter the number of a field from profilemappings.properties
+     * @return the number of one kind of field in the profile.
+     */
+    public int getNumberOfField(final int parameter){
+<span class="fc" id="L504">    	final ArrayList&lt;Integer&gt; arr = checkAndUpgradeWithNewFields(parameter);</span>
+<span class="fc" id="L505">    	return arr.get(parameter).intValue();</span>
+    }
+
+	private ArrayList&lt;Integer&gt; checkAndUpgradeWithNewFields(final int parameter) {
+		@SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L510">        final ArrayList&lt;Integer&gt; arr = (ArrayList&lt;Integer&gt;)data.get(NUMBERARRAY);</span>
+    	// This is an automatic upgrade function, if we have dynamically added new fields
+<span class="fc bfc" id="L512" title="All 2 branches covered.">    	if (parameter &gt;= arr.size()) {</span>
+<span class="pc bpc" id="L513" title="1 of 2 branches missed.">    		if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L514">        		log.debug(intres.getLocalizedMessage(&quot;ra.eeprofileaddfield&quot;, Integer.valueOf(parameter)));</span>
+    		}
+<span class="fc bfc" id="L516" title="All 2 branches covered.">    		for (int i=arr.size(); i&lt;=parameter; i++) {</span>
+<span class="fc" id="L517">                arr.add(Integer.valueOf(0));</span>
+    		}
+<span class="fc" id="L519">            data.put(NUMBERARRAY,arr);</span>
+    	}
+<span class="fc" id="L521">		return arr;</span>
+	}
+
+    public void setValue(final int parameter, final int number, final String value) {
+<span class="pc bpc" id="L525" title="1 of 2 branches missed.">    	if (value !=null) {</span>
+<span class="fc" id="L526">    		data.put(Integer.valueOf(FIELDBOUNDRARY_VALUE + (NUMBERBOUNDRARY*number) + parameter), value.trim());</span>
+    	} else {
+<span class="nc" id="L528">    		data.put(Integer.valueOf(FIELDBOUNDRARY_VALUE + (NUMBERBOUNDRARY*number) + parameter), &quot;&quot;);</span>
+    	}
+<span class="fc" id="L530">    }</span>
+
+    public void setValue(final String parameter, final int number, final String value) {
+<span class="fc" id="L533">    	setValue(getParameterNumber(parameter), number, value);</span>
+<span class="fc" id="L534">    }</span>
+
+    public void setUse(final int parameter, final int number, final boolean use){
+<span class="fc" id="L537">    	data.put(Integer.valueOf(FIELDBOUNDRARY_USE + (NUMBERBOUNDRARY*number) + parameter), Boolean.valueOf(use));</span>
+<span class="fc" id="L538">    }</span>
+
+    public void setUse(final String parameter, final int number, final boolean use){
+<span class="fc" id="L541">    	setUse(getParameterNumber(parameter), number, use);</span>
+<span class="fc" id="L542">    }</span>
+
+    public void setRequired(final int parameter, final int number, final boolean isrequired) {
+<span class="fc" id="L545">    	data.put(Integer.valueOf(FIELDBOUNDRARY_ISREQUIRED + (NUMBERBOUNDRARY*number) + parameter), Boolean.valueOf(isrequired));</span>
+<span class="fc" id="L546">    }</span>
+
+    public void setRequired(final String parameter, final int number, final boolean isrequired) {
+<span class="fc" id="L549">    	setRequired(getParameterNumber(parameter), number, isrequired);</span>
+<span class="fc" id="L550">    }</span>
+
+    public void setModifyable(final int parameter, final int number, final boolean changeable) {
+<span class="fc" id="L553">    	data.put(Integer.valueOf(FIELDBOUNDRARY_MODIFYABLE + (NUMBERBOUNDRARY*number) + parameter), Boolean.valueOf(changeable));</span>
+<span class="fc" id="L554">    }</span>
+
+    public void setModifyable(final String parameter, final int number, final boolean changeable) {
+<span class="fc" id="L557">    	setModifyable(getParameterNumber(parameter), number, changeable);</span>
+<span class="fc" id="L558">    }</span>
+    
+    public void setValidation(final int parameter, final int number, final Map&lt;String,Serializable&gt; validation){
+<span class="nc" id="L561">        Integer paramNum = Integer.valueOf(FIELDBOUNDRARY_VALIDATION + (NUMBERBOUNDRARY*number) + parameter);</span>
+<span class="nc bnc" id="L562" title="All 2 branches missed.">        if (validation != null) {</span>
+<span class="nc" id="L563">            data.put(paramNum, new LinkedHashMap&lt;&gt;(validation));</span>
+        } else {
+<span class="nc" id="L565">            data.remove(paramNum);</span>
+        }
+<span class="nc" id="L567">    }</span>
+
+    public void setValidation(final String parameter, final int number, final LinkedHashMap&lt;String,Serializable&gt; validation){
+<span class="nc" id="L570">        setValidation(getParameterNumber(parameter), number, validation);</span>
+<span class="nc" id="L571">    }</span>
+
+    public boolean isPasswordPreDefined() {
+<span class="nc bnc" id="L574" title="All 4 branches missed.">        return getPredefinedPassword() != null &amp;&amp; !getPredefinedPassword().trim().equals(&quot;&quot;);</span>
+    }
+    
+    
+    public String getPredefinedPassword() {
+<span class="nc" id="L579">        return getValue(EndEntityProfile.PASSWORD, 0);</span>
+    }
+    
+
+    public String getValue(final int parameter, final int number) {
+<span class="fc" id="L584">    	return getValueDefaultEmpty(Integer.valueOf(FIELDBOUNDRARY_VALUE + (NUMBERBOUNDRARY*number) + parameter));</span>
+    }
+
+    /**
+     * Semi-internal method to get a default value, or list of allowed values.
+     * 
+     * &lt;p&gt;&lt;b&gt;Note:&lt;/b&gt; Consider calling the appropriate getters instead of this method.
+     * For example &lt;code&gt;getAvailableCertificateProfileIds()&lt;/code&gt; instead of calling &lt;code&gt;getValue(AVAILCERTPROFILES,0)&lt;/code&gt;
+     * @param parameter param
+     * @param number number
+     * @return value
+     */
+    public String getValue(final String parameter, final int number) {
+<span class="fc" id="L597">    	return getValue(getParameterNumber(parameter), number);</span>
+    }
+
+    public boolean getUse(final int parameter, final int number){
+<span class="fc" id="L601">    	return getValueDefaultFalse(Integer.valueOf(FIELDBOUNDRARY_USE + (NUMBERBOUNDRARY*number) + parameter));</span>
+    }
+
+    /**
+     * Semi-internal method to get the &quot;use&quot; (enabled or disabled) state of a parameter.
+     * 
+     * &lt;p&gt;&lt;b&gt;Note:&lt;/b&gt; Consider calling the appropriate getters instead of this method.
+     * For example &lt;code&gt;getCustomSerialNumberUsed()&lt;/code&gt; instead of calling &lt;code&gt;getUse(CERTSERIALNR, 0)&lt;/code&gt;
+     * @param parameter param
+     * @param number number
+     * @return bool
+     */
+    public boolean getUse(final String parameter, final int number){
+<span class="fc" id="L614">    	return getUse(getParameterNumber(parameter), number);</span>
+    }
+
+    public boolean isRequired(final int parameter, final int number) {
+<span class="fc" id="L618">    	return getValueDefaultFalse(Integer.valueOf(FIELDBOUNDRARY_ISREQUIRED + (NUMBERBOUNDRARY*number) + parameter));</span>
+    }
+
+    /**
+     * Semi-internal method to get the &quot;is required&quot; state of a parameter.
+     * 
+     * &lt;p&gt;&lt;b&gt;Note:&lt;/b&gt; Consider calling the appropriate getters instead of this method.
+     * For example &lt;code&gt;getEmailDomainRequired()&lt;/code&gt; instead of calling &lt;code&gt;isRequired(EMAIL, 0)&lt;/code&gt;
+     *  @param parameter param
+     * @param number number
+     * @return bool
+     */
+    public boolean isRequired(final String parameter, final int number) {
+<span class="fc" id="L631">    	return isRequired(getParameterNumber(parameter), number);</span>
+    }
+
+    public boolean isModifyable(final int parameter, final int number) {
+<span class="fc" id="L635">    	return getValueDefaultFalse(Integer.valueOf(FIELDBOUNDRARY_MODIFYABLE + (NUMBERBOUNDRARY*number) + parameter));</span>
+    }
+
+    /**
+     * Semi-internal method to get the &quot;is modifiable&quot; state of a parameter.
+     * 
+     * &lt;p&gt;&lt;b&gt;Note:&lt;/b&gt; Consider calling the appropriate getters instead of this method.
+     * For example &lt;code&gt;getEmailDomainModifiable()&lt;/code&gt; instead of calling &lt;code&gt;isModifyable(EMAIL, 0)&lt;/code&gt;
+     *  @param parameter param
+     * @param number number
+     * @return bool
+     */
+    public boolean isModifyable(final String parameter, final int number) {
+<span class="fc" id="L648">    	return isModifyable(getParameterNumber(parameter), number);</span>
+    }
+    
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public LinkedHashMap&lt;String,Serializable&gt; getValidation(final int parameter, final int number){
+<span class="fc" id="L653">        return (LinkedHashMap&lt;String,Serializable&gt;)data.get(Integer.valueOf(FIELDBOUNDRARY_VALIDATION + (NUMBERBOUNDRARY*number) + parameter));</span>
+    }
+
+    public LinkedHashMap&lt;String,Serializable&gt; getValidation(final String parameter, final int number){
+<span class="nc" id="L657">        return getValidation(getParameterNumber(parameter), number);</span>
+    }
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public int getSubjectDNFieldOrderLength(){
+<span class="nc" id="L662">    	return ((ArrayList&lt;Integer&gt;) data.get(SUBJECTDNFIELDORDER)).size();</span>
+    }
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public int getSubjectAltNameFieldOrderLength(){
+<span class="nc" id="L667">    	return ((ArrayList&lt;Integer&gt;) data.get(SUBJECTALTNAMEFIELDORDER)).size();</span>
+    }
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public int getSubjectDirAttrFieldOrderLength(){
+<span class="nc" id="L672">        return ((ArrayList&lt;Integer&gt;) data.get(SUBJECTDIRATTRFIELDORDER)).size();</span>
+    }
+    
+    /**
+     * Returns the number of Subject DN, SAN or Subject Directory Attributes fields in this profile.
+     * @param dnType DNFieldExtractor.TYPE_*
+     * @return Number of fields for the given field type
+     */
+    public int getFieldOrderLengthForDnType(final int dnType) {
+<span class="nc bnc" id="L681" title="All 4 branches missed.">        switch (dnType) {</span>
+<span class="nc" id="L682">            case DNFieldExtractor.TYPE_SUBJECTDN: return getSubjectDNFieldOrderLength();</span>
+<span class="nc" id="L683">            case DNFieldExtractor.TYPE_SUBJECTALTNAME: return getSubjectAltNameFieldOrderLength();</span>
+<span class="nc" id="L684">            case DNFieldExtractor.TYPE_SUBJECTDIRATTR: return getSubjectDirAttrFieldOrderLength();</span>
+<span class="nc" id="L685">            default: throw new IllegalArgumentException(&quot;Invalid DN type&quot;);</span>
+        }
+    }
+
+    /** @return two int : the first is the DN field which is a constant in DN field extractor,
+     * the second is in which order the attribute is, 0 is first OU and 1 can mean second OU (if OU is specified in the first value).
+     * @param index index
+     * 
+     * 
+     */
+    public int[] getSubjectDNFieldsInOrder(final int index) {
+<span class="nc" id="L696">    	final int[] returnval = new int[2];</span>
+    	@SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L698">        final ArrayList&lt;Integer&gt; fieldorder = (ArrayList&lt;Integer&gt;) data.get(SUBJECTDNFIELDORDER);</span>
+<span class="nc" id="L699">    	final int i = fieldorder.get(index).intValue();</span>
+<span class="nc" id="L700">    	returnval[NUMBER] = i % NUMBERBOUNDRARY;</span>
+<span class="nc" id="L701">    	returnval[FIELDTYPE] = i / NUMBERBOUNDRARY;</span>
+<span class="nc" id="L702">    	return returnval;</span>
+    }
+
+    public int[] getSubjectAltNameFieldsInOrder(final int index) {
+<span class="nc" id="L706">    	int[] returnval = new int[2];</span>
+    	@SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L708">        final ArrayList&lt;Integer&gt; fieldorder = (ArrayList&lt;Integer&gt;) data.get(SUBJECTALTNAMEFIELDORDER);</span>
+<span class="nc" id="L709">    	final int i = fieldorder.get(index).intValue();</span>
+<span class="nc" id="L710">    	returnval[NUMBER] = i % NUMBERBOUNDRARY;</span>
+<span class="nc" id="L711">    	returnval[FIELDTYPE] = i / NUMBERBOUNDRARY;</span>
+<span class="nc" id="L712">    	return returnval;</span>
+    }
+
+    public int[] getSubjectDirAttrFieldsInOrder(final int index) {
+<span class="nc" id="L716">    	final int[] returnval = new int[2];</span>
+    	@SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L718">        final ArrayList&lt;Integer&gt; fieldorder = (ArrayList&lt;Integer&gt;) data.get(SUBJECTDIRATTRFIELDORDER);</span>
+<span class="nc" id="L719">    	final int i = fieldorder.get(index).intValue();</span>
+<span class="nc" id="L720">    	returnval[NUMBER] = i % NUMBERBOUNDRARY;</span>
+<span class="nc" id="L721">    	returnval[FIELDTYPE] = i / NUMBERBOUNDRARY;</span>
+<span class="nc" id="L722">    	return returnval;</span>
+    }
+    
+    /**
+     * Returns the Subject DN, SAN or Subject Directory Attributes field of the given index in the profile.
+     * @param dnType DNFieldExtractor.TYPE_*
+     * @param index Zero based index of field, up to and including getFieldOrderLengthForDnType(dnType)-1.
+     * @return Number of fields for the given field type
+     */
+    public int[] getFieldsInOrderForDnType(final int dnType, final int index) {
+<span class="nc bnc" id="L732" title="All 4 branches missed.">        switch (dnType) {</span>
+<span class="nc" id="L733">            case DNFieldExtractor.TYPE_SUBJECTDN: return getSubjectDNFieldsInOrder(index);</span>
+<span class="nc" id="L734">            case DNFieldExtractor.TYPE_SUBJECTALTNAME: return getSubjectAltNameFieldsInOrder(index);</span>
+<span class="nc" id="L735">            case DNFieldExtractor.TYPE_SUBJECTDIRATTR: return getSubjectDirAttrFieldsInOrder(index);</span>
+<span class="nc" id="L736">            default: throw new IllegalArgumentException(&quot;Invalid DN type&quot;);</span>
+        }
+    }
+
+    /** Gets a Collection of available CA Ids (as Integers). 
+     * Use String.valueOf(caidstring) to get the int value of the CA id.
+     * 
+     * @return a Collection of CA Ids (never null).
+     */
+    public List&lt;Integer&gt; getAvailableCAs(){
+<span class="nc" id="L746">        final ArrayList&lt;Integer&gt; ids = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L747">        final String idsAsstring = getValue(AVAILCAS,0);</span>
+<span class="nc bnc" id="L748" title="All 2 branches missed.">        if (!StringUtils.isBlank(idsAsstring)) {</span>
+<span class="nc bnc" id="L749" title="All 2 branches missed.">            for (final String idString : idsAsstring.split(SPLITCHAR)) {</span>
+<span class="nc" id="L750">                ids.add(Integer.parseInt(idString));</span>
+            }
+        }
+<span class="nc" id="L753">        return ids;</span>
+    }
+    
+    /** Like {@link #getAvailableCAs}, but returns the Ids as strings. 
+     * @return IDs*/
+    public Collection&lt;String&gt; getAvailableCAsAsStrings(){
+<span class="nc" id="L759">        final ArrayList&lt;String&gt; availablecaids = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L760">        availablecaids.addAll(Arrays.asList(getValue(AVAILCAS,0).split(SPLITCHAR)));</span>
+<span class="nc" id="L761">        return availablecaids;</span>
+    }
+
+    /** Sets available CA ids. These are stored as a ; separated string in the end entity profile
+     * 
+     * @param ids Collection of CA ids
+     */
+    public void setAvailableCAs(Collection&lt;Integer&gt; ids) {
+<span class="nc" id="L769">        StringBuilder builder = new StringBuilder();</span>
+<span class="nc bnc" id="L770" title="All 2 branches missed.">        for (Integer id: ids) {</span>
+<span class="nc bnc" id="L771" title="All 2 branches missed.">            if (builder.length() == 0) {</span>
+<span class="nc" id="L772">                builder.append(id);</span>
+            } else {
+<span class="nc" id="L774">                builder.append(';').append(id);</span>
+            }
+<span class="nc" id="L776">        }</span>
+<span class="nc" id="L777">        setValue(AVAILCAS,0, builder.toString());</span>
+<span class="nc" id="L778">    }</span>
+    
+    /** Sets available CA ids. These are stored as a ; separated string in the end entity profile
+     * 
+     * @param ids Collection of CA ids
+     * @throws NumberFormatException on format error
+     */
+    public void setAvailableCAsIDsAsStrings(Collection&lt;String&gt; ids) throws NumberFormatException {
+<span class="nc" id="L786">        StringBuilder builder = new StringBuilder();</span>
+<span class="nc bnc" id="L787" title="All 2 branches missed.">        for (String id: ids) {</span>
+<span class="nc" id="L788">            Integer.parseInt(id);   //Test if it's an integer!</span>
+<span class="nc bnc" id="L789" title="All 2 branches missed.">            if (builder.length() == 0) {</span>
+<span class="nc" id="L790">                builder.append(id);</span>
+            } else {
+<span class="nc" id="L792">                builder.append(';').append(id);</span>
+            }
+<span class="nc" id="L794">        }</span>
+<span class="nc" id="L795">        setValue(AVAILCAS,0, builder.toString());</span>
+<span class="nc" id="L796">    }</span>
+
+    /** Gets a Collection of available certificate profile ids
+     * Use Integer.valueOf(idstring) to get the int value
+     * 
+     * @return a Collection of ids
+     */
+    public List&lt;Integer&gt; getAvailableCertificateProfileIds() {
+<span class="nc" id="L804">        final ArrayList&lt;Integer&gt; profiles = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L805">        final String value = getValue(AVAILCERTPROFILES,0);</span>
+<span class="nc bnc" id="L806" title="All 2 branches missed.">        if (value != null) {</span>
+<span class="nc" id="L807">            final String[] arr = value.split(SPLITCHAR);</span>
+<span class="nc bnc" id="L808" title="All 2 branches missed.">            for (final String element : arr) {</span>
+<span class="nc" id="L809">                profiles.add(Integer.parseInt(element));</span>
+            }
+        }
+<span class="nc" id="L812">        return profiles;</span>
+    }
+    
+    /** Like {@link #getAvailableCertificateProfileIds}, but returns the Ids as strings. 
+     * @return IDs */
+    public Collection&lt;String&gt; getAvailableCertificateProfileIdsAsStrings() {
+<span class="nc" id="L818">        final ArrayList&lt;String&gt; profiles = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L819">        final String list = getValue(AVAILCERTPROFILES,0);</span>
+<span class="nc bnc" id="L820" title="All 2 branches missed.">        if (list != null) {</span>
+<span class="nc" id="L821">            profiles.addAll(Arrays.asList(list.split(SPLITCHAR)));</span>
+        }
+<span class="nc" id="L823">        return profiles;        </span>
+    }
+
+    /** Sets available certificate profile ids. These are stored as a ; separated string in the end entity profile
+     * 
+     * @param ids Collection of certificate profile ids
+     */
+    public void setAvailableCertificateProfileIds(Collection&lt;Integer&gt; ids) {
+<span class="nc" id="L831">        StringBuilder builder = new StringBuilder();</span>
+<span class="nc bnc" id="L832" title="All 2 branches missed.">        for (Integer id: ids) {</span>
+<span class="nc bnc" id="L833" title="All 2 branches missed.">            if (builder.length() == 0) {</span>
+<span class="nc" id="L834">                builder.append(id);</span>
+            } else {
+<span class="nc" id="L836">                builder.append(';').append(id);</span>
+            }
+<span class="nc" id="L838">        }</span>
+<span class="nc" id="L839">        setValue(AVAILCERTPROFILES,0, builder.toString());</span>
+<span class="nc" id="L840">    }</span>
+    
+    public int getDefaultCA() {
+<span class="nc" id="L843">    	int ret = -1;</span>
+<span class="nc" id="L844">    	final String str = getValue(DEFAULTCA,0);</span>
+<span class="nc bnc" id="L845" title="All 4 branches missed.">    	if (str != null &amp;&amp; !StringUtils.isEmpty(str)) {</span>
+<span class="nc" id="L846">    		ret = Integer.valueOf(str);</span>
+<span class="nc bnc" id="L847" title="All 2 branches missed.">    		if (ret == CAConstants.ALLCAS) {</span>
+<span class="nc" id="L848">    		    return -1;</span>
+    		}
+    	}
+<span class="nc" id="L851">        return ret;</span>
+    }
+    
+    public void setDefaultCA(final int caId) {
+        // Might get called with caId=1 (CAConstants.ALLCAS) if the CA Id is missing, and the code tries to take the first available CA (which can be &quot;All CAs&quot; or 1)
+<span class="nc bnc" id="L856" title="All 2 branches missed.">        setValue(EndEntityProfile.DEFAULTCA, 0, String.valueOf(caId == CAConstants.ALLCAS ? -1 : caId));</span>
+<span class="nc" id="L857">    }</span>
+    
+    /** 
+     * @return the certificate profileId configured as default certificate profile, or -1 if no default certificate profile exists
+     */
+    public int getDefaultCertificateProfile() {
+<span class="nc" id="L863">        int ret = -1;</span>
+<span class="nc" id="L864">        final String str = getValue(DEFAULTCERTPROFILE,0);</span>
+<span class="nc bnc" id="L865" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(str)) {</span>
+<span class="nc" id="L866">            ret = Integer.parseInt(str);</span>
+        }
+<span class="nc" id="L868">        return ret;</span>
+    }
+    
+    public void setDefaultCertificateProfile(final int certificateProfileId) {
+<span class="nc" id="L872">        setValue(EndEntityProfile.DEFAULTCERTPROFILE, 0, String.valueOf(certificateProfileId));</span>
+<span class="nc" id="L873">    }</span>
+    
+    /**
+     * Returns the default token type, such as &quot;User generated&quot; or &quot;PCKS#12&quot;
+     * @return One of the SecConst.TOKEN_SOFT_* constants
+     */
+    public int getDefaultTokenType() {
+<span class="nc" id="L880">        int ret = SecConst.TOKEN_SOFT_BROWSERGEN;</span>
+<span class="nc" id="L881">        final String str = getValue(EndEntityProfile.DEFKEYSTORE, 0);</span>
+<span class="nc bnc" id="L882" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(str)) {</span>
+<span class="nc" id="L883">            ret = Integer.parseInt(str);</span>
+        }
+<span class="nc" id="L885">        return ret;</span>
+    }
+    
+    public List&lt;Integer&gt; getAvailableTokenTypes() {
+<span class="nc" id="L889">        final List&lt;Integer&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L890">        final String str = getValue(EndEntityProfile.AVAILKEYSTORE, 0);</span>
+<span class="nc bnc" id="L891" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(str)) {</span>
+<span class="nc bnc" id="L892" title="All 2 branches missed.">            for (final String elem : str.split(SPLITCHAR)) {</span>
+<span class="nc" id="L893">                ret.add(Integer.parseInt(elem));</span>
+            }
+        }
+<span class="nc" id="L896">        return ret;</span>
+    }
+    
+    public String getUsernameDefault() {
+<span class="nc" id="L900">        return getValue(USERNAME, 0);</span>
+    }
+    
+    public boolean isUsernameRequired() {
+<span class="nc" id="L904">        return isRequired(USERNAME, 0);</span>
+    }
+    
+    public boolean isAutoGeneratedUsername() {
+<span class="nc bnc" id="L908" title="All 2 branches missed.">        return !isModifyable(USERNAME, 0);</span>
+    }
+    
+    public boolean isPasswordRequired() {
+<span class="fc" id="L912">        return isRequired(PASSWORD, 0);</span>
+    }
+    
+    public boolean isPasswordModifiable() {
+<span class="fc" id="L916">        return isModifyable(PASSWORD, 0);</span>
+    }
+    
+    public boolean useAutoGeneratedPasswd() {
+<span class="pc bpc" id="L920" title="1 of 2 branches missed.">    	return !getUse(PASSWORD, 0);</span>
+    }
+    
+    public String getAutoGeneratedPasswdType() {
+<span class="nc" id="L924">    	String type = getValue(AUTOGENPASSWORDTYPE, 0);</span>
+<span class="nc bnc" id="L925" title="All 4 branches missed.">    	if (type == null || &quot;&quot;.equals(type)) {</span>
+<span class="nc" id="L926">    		type = PasswordGeneratorFactory.PASSWORDTYPE_LETTERSANDDIGITS;</span>
+    	}
+<span class="nc" id="L928">    	return type;</span>
+    }
+
+    public int getAutoGeneratedPasswdLength() {
+<span class="nc" id="L932">    	final String length = getValue(AUTOGENPASSWORDLENGTH, 0);</span>
+<span class="nc" id="L933">    	int pwdlen = 8;</span>
+<span class="nc bnc" id="L934" title="All 2 branches missed.">    	if (!StringUtils.isEmpty(length)) {</span>
+    		try {
+<span class="nc" id="L936">    			pwdlen = Integer.parseInt(length);    		</span>
+<span class="nc" id="L937">    		} catch (NumberFormatException e) {</span>
+<span class="nc" id="L938">    			log.info(&quot;NumberFormatException parsing AUTOGENPASSWORDLENGTH, using default value of 8: &quot;, e);</span>
+<span class="nc" id="L939">    		}</span>
+    	}
+<span class="nc" id="L941">    	return pwdlen;</span>
+    }
+
+    public String getAutoGeneratedPasswd(){
+<span class="nc" id="L945">    	final int pwdlen = getAutoGeneratedPasswdLength();</span>
+<span class="nc" id="L946">    	return PasswordGeneratorFactory.getInstance(getAutoGeneratedPasswdType()).getNewPassword(pwdlen, pwdlen);    	</span>
+    }
+    
+    /** @return strength in bits = log2(possible chars) * number of chars rounded down */
+    public int getAutoGenPwdStrength() {
+<span class="nc" id="L951">    	final int numerOfDifferentChars = PasswordGeneratorFactory.getInstance(getAutoGeneratedPasswdType()).getNumerOfDifferentChars();</span>
+<span class="nc" id="L952">    	return getPasswordStrength(numerOfDifferentChars, getAutoGeneratedPasswdLength());</span>
+    }
+    
+    /** @param numerOfDifferentChars num
+     * @param passwordLength Length
+     * @return strength in bits = log2(possible chars) * number of chars rounded down */
+    private int getPasswordStrength(int numerOfDifferentChars, int passwordLength) {
+<span class="fc" id="L959">    	return (int) (Math.floor(Math.log(numerOfDifferentChars)/Math.log(2)) * passwordLength);</span>
+    }
+
+    /** @return the minimum strength that a password is allowed to have in bits */
+    public int getMinPwdStrength() {
+<span class="nc bnc" id="L964" title="All 2 branches missed.">    	if (!getUse(MINPWDSTRENGTH, 0)) {</span>
+<span class="nc" id="L965">    		return 0;</span>
+    	}
+<span class="nc" id="L967">    	return Integer.parseInt(getValue(MINPWDSTRENGTH, 0));</span>
+    }
+    
+    /** Set the minimum strength that a password is allowed to have in bits 
+     * @param minPwdStrength strength*/
+    public void setMinPwdStrength(int minPwdStrength) {
+<span class="nc" id="L973">    	this.setUse(MINPWDSTRENGTH, 0, true);</span>
+<span class="nc" id="L974">    	this.setValue(MINPWDSTRENGTH, 0, String.valueOf(minPwdStrength));</span>
+<span class="nc" id="L975">    }</span>
+    
+    /**
+     * @return String value with types from org.ejbca.util.passgen, example org.ejbca.util.passgen.DigitPasswordGenerator.NAME (PWGEN_DIGIT)
+     */
+    public static Collection&lt;String&gt; getAvailablePasswordTypes() {
+<span class="nc" id="L981">        return PasswordGeneratorFactory.getAvailablePasswordTypes();</span>
+    }
+    
+    public boolean isClearTextPasswordUsed() {
+<span class="nc" id="L985">        return getUse(CLEARTEXTPASSWORD, 0);</span>
+    }
+    
+    public boolean isClearTextPasswordDefault() {
+<span class="nc" id="L989">        return TRUE.equals(getValue(CLEARTEXTPASSWORD, 0));</span>
+    }
+    
+    public boolean isClearTextPasswordRequired() {
+<span class="nc" id="L993">        return isRequired(CLEARTEXTPASSWORD, 0);</span>
+    }
+    
+    public boolean getUseEmail() {
+<span class="nc" id="L997">        return getUse(EMAIL, 0);</span>
+    }
+    
+    public String getEmailDomain() {
+<span class="nc" id="L1001">        return getValue(EMAIL, 0);</span>
+    }
+    
+    public boolean getEmailDomainModifiable() {
+<span class="nc" id="L1005">        return isModifyable(EMAIL, 0);</span>
+    }
+    
+    public boolean getEmailDomainRequired() {
+<span class="nc" id="L1009">        return isRequired(EMAIL, 0);</span>
+    }
+    
+    public int getAllowedRequests() {
+<span class="nc bnc" id="L1013" title="All 2 branches missed.">        if (!getUse(ALLOWEDREQUESTS, 0)) {</span>
+<span class="nc" id="L1014">            return -1;</span>
+<span class="nc bnc" id="L1015" title="All 2 branches missed.">        } else if (data.get(ALLOWEDREQUESTS) == null) {</span>
+<span class="nc" id="L1016">            return 1;</span>
+        }
+<span class="nc" id="L1018">        return ((Integer) data.get(ALLOWEDREQUESTS)).intValue();</span>
+    }
+    
+    public boolean getMaxFailedLoginsUsed() {
+<span class="nc" id="L1022">        return getUse(MAXFAILEDLOGINS, 0);</span>
+    }
+    
+    public boolean getMaxFailedLoginsModifiable() {
+<span class="nc" id="L1026">        return isModifyable(MAXFAILEDLOGINS, 0);</span>
+    }
+    
+    public int getMaxFailedLogins() {
+<span class="nc bnc" id="L1030" title="All 4 branches missed.">        if (!getUse(MAXFAILEDLOGINS, 0) || data.get(MAXFAILEDLOGINS) == null) {</span>
+<span class="nc" id="L1031">            return -1;</span>
+        }
+<span class="nc" id="L1033">        return ((Integer) data.get(MAXFAILEDLOGINS)).intValue();</span>
+    }
+    
+    public boolean getIssuanceRevocationReasonUsed() {
+<span class="nc" id="L1037">        return getUse(ISSUANCEREVOCATIONREASON, 0);</span>
+    }
+    
+    public boolean getIssuanceRevocationReasonModifiable() {
+<span class="nc" id="L1041">        return isModifyable(ISSUANCEREVOCATIONREASON, 0);</span>
+    }
+    
+    public RevocationReasons getIssuanceRevocationReason() {
+<span class="nc" id="L1045">        final String value = getValue(ISSUANCEREVOCATIONREASON, 0);</span>
+<span class="nc bnc" id="L1046" title="All 2 branches missed.">        if (value != null) {</span>
+<span class="nc" id="L1047">            return RevocationReasons.getFromDatabaseValue(Integer.parseInt(value));</span>
+        } else {
+<span class="nc" id="L1049">            return RevocationReasons.NOT_REVOKED;</span>
+        }
+    }
+    
+    public boolean getCustomSerialNumberUsed() {
+<span class="nc" id="L1054">        return getUse(CERTSERIALNR, 0);</span>
+    }
+    
+    public boolean getValidityStartTimeUsed() {
+<span class="nc" id="L1058">        return getUse(STARTTIME, 0);</span>
+    }
+    
+    public boolean getValidityStartTimeModifiable() {
+<span class="nc" id="L1062">        return isModifyable(STARTTIME, 0);</span>
+    }
+    
+    /**
+     * Optional validity start time in absolute &quot;yyyy-MM-dd HH:mm&quot; or relative &quot;days:hours:minutes&quot; format.
+     * @return Start time. Never null, but may be empty.
+     */
+    public String getValidityStartTime() {
+<span class="nc" id="L1070">        return getValue(STARTTIME, 0);</span>
+    }
+    
+    public boolean getValidityEndTimeUsed() {
+<span class="nc" id="L1074">        return getUse(ENDTIME, 0);</span>
+    }
+    
+    public boolean getValidityEndTimeModifiable() {
+<span class="nc" id="L1078">        return isModifyable(ENDTIME, 0);</span>
+    }
+    
+    /**
+     * Optional validity end time in absolute &quot;yyyy-MM-dd HH:mm&quot; or relative &quot;days:hours:minutes&quot; format.
+     * @return End time. Never null, but may be empty.
+     */
+    public String getValidityEndTime() {
+<span class="nc" id="L1086">        return getValue(ENDTIME, 0);</span>
+    }
+    
+    public boolean getCardNumberUsed() {
+<span class="nc" id="L1090">        return getUse(CARDNUMBER, 0);</span>
+    }
+    
+    public boolean getCardNumberRequired() {
+<span class="nc" id="L1094">        return isRequired(CARDNUMBER, 0);</span>
+    }
+    
+    public boolean getKeyRecoverableUsed() {
+<span class="nc" id="L1098">        return getUse(KEYRECOVERABLE, 0);</span>
+    }
+    
+    public boolean getKeyRecoverableDefault() {
+<span class="nc" id="L1102">        return TRUE.equals(getValue(KEYRECOVERABLE, 0));</span>
+    }
+    
+    public boolean getKeyRecoverableRequired() {
+<span class="nc" id="L1106">        return isRequired(KEYRECOVERABLE, 0);</span>
+    }
+    
+    public boolean getSendNotificationUsed() {
+<span class="nc" id="L1110">        return getUse(SENDNOTIFICATION, 0);</span>
+    }
+    
+    public boolean getSendNotificationDefault() {
+<span class="nc" id="L1114">        return TRUE.equals(getValue(SENDNOTIFICATION, 0));</span>
+    }
+    
+    public boolean getSendNotificationRequired() {
+<span class="nc" id="L1118">        return isRequired(SENDNOTIFICATION, 0);</span>
+    }
+
+    public List&lt;UserNotification&gt; getUserNotifications() {
+    	@SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L1123">        List&lt;UserNotification&gt; l = (List&lt;UserNotification&gt;)data.get(USERNOTIFICATIONS);</span>
+<span class="nc bnc" id="L1124" title="All 2 branches missed.">    	if (l == null) {</span>
+<span class="nc" id="L1125">    		l = new ArrayList&lt;&gt;();</span>
+    	}
+<span class="nc" id="L1127">    	return l;</span>
+    }
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void addUserNotification(final UserNotification notification) {
+<span class="nc bnc" id="L1132" title="All 2 branches missed.">    	if (data.get(USERNOTIFICATIONS) == null) {</span>
+<span class="nc" id="L1133">    		setUserNotifications(new ArrayList&lt;UserNotification&gt;(0));</span>
+    	}
+<span class="nc" id="L1135">    	((List&lt;UserNotification&gt;) data.get(USERNOTIFICATIONS)).add(notification);</span>
+<span class="nc" id="L1136">    }</span>
+
+    public void setUserNotifications(final List&lt;UserNotification&gt; notifications) {
+<span class="nc bnc" id="L1139" title="All 2 branches missed.">    	if (notifications == null) {</span>
+<span class="nc" id="L1140">    		data.put(USERNOTIFICATIONS, new ArrayList&lt;UserNotification&gt;(0));</span>
+    	} else {
+<span class="nc" id="L1142">    		data.put(USERNOTIFICATIONS, notifications);</span>
+    	}
+<span class="nc" id="L1144">    }</span>
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void removeUserNotification(final UserNotification notification) {
+<span class="nc bnc" id="L1148" title="All 2 branches missed.">    	if (data.get(USERNOTIFICATIONS) != null) {</span>
+<span class="nc" id="L1149">    		((List&lt;UserNotification&gt;) data.get(USERNOTIFICATIONS)).remove(notification);</span>
+    	}
+<span class="nc" id="L1151">    }</span>
+
+    /** @return true if the key-recovered certificate should be reused. */
+    public boolean getReUseKeyRecoveredCertificate(){
+<span class="nc" id="L1155">    	return getValueDefaultFalse(REUSECERTIFICATE);</span>
+    }
+    
+    public void setReUseKeyRecoveredCertificate(final boolean reuse){
+<span class="nc" id="L1159">    	data.put(REUSECERTIFICATE, Boolean.valueOf(reuse));</span>
+<span class="nc" id="L1160">    }</span>
+
+    /** @return true if the profile checks should be reversed or not. Default is false. */
+    public boolean getReverseFieldChecks(){
+<span class="fc" id="L1164">    	return getValueDefaultFalse(REVERSEFFIELDCHECKS);</span>
+    }
+    
+    public void setReverseFieldChecks(final boolean reverse){
+<span class="fc" id="L1168">    	data.put(REVERSEFFIELDCHECKS, Boolean.valueOf(reverse));</span>
+<span class="fc" id="L1169">    }</span>
+    
+    /** @return true if profile DN should be merged to webservices. Default is false. */
+    public boolean getAllowMergeDnWebServices(){
+<span class="nc" id="L1173">    	return getValueDefaultFalse(ALLOW_MERGEDN_WEBSERVICES);</span>
+    }
+    
+    public void setAllowMergeDnWebServices(final boolean merge){
+<span class="nc" id="L1177">    	data.put(ALLOW_MERGEDN_WEBSERVICES, Boolean.valueOf(merge));</span>
+<span class="nc" id="L1178">    }</span>
+
+    /** @return true if printing of userdata should be done. default is false. */
+    public boolean getUsePrinting(){
+<span class="nc" id="L1182">    	return getValueDefaultFalse(PRINTINGUSE);</span>
+    }
+
+    public void setUsePrinting(final boolean use){
+<span class="nc" id="L1186">    	data.put(PRINTINGUSE, Boolean.valueOf(use));</span>
+<span class="nc" id="L1187">    }</span>
+    
+    /** @return true if printing of userdata should be done. default is false. */
+    public boolean getPrintingDefault(){
+<span class="nc" id="L1191">    	return getValueDefaultFalse(PRINTINGDEFAULT);</span>
+    }
+    
+    public void setPrintingDefault(final boolean printDefault){
+<span class="nc" id="L1195">    	data.put(PRINTINGDEFAULT, Boolean.valueOf(printDefault));</span>
+<span class="nc" id="L1196">    }</span>
+    
+    /** @return true if printing of userdata should be done. default is false. */
+    public boolean getPrintingRequired(){
+<span class="nc" id="L1200">    	return getValueDefaultFalse(PRINTINGREQUIRED);</span>
+    }
+    
+    public void setPrintingRequired(final boolean printRequired){
+<span class="nc" id="L1204">    	data.put(PRINTINGREQUIRED, Boolean.valueOf(printRequired));</span>
+<span class="nc" id="L1205">    }</span>
+    
+    /** @return the number of copies that should be printed. Default is 1. */
+    public int getPrintedCopies(){
+<span class="nc bnc" id="L1209" title="All 2 branches missed.">    	if (data.get(PRINTINGCOPIES) == null) {</span>
+<span class="nc" id="L1210">    		return 1;</span>
+    	}
+<span class="nc" id="L1212">    	return ((Integer) data.get(PRINTINGCOPIES)).intValue();</span>
+    }
+    
+    public void setPrintedCopies(int copies){
+<span class="nc" id="L1216">    	data.put(PRINTINGCOPIES, Integer.valueOf(copies));</span>
+<span class="nc" id="L1217">    }</span>
+    
+    /** @return the name of the printer that should be used */
+    public String getPrinterName(){
+<span class="nc" id="L1221">    	return getValueDefaultEmpty(PRINTINGPRINTERNAME);</span>
+    }
+    
+    public void setPrinterName(final String printerName){
+<span class="nc" id="L1225">    	data.put(PRINTINGPRINTERNAME, printerName);</span>
+<span class="nc" id="L1226">    }</span>
+    
+    /** @return filename of the uploaded */
+    public String getPrinterSVGFileName(){
+<span class="nc" id="L1230">    	return getValueDefaultEmpty(PRINTINGSVGFILENAME);</span>
+    }
+    
+    public void setPrinterSVGFileName(final String printerSVGFileName){
+<span class="nc" id="L1234">    	data.put(PRINTINGSVGFILENAME, printerSVGFileName);</span>
+<span class="nc" id="L1235">    }</span>
+    
+    /**
+     * @return the data of the SVG file, if no content have
+     * been uploaded null is returned
+     */
+    public String getPrinterSVGData(){
+<span class="nc" id="L1242">        final String value = (String) data.get(PRINTINGSVGDATA);</span>
+<span class="nc bnc" id="L1243" title="All 2 branches missed.">    	if (StringUtils.isBlank(value)) {</span>
+<span class="nc" id="L1244">    		return null;</span>
+    	}
+<span class="nc" id="L1246">    	return new String(Base64.decode(value.getBytes(StandardCharsets.US_ASCII)));</span>
+    }
+    
+    public void setPrinterSVGData(final String sVGData){
+<span class="nc" id="L1250">    	data.put(PRINTINGSVGDATA, new String(Base64.encode(sVGData.getBytes())));</span>
+<span class="nc" id="L1251">    }</span>
+    
+    /** @param key key
+     * @return the boolean value or false if null. Note: Some keys need translating to integer first (e.g. those with use/value/required flags) */
+    private boolean getValueDefaultFalse(final Object key) {
+<span class="fc bfc" id="L1256" title="All 2 branches covered.">    	if (data.get(key) == null) {</span>
+<span class="fc" id="L1257">    		return false;</span>
+    	}
+<span class="fc" id="L1259">    	return ((Boolean) data.get(key)).booleanValue();</span>
+    }
+
+    /** @param key key
+     * @return the boolean value or false if null. Note: Some keys need translating to integer first (e.g. those with use/value/required flags) */
+    private String getValueDefaultEmpty(final Object key) {
+<span class="pc bpc" id="L1265" title="1 of 2 branches missed.">    	if (data.get(key) == null) {</span>
+<span class="nc" id="L1266">    		return &quot;&quot;;</span>
+    	}
+<span class="fc" id="L1268">    	return (String) data.get(key);</span>
+    }
+
+    public void doesUserFulfillEndEntityProfile(final EndEntityInformation userdata, final boolean clearpwd) throws EndEntityProfileValidationException {
+<span class="fc" id="L1272">        String subjectdirattr = &quot;&quot;;</span>
+<span class="fc" id="L1273">        final ExtendedInformation ei = userdata.getExtendedInformation();</span>
+<span class="pc bpc" id="L1274" title="1 of 2 branches missed.">        if (ei != null) {</span>
+<span class="nc" id="L1275">            subjectdirattr = ei.getSubjectDirectoryAttributes();</span>
+        }
+        
+<span class="fc" id="L1278">        doesUserFulfillEndEntityProfile(userdata.getUsername(), userdata.getPassword(), userdata.getDN(), userdata.getSubjectAltName(), subjectdirattr, userdata.getEmail(), </span>
+<span class="fc" id="L1279">    											userdata.getCertificateProfileId(), clearpwd, userdata.getKeyRecoverable(), userdata.getSendNotification(), </span>
+<span class="fc" id="L1280">    											userdata.getTokenType(), userdata.getHardTokenIssuerId(), userdata.getCAId(), userdata.getExtendedInformation());</span>
+        //Checking if the cardnumber is required and set
+<span class="pc bpc" id="L1282" title="1 of 2 branches missed.">        if (isRequired(CARDNUMBER,0)) {</span>
+<span class="pc bpc" id="L1283" title="1 of 4 branches missed.">            if (userdata.getCardNumber()==null || userdata.getCardNumber().isEmpty()) {</span>
+<span class="fc" id="L1284">               throw new EndEntityProfileValidationException(&quot;Cardnumber is not set&quot;);</span>
+            }
+         }
+<span class="fc" id="L1287">    }</span>
+    
+    public void doesUserFulfillEndEntityProfile(final String username, final String password, final String dn, final String subjectaltname, final String subjectdirattr,
+    		final String email, final int certificateprofileid, final boolean clearpwd, final boolean keyrecoverable, final boolean sendnotification, final int tokentype,
+    		final int hardwaretokenissuerid, final int caid, final ExtendedInformation ei) throws EndEntityProfileValidationException {
+<span class="pc bpc" id="L1292" title="1 of 2 branches missed.">    	if (useAutoGeneratedPasswd()) {</span>
+        	// Checks related to the use of auto generated passwords
+<span class="nc bnc" id="L1294" title="All 2 branches missed.">    		if (password != null) {</span>
+<span class="nc" id="L1295">    			throw new EndEntityProfileValidationException(&quot;When using autogenerated password, the provided password must be null.&quot;);</span>
+    		}
+<span class="nc bnc" id="L1297" title="All 2 branches missed.">    		if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1298">    			log.debug(&quot;getAutoGenPwdStrength=&quot; + getAutoGenPwdStrength() + &quot; getMinPwdStrength=&quot; + getMinPwdStrength());</span>
+    		}
+<span class="nc bnc" id="L1300" title="All 4 branches missed.">    		if (getUse(MINPWDSTRENGTH, 0) &amp;&amp; (getAutoGenPwdStrength()&lt; getMinPwdStrength())) {</span>
+<span class="nc" id="L1301">    			throw new EndEntityProfileValidationException(&quot;Generated password is not strong enough (&quot; + getAutoGenPwdStrength() + &quot; bits in generated password &lt; &quot; + getMinPwdStrength() + &quot; bits required by end entity profile).&quot;);</span>
+    		}
+    	} else {
+        	// Checks related to the use of normal hashed passwords
+<span class="pc bpc" id="L1305" title="1 of 2 branches missed.">    		if (!isPasswordModifiable()) {</span>
+<span class="nc bnc" id="L1306" title="All 2 branches missed.">    			if (!password.equals(getValue(PASSWORD,0))) {</span>
+<span class="nc" id="L1307">    				throw new EndEntityProfileValidationException(&quot;Password didn't match requirement of it's profile.&quot;);</span>
+    			}
+<span class="pc bpc" id="L1309" title="1 of 2 branches missed.">    		} else if (isPasswordRequired()) {</span>
+<span class="pc bpc" id="L1310" title="1 of 4 branches missed.">    			if (password == null || password.trim().equals(&quot;&quot;)) {</span>
+<span class="fc" id="L1311">    				throw new EndEntityProfileValidationException(&quot;Password cannot be empty or null.&quot;);</span>
+    			}
+    		}
+    		// Assume a-zA-Z0-9 + 22 other printable chars = 72 different chars. Null password has 0 bits.
+<span class="pc bpc" id="L1315" title="1 of 2 branches missed.">    		final int passwordStrengthEstimate = getPasswordStrength(72, (password == null ? 0 : password.trim().length())); </span>
+<span class="pc bpc" id="L1316" title="1 of 2 branches missed.">    		if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1317">    			log.debug(&quot;passwordStrengthEstimate=&quot; + passwordStrengthEstimate + &quot; getMinPwdStrength=&quot; + getMinPwdStrength());</span>
+    		}
+<span class="pc bpc" id="L1319" title="3 of 4 branches missed.">    		if (getUse(EndEntityProfile.MINPWDSTRENGTH, 0) &amp;&amp; (passwordStrengthEstimate&lt; getMinPwdStrength())) {</span>
+<span class="nc" id="L1320">    			throw new EndEntityProfileValidationException(&quot;Generated password is not strong enough (~&quot; + passwordStrengthEstimate + &quot; bits in specific password &lt; &quot; + getMinPwdStrength() + &quot; bits required by end entity profile).&quot;);</span>
+    		}
+    	}
+    	// Checks related to the use of clear text passwords
+<span class="pc bpc" id="L1324" title="2 of 4 branches missed.">    	if (!getUse(CLEARTEXTPASSWORD, 0) &amp;&amp; clearpwd) {</span>
+<span class="nc" id="L1325">    		throw new EndEntityProfileValidationException(&quot;Clearpassword (used in batch processing) cannot be used.&quot;);</span>
+    	}
+<span class="pc bpc" id="L1327" title="1 of 2 branches missed.">    	if (isRequired(CLEARTEXTPASSWORD, 0)) {</span>
+<span class="nc bnc" id="L1328" title="All 4 branches missed.">    		if (getValue(CLEARTEXTPASSWORD, 0).equals(TRUE) &amp;&amp; !clearpwd) {</span>
+<span class="nc" id="L1329">    			throw new EndEntityProfileValidationException(&quot;Clearpassword (used in batch processing) cannot be false.&quot;);</span>
+    		}
+<span class="nc bnc" id="L1331" title="All 4 branches missed.">    		if (getValue(CLEARTEXTPASSWORD, 0).equals(FALSE) &amp;&amp; clearpwd) {</span>
+<span class="nc" id="L1332">    			throw new EndEntityProfileValidationException(&quot;Clearpassword (used in batch processing) cannot be true.&quot;);</span>
+    		}
+    	}
+<span class="fc" id="L1335">    	doesUserFulfillEndEntityProfileWithoutPassword(username, dn, subjectaltname, subjectdirattr, email,</span>
+    			certificateprofileid, keyrecoverable, sendnotification, tokentype, hardwaretokenissuerid, caid, ei);
+<span class="fc" id="L1337">    }</span>
+
+    public void doesUserFulfillEndEntityProfileWithoutPassword(final String username, final String dn, final String subjectaltname, final String subjectdirattr,
+    		String email, final int certificateprofileid, final boolean keyrecoverable, final boolean sendnotification, final int tokentype,
+    		final int hardwaretokenissuerid, final int caid, final ExtendedInformation ei) throws EndEntityProfileValidationException {
+<span class="pc bpc" id="L1342" title="1 of 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1343">    		log.trace(&quot;&gt;doesUserFulfillEndEntityProfileWithoutPassword()&quot;);</span>
+    	}
+<span class="fc" id="L1345">    	final DNFieldExtractor subjectdnfields = new DNFieldExtractor(dn, DNFieldExtractor.TYPE_SUBJECTDN);</span>
+<span class="fc bfc" id="L1346" title="All 2 branches covered.">    	if (subjectdnfields.isIllegal()) {</span>
+<span class="fc" id="L1347">    		throw new EndEntityProfileValidationException(&quot;Subject DN is illegal.&quot;);</span>
+    	}
+<span class="fc" id="L1349">    	final DNFieldExtractor subjectaltnames = new DNFieldExtractor(subjectaltname, DNFieldExtractor.TYPE_SUBJECTALTNAME);</span>
+<span class="fc bfc" id="L1350" title="All 2 branches covered.">    	if (subjectaltnames.isIllegal()) {</span>
+<span class="fc" id="L1351">    		throw new EndEntityProfileValidationException(&quot;Subject alt names are illegal.&quot;);</span>
+    	}
+<span class="fc" id="L1353">    	final DNFieldExtractor subjectdirattrs = new DNFieldExtractor(subjectdirattr, DNFieldExtractor.TYPE_SUBJECTDIRATTR);</span>
+<span class="pc bpc" id="L1354" title="1 of 2 branches missed.">    	if (subjectdirattrs.isIllegal()) {</span>
+<span class="nc" id="L1355">    		throw new EndEntityProfileValidationException(&quot;Subject directory attributes are illegal.&quot;);</span>
+    	}
+    	// Check that no other than supported dn fields exists in the subject dn.
+<span class="pc bpc" id="L1358" title="1 of 2 branches missed.">    	if (subjectdnfields.existsOther()) {</span>
+<span class="nc" id="L1359">    		throw new EndEntityProfileValidationException(&quot;Unsupported Subject DN Field found in:&quot; + dn);</span>
+    	}
+<span class="pc bpc" id="L1361" title="1 of 2 branches missed.">    	if (subjectaltnames.existsOther()) {</span>
+<span class="nc" id="L1362">    		throw new EndEntityProfileValidationException(&quot;Unsupported Subject Alternate Name Field found in:&quot; + subjectaltname );</span>
+    	}
+<span class="pc bpc" id="L1364" title="1 of 2 branches missed.">    	if (subjectdirattrs.existsOther()) {</span>
+<span class="nc" id="L1365">    		throw new EndEntityProfileValidationException(&quot;Unsupported Subject Directory Attribute Field found in:&quot; + subjectdirattr );</span>
+    	}
+<span class="fc" id="L1367">    	checkIfAllRequiredFieldsExists(subjectdnfields, subjectaltnames, subjectdirattrs, username, email);</span>
+    	// Make sure that there are enough fields to cover all required in profile
+<span class="fc" id="L1369">    	checkIfForIllegalNumberOfFields(subjectdnfields, subjectaltnames, subjectdirattrs);</span>
+    	// Check that all fields pass the validators (e.g. regex), if any
+<span class="fc" id="L1371">    	checkWithValidators(subjectdnfields, subjectaltnames);</span>
+    	// Check contents of username
+<span class="fc" id="L1373">    	checkIfDataFulfillProfile(USERNAME,0,username, &quot;Username&quot;,null); </span>
+    	// Check Email address.
+<span class="pc bpc" id="L1375" title="1 of 2 branches missed.">    	if (email == null) {</span>
+<span class="nc" id="L1376">    		email = &quot;&quot;;</span>
+    	}
+<span class="fc" id="L1378">    	checkIfDomainFulfillProfile(EMAIL,0,email,&quot;Email&quot;);</span>
+    	// Make sure that every value has a corresponding field in the entity profile
+<span class="fc" id="L1380">    	checkIfFieldsMatch(subjectdnfields, DNFieldExtractor.TYPE_SUBJECTDN, email); </span>
+<span class="fc" id="L1381">    	checkIfFieldsMatch(subjectaltnames, DNFieldExtractor.TYPE_SUBJECTALTNAME, email);</span>
+    	// Check contents of Subject Directory Attributes fields.
+<span class="fc" id="L1383">    	final HashMap&lt;Integer,Integer&gt; subjectdirattrnumbers = subjectdirattrs.getNumberOfFields();</span>
+<span class="fc" id="L1384">    	final List&lt;Integer&gt; dirattrids = DNFieldExtractor.getUseFields(DNFieldExtractor.TYPE_SUBJECTDIRATTR);</span>
+<span class="fc bfc" id="L1385" title="All 2 branches covered.">    	for (final Integer dirattrid : dirattrids) {</span>
+<span class="fc" id="L1386">    		final int nof = subjectdirattrnumbers.get(dirattrid).intValue();</span>
+<span class="fc bfc" id="L1387" title="All 2 branches covered.">    		for (int j=0; j&lt;nof; j++) {</span>
+<span class="fc" id="L1388">    			checkForIllegalChars(subjectdirattrs.getField(dirattrid.intValue(),j));</span>
+<span class="fc bfc" id="L1389" title="All 5 branches covered.">    			switch (dirattrid.intValue()) {</span>
+    			case DNFieldExtractor.COUNTRYOFCITIZENSHIP:
+<span class="fc" id="L1391">    				checkIfISO3166FulfillProfile(DnComponents.COUNTRYOFCITIZENSHIP,j,subjectdirattrs.getField(dirattrid.intValue(),j),&quot;COUNTRYOFCITIZENSHIP&quot;);</span>
+<span class="fc" id="L1392">    				break;</span>
+    			case DNFieldExtractor.COUNTRYOFRESIDENCE:
+<span class="fc" id="L1394">    				checkIfISO3166FulfillProfile(DnComponents.COUNTRYOFRESIDENCE,j,subjectdirattrs.getField(dirattrid.intValue(),j),&quot;COUNTRYOFRESIDENCE&quot;);</span>
+<span class="fc" id="L1395">    				break;</span>
+    			case DNFieldExtractor.DATEOFBIRTH:
+<span class="fc" id="L1397">    				checkIfDateFulfillProfile(DnComponents.DATEOFBIRTH,j,subjectdirattrs.getField(dirattrid.intValue(),j),&quot;DATEOFBIRTH&quot;);</span>
+<span class="fc" id="L1398">    				break;</span>
+    			case DNFieldExtractor.GENDER:
+<span class="fc" id="L1400">    				checkIfGenderFulfillProfile(DnComponents.GENDER,j,subjectdirattrs.getField(dirattrid.intValue(),j),&quot;GENDER&quot;);</span>
+<span class="fc" id="L1401">    				break;</span>
+    			default:
+<span class="fc" id="L1403">    				checkIfDataFulfillProfile(DnComponents.dnIdToProfileName(dirattrid.intValue()),j,subjectdirattrs.getField(dirattrid.intValue(),j), DnComponents.getErrTextFromDnId(dirattrid.intValue()), email);</span>
+    			}
+    		}
+<span class="fc" id="L1406">    	}</span>
+    	// Check for keyrecoverable flag.
+<span class="pc bpc" id="L1408" title="2 of 4 branches missed.">    	if (!getUse(KEYRECOVERABLE,0) &amp;&amp; keyrecoverable) {</span>
+<span class="nc" id="L1409">    		throw new EndEntityProfileValidationException(&quot;Key Recoverable cannot be used.&quot;);</span>
+    	}
+<span class="pc bpc" id="L1411" title="3 of 4 branches missed.">    	if (isRequired(KEYRECOVERABLE,0) &amp;&amp; getValue(KEYRECOVERABLE,0).equals(TRUE)) {</span>
+<span class="nc bnc" id="L1412" title="All 2 branches missed.">    	    if(tokentype == SecConst.TOKEN_SOFT_BROWSERGEN) {</span>
+<span class="nc" id="L1413">    	        throw new EndEntityProfileValidationException(&quot;Key Recoverable is required, but can't be used for User Generated Tokens.&quot;);</span>
+    	    }
+<span class="nc bnc" id="L1415" title="All 4 branches missed.">    		if (getValue(KEYRECOVERABLE,0).equals(TRUE) &amp;&amp; !keyrecoverable) {</span>
+<span class="nc" id="L1416">    			throw new EndEntityProfileValidationException(&quot;Key Recoverable is required for this End Entity Profile.&quot;);</span>
+    		}
+<span class="nc bnc" id="L1418" title="All 4 branches missed.">    		if (getValue(KEYRECOVERABLE,0).equals(FALSE) &amp;&amp; keyrecoverable) {</span>
+<span class="nc" id="L1419">    			throw new EndEntityProfileValidationException(&quot;Key Recoverable cannot be set in current end entity profile.&quot;);</span>
+    		}
+    	}
+    	// Check for send notification flag.
+<span class="pc bpc" id="L1423" title="2 of 4 branches missed.">    	if (!getUse(SENDNOTIFICATION,0) &amp;&amp; sendnotification) {</span>
+<span class="nc" id="L1424">    		throw new EndEntityProfileValidationException(&quot;Email notification cannot be used.&quot;);</span>
+    	}
+<span class="pc bpc" id="L1426" title="1 of 2 branches missed.">    	if (isRequired(SENDNOTIFICATION,0)) {</span>
+<span class="nc bnc" id="L1427" title="All 4 branches missed.">    		if (getValue(SENDNOTIFICATION,0).equals(TRUE) &amp;&amp; !sendnotification) {</span>
+<span class="nc" id="L1428">    			throw new EndEntityProfileValidationException(&quot;Email notification is required.&quot;);</span>
+    		}
+<span class="nc bnc" id="L1430" title="All 4 branches missed.">    		if (getValue(SENDNOTIFICATION,0).equals(FALSE) &amp;&amp; sendnotification) {</span>
+<span class="nc" id="L1431">    			throw new EndEntityProfileValidationException(&quot;Email notification cannot be set in current end entity profile.&quot;);</span>
+    		}
+    	}
+    	// Check if certificate profile is among available certificate profiles.
+    	String[] availablecertprofiles;
+    	try {
+<span class="fc" id="L1437">    		availablecertprofiles = getValue(AVAILCERTPROFILES,0).split(SPLITCHAR);</span>
+<span class="nc" id="L1438">    	} catch (Exception e) {</span>
+<span class="nc" id="L1439">    		throw new EndEntityProfileValidationException(&quot;Error parsing end entity profile.&quot;);</span>
+<span class="fc" id="L1440">    	}</span>
+<span class="pc bpc" id="L1441" title="1 of 2 branches missed.">    	if (availablecertprofiles == null) {</span>
+<span class="nc" id="L1442">    		throw new EndEntityProfileValidationException(&quot;Error Available certificate profiles is null.&quot;);</span>
+    	}
+<span class="fc" id="L1444">    	final String certificateprofileidString = String.valueOf(certificateprofileid);</span>
+<span class="fc" id="L1445">    	boolean certprofilefound = false;</span>
+<span class="fc bfc" id="L1446" title="All 2 branches covered.">    	for (final String currentAvailableCertProfile : availablecertprofiles) {</span>
+<span class="fc bfc" id="L1447" title="All 2 branches covered.">    		if (certificateprofileidString.equals(currentAvailableCertProfile)) {</span>
+<span class="fc" id="L1448">    			certprofilefound = true;</span>
+<span class="fc" id="L1449">    			break;</span>
+    		}
+    	}
+<span class="fc bfc" id="L1452" title="All 2 branches covered.">    	if (!certprofilefound) {</span>
+<span class="fc" id="L1453">    		throw new EndEntityProfileValidationException(&quot;Couldn't find certificate profile (&quot;+certificateprofileid+&quot;) among available certificate profiles.&quot;);</span>
+    	}
+    	// Check if tokentype is among available token types.
+    	String[] availablesofttokentypes;
+    	try {
+<span class="fc" id="L1458">    		availablesofttokentypes = getValue(AVAILKEYSTORE,0).split(SPLITCHAR);</span>
+<span class="nc" id="L1459">    	} catch (Exception e) {</span>
+<span class="nc" id="L1460">    		throw new EndEntityProfileValidationException(&quot;Error parsing end entity profile.&quot;);</span>
+<span class="fc" id="L1461">    	}</span>
+<span class="pc bpc" id="L1462" title="1 of 2 branches missed.">    	if (availablesofttokentypes == null) {</span>
+<span class="nc" id="L1463">    		throw new EndEntityProfileValidationException(&quot;Error available  token types is null.&quot;);</span>
+    	}
+<span class="fc" id="L1465">    	final String tokenTypeString = String.valueOf(tokentype);</span>
+<span class="fc" id="L1466">    	boolean softtokentypefound = false;</span>
+<span class="pc bpc" id="L1467" title="1 of 2 branches missed.">    	for (final String currentAvailableSoftTokenType : availablesofttokentypes) {</span>
+<span class="fc bfc" id="L1468" title="All 2 branches covered.">    		if (tokenTypeString.equals(currentAvailableSoftTokenType)) {</span>
+<span class="fc" id="L1469">    			softtokentypefound = true;</span>
+<span class="fc" id="L1470">    			break;</span>
+    		}
+    	}
+<span class="pc bpc" id="L1473" title="1 of 2 branches missed.">    	if (!softtokentypefound) {</span>
+<span class="nc" id="L1474">    		throw new EndEntityProfileValidationException(&quot;Soft token type is not available in End Entity Profile.&quot;);</span>
+    	}
+    	// If soft token check for hardwaretoken issuer id = 0.
+<span class="pc bpc" id="L1477" title="1 of 2 branches missed.">    	if (tokentype &lt;= SecConst.TOKEN_SOFT) {</span>
+<span class="pc bpc" id="L1478" title="1 of 2 branches missed.">    		if (hardwaretokenissuerid != 0) {</span>
+<span class="nc" id="L1479">    			throw new EndEntityProfileValidationException(&quot;Soft tokens cannot have a hardware token issuer.&quot;);</span>
+    		}
+    	}
+    	// If Hard token type check if hardware token issuer is among available hardware token issuers.
+<span class="pc bpc" id="L1483" title="3 of 4 branches missed.">    	if (tokentype &gt; SecConst.TOKEN_SOFT &amp;&amp; getUse(AVAILTOKENISSUER, 0) ) { // Hardware token.</span>
+    		String[] availablehardtokenissuers;
+    		try {
+<span class="nc" id="L1486">    			availablehardtokenissuers = getValue(AVAILTOKENISSUER, 0).split(SPLITCHAR);</span>
+<span class="nc" id="L1487">    		} catch (Exception e) {</span>
+<span class="nc" id="L1488">    			throw new EndEntityProfileValidationException(&quot;Error parsing end entity profile.&quot;);</span>
+<span class="nc" id="L1489">    		}</span>
+<span class="nc bnc" id="L1490" title="All 2 branches missed.">    		if (availablehardtokenissuers == null) {</span>
+<span class="nc" id="L1491">    			throw new EndEntityProfileValidationException(&quot;Error available hard token issuers is null.&quot;);</span>
+    		}
+<span class="nc" id="L1493">    		final String hardwaretokenissueridString = String.valueOf(hardwaretokenissuerid);</span>
+<span class="nc" id="L1494">    		boolean hardtokentypefound = false;</span>
+<span class="nc bnc" id="L1495" title="All 2 branches missed.">    		for (final String currentAvailableHardTokenIssuer : availablehardtokenissuers) {</span>
+<span class="nc bnc" id="L1496" title="All 2 branches missed.">    			if (hardwaretokenissueridString.equals(currentAvailableHardTokenIssuer)) {</span>
+<span class="nc" id="L1497">    				hardtokentypefound = true;</span>
+<span class="nc" id="L1498">    				break;</span>
+    			}
+    		}
+<span class="nc bnc" id="L1501" title="All 2 branches missed.">    		if (!hardtokentypefound) {</span>
+<span class="nc" id="L1502">    			throw new EndEntityProfileValidationException(&quot;Couldn't find hard token issuers among available hard token issuers.&quot;);</span>
+    		}
+    	}
+    	// Check if ca id is among available ca ids.
+    	String[] availablecaids;
+    	try {
+<span class="fc" id="L1508">    		availablecaids = getValue(AVAILCAS,0).split(SPLITCHAR);</span>
+<span class="nc" id="L1509">    	} catch (Exception e) {</span>
+<span class="nc" id="L1510">    		throw new EndEntityProfileValidationException(&quot;Error parsing end entity profile.&quot;);</span>
+<span class="fc" id="L1511">    	}</span>
+<span class="pc bpc" id="L1512" title="1 of 2 branches missed.">    	if (availablecaids == null) {</span>
+<span class="nc" id="L1513">    		throw new EndEntityProfileValidationException(&quot;Error End Entity Profiles Available CAs is null.&quot;);</span>
+    	}
+<span class="fc" id="L1515">    	boolean caidfound=false;</span>
+<span class="fc bfc" id="L1516" title="All 2 branches covered.">    	for (final String currentAvailableCaId : availablecaids) {</span>
+<span class="fc" id="L1517">    		final int tmp = Integer.parseInt(currentAvailableCaId);</span>
+<span class="fc bfc" id="L1518" title="All 4 branches covered.">    		if (tmp == caid || tmp == SecConst.ALLCAS) {</span>
+<span class="fc" id="L1519">    			caidfound = true;</span>
+<span class="fc" id="L1520">    			break;</span>
+    		}
+    	}
+<span class="fc bfc" id="L1523" title="All 2 branches covered.">    	if (!caidfound) {</span>
+<span class="fc" id="L1524">    		throw new EndEntityProfileValidationException(&quot;Couldn't find CA (&quot;+caid+&quot;) among End Entity Profiles Available CAs.&quot;);</span>
+    	}
+    	// Check if time constraints are valid
+<span class="fc" id="L1527">    	String startTime = null;</span>
+<span class="fc" id="L1528">    	String endTime = null;</span>
+<span class="fc bfc" id="L1529" title="All 2 branches covered.">    	if ( ei != null ) {</span>
+<span class="fc" id="L1530">    		startTime = ei.getCustomData(EndEntityProfile.STARTTIME);</span>
+<span class="fc" id="L1531">    		log.debug(&quot;startTime is: &quot;+startTime);</span>
+<span class="fc" id="L1532">    		endTime = ei.getCustomData(EndEntityProfile.ENDTIME);</span>
+<span class="fc" id="L1533">    		log.debug(&quot;endTime is: &quot;+endTime);</span>
+    	}
+<span class="fc" id="L1535">    	final String[] datePatterns = {&quot;yyyy-MM-dd HH:mm&quot;};</span>
+<span class="fc" id="L1536">    	final Date now = new Date();</span>
+<span class="fc" id="L1537">    	Date startTimeDate = null;</span>
+<span class="pc bpc" id="L1538" title="1 of 6 branches missed.">    	if( getUse(STARTTIME, 0) &amp;&amp; startTime != null &amp;&amp; !startTime.equals(&quot;&quot;) ) {</span>
+<span class="fc bfc" id="L1539" title="All 2 branches covered.">    		if ( startTime.matches(&quot;^\\d+:\\d?\\d:\\d?\\d$&quot;) ) { //relative time</span>
+<span class="fc" id="L1540">    			final String[] startTimeArray = startTime.split(&quot;:&quot;);</span>
+<span class="pc bpc" id="L1541" title="3 of 6 branches missed.">    			if ( Long.parseLong(startTimeArray[0]) &lt; 0 || Long.parseLong(startTimeArray[1]) &lt; 0 || Long.parseLong(startTimeArray[2]) &lt; 0 ) {</span>
+<span class="nc" id="L1542">    				throw new EndEntityProfileValidationException(&quot;Cannot use negtive relative time.&quot;);</span>
+    			}
+<span class="fc" id="L1544">    			final long relative = (Long.parseLong(startTimeArray[0])*24*60 + Long.parseLong(startTimeArray[1])*60 +</span>
+<span class="fc" id="L1545">    					Long.parseLong(startTimeArray[2])) * 60 * 1000;</span>
+<span class="fc" id="L1546">    			startTimeDate = new Date(now.getTime() + relative);</span>
+<span class="fc" id="L1547">    		} else {</span>
+    			try {
+<span class="fc" id="L1549">    				startTimeDate = DateUtils.parseDate(startTime, datePatterns);</span>
+<span class="fc" id="L1550">    			} catch (ParseException e) {</span>
+<span class="fc" id="L1551">    			}</span>
+    		}
+<span class="fc bfc" id="L1553" title="All 2 branches covered.">    		if (startTimeDate == null) {</span>
+    			// If we could not parse the date string, something was awfully wrong
+<span class="fc" id="L1555">    			throw new EndEntityProfileValidationException(&quot;Invalid start time: &quot;+startTime);    		  </span>
+    		}
+    	}
+<span class="fc" id="L1558">    	Date endTimeDate = null;</span>
+<span class="pc bpc" id="L1559" title="1 of 6 branches missed.">    	if( getUse(ENDTIME, 0) &amp;&amp; endTime != null &amp;&amp; !endTime.equals(&quot;&quot;) ) {</span>
+<span class="fc bfc" id="L1560" title="All 2 branches covered.">    		if ( endTime.matches(&quot;^\\d+:\\d?\\d:\\d?\\d$&quot;) ) { //relative time</span>
+<span class="fc" id="L1561">    			final String[] endTimeArray = endTime.split(&quot;:&quot;);</span>
+<span class="pc bpc" id="L1562" title="3 of 6 branches missed.">    			if ( Long.parseLong(endTimeArray[0]) &lt; 0 || Long.parseLong(endTimeArray[1]) &lt; 0 || Long.parseLong(endTimeArray[2]) &lt; 0 ) {</span>
+<span class="nc" id="L1563">    				throw new EndEntityProfileValidationException(&quot;Cannot use negtive relative time.&quot;);</span>
+    			}
+<span class="fc" id="L1565">    			final long relative = (Long.parseLong(endTimeArray[0])*24*60 + Long.parseLong(endTimeArray[1])*60 +</span>
+<span class="fc" id="L1566">    					Long.parseLong(endTimeArray[2])) * 60 * 1000;</span>
+    			// If we haven't set a startTime, use &quot;now&quot;
+<span class="pc bpc" id="L1568" title="1 of 2 branches missed.">    			final Date start = (startTimeDate == null) ? new Date(): startTimeDate;</span>
+<span class="fc" id="L1569">    			endTimeDate = new Date(start.getTime() + relative);</span>
+<span class="fc" id="L1570">    		} else {</span>
+    			try {
+<span class="fc" id="L1572">    				endTimeDate = DateUtils.parseDate(endTime, datePatterns);</span>
+<span class="fc" id="L1573">    			} catch (ParseException e) {</span>
+<span class="fc" id="L1574">    			}</span>
+    		}
+<span class="fc bfc" id="L1576" title="All 2 branches covered.">    		if (endTimeDate == null) {</span>
+    			// If we could not parse the date string, something was awfulyl wrong
+<span class="fc" id="L1578">    			throw new EndEntityProfileValidationException(&quot;Invalid end time: &quot;+endTime);    		  </span>
+    		}
+    	}
+<span class="pc bpc" id="L1581" title="1 of 4 branches missed.">    	if ( (startTimeDate != null) &amp;&amp; (endTimeDate != null) ) {</span>
+<span class="pc bpc" id="L1582" title="2 of 6 branches missed.">    		if ( getUse(STARTTIME, 0) &amp;&amp; getUse(ENDTIME, 0) &amp;&amp; !startTimeDate.before(endTimeDate) ) {</span>
+<span class="fc" id="L1583">    			throw new EndEntityProfileValidationException(&quot;Dates must be in right order. &quot;+startTime+&quot; &quot;+endTime+&quot; &quot;+</span>
+<span class="fc" id="L1584">    					ValidityDate.formatAsUTC(startTimeDate)+&quot; &quot;+ValidityDate.formatAsUTC(endTimeDate));</span>
+    		}    	  
+    	}
+    	// Check number of allowed requests
+<span class="fc" id="L1588">    	String allowedRequests = null;</span>
+<span class="fc bfc" id="L1589" title="All 2 branches covered.">    	if ( ei != null ) {</span>
+<span class="fc" id="L1590">    		allowedRequests = ei.getCustomData(ExtendedInformationFields.CUSTOM_REQUESTCOUNTER);</span>
+    	}
+<span class="fc bfc" id="L1592" title="All 4 branches covered.">    	if ( (allowedRequests != null) &amp;&amp; !getUse(ALLOWEDREQUESTS, 0) ) {</span>
+<span class="fc" id="L1593">    		throw new EndEntityProfileValidationException(&quot;Allowed requests used, but not permitted by profile.&quot;);</span>
+    	}
+    	// Check initial issuance revocation reason
+<span class="fc" id="L1596">    	String issuanceRevReason = null;</span>
+<span class="fc bfc" id="L1597" title="All 2 branches covered.">    	if ( ei != null ) {</span>
+<span class="fc" id="L1598">    		issuanceRevReason = ei.getCustomData(ExtendedInformation.CUSTOM_REVOCATIONREASON);</span>
+    	}
+<span class="pc bpc" id="L1600" title="3 of 4 branches missed.">    	if ( (issuanceRevReason != null) &amp;&amp; !getUse(ISSUANCEREVOCATIONREASON, 0) ) {</span>
+<span class="nc" id="L1601">    		throw new EndEntityProfileValidationException(&quot;Issuance revocation reason used, but not permitted by profile.&quot;);</span>
+    	}
+<span class="pc bpc" id="L1603" title="3 of 4 branches missed.">    	if ( getUse(ISSUANCEREVOCATIONREASON, 0) &amp;&amp; !isModifyable(ISSUANCEREVOCATIONREASON, 0) ) {</span>
+<span class="nc" id="L1604">    		final String value = getValue(ISSUANCEREVOCATIONREASON, 0);</span>
+<span class="nc bnc" id="L1605" title="All 2 branches missed.">    		if (!StringUtils.equals(issuanceRevReason, value)) {</span>
+<span class="nc" id="L1606">    			throw new EndEntityProfileValidationException(&quot;Issuance revocation reason '&quot;+issuanceRevReason+&quot;' does not match required value '&quot;+value+&quot;'.&quot;);</span>
+    		}
+    	}
+    	// Check maximum number of failed logins
+<span class="pc bpc" id="L1610" title="1 of 4 branches missed.">    	if ( getUse(MAXFAILEDLOGINS, 0) &amp;&amp; !isModifyable(MAXFAILEDLOGINS,0)) {</span>
+    		// If we MUST have MAXFAILEDLOGINS, ei can not be null
+<span class="pc bpc" id="L1612" title="1 of 4 branches missed.">    		if ( (ei == null) || !getValue(MAXFAILEDLOGINS,0).equals(Integer.toString(ei.getMaxLoginAttempts())) ) {</span>
+<span class="fc" id="L1613">    			throw new EndEntityProfileValidationException(&quot;Max failed logins is not modifyable.&quot;);</span>
+    		}
+    	}      
+<span class="pc bpc" id="L1616" title="1 of 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1617">    		log.trace(&quot;&lt;doesUserFulfillEndEntityProfileWithoutPassword()&quot;);</span>
+    	}
+<span class="fc" id="L1619">    }</span>
+
+    /**
+     * This function tries to match each field in the profile to a corresponding field in the DN/AN/AD-fields.
+     * Can not be used for DNFieldExtractor.TYPE_SUBJECTDIRATTR yet.
+     *   
+     * @param fields fiewlds
+     * @param type One of DNFieldExtractor.TYPE_SUBJECTDN, DNFieldExtractor.TYPE_SUBJECTALTNAME
+     * @param email The end entity's email address
+     * @throws EndEntityProfileValidationException if validation fails
+     */
+    private void checkIfFieldsMatch(final DNFieldExtractor fields, final int type, final String email) throws EndEntityProfileValidationException {
+<span class="fc" id="L1631">    	final int REQUIRED_FIELD		= 2;</span>
+<span class="fc" id="L1632">    	final int NONMODIFYABLE_FIELD	= 1;</span>
+<span class="fc" id="L1633">    	final int MATCHED_FIELD			= -1;</span>
+<span class="fc" id="L1634">    	final List&lt;Integer&gt; dnids = DNFieldExtractor.getUseFields(type);</span>
+    	// For each type of field
+<span class="fc bfc" id="L1636" title="All 2 branches covered.">    	for ( int i=0; i&lt;dnids.size(); i++ ) {</span>
+<span class="fc" id="L1637">    		final int dnid = dnids.get(i).intValue();</span>
+<span class="fc" id="L1638">    		final int profileID = DnComponents.dnIdToProfileId(dnid);</span>
+<span class="fc" id="L1639">    		final int dnFieldExtractorID = DnComponents.profileIdToDnId(profileID);</span>
+<span class="fc" id="L1640">    		final int nof = fields.getNumberOfFields(dnFieldExtractorID);</span>
+<span class="fc" id="L1641">    		final int numberOfProfileFields = getNumberOfField(profileID);</span>
+<span class="fc bfc" id="L1642" title="All 4 branches covered.">    		if ( nof == 0 &amp;&amp; numberOfProfileFields == 0 ) {</span>
+<span class="fc" id="L1643">    			continue;	// Nothing to see here..</span>
+    		}
+    		// Create array with all entries of that type
+<span class="fc" id="L1646">    		final String[] subjectsToProcess = new String[nof];</span>
+<span class="fc bfc" id="L1647" title="All 2 branches covered.">    		for ( int j=0; j&lt;nof; j++ ) {</span>
+<span class="fc" id="L1648">    			String fieldValue = fields.getField(dnFieldExtractorID, j);</span>
+    			// Only keep domain for comparison of RFC822NAME, DNEMAILADDRESS and UPN fields
+<span class="pc bpc" id="L1650" title="1 of 6 branches missed.">    			if ( DnComponents.RFC822NAME.equals(DnComponents.dnIdToProfileName(dnid)) || DnComponents.DNEMAILADDRESS.equals(DnComponents.dnIdToProfileName(dnid)) || DnComponents.UPN.equals(DnComponents.dnIdToProfileName(dnid)) ) {</span>
+        			//Don't split RFC822NAME addresses. 
+<span class="fc bfc" id="L1652" title="All 2 branches covered.">        			if(!DnComponents.RFC822NAME.equals(DnComponents.dnIdToProfileName(dnid))) {</span>
+<span class="pc bpc" id="L1653" title="1 of 2 branches missed.">                        if (!StringUtils.contains(fieldValue, '@')) {</span>
+<span class="nc" id="L1654">                            throw new EndEntityProfileValidationException(&quot;Field value DNEMAIL and UPN must contain an @ character: &quot;+fieldValue);</span>
+                       }
+<span class="fc" id="L1656">        			    fieldValue = fieldValue.split(&quot;@&quot;)[1];</span>
+        			}
+    			} else {
+        			// Check that postalAddress has #der_encoding_in_hex format, i.e. a full der sequence in hex format
+<span class="pc bpc" id="L1660" title="1 of 2 branches missed.">        			if ( DnComponents.POSTALADDRESS.equals(DnComponents.dnIdToProfileName(dnid))) {</span>
+<span class="nc bnc" id="L1661" title="All 2 branches missed.">        				if (!StringUtils.startsWith(fieldValue, &quot;#30&quot;)) {</span>
+<span class="nc" id="L1662">            				throw new EndEntityProfileValidationException(DnComponents.dnIdToProfileName(dnid) + &quot; (&quot;+fieldValue+&quot;) does not seem to be in #der_encoding_in_hex format. See \&quot;End_Entity_Profiles.html\&quot; for more information about the postalAddress (2.5.4.16) field.&quot;);        					</span>
+        				}
+        			}    				
+    			}
+<span class="fc" id="L1666">    			subjectsToProcess[j] = fieldValue;</span>
+    		}
+    		//	Create array with profile values 3 = required and non-mod, 2 = required, 1 = non-modifiable, 0 = neither
+<span class="fc" id="L1669">    		final int[] profileCrossOffList = new int[numberOfProfileFields];</span>
+<span class="fc bfc" id="L1670" title="All 2 branches covered.">    		for ( int j=0; j&lt; getNumberOfField(profileID); j++ ) {</span>
+<span class="fc bfc" id="L1671" title="All 4 branches covered.">    			profileCrossOffList[j] += ( isModifyable(profileID, j) ? 0 : NONMODIFYABLE_FIELD ) + ( isRequired(profileID, j) ? REQUIRED_FIELD : 0 ); </span>
+    		}
+    		// Start by matching email strings
+<span class="pc bpc" id="L1674" title="1 of 4 branches missed.">			if ( DnComponents.RFC822NAME.equals(DnComponents.dnIdToProfileName(dnid)) || DnComponents.DNEMAILADDRESS.equals(DnComponents.dnIdToProfileName(dnid)) ) {</span>
+<span class="fc bfc" id="L1675" title="All 2 branches covered.">	    		for ( int k=3; k&gt;=0; k--) {</span>
+	    			//	For every value in profile
+<span class="fc bfc" id="L1677" title="All 2 branches covered.">	    			for ( int l=0; l&lt;profileCrossOffList.length; l++ ) {</span>
+<span class="fc bfc" id="L1678" title="All 2 branches covered.">	    				if ( profileCrossOffList[l] == k ) {</span>
+	    					//	Match with every value in field-array
+<span class="fc bfc" id="L1680" title="All 2 branches covered.">	    					for ( int m=0; m&lt;subjectsToProcess.length; m++ ) {</span>
+<span class="fc bfc" id="L1681" title="All 4 branches covered.">	    						if ( subjectsToProcess[m] != null &amp;&amp; profileCrossOffList[l] != MATCHED_FIELD ) {				</span>
+<span class="pc bpc" id="L1682" title="1 of 4 branches missed.">	    						    if (getUse(profileID, l) || !DnComponents.RFC822NAME.equals(DnComponents.dnIdToProfileName(dnid))) {</span>
+	    						         /*
+	                                     * IF the component is E-Mail (not RFC822NAME) 
+	                                     * OR if it is RFC822NAME AND E-Mail field from DN should be used 
+	                                     */
+<span class="fc bfc" id="L1687" title="All 2 branches covered.">	    								if (fields.getField(dnFieldExtractorID, m).equals(email) ){</span>
+<span class="fc" id="L1688">	    									subjectsToProcess[m] = null;</span>
+<span class="fc" id="L1689">	    									profileCrossOffList[l] = MATCHED_FIELD;</span>
+	    								}
+	    							}
+	    						}
+	    					}
+	    				}
+	    			}
+	    		}
+			}
+            // For every field of this type in profile (start with required and non-modifiable, 2 + 1)
+<span class="fc bfc" id="L1699" title="All 2 branches covered.">            for (int k = 3; k &gt;= 0; k--) {</span>
+                // For every value in profile
+<span class="fc bfc" id="L1701" title="All 2 branches covered.">                for (int l = 0; l &lt; profileCrossOffList.length; l++) {</span>
+<span class="fc bfc" id="L1702" title="All 2 branches covered.">                    if (profileCrossOffList[l] == k) {</span>
+                        // Match with every value in field-array
+<span class="fc bfc" id="L1704" title="All 2 branches covered.">                        for (int m = 0; m &lt; subjectsToProcess.length; m++) {</span>
+<span class="fc bfc" id="L1705" title="All 4 branches covered.">                            if (subjectsToProcess[m] != null &amp;&amp; profileCrossOffList[l] != MATCHED_FIELD) {</span>
+                                // Match actual value if required + non-modifiable or non-modifiable
+<span class="fc bfc" id="L1707" title="All 4 branches covered.">                                if ((k == (REQUIRED_FIELD + NONMODIFYABLE_FIELD) || k == (NONMODIFYABLE_FIELD))) {</span>
+                                    // Try to match with all possible values
+<span class="fc" id="L1709">                                    String[] fixedValues = getValue(profileID, l).split(SPLITCHAR);</span>
+<span class="fc bfc" id="L1710" title="All 2 branches covered.">                                    for (int n = 0; n &lt; fixedValues.length; n++) {</span>
+<span class="fc bfc" id="L1711" title="All 4 branches covered.">                                        if (subjectsToProcess[m] != null &amp;&amp; subjectsToProcess[m].equals(fixedValues[n])) {</span>
+                                            // Remove matched pair
+<span class="fc" id="L1713">                                            subjectsToProcess[m] = null;</span>
+<span class="fc" id="L1714">                                            profileCrossOffList[l] = MATCHED_FIELD;</span>
+                                        }
+                                    }
+
+                                    // Otherwise just match present fields
+<span class="fc" id="L1719">                                } else {</span>
+                                    // Remove matched pair
+<span class="fc" id="L1721">                                    subjectsToProcess[m] = null;</span>
+<span class="fc" id="L1722">                                    profileCrossOffList[l] = MATCHED_FIELD;</span>
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+    		// If not all fields in profile were found
+<span class="fc bfc" id="L1730" title="All 2 branches covered.">    		for ( int j=0; j&lt; nof; j++ ) {</span>
+<span class="fc bfc" id="L1731" title="All 2 branches covered.">    			if ( subjectsToProcess[j] != null ) {</span>
+<span class="fc" id="L1732">    				throw new EndEntityProfileValidationException(&quot;End entity profile does not contain matching field for &quot; +</span>
+<span class="fc" id="L1733">    						DnComponents.dnIdToProfileName(dnid) + &quot; with value \&quot;&quot; + subjectsToProcess[j] + &quot;\&quot;.&quot;);</span>
+    			}
+    		}
+    		// If not all required fields in profile were found in subject 
+<span class="fc bfc" id="L1737" title="All 2 branches covered.">    		for ( int j=0; j&lt; getNumberOfField(profileID); j++ ) {</span>
+<span class="fc bfc" id="L1738" title="All 2 branches covered.">    			if ( profileCrossOffList[j] &gt;= REQUIRED_FIELD ) {</span>
+<span class="fc" id="L1739">    				throw new EndEntityProfileValidationException(&quot;Data does not contain required &quot; + DnComponents.dnIdToProfileName(dnid) + &quot; field.&quot;);</span>
+    			}
+    		}
+    	}
+<span class="fc" id="L1743">    } // checkIfFieldsMatch</span>
+
+	public void doesPasswordFulfillEndEntityProfile(String password, boolean clearpwd) throws EndEntityProfileValidationException {
+<span class="nc" id="L1746">		boolean fulfillsprofile = true;</span>
+<span class="nc bnc" id="L1747" title="All 2 branches missed.">		if (useAutoGeneratedPasswd()) {</span>
+<span class="nc bnc" id="L1748" title="All 2 branches missed.">			if (password !=null) {</span>
+<span class="nc" id="L1749">				throw new EndEntityProfileValidationException(&quot;Autogenerated password must have password==null&quot;);</span>
+			}
+		} else {           		            
+<span class="nc bnc" id="L1752" title="All 2 branches missed.">			if (!isPasswordModifiable()) {</span>
+<span class="nc bnc" id="L1753" title="All 2 branches missed.">				if(!password.equals(getValue(EndEntityProfile.PASSWORD,0))) {		   </span>
+<span class="nc" id="L1754">					fulfillsprofile = false;</span>
+				}
+			} else {
+<span class="nc bnc" id="L1757" title="All 2 branches missed.">				if (isPasswordRequired()) {</span>
+<span class="nc bnc" id="L1758" title="All 8 branches missed.">					if((!clearpwd &amp;&amp; password == null) || (password != null &amp;&amp; password.trim().equals(&quot;&quot;))) {			</span>
+<span class="nc" id="L1759">						fulfillsprofile = false;</span>
+					}
+				}
+			}
+		}
+<span class="nc bnc" id="L1764" title="All 6 branches missed.">		if (clearpwd &amp;&amp; isRequired(EndEntityProfile.CLEARTEXTPASSWORD,0) &amp;&amp; getValue(EndEntityProfile.CLEARTEXTPASSWORD,0).equals(EndEntityProfile.FALSE)){		 	</span>
+<span class="nc" id="L1765">			fulfillsprofile = false;</span>
+		}
+<span class="nc bnc" id="L1767" title="All 2 branches missed.">		if (!fulfillsprofile) {</span>
+<span class="nc" id="L1768">			throw new EndEntityProfileValidationException(&quot;Password doesn't fulfill profile.&quot;);</span>
+		}
+<span class="nc" id="L1770">	}</span>
+
+	@Override
+    public Object clone() throws CloneNotSupportedException {
+<span class="nc" id="L1774">    	final EndEntityProfile clone = new EndEntityProfile(0);</span>
+    	// We need to make a deep copy of the hashmap here
+<span class="nc" id="L1776">    	clone.data = new LinkedHashMap&lt;&gt;(data.size());</span>
+<span class="nc bnc" id="L1777" title="All 2 branches missed.">    	for (final Entry&lt;Object,Object&gt; entry : data.entrySet()) {</span>
+<span class="nc" id="L1778">    		Object value = entry.getValue();</span>
+<span class="nc bnc" id="L1779" title="All 2 branches missed.">    		if (value instanceof ArrayList&lt;?&gt;) {</span>
+    			// We need to make a clone of this object, but the stored Integers can still be referenced
+<span class="nc" id="L1781">    			value = ((ArrayList&lt;?&gt;)value).clone();</span>
+    		}
+<span class="nc" id="L1783">    		clone.data.put(entry.getKey(), value);</span>
+<span class="nc" id="L1784">    	}</span>
+<span class="nc" id="L1785">    	return clone;</span>
+    }
+
+    /** Implementation of UpgradableDataHashMap function getLatestVersion */
+	@Override
+    public float getLatestVersion(){
+<span class="fc" id="L1791">       return LATEST_VERSION;</span>
+    }
+
+    /** Implementation of UpgradableDataHashMap function upgrade. */
+	@Override
+    public void upgrade() {
+<span class="nc" id="L1797">        log.trace(&quot;&gt;upgrade&quot;);        </span>
+<span class="nc bnc" id="L1798" title="All 2 branches missed.">    	if (Float.compare(LATEST_VERSION, getVersion()) != 0) {</span>
+<span class="nc" id="L1799">			String msg = intres.getLocalizedMessage(&quot;ra.eeprofileupgrade&quot;,  Float.valueOf(getVersion()));</span>
+<span class="nc" id="L1800">            log.info(msg);</span>
+            // New version of the class, upgrade
+<span class="nc bnc" id="L1802" title="All 2 branches missed.">            if (getVersion() &lt; 1) {</span>
+                @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L1804">                ArrayList&lt;Integer&gt; numberarray = (ArrayList&lt;Integer&gt;) data.get(NUMBERARRAY);</span>
+<span class="nc bnc" id="L1805" title="All 2 branches missed.">                while (numberarray.size() &lt; 37) {</span>
+<span class="nc" id="L1806">                   numberarray.add(Integer.valueOf(0));</span>
+                }
+<span class="nc" id="L1808">                data.put(NUMBERARRAY,numberarray);</span>
+            }
+<span class="nc bnc" id="L1810" title="All 2 branches missed.">            if (getVersion() &lt; 2) {</span>
+                @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L1812">                ArrayList&lt;Integer&gt; numberarray = (ArrayList&lt;Integer&gt;) data.get(NUMBERARRAY);</span>
+<span class="nc bnc" id="L1813" title="All 2 branches missed.">                while (numberarray.size() &lt; 39) {</span>
+<span class="nc" id="L1814">                   numberarray.add(Integer.valueOf(0));</span>
+                }
+<span class="nc" id="L1816">                data.put(NUMBERARRAY,numberarray);</span>
+<span class="nc" id="L1817">                addField(AVAILCAS);</span>
+<span class="nc" id="L1818">                addField(DEFAULTCA);</span>
+<span class="nc" id="L1819">                setRequired(AVAILCAS,0,true);</span>
+<span class="nc" id="L1820">                setRequired(DEFAULTCA,0,true);</span>
+            }
+<span class="nc bnc" id="L1822" title="All 2 branches missed.">            if (getVersion() &lt; 3) {</span>
+            	// These fields have been removed in version 8, no need for this upgrade
+                //setNotificationSubject(&quot;&quot;);
+                //setNotificationSender(&quot;&quot;);
+                //setNotificationMessage(&quot;&quot;);
+            }
+<span class="nc bnc" id="L1828" title="All 2 branches missed.">            if (getVersion() &lt; 4) {</span>
+                @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L1830">                ArrayList&lt;Integer&gt; numberoffields = (ArrayList&lt;Integer&gt;) data.get(NUMBERARRAY);                </span>
+<span class="nc bnc" id="L1831" title="All 2 branches missed.">                for (int i =numberoffields.size(); i &lt; dataConstants.size(); i++) {</span>
+<span class="nc" id="L1832">                  numberoffields.add(Integer.valueOf(0));</span>
+                }               
+<span class="nc" id="L1834">                data.put(NUMBERARRAY,numberoffields);                </span>
+            }
+            // Support for DirectoryName altname field in profile version 5
+<span class="nc bnc" id="L1837" title="All 2 branches missed.">            if (getVersion() &lt; 5) {</span>
+<span class="nc" id="L1838">                addField(DnComponents.DIRECTORYNAME);</span>
+<span class="nc" id="L1839">                setValue(DnComponents.DIRECTORYNAME,0,&quot;&quot;);</span>
+<span class="nc" id="L1840">                setRequired(DnComponents.DIRECTORYNAME,0,false);</span>
+<span class="nc" id="L1841">                setUse(DnComponents.DIRECTORYNAME,0,true);</span>
+<span class="nc" id="L1842">                setModifyable(DnComponents.DIRECTORYNAME,0,true);            	</span>
+            }
+            // Support for Subject Directory Attributes field in profile version 6
+<span class="nc bnc" id="L1845" title="All 2 branches missed.">            if (getVersion() &lt; 6) {</span>
+                @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L1847">                ArrayList&lt;Integer&gt; numberoffields = (ArrayList&lt;Integer&gt;) data.get(NUMBERARRAY);                </span>
+<span class="nc bnc" id="L1848" title="All 2 branches missed.">                for(int i =numberoffields.size(); i &lt; dataConstants.size(); i++){</span>
+<span class="nc" id="L1849">                  numberoffields.add(Integer.valueOf(0));</span>
+                }               
+<span class="nc" id="L1851">                data.put(NUMBERARRAY,numberoffields);</span>
+<span class="nc" id="L1852">                data.put(SUBJECTDIRATTRFIELDORDER,new ArrayList&lt;Integer&gt;());</span>
+                
+<span class="nc bnc" id="L1854" title="All 2 branches missed.">                for(int i=getParameterNumber(DnComponents.DATEOFBIRTH); i &lt;= getParameterNumber(DnComponents.COUNTRYOFRESIDENCE); i++){</span>
+<span class="nc" id="L1855">                	addField(getParameter(i));</span>
+<span class="nc" id="L1856">                	setValue(getParameter(i),0,&quot;&quot;);</span>
+<span class="nc" id="L1857">                	setRequired(getParameter(i),0,false);</span>
+<span class="nc" id="L1858">                	setUse(getParameter(i),0,false);</span>
+<span class="nc" id="L1859">                	setModifyable(getParameter(i),0,true);</span>
+                }  
+            }
+            // Support for Start Time and End Time field in profile version 7
+<span class="nc bnc" id="L1863" title="All 2 branches missed.">            if (getVersion() &lt; 7) {</span>
+                @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L1865">                ArrayList&lt;Integer&gt; numberoffields = (ArrayList&lt;Integer&gt;) data.get(NUMBERARRAY);                </span>
+<span class="nc bnc" id="L1866" title="All 2 branches missed.">                for(int i =numberoffields.size(); i &lt; dataConstants.size(); i++){</span>
+<span class="nc" id="L1867">                	numberoffields.add(Integer.valueOf(0));</span>
+                }               
+<span class="nc" id="L1869">                data.put(NUMBERARRAY,numberoffields);</span>
+<span class="nc" id="L1870">                addField(STARTTIME);</span>
+<span class="nc" id="L1871">                setValue(STARTTIME, 0, &quot;&quot;);</span>
+<span class="nc" id="L1872">                setRequired(STARTTIME, 0, false);</span>
+<span class="nc" id="L1873">                setUse(STARTTIME, 0, false);</span>
+<span class="nc" id="L1874">                setModifyable(STARTTIME, 0, true);            	</span>
+<span class="nc" id="L1875">                addField(ENDTIME);</span>
+<span class="nc" id="L1876">                setValue(ENDTIME, 0, &quot;&quot;);</span>
+<span class="nc" id="L1877">                setRequired(ENDTIME, 0, false);</span>
+<span class="nc" id="L1878">                setUse(ENDTIME, 0, false);</span>
+<span class="nc" id="L1879">                setModifyable(ENDTIME, 0, true);            	</span>
+            }
+            // Notifications is now a more general mechanism in version 8
+<span class="nc bnc" id="L1882" title="All 2 branches missed.">            if (getVersion() &lt; 8) {</span>
+<span class="nc" id="L1883">            	log.debug(&quot;Upgrading User Notifications&quot;);</span>
+<span class="nc bnc" id="L1884" title="All 2 branches missed.">            	if (data.get(UserNotification.NOTIFICATIONSENDER) != null) {</span>
+<span class="nc" id="L1885">            		UserNotification not = new UserNotification();</span>
+<span class="nc" id="L1886">            		not.setNotificationSender((String)data.get(UserNotification.NOTIFICATIONSENDER));</span>
+<span class="nc bnc" id="L1887" title="All 2 branches missed.">            		if (data.get(UserNotification.NOTIFICATIONSUBJECT) != null) {</span>
+<span class="nc" id="L1888">                		not.setNotificationSubject((String)data.get(UserNotification.NOTIFICATIONSUBJECT));            			</span>
+            		}
+<span class="nc bnc" id="L1890" title="All 2 branches missed.">            		if (data.get(UserNotification.NOTIFICATIONMESSAGE) != null) {</span>
+<span class="nc" id="L1891">                		not.setNotificationMessage((String)data.get(UserNotification.NOTIFICATIONMESSAGE));            			</span>
+            		}
+            		// Add the statuschanges we used to send notifications about
+<span class="nc" id="L1894">            		String events = UserNotification.EVENTS_EDITUSER;</span>
+<span class="nc" id="L1895">            		not.setNotificationEvents(events);</span>
+            		// The old recipients where always the user
+<span class="nc" id="L1897">            		not.setNotificationRecipient(UserNotification.RCPT_USER);</span>
+<span class="nc" id="L1898">            		addUserNotification(not);</span>
+            	}
+            }
+            // Support for allowed requests in profile version 9
+<span class="nc bnc" id="L1902" title="All 2 branches missed.">            if (getVersion() &lt; 9) {</span>
+                @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L1904">                ArrayList&lt;Integer&gt; numberoffields = (ArrayList&lt;Integer&gt;) data.get(NUMBERARRAY);                </span>
+<span class="nc bnc" id="L1905" title="All 2 branches missed.">                for(int i =numberoffields.size(); i &lt; dataConstants.size(); i++){</span>
+<span class="nc" id="L1906">                	numberoffields.add(Integer.valueOf(0));</span>
+                }               
+<span class="nc" id="L1908">                data.put(NUMBERARRAY,numberoffields);</span>
+<span class="nc" id="L1909">                addField(ALLOWEDREQUESTS);</span>
+<span class="nc" id="L1910">                setValue(ALLOWEDREQUESTS, 0, &quot;&quot;);</span>
+<span class="nc" id="L1911">                setRequired(ALLOWEDREQUESTS, 0, false);</span>
+<span class="nc" id="L1912">                setUse(ALLOWEDREQUESTS, 0, false);</span>
+<span class="nc" id="L1913">                setModifyable(ALLOWEDREQUESTS, 0, true);            	</span>
+            }
+            // Support for merging DN from WS-API with default values in profile, in profile version 10
+<span class="nc bnc" id="L1916" title="All 2 branches missed.">            if (getVersion() &lt; 10) {</span>
+<span class="nc" id="L1917">                setAllowMergeDnWebServices(false);</span>
+            }
+            // Support for issuance revocation status in profile version 11
+<span class="nc bnc" id="L1920" title="All 2 branches missed.">            if (getVersion() &lt; 11) {</span>
+<span class="nc" id="L1921">                setRequired(ISSUANCEREVOCATIONREASON, 0, false);</span>
+<span class="nc" id="L1922">                setUse(ISSUANCEREVOCATIONREASON, 0, false);</span>
+<span class="nc" id="L1923">                setModifyable(ISSUANCEREVOCATIONREASON, 0, true);</span>
+<span class="nc" id="L1924">                setValue(ISSUANCEREVOCATIONREASON, 0, &quot;&quot; + RevokedCertInfo.NOT_REVOKED);</span>
+<span class="nc" id="L1925">                setRequired(CARDNUMBER, 0, false);</span>
+<span class="nc" id="L1926">                setUse(CARDNUMBER, 0, false);</span>
+<span class="nc" id="L1927">                setModifyable(CARDNUMBER, 0, true);            	</span>
+            }
+            // Support for maximum number of failed login attempts in profile version 12
+<span class="nc bnc" id="L1930" title="All 2 branches missed.">            if (getVersion() &lt; 12) {</span>
+<span class="nc" id="L1931">            	setRequired(MAXFAILEDLOGINS, 0, false);</span>
+<span class="nc" id="L1932">            	setUse(MAXFAILEDLOGINS, 0, false);</span>
+<span class="nc" id="L1933">            	setModifyable(MAXFAILEDLOGINS, 0, true);</span>
+<span class="nc" id="L1934">            	setValue(MAXFAILEDLOGINS, 0, Integer.toString(ExtendedInformation.DEFAULT_MAXLOGINATTEMPTS));</span>
+            }
+            /* In EJBCA 4.0.0 we changed the date format to ISO 8601.
+             * In the Admin GUI the example was:
+             *     DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, ejbcawebbean.getLocale())
+             * but the only absolute format that could have worked is the same enforced by the 
+             * doesUserFulfillEndEntityProfile check and this is what need to upgrade from:
+             * 	   DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, Locale.US)
+             */
+<span class="nc bnc" id="L1943" title="All 2 branches missed.">        	if (getVersion() &lt; 13) {</span>
+<span class="nc" id="L1944">        		final DateFormat oldDateFormat = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, Locale.US);</span>
+<span class="nc" id="L1945">        		final FastDateFormat newDateFormat = FastDateFormat.getInstance(&quot;yyyy-MM-dd HH:mm&quot;);</span>
+        		try {
+<span class="nc" id="L1947">        			final String oldStartTime = getValue(STARTTIME, 0);</span>
+<span class="nc bnc" id="L1948" title="All 2 branches missed.">        			if (!isEmptyOrRelative(oldStartTime)) {</span>
+        				// We use an absolute time format, so we need to upgrade
+<span class="nc" id="L1950">            			final String newStartTime = newDateFormat.format(oldDateFormat.parse(oldStartTime));</span>
+<span class="nc" id="L1951">    					setValue(STARTTIME, 0, newStartTime);</span>
+<span class="nc bnc" id="L1952" title="All 2 branches missed.">    					if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1953">    						log.debug(&quot;Upgraded &quot; + STARTTIME + &quot; from \&quot;&quot; + oldStartTime + &quot;\&quot; to \&quot;&quot; + newStartTime + &quot;\&quot; in EndEntityProfile.&quot;);</span>
+    					}
+        			}
+<span class="nc" id="L1956">				} catch (ParseException e) {</span>
+<span class="nc" id="L1957">					log.error(&quot;Unable to upgrade &quot; + STARTTIME + &quot; in EndEntityProfile! Manual interaction is required (edit and verify).&quot;, e);</span>
+<span class="nc" id="L1958">				}</span>
+        		try {
+<span class="nc" id="L1960">        			final String oldEndTime = getValue(ENDTIME, 0);</span>
+<span class="nc bnc" id="L1961" title="All 2 branches missed.">        			if (!isEmptyOrRelative(oldEndTime)) {</span>
+        				// We use an absolute time format, so we need to upgrade
+<span class="nc" id="L1963">            			final String newEndTime = newDateFormat.format(oldDateFormat.parse(oldEndTime));</span>
+<span class="nc" id="L1964">    					setValue(ENDTIME, 0, newEndTime);</span>
+<span class="nc bnc" id="L1965" title="All 2 branches missed.">    					if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1966">    						log.debug(&quot;Upgraded &quot; + ENDTIME + &quot; from \&quot;&quot; + oldEndTime + &quot;\&quot; to \&quot;&quot; + newEndTime + &quot;\&quot; in EndEntityProfile.&quot;);</span>
+    					}
+        			}
+<span class="nc" id="L1969">				} catch (ParseException e) {</span>
+<span class="nc" id="L1970">					log.error(&quot;Unable to upgrade &quot; + ENDTIME + &quot; in EndEntityProfile! Manual interaction is required (edit and verify).&quot;, e);</span>
+<span class="nc" id="L1971">				}</span>
+        	}
+        	/*
+        	 * In version 13 we converted some dates to the &quot;yyyy-MM-dd HH:mm&quot; format using default Locale.
+        	 * These needs to be converted to the same format but should be stored in UTC, so we always know what the times are.
+        	 */
+<span class="nc bnc" id="L1977" title="All 2 branches missed.">        	if (getVersion() &lt; 14) {</span>
+<span class="nc" id="L1978">        		final String[] timePatterns = {&quot;yyyy-MM-dd HH:mm&quot;};</span>
+<span class="nc" id="L1979">    			final String oldStartTime = getValue(STARTTIME, 0);</span>
+<span class="nc bnc" id="L1980" title="All 2 branches missed.">    			if (!isEmptyOrRelative(oldStartTime)) {</span>
+            		try {
+<span class="nc" id="L1982">            			final String newStartTime = ValidityDate.formatAsUTC(DateUtils.parseDateStrictly(oldStartTime, timePatterns));</span>
+<span class="nc" id="L1983">    					setValue(STARTTIME, 0, newStartTime);</span>
+<span class="nc bnc" id="L1984" title="All 2 branches missed.">    					if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1985">    						log.debug(&quot;Upgraded &quot; + STARTTIME + &quot; from \&quot;&quot; + oldStartTime + &quot;\&quot; to \&quot;&quot; + newStartTime + &quot;\&quot; in EndEntityProfile.&quot;);</span>
+    					}
+<span class="nc" id="L1987">					} catch (ParseException e) {</span>
+<span class="nc" id="L1988">						log.error(&quot;Unable to upgrade &quot; + STARTTIME + &quot; to UTC in EndEntityProfile! Manual interaction is required (edit and verify).&quot;, e);</span>
+<span class="nc" id="L1989">					}</span>
+    			}
+<span class="nc" id="L1991">    			final String oldEndTime = getValue(ENDTIME, 0);</span>
+<span class="nc bnc" id="L1992" title="All 2 branches missed.">    			if (!isEmptyOrRelative(oldEndTime)) {</span>
+    				// We use an absolute time format, so we need to upgrade
+					try {
+<span class="nc" id="L1995">						final String newEndTime = ValidityDate.formatAsUTC(DateUtils.parseDateStrictly(oldEndTime, timePatterns));</span>
+<span class="nc" id="L1996">						setValue(ENDTIME, 0, newEndTime);</span>
+<span class="nc bnc" id="L1997" title="All 2 branches missed.">						if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1998">							log.debug(&quot;Upgraded &quot; + ENDTIME + &quot; from \&quot;&quot; + oldEndTime + &quot;\&quot; to \&quot;&quot; + newEndTime + &quot;\&quot; in EndEntityProfile.&quot;);</span>
+						}
+<span class="nc" id="L2000">					} catch (ParseException e) {</span>
+<span class="nc" id="L2001">						log.error(&quot;Unable to upgrade &quot; + ENDTIME + &quot; to UTC in EndEntityProfile! Manual interaction is required (edit and verify).&quot;, e);</span>
+<span class="nc" id="L2002">					}</span>
+    			}
+        	}
+        	// Finally, update the version stored in the map to the current version
+<span class="nc" id="L2006">            data.put(VERSION,  Float.valueOf(LATEST_VERSION));</span>
+        }
+<span class="nc" id="L2008">        log.trace(&quot;&lt;upgrade&quot;);</span>
+<span class="nc" id="L2009">    }</span>
+    
+    /** @param time time
+     * @return true if argument is null, empty or in the relative time format. */
+    private boolean isEmptyOrRelative(final String time) {
+<span class="nc bnc" id="L2014" title="All 6 branches missed.">    	return (time == null || time.length()==0 || time.matches(&quot;^\\d+:\\d?\\d:\\d?\\d$&quot;));</span>
+    }
+
+    public static boolean isFieldImplemented(final int field) {
+<span class="nc" id="L2018">    	final String f = getParameter(field);</span>
+<span class="nc bnc" id="L2019" title="All 2 branches missed.">    	if (f == null) {</span>
+<span class="nc bnc" id="L2020" title="All 2 branches missed.">    	    if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L2021">                log.trace(&quot;isFieldImplemented got call for non-implemented field: &quot;+field);</span>
+    	    }
+<span class="nc" id="L2023">    		return false;</span>
+    	}
+<span class="nc" id="L2025">    	return isFieldImplemented(f);</span>
+    }
+
+    public static boolean isFieldImplemented(final String field) {
+<span class="nc" id="L2029">    	boolean ret = true;</span>
+<span class="nc bnc" id="L2030" title="All 2 branches missed.">        if (field.equals(DnComponents.OTHERNAME) </span>
+<span class="nc bnc" id="L2031" title="All 2 branches missed.">        		|| field.equals(DnComponents.X400ADDRESS) </span>
+<span class="nc bnc" id="L2032" title="All 2 branches missed.">        		|| field.equals(DnComponents.EDIPARTYNAME)) {</span>
+<span class="nc bnc" id="L2033" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L2034">                log.debug(&quot;isFieldImplemented got call for non-implemented/ignored subjectAltName field (custom extension is required): &quot;+field);</span>
+            }
+<span class="nc" id="L2036">        	ret = false;</span>
+        }
+<span class="nc" id="L2038">        return ret;</span>
+    }
+
+	public static boolean isFieldOfType(final int fieldNumber, final String fieldString) {
+<span class="nc" id="L2042">		boolean ret = false;</span>
+<span class="nc" id="L2043">		final int number = getParameterNumber(fieldString);</span>
+<span class="nc bnc" id="L2044" title="All 2 branches missed.">		if (fieldNumber == number) {</span>
+<span class="nc" id="L2045">			ret = true;</span>
+		}
+<span class="nc" id="L2047">		return ret;</span>
+	}
+
+    //
+    // Private Methods
+    //
+
+    /**
+     * Verify that the field contains an address and that data of non-modifyable domain-fields is available in profile 
+     * Used for email, upn and rfc822 fields
+     * @param field Field
+     * @param number Number
+     * @param nameAndDomain Name
+     * @param text Text
+     * @throws EndEntityProfileValidationException If validation fails
+     */
+    private void checkIfDomainFulfillProfile(final String field, final int number, final String nameAndDomain, final String text) throws EndEntityProfileValidationException {
+<span class="fc bfc" id="L2064" title="All 4 branches covered.">    	if (!nameAndDomain.trim().equals(&quot;&quot;) &amp;&amp; nameAndDomain.indexOf('@') == -1) {</span>
+<span class="fc" id="L2065">    		throw new EndEntityProfileValidationException(&quot;Invalid &quot; + text + &quot;(&quot; + nameAndDomain + &quot;). There must be a '@' character in the field.&quot;);</span>
+    	}
+<span class="fc" id="L2067">    	final String domain = nameAndDomain.substring(nameAndDomain.indexOf('@') + 1);</span>
+    	// All fields except RFC822NAME has to be empty if not used flag is set.
+<span class="pc bpc" id="L2069" title="4 of 6 branches missed.">    	if ( !DnComponents.RFC822NAME.equals(field) &amp;&amp; !getUse(field,number) &amp;&amp; !nameAndDomain.trim().equals(&quot;&quot;) ) {</span>
+<span class="nc" id="L2070">    		throw new EndEntityProfileValidationException(text + &quot; cannot be used in end entity profile.&quot;);</span>
+    	}
+<span class="pc bpc" id="L2072" title="1 of 4 branches missed.">    	if (!isModifyable(field,number) &amp;&amp; !nameAndDomain.equals(&quot;&quot;)) {</span>
+    		String[] values;
+    		try {
+<span class="fc" id="L2075">    			values = getValue(field, number).split(SPLITCHAR);</span>
+<span class="nc" id="L2076">    		} catch (Exception e) {</span>
+<span class="nc" id="L2077">    			throw new EndEntityProfileValidationException(&quot;Error parsing end entity profile.&quot;);</span>
+<span class="fc" id="L2078">    		}</span>
+<span class="fc" id="L2079">    		boolean exists = false;</span>
+<span class="fc bfc" id="L2080" title="All 2 branches covered.">    		for (final String value : values) {</span>
+<span class="fc bfc" id="L2081" title="All 2 branches covered.">    			if(domain.equals(value.trim())) {</span>
+<span class="fc" id="L2082">    				exists = true;</span>
+<span class="fc" id="L2083">    				break;</span>
+    			}
+    		}
+<span class="fc bfc" id="L2086" title="All 2 branches covered.">    		if (!exists) {</span>
+<span class="fc" id="L2087">    			throw new EndEntityProfileValidationException(&quot;Field &quot; + text + &quot; data didn't match requirement of end entity profile.&quot;);</span>
+    		}
+    	}
+<span class="fc" id="L2090">    }</span>
+    
+    private void checkForIllegalChars(final String str) throws EndEntityProfileValidationException {
+<span class="fc" id="L2093">        Set&lt;String&gt; invalidCharacters = StringTools.hasSqlStripChars(str);</span>
+<span class="pc bpc" id="L2094" title="1 of 2 branches missed.">    	if (!invalidCharacters.isEmpty()) {</span>
+<span class="nc" id="L2095">    	    StringBuilder sb = new StringBuilder(&quot;&quot;);</span>
+<span class="nc bnc" id="L2096" title="All 2 branches missed.">    	    for(String error : invalidCharacters) {</span>
+<span class="nc" id="L2097">    	        sb.append(&quot;, &quot; + error) ;</span>
+<span class="nc" id="L2098">    	    }	    </span>
+<span class="nc" id="L2099">    		throw new EndEntityProfileValidationException(&quot;Invalid &quot; + str + &quot;. Contains illegal characters: &quot; + sb.substring(2));    		</span>
+    	}    	
+<span class="fc" id="L2101">    }</span>
+
+    /** Used for iso 3166 country codes. 
+     * @param field Field
+     * @param number Number
+     * @param country Country
+     * @param text Text
+     * @throws EndEntityProfileValidationException If validation fails */
+    private void checkIfISO3166FulfillProfile(final String field, final int number, final String country, final String text) throws EndEntityProfileValidationException {
+<span class="fc" id="L2110">    	final String countryTrim = country.trim();</span>
+<span class="fc" id="L2111">    	final int countryTrimLength = countryTrim.length();</span>
+<span class="pc bpc" id="L2112" title="1 of 4 branches missed.">    	if (countryTrimLength != 0 &amp;&amp; countryTrimLength != 2) {</span>
+<span class="fc" id="L2113">    		throw new EndEntityProfileValidationException(&quot;Invalid &quot; + text + &quot;. Must be of length two.&quot;);</span>
+    	}
+<span class="pc bpc" id="L2115" title="3 of 4 branches missed.">    	if (!getUse(field,number) &amp;&amp; countryTrimLength != 0) {</span>
+<span class="nc" id="L2116">    		throw new EndEntityProfileValidationException(text + &quot; cannot be used in end entity profile.&quot;);</span>
+    	}
+<span class="pc bpc" id="L2118" title="1 of 4 branches missed.">    	if (!isModifyable(field,number) &amp;&amp; countryTrimLength != 0) {</span>
+    		String[] values;
+    		try {
+<span class="fc" id="L2121">    			values = getValue(field, number).split(SPLITCHAR);</span>
+<span class="nc" id="L2122">    		} catch (Exception e) {</span>
+<span class="nc" id="L2123">    			throw new EndEntityProfileValidationException(&quot;Error parsing end entity profile.&quot;);</span>
+<span class="fc" id="L2124">    		}</span>
+<span class="fc" id="L2125">    		boolean exists = false;</span>
+<span class="fc bfc" id="L2126" title="All 2 branches covered.">    		for (final String value : values) {</span>
+<span class="fc bfc" id="L2127" title="All 2 branches covered.">    			if (country.equals(value.trim())) {</span>
+<span class="fc" id="L2128">    				exists = true;</span>
+<span class="fc" id="L2129">    				break;</span>
+    			}
+    		}
+<span class="fc bfc" id="L2132" title="All 2 branches covered.">    		if (!exists) {</span>
+<span class="fc" id="L2133">    			throw new EndEntityProfileValidationException(&quot;Field &quot; + text + &quot; data didn't match requirement of end entity profile.&quot;);</span>
+    		}
+    	}
+<span class="fc" id="L2136">    }</span>
+    
+    /** Used to check if it is an M or an F 
+     * @param field Field
+     * @param number Number
+     * @param gender Gender
+     * @param text Text
+     * @throws EndEntityProfileValidationException If validation fails */
+    private void checkIfGenderFulfillProfile(final String field, final int number, final String gender, final String text) throws EndEntityProfileValidationException {
+<span class="fc" id="L2145">    	final boolean isGenerEmpty = gender.trim().isEmpty();</span>
+<span class="pc bpc" id="L2146" title="4 of 6 branches missed.">    	if (!isGenerEmpty &amp;&amp; !(gender.equalsIgnoreCase(&quot;m&quot;) || gender.equalsIgnoreCase(&quot;f&quot;))) {</span>
+<span class="nc" id="L2147">    		throw new EndEntityProfileValidationException(&quot;Invalid &quot; + text + &quot;. Must be M or F.&quot;);</span>
+    	}
+<span class="pc bpc" id="L2149" title="3 of 4 branches missed.">    	if (!getUse(field,number) &amp;&amp; !isGenerEmpty) {</span>
+<span class="nc" id="L2150">    		throw new EndEntityProfileValidationException(text + &quot; cannot be used in end entity profile.&quot;);</span>
+    	}
+<span class="pc bpc" id="L2152" title="3 of 4 branches missed.">    	if (!isModifyable(field,number) &amp;&amp; !isGenerEmpty) {</span>
+    		String[] values;
+    		try {
+<span class="nc" id="L2155">    			values = getValue(field, number).split(SPLITCHAR);</span>
+<span class="nc" id="L2156">    		} catch(Exception e) {</span>
+<span class="nc" id="L2157">    			throw new EndEntityProfileValidationException(&quot;Error parsing end entity profile.&quot;);</span>
+<span class="nc" id="L2158">    		}</span>
+<span class="nc" id="L2159">    		boolean exists = false;</span>
+<span class="nc bnc" id="L2160" title="All 2 branches missed.">    		for (final String value: values) {</span>
+<span class="nc bnc" id="L2161" title="All 2 branches missed.">    			if (gender.equals(value.trim())) {</span>
+<span class="nc" id="L2162">    				exists = true;</span>
+<span class="nc" id="L2163">    				break;</span>
+    			}
+    		}
+<span class="nc bnc" id="L2166" title="All 2 branches missed.">    		if (!exists) {</span>
+<span class="nc" id="L2167">    			throw new EndEntityProfileValidationException(&quot;Field &quot; + text + &quot; data didn't match requirement of end entity profile.&quot;);</span>
+    		}
+    	}
+<span class="fc" id="L2170">    }</span>
+
+    /** 
+     * @param field Field
+     * @param number Number
+     * @param date date
+     * @param text Text
+     * @throws EndEntityProfileValidationException If validation fails 
+     * Used for date strings, should be YYYYMMDD */
+    private void checkIfDateFulfillProfile(final String field, final int number, final String date, final String text) throws EndEntityProfileValidationException {
+<span class="fc" id="L2180">    	final String dateTrim = date.trim();</span>
+<span class="fc" id="L2181">    	final boolean isDateEmpty = dateTrim.isEmpty();</span>
+<span class="pc bpc" id="L2182" title="1 of 4 branches missed.">    	if (!isDateEmpty &amp;&amp; dateTrim.length() != 8) {</span>
+<span class="fc" id="L2183">    		throw new EndEntityProfileValidationException(&quot;Invalid &quot; + text + &quot;. Must be of length eight.&quot;);</span>
+    	}
+<span class="pc bpc" id="L2185" title="1 of 4 branches missed.">    	if (!isDateEmpty &amp;&amp; !StringUtils.isNumeric(dateTrim)) {</span>
+<span class="fc" id="L2186">    		throw new EndEntityProfileValidationException(&quot;Invalid &quot; + text + &quot;. Must be only numbers.&quot;);</span>
+    	}
+<span class="pc bpc" id="L2188" title="3 of 4 branches missed.">    	if (!getUse(field,number) &amp;&amp; !isDateEmpty) {</span>
+<span class="nc" id="L2189">    		throw new EndEntityProfileValidationException(text + &quot; cannot be used in end entity profile.&quot;);</span>
+    	}
+<span class="pc bpc" id="L2191" title="3 of 4 branches missed.">    	if (!isModifyable(field,number) &amp;&amp; !isDateEmpty) {</span>
+    		String[] values;
+    		try {
+<span class="nc" id="L2194">    			values = getValue(field, number).split(SPLITCHAR);</span>
+<span class="nc" id="L2195">    		} catch (Exception e) {</span>
+<span class="nc" id="L2196">    			throw new EndEntityProfileValidationException(&quot;Error parsing end entity profile.&quot;);</span>
+<span class="nc" id="L2197">    		}</span>
+<span class="nc" id="L2198">    		boolean exists = false;</span>
+<span class="nc bnc" id="L2199" title="All 2 branches missed.">    		for (final String value : values) {</span>
+<span class="nc bnc" id="L2200" title="All 2 branches missed.">    			if (date.equals(value.trim())) {</span>
+<span class="nc" id="L2201">    				exists = true;</span>
+<span class="nc" id="L2202">    				break;</span>
+    			}
+    		}
+<span class="nc bnc" id="L2205" title="All 2 branches missed.">    		if (!exists) {</span>
+<span class="nc" id="L2206">    			throw new EndEntityProfileValidationException(&quot;Field &quot; + text + &quot; data didn't match requirement of end entity profile.&quot;);</span>
+    		}
+    	}
+<span class="fc" id="L2209">    }</span>
+
+    /**
+     * Verifies that non-modifiable data is available in profile.
+     * @param field Field
+     * @param number Number
+     * @param data Data
+     * @param text Text
+     * @param email Email
+     * @throws EndEntityProfileValidationException If validation fails
+     */
+    private void checkIfDataFulfillProfile(final String field, final int number, final String data, final String text, final String email) throws EndEntityProfileValidationException {
+        //If USERNAME should be autogenerated skip this check
+<span class="pc bpc" id="L2222" title="1 of 4 branches missed.">        if(field.equals(USERNAME) &amp;&amp; !isModifyable(USERNAME, 0)){</span>
+<span class="nc" id="L2223">            return;</span>
+        }
+<span class="pc bpc" id="L2225" title="3 of 4 branches missed.">    	if (data == null &amp;&amp; !field.equals(EMAIL)) {</span>
+<span class="nc" id="L2226">    		throw new EndEntityProfileValidationException(&quot;Field &quot; +  text + &quot; cannot be null.&quot;);</span>
+    	}
+<span class="pc bpc" id="L2228" title="1 of 2 branches missed.">    	if (data !=null) {</span>
+<span class="pc bpc" id="L2229" title="3 of 4 branches missed.">    		if (!getUse(field,number) &amp;&amp; !data.trim().isEmpty()) {</span>
+<span class="nc" id="L2230">    			throw new EndEntityProfileValidationException(text + &quot; cannot be used in end entity profile.&quot;);</span>
+    		}
+    	}
+<span class="pc bpc" id="L2233" title="1 of 2 branches missed.">    	if (field.equals(DnComponents.DNEMAILADDRESS)) {</span>
+<span class="nc bnc" id="L2234" title="All 2 branches missed.">    		if (isRequired(field,number)) {</span>
+<span class="nc bnc" id="L2235" title="All 2 branches missed.">    			if (!data.trim().equals(email.trim())) {</span>
+<span class="nc" id="L2236">    				throw new EndEntityProfileValidationException(&quot;Field &quot; + text + &quot; data didn't match Email field.&quot;);</span>
+    			}
+    		}
+<span class="pc bpc" id="L2239" title="5 of 6 branches missed.">    	} else if( field.equals(DnComponents.RFC822NAME) &amp;&amp; isRequired(field,number) &amp;&amp; getUse(field,number) ) {</span>
+<span class="nc bnc" id="L2240" title="All 2 branches missed.">    		if (!data.trim().equals(email.trim())) {</span>
+<span class="nc" id="L2241">    			throw new EndEntityProfileValidationException(&quot;Field &quot; + text + &quot; data didn't match Email field.&quot;);</span>
+    		}
+    	} else {
+<span class="pc bpc" id="L2244" title="1 of 2 branches missed.">    		if (!isModifyable(field,number)) {</span>
+    			String[] values;
+    			try {
+<span class="nc" id="L2247">    				values = getValue(field, number).split(SPLITCHAR);</span>
+<span class="nc" id="L2248">    			} catch (Exception e) {</span>
+<span class="nc" id="L2249">    				throw new EndEntityProfileValidationException(&quot;Error parsing end entity profile.&quot;);</span>
+<span class="nc" id="L2250">    			}</span>
+<span class="nc" id="L2251">    			boolean exists = false;</span>
+<span class="nc bnc" id="L2252" title="All 2 branches missed.">    			for (final String value : values) {</span>
+<span class="nc bnc" id="L2253" title="All 2 branches missed.">    				if(data.equals(value.trim())) {</span>
+<span class="nc" id="L2254">    					exists = true;</span>
+    				}
+    			}
+<span class="nc bnc" id="L2257" title="All 2 branches missed.">    			if (!exists) {</span>
+<span class="nc" id="L2258">    				throw new EndEntityProfileValidationException(&quot;Field &quot; + text + &quot; data didn't match requirement of end entity profile.&quot;);</span>
+    			}
+    		}
+    	}
+<span class="fc" id="L2262">    }</span>
+
+    private void checkIfAllRequiredFieldsExists(final DNFieldExtractor subjectdnfields, final DNFieldExtractor subjectaltnames, final DNFieldExtractor subjectdirattrs, final String username, final String email)
+    throws EndEntityProfileValidationException {
+    	// Check if Username exists (if not modifiable skip the check)
+<span class="pc bpc" id="L2267" title="2 of 4 branches missed.">    	if (isRequired(USERNAME,0) &amp;&amp; isModifyable(USERNAME, 0)) {</span>
+<span class="pc bpc" id="L2268" title="1 of 4 branches missed.">    		if (username == null || username.trim().isEmpty() ) {</span>
+<span class="fc" id="L2269">    			throw new EndEntityProfileValidationException(&quot;Username cannot be empty or null.&quot;);</span>
+    		}
+    	}
+    	// Check if required Email fields exists.
+<span class="fc bfc" id="L2273" title="All 2 branches covered.">    	if (isRequired(EMAIL,0)) {</span>
+<span class="fc bfc" id="L2274" title="All 4 branches covered.">    		if (email == null || email.trim().isEmpty()) {</span>
+<span class="fc" id="L2275">    			throw new EndEntityProfileValidationException(&quot;Email address cannot be empty or null.&quot;);</span>
+    		}
+    	}
+    	// Check if all required subjectdn fields exists.
+<span class="fc" id="L2279">    	final List&lt;String&gt; dnfields = DnComponents.getDnProfileFields();</span>
+<span class="fc" id="L2280">    	final List&lt;Integer&gt; dnFieldExtractorIds = DnComponents.getDnDnIds();</span>
+<span class="fc bfc" id="L2281" title="All 2 branches covered.">    	for (int i = 0; i&lt;dnfields.size(); i++) {</span>
+<span class="fc" id="L2282">    		final String currentDnField = dnfields.get(i);</span>
+<span class="fc bfc" id="L2283" title="All 2 branches covered.">    		if (getReverseFieldChecks()) {</span>
+<span class="fc" id="L2284">    			final int nof = subjectdnfields.getNumberOfFields(dnFieldExtractorIds.get(i).intValue());</span>
+<span class="fc" id="L2285">    			final int numRequiredFields = getNumberOfRequiredFields(currentDnField);</span>
+<span class="fc bfc" id="L2286" title="All 2 branches covered.">    			if (nof &lt; numRequiredFields) {</span>
+<span class="fc" id="L2287">    				throw new EndEntityProfileValidationException(&quot;Subject DN field '&quot; + currentDnField + &quot;' must exist.&quot;);</span>
+    			}
+<span class="fc" id="L2289">    		} else {</span>
+<span class="fc" id="L2290">    			final int size = getNumberOfField(currentDnField);</span>
+<span class="fc bfc" id="L2291" title="All 2 branches covered.">    			for (int j = 0; j&lt;size; j++) {</span>
+<span class="fc bfc" id="L2292" title="All 2 branches covered.">    				if (isRequired(currentDnField,j)) {</span>
+<span class="fc bfc" id="L2293" title="All 2 branches covered.">    					if (subjectdnfields.getField(dnFieldExtractorIds.get(i).intValue(),j).trim().isEmpty()) {</span>
+<span class="fc" id="L2294">    						throw new EndEntityProfileValidationException(&quot;Subject DN field '&quot; + currentDnField + &quot;' must exist.&quot;);</span>
+    					}
+    				}
+    			}
+    		}
+    	}
+    	// Check if all required subject alternate name fields exists.
+<span class="fc" id="L2301">    	final List&lt;String&gt; altnamefields = DnComponents.getAltNameFields();</span>
+<span class="fc" id="L2302">    	final List&lt;Integer&gt; altNameFieldExtractorIds = DnComponents.getAltNameDnIds();</span>
+<span class="fc bfc" id="L2303" title="All 2 branches covered.">    	for (int i=0; i&lt;altnamefields.size(); i++) {</span>
+<span class="fc" id="L2304">    		final String currentAnField = altnamefields.get(i);</span>
+<span class="fc bfc" id="L2305" title="All 2 branches covered.">    		if (getReverseFieldChecks()) {</span>
+<span class="fc" id="L2306">    			final int nof = subjectaltnames.getNumberOfFields(altNameFieldExtractorIds.get(i).intValue());</span>
+<span class="fc" id="L2307">    			final int numRequiredFields = getNumberOfRequiredFields(currentAnField);</span>
+<span class="pc bpc" id="L2308" title="1 of 2 branches missed.">    			if (nof &lt; numRequiredFields) {</span>
+<span class="nc" id="L2309">    				throw new EndEntityProfileValidationException(&quot;Subject Alternative Name field '&quot; + currentAnField + &quot;' must exist.&quot;);</span>
+    			}
+<span class="fc" id="L2311">    		} else {</span>
+    			// Only verify fields that are actually used
+    			// size = getNumberOfField(altnamefields[i]);
+<span class="fc" id="L2314">    			final int size = subjectaltnames.getNumberOfFields(altNameFieldExtractorIds.get(i).intValue());</span>
+<span class="fc bfc" id="L2315" title="All 2 branches covered.">    			for (int j = 0; j &lt; size; j++) {</span>
+<span class="fc bfc" id="L2316" title="All 2 branches covered.">    				if (isRequired(currentAnField,j)) {</span>
+<span class="pc bpc" id="L2317" title="1 of 2 branches missed.">    					if (subjectaltnames.getField(altNameFieldExtractorIds.get(i).intValue(),j).trim().isEmpty()) {</span>
+<span class="nc" id="L2318">    						throw new EndEntityProfileValidationException(&quot;Subject Alterntive Name field '&quot; + currentAnField + &quot;' must exist.&quot;);</span>
+    					}
+    				}
+    			}
+    		}
+    	}
+    	// Check if all required subject directory attribute fields exists.
+<span class="fc" id="L2325">    	final List&lt;String&gt; dirattrfields = DnComponents.getDirAttrFields();</span>
+<span class="fc" id="L2326">    	final List&lt;Integer&gt; dirAttrFieldExtractorIds = DnComponents.getDirAttrDnIds();</span>
+<span class="fc bfc" id="L2327" title="All 2 branches covered.">    	for (int i = 0; i &lt; dirattrfields.size(); i++) {        	</span>
+<span class="fc" id="L2328">    		final String currentDaField = dirattrfields.get(i);</span>
+<span class="fc" id="L2329">    		final int size = getNumberOfField(currentDaField);</span>
+<span class="fc bfc" id="L2330" title="All 2 branches covered.">    		for (int j = 0; j &lt; size; j++) {</span>
+<span class="pc bpc" id="L2331" title="1 of 2 branches missed.">    			if (isRequired(currentDaField,j)) {</span>
+<span class="nc bnc" id="L2332" title="All 2 branches missed.">    				if (subjectdirattrs.getField(dirAttrFieldExtractorIds.get(i).intValue(),j).trim().isEmpty()) {</span>
+<span class="nc" id="L2333">    					throw new EndEntityProfileValidationException(&quot;Subject Directory Attribute field '&quot; + currentDaField + &quot;' must exist.&quot;);</span>
+    				}
+    			}
+    		}
+    	}
+<span class="fc" id="L2338">    }</span>
+
+    /**
+     * Method calculating the number of required fields of on kind that is configured for this profile.
+     * @param field one of the field constants
+     * @return The number of required fields of that kind.
+     */
+    private int getNumberOfRequiredFields(final String field) {
+<span class="fc" id="L2346">    	int retval = 0;</span>
+<span class="fc" id="L2347">    	final int size = getNumberOfField(field);</span>
+<span class="fc bfc" id="L2348" title="All 2 branches covered.">    	for (int j = 0; j&lt;size; j++) {</span>
+<span class="fc bfc" id="L2349" title="All 2 branches covered.">    		if (isRequired(field,j)) {</span>
+<span class="fc" id="L2350">    			retval++;</span>
+    		}
+    	}
+<span class="fc" id="L2353">    	return retval;</span>
+    }
+
+    private void checkIfForIllegalNumberOfFields(final DNFieldExtractor subjectdnfields, final DNFieldExtractor subjectaltnames, final DNFieldExtractor subjectdirattrs) throws EndEntityProfileValidationException {
+    	// Check number of subjectdn fields.
+<span class="fc" id="L2358">    	final List&lt;String&gt; dnfields = DnComponents.getDnProfileFields();</span>
+<span class="fc" id="L2359">    	final List&lt;Integer&gt; dnFieldExtractorIds = DnComponents.getDnDnIds();</span>
+<span class="fc bfc" id="L2360" title="All 2 branches covered.">    	for (int i=0; i&lt;dnfields.size(); i++) {</span>
+<span class="fc bfc" id="L2361" title="All 2 branches covered.">    		if (getNumberOfField(dnfields.get(i)) &lt; subjectdnfields.getNumberOfFields(dnFieldExtractorIds.get(i).intValue())) {</span>
+<span class="fc" id="L2362">    			throw new EndEntityProfileValidationException(&quot;Wrong number of &quot; + dnfields.get(i) + &quot; fields in Subject DN.&quot;);</span>
+    		}
+    	}
+    	// Check number of subject alternate name fields.
+<span class="fc" id="L2366">    	final List&lt;String&gt; altnamefields = DnComponents.getAltNameFields();</span>
+<span class="fc" id="L2367">    	final List&lt;Integer&gt; altNameFieldExtractorIds = DnComponents.getAltNameDnIds();</span>
+<span class="fc bfc" id="L2368" title="All 2 branches covered.">    	for (int i=0; i&lt;altnamefields.size(); i++) {</span>
+<span class="fc bfc" id="L2369" title="All 2 branches covered.">    		if (getNumberOfField(altnamefields.get(i)) &lt; subjectaltnames.getNumberOfFields(altNameFieldExtractorIds.get(i).intValue())) {</span>
+<span class="fc" id="L2370">    			throw new EndEntityProfileValidationException(&quot;Wrong number of &quot; + altnamefields.get(i) + &quot; fields in Subject Alternative Name.&quot;);</span>
+    		}
+    	}
+    	// Check number of subject directory attribute fields.
+<span class="fc" id="L2374">    	final List&lt;String&gt; dirattrfields = DnComponents.getDirAttrFields();</span>
+<span class="fc" id="L2375">    	final List&lt;Integer&gt; dirAttrFieldExtractorIds = DnComponents.getDirAttrDnIds();</span>
+<span class="fc bfc" id="L2376" title="All 2 branches covered.">    	for (int i=0; i&lt;dirattrfields.size(); i++) {</span>
+<span class="pc bpc" id="L2377" title="1 of 2 branches missed.">    		if (getNumberOfField(dirattrfields.get(i)) &lt; subjectdirattrs.getNumberOfFields(dirAttrFieldExtractorIds.get(i).intValue())) {</span>
+<span class="nc" id="L2378">    			throw new EndEntityProfileValidationException(&quot;Wrong number of &quot; + dirattrfields.get(i) + &quot; fields in Subject Directory Attributes.&quot;);</span>
+    		}
+    	}
+<span class="fc" id="L2381">    }</span>
+    
+    private void checkWithValidators(final DNFieldExtractor subjectdnfields, final DNFieldExtractor subjectaltnames) throws EndEntityProfileValidationException {
+<span class="fc" id="L2384">        final List&lt;String&gt; dnfields = DnComponents.getDnProfileFields();</span>
+<span class="fc" id="L2385">        final List&lt;Integer&gt; dnFieldExtractorIds = DnComponents.getDnDnIds();</span>
+<span class="fc bfc" id="L2386" title="All 2 branches covered.">        for (int i=0; i&lt;dnfields.size(); i++) {</span>
+<span class="fc" id="L2387">            final int dnId = dnFieldExtractorIds.get(i);</span>
+<span class="fc" id="L2388">            final int profileId = DnComponents.dnIdToProfileId(dnId);</span>
+<span class="fc" id="L2389">            final String fieldName = dnfields.get(i);</span>
+<span class="fc" id="L2390">            final int num = subjectdnfields.getNumberOfFields(dnId);</span>
+<span class="fc bfc" id="L2391" title="All 2 branches covered.">            for (int j = 0; j &lt; num; j++) {</span>
+<span class="fc" id="L2392">                final Map&lt;String,Serializable&gt; validators = getValidation(profileId, j);</span>
+<span class="pc bpc" id="L2393" title="1 of 2 branches missed.">                if (validators != null) {</span>
+<span class="nc" id="L2394">                    final String fieldValue = subjectdnfields.getField(dnId, j);</span>
+                    try {
+<span class="nc" id="L2396">                        EndEntityValidationHelper.checkValue(fieldName, validators, fieldValue);</span>
+<span class="nc" id="L2397">                    } catch (EndEntityFieldValidatorException e) {</span>
+<span class="nc" id="L2398">                        throw new EndEntityProfileValidationException(&quot;Did not pass validation of field &quot; + fieldName + &quot; (in DN). &quot; + e.getMessage());</span>
+<span class="nc" id="L2399">                    }</span>
+                }
+            }
+        }
+        
+<span class="fc" id="L2404">        final List&lt;String&gt; sanfields = DnComponents.getAltNameFields();</span>
+<span class="fc" id="L2405">        final List&lt;Integer&gt; sanFieldExtractorIds = DnComponents.getAltNameDnIds();</span>
+<span class="fc bfc" id="L2406" title="All 2 branches covered.">        for (int i=0; i&lt;sanfields.size(); i++) {</span>
+<span class="fc" id="L2407">            final int dnId = sanFieldExtractorIds.get(i);</span>
+<span class="fc" id="L2408">            final int profileId = DnComponents.dnIdToProfileId(dnId);</span>
+<span class="fc" id="L2409">            final String fieldName = sanfields.get(i);</span>
+<span class="fc" id="L2410">            final int num = subjectaltnames.getNumberOfFields(dnId);</span>
+<span class="fc bfc" id="L2411" title="All 2 branches covered.">            for (int j = 0; j &lt; num; j++) {</span>
+<span class="fc" id="L2412">                final Map&lt;String,Serializable&gt; validators = getValidation(profileId, j);</span>
+<span class="pc bpc" id="L2413" title="1 of 2 branches missed.">                if (validators != null) {</span>
+<span class="nc" id="L2414">                    final String fieldValue = subjectaltnames.getField(dnId, j);</span>
+                    try {
+<span class="nc" id="L2416">                        EndEntityValidationHelper.checkValue(fieldName, validators, fieldValue);</span>
+<span class="nc" id="L2417">                    } catch (EndEntityFieldValidatorException e) {</span>
+<span class="nc" id="L2418">                        throw new EndEntityProfileValidationException(&quot;Did not pass validation of field &quot; + fieldName + &quot; (in SAN). &quot; + e.getMessage());</span>
+<span class="nc" id="L2419">                    }</span>
+                }
+            }
+        }
+<span class="fc" id="L2423">    }</span>
+
+	/** methods for mapping the DN, AltName, DirAttr constants from string-&gt;number 
+	 * @param parameter Parameter
+	 * @return number from profilemappings.properties, or -1 if the parameter does not exist
+	 */
+	private static int getParameterNumber(final String parameter) {
+<span class="fc" id="L2430">		final Integer number = dataConstants.get(parameter);</span>
+<span class="fc bfc" id="L2431" title="All 2 branches covered.">		if (number != null) {</span>
+<span class="fc" id="L2432">			return number.intValue();			</span>
+		}
+<span class="fc" id="L2434">		log.error(&quot;No parameter number for &quot;+parameter);</span>
+<span class="fc" id="L2435">		return -1;</span>
+	}
+
+	/** methods for mapping the DN, AltName, DirAttr constants from number-&gt;string 
+	 * @param parameterNumber Number
+	 * @return String */
+	private static String getParameter(final int parameterNumber) {
+<span class="nc" id="L2442">		String ret = null;</span>
+<span class="nc bnc" id="L2443" title="All 2 branches missed.">		for (final Entry&lt;String, Integer&gt; entry : dataConstants.entrySet()) {</span>
+<span class="nc bnc" id="L2444" title="All 2 branches missed.">			if (entry.getValue().intValue() == parameterNumber) {</span>
+<span class="nc" id="L2445">				ret = entry.getKey();</span>
+<span class="nc" id="L2446">				break;</span>
+			}
+<span class="nc" id="L2448">		}</span>
+<span class="nc bnc" id="L2449" title="All 2 branches missed.">		if (ret == null) {</span>
+<span class="nc" id="L2450">			log.error(&quot;No parameter for &quot;+parameterNumber);			</span>
+		}
+<span class="nc" id="L2452">		return ret;</span>
+	}
+	
+    private void incrementFieldnumber(final int parameter){
+    	@SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L2457">        final ArrayList&lt;Integer&gt; numberarray = (ArrayList&lt;Integer&gt;) data.get(NUMBERARRAY);</span>
+<span class="fc" id="L2458">    	numberarray.set(parameter, Integer.valueOf(numberarray.get(parameter).intValue() + 1));</span>
+<span class="fc" id="L2459">    }</span>
+
+    private void decrementFieldnumber(final int parameter){
+    	@SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L2463">        final ArrayList&lt;Integer&gt; numberarray = (ArrayList&lt;Integer&gt;) data.get(NUMBERARRAY);</span>
+<span class="nc" id="L2464">    	numberarray.set(parameter, Integer.valueOf(numberarray.get(parameter).intValue() - 1));</span>
+<span class="nc" id="L2465">    }</span>
+
+    public static String[] getSubjectDNProfileFields() {
+<span class="nc" id="L2468">    	return DnComponents.getDnProfileFields().toArray(new String[0]);</span>
+    }
+
+    public static String[] getSubjectAltnameProfileFields() {
+<span class="nc" id="L2472">    	return DnComponents.getAltNameFields().toArray(new String[0]);</span>
+    }
+
+    public static String[] getSubjectDirAttrProfileFields() {
+<span class="nc" id="L2476">    	return DnComponents.getDirAttrFields().toArray(new String[0]);</span>
+    }
+    
+    public boolean getNameConstraintsPermittedUsed() {
+<span class="nc" id="L2480">        return getUse(NAMECONSTRAINTS_PERMITTED, 0);</span>
+    }
+    
+    public boolean getNameConstraintsPermittedRequired() {
+<span class="nc" id="L2484">        return isRequired(NAMECONSTRAINTS_PERMITTED, 0);</span>
+    }
+    
+    public boolean getNameConstraintsExcludedUsed() {
+<span class="nc" id="L2488">        return getUse(NAMECONSTRAINTS_EXCLUDED, 0);</span>
+    }
+    
+    public boolean getNameConstraintsExcludedRequired() {
+<span class="nc" id="L2492">        return isRequired(NAMECONSTRAINTS_EXCLUDED, 0);</span>
+    }
+    
+    /**
+     * @return true if it should be possible to add extension data in the GUI.
+     */
+    public boolean getUseExtensiondata() {
+<span class="nc" id="L2499">        return getValueDefaultFalse(USEEXTENSIONDATA);</span>
+    }
+
+    public void setUseExtensiondata(final boolean use){
+<span class="nc" id="L2503">    	data.put(USEEXTENSIONDATA, Boolean.valueOf(use));</span>
+<span class="nc" id="L2504">    }</span>
+    
+    @Override
+    public String toString() {
+<span class="nc" id="L2508">        StringBuilder stringBuilder = new StringBuilder();</span>
+<span class="nc" id="L2509">        stringBuilder.append(&quot;Values={&quot;);</span>
+<span class="nc bnc" id="L2510" title="All 2 branches missed.">        for(String key : dataConstants.keySet()) {</span>
+            //Output all defined values
+<span class="nc" id="L2512">            Object value = data.get(key);</span>
+<span class="nc bnc" id="L2513" title="All 2 branches missed.">            if(value != null) {</span>
+<span class="nc" id="L2514">                stringBuilder.append(&quot;[&quot; + key + &quot;=&quot; + value + &quot;]&quot;);</span>
+            }
+<span class="nc" id="L2516">        }</span>
+<span class="nc" id="L2517">        stringBuilder.append(&quot;}&quot;);</span>
+<span class="nc" id="L2518">        return stringBuilder.toString();</span>
+    }
+    
+    /** 
+     * Nested class FieldInstance for convenient invoking from xhtml
+     */
+    public class FieldInstance{
+        private String name;
+        private int number;
+        private String value;
+        private String defaultValue;
+        private int profileId;
+        private boolean rfcEmailUsed;
+        String regexPattern;
+<span class="nc" id="L2532">        public FieldInstance(String name, int number){</span>
+<span class="nc" id="L2533">            this.name = name;</span>
+<span class="nc" id="L2534">            this.number = number;</span>
+<span class="nc" id="L2535">            this.defaultValue = EndEntityProfile.this.getValue(name, number);</span>
+<span class="nc bnc" id="L2536" title="All 2 branches missed.">            this.value = isSelectable() ? getSelectableValues().get(0) : defaultValue;</span>
+<span class="nc" id="L2537">            this.profileId = EndEntityProfile.dataConstants.get(name);</span>
+<span class="nc bnc" id="L2538" title="All 4 branches missed.">            this.rfcEmailUsed = name.equals(&quot;RFC822NAME&quot;) &amp;&amp; isUsed();</span>
+<span class="nc" id="L2539">            HashMap&lt;String, Serializable&gt; temp = EndEntityProfile.this.getValidation(name, number);</span>
+<span class="nc bnc" id="L2540" title="All 2 branches missed.">            if(temp != null){</span>
+<span class="nc" id="L2541">                this.regexPattern =  (String)temp.get(RegexFieldValidator.class.getName());</span>
+            }
+<span class="nc" id="L2543">        }</span>
+<span class="nc" id="L2544">        public boolean isUsed() {return EndEntityProfile.this.getUse(name, number);}</span>
+<span class="nc" id="L2545">        public boolean isRequired() {return EndEntityProfile.this.isRequired(name, number);}</span>
+<span class="nc" id="L2546">        public boolean isModifiable() {return EndEntityProfile.this.isModifyable(name, number);}</span>
+<span class="nc bnc" id="L2547" title="All 2 branches missed.">        public boolean isRegexPatternRequired() {return getRegexPattern() != null;}</span>
+        public boolean isUnModifiableUpnRfc() {
+<span class="nc bnc" id="L2549" title="All 6 branches missed.">            return !isModifiable() &amp;&amp; (name.equals(&quot;RFC822NAME&quot;) || name.equals(&quot;UPN&quot;));</span>
+        }
+        public boolean isRfcUseEmail() {
+<span class="nc bnc" id="L2552" title="All 4 branches missed.">            return name.equals(&quot;RFC822NAME&quot;) &amp;&amp; isUsed();</span>
+        }
+<span class="nc" id="L2554">        public boolean getRfcEmailUsed() {return rfcEmailUsed;}</span>
+<span class="nc" id="L2555">        public void setRfcEmailUsed(boolean rfcEmailUsed) {this.rfcEmailUsed = rfcEmailUsed;}</span>
+<span class="nc" id="L2556">        public String getValue(){return value;}</span>
+<span class="nc" id="L2557">        public void setValue(String value){this.value = value;}</span>
+<span class="nc" id="L2558">        public String getDefaultValue(){return defaultValue;}</span>
+<span class="nc" id="L2559">        public void setDefaultValue(String value){this.defaultValue = value;}</span>
+<span class="nc" id="L2560">        public String getName(){return name;}</span>
+<span class="nc" id="L2561">        public String getRegexPattern(){return regexPattern;}</span>
+<span class="nc" id="L2562">        public int getNumber(){return number;}</span>
+        public boolean isSelectable(){
+<span class="nc bnc" id="L2564" title="All 6 branches missed.">            return !isModifiable() &amp;&amp; getDefaultValue() != null &amp;&amp; getDefaultValue().split(&quot;;&quot;).length &gt; 1;</span>
+        }
+        public List&lt;String&gt; getSelectableValues(){
+<span class="nc bnc" id="L2567" title="All 2 branches missed.">            return isSelectable() ? Arrays.asList(defaultValue.split(&quot;;&quot;)) : null;</span>
+        }
+        public List&lt;String&gt; getSelectableValuesUpnRfc(){
+<span class="nc" id="L2570">            return Arrays.asList(defaultValue.split(&quot;;&quot;));</span>
+        }
+        @Override
+<span class="nc" id="L2573">        public int hashCode(){return name.hashCode();}</span>
+<span class="nc" id="L2574">        public int getProfileId(){return profileId;}</span>
+    }
+    
+    /** 
+     * Nested method wrapper class Field for convenient invoking from xhtml
+     */
+    public class Field{
+        private String name;
+        private List&lt;FieldInstance&gt; instances;
+<span class="nc" id="L2583">        public Field(String name){</span>
+<span class="nc" id="L2584">            this.name = name;</span>
+<span class="nc" id="L2585">            int numberOfInstances = EndEntityProfile.this.getNumberOfField(name);</span>
+<span class="nc" id="L2586">            instances = new ArrayList&lt;&gt;(numberOfInstances);</span>
+<span class="nc bnc" id="L2587" title="All 2 branches missed.">            for(int i=0; i&lt;numberOfInstances; i++){</span>
+<span class="nc" id="L2588">                instances.add(new FieldInstance(name, i));</span>
+            }
+<span class="nc" id="L2590">        }</span>
+<span class="nc" id="L2591">        public int getNumber(){return instances.size();}</span>
+<span class="nc" id="L2592">        public String getName(){return name;}</span>
+<span class="nc" id="L2593">        public List&lt;FieldInstance&gt; getInstances(){return instances;}</span>
+    }
+<span class="nc" id="L2595">    public Field getUsername(){return new Field(EndEntityProfile.USERNAME);};</span>
+<span class="nc" id="L2596">    public Field getPassword(){return new Field(EndEntityProfile.PASSWORD);};</span>
+<span class="nc" id="L2597">    public Field getEmail(){return new Field(EndEntityProfile.EMAIL);};</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

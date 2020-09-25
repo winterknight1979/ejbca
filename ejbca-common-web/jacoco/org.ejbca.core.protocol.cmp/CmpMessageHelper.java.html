@@ -1,0 +1,700 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CmpMessageHelper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.cmp</a> &gt; <span class="el_source">CmpMessageHelper.java</span></div><h1>CmpMessageHelper.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.cmp;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.security.Signature;
+import java.security.SignatureException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+
+import javax.crypto.Mac;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1EncodableVector;
+import org.bouncycastle.asn1.ASN1GeneralizedTime;
+import org.bouncycastle.asn1.ASN1Integer;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.ASN1OctetString;
+import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.ASN1TaggedObject;
+import org.bouncycastle.asn1.DERBitString;
+import org.bouncycastle.asn1.DERGeneralizedTime;
+import org.bouncycastle.asn1.DERNull;
+import org.bouncycastle.asn1.DEROctetString;
+import org.bouncycastle.asn1.DEROutputStream;
+import org.bouncycastle.asn1.DERSequence;
+import org.bouncycastle.asn1.cmp.CMPCertificate;
+import org.bouncycastle.asn1.cmp.CMPObjectIdentifiers;
+import org.bouncycastle.asn1.cmp.CertRepMessage;
+import org.bouncycastle.asn1.cmp.CertResponse;
+import org.bouncycastle.asn1.cmp.ErrorMsgContent;
+import org.bouncycastle.asn1.cmp.PBMParameter;
+import org.bouncycastle.asn1.cmp.PKIBody;
+import org.bouncycastle.asn1.cmp.PKIFailureInfo;
+import org.bouncycastle.asn1.cmp.PKIFreeText;
+import org.bouncycastle.asn1.cmp.PKIHeader;
+import org.bouncycastle.asn1.cmp.PKIHeaderBuilder;
+import org.bouncycastle.asn1.cmp.PKIMessage;
+import org.bouncycastle.asn1.cmp.PKIMessages;
+import org.bouncycastle.asn1.cmp.PKIStatus;
+import org.bouncycastle.asn1.cmp.PKIStatusInfo;
+import org.bouncycastle.asn1.cmp.RevDetails;
+import org.bouncycastle.asn1.cmp.RevReqContent;
+import org.bouncycastle.asn1.crmf.AttributeTypeAndValue;
+import org.bouncycastle.asn1.crmf.CertReqMessages;
+import org.bouncycastle.asn1.crmf.CertReqMsg;
+import org.bouncycastle.asn1.crmf.CertRequest;
+import org.bouncycastle.asn1.crmf.CertTemplate;
+import org.bouncycastle.asn1.crmf.POPOPrivKey;
+import org.bouncycastle.asn1.crmf.POPOSigningKey;
+import org.bouncycastle.asn1.crmf.ProofOfPossession;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.Extensions;
+import org.bouncycastle.asn1.x509.ExtensionsGenerator;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.ReasonFlags;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.util.encoders.Hex;
+import org.cesecore.certificates.certificate.request.FailInfo;
+import org.cesecore.certificates.certificate.request.ResponseMessage;
+import org.cesecore.certificates.util.AlgorithmTools;
+import org.cesecore.util.Base64;
+import org.cesecore.util.StringTools;
+import org.ejbca.core.model.InternalEjbcaResources;
+
+/**
+ * Helper class to create different standard parts of CMP messages
+ * 
+ * @version $Id: CmpMessageHelper.java 28286 2018-02-14 20:51:41Z bastianf $
+ */
+<span class="nc" id="L102">public class CmpMessageHelper {</span>
+<span class="fc" id="L103">    private static Logger LOG = Logger.getLogger(CmpMessageHelper.class);</span>
+<span class="fc" id="L104">    private static final InternalEjbcaResources INTRES = InternalEjbcaResources.getInstance();</span>
+<span class="fc" id="L105">    private static final SecureRandom secureRandom = new SecureRandom();</span>
+
+    private static final String CMP_ERRORGENERAL = &quot;cmp.errorgeneral&quot;;
+    public static final int MAX_LEVEL_OF_NESTING = 15;
+
+    /** Array that converts our error codes from FailInfo to CMP BITString error codes. FailInfo use plain integer codes, which are
+     * the same as positions in the CMP bit string
+     * @see org.bouncycastle.asn1.cmp.PKIFailureInfo
+     */
+<span class="fc" id="L114">    private static int[] bcconversion = { PKIFailureInfo.badAlg, PKIFailureInfo.badMessageCheck, PKIFailureInfo.badRequest, PKIFailureInfo.badTime,</span>
+            PKIFailureInfo.badCertId, PKIFailureInfo.badDataFormat, PKIFailureInfo.wrongAuthority, PKIFailureInfo.incorrectData,
+            PKIFailureInfo.missingTimeStamp, PKIFailureInfo.badPOP, PKIFailureInfo.certRevoked, PKIFailureInfo.certConfirmed,
+            PKIFailureInfo.wrongIntegrity, PKIFailureInfo.badRecipientNonce, PKIFailureInfo.timeNotAvailable, PKIFailureInfo.unacceptedPolicy,
+            PKIFailureInfo.unacceptedExtension, PKIFailureInfo.addInfoNotAvailable, PKIFailureInfo.badSenderNonce, PKIFailureInfo.badCertTemplate,
+            PKIFailureInfo.signerNotTrusted, PKIFailureInfo.transactionIdInUse, PKIFailureInfo.unsupportedVersion, PKIFailureInfo.notAuthorized,
+            PKIFailureInfo.systemUnavail, PKIFailureInfo.systemFailure, PKIFailureInfo.duplicateCertReq };
+
+    /** Returns the PKIFailureInfo that is the correct format for CMP, i.e. a DERBitString as specified in PKIFailureInfo.
+     * @see org.bouncycastle.asn1.cmp.PKIFailureInfo
+     * @see org.cesecore.certificates.certificate.request.FailInfo
+     * 
+     * @param  failInfo info
+     * @return PKIFailureInfo for use in CMP error messages
+     */
+    public static PKIFailureInfo getPKIFailureInfo(int failInfo) {
+<span class="fc" id="L130">        return new PKIFailureInfo(bcconversion[failInfo]);</span>
+    }
+
+    public static PKIHeaderBuilder createPKIHeaderBuilder(GeneralName sender, GeneralName recipient, String senderNonce, String recipientNonce,
+            String transactionId) {
+<span class="fc" id="L135">        PKIHeaderBuilder pkiHeader = new PKIHeaderBuilder(PKIHeader.CMP_2000, sender, recipient);</span>
+<span class="fc" id="L136">        pkiHeader.setMessageTime(new DERGeneralizedTime(new Date()));</span>
+<span class="pc bpc" id="L137" title="1 of 2 branches missed.">        if (senderNonce != null) {</span>
+<span class="fc" id="L138">            pkiHeader.setSenderNonce(new DEROctetString(Base64.decode(senderNonce.getBytes())));</span>
+        }
+<span class="fc bfc" id="L140" title="All 2 branches covered.">        if (recipientNonce != null) {</span>
+<span class="fc" id="L141">            pkiHeader.setRecipNonce(new DEROctetString(Base64.decode(recipientNonce.getBytes())));</span>
+        }
+<span class="pc bpc" id="L143" title="1 of 2 branches missed.">        if (transactionId != null) {</span>
+<span class="fc" id="L144">            pkiHeader.setTransactionID(new DEROctetString(Base64.decode(transactionId.getBytes())));</span>
+        }
+<span class="fc" id="L146">        return pkiHeader;</span>
+    }
+
+    public static byte[] signPKIMessage(PKIMessage pkiMessage, Collection&lt;Certificate&gt; signCertChain, PrivateKey signKey, String digestAlg, 
+    		String provider) throws InvalidKeyException, NoSuchProviderException, NoSuchAlgorithmException, SecurityException, SignatureException,
+            CertificateEncodingException {
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L153">            LOG.trace(&quot;&gt;signPKIMessage()&quot;);</span>
+        }
+<span class="nc" id="L155">        final List&lt;CMPCertificate&gt; extraCertsList = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">        for (final Certificate certificate : signCertChain) {</span>
+<span class="nc" id="L157">            extraCertsList.add(CMPCertificate.getInstance(((X509Certificate)certificate).getEncoded()));</span>
+<span class="nc" id="L158">        }</span>
+<span class="nc" id="L159">        final CMPCertificate[] extraCerts = extraCertsList.toArray(new CMPCertificate[signCertChain.size()]);</span>
+<span class="nc" id="L160">        final PKIMessage signedPkiMessage = buildCertBasedPKIProtection(pkiMessage, extraCerts, signKey, digestAlg, provider);</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L162">            LOG.trace(&quot;&lt;signPKIMessage()&quot;);</span>
+        }
+        // Return response as byte array 
+<span class="nc" id="L165">        return pkiMessageToByteArray(signedPkiMessage);</span>
+    }
+
+    public static PKIMessage buildCertBasedPKIProtection(PKIMessage pkiMessage, CMPCertificate[] extraCerts, PrivateKey key, String digestAlg,
+            String provider) throws NoSuchProviderException, NoSuchAlgorithmException, SecurityException, SignatureException, InvalidKeyException {
+        // Select which signature algorithm we should use for the response, based on the digest algorithm and key type.
+<span class="nc" id="L171">        ASN1ObjectIdentifier oid = AlgorithmTools.getSignAlgOidFromDigestAndKey(digestAlg, key.getAlgorithm());</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L173">            LOG.debug(&quot;Selected signature alg oid: &quot; + oid.getId()+&quot;, key algorithm: &quot;+key.getAlgorithm());</span>
+        }
+        // According to PKCS#1 AlgorithmIdentifier for RSA-PKCS#1 has null Parameters, this means a DER Null (asn.1 encoding of null), not Java null.
+        // For the RSA signature algorithms specified above RFC3447 states &quot;...the parameters MUST be present and MUST be NULL.&quot;
+<span class="nc" id="L177">        PKIHeaderBuilder headerBuilder = getHeaderBuilder(pkiMessage.getHeader());</span>
+<span class="nc" id="L178">        AlgorithmIdentifier pAlg = null;</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">        if (&quot;RSA&quot;.equalsIgnoreCase(key.getAlgorithm())) {</span>
+<span class="nc" id="L180">            pAlg = new AlgorithmIdentifier(oid, DERNull.INSTANCE);</span>
+        } else {
+<span class="nc" id="L182">            pAlg = new AlgorithmIdentifier(oid);</span>
+        }
+<span class="nc" id="L184">        headerBuilder.setProtectionAlg(pAlg);</span>
+        // Most PKCS#11 providers don't like to be fed an OID as signature algorithm, so 
+        // we use BC classes to translate it into a signature algorithm name instead
+<span class="nc" id="L187">        PKIHeader head = headerBuilder.build();</span>
+<span class="nc" id="L188">        String signatureAlgorithmName = AlgorithmTools.getAlgorithmNameFromOID(oid);</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L190">            LOG.debug(&quot;Signing CMP message with signature alg: &quot; + signatureAlgorithmName);</span>
+        }
+<span class="nc" id="L192">        Signature sig = Signature.getInstance(signatureAlgorithmName, provider);</span>
+<span class="nc" id="L193">        sig.initSign(key);</span>
+<span class="nc" id="L194">        sig.update(getProtectedBytes(head, pkiMessage.getBody()));</span>
+        final PKIMessage protectedPkiMessage;
+<span class="nc bnc" id="L196" title="All 4 branches missed.">        if (extraCerts != null &amp;&amp; extraCerts.length &gt; 0) {</span>
+<span class="nc" id="L197">            protectedPkiMessage = new PKIMessage(head, pkiMessage.getBody(), new DERBitString(sig.sign()), extraCerts);</span>
+        } else {
+<span class="nc" id="L199">            protectedPkiMessage = new PKIMessage(head, pkiMessage.getBody(), new DERBitString(sig.sign()));</span>
+        }
+<span class="nc" id="L201">        return protectedPkiMessage;</span>
+    }
+
+    //TODO see if we could do this in a better way
+    public static PKIHeaderBuilder getHeaderBuilder(PKIHeader head) {
+<span class="nc" id="L206">        PKIHeaderBuilder builder = new PKIHeaderBuilder(head.getPvno().getValue().intValue(), head.getSender(), head.getRecipient());</span>
+<span class="nc" id="L207">        builder.setFreeText(head.getFreeText());</span>
+<span class="nc" id="L208">        builder.setGeneralInfo(head.getGeneralInfo());</span>
+<span class="nc" id="L209">        builder.setMessageTime(head.getMessageTime());</span>
+<span class="nc" id="L210">        builder.setRecipKID((DEROctetString) head.getRecipKID());</span>
+<span class="nc" id="L211">        builder.setRecipNonce(head.getRecipNonce());</span>
+<span class="nc" id="L212">        builder.setSenderKID(head.getSenderKID());</span>
+<span class="nc" id="L213">        builder.setSenderNonce(head.getSenderNonce());</span>
+<span class="nc" id="L214">        builder.setTransactionID(head.getTransactionID());</span>
+<span class="nc" id="L215">        return builder;</span>
+    }
+
+    /** verifies signature protection on CMP PKI messages
+     *  
+     * @param pKIMessage the CMP message to verify signature on, if protected by signature protection
+     * @param pubKey the public key used to verify the signature
+     * @return true if verification is ok or false if verification fails
+     * @throws NoSuchAlgorithmException message is signed by an unknown algorithm
+     * @throws InvalidKeyException pubKey is not valid for signature verification
+     * @throws SignatureException if the passed-in signature is improperly encoded or of the wrong type, if this signature algorithm is unable to process the input data provided, etc.
+     */
+    public static boolean verifyCertBasedPKIProtection(PKIMessage pKIMessage, PublicKey pubKey) throws NoSuchAlgorithmException,
+             InvalidKeyException, SignatureException {
+<span class="nc bnc" id="L229" title="All 2 branches missed.">        if(pKIMessage.getProtection() == null) {</span>
+<span class="nc" id="L230">            throw new SignatureException(&quot;Message was not signed.&quot;);</span>
+        }
+<span class="nc" id="L232">        AlgorithmIdentifier sigAlg = pKIMessage.getHeader().getProtectionAlg();</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">        if(sigAlg == null) {</span>
+<span class="nc" id="L234">            throw new SignatureException(&quot;No signature algorithm was provided.&quot;);</span>
+        }
+      
+<span class="nc bnc" id="L237" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L238">            LOG.debug(&quot;Verifying signature with algorithm: &quot; + sigAlg.getAlgorithm().getId());</span>
+        }
+        Signature sig;
+        try {
+<span class="nc" id="L242">            sig = Signature.getInstance(sigAlg.getAlgorithm().getId(), BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="nc" id="L243">        } catch (NoSuchProviderException e) {</span>
+<span class="nc" id="L244">            throw new IllegalStateException(&quot;BouncyCastle provider not installed.&quot;, e);</span>
+<span class="nc" id="L245">        }</span>
+<span class="nc" id="L246">        sig.initVerify(pubKey);</span>
+<span class="nc" id="L247">        sig.update(getProtectedBytes(pKIMessage));</span>
+<span class="nc" id="L248">        boolean result = sig.verify(pKIMessage.getProtection().getBytes());</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L250">            LOG.debug(&quot;Verification result: &quot; + result);</span>
+        }
+<span class="nc" id="L252">        return result;</span>
+    }
+        
+    public static byte[] protectPKIMessageWithPBE(PKIMessage msg, String keyId, String raSecret, String digestAlgId, String macAlgId,
+            int iterationCount) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
+<span class="nc bnc" id="L257" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L258">            LOG.trace(&quot;&gt;protectPKIMessageWithPBE()&quot;);</span>
+        }
+        // Create the PasswordBased protection of the message
+<span class="nc" id="L261">        PKIHeaderBuilder head = getHeaderBuilder(msg.getHeader());</span>
+<span class="nc bnc" id="L262" title="All 2 branches missed.">        if (keyId != null) {</span>
+            // Only add senderKeyId of the client used it, it's not needed to create the actual protection
+<span class="nc" id="L264">            byte[] keyIdBytes = keyId.getBytes(StandardCharsets.UTF_8);</span>
+<span class="nc" id="L265">            head.setSenderKID(new DEROctetString(keyIdBytes));</span>
+        }
+        // SHA1
+<span class="nc" id="L268">        AlgorithmIdentifier owfAlg = new AlgorithmIdentifier(new ASN1ObjectIdentifier(digestAlgId));</span>
+        // iterations, usually something like 1024
+<span class="nc" id="L270">        ASN1Integer iteration = new ASN1Integer(iterationCount);</span>
+        // HMAC/SHA1
+<span class="nc" id="L272">        AlgorithmIdentifier macAlg = new AlgorithmIdentifier(new ASN1ObjectIdentifier(macAlgId));</span>
+        // We need some random bytes for the nonce
+<span class="nc" id="L274">        byte[] saltbytes = createSenderNonce();</span>
+<span class="nc" id="L275">        DEROctetString derSalt = new DEROctetString(saltbytes);</span>
+
+        // Create the new protected return message
+        //String objectId = &quot;1.2.840.113533.7.66.13&quot; = passwordBasedMac;
+<span class="nc" id="L279">        String objectId = CMPObjectIdentifiers.passwordBasedMac.getId();</span>
+<span class="nc" id="L280">        PBMParameter pp = new PBMParameter(derSalt, owfAlg, iteration, macAlg);</span>
+<span class="nc" id="L281">        AlgorithmIdentifier pAlg = new AlgorithmIdentifier(new ASN1ObjectIdentifier(objectId), pp);</span>
+<span class="nc" id="L282">        head.setProtectionAlg(pAlg);</span>
+
+        // Calculate the protection bits
+<span class="nc" id="L285">        byte[] rasecret = raSecret.getBytes();</span>
+<span class="nc" id="L286">        byte[] basekey = new byte[rasecret.length + saltbytes.length];</span>
+<span class="nc" id="L287">        System.arraycopy(rasecret, 0, basekey, 0, rasecret.length);</span>
+<span class="nc" id="L288">        System.arraycopy(saltbytes, 0, basekey, rasecret.length, saltbytes.length);</span>
+        // Construct the base key according to rfc4210, section 5.1.3.1
+<span class="nc" id="L290">        MessageDigest dig = MessageDigest.getInstance(owfAlg.getAlgorithm().getId(), &quot;BC&quot;);</span>
+<span class="nc bnc" id="L291" title="All 2 branches missed.">        for (int i = 0; i &lt; iterationCount; i++) {</span>
+<span class="nc" id="L292">            basekey = dig.digest(basekey);</span>
+<span class="nc" id="L293">            dig.reset();</span>
+        }
+
+<span class="nc" id="L296">        PKIHeader pkiHeader = head.build();</span>
+        // Do the mac
+<span class="nc" id="L298">        String macOid = macAlg.getAlgorithm().getId();</span>
+<span class="nc" id="L299">        byte[] protectedBytes = getProtectedBytes(pkiHeader, msg.getBody());</span>
+<span class="nc" id="L300">        Mac mac = Mac.getInstance(macOid, BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="nc" id="L301">        SecretKey key = new SecretKeySpec(basekey, macOid);</span>
+<span class="nc" id="L302">        mac.init(key);</span>
+<span class="nc" id="L303">        mac.reset();</span>
+<span class="nc" id="L304">        mac.update(protectedBytes, 0, protectedBytes.length);</span>
+<span class="nc" id="L305">        byte[] out = mac.doFinal();</span>
+<span class="nc" id="L306">        DERBitString bs = new DERBitString(out);</span>
+
+<span class="nc bnc" id="L308" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L309">            LOG.trace(&quot;&lt;protectPKIMessageWithPBE()&quot;);</span>
+        }
+        // Return response as byte array 
+<span class="nc" id="L312">        return pkiMessageToByteArray(new PKIMessage(pkiHeader, msg.getBody(), bs, msg.getExtraCerts()));</span>
+    }
+
+    /** @param pkiMessage message
+     * @return response as byte array */ 
+    public static byte[] pkiMessageToByteArray(final PKIMessage pkiMessage) {
+        try {
+<span class="fc" id="L319">            return pkiMessage.getEncoded();</span>
+<span class="nc" id="L320">        } catch (IOException e) {</span>
+<span class="nc" id="L321">            throw new IllegalStateException(&quot;Caught unexpected IOException.&quot;, e);</span>
+        }
+    }
+
+    /** 
+     * Creates a 16 bytes random sender nonce.
+     * 
+     * @return byte array of length 16
+     */
+    public static byte[] createSenderNonce() {
+<span class="fc" id="L331">        byte[] senderNonce = new byte[16];</span>
+<span class="fc" id="L332">        secureRandom.nextBytes(senderNonce);</span>
+<span class="fc" id="L333">        return senderNonce;</span>
+    }
+
+    /** Creates a very simple error message in response to msg (that's why we switch sender and recipient) 
+     * @param cmpRequestMessage req
+     * @param failInfo info
+     * @param failText text
+     * @return response */
+    public static ResponseMessage createUnprotectedErrorMessage(BaseCmpMessage cmpRequestMessage, FailInfo failInfo, String failText) {
+<span class="fc" id="L342">        return createUnprotectedErrorMessage(cmpRequestMessage.getHeader(), failInfo, failText);</span>
+    }
+    
+    /**
+     * Create a standard unprotected error message with PKIStatus.rejection and PKIFailureInfo.badRequest.
+     * The generated message should be sent as a response to an unparsable CMP request only, since the sender nonce
+     * is not copied from the client's CMP request and a new transaction ID is generated.
+     * @param errorDescription error
+     * @return The byte representation of the error message
+     */
+    public static byte[] createUnprotectedErrorMessage(final String errorDescription) {
+<span class="fc" id="L353">        final PKIHeader pkiHeader = new PKIHeaderBuilder(PKIHeader.CMP_2000, PKIHeader.NULL_NAME, PKIHeader.NULL_NAME).</span>
+<span class="fc" id="L354">                setTransactionID(createSenderNonce()).</span>
+<span class="fc" id="L355">                setSenderNonce(createSenderNonce()).</span>
+<span class="fc" id="L356">                setMessageTime(new ASN1GeneralizedTime(new Date())).</span>
+<span class="fc" id="L357">                build();</span>
+<span class="fc" id="L358">        final ErrorMsgContent errorMessage = new ErrorMsgContent(</span>
+                new PKIStatusInfo(PKIStatus.rejection, 
+                        new PKIFreeText(errorDescription), 
+                        new PKIFailureInfo(PKIFailureInfo.badRequest))); 
+<span class="fc" id="L362">        final PKIBody pkiBody = new PKIBody(PKIBody.TYPE_ERROR, errorMessage);</span>
+<span class="fc" id="L363">        final PKIMessage pkiResponse = new PKIMessage(pkiHeader, pkiBody);</span>
+<span class="fc" id="L364">        return CmpMessageHelper.pkiMessageToByteArray(pkiResponse);</span>
+    }
+    
+    /**
+     * Create an unsigned RFC 4210 error message as described in section 5.3.21 based on a PKIHeader obtained from
+     * a previous CMP client request message.
+     * @param pkiHeader A PKIHeader extracted from the previous CMP request
+     * @param failInfo An error code describing the type of error
+     * @param failText A human-readable description of the error
+     * @return An &lt;code&gt;org.cesecore.certificates.certificate.request.ResponseMessage&lt;/code&gt; data structure containing the error
+     */
+    public static ResponseMessage createUnprotectedErrorMessage(PKIHeader pkiHeader, FailInfo failInfo, String failText) {
+<span class="fc" id="L376">        final CmpErrorResponseMessage resp = new CmpErrorResponseMessage(); </span>
+        try {
+<span class="pc bpc" id="L378" title="1 of 2 branches missed.">            if (pkiHeader == null) {</span>
+<span class="nc" id="L379">                pkiHeader = new PKIHeader(PKIHeader.CMP_2000, PKIHeader.NULL_NAME, PKIHeader.NULL_NAME);</span>
+            }
+            // Create a failure message
+<span class="pc bpc" id="L382" title="1 of 2 branches missed.">            if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L383">                LOG.debug(&quot;Creating an unprotected error message with failInfo=&quot; + failInfo + &quot;, failText=&quot; + failText);</span>
+            }
+<span class="fc" id="L385">            resp.setSenderNonce(new String(Base64.encode(createSenderNonce())));</span>
+            // Sender nonce is optional and might not always be included
+<span class="fc bfc" id="L387" title="All 2 branches covered.">            if (pkiHeader.getSenderNonce() != null) {</span>
+<span class="fc" id="L388">                resp.setRecipientNonce(new String(Base64.encode(pkiHeader.getSenderNonce().getOctets())));</span>
+            }
+<span class="fc" id="L390">            resp.setSender(pkiHeader.getRecipient());</span>
+<span class="fc" id="L391">            resp.setRecipient(pkiHeader.getSender());</span>
+<span class="pc bpc" id="L392" title="1 of 2 branches missed.">            if (pkiHeader.getTransactionID() != null) {</span>
+<span class="nc" id="L393">                resp.setTransactionId(new String(Base64.encode(pkiHeader.getTransactionID().getOctets())));</span>
+            } else {
+                // Choose a random transaction ID if the client did not provide one
+<span class="fc" id="L396">                resp.setTransactionId(new String(Base64.encode(createSenderNonce())));</span>
+            }
+<span class="fc" id="L398">            resp.setFailInfo(failInfo);</span>
+<span class="fc" id="L399">            resp.setFailText(failText);</span>
+<span class="fc" id="L400">            resp.create();</span>
+<span class="nc" id="L401">        } catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchProviderException e) {</span>
+<span class="nc" id="L402">            LOG.error(&quot;Exception during CMP processing: &quot;, e);</span>
+<span class="fc" id="L403">        } </span>
+<span class="fc" id="L404">        return resp;</span>
+    }
+    
+    /**
+     * creates a simple error message in response to msg.
+     * 
+     * The protection parameters can be null to create an unprotected message
+     * @param msg msg
+     * @param failInfo info
+     * @param failText text
+     * @param requestId ID
+     * @param requestType type
+     * @param verifyer verifier
+     * @param keyId key
+     * @param responseProt protocol 
+     * 
+     * @return IResponseMessage that can be sent to user
+     */
+    public static CmpErrorResponseMessage createErrorMessage(BaseCmpMessage msg, FailInfo failInfo, String failText, int requestId, int requestType,
+            CmpPbeVerifyer verifyer, String keyId, String responseProt) {
+<span class="fc" id="L424">        final CmpErrorResponseMessage cresp = new CmpErrorResponseMessage();</span>
+<span class="fc" id="L425">        cresp.setRecipientNonce(msg.getSenderNonce());</span>
+<span class="fc" id="L426">        cresp.setSenderNonce(new String(Base64.encode(createSenderNonce())));</span>
+<span class="fc" id="L427">        cresp.setSender(msg.getRecipient());</span>
+<span class="fc" id="L428">        cresp.setRecipient(msg.getSender());</span>
+<span class="pc bpc" id="L429" title="1 of 2 branches missed.">        if (msg.getTransactionId() != null) {</span>
+<span class="nc" id="L430">            cresp.setTransactionId(msg.getTransactionId());</span>
+        } else {
+            // Choose a random transaction ID if the client did not provide one
+<span class="fc" id="L433">            cresp.setTransactionId(new String(Base64.encode(createSenderNonce())));</span>
+        }
+<span class="fc" id="L435">        cresp.setFailText(failText);</span>
+<span class="fc" id="L436">        cresp.setFailInfo(failInfo);</span>
+<span class="fc" id="L437">        cresp.setRequestId(requestId);</span>
+<span class="fc" id="L438">        cresp.setRequestType(requestType);</span>
+        // Set all protection parameters, this is another message than if we generated a cert above
+<span class="pc bpc" id="L440" title="1 of 2 branches missed.">        if (verifyer != null) {</span>
+<span class="fc" id="L441">            final String pbeDigestAlg = verifyer.getOwfOid();</span>
+<span class="fc" id="L442">            final String pbeMacAlg = verifyer.getMacOid();</span>
+<span class="fc" id="L443">            final int pbeIterationCount = verifyer.getIterationCount();</span>
+<span class="fc" id="L444">            final String raAuthSecret = verifyer.getLastUsedRaSecret();</span>
+<span class="pc bpc" id="L445" title="7 of 8 branches missed.">            if (StringUtils.equals(responseProt, &quot;pbe&quot;) &amp;&amp; (pbeDigestAlg != null) &amp;&amp; (pbeMacAlg != null) &amp;&amp; (raAuthSecret != null)) {</span>
+<span class="nc" id="L446">                cresp.setPbeParameters(keyId, raAuthSecret, pbeDigestAlg, pbeMacAlg, pbeIterationCount);</span>
+            }
+        }
+        try {
+            // Here we need to create the response message, when coming from SignSession it has already been &quot;created&quot;
+<span class="fc" id="L451">            cresp.create();</span>
+<span class="nc" id="L452">        } catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchProviderException e) {</span>
+<span class="nc" id="L453">            LOG.error(INTRES.getLocalizedMessage(CMP_ERRORGENERAL), e);</span>
+<span class="fc" id="L454">        } </span>
+<span class="fc" id="L455">        return cresp;</span>
+    }
+
+    /**
+     * creates a very simple error message in response to msg (that's why we switch sender and recipient)
+     * @param pkiStatusInfo Info
+     * @param requestId ID
+     * @param requestType Type
+     * @return body
+     */
+    public static PKIBody createCertRequestRejectBody(PKIStatusInfo pkiStatusInfo, int requestId, int requestType) {
+        // Create a failure message
+<span class="pc bpc" id="L467" title="1 of 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L468">            LOG.debug(&quot;Creating a CertRepMessage 'rejected'&quot;);</span>
+        }
+<span class="fc" id="L470">        CertResponse[] certResponses = { new CertResponse(new ASN1Integer(requestId), pkiStatusInfo) };</span>
+<span class="fc" id="L471">        CertRepMessage certRepMessage = new CertRepMessage(null, certResponses);</span>
+<span class="fc" id="L472">        int respType = requestType + 1; // 1 = intitialization response, 3 = certification response etc</span>
+<span class="pc bpc" id="L473" title="1 of 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L474">            LOG.debug(&quot;Creating response body of type &quot; + respType);</span>
+        }
+<span class="fc" id="L476">        return new PKIBody(respType, certRepMessage);</span>
+    }
+
+    /**
+     * Converts the header and the body of a PKIMessage to an ASN1Encodable and 
+     * returns the as a byte array
+     * 
+     * @param msg es
+     * @return the PKIMessage's header and body in byte array
+     */
+    public static byte[] getProtectedBytes(PKIMessage msg) {
+<span class="nc" id="L487">        return getProtectedBytes(msg.getHeader(), msg.getBody());</span>
+    }
+
+    /**
+     * Converts the header and the body of a PKIMessage to an ASN1Encodable and 
+     * returns the as a byte array
+     *  
+     * @param header header
+     * @param body body
+     * @return the PKIMessage's header and body in byte array
+     */
+    public static byte[] getProtectedBytes(PKIHeader header, PKIBody body) {
+<span class="nc" id="L499">        byte[] res = null;</span>
+<span class="nc" id="L500">        ASN1EncodableVector v = new ASN1EncodableVector();</span>
+<span class="nc" id="L501">        v.add(header);</span>
+<span class="nc" id="L502">        v.add(body);</span>
+<span class="nc" id="L503">        ASN1Encodable protectedPart = new DERSequence(v);</span>
+        try {
+<span class="nc" id="L505">            ByteArrayOutputStream bao = new ByteArrayOutputStream();</span>
+<span class="nc" id="L506">            DEROutputStream out = new DEROutputStream(bao);</span>
+<span class="nc" id="L507">            out.writeObject(protectedPart);</span>
+<span class="nc" id="L508">            res = bao.toByteArray();</span>
+<span class="nc" id="L509">        } catch (Exception ex) {</span>
+<span class="nc" id="L510">            LOG.error(ex.getLocalizedMessage(), ex);</span>
+<span class="nc" id="L511">        }</span>
+<span class="nc" id="L512">        return res;</span>
+    }
+
+    /**
+     * Parses a CRMF request created with novosec library classes and return a bouncycastle CertReqMsg object
+     * 
+     * @param messages msg
+     * @return req
+     */
+    public static CertReqMsg getNovosecCertReqMsg(CertReqMessages messages) {
+        // The encoding of the ProofOfPosession in bouncycastle and novosec is different.
+        // Novosec generator explicitly tags the PopoSigningKey while it should be implicitly tagged.
+        // Through novosec, the ProofOfPosession comes through as:
+        //         Sequence
+        //             DERSequence
+        //                 DERSequence
+        //                     ObjectIdentifier(1.2.840.113549.1.1.5)
+        //                 DERBitString[64,0]
+        //
+        // But it should be:
+        //         DERSequence
+        //             DERSequence
+        //                 ObjectIdentifier(1.2.840.113549.1.1.5)
+        //             DERBitString[64,0]
+        //
+        // The bouncycastle parser expects an implicit tag, so to it, it looks like the sequence is containing a single element.
+        //--------------------------------------
+        // A comment from bouncycastle that might not effect anything here but maybe effect something else in the future: 
+        //         What's happened is the novosec generator has explicitly tagged the PopoSigningKey structure, it should be 
+        //         implicitly tagged (this isn't true if it's a POPOPrivKey, but that's because it's a CHOICE item so the tag 
+        //         has to be preserved, but that is a different story).
+
+        // Reconstructing the CertRequest
+<span class="nc" id="L545">        ASN1Encodable o2 = ((DERSequence) messages.toASN1Primitive()).getObjectAt(0);</span>
+<span class="nc" id="L546">        ASN1Encodable o3 = ((DERSequence) o2).getObjectAt(0);</span>
+<span class="nc" id="L547">        CertRequest cr = CertRequest.getInstance(o3);</span>
+
+        // Reconstructing the proof-of-posession
+<span class="nc" id="L550">        ASN1TaggedObject o4 = (ASN1TaggedObject) ((DERSequence) o2).getObjectAt(1);</span>
+        ProofOfPossession pp;
+<span class="nc" id="L552">        int tagnr = o4.getTagNo();</span>
+        ASN1Encodable o5;
+<span class="nc bnc" id="L554" title="All 4 branches missed.">        switch (tagnr) {</span>
+        case 0:
+<span class="nc" id="L556">            o5 = DERNull.INSTANCE;</span>
+<span class="nc" id="L557">            pp = new ProofOfPossession();</span>
+<span class="nc" id="L558">            break;</span>
+        case 1:
+<span class="nc" id="L560">            o5 = POPOSigningKey.getInstance(o4.getObject());</span>
+<span class="nc" id="L561">            pp = new ProofOfPossession((POPOSigningKey) o5);</span>
+<span class="nc" id="L562">            break;</span>
+        case 2:
+        case 3:
+<span class="nc" id="L565">            o5 = POPOPrivKey.getInstance(o4, false);</span>
+<span class="nc" id="L566">            pp = new ProofOfPossession(tagnr, (POPOPrivKey) o5);</span>
+<span class="nc" id="L567">            break;</span>
+        default:
+<span class="nc" id="L569">            throw new IllegalArgumentException(&quot;unknown tag: &quot; + tagnr);</span>
+        }
+
+        // Reconstructing the regToken
+<span class="nc" id="L573">        ASN1Sequence o6 = (ASN1Sequence) ((ASN1Sequence) o2.toASN1Primitive()).getObjectAt(2);</span>
+<span class="nc" id="L574">        final AttributeTypeAndValue av = AttributeTypeAndValue.getInstance(o6.getObjectAt(0));</span>
+<span class="nc" id="L575">        final AttributeTypeAndValue[] avs = { av };</span>
+
+        // finally, recreating the CertReqMsg object
+<span class="nc" id="L578">        return new CertReqMsg(cr, pp, avs);</span>
+    }
+
+    public static RevDetails getNovosecRevDetails(RevReqContent revContent) {
+        // Novosec implements RFC2510, while bouncycastle 1.47 implements RFC4210.
+        //
+        // In RFC2510/novosec, the RevDetails structure looks like this:
+        //              RevDetails ::= SEQUENCE {
+        //                                  certDetails         CertTemplate,
+        //                                  revocationReason    ReasonFlags      OPTIONAL,
+        //                                  badSinceDate        GeneralizedTime  OPTIONAL,
+        //                                  crlEntryDetails     Extensions       OPTIONAL
+        //             }
+        //
+        // In RFC4210/bouncycastle, the REVDetails structure looks like this:
+        //                 RevDetails ::= SEQUENCE {
+        //                                  certDetails         CertTemplate,
+        //                                  crlEntryDetails     Extensions       OPTIONAL
+        //                  }
+        //
+        // This means that there is a chance that the request generated using novosec specifies the revocation reason in 'revocationReason' and not
+        // as an extension, leading to Ejbca not being able to parse the request using bouncycastle OR not setting the correct revocation reason.
+
+<span class="nc" id="L601">        ASN1Encodable o2 = ((DERSequence) revContent.toASN1Primitive()).getObjectAt(0);</span>
+<span class="nc" id="L602">        ASN1Encodable o3 = ((DERSequence) o2).getObjectAt(0);</span>
+<span class="nc" id="L603">        CertTemplate ct = CertTemplate.getInstance(o3);</span>
+
+<span class="nc" id="L605">        ReasonFlags reasonbits = null;</span>
+<span class="nc" id="L606">        Extensions crlEntryDetails = null;</span>
+<span class="nc" id="L607">        int seqSize = ((DERSequence) o2).size();</span>
+<span class="nc bnc" id="L608" title="All 2 branches missed.">        for (int i = 1; i &lt; seqSize; i++) {</span>
+<span class="nc" id="L609">            ASN1Encodable o4 = ((DERSequence) o2).getObjectAt(i);</span>
+<span class="nc bnc" id="L610" title="All 2 branches missed.">            if (o4 instanceof DERBitString) {</span>
+<span class="nc" id="L611">                reasonbits = new ReasonFlags((DERBitString) o4);</span>
+<span class="nc bnc" id="L612" title="All 2 branches missed.">            } else if (o4 instanceof DERGeneralizedTime) {</span>
+<span class="nc" id="L613">                DERGeneralizedTime.getInstance(o4); // bad since time, not used in the bouncycastle class</span>
+<span class="nc bnc" id="L614" title="All 2 branches missed.">            } else if (o4 instanceof DERSequence) {</span>
+<span class="nc" id="L615">                crlEntryDetails = Extensions.getInstance(o4);</span>
+            }
+        }
+
+<span class="nc bnc" id="L619" title="All 4 branches missed.">        if ((crlEntryDetails != null) &amp;&amp; (reasonbits != null)) {</span>
+<span class="nc" id="L620">            Extension reason = crlEntryDetails.getExtension(Extension.reasonCode);</span>
+<span class="nc bnc" id="L621" title="All 2 branches missed.">            if (reason == null) {</span>
+<span class="nc" id="L622">                reason = new Extension(Extension.reasonCode, true, ASN1OctetString.getInstance(reasonbits.getBytes()));</span>
+            }
+<span class="nc bnc" id="L624" title="All 4 branches missed.">        } else if ((crlEntryDetails == null) &amp;&amp; (reasonbits != null)) {</span>
+<span class="nc" id="L625">            ExtensionsGenerator extgen = new ExtensionsGenerator();</span>
+            try {
+<span class="nc" id="L627">                extgen.addExtension(Extension.reasonCode, true, ASN1OctetString.getInstance(reasonbits.getBytes()));</span>
+<span class="nc" id="L628">                crlEntryDetails = extgen.generate();</span>
+<span class="nc" id="L629">            } catch (IOException e) {</span>
+<span class="nc" id="L630">                LOG.error(e.getLocalizedMessage(), e);</span>
+<span class="nc" id="L631">            }</span>
+        }
+
+        //The constructor RevDetails(certTemplate, crlEntryDetails) only sets 'crlEntryDetails' and ignores 'certTemplate'
+        //This is a reported bug in bouncycastle. For now, the only way to have both of them set is to create a ASN1/DERSequence 
+<span class="nc" id="L636">        ASN1EncodableVector seq = new ASN1EncodableVector();</span>
+<span class="nc" id="L637">        seq.add(ct);</span>
+<span class="nc" id="L638">        seq.add(crlEntryDetails);</span>
+<span class="nc" id="L639">        RevDetails res = RevDetails.getInstance(new DERSequence(seq));</span>
+<span class="nc" id="L640">        return res;</span>
+    }
+
+    /** @param octets ASN.1
+     * @return SenderKeyId of in the header or null none was found. */
+    public static String getStringFromOctets(final ASN1OctetString octets) {
+<span class="nc" id="L646">        String str = null;</span>
+<span class="nc bnc" id="L647" title="All 2 branches missed.">        if (octets != null) {</span>
+<span class="nc" id="L648">            byte[] bytes = octets.getOctets();</span>
+<span class="nc bnc" id="L649" title="All 2 branches missed.">            if (bytes.length &gt; 128) { // arbitrary limitation on octet string size</span>
+<span class="nc" id="L650">                LOG.info(&quot;Truncating octet string longer than 128 bytes&quot;);</span>
+<span class="nc" id="L651">                byte[] newbytes = Arrays.copyOf(bytes, 128);</span>
+<span class="nc" id="L652">                bytes = newbytes;</span>
+            }
+<span class="nc" id="L654">            str = new String(bytes, StandardCharsets.UTF_8);</span>
+<span class="nc bnc" id="L655" title="All 2 branches missed.">            if (StringTools.isAlphaOrAsciiPrintable(str)) {</span>
+<span class="nc bnc" id="L656" title="All 2 branches missed.">                if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L657">                    LOG.debug(&quot;Found string: &quot; + str);</span>
+                }
+            } else {
+<span class="nc" id="L660">                str = new String(Hex.encode(octets.getOctets()));</span>
+<span class="nc bnc" id="L661" title="All 2 branches missed.">                if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L662">                    LOG.debug(&quot;DEROCtetString content is not alphaNumeric (including space), converting to hex: &quot; + str);</span>
+                }
+            }
+        }
+<span class="nc" id="L666">        return str;</span>
+    }
+
+    /** @param pkiMessageBytes bytes
+     * @param sanityCheckMaxLevelOfNesting bool 
+     * @return the PKIMessage if the bytes can be interpreted as a valid ASN.1 encoded CMP request message or null otherwise */
+    public static PKIMessage getPkiMessageFromBytes(final byte[] pkiMessageBytes, final boolean sanityCheckMaxLevelOfNesting) {
+        try {
+<span class="nc bnc" id="L674" title="All 2 branches missed.">            if (pkiMessageBytes!=null) {</span>
+<span class="nc" id="L675">                final PKIMessage pkiMessage = PKIMessage.getInstance(pkiMessageBytes);</span>
+<span class="nc bnc" id="L676" title="All 2 branches missed.">                if (sanityCheckMaxLevelOfNesting) {</span>
+                    // Also validate nesting, if present
+<span class="nc" id="L678">                    PKIMessage nestedPkiMessage = pkiMessage;</span>
+<span class="nc" id="L679">                    int levelOfNesting = 0;</span>
+<span class="nc bnc" id="L680" title="All 4 branches missed.">                    while (nestedPkiMessage!=null &amp;&amp; nestedPkiMessage.getBody().getType()==PKIBody.TYPE_NESTED) {</span>
+<span class="nc" id="L681">                        nestedPkiMessage = PKIMessages.getInstance(pkiMessage.getBody().getContent()).toPKIMessageArray()[0];</span>
+<span class="nc bnc" id="L682" title="All 2 branches missed.">                        if (levelOfNesting++ &gt; MAX_LEVEL_OF_NESTING) {</span>
+<span class="nc" id="L683">                            final String msg = &quot;Rejected CMP request due to unreasonable level of nesting (&gt;&quot;+MAX_LEVEL_OF_NESTING+&quot;).&quot;;</span>
+<span class="nc" id="L684">                            LOG.info(msg);</span>
+<span class="nc" id="L685">                            throw new IllegalArgumentException(msg);</span>
+                        }
+                    }
+                }
+<span class="nc" id="L689">                return pkiMessage;</span>
+            }
+<span class="nc" id="L691">        } catch (RuntimeException e) {</span>
+            // BC library will throw an IllegalArgumentException if the underlying ASN.1 could not be parsed. 
+<span class="nc bnc" id="L693" title="All 2 branches missed.">            if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L694">                LOG.debug(INTRES.getLocalizedMessage(&quot;cmp.errornotcmpmessage&quot;), e);</span>
+            }
+<span class="nc" id="L696">        }</span>
+<span class="nc" id="L697">        return null;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

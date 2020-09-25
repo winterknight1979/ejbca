@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>PublisherQueueData.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-ejb-interface</a> &gt; <a href="../index.html" class="el_bundle">ejbca-entity</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.ca.publisher</a> &gt; <span class="el_source">PublisherQueueData.java</span></div><h1>PublisherQueueData.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.ejb.ca.publisher;
+
+import java.beans.XMLEncoder;
+import java.io.IOException;
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.PostLoad;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
+import javax.persistence.Query;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.apache.log4j.Logger;
+import org.cesecore.dbprotection.ProtectedData;
+import org.cesecore.dbprotection.ProtectionStringBuilder;
+import org.cesecore.util.Base64GetHashMap;
+import org.cesecore.util.Base64PutHashMap;
+import org.cesecore.util.GUIDGenerator;
+import org.cesecore.util.SecureXMLDecoder;
+import org.cesecore.util.ValueExtractor;
+import org.ejbca.core.model.ca.publisher.PublisherConst;
+import org.ejbca.core.model.ca.publisher.PublisherQueueVolatileInformation;
+
+/**
+ * Entity Bean representing publisher failure data. Data is stored here when
+ * publishing to a publisher fails. Using this data publishing can be tried
+ * again. This data bean should not duplicate data completely, but holds this:
+ *
+ * - Information needed for scheduling of republishing, such as publish dates,
+ * retry counter and last failure message. - Information which is volatile on
+ * other places in the database, and we need to publish this data as it was at
+ * the time of publishing. In this case it is UserData, which can change because
+ * every user can have several certificates with different DN, the password is
+ * re-set when a certificate is issued etc. - Foreign keys to information which
+ * is not volatile. In this case this is keys to CertificateData and CRLData.
+ * For CertificateData we always want to publish the latest information, even if
+ * it changed since we failed to publish. This is so there should be no chance
+ * that a revocation is overwritten with a good status if the publish events
+ * would happen out of order.
+ *
+ * @version $Id: PublisherQueueData.java 34163 2020-01-02 15:00:17Z samuellb $
+ */
+@Entity
+@Table(name = &quot;PublisherQueueData&quot;)
+public class PublisherQueueData extends ProtectedData implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+<span class="fc" id="L69">    private static final Logger log = Logger.getLogger(PublisherQueueData.class);</span>
+
+    private String pk;
+    private long timeCreated;
+    private long lastUpdate;
+    private int publishStatus;
+    private int tryCounter;
+    private int publishType;
+    private String fingerprint;
+    private int publisherId;
+    private String volatileData;
+<span class="pc" id="L80">	private int rowVersion = 0;</span>
+	private String rowProtection;
+
+    /**
+     * @param publisherId ID
+     * @param publishType
+     *            is one of PublisherConst.PUBLISH_TYPE_CERT or CRL
+     * @param fingerprint FP
+     * @param queueData Data
+     * @param publishStatus Status
+     */
+<span class="nc" id="L91">    public PublisherQueueData(int publisherId, int publishType, String fingerprint, PublisherQueueVolatileInformation queueData, int publishStatus) {</span>
+<span class="nc" id="L92">        String pk = GUIDGenerator.generateGUID(this);</span>
+<span class="nc" id="L93">        setPk(pk);</span>
+<span class="nc" id="L94">        setTimeCreated(System.currentTimeMillis());</span>
+<span class="nc" id="L95">        setLastUpdate(0);</span>
+<span class="nc" id="L96">        setPublishStatus(publishStatus);</span>
+<span class="nc" id="L97">        setTryCounter(0);</span>
+<span class="nc" id="L98">        setPublishType(publishType);</span>
+<span class="nc" id="L99">        setFingerprint(fingerprint);</span>
+<span class="nc" id="L100">        setPublisherId(publisherId);</span>
+<span class="nc" id="L101">        setPublisherQueueVolatileData(queueData);</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L103">            log.debug(&quot;Created Publisher queue data &quot; + pk);</span>
+        }
+<span class="nc" id="L105">    }</span>
+
+<span class="fc" id="L107">    public PublisherQueueData() { }</span>
+
+    //@Id @Column
+<span class="fc" id="L110">    public String getPk() { return pk; }</span>
+<span class="fc" id="L111">    public void setPk(String pk) { this.pk = pk; }</span>
+
+    //@Column
+<span class="fc" id="L114">    public long getTimeCreated() { return timeCreated; }</span>
+<span class="fc" id="L115">    public void setTimeCreated(long timeCreated) { this.timeCreated = timeCreated; }</span>
+
+    //@Column
+<span class="fc" id="L118">    public long getLastUpdate() { return lastUpdate; }</span>
+<span class="fc" id="L119">    public void setLastUpdate(long lastUpdate) { this.lastUpdate = lastUpdate; }</span>
+
+    /**
+     * PublishStatus is one of
+     * org.ejbca.core.model.ca.publisher.PublisherConst.STATUS_PENDING,
+     * FAILED or SUCCESS.
+     * @return Status
+     */
+    //@Column
+<span class="fc" id="L128">    public int getPublishStatus() { return publishStatus; }</span>
+<span class="fc" id="L129">    public void setPublishStatus(int publishStatus) { this.publishStatus = publishStatus; }</span>
+
+    //@Column
+<span class="fc" id="L132">    public int getTryCounter() { return tryCounter; }</span>
+<span class="fc" id="L133">    public void setTryCounter(int tryCounter) { this.tryCounter = tryCounter; }</span>
+
+    /**
+     * PublishType is one of
+     * org.ejbca.core.model.ca.publisher.PublisherConst.PUBLISH_TYPE_CERT or
+     * CRL
+     * @return Type
+     */
+    //@Column
+<span class="fc" id="L142">    public int getPublishType() { return publishType; }</span>
+<span class="fc" id="L143">    public void setPublishType(int publishType) { this.publishType = publishType; }</span>
+
+    /**
+     * Foreign key to certificate of CRL.
+     * @return FP
+     */
+    //@Column
+<span class="fc" id="L150">    public String getFingerprint() { return fingerprint; }</span>
+<span class="fc" id="L151">    public void setFingerprint(String fingerprint) { this.fingerprint = fingerprint; }</span>
+
+    //@Column
+<span class="fc" id="L154">    public int getPublisherId() { return publisherId; }</span>
+<span class="fc" id="L155">    public void setPublisherId(int publisherId) { this.publisherId = publisherId; }</span>
+
+    //@Column @Lob
+<span class="fc" id="L158">    public String getVolatileData() { return volatileData; }</span>
+<span class="fc" id="L159">    public void setVolatileData(String volatileData) { this.volatileData = volatileData; }</span>
+
+    //@Version @Column
+<span class="fc" id="L162">	public int getRowVersion() { return rowVersion; }</span>
+<span class="fc" id="L163">	public void setRowVersion(int rowVersion) { this.rowVersion = rowVersion; }</span>
+
+	//@Column @Lob
+	@Override
+<span class="fc" id="L167">	public String getRowProtection() { return rowProtection; }</span>
+	@Override
+<span class="fc" id="L169">	public void setRowProtection(String rowProtection) { this.rowProtection = rowProtection; }</span>
+
+    /**
+     * Method that returns the PublisherQueueVolatileData data and updates it if
+     * necessary.
+     *
+     * @return VolatileData is optional in publisher queue data
+     */
+    @Transient
+    public PublisherQueueVolatileInformation getPublisherQueueVolatileData() {
+<span class="nc" id="L179">        PublisherQueueVolatileInformation ret = null;</span>
+<span class="nc" id="L180">        String vd = getVolatileData();</span>
+<span class="nc bnc" id="L181" title="All 4 branches missed.">        if ((vd != null) &amp;&amp; (vd.length() &gt; 0)) {</span>
+<span class="nc" id="L182">            final byte[] databytes = vd.getBytes(StandardCharsets.UTF_8);</span>
+            final HashMap&lt;?, ?&gt; h;
+<span class="nc" id="L184">            try (SecureXMLDecoder decoder = new SecureXMLDecoder(new java.io.ByteArrayInputStream(databytes))) {</span>
+<span class="nc" id="L185">                h = (HashMap&lt;?, ?&gt;) decoder.readObject();</span>
+<span class="nc" id="L186">            } catch (IOException e) {</span>
+<span class="nc" id="L187">                final String msg = &quot;Failed to parse PublisherQueueVolatileInformation map in database: &quot; + e.getMessage();</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L189">                    log.debug(msg + &quot;. Data:\n&quot; + vd);</span>
+                }
+<span class="nc" id="L191">                throw new IllegalStateException(msg, e);</span>
+<span class="nc" id="L192">            }</span>
+            // Handle Base64 encoded string values
+<span class="nc" id="L194">            HashMap&lt;?, ?&gt; data = new Base64GetHashMap(h);</span>
+<span class="nc" id="L195">            ret = new PublisherQueueVolatileInformation();</span>
+<span class="nc" id="L196">            ret.loadData(data);</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">            if (ret.isUpgraded()) {</span>
+<span class="nc" id="L198">                setPublisherQueueVolatileData(ret);</span>
+            }
+        }
+<span class="nc" id="L201">        return ret;</span>
+    }
+
+    /**
+     * Method that saves the PublisherQueueData data to database.
+     *
+     * @param qd
+     *            is optional in publisher queue data
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void setPublisherQueueVolatileData(PublisherQueueVolatileInformation qd) {
+<span class="nc bnc" id="L212" title="All 2 branches missed.">        if (qd != null) {</span>
+            // We must base64 encode string for UTF safety
+<span class="nc" id="L214">            HashMap&lt;Object, Object&gt; a = new Base64PutHashMap();</span>
+<span class="nc" id="L215">            a.putAll((HashMap&lt;Object, Object&gt;) qd.saveData());</span>
+
+            // typical size of XML is something like 250-400 chars
+<span class="nc" id="L218">            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream(400);</span>
+<span class="nc" id="L219">            try (XMLEncoder encoder = new XMLEncoder(baos)) {</span>
+<span class="nc" id="L220">                encoder.writeObject(a);</span>
+            }
+
+            try {
+<span class="nc bnc" id="L224" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L225">                    log.debug(&quot;PublisherQueueVolatileData: \n&quot; + baos.toString(&quot;UTF8&quot;));</span>
+                }
+<span class="nc" id="L227">                setVolatileData(baos.toString(&quot;UTF8&quot;));</span>
+<span class="nc" id="L228">            } catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L229">                throw new RuntimeException(e);</span>
+<span class="nc" id="L230">            }</span>
+        }
+<span class="nc" id="L232">    }</span>
+
+    //
+    // Start Database integrity protection methods
+    //
+
+    @Transient
+    @Override
+    protected String getProtectString(final int version) {
+<span class="nc" id="L241">        final ProtectionStringBuilder build = new ProtectionStringBuilder();</span>
+        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
+<span class="nc" id="L243">        build.append(getPk()).append(getTimeCreated()).append(getLastUpdate()).append(getPublishStatus());</span>
+<span class="nc" id="L244">        build.append(getTryCounter()).append(getPublishType()).append(getFingerprint()).append(getPublisherId()).append(getVolatileData());</span>
+<span class="nc" id="L245">        return build.toString();</span>
+    }
+
+    @Transient
+    @Override
+    protected int getProtectVersion() {
+<span class="nc" id="L251">        return 1;</span>
+    }
+
+    @PrePersist
+    @PreUpdate
+    @Override
+    protected void protectData() {
+<span class="fc" id="L258">        super.protectData();</span>
+<span class="fc" id="L259">    }</span>
+
+    @PostLoad
+    @Override
+    protected void verifyData() {
+<span class="nc" id="L264">        super.verifyData();</span>
+<span class="nc" id="L265">    }</span>
+
+    @Override
+    @Transient
+    protected String getRowId() {
+<span class="nc" id="L270">        return getPk();</span>
+    }
+
+    //
+    // End Database integrity protection methods
+    //
+
+    //
+    // Search functions.
+    //
+
+    /** @param entityManager EM
+     * @param pk PK
+     * @return the found entity instance or null if the entity does not exist */
+    public static PublisherQueueData findByPk(EntityManager entityManager, String pk) {
+<span class="nc" id="L285">    	return entityManager.find(PublisherQueueData.class, pk);</span>
+    }
+
+    /** @param entityManager EM
+     * @param fingerprint PK
+     * @return return the query results as a List. */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public static List&lt;PublisherQueueData&gt; findDataByFingerprint(EntityManager entityManager, String fingerprint) {
+<span class="nc" id="L293">    	final Query query = entityManager.createQuery(&quot;SELECT a FROM PublisherQueueData a WHERE a.fingerprint=:fingerprint&quot;);</span>
+<span class="nc" id="L294">    	query.setParameter(&quot;fingerprint&quot;, fingerprint);</span>
+<span class="nc" id="L295">    	return query.getResultList();</span>
+    }
+
+    /**
+     * @param entityManager EM
+     * @param publisherId ID
+     * @param publishStatus Status
+     * @param maxRows If set &amp;gt; 0, limits the number of rows fetched.
+     *
+     * @return return the query results as a List. */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public static List&lt;PublisherQueueData&gt; findDataByPublisherIdAndStatus(EntityManager entityManager, int publisherId, int publishStatus, int maxRows) {
+<span class="nc" id="L307">    	final Query query = entityManager.createQuery(&quot;SELECT a FROM PublisherQueueData a WHERE a.publisherId=:publisherId AND a.publishStatus=:publishStatus&quot;);</span>
+<span class="nc" id="L308">    	query.setParameter(&quot;publisherId&quot;, publisherId);</span>
+<span class="nc" id="L309">    	query.setParameter(&quot;publishStatus&quot;, publishStatus);</span>
+<span class="nc bnc" id="L310" title="All 2 branches missed.">    	if(maxRows &gt; 0 ) {</span>
+<span class="nc" id="L311">    		query.setMaxResults(maxRows);</span>
+    	}
+<span class="nc" id="L313">    	return query.getResultList();</span>
+    }
+
+	/** @param entityManager EM
+	 * @param publisherId ID
+	 * @return return the count. */
+	public static long findCountOfPendingEntriesForPublisher(EntityManager entityManager, int publisherId) {
+<span class="nc" id="L320">		Query query = entityManager.createQuery(&quot;SELECT COUNT(a) FROM PublisherQueueData a WHERE a.publisherId=:publisherId AND publishStatus=&quot; + PublisherConst.STATUS_PENDING);</span>
+<span class="nc" id="L321">		query.setParameter(&quot;publisherId&quot;, publisherId);</span>
+<span class="nc" id="L322">		return ((Long)query.getSingleResult()).longValue();	// Always returns a result</span>
+	}
+
+	/**
+	 * @param entityManager EM
+	 * @param publisherId ID
+	 * @param lowerBounds Bound
+	 * @param upperBounds Bound
+	 * @return the count of pending entries for a publisher in the specified intervals.
+	 */
+	@SuppressWarnings(&quot;unchecked&quot;)
+    public static List&lt;Integer&gt; findCountOfPendingEntriesForPublisher(EntityManager entityManager, int publisherId, int[] lowerBounds, int[] upperBounds) {
+<span class="nc bnc" id="L334" title="All 2 branches missed.">	    if (lowerBounds.length == 0) {</span>
+<span class="nc" id="L335">	        throw new IllegalArgumentException(&quot;lowerBounds and upperBounds are mandatory parameters&quot;);</span>
+	    }
+
+<span class="nc" id="L338">	    final StringBuilder sql = new StringBuilder();</span>
+<span class="nc" id="L339">	    long now = System.currentTimeMillis();</span>
+
+<span class="nc" id="L341">        sql.append(&quot;select c from (&quot;);</span>
+
+<span class="nc bnc" id="L343" title="All 2 branches missed.">        for(int i = 0; i &lt; lowerBounds.length; i++) {</span>
+<span class="nc" id="L344">            sql.append(&quot;SELECT &quot; + i + &quot; as ordering, COUNT(*) as c FROM PublisherQueueData where publisherId=&quot;);</span>
+<span class="nc" id="L345">            sql.append(publisherId);</span>
+<span class="nc" id="L346">            sql.append(&quot; AND publishStatus=&quot;);</span>
+<span class="nc" id="L347">            sql.append(PublisherConst.STATUS_PENDING);</span>
+<span class="nc bnc" id="L348" title="All 2 branches missed.">            if(lowerBounds[i] &gt; 0) {</span>
+<span class="nc" id="L349">                sql.append(&quot; AND timeCreated &lt; &quot;);</span>
+<span class="nc" id="L350">                sql.append(now - 1000 * lowerBounds[i]);</span>
+            }
+<span class="nc bnc" id="L352" title="All 2 branches missed.">            if(upperBounds[i] &gt; 0) {</span>
+<span class="nc" id="L353">                sql.append(&quot; AND timeCreated &gt; &quot;);</span>
+<span class="nc" id="L354">                sql.append(now - 1000 * upperBounds[i]);</span>
+            }
+<span class="nc bnc" id="L356" title="All 2 branches missed.">            if(i &lt; lowerBounds.length-1) {</span>
+<span class="nc" id="L357">                sql.append(&quot; UNION ALL &quot;);</span>
+            }
+        }
+<span class="nc" id="L360">        sql.append(&quot;) tmp ORDER BY tmp.ordering&quot;);</span>
+
+<span class="nc bnc" id="L362" title="All 2 branches missed.">    	if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L363">    		log.debug(&quot;findCountOfPendingEntriesForPublisher executing SQL: &quot;+sql.toString());</span>
+		}
+<span class="nc" id="L365">    	final Query query = entityManager.createNativeQuery(sql.toString());</span>
+<span class="nc" id="L366">    	List&lt;?&gt; resultList = query.getResultList();</span>
+<span class="nc bnc" id="L367" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L368">            log.debug(&quot;findCountOfPendingEntriesForPublisher result: &quot;+resultList.toString());</span>
+        }
+    	List&lt;Integer&gt; returnList;
+    	// Derby returns Integers, MySQL returns BigIntegers, Oracle returns BigDecimal
+<span class="nc bnc" id="L372" title="All 2 branches missed.">    	if (resultList.size()==0) {</span>
+<span class="nc" id="L373">    		returnList = new ArrayList&lt;Integer&gt;();</span>
+<span class="nc bnc" id="L374" title="All 2 branches missed.">    	} else if (resultList.get(0) instanceof Integer) {</span>
+<span class="nc" id="L375">    		returnList = (List&lt;Integer&gt;) resultList;	// This means we can return it in it's current format</span>
+    	} else {
+<span class="nc" id="L377">    		returnList = new ArrayList&lt;Integer&gt;();</span>
+<span class="nc bnc" id="L378" title="All 2 branches missed.">    		for (Object o : resultList) {</span>
+<span class="nc" id="L379">    			returnList.add(ValueExtractor.extractIntValue(o));</span>
+<span class="nc" id="L380">    		}</span>
+    	}
+<span class="nc" id="L382">		return returnList;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

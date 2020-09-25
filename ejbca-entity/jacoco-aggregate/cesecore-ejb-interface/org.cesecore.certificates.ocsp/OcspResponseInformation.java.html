@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>OcspResponseInformation.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-entity</a> &gt; <a href="../index.html" class="el_bundle">cesecore-ejb-interface</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.ocsp</a> &gt; <span class="el_source">OcspResponseInformation.java</span></div><h1>OcspResponseInformation.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.ocsp;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.cert.X509Certificate;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ocsp.OCSPObjectIdentifiers;
+import org.bouncycastle.cert.ocsp.BasicOCSPResp;
+import org.bouncycastle.cert.ocsp.OCSPException;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.cert.ocsp.SingleResp;
+import org.bouncycastle.cert.ocsp.UnknownStatus;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.util.encoders.Hex;
+import org.cesecore.certificates.ocsp.exception.OcspFailureException;
+
+/**
+ * Data carrier that wraps the contents of an OCSPResp, since OCSPResp and many of its members aren't serializable. 
+ * 
+ * @version $Id: OcspResponseInformation.java 25974 2017-06-09 15:51:49Z anatom $
+ *
+ */
+public class OcspResponseInformation implements Serializable {
+
+    private static final long serialVersionUID = -4177593916232755218L;
+<span class="nc" id="L42">    private static final Logger log = Logger.getLogger(OcspResponseInformation.class);</span>
+    private final byte[] ocspResponse;
+    private final long maxAge;
+<span class="nc" id="L45">    private boolean addCacheHeaders = true;</span>
+<span class="nc" id="L46">    private boolean explicitNoCache = false;</span>
+<span class="nc" id="L47">    private Long nextUpdate = null;</span>
+<span class="nc" id="L48">    private Long thisUpdate = null;</span>
+<span class="nc" id="L49">    private String responseHeader = null;</span>
+<span class="nc" id="L50">    private X509Certificate signerCert = null;</span>
+
+<span class="nc" id="L52">    public OcspResponseInformation(OCSPResp ocspResponse, long maxAge, X509Certificate signerCert) throws OCSPException {</span>
+        try {
+<span class="nc" id="L54">            this.ocspResponse = ocspResponse.getEncoded();</span>
+<span class="nc" id="L55">        } catch (IOException e) {</span>
+<span class="nc" id="L56">            throw new IllegalStateException(&quot;Unexpected IOException caught when encoding ocsp response.&quot;, e);</span>
+<span class="nc" id="L57">        }</span>
+<span class="nc" id="L58">        this.maxAge = maxAge;</span>
+<span class="nc" id="L59">        this.signerCert = signerCert;</span>
+        /*
+         * This may seem like a somewhat odd place to perform the below operations (instead of in the end servlet which demanded 
+         * this object), but BouncyCastle (up to 1.47) is  a bit shy about making their classes serializable. This means that 
+         * OCSPResp can't be transmitted, neither can many of the objects it contains such as SingleResp. Luckily we only need 
+         * these classes for the diagnostic operations performed below, so we can sum up the result in the boolean member 
+         * addCacheHeaders.  If BC choose to change their policy, the below code can med moved to a more logical location. 
+         *  -mikek
+         */
+<span class="nc bnc" id="L68" title="All 2 branches missed.">        if (ocspResponse.getResponseObject() == null) {</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L70">                log.debug(&quot;Will not add cache headers for response to bad request.&quot;);</span>
+            }
+<span class="nc" id="L72">            addCacheHeaders = false;</span>
+        } else {
+<span class="nc" id="L74">            final BasicOCSPResp basicOCSPResp = (BasicOCSPResp)ocspResponse.getResponseObject();</span>
+<span class="nc" id="L75">            final SingleResp[] singleRespones = basicOCSPResp.getResponses();</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">            if (singleRespones.length != 1) {</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L78">                    log.debug(&quot;Will not add RFC 5019 cache headers: reponse contains multiple embedded responses.&quot;);</span>
+                }
+<span class="nc" id="L80">                addCacheHeaders = false;</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">            } else if (singleRespones[0].getNextUpdate() == null) {</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L83">                    log.debug(&quot;Will not add RFC 5019 cache headers: nextUpdate isn't set.&quot;);</span>
+                }
+<span class="nc" id="L85">                addCacheHeaders = false;</span>
+<span class="nc bnc" id="L86" title="All 4 branches missed.">            } else if (basicOCSPResp.hasExtensions() &amp;&amp; basicOCSPResp.getExtension(OCSPObjectIdentifiers.id_pkix_ocsp_nonce) != null) {</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L88">                    log.debug(&quot;Will not add RFC 5019 cache headers: response contains a nonce.&quot;);</span>
+                }
+<span class="nc" id="L90">                addCacheHeaders = false;</span>
+            } else {
+<span class="nc" id="L92">                nextUpdate = singleRespones[0].getNextUpdate().getTime();</span>
+<span class="nc" id="L93">                thisUpdate = singleRespones[0].getThisUpdate().getTime();</span>
+                try {
+<span class="nc" id="L95">                    responseHeader = new String(Hex.encode(MessageDigest.getInstance(&quot;SHA-1&quot;, BouncyCastleProvider.PROVIDER_NAME).digest(this.ocspResponse)));</span>
+<span class="nc" id="L96">                } catch (NoSuchProviderException e) {</span>
+<span class="nc" id="L97">                    throw new OcspFailureException(&quot;Bouncycastle was not available as a provider&quot;, e);</span>
+<span class="nc" id="L98">                } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L99">                    throw new OcspFailureException(&quot;SHA-1 was not an available algorithm for MessageDigester&quot;, e);</span>
+<span class="nc" id="L100">                }</span>
+            }
+<span class="nc bnc" id="L102" title="All 4 branches missed.">            if (addCacheHeaders &amp;&amp; singleRespones[0].getCertStatus() instanceof UnknownStatus) {</span>
+<span class="nc" id="L103">                explicitNoCache = true;</span>
+            }
+        }
+<span class="nc" id="L106">    }</span>
+
+    public byte[] getOcspResponse() {
+<span class="nc" id="L109">        return ocspResponse;</span>
+    }
+
+    /**
+     * @return duration in milliseconds how long the reponse should be cacheable
+     */
+    public long getMaxAge() {
+<span class="nc" id="L116">        return maxAge;</span>
+    }
+
+    public boolean shouldAddCacheHeaders() {
+<span class="nc" id="L120">        return addCacheHeaders;</span>
+    }
+
+    /**
+     * @return Date.getTime() long value for nextUpdate time
+     */
+    public long getNextUpdate() {
+<span class="nc" id="L127">        return nextUpdate;</span>
+    }
+
+    /**
+     * @return Date.getTime() long value for thisUpdate time
+     */
+    public long getThisUpdate() {
+<span class="nc" id="L134">        return thisUpdate;</span>
+    }
+
+    public String getResponseHeader() {
+<span class="nc" id="L138">        return responseHeader;</span>
+    }
+
+    /** @return true if we explicitly should state that the response should not be cached. */
+    public boolean isExplicitNoCache() {
+<span class="nc" id="L143">        return explicitNoCache;</span>
+    }
+
+    public X509Certificate getSignerCert() {
+<span class="nc" id="L147">        return signerCert;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

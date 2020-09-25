@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>X509ResponseMessage.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-ejb</a> &gt; <a href="../index.html" class="el_bundle">cesecore-ejb-interface</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.certificate.request</a> &gt; <span class="el_source">X509ResponseMessage.java</span></div><h1>X509ResponseMessage.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/ 
+package org.cesecore.certificates.certificate.request;
+
+import java.security.PrivateKey;
+import java.security.cert.CRL;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.util.Collection;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.certificate.Base64CertData;
+import org.cesecore.certificates.certificate.CertificateData;
+import org.cesecore.util.CertTools;
+
+/**
+ * A response message consisting of a single X509 or CVC Certificate. Name is nowadays slightly misleading since the class can 
+ * care any type of &quot;Certificate&quot;, for example a CV certificate.
+ *
+ * @version $Id: X509ResponseMessage.java 28201 2018-02-07 08:33:29Z andresjakobs $
+ */
+<span class="nc" id="L34">public class X509ResponseMessage implements CertificateResponseMessage {</span>
+    /**
+     * Determines if a de-serialized file is compatible with this class.
+     *
+     * Maintainers must change this value if and only if the new version
+     * of this class is not compatible with old versions. See Sun docs
+     * for &lt;a href=http://java.sun.com/products/jdk/1.1/docs/guide
+     * /serialization/spec/version.doc.html&gt; details. &lt;/a&gt;
+     *
+     */
+    static final long serialVersionUID = -2157072605987735913L;
+
+<span class="nc" id="L46">    private static Logger log = Logger.getLogger(X509ResponseMessage.class);</span>
+
+    /** Certificate to be in response message, */
+<span class="nc" id="L49">    private byte[] certbytes = null;</span>
+
+    /** status for the response */
+<span class="nc" id="L52">    private ResponseStatus status = ResponseStatus.SUCCESS;</span>
+
+    /** Possible fail information in the response. Defaults to null. */
+<span class="nc" id="L55">    private FailInfo failInfo = null;</span>
+
+    /** Possible clear text error information in the response. Defaults to null. */
+<span class="nc" id="L58">    private String failText = null;</span>
+    
+    private transient Certificate certificate;
+    private transient CertificateData certificateData;
+    private transient Base64CertData base64CertData;
+    
+    @Override
+    public CertificateData getCertificateData() {
+<span class="nc" id="L66">        return certificateData;</span>
+    }
+    
+    @Override
+    public void setCertificateData(CertificateData certificateData) {
+<span class="nc bnc" id="L71" title="All 2 branches missed.">        if (certificateData != null) {</span>
+<span class="nc" id="L72">            this.certificateData = new CertificateData(certificateData);</span>
+        } else {
+<span class="nc" id="L74">            this.certificateData = null;</span>
+        }
+<span class="nc" id="L76">    }</span>
+    
+    @Override
+    public Base64CertData getBase64CertData() {
+<span class="nc" id="L80">        return base64CertData;</span>
+    }
+    
+    @Override
+    public void setBase64CertData(final Base64CertData base64CertData) {
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        if (base64CertData != null) {</span>
+<span class="nc" id="L86">            this.base64CertData = new Base64CertData(base64CertData);</span>
+        } else {
+<span class="nc" id="L88">            this.base64CertData = null;</span>
+        }
+<span class="nc" id="L90">    }</span>
+
+    /**
+     * Sets the complete certificate in the response message.
+     *
+     * @param certificate certificate in the response message.
+     */
+    @Override
+    public void setCertificate(final Certificate certificate) {
+<span class="nc" id="L99">        this.certificate = certificate;</span>
+        try {
+<span class="nc" id="L101">            this.certbytes = certificate.getEncoded();</span>
+<span class="nc" id="L102">        } catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L103">            throw new Error(&quot;Could not encode certificate. This should not happen&quot;, e);</span>
+<span class="nc" id="L104">        }</span>
+<span class="nc" id="L105">    }</span>
+
+    @Override
+    public void setCrl(CRL crl) {
+        // This message type does not contain a CRL
+<span class="nc" id="L110">    }</span>
+
+    @Override
+    public void setIncludeCACert(boolean incCACert) {
+        // Do nothing, not applicable
+<span class="nc" id="L115">    }</span>
+    @Override
+    public void setCACert(Certificate cACert) {
+<span class="nc" id="L118">    }</span>
+
+    @Override
+    public Certificate getCertificate() {
+        // Deserialize certificate using BC if this entire object has been serialized
+<span class="nc bnc" id="L123" title="All 2 branches missed.">        if (certificate==null) {</span>
+            try {
+<span class="nc" id="L125">                certificate = CertTools.getCertfromByteArray(certbytes, Certificate.class);</span>
+<span class="nc" id="L126">            } catch (CertificateException e) {</span>
+<span class="nc" id="L127">                throw new Error(&quot;Response was created without containing valid certificate. This should not happen&quot;, e);</span>
+<span class="nc" id="L128">            }</span>
+        }
+<span class="nc" id="L130">        return certificate;</span>
+    }
+
+    @Override
+    public byte[] getResponseMessage() throws CertificateEncodingException {
+<span class="nc" id="L135">        return certbytes;</span>
+    }
+
+    /**
+     * Sets the status of the response message.
+     *
+     * @param status status of the response.
+     */
+    @Override
+    public void setStatus(ResponseStatus status) {
+<span class="nc" id="L145">        this.status = status;</span>
+<span class="nc" id="L146">    }</span>
+
+    /**
+     * Gets the status of the response message.
+     *
+     * @return status status of the response.
+     */
+    @Override
+    public ResponseStatus getStatus() {
+<span class="nc" id="L155">        return status;</span>
+    }
+
+    /**
+     * Sets info about reason for failure.
+     *
+     * @param failInfo reason for failure.
+     */
+    @Override
+    public void setFailInfo(FailInfo failInfo) {
+<span class="nc" id="L165">        this.failInfo = failInfo;</span>
+<span class="nc" id="L166">    }</span>
+
+    /**
+     * Gets info about reason for failure.
+     *
+     * @return failInfo reason for failure.
+     */
+    @Override
+    public FailInfo getFailInfo() {
+<span class="nc" id="L175">        return failInfo;</span>
+    }
+
+    @Override
+    public void setFailText(String failText) {
+<span class="nc" id="L180">        this.failText = failText;</span>
+<span class="nc" id="L181">    }</span>
+
+    @Override
+    public String getFailText() {
+<span class="nc" id="L185">        return failText;</span>
+    }
+
+    /**
+     * Create encrypts and creates signatures as needed to produce a complete response message.  If
+     * needed setSignKeyInfo must be called before this method. After this is
+     * called the response message can be retrieved with getResponseMessage();
+     *
+     * @return True if signature/encryption was successful, false if it failed, request should not
+     *         be sent back i failed.
+    
+     *
+     * @see #setSignKeyInfo
+     */
+    @Override
+    public boolean create() {
+
+<span class="nc bnc" id="L202" title="All 2 branches missed.">        if (status.equals(ResponseStatus.SUCCESS)) {</span>
+<span class="nc" id="L203">            log.debug(&quot;Creating a STATUS_OK message.&quot;);</span>
+        } else {
+<span class="nc bnc" id="L205" title="All 2 branches missed.">            if (status.equals(ResponseStatus.FAILURE)) {</span>
+<span class="nc" id="L206">                log.debug(&quot;Creating a STATUS_FAILED message (or throwing an exception).&quot;);</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">                if (failInfo.equals(FailInfo.WRONG_AUTHORITY)) {</span>
+<span class="nc" id="L208">                    return false;</span>
+                }
+<span class="nc bnc" id="L210" title="All 2 branches missed.">                if (failInfo.equals(FailInfo.INCORRECT_DATA)) {</span>
+<span class="nc" id="L211">                    return false;</span>
+                }
+            } else {
+<span class="nc" id="L214">                log.debug(&quot;Creating a STATUS_PENDING message.&quot;);</span>
+            }
+        }
+<span class="nc" id="L217">        return true;</span>
+    }
+
+    /**
+     * indicates if this message needs recipients public and private key to sign. If this returns
+     * true, setSignKeyInfo() should be called.
+     *
+     * @return True if public and private key is needed.
+     */
+    @Override
+    public boolean requireSignKeyInfo() {
+<span class="nc" id="L228">        return false;</span>
+    }
+
+    @Override
+    public void setSignKeyInfo(Collection&lt;Certificate&gt; certs, PrivateKey key, String provider) {
+<span class="nc" id="L233">    }</span>
+
+    @Override
+    public void setSenderNonce(String senderNonce) {
+<span class="nc" id="L237">    }</span>
+
+    @Override
+    public void setRecipientNonce(String recipientNonce) {
+<span class="nc" id="L241">    }</span>
+
+    @Override
+    public void setTransactionId(String transactionId) {
+<span class="nc" id="L245">    }</span>
+
+    @Override
+    public void setRecipientKeyInfo(byte[] recipientKeyInfo) {
+<span class="nc" id="L249">    }</span>
+    
+    @Override
+    public void setPreferredDigestAlg(String digest) {
+<span class="nc" id="L253">    }</span>
+
+    @Override
+    public void setRequestType(int reqtype) {
+<span class="nc" id="L257">    }</span>
+
+    @Override
+    public void setRequestId(int reqid) {
+<span class="nc" id="L261">    }</span>
+
+    @Override
+    public void setProtectionParamsFromRequest(RequestMessage reqMsg) {
+<span class="nc" id="L265">    }</span>
+    
+    @Override
+    public void addAdditionalCaCertificates(final List&lt;Certificate&gt; certificates) {
+        // NOOP. Only for CMP.
+<span class="nc" id="L270">    }</span>
+
+    @Override
+    public void addAdditionalResponseExtraCertsCertificates(List&lt;Certificate&gt; certificates) {
+        // NOOP. Only for CMP.
+<span class="nc" id="L275">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

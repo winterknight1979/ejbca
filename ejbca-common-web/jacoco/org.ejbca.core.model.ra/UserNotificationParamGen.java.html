@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserNotificationParamGen.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.ra</a> &gt; <span class="el_source">UserNotificationParamGen.java</span></div><h1>UserNotificationParamGen.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.model.ra;
+
+import java.security.cert.Certificate;
+import java.util.Date;
+
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificate.CertificateData;
+import org.cesecore.certificates.certificate.CertificateDataWrapper;
+import org.cesecore.certificates.crl.RevocationReasons;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.util.DNFieldExtractor;
+import org.cesecore.util.CertTools;
+import org.ejbca.util.NotificationParamGen;
+
+/**
+ * Variables used with userdata
+ * ${USERNAME} or ${user.USERNAME} = The users username
+ * ${PASSWORD} or ${user.PASSWORD} = The users password 
+ * ${UID} or ${user.UID}           = The user's unique identifier
+ * ${CN} or ${user.CN}             = The common name of the user.
+ * ${SN} or ${user.SN}             = The serial number (in DN) of the user.
+ * ${O} or ${user.O}               = The user's organization
+ * ${OU} or ${user.OU}             = The user's organization unit
+ * ${C} or ${user.C}               = The user's country
+ * ${user.E}                       = The user's email address from Subject DN
+ * ${user.TIMECREATED}             = The time the user was created
+ * ${user.TIMEMODIFIED}            = The time the user was modified          
+ * 
+ * ${requestAdmin.CN}              = The common name of the requesting administrator.
+ * ${requestAdmin.EE.EMAIL}        = The email address of the administrator adding the end entity according to the administrator's End Entity data.
+ * ${requestAdmin.SAN.EMAIL}       = The email address of the administrator adding the end entity according to the administrator's Subject Alternative Name, RFC822Name field.
+ *
+ * Variables used with  expiring certificates. 
+ * ${expiringCert.CERTSERIAL}      = The serial number of the certificate about to expire 
+ * ${expiringCert.EXPIREDATE}      = The date the certificate will expire
+ * ${expiringCert.CERTSUBJECTDN}   = The certificate subject dn
+ * ${expiringCert.CERTISSUERDN}    = The certificate issuer dn
+ * The variables ${CN}, ${SN}, ${O}, ${OU}, ${C} are also available.
+ * 
+ * Variable used with notification where approval is involved in the state change (approvalAdmin = last admin to approve).
+ * ${approvalAdmin.USERNAME}          = The approving administrator's username
+ * ${approvalAdmin.CN}                = The common name of the approving administrator.
+ * ${approvalAdmin.SN}                = The common name of the approving administrator.
+ * ${approvalAdmin.O}                 = The approving administrator's organization
+ * ${approvalAdmin.OU}                = The approving administrator's organization unit
+ * ${approvalAdmin.C}                 = The approving administrator's country
+ * ${approvalRequestID}               = The id of the approval request
+ * 
+ * @version $Id: UserNotificationParamGen.java 24838 2016-12-06 10:45:31Z jeklund $
+ */
+public class UserNotificationParamGen extends NotificationParamGen {
+
+<span class="nc" id="L66">	public UserNotificationParamGen(EndEntityInformation userData) {</span>
+<span class="nc" id="L67">		populateWithUserData(userData);</span>
+<span class="nc" id="L68">	}</span>
+
+<span class="nc" id="L70">	public UserNotificationParamGen(EndEntityInformation userData, Certificate expiringCert) {</span>
+<span class="nc" id="L71">		populateWithUserData(userData);</span>
+<span class="nc" id="L72">		populateWithExpiringCert(expiringCert);</span>
+<span class="nc" id="L73">	}</span>
+
+	/** Notification parameter generation when notifying about end entity events (new, generated, revoked etc).
+	 * 
+	 * @param userData The end entity that is being operated on. Populates USERNAME, CN etc variables
+	 * @param approvalAdminDN The DN of the administrator that approved the request, if approvals were used. Populates approvalAdmin variables.
+	 * @param requestAdmin The end entity that requested the event from the beginning, either the admin that adds an end entity if no approvals 
+	 *         are used, of if approvals were used the admin requesting (creating the approval request) to add an end entity. Populates requestAdmin variables
+	 * @param approvalRequestID ID
+	 * @param revokedCertificate the certificate that is revoked, in case of a revocation event. Populates revokedCertificate variables
+	 */
+	public UserNotificationParamGen(EndEntityInformation userData, String approvalAdminDN, EndEntityInformation requestAdmin, int approvalRequestID, 
+<span class="fc" id="L85">	        CertificateDataWrapper revokedCertificate) {</span>
+<span class="fc" id="L86">		populateWithUserData(userData);</span>
+<span class="fc" id="L87">		populateWithApprovalData(approvalAdminDN, approvalRequestID);</span>
+<span class="fc" id="L88">		populateWithEmailAddresses(userData, requestAdmin);</span>
+<span class="fc" id="L89">		populateWithRevokedCertificate(revokedCertificate);</span>
+<span class="fc" id="L90">	}</span>
+
+	private void populateWithApprovalData(String approvalAdminDN, final int approvalRequestID) {
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">	    if (approvalAdminDN == null) {</span>
+<span class="nc" id="L94">	        approvalAdminDN = &quot;&quot;;</span>
+	    }
+<span class="fc" id="L96">	    DNFieldExtractor dnfields = new DNFieldExtractor(approvalAdminDN, DNFieldExtractor.TYPE_SUBJECTDN);       </span>
+<span class="fc" id="L97">	    paramPut(&quot;approvalAdmin.CN&quot;, dnfields.getField(DNFieldExtractor.CN, 0));          </span>
+<span class="fc" id="L98">	    paramPut(&quot;approvalAdmin.SN&quot;, dnfields.getField(DNFieldExtractor.SN, 0));</span>
+<span class="fc" id="L99">	    paramPut(&quot;approvalAdmin.O&quot;, dnfields.getField(DNFieldExtractor.O, 0));</span>
+<span class="fc" id="L100">	    paramPut(&quot;approvalAdmin.OU&quot;, dnfields.getField(DNFieldExtractor.OU, 0));</span>
+<span class="fc" id="L101">	    paramPut(&quot;approvalAdmin.C&quot;, dnfields.getField(DNFieldExtractor.C, 0));</span>
+<span class="fc" id="L102">	    paramPut(&quot;approvalAdmin.E&quot;, dnfields.getField(DNFieldExtractor.E, 0));</span>
+	    
+<span class="fc" id="L104">	    paramPut(&quot;approvalRequestID&quot;, approvalRequestID);</span>
+<span class="fc" id="L105">	}</span>
+
+	protected void populateWithRevokedCertificate(final CertificateDataWrapper revokedCertificate) {
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">	    if (revokedCertificate!=null) {</span>
+<span class="fc" id="L109">	        final CertificateData certificateData = revokedCertificate.getCertificateData();</span>
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">	        if (certificateData != null) {</span>
+<span class="fc" id="L111">	            paramPut(&quot;revokedCertificate.CERTSERIAL&quot;, certificateData.getSerialNumberHex());</span>
+<span class="fc" id="L112">	            paramPut(&quot;revokedCertificate.EXPIREDATE&quot;, fastDateFormat(new Date(certificateData.getExpireDate())));</span>
+<span class="fc" id="L113">	            paramPut(&quot;revokedCertificate.CERTSUBJECTDN&quot;, certificateData.getSubjectDnNeverNull());</span>
+<span class="fc" id="L114">	            paramPut(&quot;revokedCertificate.CERTISSUERDN&quot;, certificateData.getIssuerDN());</span>
+<span class="fc" id="L115">	            String newStatus = &quot;Unknown&quot;;</span>
+<span class="pc bpc" id="L116" title="2 of 3 branches missed.">	            switch (certificateData.getStatus()) {</span>
+	            case CertificateConstants.CERT_ACTIVE:
+                case CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION:
+<span class="nc" id="L119">                    newStatus = &quot;Active&quot;;</span>
+<span class="nc" id="L120">                    break;</span>
+                case CertificateConstants.CERT_REVOKED:
+                case CertificateConstants.CERT_ARCHIVED:
+<span class="fc" id="L123">                    newStatus = &quot;Revoked&quot;;</span>
+                    break;
+	            }
+<span class="fc" id="L126">                String newRevocationReason = &quot;&quot;;</span>
+                // Use plain RFC5280 CRLReason naming until we localize this
+<span class="pc bpc" id="L128" title="10 of 11 branches missed.">                switch (RevocationReasons.getFromDatabaseValue(certificateData.getRevocationReason())) {</span>
+<span class="nc" id="L129">                case UNSPECIFIED: newRevocationReason = &quot;unspecified&quot;; break;</span>
+<span class="nc" id="L130">                case KEYCOMPROMISE: newRevocationReason = &quot;keyCompromise&quot;; break;</span>
+<span class="nc" id="L131">                case CACOMPROMISE: newRevocationReason = &quot;cACompromise&quot;; break;</span>
+<span class="nc" id="L132">                case AFFILIATIONCHANGED: newRevocationReason = &quot;affiliationChanged&quot;; break;</span>
+<span class="nc" id="L133">                case SUPERSEDED: newRevocationReason = &quot;superseded&quot;; break;</span>
+<span class="nc" id="L134">                case CESSATIONOFOPERATION: newRevocationReason = &quot;cessationOfOperation&quot;; break;</span>
+<span class="fc" id="L135">                case CERTIFICATEHOLD: newRevocationReason = &quot;certificateHold&quot;; break;</span>
+<span class="nc" id="L136">                case REMOVEFROMCRL: newRevocationReason = &quot;removeFromCRL&quot;; break;</span>
+<span class="nc" id="L137">                case PRIVILEGESWITHDRAWN: newRevocationReason = &quot;privilegeWithdrawn&quot;; break;</span>
+<span class="nc" id="L138">                case AACOMPROMISE: newRevocationReason = &quot;aACompromise&quot;; break;</span>
+                default: break;
+                }
+<span class="fc" id="L141">                paramPut(&quot;revokedCertificate.REVOCATIONSTATUS&quot;, newStatus);</span>
+<span class="fc" id="L142">                paramPut(&quot;revokedCertificate.REVOCATIONREASON&quot;, newRevocationReason);</span>
+	        }
+	    }
+<span class="fc" id="L145">    }</span>
+
+    protected void populateWithExpiringCert(Certificate expiringCert) {
+<span class="nc bnc" id="L148" title="All 2 branches missed.">		if(expiringCert != null){</span>
+<span class="nc" id="L149">			paramPut(&quot;expiringCert.CERTSERIAL&quot;,CertTools.getSerialNumberAsString(expiringCert));</span>
+<span class="nc" id="L150">			paramPut(&quot;expiringCert.EXPIREDATE&quot;, fastDateFormat(CertTools.getNotAfter(expiringCert)));</span>
+<span class="nc" id="L151">			paramPut(&quot;expiringCert.CERTSUBJECTDN&quot;,CertTools.getSubjectDN(expiringCert));</span>
+<span class="nc" id="L152">			paramPut(&quot;expiringCert.CERTISSUERDN&quot;,CertTools.getIssuerDN(expiringCert));          </span>
+		}
+<span class="nc" id="L154">	}</span>
+
+	protected void populateWithUserData(EndEntityInformation userData) {
+<span class="pc bpc" id="L157" title="1 of 2 branches missed.">		if (userData != null) {</span>
+<span class="fc" id="L158">			paramPut(&quot;USERNAME&quot;, userData.getUsername());</span>
+<span class="fc" id="L159">			paramPut(&quot;user.USERNAME&quot;, userData.getUsername());</span>
+
+<span class="fc" id="L161">			paramPut(&quot;PASSWORD&quot;, userData.getPassword());</span>
+<span class="fc" id="L162">			paramPut(&quot;user.PASSWORD&quot;, userData.getPassword());</span>
+
+<span class="fc" id="L164">			DNFieldExtractor dnfields = new DNFieldExtractor(userData.getDN(), DNFieldExtractor.TYPE_SUBJECTDN);</span>
+<span class="fc" id="L165">			paramPut(&quot;UID&quot;, dnfields.getField(DNFieldExtractor.UID, 0));</span>
+<span class="fc" id="L166">			paramPut(&quot;user.UID&quot;, dnfields.getField(DNFieldExtractor.UID, 0));</span>
+<span class="fc" id="L167">			paramPut(&quot;CN&quot;, dnfields.getField(DNFieldExtractor.CN, 0));</span>
+<span class="fc" id="L168">			paramPut(&quot;user.CN&quot;, dnfields.getField(DNFieldExtractor.CN, 0));</span>
+<span class="fc" id="L169">			paramPut(&quot;SN&quot;, dnfields.getField(DNFieldExtractor.SN, 0));</span>
+<span class="fc" id="L170">			paramPut(&quot;user.SN&quot;, dnfields.getField(DNFieldExtractor.SN, 0));</span>
+<span class="fc" id="L171">			paramPut(&quot;O&quot;, dnfields.getField(DNFieldExtractor.O, 0));</span>
+<span class="fc" id="L172">			paramPut(&quot;user.O&quot;, dnfields.getField(DNFieldExtractor.O, 0));</span>
+<span class="fc" id="L173">			paramPut(&quot;OU&quot;, dnfields.getField(DNFieldExtractor.OU, 0));</span>
+<span class="fc" id="L174">			paramPut(&quot;user.OU&quot;, dnfields.getField(DNFieldExtractor.OU, 0));</span>
+<span class="fc" id="L175">			paramPut(&quot;C&quot;, dnfields.getField(DNFieldExtractor.C, 0));</span>
+<span class="fc" id="L176">			paramPut(&quot;user.C&quot;, dnfields.getField(DNFieldExtractor.C, 0));</span>
+<span class="fc" id="L177">			paramPut(&quot;user.E&quot;, dnfields.getField(DNFieldExtractor.E, 0));</span>
+
+<span class="fc" id="L179">			String time = &quot;(time not available)&quot;;</span>
+<span class="pc bpc" id="L180" title="1 of 2 branches missed.">			if (userData.getTimeCreated() != null) {</span>
+<span class="fc" id="L181">				time = fastDateFormat(userData.getTimeCreated());</span>
+			}
+<span class="fc" id="L183">			paramPut(&quot;user.TIMECREATED&quot;, time);</span>
+<span class="fc" id="L184">			time = &quot;(time not available)&quot;;</span>
+<span class="pc bpc" id="L185" title="1 of 2 branches missed.">			if (userData.getTimeModified() != null) {</span>
+<span class="nc" id="L186">				time = fastDateFormat(userData.getTimeModified());</span>
+			}
+<span class="fc" id="L188">			paramPut(&quot;user.TIMEMODIFIED&quot;, time);</span>
+			
+		}
+<span class="fc" id="L191">	}</span>
+	
+	protected void populateWithEmailAddresses(EndEntityInformation userdata, EndEntityInformation requestAdmin) {
+<span class="pc bpc" id="L194" title="1 of 2 branches missed.">		if(userdata != null) {</span>
+<span class="fc" id="L195">			paramPut(&quot;user.EE.EMAIL&quot;, userdata.getEmail());</span>
+<span class="fc" id="L196">			final DNFieldExtractor sanfields = new DNFieldExtractor(userdata.getSubjectAltName(), DNFieldExtractor.TYPE_SUBJECTALTNAME);</span>
+<span class="fc" id="L197">			paramPut(&quot;user.SAN.EMAIL&quot;, sanfields.getField(DNFieldExtractor.RFC822NAME, 0));</span>
+		}
+<span class="pc bpc" id="L199" title="1 of 2 branches missed.">		if(requestAdmin != null) {</span>
+<span class="fc" id="L200">			paramPut(&quot;requestAdmin.EE.EMAIL&quot;, requestAdmin.getEmail());</span>
+<span class="fc" id="L201">			final DNFieldExtractor sdnFields = new DNFieldExtractor(requestAdmin.getDN(), DNFieldExtractor.TYPE_SUBJECTDN);</span>
+<span class="fc" id="L202">			paramPut(&quot;requestAdmin.CN&quot;, sdnFields.getField(DNFieldExtractor.CN, 0));</span>
+<span class="fc" id="L203">			final DNFieldExtractor sanFields = new DNFieldExtractor(requestAdmin.getSubjectAltName(), DNFieldExtractor.TYPE_SUBJECTALTNAME);</span>
+<span class="fc" id="L204">			paramPut(&quot;requestAdmin.SAN.EMAIL&quot;, sanFields.getField(DNFieldExtractor.RFC822NAME, 0));</span>
+		}
+<span class="fc" id="L206">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

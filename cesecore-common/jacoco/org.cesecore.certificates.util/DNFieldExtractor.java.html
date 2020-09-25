@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DNFieldExtractor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.util</a> &gt; <span class="el_source">DNFieldExtractor.java</span></div><h1>DNFieldExtractor.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.cesecore.certificates.util;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+
+import org.apache.log4j.Logger;
+import org.cesecore.util.CertTools;
+import org.ietf.ldap.LDAPDN;
+
+/**
+ * A class used to retrieve different fields from a Distinguished Name or Subject Alternate Name or Subject Directory Attributes strings.
+ * 
+ * @version $Id: DNFieldExtractor.java 28678 2018-04-12 10:06:36Z anatom $
+ */
+public class DNFieldExtractor implements java.io.Serializable {
+
+    private static final long serialVersionUID = -1313839342568999844L;
+
+<span class="fc" id="L34">    private static final Logger log = Logger.getLogger(DNFieldExtractor.class);</span>
+    // Public constants
+    public static final int TYPE_SUBJECTDN = 0;
+    public static final int TYPE_SUBJECTALTNAME = 1;
+    public static final int TYPE_SUBJECTDIRATTR = 2;
+
+    // Note, these IDs duplicate values in profilemappings.properties
+
+    // Subject DN Fields.
+    public static final int E = 0;
+    public static final int UID = 1;
+    public static final int CN = 2;
+    public static final int SN = 3;
+    public static final int GIVENNAME = 4;
+    public static final int INITIALS = 5;
+    public static final int SURNAME = 6;
+    public static final int T = 7;
+    public static final int OU = 8;
+    public static final int O = 9;
+    public static final int L = 10;
+    public static final int ST = 11;
+    public static final int DC = 12;
+    public static final int C = 13;
+    public static final int UNSTRUCTUREDADDRESS = 14;
+    public static final int UNSTRUCTUREDNAME = 15;
+    public static final int POSTALCODE = 32;
+    public static final int BUSINESSCATEGORY = 33;
+    public static final int DN = 34;
+    public static final int POSTALADDRESS = 35;
+    public static final int TELEPHONENUMBER = 36;
+    public static final int PSEUDONYM = 37;
+    public static final int STREET = 38;
+    public static final int NAME = 55;
+    public static final int DESCRIPTION = 60;
+    public static final int ORGANIZATIONIDENTIFIER = 106;
+
+    // Subject Alternative Names.
+    public static final int OTHERNAME = 16;
+    public static final int RFC822NAME = 17;
+    public static final int DNSNAME = 18;
+    public static final int IPADDRESS = 19;
+    public static final int X400ADDRESS = 20;
+    public static final int DIRECTORYNAME = 21;
+    public static final int EDIPARTYNAME = 22;
+    public static final int URI = 23;
+    public static final int REGISTEREDID = 24;
+    public static final int UPN = 25;
+    public static final int GUID = 26;
+    public static final int KRB5PRINCIPAL = 52;
+    public static final int PERMANTIDENTIFIER = 56;
+    public static final int SUBJECTIDENTIFICATIONMETHOD = 59;
+    
+    // Subject Directory Attributes
+    public static final int DATEOFBIRTH = 27;
+    public static final int PLACEOFBIRTH = 28;
+    public static final int GENDER = 29;
+    public static final int COUNTRYOFCITIZENSHIP = 30;
+    public static final int COUNTRYOFRESIDENCE = 31;
+
+    private static final int BOUNDRARY = 100;
+    /** Mapping dnid to number of occurrences in this DN */
+    private HashMap&lt;Integer, Integer&gt; fieldnumbers;
+    /** mapping dn (or altname or subject dir attrs) numerical ids with the value of the components */
+    private HashMap&lt;Integer, String&gt; dnfields;
+<span class="fc" id="L98">    private boolean existsother = false;</span>
+<span class="fc" id="L99">    private boolean illegal = false;</span>
+    private int type;
+
+    public int getType() {
+<span class="nc" id="L103">        return type;</span>
+    }
+    
+    /**
+     * Creates a new instance of DNFieldExtractor
+     * 
+     * @param dn
+     *            DOCUMENT ME!
+     * @param type
+     *            DOCUMENT ME!
+     */
+<span class="fc" id="L114">    public DNFieldExtractor(final String dn, final int type) {</span>
+<span class="fc" id="L115">        dnfields = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L116">        setDN(dn, type);</span>
+<span class="fc" id="L117">    }</span>
+
+    /**
+     * Fields that can be selected in Certificate profile and Publisher
+     * @param type Type
+     * @return fields
+     */
+    public static List&lt;Integer&gt; getUseFields(final int type) {
+<span class="nc bnc" id="L125" title="All 2 branches missed.">        if (type == DNFieldExtractor.TYPE_SUBJECTDN) {</span>
+<span class="nc" id="L126">            return DnComponents.getDnDnIds();</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">        } else if (type == DNFieldExtractor.TYPE_SUBJECTALTNAME) {</span>
+<span class="nc" id="L128">            return DnComponents.getAltNameDnIds();</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        } else if (type == DNFieldExtractor.TYPE_SUBJECTDIRATTR) {</span>
+<span class="nc" id="L130">            return DnComponents.getDirAttrDnIds();</span>
+        } else {
+<span class="nc" id="L132">            return new ArrayList&lt;Integer&gt;();</span>
+        }
+    }
+    
+    /**
+     * Returns the valid components for the given DN type (Subject DN, Subject Alternative Name or Subject Directory Attributes)
+     * @param dnType DNFieldExtractor.TYPE_*
+     * @return List of valid components from DnComponents.*
+     */
+    public static List&lt;String&gt; getValidFieldComponents(final int dnType) {
+<span class="nc bnc" id="L142" title="All 4 branches missed.">        switch (dnType) {</span>
+<span class="nc" id="L143">        case DNFieldExtractor.TYPE_SUBJECTDN: return DnComponents.getDnProfileFields();</span>
+<span class="nc" id="L144">        case DNFieldExtractor.TYPE_SUBJECTALTNAME: return DnComponents.getAltNameFields();</span>
+<span class="nc" id="L145">        case DNFieldExtractor.TYPE_SUBJECTDIRATTR: return DnComponents.getDirAttrFields();</span>
+<span class="nc" id="L146">        default: throw new IllegalStateException(&quot;Invalid DN type&quot;);</span>
+        }
+    }
+
+    public static String getFieldComponent(final int field, final int type) {
+        final String ret;
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        if (type == DNFieldExtractor.TYPE_SUBJECTDN) {</span>
+<span class="nc" id="L153">            ret = DnComponents.getDnExtractorFieldFromDnId(field);</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        } else if (type == DNFieldExtractor.TYPE_SUBJECTALTNAME) {</span>
+<span class="nc" id="L155">            ret = DnComponents.getAltNameExtractorFieldFromDnId(field);</span>
+        } else {
+<span class="nc" id="L157">            ret = DnComponents.getDirAttrExtractorFieldFromDnId(field);</span>
+        }
+<span class="nc" id="L159">        return ret;</span>
+    }
+
+    /**
+     * Looks up a DN Id (for use with DnComponents functions etc.) from a DN component.
+     * @param dnComponent Component, e.g. &quot;CN&quot;. Not case sensitive.
+     * @param dnType DN type, e.g. DNFieldExtractor.TYPE_SUBJECTDN
+     * @return DN Id, or null if no such component exists for the given DN type.
+     */
+    public static Integer getDnIdFromComponent(final String dnComponent, final int dnType) {
+<span class="nc bnc" id="L169" title="All 4 branches missed.">        switch (dnType) {</span>
+<span class="nc" id="L170">        case DNFieldExtractor.TYPE_SUBJECTDN: return DnComponents.getDnIdFromDnName(dnComponent);</span>
+<span class="nc" id="L171">        case DNFieldExtractor.TYPE_SUBJECTALTNAME: return DnComponents.getDnIdFromAltName(dnComponent);</span>
+<span class="nc" id="L172">        case DNFieldExtractor.TYPE_SUBJECTDIRATTR: DnComponents.getDnIdFromDirAttr(dnComponent);</span>
+<span class="nc" id="L173">        default: throw new IllegalStateException(&quot;Invalid DN type&quot;);</span>
+        }
+    }
+
+    /**
+     * Fills the dnfields variable with dn (or altname or subject dir attrs) numerical ids and the value of the components 
+     * (i.e. the value of CN). Also populates fieldnumbers with number of occurances in dn
+     * 
+     * @param dn
+     *            DOCUMENT ME!
+     * @param type
+     *            DOCUMENT ME!
+     */
+    public final void setDN(final String dn, final int type) {
+
+<span class="fc" id="L188">        this.type = type;</span>
+        final ArrayList&lt;Integer&gt; ids;
+<span class="fc bfc" id="L190" title="All 2 branches covered.">        if (type == TYPE_SUBJECTDN) {</span>
+<span class="fc" id="L191">            ids = DnComponents.getDnDnIds();</span>
+<span class="fc bfc" id="L192" title="All 2 branches covered.">        } else if (type == TYPE_SUBJECTALTNAME) {</span>
+<span class="fc" id="L193">            ids = DnComponents.getAltNameDnIds();</span>
+<span class="pc bpc" id="L194" title="1 of 2 branches missed.">        } else if (type == TYPE_SUBJECTDIRATTR) {</span>
+<span class="fc" id="L195">            ids = DnComponents.getDirAttrDnIds();</span>
+        } else {
+<span class="nc" id="L197">            ids = new ArrayList&lt;&gt;();</span>
+        }
+<span class="fc" id="L199">        fieldnumbers = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L200" title="All 2 branches covered.">        for(Integer id : ids) {</span>
+<span class="fc" id="L201">            fieldnumbers.put(id, 0);</span>
+<span class="fc" id="L202">        }</span>
+
+<span class="pc bpc" id="L204" title="2 of 4 branches missed.">        if ((dn != null) &amp;&amp; !dn.equalsIgnoreCase(&quot;null&quot;)) {</span>
+<span class="fc" id="L205">            dnfields = new HashMap&lt;&gt;();</span>
+            try {
+<span class="fc" id="L207">                final String[] dnexploded = LDAPDN.explodeDN(dn, false);</span>
+<span class="fc bfc" id="L208" title="All 2 branches covered.">                for (int i = 0; i &lt; dnexploded.length; i++) {</span>
+<span class="fc" id="L209">                    boolean exists = false;</span>
+
+<span class="fc bfc" id="L211" title="All 2 branches covered.">                    for(Integer id : ids) {</span>
+<span class="fc" id="L212">                        Integer number = fieldnumbers.get(id);</span>
+                        String field;
+<span class="fc bfc" id="L214" title="All 2 branches covered.">                        if (type == TYPE_SUBJECTDN) {</span>
+<span class="fc" id="L215">                            field = DnComponents.getDnExtractorFieldFromDnId(id.intValue());</span>
+<span class="fc bfc" id="L216" title="All 2 branches covered.">                        } else if (type == TYPE_SUBJECTALTNAME) {</span>
+<span class="fc" id="L217">                            field = DnComponents.getAltNameExtractorFieldFromDnId(id.intValue());</span>
+                        } else {
+<span class="fc" id="L219">                            field = DnComponents.getDirAttrExtractorFieldFromDnId(id.intValue());</span>
+                        }
+<span class="fc" id="L221">                        final String dnex = dnexploded[i].toUpperCase();</span>
+<span class="fc bfc" id="L222" title="All 2 branches covered.">                        if (id.intValue() == DNFieldExtractor.URI) {</span>
+                            // Fix up URI, which can have several forms
+<span class="fc bfc" id="L224" title="All 2 branches covered.">                            if (dnex.indexOf(CertTools.URI.toUpperCase(Locale.ENGLISH) + &quot;=&quot;) &gt; -1) {</span>
+<span class="fc" id="L225">                                field = CertTools.URI.toUpperCase(Locale.ENGLISH) + &quot;=&quot;;</span>
+                            }
+<span class="fc bfc" id="L227" title="All 2 branches covered.">                            if (dnex.indexOf(CertTools.URI1.toUpperCase(Locale.ENGLISH) + &quot;=&quot;) &gt; -1) {</span>
+<span class="fc" id="L228">                                field = CertTools.URI1.toUpperCase(Locale.ENGLISH) + &quot;=&quot;;</span>
+                            }
+                        }
+                       
+<span class="fc bfc" id="L232" title="All 2 branches covered.">                        if (dnex.startsWith(field)) {</span>
+                           
+<span class="fc" id="L234">                            exists = true;</span>
+                            final String rdn;
+                            final String tmp;
+                            // LDAPDN.unescapeRDN don't like fields with just a key but no contents. Example: 'OU='
+<span class="pc bpc" id="L238" title="1 of 2 branches missed.">                            if (dnexploded[i].charAt(dnexploded[i].length() - 1) != '=') {</span>
+<span class="fc" id="L239">                                tmp = LDAPDN.unescapeRDN(dnexploded[i]);</span>
+                            } else {
+<span class="nc" id="L241">                                tmp = dnexploded[i];</span>
+                            }
+                            // We don't want the CN= (or whatever) part of the RDN
+<span class="pc bpc" id="L244" title="1 of 2 branches missed.">                            if (tmp.toUpperCase().startsWith(field)) {</span>
+<span class="fc" id="L245">                                rdn = tmp.substring(field.length(), tmp.length());</span>
+                            } else {
+<span class="nc" id="L247">                                rdn = tmp;</span>
+                            }
+
+                            // Same code for TYPE_SUBJECTDN, TYPE_SUBJECTALTNAME and TYPE_SUBJECTDIRATTR and we will never get here
+                            // if it is not one of those types
+<span class="fc" id="L252">                            dnfields.put(Integer.valueOf((id.intValue() * BOUNDRARY) + number.intValue()), rdn);</span>
+                            
+<span class="fc" id="L254">                            number = Integer.valueOf(number.intValue() + 1);</span>
+<span class="fc" id="L255">                            fieldnumbers.put(id, number);</span>
+                        }
+<span class="fc" id="L257">                    }</span>
+<span class="fc bfc" id="L258" title="All 2 branches covered.">                    if (!exists) {</span>
+<span class="fc" id="L259">                        existsother = true;</span>
+                    }
+                }
+<span class="fc" id="L262">            } catch (Exception e) {</span>
+<span class="fc" id="L263">                log.warn(&quot;setDN: &quot;, e);</span>
+<span class="fc" id="L264">                illegal = true;</span>
+<span class="pc bpc" id="L265" title="1 of 2 branches missed.">                if (type == TYPE_SUBJECTDN) {</span>
+<span class="fc" id="L266">                    dnfields.put(Integer.valueOf((CN * BOUNDRARY)), &quot;Illegal DN : &quot; + dn);</span>
+<span class="nc bnc" id="L267" title="All 2 branches missed.">                } else if (type == TYPE_SUBJECTALTNAME) {</span>
+<span class="nc" id="L268">                    dnfields.put(Integer.valueOf((RFC822NAME * BOUNDRARY)), &quot;Illegal Subjectaltname : &quot; + dn);</span>
+<span class="nc bnc" id="L269" title="All 2 branches missed.">                } else if (type == TYPE_SUBJECTDIRATTR) {</span>
+<span class="nc" id="L270">                    dnfields.put(Integer.valueOf((PLACEOFBIRTH * BOUNDRARY)), &quot;Illegal Subjectdirectory attribute : &quot; + dn);</span>
+                }
+<span class="fc" id="L272">            }</span>
+        }
+<span class="fc" id="L274">    }</span>
+
+    /**
+     * Returns the value of a certain DN component.
+     * 
+     * @param field
+     *            the DN component, one of the constants DNFieldExtractor.CN, ...
+     * @param number
+     *            the number of the component if several entries for this component exists, normally 0 fir the first
+     * 
+     * @return A String for example &quot;PrimeKey&quot; if DNFieldExtractor.O and 0 was passed, &quot;PrimeKey&quot; if DNFieldExtractor.DC and 0 was passed or &quot;com&quot; if
+     *         DNFieldExtractor.DC and 1 was passed. Returns an empty String &quot;&quot;, if no such field with the number exists.
+     */
+    public String getField(final int field, final int number) {
+<span class="fc" id="L288">        String returnval = dnfields.get(Integer.valueOf((field * BOUNDRARY) + number));</span>
+
+<span class="fc bfc" id="L290" title="All 2 branches covered.">        if (returnval == null) {</span>
+<span class="fc" id="L291">            returnval = &quot;&quot;;</span>
+        }
+
+<span class="fc" id="L294">        return returnval;</span>
+    }
+
+    /**
+     * Returns a string representation of a certain DN component
+     * 
+     * @param field
+     *            the DN component, one of the constants DNFieldExtractor.CN, ...
+     * @return A String for example &quot;CN=Tomas Gustavsson&quot; if DNFieldExtractor.CN was passed, &quot;DC=PrimeKey,DC=com&quot; if DNFieldExtractor.DC was passed.
+     *            This string is escaped so it can be used in a DN string.
+     */
+    public String getFieldString(final int field) {
+<span class="fc" id="L306">        String retval = &quot;&quot;;</span>
+<span class="fc" id="L307">        String fieldname = DnComponents.getDnExtractorFieldFromDnId(field);</span>
+<span class="fc bfc" id="L308" title="All 2 branches covered.">        if (type != TYPE_SUBJECTDN) {</span>
+<span class="fc" id="L309">            fieldname = DnComponents.getAltNameExtractorFieldFromDnId(field);</span>
+        }
+<span class="fc" id="L311">        final int num = getNumberOfFields(field);</span>
+<span class="fc bfc" id="L312" title="All 2 branches covered.">        for (int i = 0; i &lt; num; i++) {</span>
+<span class="fc bfc" id="L313" title="All 2 branches covered.">            if (retval.length() == 0) {</span>
+<span class="fc" id="L314">                retval += LDAPDN.escapeRDN(fieldname + getField(field, i));</span>
+            } else {
+<span class="fc" id="L316">                retval += &quot;,&quot; + LDAPDN.escapeRDN(fieldname + getField(field, i));</span>
+            }
+        }
+<span class="fc" id="L319">        return retval;</span>
+    }
+
+    /**
+     * Function that returns true if non standard DN field exists in dn string.
+     * 
+     * @return true if non standard DN field exists, false otherwise
+     */
+    public boolean existsOther() {
+<span class="fc" id="L328">        return existsother;</span>
+    }
+
+    /**
+     * Returns the number of one kind of dn field.
+     * 
+     * @param field
+     *            the DN component, one of the constants DNFieldExtractor.CN, ...
+     * 
+     * @return number of components available for a field, for example 1 if DN is &quot;dc=primekey&quot; and 2 if DN is &quot;dc=primekey,dc=com&quot;
+     */
+    public int getNumberOfFields(final int field) {
+<span class="fc" id="L340">        Integer ret = fieldnumbers.get(Integer.valueOf(field));</span>
+<span class="fc bfc" id="L341" title="All 2 branches covered.">        if (ret == null) {</span>
+<span class="fc" id="L342">            log.error(&quot;Not finding fieldnumber value for &quot; + field);</span>
+<span class="fc" id="L343">            ret = Integer.valueOf(0);</span>
+        }
+<span class="fc" id="L345">        return ret.intValue();</span>
+    }
+
+    /**
+     * Returns the complete array determining the number of DN components of the various types (i.e. if there are two CNs but 0 Ls etc)
+     * 
+     * TODO: DOCUMENT
+     * 
+     * @return DOCUMENT ME!
+     */
+    public HashMap&lt;Integer, Integer&gt; getNumberOfFields() {
+<span class="fc" id="L356">        return fieldnumbers;</span>
+    }
+
+    public boolean isIllegal() {
+<span class="fc" id="L360">        return illegal;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

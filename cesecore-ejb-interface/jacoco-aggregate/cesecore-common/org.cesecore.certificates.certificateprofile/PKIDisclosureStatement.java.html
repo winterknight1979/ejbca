@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>PKIDisclosureStatement.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-ejb-interface</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.certificateprofile</a> &gt; <span class="el_source">PKIDisclosureStatement.java</span></div><h1>PKIDisclosureStatement.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.certificateprofile;
+
+import java.io.Serializable;
+
+import org.apache.commons.lang.StringUtils;
+
+/**
+ * Contains a single URI/language pair of a PKI disclosure statement. 
+ * @version $Id: PKIDisclosureStatement.java 25887 2017-05-23 09:21:11Z henriks $
+ */
+public final class PKIDisclosureStatement implements Serializable, Cloneable {
+    
+    private static final long serialVersionUID = 1L;
+    
+    private String url;
+    private String language;
+    
+<span class="fc" id="L30">    public PKIDisclosureStatement() {};</span>
+    
+<span class="fc" id="L32">    public PKIDisclosureStatement(final String url, final String language) {</span>
+<span class="fc" id="L33">        this.url = url;</span>
+<span class="fc" id="L34">        this.language = language;</span>
+<span class="fc" id="L35">    }</span>
+
+    /** @return String with PDS URL. Never null */
+    public String getUrl() {
+<span class="fc" id="L39">        return url;</span>
+    }
+
+    /** Sets the PDS URL (EN 319 412-05) 
+     * @param url URL*/
+    public void setUrl(final String url) {
+<span class="fc" id="L45">        this.url = url;</span>
+<span class="fc" id="L46">    }</span>
+
+    /** Shall be a two letter ISO 639-1 code, i.e. en, sv, fr  
+     * @return String with PDS Language or empty string (EN 319 412-05) 
+     */
+    public String getLanguage() {
+<span class="fc" id="L52">        return language;</span>
+    }
+
+    /** Sets String with PDS Language (EN 319 412-05) 
+     * Shall be a two letter ISO 639-1 code, i.e. en, sv, fr 
+     * @param language language
+     */
+    public void setLanguage(final String language) {
+<span class="fc" id="L60">        this.language = language;</span>
+<span class="fc" id="L61">    }</span>
+    
+    @Override
+    public boolean equals(final Object other) {
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">        if (other instanceof PKIDisclosureStatement) {</span>
+<span class="fc" id="L66">            final PKIDisclosureStatement o = (PKIDisclosureStatement) other;</span>
+<span class="pc bpc" id="L67" title="2 of 4 branches missed.">            return StringUtils.equals(url, o.getUrl()) &amp;&amp; StringUtils.equals(language, o.getLanguage());</span>
+        } else {
+<span class="nc" id="L69">            return false;</span>
+        }
+    }
+    
+    @Override
+    public int hashCode() {
+<span class="nc" id="L75">        return url.hashCode() ^ language.hashCode();</span>
+    }
+    
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+<span class="fc" id="L80">        return new PKIDisclosureStatement(url, language);</span>
+    }
+    
+    @Override
+    public String toString() {
+<span class="nc" id="L85">        return &quot;{&quot; + language + &quot;}&quot; + url;</span>
+    }
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>JndiHelper.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-common</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.jndi</a> &gt; <span class="el_source">JndiHelper.java</span></div><h1>JndiHelper.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.cesecore.jndi;
+
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+
+import org.apache.log4j.Logger;
+
+/**
+ * The sole purpose of this class is to standardize mapping in JNDI of our Stateless Session Beans.
+ * 
+ * Use like this:
+ * {@literal @}Stateless(mappedName=(JndiConstants.APP_JNDI_PREFIX + RemoteInterfaceClass.class.getSimpleName()))
+ * 
+ * @version $Id: JndiHelper.java 28613 2018-04-03 10:53:27Z aminkh $
+ */
+<span class="nc" id="L30">public abstract class JndiHelper {</span>
+
+<span class="nc" id="L32">	private static final Logger log = Logger.getLogger(JndiHelper.class);</span>
+	
+<span class="nc" id="L34">	private static Context context = null;</span>
+
+	// By default try the first lookup as JEE5 name, is that fails try JEE6
+	// We can probably do this more clever by using reflection or something?
+<span class="nc" id="L38">	private static boolean isJEE6 = false;</span>
+	
+	private static Context getContext() throws NamingException {
+<span class="nc bnc" id="L41" title="All 2 branches missed.">		if (context == null) {</span>
+<span class="nc" id="L42">		    context = new InitialContext();</span>
+		}
+<span class="nc" id="L44">		return context;</span>
+	}
+	
+	/**
+	 * Helper method to get a reference to a Remote SSB interface.
+	 * 
+	 * Example usage: CAAdminSessionRemote caadminsession = JndiHelper.getRemoteSession(CAAdminSessionRemote.class);
+	 * 
+	 * @param &lt;T&gt; type
+     * @param module the module where the bean is deployed, i.e. ejbca-ejb or systemtests-ejb.
+	 * @param remoteInterface interface
+	 * @return Session
+	 */
+    @SuppressWarnings(&quot;unchecked&quot;)
+	public static &lt;T&gt; T getRemoteSession(final Class&lt;T&gt; remoteInterface, final String module) {
+		// JEE5, JBoss 5 and 6 and Glassfish 2
+<span class="nc" id="L60">        final String jndiNameJEE5 = JndiConstants.APP_JNDI_PREFIX + remoteInterface.getSimpleName();</span>
+		// JEE6, JBoss 7
+<span class="nc" id="L62">	    final String viewClassName = remoteInterface.getName();</span>
+	    // Get the remote interface class, GlobalConfigurationSessionRemote, and return GlobalConfigurationSessionBean
+	    // This works when we follow our own naming standard
+<span class="nc" id="L65">	    final String beanName = remoteInterface.getSimpleName().replace(&quot;Remote&quot;, &quot;Bean&quot;);</span>
+<span class="nc" id="L66">	    final String jndiNameJEE6 = &quot;ejb:ejbca&quot; + &quot;/&quot; + module + &quot;//&quot;  + beanName + &quot;!&quot; + viewClassName;</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        String jndiName = isJEE6 ? jndiNameJEE6 : jndiNameJEE5;</span>
+<span class="nc" id="L68">        T ret = null;</span>
+        try {
+            try {
+<span class="nc" id="L71">                ret = (T) getContext().lookup(jndiName);</span>
+<span class="nc" id="L72">            } catch (NamingException e) {</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">                if (!isJEE6) {</span>
+                    // If that did not work and we are trying with JEE5 jndi names, try with JEE6 naming
+                    try {
+<span class="nc" id="L76">                        ret = (T) getContext().lookup(jndiNameJEE6);</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">                        if (ret != null) {</span>
+                            // The JEE6 jndi name worked, use JEE6 naming in the future
+<span class="nc" id="L79">                            isJEE6 = true;</span>
+                        }
+<span class="nc" id="L81">                    } catch (NamingException ne) {</span>
+                        // Log the original error, i.e. e not ne
+<span class="nc" id="L83">                        log.error(&quot;JNDI name lookup error&quot;, e);</span>
+<span class="nc" id="L84">                    }</span>
+                } else {
+                    // Log the original error, i.e. e not ne
+<span class="nc" id="L87">                    log.error(&quot;JNDI name lookup error&quot;, e);</span>
+                }
+<span class="nc" id="L89">            }            </span>
+<span class="nc" id="L90">        } catch (ClassCastException e) {</span>
+<span class="nc" id="L91">            log.error(&quot;JNDI object &quot; + jndiName + &quot; is not of type &quot; + remoteInterface.getName());</span>
+<span class="nc" id="L92">        }        </span>
+<span class="nc" id="L93">		return ret;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

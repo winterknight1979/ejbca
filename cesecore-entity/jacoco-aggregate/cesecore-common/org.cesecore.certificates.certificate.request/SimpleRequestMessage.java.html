@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>SimpleRequestMessage.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-entity</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.certificate.request</a> &gt; <span class="el_source">SimpleRequestMessage.java</span></div><h1>SimpleRequestMessage.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/ 
+package org.cesecore.certificates.certificate.request;
+
+import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.cert.Certificate;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.Extensions;
+import org.bouncycastle.cms.CMSSignedGenerator;
+import org.cesecore.keys.util.PublicKeyWrapper;
+import org.cesecore.util.CeSecoreNameStyle;
+
+
+
+/**
+ * Class to handle simple requests from only a public key, all required parameters must be set.
+ *
+ * @version $Id: SimpleRequestMessage.java 28201 2018-02-07 08:33:29Z andresjakobs $
+ */
+public class SimpleRequestMessage implements RequestMessage {
+        
+<span class="fc" id="L42">    private static final Logger log = Logger.getLogger(SimpleRequestMessage.class);</span>
+
+    /**
+     * Determines if a de-serialized file is compatible with this class.
+     *
+     * Maintainers must change this value if and only if the new version
+     * of this class is not compatible with old versions. See Sun docs
+     * for &lt;a href=http://java.sun.com/products/jdk/1.1/docs/guide
+     * /serialization/spec/version.doc.html&gt; details. &lt;/a&gt;
+     *
+     */
+    static final long serialVersionUID = 1L;
+
+    /** The public key */
+    protected PublicKeyWrapper pubkey;
+
+    /** manually set password */
+<span class="pc" id="L59">    protected String password = null;</span>
+
+    /** manually set username */
+<span class="pc" id="L62">    protected String username = null;</span>
+    
+    /** If the CA certificate should be included in the response or not, default to true = yes */
+<span class="pc" id="L65">    protected boolean includeCACert = true;</span>
+
+    /** preferred digest algorithm to use in replies, if applicable */
+<span class="pc" id="L68">    private transient String preferredDigestAlg = CMSSignedGenerator.DIGEST_SHA1;</span>
+
+    /** Type of error */
+<span class="pc" id="L71">    private int error = 0;</span>
+
+    /** Error text */
+<span class="pc" id="L74">    private String errorText = null;</span>
+
+    /** Issue DN, if set manually */
+<span class="pc" id="L77">    private String issuerDN = null;</span>
+    
+    /** request X500Name, if set manually */
+<span class="pc" id="L80">    private String requestDN = null;</span>
+
+    /** Requested certificate extensions */
+<span class="pc" id="L83">    private Extensions x509Extensions = null;</span>
+    
+<span class="pc" id="L85">    private Date validityNotBefore = null;</span>
+<span class="pc" id="L86">    private Date validityNotAfter = null;</span>
+
+<span class="pc" id="L88">    private List&lt;Certificate&gt; additionalCaCertificates = new ArrayList&lt;Certificate&gt;();</span>
+
+<span class="pc" id="L90">    private List&lt;Certificate&gt; additionalExtraCertsCertificates = new ArrayList&lt;Certificate&gt;();</span>
+    
+    /**
+     * Constructs a new Simple message handler object.
+     * @param pubkey the public key to be certified
+     * @param username username of the EJBCA user
+     * @param password password of the EJBCA user
+     */
+<span class="fc" id="L98">    public SimpleRequestMessage(final PublicKey pubkey, final String username, final String password) {</span>
+<span class="fc" id="L99">        this.pubkey = new PublicKeyWrapper(pubkey);</span>
+<span class="fc" id="L100">        this.username = username;</span>
+<span class="fc" id="L101">        this.password = password;</span>
+<span class="fc" id="L102">    }</span>
+    
+    /**
+     * Constructs a new Simple message handler object.
+     * @param pubkey the public key to be certified
+     * @param username username of the EJBCA user
+     * @param password password of the EJBCA user
+     * @param validityNotAfter the end validity of this certificate
+     */
+<span class="nc" id="L111">    public SimpleRequestMessage(final PublicKey pubkey, final String username, final String password, final Date validityNotAfter) {</span>
+<span class="nc" id="L112">        this.pubkey = new PublicKeyWrapper(pubkey);</span>
+<span class="nc" id="L113">        this.username = username;</span>
+<span class="nc" id="L114">        this.password = password;</span>
+<span class="nc" id="L115">        this.validityNotAfter = validityNotAfter;</span>
+<span class="nc" id="L116">    }</span>
+    
+    /**
+     * Constructs a new Simple message handler object.
+     * @param pubkey the public key to be certified
+     * @param username username of the EJBCA user
+     * @param password password of the EJBCA user
+     * @param validityNotBefore the start validity of this certificate
+     * @param validityNotAfter the end validity of this certificate
+     */
+<span class="nc" id="L126">    public SimpleRequestMessage(final PublicKey pubkey, final String username, final String password, final Date validityNotBefore, final Date validityNotAfter) {</span>
+<span class="nc" id="L127">        this.pubkey = new PublicKeyWrapper(pubkey);</span>
+<span class="nc" id="L128">        this.username = username;</span>
+<span class="nc" id="L129">        this.password = password;</span>
+<span class="nc" id="L130">        this.validityNotBefore = validityNotBefore;</span>
+<span class="nc" id="L131">        this.validityNotAfter = validityNotAfter;</span>
+<span class="nc" id="L132">    }</span>
+
+    @Override
+    public PublicKey getRequestPublicKey() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException {
+<span class="nc" id="L136">    	return pubkey.getPublicKey();</span>
+    }
+
+    /** set a password
+     * @param pwd password
+     */
+    public void setPassword(String pwd) {
+<span class="nc" id="L143">        this.password = pwd;</span>
+<span class="nc" id="L144">    }</span>
+
+    @Override
+    public String getPassword() {
+<span class="nc" id="L148">    	return password;</span>
+    }
+
+    /** set a username
+     * @param username username
+     */
+    public void setUsername(String username) {
+<span class="nc" id="L155">        this.username = username;</span>
+<span class="nc" id="L156">    }</span>
+
+    @Override
+    public String getUsername() {
+<span class="nc" id="L160">    	return username;</span>
+    }
+
+    @Override
+    public String getIssuerDN() {
+<span class="nc" id="L165">        return issuerDN;</span>
+    }
+
+    /** Sets the issuer DN manually, since it can not be contained in the request for
+     * this type of simple request message 
+     * @param dn issuerDN, in CertTools.stringToBCDnString() format
+     */
+    public void setIssuerDN(String dn) {
+<span class="nc" id="L173">    	this.issuerDN = dn;</span>
+<span class="nc" id="L174">    }</span>
+    @Override
+    public BigInteger getSerialNo() {
+<span class="nc" id="L177">    	return null;</span>
+    }
+    
+    @Override
+    public String getCRLIssuerDN() {
+<span class="nc" id="L182">        return null;</span>
+    }
+
+    @Override
+    public BigInteger getCRLSerialNo() {
+<span class="nc" id="L187">        return null;</span>
+    }
+
+    @Override
+    public String getRequestDN() {
+<span class="nc" id="L192">    	return null;</span>
+    }
+
+    @Override
+    public X500Name getRequestX500Name() {
+<span class="pc bpc" id="L197" title="1 of 2 branches missed.">    	if (this.requestDN == null) {</span>
+<span class="nc" id="L198">    		return null;</span>
+    	}
+<span class="fc" id="L200">    	return new X500Name(new CeSecoreNameStyle(), this.requestDN);</span>
+    }
+
+    public void setRequestDN(String dn) {
+<span class="fc" id="L204">    	this.requestDN = dn;</span>
+<span class="fc" id="L205">    }</span>
+    
+    @Override
+    public String getRequestAltNames() {
+<span class="nc" id="L209">    	return null;</span>
+    }
+
+    @Override
+	public Date getRequestValidityNotBefore() {
+<span class="nc" id="L214">		return validityNotBefore;</span>
+	}
+	
+    @Override
+	public Date getRequestValidityNotAfter() {
+<span class="nc" id="L219">		return validityNotAfter;</span>
+	}
+	
+    @Override
+	public Extensions getRequestExtensions() {
+<span class="nc" id="L224">	    return x509Extensions;</span>
+	}
+	
+	/** Sets request extensions, if any 
+	 * @param extensions extensions*/
+	public void setRequestExtensions(final Extensions extensions) {
+<span class="nc" id="L230">	    this.x509Extensions = extensions;</span>
+<span class="nc" id="L231">	}</span>
+	
+    @Override
+    public boolean verify()
+    throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException {
+<span class="nc" id="L236">        return true;</span>
+    }
+
+    @Override
+    public boolean requireKeyInfo() {
+<span class="nc" id="L241">        return false;</span>
+    }
+
+    @Override
+    public void setKeyInfo(Certificate cert, PrivateKey key, String Provider) {
+<span class="nc" id="L246">    }</span>
+
+    @Override
+    public int getErrorNo() {
+<span class="nc" id="L250">        return error;</span>
+    }
+
+    @Override
+    public String getErrorText() {
+<span class="nc" id="L255">        return errorText;</span>
+    }
+
+    @Override
+    public String getSenderNonce() {
+<span class="nc" id="L260">        return null;</span>
+    }
+
+    @Override
+    public String getTransactionId() {
+<span class="nc" id="L265">        return null;</span>
+    }
+
+    @Override
+    public byte[] getRequestKeyInfo() {
+<span class="nc" id="L270">        return null;</span>
+    }
+    
+    @Override
+    public String getPreferredDigestAlg() {
+<span class="nc" id="L275">    	return preferredDigestAlg;</span>
+    }
+    @Override
+    public boolean includeCACert() {
+<span class="nc" id="L279">    	return includeCACert;</span>
+    }
+
+    @Override
+    public int getRequestType() {
+<span class="nc" id="L284">    	return 0;</span>
+    }
+    
+    @Override
+    public int getRequestId() {
+<span class="nc" id="L289">    	return 0;</span>
+    }
+
+    @Override
+    public void setResponseKeyInfo(PrivateKey key, String provider) {
+      //These values are never used for this type of message
+<span class="nc bnc" id="L295" title="All 2 branches missed.">        if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L296">            log.debug(&quot;Key and provider were set for a SimpleRequestMessage. These values are not used and will be ignored.&quot;);</span>
+        }
+<span class="nc" id="L298">    }</span>
+
+    @Override
+    public List&lt;Certificate&gt; getAdditionalCaCertificates() {
+<span class="nc" id="L302">        return additionalCaCertificates;</span>
+    }
+
+    @Override
+    public void setAdditionalCaCertificates(final List&lt;Certificate&gt; certificates) {
+<span class="nc" id="L307">        this.additionalCaCertificates = certificates;</span>
+<span class="nc" id="L308">    }</span>
+    
+    @Override
+    public List&lt;Certificate&gt; getAdditionalExtraCertsCertificates() {
+<span class="nc" id="L312">        return additionalExtraCertsCertificates;</span>
+    }
+
+    @Override
+    public void setAdditionalExtraCertsCertificates(List&lt;Certificate&gt; additionalExtraCertsCertificates) {
+<span class="nc" id="L317">        this.additionalExtraCertsCertificates = additionalExtraCertsCertificates;</span>
+<span class="nc" id="L318">    }</span>
+} // SimpleRequestMessage
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ServletUtils.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.pub</a> &gt; <span class="el_source">ServletUtils.java</span></div><h1>ServletUtils.java</h1><pre class="source lang-java linenums">package org.ejbca.ui.web.pub;
+
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+
+/** 
+ * A class containing some helpful functions used in more than one Servlet, avoiding code duplication.
+ * 
+ * @version $Id: ServletUtils.java 22139 2015-11-03 10:41:56Z mikekushner $
+ */
+<span class="nc" id="L12">public class ServletUtils {</span>
+
+<span class="nc" id="L14">    private static final Logger log = Logger.getLogger(ServletUtils.class);</span>
+
+    /** Helper methods that removes no-cache headers from a response. No-cache headers 
+     * makes IE refuse to save a file that is sent (for example a certificate). 
+     * No-cache headers are also automatically added by Tomcat by default, so we better
+     * make sure they are set to a harmless value.
+     * 
+     * @param res HttpServletResponse parameter as taken from the doGet, doPost methods in a Servlet.
+     */
+    public static void removeCacheHeaders(final HttpServletResponse res) {
+<span class="nc bnc" id="L24" title="All 2 branches missed.">        if (res.containsHeader(&quot;Pragma&quot;)) {</span>
+<span class="nc bnc" id="L25" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L26">                log.debug(&quot;Removing Pragma header to avoid caching issues in IE&quot;);</span>
+            }
+<span class="nc" id="L28">            res.setHeader(&quot;Pragma&quot;,&quot;null&quot;);</span>
+        }
+<span class="nc bnc" id="L30" title="All 2 branches missed.">        if (res.containsHeader(&quot;Cache-Control&quot;)) {</span>
+<span class="nc bnc" id="L31" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L32">                log.debug(&quot;Removing Cache-Control header to avoid caching issues in IE&quot;);</span>
+            }
+<span class="nc" id="L34">            res.setHeader(&quot;Cache-Control&quot;,&quot;null&quot;);</span>
+        }
+<span class="nc" id="L36">    }</span>
+
+    /** Helper methods that adds no-cache headers to a response. 
+     * 
+     * @param res HttpServletResponse parameter as taken from the doGet, doPost methods in a Servlet.
+     */
+    public static void addCacheHeaders(final HttpServletResponse res) {
+<span class="nc bnc" id="L43" title="All 2 branches missed.">        if (!res.containsHeader(&quot;Pragma&quot;)) {</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L45">                log.debug(&quot;Adding Pragma header&quot;);</span>
+            }
+<span class="nc" id="L47">            res.setHeader(&quot;Pragma&quot;,&quot;no-cache&quot;);</span>
+        }
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        if (!res.containsHeader(&quot;Cache-Control&quot;)) {</span>
+<span class="nc bnc" id="L50" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L51">                log.debug(&quot;Adding Cache-Control header&quot;);</span>
+            }
+<span class="nc" id="L53">            res.setHeader(&quot;Cache-Control&quot;,&quot;no-cache&quot;);</span>
+        }
+<span class="nc" id="L55">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>SoftCryptoToken.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-common</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.keys.token</a> &gt; <span class="el_source">SoftCryptoToken.java</span></div><h1>SoftCryptoToken.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.keys.token;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PublicKey;
+import java.security.SignatureException;
+import java.security.cert.CertificateException;
+import java.security.spec.AlgorithmParameterSpec;
+import java.util.Properties;
+
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.util.encoders.Hex;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.internal.InternalResources;
+import org.cesecore.keys.util.KeyStoreTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.StringTools;
+
+/**
+ * Handles maintenance of the soft devices producing signatures and handling the private key and stored in database.
+ * 
+ * @version $Id: SoftCryptoToken.java 29156 2018-06-08 07:59:28Z anatom $
+ */
+public class SoftCryptoToken extends BaseCryptoToken {
+    private static final long serialVersionUID = 387950849444619646L;
+
+    /** Log4j instance */
+<span class="fc" id="L55">    private static final Logger log = Logger.getLogger(SoftCryptoToken.class);</span>
+    /** Internal localization of logs and errors */
+<span class="fc" id="L57">    private static final InternalResources intres = InternalResources.getInstance();</span>
+
+    /**
+     * When upgrading this version, you must up the version of the CA as well, otherwise the upgraded CA token will not be stored in the database.
+     */
+    public static final float LATEST_VERSION = 3;
+    
+    /**
+     * This property value denotes whether the default soft token password is usable on this token (as defined by ca.keystorepass, defaults to 'foo123',
+     * which allows it to be activated/deactivated/edited without providing a password. Setting this property (it does not matter what it's value is set to as long as it is present) 
+     * means that the default password is not available for use. 
+     */
+    public static final String NODEFAULTPWD = &quot;NODEFAULTPWD&quot;;
+
+    private byte[] keystoreData;
+    private char[] keyStorePass;
+
+    public SoftCryptoToken() {
+<span class="fc" id="L75">        super();</span>
+<span class="pc bpc" id="L76" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L77">            log.debug(&quot;Creating SoftCryptoToken&quot;);</span>
+        }
+<span class="fc" id="L79">    }</span>
+
+    /**
+     * Sets up some basic properties used in soft keystores and calls init on BaseCryptoToken in order to set up all key string etc.
+     */
+    @Override
+    public void init(Properties properties, final byte[] data, final int cryptoTokenId) {
+<span class="fc" id="L86">        super.setJCAProviderName(BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="fc" id="L87">        this.keystoreData = data;</span>
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">        if (properties == null) {</span>
+<span class="nc" id="L89">            properties = new Properties();</span>
+        }
+        // If we don't have an auto activation password set, we try to use the default one if it works to load the keystore with it
+<span class="fc" id="L92">        String autoPwd = BaseCryptoToken.getAutoActivatePin(properties);</span>
+<span class="pc bpc" id="L93" title="1 of 4 branches missed.">        if ((autoPwd == null) &amp;&amp; (properties.getProperty(NODEFAULTPWD) == null)) {</span>
+<span class="fc" id="L94">            final String keystorepass = StringTools.passwordDecryption(CesecoreConfiguration.getCaKeyStorePass(), &quot;ca.keystorepass&quot;);</span>
+            // Test it first, don't set an incorrect password as autoactivate password
+<span class="fc" id="L96">            boolean okPwd = checkSoftKeystorePassword(keystorepass.toCharArray(), cryptoTokenId);</span>
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">            if (okPwd) {</span>
+<span class="fc" id="L98">                log.debug(&quot;Succeded to load keystore with password&quot;);</span>
+<span class="fc" id="L99">                BaseCryptoToken.setAutoActivatePin(properties, keystorepass, true);</span>
+            }
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">        } else if (autoPwd != null) {</span>
+<span class="nc" id="L102">            log.debug(&quot;Soft Crypto Token has autoactivation property set.&quot;);</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">        } else if (properties.getProperty(NODEFAULTPWD) != null) {</span>
+<span class="fc" id="L104">            log.debug(&quot;No default pwd allowed for this soft crypto token.&quot;);</span>
+        }
+<span class="pc bpc" id="L106" title="1 of 4 branches missed.">        boolean autoActivate = autoPwd != null || properties.getProperty(NODEFAULTPWD) == null;</span>
+<span class="fc" id="L107">        init(properties, autoActivate, cryptoTokenId);</span>
+<span class="fc" id="L108">    }</span>
+
+    @Override
+    public void activate(char[] authCode) throws CryptoTokenAuthenticationFailedException, CryptoTokenOfflineException {
+<span class="fc bfc" id="L112" title="All 2 branches covered.">        if (keyStore != null) {</span>
+<span class="fc" id="L113">            log.debug(&quot;Ignoring activation request for already active CryptoToken: &quot; + getId());</span>
+<span class="fc" id="L114">            return;</span>
+        }
+        // If we use auto-activation, we will override whatever is used as parameter (probably null)
+<span class="fc" id="L117">        final String autoPwd = BaseCryptoToken.getAutoActivatePin(getProperties());</span>
+<span class="fc bfc" id="L118" title="All 2 branches covered.">        if (autoPwd!=null) {</span>
+<span class="fc" id="L119">            authCode = autoPwd.toCharArray();</span>
+        }
+<span class="fc bfc" id="L121" title="All 2 branches covered.">        if (keystoreData != null) {</span>
+            try {
+<span class="fc" id="L123">                KeyStore keystore = loadKeyStore(keystoreData, authCode);</span>
+<span class="fc" id="L124">                setKeyStore(keystore);</span>
+                // If everything was OK we cache the load/save password so we can store the keystore
+<span class="fc" id="L126">                keyStorePass = authCode;</span>
+<span class="fc" id="L127">            } catch (IOException e) {</span>
+<span class="fc" id="L128">                String msg = intres.getLocalizedMessage(&quot;token.erroractivate&quot;, getId(), e.getMessage());</span>
+<span class="fc" id="L129">                log.info(msg, e);</span>
+<span class="fc" id="L130">                CryptoTokenAuthenticationFailedException oe = new CryptoTokenAuthenticationFailedException(e.getMessage());</span>
+<span class="fc" id="L131">                oe.initCause(e);</span>
+<span class="fc" id="L132">                throw oe;</span>
+<span class="nc" id="L133">            } catch (Exception e) {</span>
+<span class="nc" id="L134">                String msg = intres.getLocalizedMessage(&quot;token.erroractivate&quot;, getId(), e.getMessage());</span>
+<span class="nc" id="L135">                log.info(msg, e);</span>
+<span class="nc" id="L136">                CryptoTokenOfflineException oe = new CryptoTokenOfflineException(e.getMessage());</span>
+<span class="nc" id="L137">                oe.initCause(e);</span>
+<span class="nc" id="L138">                throw oe;</span>
+<span class="fc" id="L139">            }</span>
+<span class="fc" id="L140">            String msg = intres.getLocalizedMessage(&quot;token.activated&quot;, getId());</span>
+<span class="fc" id="L141">            log.info(msg);</span>
+<span class="fc" id="L142">        } else {</span>
+<span class="fc" id="L143">            String msg = intres.getLocalizedMessage(&quot;token.erroractivate&quot;, getId(), &quot;No keystore data available yet, creating new PKCS#12 keystore.&quot;);</span>
+<span class="fc" id="L144">            log.info(msg);</span>
+            try {
+<span class="fc" id="L146">                KeyStore keystore = KeyStore.getInstance(&quot;PKCS12&quot;, BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="fc" id="L147">                keystore.load(null, null);</span>
+                //keystore.load(null, authCode);
+<span class="fc" id="L149">                setKeyStore(keystore);</span>
+                // If everything was OK we cache the load/save password so we can store the keystore
+<span class="fc" id="L151">                keyStorePass = authCode;</span>
+<span class="fc" id="L152">                storeKeyStore();</span>
+<span class="nc" id="L153">            } catch (KeyStoreException e) {</span>
+<span class="nc" id="L154">                log.error(e);</span>
+<span class="nc" id="L155">                throw new CryptoTokenAuthenticationFailedException(e.getMessage());</span>
+<span class="nc" id="L156">            } catch (NoSuchProviderException e) {</span>
+<span class="nc" id="L157">                log.error(e);</span>
+<span class="nc" id="L158">                throw new CryptoTokenAuthenticationFailedException(e.getMessage());</span>
+<span class="nc" id="L159">            } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L160">                log.error(e);</span>
+<span class="nc" id="L161">                throw new CryptoTokenAuthenticationFailedException(e.getMessage());</span>
+<span class="nc" id="L162">            } catch (CertificateException e) {</span>
+<span class="nc" id="L163">                log.error(e);</span>
+<span class="nc" id="L164">                throw new CryptoTokenAuthenticationFailedException(e.getMessage());</span>
+<span class="nc" id="L165">            } catch (IOException e) {</span>
+<span class="nc" id="L166">                log.error(e);</span>
+<span class="nc" id="L167">                throw new CryptoTokenAuthenticationFailedException(e.getMessage());</span>
+<span class="fc" id="L168">            }</span>
+        }
+<span class="fc" id="L170">    }</span>
+    
+    /**
+     * Throws an exception if the export of this crypto token should be denied.
+     * 
+     * @param authCode code
+     * @throws CryptoTokenAuthenticationFailedException if the authentication code is incorrect.
+     * @throws CryptoTokenOfflineException if the crypto token is offline or an unknown error occurs.
+     * @throws PrivateKeyNotExtractableException if the crypto tokens does not allow it's keys to be extracted.
+     */
+    public void checkPasswordBeforeExport(char[] authCode) throws CryptoTokenAuthenticationFailedException, CryptoTokenOfflineException, PrivateKeyNotExtractableException {
+<span class="nc bnc" id="L181" title="All 2 branches missed.">        if (!doPermitExtractablePrivateKey()) {</span>
+<span class="nc" id="L182">            final String msg = intres.getLocalizedMessage(&quot;token.errornotextractable_allkeys&quot;, getId());</span>
+<span class="nc" id="L183">            throw new PrivateKeyNotExtractableException(msg);</span>
+        }
+        try {
+<span class="nc bnc" id="L186" title="All 4 branches missed.">            if (authCode == null || authCode.length == 0) {</span>
+<span class="nc" id="L187">                final String defaultpass = StringTools.passwordDecryption(CesecoreConfiguration.getCaKeyStorePass(), &quot;ca.keystorepass&quot;);</span>
+<span class="nc" id="L188">                loadKeyStore(keystoreData, defaultpass.toCharArray());</span>
+<span class="nc" id="L189">            } else {</span>
+<span class="nc" id="L190">                loadKeyStore(keystoreData, authCode);</span>
+            }
+<span class="nc" id="L192">        } catch (IOException e) {</span>
+<span class="nc" id="L193">            String msg = intres.getLocalizedMessage(&quot;token.wrongauthcode&quot;, getId(), e.getMessage());</span>
+<span class="nc" id="L194">            log.info(msg, e);</span>
+<span class="nc" id="L195">            CryptoTokenAuthenticationFailedException oe = new CryptoTokenAuthenticationFailedException(e.getMessage());</span>
+<span class="nc" id="L196">            oe.initCause(e);</span>
+<span class="nc" id="L197">            throw oe;</span>
+<span class="nc" id="L198">        } catch (Exception e) {</span>
+<span class="nc" id="L199">            String msg = intres.getLocalizedMessage(&quot;token.erroractivate&quot;, getId(), e.getMessage());</span>
+<span class="nc" id="L200">            log.info(msg, e);</span>
+<span class="nc" id="L201">            CryptoTokenOfflineException oe = new CryptoTokenOfflineException(e.getMessage());</span>
+<span class="nc" id="L202">            oe.initCause(e);</span>
+<span class="nc" id="L203">            throw oe;</span>
+<span class="nc" id="L204">        }</span>
+<span class="nc" id="L205">    }</span>
+
+    private KeyStore loadKeyStore(final byte[] ksdata, final char[] keystorepass) throws NoSuchAlgorithmException, CertificateException, IOException,
+            KeyStoreException, NoSuchProviderException {
+<span class="fc" id="L209">        CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+<span class="fc" id="L210">        KeyStore keystore = KeyStore.getInstance(&quot;PKCS12&quot;, BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="pc bpc" id="L211" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">        	log.debug(&quot;Loading keystore data of size: &quot;+ (ksdata == null ? &quot;null&quot; : ksdata.length));</span>
+        }
+<span class="fc" id="L214">        keystore.load(new ByteArrayInputStream(ksdata), keystorepass);</span>
+<span class="fc" id="L215">        return keystore;</span>
+    }
+
+    @Override
+    public void deactivate() {
+<span class="fc" id="L220">        storeKeyStore();</span>
+        try {
+<span class="fc" id="L222">            setKeyStore(null);</span>
+<span class="nc" id="L223">        } catch (KeyStoreException e) {</span>
+        	// Exception should only be thrown if loading a non-null KeyStore fails
+<span class="nc" id="L225">            throw new IllegalStateException(&quot;This should never happen.&quot;);</span>
+<span class="fc" id="L226">        }</span>
+<span class="fc" id="L227">        String msg = intres.getLocalizedMessage(&quot;token.deactivate&quot;, getId());</span>
+<span class="fc" id="L228">        log.info(msg);</span>
+<span class="fc" id="L229">    }</span>
+
+    void storeKeyStore() {
+        // Store keystore at data first so we can activate again
+<span class="fc" id="L233">        ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+        try {
+<span class="pc bpc" id="L235" title="1 of 2 branches missed.">            if (keyStore != null) {</span>
+<span class="fc" id="L236">                this.keyStore.store(baos, keyStorePass);</span>
+<span class="fc" id="L237">                this.keystoreData = baos.toByteArray();</span>
+            }
+<span class="nc" id="L239">        } catch (KeyStoreException e) {</span>
+<span class="nc" id="L240">            log.error(e);</span>
+<span class="nc" id="L241">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L242">            log.error(e);</span>
+<span class="nc" id="L243">        } catch (CertificateException e) {</span>
+<span class="nc" id="L244">            log.error(e);</span>
+<span class="nc" id="L245">        } catch (IOException e) {</span>
+<span class="nc" id="L246">            log.error(e);</span>
+<span class="pc" id="L247">        }</span>
+<span class="pc bpc" id="L248" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">            log.debug(&quot;Storing soft keystore of size &quot; + (keystoreData == null ? &quot;null&quot; : keystoreData.length));</span>
+        }
+<span class="fc" id="L251">    }</span>
+
+    @Override
+    public byte[] getTokenData() {
+<span class="fc" id="L255">        storeKeyStore();</span>
+<span class="fc" id="L256">        return keystoreData;</span>
+    }
+
+    /**
+     * Verifies the password for soft keystore by trying to load the keystore
+     * 
+     * @param authenticationCode
+     *            authentication code for the keystore
+     * @param cryptoTokenId ID
+     * @return true if verification was ok
+     */
+    private boolean checkSoftKeystorePassword(final char[] authenticationCode, int cryptoTokenId) {
+        try {
+<span class="pc bpc" id="L269" title="1 of 2 branches missed.">            if (keystoreData != null) {</span>
+<span class="nc" id="L270">                KeyStore keystore = KeyStore.getInstance(&quot;PKCS12&quot;, BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="nc" id="L271">                keystore.load(new java.io.ByteArrayInputStream(keystoreData), authenticationCode);</span>
+            }
+<span class="fc" id="L273">            return true;</span>
+<span class="nc" id="L274">        } catch (Exception e) {</span>
+            // If it was not the wrong password we need to see what went wrong
+<span class="nc" id="L276">            log.debug(&quot;Error: &quot;, e);</span>
+            // Invalid password
+<span class="nc" id="L278">            log.info(intres.getLocalizedMessage(&quot;token.wrongauthcode&quot;, cryptoTokenId));</span>
+        }
+<span class="nc" id="L280">        return false;</span>
+    }
+
+    @Override
+    public void deleteEntry(final String alias) throws KeyStoreException, NoSuchAlgorithmException,
+            CertificateException, IOException, CryptoTokenOfflineException {
+<span class="pc bpc" id="L286" title="1 of 2 branches missed.">        if (StringUtils.isNotEmpty(alias)) {</span>
+<span class="fc" id="L287">            KeyStoreTools cont = new KeyStoreTools(getKeyStore(), getSignProviderName());</span>
+            try {
+<span class="fc" id="L289">                cont.deleteEntry(alias);</span>
+<span class="fc" id="L290">                String msg = intres.getLocalizedMessage(&quot;token.deleteentry&quot;, alias, getId());</span>
+<span class="fc" id="L291">                log.info(msg);</span>
+<span class="nc" id="L292">            } catch (KeyStoreException e) { // NOPMD</span>
+                // P12 keystore throws when the alias can not be found, in contrary to PKCS#11 keystores
+                // Java API is vague about what should happen so...
+<span class="fc" id="L295">            }</span>
+<span class="fc" id="L296">            storeKeyStore();</span>
+<span class="fc" id="L297">        } else {</span>
+<span class="nc" id="L298">            log.debug(&quot;Trying to delete keystore entry with empty alias.&quot;);</span>
+        }
+<span class="fc" id="L300">    }</span>
+
+    @Override
+    public void generateKeyPair(final String keySpec, final String alias) throws InvalidAlgorithmParameterException,
+            CryptoTokenOfflineException {
+<span class="pc bpc" id="L305" title="1 of 2 branches missed.">        if (StringUtils.isNotEmpty(alias)) {</span>
+<span class="fc" id="L306">            KeyStoreTools cont = new KeyStoreTools(getKeyStore(), getSignProviderName());</span>
+<span class="fc" id="L307">            cont.generateKeyPair(keySpec, alias);</span>
+<span class="fc" id="L308">            storeKeyStore();</span>
+<span class="fc" id="L309">        } else {</span>
+<span class="nc" id="L310">            log.debug(&quot;Trying to generate keys with empty alias.&quot;);</span>
+        }
+<span class="fc" id="L312">    }</span>
+
+    @Override
+    public void generateKey(final String algorithm, final int keysize, final String alias) throws NoSuchAlgorithmException, NoSuchProviderException,
+            KeyStoreException, CryptoTokenOfflineException, InvalidKeyException, InvalidAlgorithmParameterException, SignatureException,
+            CertificateException, IOException, NoSuchPaddingException, IllegalBlockSizeException {
+<span class="pc bpc" id="L318" title="1 of 2 branches missed.">        if (StringUtils.isNotEmpty(alias)) {</span>
+            // Soft crypto tokens must do very special things for secret keys, since PKCS#12 keystores are not designed to hold
+            // symmetric keys, we wrap the symmetric key with an RSA key and store it in properties
+
+            // Generate the key
+<span class="fc" id="L323">            KeyGenerator generator = KeyGenerator.getInstance(algorithm, getEncProviderName());</span>
+<span class="fc" id="L324">            generator.init(keysize);</span>
+<span class="fc" id="L325">            Key key = generator.generateKey();</span>
+            // Wrap it
+            // Find wrapping key
+<span class="fc" id="L328">            PublicKey pubK = null;</span>
+            try {
+<span class="nc" id="L330">                pubK = getPublicKey(&quot;symwrap&quot;);</span>
+<span class="fc" id="L331">            } catch (CryptoTokenOfflineException e) {</span>
+                // No such key, generate it
+<span class="fc" id="L333">                generateKeyPair(&quot;2048&quot;, &quot;symwrap&quot;);</span>
+<span class="fc" id="L334">                pubK = getPublicKey(&quot;symwrap&quot;);</span>
+<span class="nc" id="L335">            }</span>
+
+<span class="fc" id="L337">            Cipher cipher = Cipher.getInstance(&quot;RSA/ECB/PKCS1Padding&quot;, getEncProviderName());</span>
+<span class="fc" id="L338">            cipher.init(Cipher.WRAP_MODE, pubK);</span>
+<span class="fc" id="L339">            byte[] out = cipher.wrap(key);</span>
+
+<span class="fc" id="L341">            String str = new String(Hex.encode(out));</span>
+<span class="fc" id="L342">            Properties prop = getProperties();</span>
+<span class="fc" id="L343">            prop.setProperty(alias, str);</span>
+<span class="fc" id="L344">            setProperties(prop);</span>
+<span class="fc" id="L345">        } else {</span>
+<span class="nc" id="L346">            log.debug(&quot;Trying to generate keys with empty alias.&quot;);</span>
+        }
+<span class="fc" id="L348">    }</span>
+
+    @Override
+    public void generateKeyPair(final AlgorithmParameterSpec spec, final String alias) throws InvalidAlgorithmParameterException, CertificateException,
+    IOException, CryptoTokenOfflineException {
+<span class="pc bpc" id="L353" title="1 of 2 branches missed.">        if (StringUtils.isNotEmpty(alias)) {</span>
+<span class="fc" id="L354">            KeyStoreTools cont = new KeyStoreTools(getKeyStore(), getSignProviderName());</span>
+<span class="fc" id="L355">            cont.generateKeyPair(spec, alias);</span>
+<span class="fc" id="L356">            storeKeyStore();</span>
+<span class="fc" id="L357">        } else {</span>
+<span class="nc" id="L358">            log.debug(&quot;Trying to generate keys with empty alias.&quot;);</span>
+        }
+<span class="fc" id="L360">    }</span>
+
+    @Override
+    public boolean permitExtractablePrivateKeyForTest() {
+<span class="fc" id="L364">        return true;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

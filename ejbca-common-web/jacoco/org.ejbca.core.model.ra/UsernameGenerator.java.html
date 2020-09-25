@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UsernameGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.ra</a> &gt; <span class="el_source">UsernameGenerator.java</span></div><h1>UsernameGenerator.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.ra;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.util.CertTools;
+import org.ejbca.util.passgen.IPasswordGenerator;
+import org.ejbca.util.passgen.PasswordGeneratorFactory;
+
+/**
+ * Class used to generate special usernames.
+ * 
+ * Configuration parameters:
+ * 
+ * NameGenerationScheme = &quot;Which generation scheme should be used, RANDOM, USERNAME or DN&quot;
+ * RANDOM will generate a random username with length set in 'randomNameLength'.
+ *   
+ * NameGenerationParameters = &quot;Parameters for name generation, for DN it can be CN or UID&quot;. 
+ * If mode is DN, the CN or UID is taken from the DN to be used as username (adding pre- and postfix off-course).
+ *   
+ * NameGenerationPrefix = &quot;Prefix to generated name, a string that can contain the variable ${RANDOM}&quot;
+ * exmaple: &quot;Prefix - &quot;
+ *   
+ * NameGenerationPostfix=&quot;Postfix to generated name, a string that can contain the variable ${RANDOM}&quot;
+ * example: &quot; - Postfix&quot;
+ * 
+ * The variable ${RANDOM} will be replaced by a random value of length set in 'randomPrefixLength'. 
+ * 
+ * @version $Id: UsernameGenerator.java 24857 2016-12-07 13:48:26Z mikekushner $
+ */
+public class UsernameGenerator {
+
+<span class="fc" id="L47">	private static final Logger log = Logger.getLogger(UsernameGenerator.class);</span>
+
+	// Generator configuration parameters, with good default values
+<span class="fc" id="L50">	private UsernameGeneratorParams params = null;</span>
+	
+	public static UsernameGenerator getInstance(String mode) {
+<span class="fc" id="L53">		return new UsernameGenerator(mode);</span>
+	}
+	public static UsernameGenerator getInstance(UsernameGeneratorParams params) {
+<span class="fc" id="L56">		return new UsernameGenerator(params);</span>
+	}
+<span class="fc" id="L58">	private UsernameGenerator(String mode) {</span>
+<span class="fc" id="L59">		this.params = new UsernameGeneratorParams();</span>
+<span class="fc" id="L60">		params.setMode(mode);</span>
+<span class="fc" id="L61">	}</span>
+<span class="fc" id="L62">	private UsernameGenerator(UsernameGeneratorParams params) {</span>
+<span class="fc" id="L63">		this.params = params;</span>
+<span class="fc" id="L64">	}</span>
+	
+	public String generateUsername() {
+<span class="fc" id="L67">		String ret = null;</span>
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">		if (params.getMode() != UsernameGeneratorParams.MODE_RANDOM) {</span>
+<span class="nc" id="L69">			throw new IllegalArgumentException(&quot;this method can only be used in mode RANDOM&quot;);</span>
+		}		
+<span class="fc" id="L71">		ret = getRandomString(params.getRandomNameLength());</span>
+<span class="fc" id="L72">		return addPrePostFix(ret);</span>
+	}
+	
+	public String generateUsername(String name) {
+<span class="pc bpc" id="L76" title="1 of 2 branches missed.">	    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L77">	        log.debug(&quot;&gt;generateUsername: &quot;+name);</span>
+	    }
+<span class="fc" id="L79">		String str = name;</span>
+<span class="pc bpc" id="L80" title="3 of 5 branches missed.">		switch (params.getMode()) {</span>
+		case UsernameGeneratorParams.MODE_RANDOM:
+<span class="nc" id="L82">			str = getRandomString(params.getRandomNameLength());			</span>
+<span class="nc" id="L83">			break;</span>
+		case UsernameGeneratorParams.MODE_DN:
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">			if (str == null) {</span>
+<span class="nc" id="L86">				throw new IllegalArgumentException(&quot;Input name can not be null in MODE_DN!&quot;);</span>
+			}
+<span class="fc" id="L88">			String[] parts = StringUtils.split(params.getDNGeneratorComponent(), ';');</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">			for (int i = 0; i &lt; parts.length; i++) {</span>
+<span class="fc" id="L90">		        str = CertTools.getPartFromDN(name, parts[i]);</span>
+		        // If this DN component exists, break here.
+<span class="fc bfc" id="L92" title="All 2 branches covered.">		        if (str != null) {</span>
+<span class="fc" id="L93">		        	break;</span>
+		        }
+			}
+<span class="fc" id="L96">	        break;</span>
+		case UsernameGeneratorParams.MODE_USERNAME:
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">			if (str == null) {</span>
+<span class="nc" id="L99">				throw new IllegalArgumentException(&quot;Input name can not be null in MODE_USERNAME!&quot;);</span>
+			}
+	        break;
+		case UsernameGeneratorParams.MODE_FIXED:
+<span class="nc" id="L103">		    str = params.getDNGeneratorComponent();</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">			if (str == null) {</span>
+<span class="nc" id="L105">				throw new IllegalArgumentException(&quot;DNGeneratorComponent can not be null in MODE_FIXED!&quot;);</span>
+			}
+	        break;
+		default:
+			break;
+		}
+<span class="fc" id="L111">		String ret = addPrePostFix(str);</span>
+<span class="pc bpc" id="L112" title="1 of 2 branches missed.">		if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L113">			log.debug(&quot;&lt;generateUsername, generated username: &quot;+ret);</span>
+		}
+<span class="fc" id="L115">		return ret;</span>
+	}
+	
+	private String getRandomString(int length) {
+<span class="fc" id="L119">		IPasswordGenerator gen = PasswordGeneratorFactory.getInstance(params.getRandomGeneratorType());</span>
+<span class="fc" id="L120">		String ret = gen.getNewPassword(length, length);		</span>
+<span class="fc" id="L121">		return ret;</span>
+	}
+	
+	private String addPrePostFix(String in) {
+<span class="fc" id="L125">		String ret = in;</span>
+<span class="fc" id="L126">		String pre = getPrefix();</span>
+<span class="fc" id="L127">		String post = getPostfix();</span>
+<span class="fc bfc" id="L128" title="All 2 branches covered.">		if (pre != null) {</span>
+<span class="fc" id="L129">			ret = pre + ret;</span>
+		}
+<span class="fc bfc" id="L131" title="All 2 branches covered.">		if (post != null) {</span>
+<span class="fc" id="L132">			ret = ret + post;</span>
+		}
+<span class="fc" id="L134">		return ret;</span>
+	}
+
+	private String getPostfix() {
+<span class="fc" id="L138">		return interpolate(params.getPostfix());</span>
+	}
+
+	private String getPrefix() {
+<span class="fc" id="L142">		return interpolate(params.getPrefix());</span>
+	}
+
+    /** regexp pattern to match ${identifier} patterns */
+<span class="fc" id="L146">    private final static Pattern PATTERN = Pattern.compile(&quot;\\$\\{(.+?)\\}&quot;);</span>
+    /**
+     * Interpolate the patterns that exists on the input on the form '${pattern}'.
+     * @param input the input content to be interpolated
+     * @return the interpolated content
+     */
+    private String interpolate(String input) {
+<span class="fc bfc" id="L153" title="All 2 branches covered.">    	if (input == null) {</span>
+<span class="fc" id="L154">    		return null;</span>
+    	}
+<span class="fc" id="L156">        final Matcher m = PATTERN.matcher(input);</span>
+<span class="fc" id="L157">        final StringBuffer sb = new StringBuffer(input.length());</span>
+<span class="fc bfc" id="L158" title="All 2 branches covered.">        while (m.find()) {</span>
+            // when the pattern is ${identifier}, group 0 is 'identifier'
+<span class="fc" id="L160">            String key = m.group(1);</span>
+<span class="fc" id="L161">            String value = null;</span>
+<span class="pc bpc" id="L162" title="1 of 2 branches missed.">            if (StringUtils.equals(key, &quot;RANDOM&quot;)) {</span>
+<span class="fc" id="L163">            	value = getRandomString(params.getRandomPrefixLength());</span>
+            }
+            // if the pattern does exists, replace it by its value
+            // otherwise keep the pattern ( it is group(0) )
+<span class="pc bpc" id="L167" title="1 of 2 branches missed.">            if (value != null) {</span>
+<span class="fc" id="L168">                m.appendReplacement(sb, value);</span>
+            } else {
+                // I'm doing this to avoid the backreference problem as there will be a $
+                // if I replace directly with the group 0 (which is also a pattern)
+<span class="nc" id="L172">                m.appendReplacement(sb, &quot;&quot;);</span>
+<span class="nc" id="L173">                String unknown = m.group(0);</span>
+<span class="nc" id="L174">                sb.append(unknown);</span>
+            }
+<span class="fc" id="L176">        }</span>
+<span class="fc" id="L177">        m.appendTail(sb);</span>
+<span class="fc" id="L178">        return sb.toString();</span>
+    }
+	public UsernameGeneratorParams getParams() {
+<span class="fc" id="L181">		return params;</span>
+	}
+	public void setParams(UsernameGeneratorParams params) {
+<span class="fc" id="L184">		this.params = params;</span>
+<span class="fc" id="L185">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

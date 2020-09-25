@@ -1,0 +1,747 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>UserData.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-ejb-interface</a> &gt; <a href="../index.html" class="el_bundle">ejbca-entity</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.ra</a> &gt; <span class="el_source">UserData.java</span></div><h1>UserData.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.ejb.ra;
+
+import java.io.Serializable;
+import java.security.NoSuchAlgorithmException;
+import java.util.Date;
+
+import javax.persistence.Entity;
+import javax.persistence.PostLoad;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.EndEntityType;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.dbprotection.ProtectedData;
+import org.cesecore.dbprotection.ProtectionStringBuilder;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.StringTools;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.util.crypto.BCrypt;
+import org.ejbca.util.crypto.CryptoTools;
+import org.ejbca.util.crypto.SupportedPasswordHashAlgorithm;
+
+/**
+ * Representation of a User.
+ * 
+ * Passwords should me manipulated through helper functions setPassword() and setOpenPassword(). The setPassword() function sets the hashed password,
+ * while the setOpenPassword() method sets both the hashed password and the clear text password. The method comparePassword() is used to verify a
+ * password against the hashed password.
+ * 
+ * @version $Id: UserData.java 27718 2018-01-03 08:31:26Z mikekushner $
+ */
+@Entity
+@Table(name = &quot;UserData&quot;)
+public class UserData extends ProtectedData implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+<span class="fc" id="L56">    private static final Logger log = Logger.getLogger(UserData.class);</span>
+    /** Internal localization of logs and errors */
+<span class="fc" id="L58">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+
+    private String username;
+    private String subjectDN;
+    private int caId;
+    private String subjectAltName;
+    private String cardNumber;
+    private String subjectEmail;
+    private int status;
+    private int type;
+    private String clearPassword;
+    private String passwordHash;
+    private long timeCreated;
+    private long timeModified;
+    private int endEntityProfileId;
+    private int certificateProfileId;
+    private int tokenType;
+    private int hardTokenIssuerId;
+    private String extendedInformationData;
+    /** instantiated object of the above, used to not have to encode/decode the object all the time.
+     * see PrePersist annotated method */
+    private ExtendedInformation extendedInformation;
+    private String keyStorePassword;
+<span class="pc" id="L81">    private int rowVersion = 0;</span>
+    private String rowProtection;
+    // Performance optimization within a transaction, to not have to hash the password when comparing internally in the same transaction, saving one BCrypt operation
+    private transient String transientPwd;
+    
+    /**
+     * Entity Bean holding info about a User. Create by sending in the instance, username, password and subject DN. SubjectEmail, Status and Type are
+     * set to default values (null, STATUS_NEW, USER_INVALID). and should be set using the respective set-methods. Clear text password is not set at
+     * all and must be set using setClearPassword();
+     * 
+     * @param username the unique username used for authentication.
+     * @param password the password used for authentication. If clearpwd is false this only sets passwordhash, if clearpwd is true it also sets
+     *            cleartext password.
+     * @param clearpwd true if clear password should be set for CA generated tokens (p12, jks, pem), false otherwise for only storing hashed
+     *            passwords.
+     * @param dn the DN the subject is given in his certificate.
+     * @param caid ID
+     * @param cardnumber the number printed on the card.
+     * @param altname string of alternative names, i.e. rfc822name=foo2bar.com,dnsName=foo.bar.com, can be null
+     * @param email user email address, can be null
+     * @param type user type, i.e. EndEntityTypes.USER_ENDUSER etc
+     * @param eeprofileid end entity profile id, can be 0
+     * @param certprofileid certificate profile id, can be 0
+     * @param tokentype token type to issue to the user, i.e. SecConst.TOKEN_SOFT_BROWSERGEN
+     * @param hardtokenissuerid hard token issuer id if hard token issuing is used, 0 otherwise
+     * @param extendedInformation ExtendedInformation object
+     * 
+     */
+    public UserData(String username, String password, boolean clearpwd, String dn, int caid, String cardnumber, String altname, String email,
+<span class="nc" id="L110">            int type, int eeprofileid, int certprofileid, int tokentype, int hardtokenissuerid, ExtendedInformation extendedInformation) {</span>
+<span class="nc" id="L111">        long time = new Date().getTime();</span>
+<span class="nc" id="L112">        setUsername(username);</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        if (clearpwd) {</span>
+<span class="nc" id="L114">            setOpenPassword(password);</span>
+        } else {
+<span class="nc" id="L116">            setPasswordHash(CryptoTools.makePasswordHash(password));</span>
+<span class="nc" id="L117">            setClearPassword(null);</span>
+        }
+<span class="nc" id="L119">        transientPwd = password; // performance optimization within a transaction</span>
+<span class="nc" id="L120">        setSubjectDN(CertTools.stringToBCDNString(dn));</span>
+<span class="nc" id="L121">        setCaId(caid);</span>
+<span class="nc" id="L122">        setSubjectAltName(altname);</span>
+<span class="nc" id="L123">        setSubjectEmail(email);</span>
+<span class="nc" id="L124">        setStatus(EndEntityConstants.STATUS_NEW);</span>
+<span class="nc" id="L125">        setType(type);</span>
+<span class="nc" id="L126">        setTimeCreated(time);</span>
+<span class="nc" id="L127">        setTimeModified(time);</span>
+<span class="nc" id="L128">        setEndEntityProfileId(eeprofileid);</span>
+<span class="nc" id="L129">        setCertificateProfileId(certprofileid);</span>
+<span class="nc" id="L130">        setTokenType(tokentype);</span>
+<span class="nc" id="L131">        setHardTokenIssuerId(hardtokenissuerid);</span>
+<span class="nc" id="L132">        setExtendedInformation(extendedInformation);</span>
+<span class="nc" id="L133">        setCardNumber(cardnumber);</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L135">            log.debug(&quot;Created user &quot; + username);</span>
+        }
+<span class="nc" id="L137">    }</span>
+
+<span class="fc" id="L139">    public UserData() {</span>
+<span class="fc" id="L140">    }</span>
+
+    // @Id @Column
+    public String getUsername() {
+<span class="fc" id="L144">        return username;</span>
+    }
+
+    public void setUsername(String username) {
+<span class="fc" id="L148">        this.username = StringTools.stripUsername(username);</span>
+<span class="fc" id="L149">    }</span>
+
+    /** @return the current Subject DN of the EE, never null */
+    @Transient
+    public String getSubjectDnNeverNull() {
+<span class="nc" id="L154">        final String subjectDn = getSubjectDN();</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">        return subjectDn == null ? &quot;&quot; : subjectDn;</span>
+    }
+
+    /** 
+     * Use getSubjectDnNeverNull() for consistent access, since Oracle will treat empty Strings as NULL.
+     * 
+     * @return value as it is stored in the database
+     */
+    // @Column(length=400)
+    public String getSubjectDN() {
+<span class="fc" id="L165">        return subjectDN;</span>
+    }
+
+    public void setSubjectDN(String subjectDN) {
+<span class="fc" id="L169">        this.subjectDN = subjectDN;</span>
+<span class="fc" id="L170">    }</span>
+
+    // @Column
+    public int getCaId() {
+<span class="fc" id="L174">        return caId;</span>
+    }
+
+    public void setCaId(int caId) {
+<span class="fc" id="L178">        this.caId = caId;</span>
+<span class="fc" id="L179">    }</span>
+
+    /** @return the current Subject AN of the EE, never null */
+    @Transient
+    public String getSubjectAltNameNeverNull() {
+<span class="nc" id="L184">        final String subjectAltName = getSubjectAltName();</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">        return subjectAltName == null ? &quot;&quot; : subjectAltName;</span>
+    }
+
+    /**
+     * Use getSubjectAltNameNeverNull() for consistent access, since Oracle will treat empty Strings as null.
+     * 
+     * @return value as it is stored in the database
+     */
+    // @Column(length=2000)
+    public String getSubjectAltName() {
+<span class="fc" id="L195">        return subjectAltName;</span>
+    }
+
+    public void setSubjectAltName(String subjectAltName) {
+<span class="fc" id="L199">        this.subjectAltName = subjectAltName;</span>
+<span class="fc" id="L200">    }</span>
+
+    // @Column
+    public String getCardNumber() {
+<span class="fc" id="L204">        return cardNumber;</span>
+    }
+
+    public void setCardNumber(String cardNumber) {
+<span class="fc" id="L208">        this.cardNumber = cardNumber;</span>
+<span class="fc" id="L209">    }</span>
+
+    // @Column
+    public String getSubjectEmail() {
+<span class="fc" id="L213">        return subjectEmail;</span>
+    }
+
+    public void setSubjectEmail(String subjectEmail) {
+<span class="fc" id="L217">        this.subjectEmail = subjectEmail;</span>
+<span class="fc" id="L218">    }</span>
+
+    // @Column
+    public int getStatus() {
+<span class="fc" id="L222">        return this.status;</span>
+    }
+
+    public void setStatus(int status) {
+<span class="fc" id="L226">        this.status = status;</span>
+<span class="fc" id="L227">    }</span>
+
+    // @Column
+    public int getType() {
+<span class="fc" id="L231">        return type;</span>
+    }
+
+    public void setType(int type) {
+<span class="fc" id="L235">        this.type = type;</span>
+<span class="fc" id="L236">    }</span>
+
+    /**
+     * This method is needed for Java Persistence.
+     * The preferred method for usage is setOpenPassword().
+     * Returns the clearPassword column as it is in the database (may be obfuscated) or null. 
+     * @return PWD
+     */
+    // @Column
+    public String getClearPassword() {
+<span class="fc" id="L246">        return clearPassword;</span>
+    }
+
+    /**
+     * This method is needed for Java Persistence.
+     * The preferred method for usage is setOpenPassword().
+     * Sets the clearPassword column in the database. 
+     * @param clearPassword PWD
+     */
+    public void setClearPassword(String clearPassword) {
+<span class="fc" id="L256">    	this.clearPassword = clearPassword;</span>
+<span class="fc" id="L257">    }</span>
+
+    /**
+     * Returns hashed password or null.
+     * @return Hash
+     */
+    // @Column
+    public String getPasswordHash() {
+<span class="fc" id="L265">        return passwordHash;</span>
+    }
+
+    /**
+     * Sets hash of password, this is the normal way to store passwords, but use the method setPassword() instead.
+     * @param passwordHash Hash
+     */
+    public void setPasswordHash(String passwordHash) {
+<span class="fc" id="L273">        this.passwordHash = passwordHash;</span>
+<span class="fc" id="L274">    }</span>
+
+    /**
+     * Returns the time when the user was created.
+     * @return Time
+     */
+    // @Column
+    public long getTimeCreated() {
+<span class="fc" id="L282">        return timeCreated;</span>
+    }
+
+    /**
+     * Sets the time when the user was created.
+     * @param timeCreated Time
+     */
+    public void setTimeCreated(long timeCreated) {
+<span class="fc" id="L290">        this.timeCreated = timeCreated;</span>
+<span class="fc" id="L291">    }</span>
+
+    /**
+     * Returns the time when the user was last modified.
+     * @return Time
+     */
+    // @Column
+    public long getTimeModified() {
+<span class="fc" id="L299">        return timeModified;</span>
+    }
+
+    /**
+     * Sets the time when the user was last modified.
+     * @param timeModified Time
+     */
+    public void setTimeModified(long timeModified) {
+<span class="fc" id="L307">        this.timeModified = timeModified;</span>
+<span class="fc" id="L308">    }</span>
+
+    /**
+     * Returns the end entity profile id the user belongs to.
+     * @return Time
+     */
+    // @Column
+    public int getEndEntityProfileId() {
+<span class="fc" id="L316">        return endEntityProfileId;</span>
+    }
+
+    /**
+     * Sets the end entity profile id the user should belong to. 0 if profileid is not applicable.
+     * @param endEntityProfileId Time
+     */
+    public void setEndEntityProfileId(int endEntityProfileId) {
+<span class="fc" id="L324">        this.endEntityProfileId = endEntityProfileId;</span>
+<span class="fc" id="L325">    }</span>
+
+    /**
+     * Returns the certificate profile id that should be generated for the user.
+     * @return Time
+     */
+    // @Column
+    public int getCertificateProfileId() {
+<span class="fc" id="L333">        return certificateProfileId;</span>
+    }
+
+    /**
+     * Sets the certificate profile id that should be generated for the user. 0 if profileid is not applicable.
+     * @param certificateProfileId time
+     */
+    public void setCertificateProfileId(int certificateProfileId) {
+<span class="fc" id="L341">        this.certificateProfileId = certificateProfileId;</span>
+<span class="fc" id="L342">    }</span>
+
+    /**
+     * Returns the token type id that should be generated for the user.
+     * @return Time
+     */
+    // @Column
+    public int getTokenType() {
+<span class="fc" id="L350">        return tokenType;</span>
+    }
+
+    /**
+     * Sets the token type that should be generated for the user. Available token types can be found in SecConst.
+     * @param tokenType Time
+     */
+    public void setTokenType(int tokenType) {
+<span class="fc" id="L358">        this.tokenType = tokenType;</span>
+<span class="fc" id="L359">    }</span>
+
+    /**
+     * Returns the hard token issuer id that should genererate for the users hard token.
+     * @return Time
+     */
+    // @Column
+    public int getHardTokenIssuerId() {
+<span class="fc" id="L367">        return hardTokenIssuerId;</span>
+    }
+
+    /**
+     * Sets the hard token issuer id that should genererate for the users hard token. 0 if issuerid is not applicable.
+     * @param hardTokenIssuerId ID
+     */
+    public void setHardTokenIssuerId(int hardTokenIssuerId) {
+<span class="fc" id="L375">        this.hardTokenIssuerId = hardTokenIssuerId;</span>
+<span class="fc" id="L376">    }</span>
+
+    /**
+     * Non-searchable information about a user.
+     * @return Data
+     */
+    // @Column @Lob
+    public String getExtendedInformationData() {
+<span class="fc" id="L384">        return this.getZzzExtendedInformationData();</span>
+    }
+
+    /**
+     * Non-searchable information about a user.
+     * @param extendedInformationData Data
+     */
+    public void setExtendedInformationData(String extendedInformationData) {
+<span class="fc" id="L392">        this.setZzzExtendedInformationData(extendedInformationData);</span>
+<span class="fc" id="L393">    }</span>
+
+    /** 
+     * Horrible work-around due to the fact that Oracle needs to have (LONG and) CLOB values last in order to avoid ORA-24816.
+     * 
+     * Since Hibernate sorts columns by the property names, naming this Z-something will apparently ensure that this column is used last.
+     * @return Data
+     * @deprecated Use {@link #getExtendedInformationData()} instead
+     */
+    @Deprecated
+    public String getZzzExtendedInformationData() {
+<span class="fc" id="L404">        return extendedInformationData;</span>
+    }
+    /** @param zzzExtendedInformationData Data
+     * @deprecated Use {@link #setExtendedInformationData(String)} instead */
+    @Deprecated
+    public void setZzzExtendedInformationData(final String zzzExtendedInformationData) {
+<span class="fc" id="L410">        this.extendedInformationData = zzzExtendedInformationData;</span>
+<span class="fc" id="L411">    }</span>
+
+    @Deprecated
+    // Can't find any references to this field. Please un-deprecate if an use is discovered! =)
+    // @Column
+    public String getKeyStorePassword() {
+<span class="fc" id="L417">        return keyStorePassword;</span>
+    }
+
+    @Deprecated
+    // Can't find any references to this field. Please un-deprecate if an use is discovered! =)
+    public void setKeyStorePassword(String keyStorePassword) {
+<span class="fc" id="L423">        this.keyStorePassword = keyStorePassword;</span>
+<span class="fc" id="L424">    }</span>
+
+    // @Version @Column
+    public int getRowVersion() {
+<span class="fc" id="L428">        return rowVersion;</span>
+    }
+
+    public void setRowVersion(int rowVersion) {
+<span class="fc" id="L432">        this.rowVersion = rowVersion;</span>
+<span class="fc" id="L433">    }</span>
+
+    // @Column @Lob
+    @Override
+    public String getRowProtection() {
+<span class="nc" id="L438">        return this.getZzzRowProtection();</span>
+    }
+
+    @Override
+    public void setRowProtection(String rowProtection) {
+<span class="fc" id="L443">        this.setZzzRowProtection(rowProtection);</span>
+<span class="fc" id="L444">    }</span>
+
+    /** 
+     * Horrible work-around due to the fact that Oracle needs to have (LONG and) CLOB values last in order to avoid ORA-24816.
+     * 
+     * Since Hibernate sorts columns by the property names, naming this Z-something will apparently ensure that this column is used last.
+     * @return protect
+     * @deprecated Use {@link #getRowProtection()} instead
+     */
+    @Deprecated
+    public String getZzzRowProtection() {
+<span class="fc" id="L455">        return rowProtection;</span>
+    }
+    /** @param zzzRowProtection protect
+     * @deprecated Use {@link #setRowProtection(String)} instead */
+    @Deprecated
+    public void setZzzRowProtection(final String zzzRowProtection) {
+<span class="fc" id="L461">        this.rowProtection = zzzRowProtection;</span>
+<span class="fc" id="L462">    }</span>
+
+    //
+    // Public methods used to help us manage passwords
+    //
+
+    /**
+     * Function that sets the BCDN representation of the string.
+     * @param dn DN
+     */
+    public void setDN(String dn) {
+<span class="nc" id="L473">        setSubjectDN(CertTools.stringToBCDNString(dn));</span>
+<span class="nc" id="L474">    }</span>
+
+    /**
+     * Sets password in hashed form in the database, this way it cannot be read in clear form
+     * @param password Pass
+     * @throws NoSuchAlgorithmException on fail 
+     */
+    public void setPassword(String password) throws NoSuchAlgorithmException {
+<span class="fc" id="L482">        String passwordHash = CryptoTools.makePasswordHash(password);</span>
+<span class="fc" id="L483">        setPasswordHash(passwordHash);</span>
+<span class="fc" id="L484">        setClearPassword(null);</span>
+<span class="fc" id="L485">    }</span>
+
+    /**
+     * Sets the password in both hashed and clear (obfuscated though) form in the database, clear is needed for machine processing
+     * @param password Pass
+     */
+    public void setOpenPassword(String password) {
+<span class="fc" id="L492">        String passwordHash = CryptoTools.makePasswordHash(password);</span>
+<span class="fc" id="L493">        setPasswordHash(passwordHash);</span>
+<span class="fc" id="L494">        setClearPassword(StringTools.obfuscate(password));</span>
+<span class="fc" id="L495">    }</span>
+
+    /**
+     * Returns clear text password (de-obfuscated) or null.
+     * @return Pass
+     */
+    @Transient
+    public String getOpenPassword() {
+<span class="fc" id="L503">        return StringTools.deobfuscateIf(clearPassword);</span>
+    }
+
+    /**
+     * 
+     * @return which hashing algorithm was used for this UserData object
+     */
+    public SupportedPasswordHashAlgorithm findHashAlgorithm() {
+<span class="fc" id="L511">        final String hash = getPasswordHash();</span>
+<span class="fc bfc" id="L512" title="All 2 branches covered.">        if (StringUtils.startsWith(hash, &quot;$2&quot;)) {</span>
+<span class="fc" id="L513">            return SupportedPasswordHashAlgorithm.SHA1_BCRYPT;</span>
+        } else {
+<span class="fc" id="L515">            return SupportedPasswordHashAlgorithm.SHA1_OLD;</span>
+        }
+    }
+    
+    /**
+     * Verifies password by verifying against passwordhash
+     * @param password Pass
+     * @return bool
+     * @throws NoSuchAlgorithmException Fail
+     */
+    public boolean comparePassword(final String password) throws NoSuchAlgorithmException {
+<span class="pc bpc" id="L526" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="fc" id="L527">            log.trace(&quot;&gt;comparePassword()&quot;);</span>
+        }
+<span class="fc" id="L529">        boolean ret = false;</span>
+<span class="pc bpc" id="L530" title="1 of 2 branches missed.">        if (password != null) {</span>
+<span class="pc bpc" id="L531" title="1 of 2 branches missed.">            if (transientPwd != null) {</span>
+                // Performance optimization within a transaction, to not have to hash the password when comparing internally in the same transaction, saving one BCrypt operation
+<span class="nc" id="L533">                ret = transientPwd.equals(password);</span>
+            } else {
+<span class="fc" id="L535">                final String hash = getPasswordHash();</span>
+                // Check if it is a new or old style hashing
+<span class="fc bfc" id="L537" title="All 2 branches covered.">                switch (findHashAlgorithm()) {</span>
+                case SHA1_BCRYPT:
+                    // new style with good salt
+<span class="fc" id="L540">                    ret = BCrypt.checkpw(password, hash);</span>
+<span class="fc" id="L541">                    break;</span>
+                case SHA1_OLD:
+                default:
+<span class="fc" id="L544">                    ret = CryptoTools.makeOldPasswordHash(password).equals(getPasswordHash());</span>
+                    break;
+                }
+            }
+        }
+<span class="pc bpc" id="L549" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="fc" id="L550">            log.trace(&quot;&lt;comparePassword()&quot;);</span>
+        }
+<span class="fc" id="L552">        return ret;</span>
+    }
+
+    //
+    // Helper functions
+    //
+
+    @Transient
+    public UserData clone() {
+<span class="nc" id="L561">        final UserData userData = new UserData();</span>
+<span class="nc" id="L562">        userData.caId = caId;</span>
+<span class="nc" id="L563">        userData.cardNumber = cardNumber;</span>
+<span class="nc" id="L564">        userData.certificateProfileId = certificateProfileId;</span>
+<span class="nc" id="L565">        userData.clearPassword = clearPassword;</span>
+<span class="nc" id="L566">        userData.endEntityProfileId = endEntityProfileId;</span>
+<span class="nc" id="L567">        userData.extendedInformationData = extendedInformationData;</span>
+<span class="nc" id="L568">        userData.hardTokenIssuerId = hardTokenIssuerId;</span>
+<span class="nc" id="L569">        userData.keyStorePassword = keyStorePassword;</span>
+<span class="nc" id="L570">        userData.passwordHash = passwordHash;</span>
+<span class="nc" id="L571">        userData.rowProtection = rowProtection;</span>
+<span class="nc" id="L572">        userData.rowVersion = rowVersion;</span>
+<span class="nc" id="L573">        userData.status = status;</span>
+<span class="nc" id="L574">        userData.subjectAltName = subjectAltName;</span>
+<span class="nc" id="L575">        userData.subjectDN = subjectDN;</span>
+<span class="nc" id="L576">        userData.subjectEmail = subjectEmail;</span>
+<span class="nc" id="L577">        userData.timeCreated = timeCreated;</span>
+<span class="nc" id="L578">        userData.timeModified = timeModified;</span>
+<span class="nc" id="L579">        userData.tokenType = tokenType;</span>
+<span class="nc" id="L580">        userData.type = type;</span>
+<span class="nc" id="L581">        userData.username = username;</span>
+<span class="nc" id="L582">        return userData;</span>
+    }
+
+    /**
+     * Non-searchable information about a user.
+     * @return Info
+     */
+    @Transient
+    public ExtendedInformation getExtendedInformation() {
+<span class="pc bpc" id="L591" title="2 of 4 branches missed.">        if ((extendedInformation == null) &amp;&amp; (extendedInformationData != null)) {</span>
+<span class="fc" id="L592">            extendedInformation = getExtendedInformationFromData();    </span>
+        }
+<span class="fc" id="L594">        return extendedInformation;</span>
+    }
+
+    /**
+     * Non-searchable information about a user.
+     * @param extendedInformation Info
+     */
+    public void setExtendedInformation(final ExtendedInformation extendedInformation) {
+<span class="nc" id="L602">        this.extendedInformation = extendedInformation;</span>
+        // If we are making it blank, make sure our data is blank as well, otherwise getExtendedInformation 
+        // above will return the old value
+<span class="nc bnc" id="L605" title="All 2 branches missed.">        if (extendedInformation == null) {</span>
+<span class="nc" id="L606">            extendedInformationData = null;</span>
+        }
+<span class="nc" id="L608">    }</span>
+    /**
+     * Non-searchable information about a user.
+     * @return Info
+     */
+    @Transient
+    private ExtendedInformation getExtendedInformationFromData() {
+<span class="fc" id="L615">        return EndEntityInformation.getExtendedInformationFromStringData(getExtendedInformationData());</span>
+    }
+
+    /**
+     * Non-searchable information about a user.
+     * @param extendedInformation Info
+     */
+    public void setExtendedInformationPrePersist(final ExtendedInformation extendedInformation) {
+<span class="fc" id="L623">        setExtendedInformationData(EndEntityInformation.extendedInformationToStringData(extendedInformation));</span>
+<span class="fc" id="L624">    }</span>
+
+    /**
+     * Non-searchable information about a user.
+     * @return info
+     */
+    public EndEntityInformation toEndEntityInformation() {
+<span class="nc" id="L631">        final EndEntityInformation data = new EndEntityInformation();</span>
+<span class="nc" id="L632">        data.setUsername(getUsername());</span>
+<span class="nc" id="L633">        data.setCAId(getCaId());</span>
+<span class="nc" id="L634">        data.setCertificateProfileId(getCertificateProfileId());</span>
+<span class="nc" id="L635">        data.setDN(getSubjectDnNeverNull());</span>
+<span class="nc" id="L636">        data.setEmail(getSubjectEmail());</span>
+<span class="nc" id="L637">        data.setEndEntityProfileId(getEndEntityProfileId());</span>
+<span class="nc" id="L638">        data.setExtendedInformation(getExtendedInformation());</span>
+<span class="nc" id="L639">        data.setHardTokenIssuerId(getHardTokenIssuerId());</span>
+<span class="nc" id="L640">        data.setPassword(getOpenPassword());</span>
+<span class="nc" id="L641">        data.setStatus(getStatus());</span>
+<span class="nc" id="L642">        data.setSubjectAltName(getSubjectAltNameNeverNull());</span>
+<span class="nc" id="L643">        data.setTimeCreated(new Date(getTimeCreated()));</span>
+<span class="nc" id="L644">        data.setTimeModified(new Date(getTimeModified()));</span>
+<span class="nc" id="L645">        data.setTokenType(getTokenType());</span>
+<span class="nc" id="L646">        data.setType(new EndEntityType(getType()));</span>
+<span class="nc" id="L647">        data.setCardNumber(getCardNumber());</span>
+<span class="nc" id="L648">        return data;</span>
+    }
+
+    /**
+     * Assumes authorization has already been checked.. Modifies the ExtendedInformation object to reset the remaining login attempts.
+     * @param ei Info
+     * @param username Iser
+     * @return true if any change was made, false otherwise
+     */
+    @Transient
+    public static boolean resetRemainingLoginAttemptsInternal(final ExtendedInformation ei, final String username) {
+<span class="nc bnc" id="L659" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L660">            log.trace(&quot;&gt;resetRemainingLoginAttemptsInternal&quot;);</span>
+        }
+        final boolean ret;
+<span class="nc bnc" id="L663" title="All 2 branches missed.">        if (ei != null) {</span>
+<span class="nc" id="L664">            final int resetValue = ei.getMaxLoginAttempts();</span>
+<span class="nc bnc" id="L665" title="All 4 branches missed.">            if (resetValue != -1 || ei.getRemainingLoginAttempts() != -1) {</span>
+<span class="nc" id="L666">                ei.setRemainingLoginAttempts(resetValue);</span>
+<span class="nc" id="L667">                final String msg = intres.getLocalizedMessage(&quot;ra.resettedloginattemptscounter&quot;, username, resetValue);</span>
+<span class="nc" id="L668">                log.info(msg);</span>
+<span class="nc" id="L669">                ret = true;</span>
+<span class="nc" id="L670">            } else {</span>
+<span class="nc" id="L671">                ret = false;</span>
+            }            
+<span class="nc" id="L673">        } else {</span>
+<span class="nc" id="L674">            ret = false;</span>
+        }
+<span class="nc bnc" id="L676" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L677">            log.trace(&quot;&lt;resetRamainingLoginAttemptsInternal: &quot;+ret);</span>
+        }
+<span class="nc" id="L679">        return ret;</span>
+    }
+
+    //
+    // Start Database integrity protection methods
+    //
+
+    @Transient
+    @Override
+    protected String getProtectString(final int version) {
+<span class="nc" id="L689">        final ProtectionStringBuilder build = new ProtectionStringBuilder();</span>
+        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
+<span class="nc" id="L691">        build.append(getUsername());</span>
+<span class="nc bnc" id="L692" title="All 2 branches missed.">        if (version&gt;=2) {</span>
+            // From version 2 we always use empty String here to allow future migration between databases when this value is unset
+<span class="nc" id="L694">            build.append(getSubjectDnNeverNull());</span>
+        } else {
+<span class="nc" id="L696">            build.append(getSubjectDN());</span>
+        }
+<span class="nc" id="L698">        build.append(getCardNumber()).append(getCaId());</span>
+<span class="nc bnc" id="L699" title="All 2 branches missed.">        if (version&gt;=2) {</span>
+            // From version 2 we always use empty String here to allow future migration between databases when this value is unset
+<span class="nc" id="L701">            build.append(getSubjectAltNameNeverNull());</span>
+        } else {
+<span class="nc" id="L703">            build.append(getSubjectAltName());</span>
+        }
+<span class="nc" id="L705">        build.append(getCardNumber());</span>
+<span class="nc" id="L706">        build.append(getSubjectEmail()).append(getStatus()).append(getType()).append(getClearPassword()).append(getPasswordHash()).append(getTimeCreated()).append(getTimeModified());</span>
+<span class="nc" id="L707">        build.append(getEndEntityProfileId()).append(getCertificateProfileId()).append(getTokenType()).append(getHardTokenIssuerId()).append(getExtendedInformationData());</span>
+<span class="nc" id="L708">        return build.toString();</span>
+    }
+
+    @Transient
+    @Override
+    protected int getProtectVersion() {
+<span class="nc" id="L714">        return 2;</span>
+    }
+
+    @PrePersist
+    @PreUpdate
+    @Override
+    protected void protectData() {
+        // This is a speed optimization to avoid encoding the extendedInformation into XML data too often
+        // We instead use the cached object in this class, and serialize it out to XML data only when we persist the object
+        // (create or update). This means you can call getExtendedInformation as much as you want, without causing an expensive
+        // XMLEncoder/Decoder
+<span class="fc" id="L725">        setExtendedInformationPrePersist(getExtendedInformation());</span>
+        // After setting the data we want, continue on to the normal database integrity protection
+<span class="fc" id="L727">        super.protectData();</span>
+<span class="fc" id="L728">    }</span>
+
+    @PostLoad
+    @Override
+    protected void verifyData() {
+<span class="nc" id="L733">        super.verifyData();</span>
+<span class="nc" id="L734">    }</span>
+
+    @Override
+    @Transient
+    protected String getRowId() {
+<span class="nc" id="L739">        return getUsername();</span>
+    }
+
+    //
+    // End Database integrity protection methods
+    //
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

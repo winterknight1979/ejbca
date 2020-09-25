@@ -1,0 +1,1684 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CertificateStoreSessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cesecore-ejb</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.certificate</a> &gt; <span class="el_source">CertificateStoreSessionBean.java</span></div><h1>CertificateStoreSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.certificate;
+
+import java.math.BigInteger;
+import java.security.PublicKey;
+import java.security.cert.CertPathValidatorException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
+import java.security.spec.ECParameterSpec;
+import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.SessionContext;
+import javax.ejb.Stateless;
+import javax.ejb.Timeout;
+import javax.ejb.Timer;
+import javax.ejb.TimerConfig;
+import javax.ejb.TimerService;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.enums.EventTypes;
+import org.cesecore.audit.enums.ModuleTypes;
+import org.cesecore.audit.enums.ServiceTypes;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.UsernamePrincipal;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.ca.internal.CaCertificateCache;
+import org.cesecore.certificates.certificate.request.RequestMessage;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.certificates.crl.RevokedCertInfo;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.GlobalCesecoreConfiguration;
+import org.cesecore.config.OcspConfiguration;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.internal.InternalResources;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.keys.util.KeyTools;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.EJBTools;
+import org.cesecore.util.StringTools;
+import org.cesecore.util.ValueExtractor;
+import org.ejbca.cvc.PublicKeyEC;
+
+/**
+ * @version $Id: CertificateStoreSessionBean.java 29454 2018-07-04 09:22:00Z mikekushner $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;CertificateStoreSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+<span class="nc" id="L89">public class CertificateStoreSessionBean implements CertificateStoreSessionRemote, CertificateStoreSessionLocal {</span>
+
+<span class="nc" id="L91">    private final static Logger log = Logger.getLogger(CertificateStoreSessionBean.class);</span>
+    /** Internal localization of logs and errors */
+<span class="nc" id="L93">    private static final InternalResources INTRES = InternalResources.getInstance();</span>
+    private static final int TIMERID_CACERTIFICATECACHE = 1;
+
+    @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+    private EntityManager entityManager;
+
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private CertificateProfileSessionLocal certificateProfileSession;
+    @EJB
+    private CertificateDataSessionLocal certificateDataSession;
+    @EJB
+    private GlobalConfigurationSessionLocal globalConfigurationSession;
+    @EJB
+    private SecurityEventsLoggerSessionLocal logSession;
+    // Myself needs to be looked up in postConstruct
+    @Resource
+    private SessionContext sessionContext;
+    private CertificateStoreSessionLocal certificateStoreSession;
+    /* When the sessionContext is injected, the timerService should be looked up.
+     * This is due to the Glassfish EJB verifier complaining.
+     */
+    private TimerService timerService;
+
+    /** Default create for SessionBean without any creation Arguments. */
+    @PostConstruct
+    public void postConstruct() {
+        // We lookup the reference to our-self in PostConstruct, since we cannot inject this.
+        // We can not inject ourself, JBoss will not start then therefore we use this to get a reference to this session bean
+        // to call isUniqueCertificateSerialNumberIndex we want to do it on the real bean in order to get
+        // the transaction setting (NOT_SUPPORTED) which suspends the active transaction and makes the check outside the transaction
+<span class="nc" id="L125">        certificateStoreSession = sessionContext.getBusinessObject(CertificateStoreSessionLocal.class);</span>
+<span class="nc" id="L126">        timerService = sessionContext.getTimerService();</span>
+<span class="nc" id="L127">    }</span>
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public void initTimers() {
+        // Reload CA certificate cache cache, and cancel/create timers if there are no timers or if the cache is empty (probably a fresh startup)
+<span class="nc bnc" id="L133" title="All 4 branches missed.">        if (getTimerCount(TIMERID_CACERTIFICATECACHE)==0 || CaCertificateCache.INSTANCE.isCacheExpired()){</span>
+<span class="nc" id="L134">        	reloadCaCertificateCacheAndSetTimeout();</span>
+        } else {
+<span class="nc" id="L136">            log.info(&quot;Not initing CaCertificateCache reload timers, there are already some.&quot;);</span>
+        }
+<span class="nc" id="L138">    }</span>
+
+    private GlobalCesecoreConfiguration getGlobalCesecoreConfiguration() {
+<span class="nc" id="L141">        return (GlobalCesecoreConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalCesecoreConfiguration.CESECORE_CONFIGURATION_ID);</span>
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public CertificateDataWrapper storeCertificate(AuthenticationToken admin, Certificate incert, String username, String cafp, int status, int type,
+            int certificateProfileId, final int endEntityProfileId, String tag, long updateTime) throws AuthorizationDeniedException {
+    	// Check that user is authorized to the CA that issued this certificate
+<span class="nc" id="L149">    	int caid = CertTools.getIssuerDN(incert).hashCode();</span>
+<span class="nc" id="L150">        authorizedToCA(admin, caid);</span>
+<span class="nc" id="L151">    	return storeCertificateNoAuth(admin, incert, username, cafp, status, type, certificateProfileId, endEntityProfileId, tag, updateTime);</span>
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void storeCertificateRemote(AuthenticationToken admin, CertificateWrapper wrappedCert, String username, String cafp, int status, int type,
+            int certificateProfileId, final int endEntityProfileId, String tag, long updateTime) throws AuthorizationDeniedException {
+<span class="nc" id="L158">        Certificate incert = EJBTools.unwrap(wrappedCert);</span>
+        // Check that user is authorized to the CA that issued this certificate
+<span class="nc" id="L160">        int caid = CertTools.getIssuerDN(incert).hashCode();</span>
+<span class="nc" id="L161">        authorizedToCA(admin, caid);</span>
+<span class="nc" id="L162">        storeCertificateNoAuth(admin, incert, username, cafp, status, type, certificateProfileId, endEntityProfileId, tag, updateTime);</span>
+<span class="nc" id="L163">    }</span>
+
+    /** Local interface only */
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public CertificateDataWrapper storeCertificateNoAuth(AuthenticationToken adminForLogging, Certificate incert, String username, String cafp, int status, int type,
+            int certificateProfileId, final int endEntityProfileId, String tag, long updateTime) {
+<span class="nc bnc" id="L170" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L171">            log.trace(&quot;&gt;storeCertificateNoAuth(&quot; + username + &quot;, &quot; + cafp + &quot;, &quot; + status + &quot;, &quot; + type + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L173">        final CertificateDataWrapper ret = storeCertificateNoAuthInternal(adminForLogging, incert, username, cafp, status, type, certificateProfileId, endEntityProfileId, tag, updateTime, true);</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L175">            log.trace(&quot;&lt;storeCertificateNoAuth()&quot;);</span>
+        }
+<span class="nc" id="L177">        return ret;</span>
+    }
+    /** same as storeCertificateNoAuth but with a flag to not audit log certificate storage.
+     * The only reason to not audit log is when called from checkForUniqueCertificateSerialNumberIndexInTransaction
+     *
+     * @param adminForLogging the AuthenticationToken that will be used for audit logging of the event
+     * @param incert The certificate to be stored.
+     * @param username username of end entity owning the certificate.
+     * @param cafp Fingerprint (hex) of the CAs certificate.
+     * @param status the status from the CertificateConstants.CERT_ constants
+     * @param type Type of certificate (CERTTYPE_ENDENTITY etc from CertificateConstants).
+     * @param certificateProfileId the certificate profile id this cert was issued under
+     * @param endEntityProfileId the end entity profile id this cert was issued under
+     * @param tag a custom string tagging this certificate for some purpose
+     * @param updateTime epoch millis to use as last update time of the stored object
+     * @param doAuditLog determines if a security audit log event shall be written or not with, EventTypes.CERT_STORED, ModuleTypes.CERTIFICATE,
+     * must only be used when storing special internal certificates, such as the test certificates for checking unique database index.
+     * @return data
+     */
+    private CertificateDataWrapper storeCertificateNoAuthInternal(AuthenticationToken adminForLogging, Certificate incert, String username, String cafp, int status, int type,
+            int certificateProfileId, final int endEntityProfileId, String tag, long updateTime, boolean doAuditLog) {
+<span class="nc" id="L198">        final PublicKey pubk = enrichEcPublicKey(incert.getPublicKey(), cafp);</span>
+        // Create the certificate in one go with all parameters at once. This used to be important in EJB2.1 so the persistence layer only creates
+        // *one* single
+        // insert statement. If we do a home.create and the some setXX, it will create one insert and one update statement to the database.
+        // Probably not important in EJB3 anymore
+<span class="nc" id="L203">        final boolean useBase64CertTable = CesecoreConfiguration.useBase64CertTable();</span>
+<span class="nc" id="L204">        Base64CertData base64CertData = null;</span>
+<span class="nc" id="L205">        final CertificateProfile certificateProfile = certificateProfileSession.getCertificateProfile(certificateProfileId);</span>
+<span class="nc bnc" id="L206" title="All 4 branches missed.">        final boolean storeCertificateData = certificateProfile==null || certificateProfile.getStoreCertificateData();</span>
+<span class="nc bnc" id="L207" title="All 4 branches missed.">        if (useBase64CertTable &amp;&amp; storeCertificateData) {</span>
+            // use special table for encoded data if told so.
+<span class="nc" id="L209">            base64CertData = new Base64CertData(incert);</span>
+<span class="nc" id="L210">            entityManager.persist(new Base64CertData(incert));</span>
+        }
+<span class="nc bnc" id="L212" title="All 4 branches missed.">        final boolean storeSubjectAlternativeName = certificateProfile==null || certificateProfile.getStoreSubjectAlternativeName();</span>
+<span class="nc bnc" id="L213" title="All 4 branches missed.">        final CertificateData certificateData = new CertificateData(incert, pubk, username, cafp, status, type, certificateProfileId, endEntityProfileId, tag, updateTime,</span>
+                !useBase64CertTable &amp;&amp; storeCertificateData, storeSubjectAlternativeName);
+<span class="nc" id="L215">        entityManager.persist(certificateData);</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">        if (doAuditLog) {</span>
+<span class="nc" id="L217">            final String serialNo = CertTools.getSerialNumberAsString(incert);</span>
+<span class="nc" id="L218">            final String msg = INTRES.getLocalizedMessage(&quot;store.storecert&quot;, username, certificateData.getFingerprint(), certificateData.getSubjectDnNeverNull(), certificateData.getIssuerDN(), serialNo);</span>
+<span class="nc" id="L219">            final String caId = String.valueOf(CertTools.getIssuerDN(incert).hashCode());</span>
+<span class="nc" id="L220">            logSession.log(EventTypes.CERT_STORED, EventStatus.SUCCESS, ModuleTypes.CERTIFICATE, ServiceTypes.CORE, adminForLogging.toString(), caId,</span>
+                    serialNo, username, msg);
+        }
+<span class="nc" id="L223">        return new CertificateDataWrapper(incert, certificateData, base64CertData);</span>
+    }
+
+    /** Local interface only */
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public CertificateDataWrapper getCertificateData(final String fingerprint) {
+<span class="nc" id="L230">        final CertificateData certificateData = certificateDataSession.findByFingerprint(fingerprint);</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">        if (certificateData==null) {</span>
+<span class="nc" id="L232">            return null;</span>
+        }
+        final Base64CertData base64CertData;
+<span class="nc bnc" id="L235" title="All 2 branches missed.">        if (CesecoreConfiguration.useBase64CertTable()) {</span>
+<span class="nc" id="L236">            base64CertData = Base64CertData.findByFingerprint(entityManager, fingerprint);</span>
+        } else {
+<span class="nc" id="L238">            base64CertData = null;</span>
+        }
+<span class="nc" id="L240">        return new CertificateDataWrapper(certificateData, base64CertData);</span>
+    }
+
+    /**
+     * We need special handling here of CVC certificate with EC keys, because they lack EC parameters in all certs
+     * except the Root certificate (CVCA)
+     * @param pubk key
+     * @param cafp FP
+     * @return enriched key
+     */
+    private PublicKey enrichEcPublicKey(final PublicKey pubk, final String cafp) {
+<span class="nc" id="L251">        PublicKey ret = pubk;</span>
+<span class="nc bnc" id="L252" title="All 2 branches missed.">        if ((pubk instanceof PublicKeyEC)) {</span>
+<span class="nc" id="L253">            PublicKeyEC pkec = (PublicKeyEC) pubk;</span>
+            // The public key of IS and DV certificate (CVC) do not have any parameters so we have to do some magic to get a complete EC public key
+<span class="nc" id="L255">            ECParameterSpec spec = pkec.getParams();</span>
+<span class="nc bnc" id="L256" title="All 2 branches missed.">            if (spec == null) {</span>
+                // We need to enrich this public key with parameters
+                try {
+<span class="nc bnc" id="L259" title="All 2 branches missed.">                    if (cafp != null) {</span>
+<span class="nc" id="L260">                        String cafingerp = cafp;</span>
+<span class="nc" id="L261">                        CertificateData cacert = certificateDataSession.findByFingerprint(cafp);</span>
+<span class="nc bnc" id="L262" title="All 2 branches missed.">                        if(cacert != null) {</span>
+<span class="nc" id="L263">                        String nextcafp = cacert.getCaFingerprint();</span>
+<span class="nc" id="L264">                        int bar = 0; // never go more than 5 rounds, who knows what strange things can exist in the CAFingerprint column, make sure we</span>
+                                     // never get stuck here
+<span class="nc bnc" id="L266" title="All 4 branches missed.">                        while ((!StringUtils.equals(cafingerp, nextcafp)) &amp;&amp; (bar++ &lt; 5)) {</span>
+<span class="nc" id="L267">                            cacert = certificateDataSession.findByFingerprint(cafp);</span>
+<span class="nc bnc" id="L268" title="All 2 branches missed.">                            if (cacert == null) {</span>
+<span class="nc" id="L269">                                break;</span>
+                            }
+<span class="nc" id="L271">                            cafingerp = nextcafp;</span>
+<span class="nc" id="L272">                            nextcafp = cacert.getCaFingerprint();</span>
+                        }
+<span class="nc bnc" id="L274" title="All 2 branches missed.">                            if (cacert != null) {</span>
+                                // We found a root CA certificate, hopefully ?
+<span class="nc" id="L276">                                PublicKey pkwithparams = cacert.getCertificate(this.entityManager).getPublicKey();</span>
+<span class="nc" id="L277">                                ret = KeyTools.getECPublicKeyWithParams(pubk, pkwithparams);</span>
+                            }
+                        }
+                    }
+<span class="nc" id="L281">                }  catch (InvalidKeySpecException e) {</span>
+<span class="nc bnc" id="L282" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L283">                        log.debug(&quot;Can not enrich EC public key with missing parameters: &quot;, e);</span>
+                    }
+<span class="nc" id="L285">                }</span>
+            }
+        } // finished with ECC key special handling
+<span class="nc" id="L288">        return ret;</span>
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public boolean updateCertificateOnly(AuthenticationToken authenticationToken, Certificate certificate) {
+<span class="nc" id="L294">        final String fingerprint = CertTools.getFingerprintAsString(certificate);</span>
+<span class="nc" id="L295">        final CertificateData certificateData = certificateDataSession.findByFingerprint(fingerprint);</span>
+<span class="nc bnc" id="L296" title="All 4 branches missed.">        if (certificateData==null || certificateData.getCertificate(entityManager) != null) {</span>
+<span class="nc" id="L297">            return false;</span>
+        }
+<span class="nc" id="L299">        final boolean useBase64CertTable = CesecoreConfiguration.useBase64CertTable();</span>
+<span class="nc bnc" id="L300" title="All 2 branches missed.">        if (useBase64CertTable) {</span>
+            // use special table for encoded data if told so.
+<span class="nc" id="L302">            entityManager.persist(new Base64CertData(certificate));</span>
+        } else {
+            try {
+<span class="nc" id="L305">                certificateData.setBase64Cert(new String(Base64.encode(certificate.getEncoded())));</span>
+<span class="nc" id="L306">            } catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L307">                log.error(&quot;Failed to encode certificate for fingerprint &quot; + fingerprint, e);</span>
+<span class="nc" id="L308">                return false;</span>
+<span class="nc" id="L309">            }</span>
+        }
+<span class="nc" id="L311">        final String username = certificateData.getUsername();</span>
+<span class="nc" id="L312">        final String serialNo = CertTools.getSerialNumberAsString(certificate);</span>
+<span class="nc" id="L313">        final String msg = INTRES.getLocalizedMessage(&quot;store.storecert&quot;, username, fingerprint, certificateData.getSubjectDnNeverNull(),</span>
+<span class="nc" id="L314">                certificateData.getIssuerDN(), serialNo);</span>
+<span class="nc" id="L315">        Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L316">        details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L317">        final String caId = String.valueOf(CertTools.getIssuerDN(certificate).hashCode());</span>
+<span class="nc" id="L318">        logSession.log(EventTypes.CERT_STORED, EventStatus.SUCCESS, ModuleTypes.CERTIFICATE, ServiceTypes.CORE, authenticationToken.toString(),</span>
+                caId, serialNo, username, details);
+<span class="nc" id="L320">        return true;</span>
+    }
+
+    @Override
+    public Collection&lt;String&gt; listAllCertificates(String issuerdn) {
+<span class="nc bnc" id="L325" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L326">            log.trace(&quot;&gt;listAllCertificates()&quot;);</span>
+        }
+        // This method was only used from CertificateDataTest and it didn't care about the expireDate, so it will only select fingerprints now.
+<span class="nc" id="L329">        return certificateDataSession.findFingerprintsByIssuerDN(CertTools.stringToBCDNString(StringTools.strip(issuerdn)));</span>
+    }
+
+    @Override
+    public Collection&lt;RevokedCertInfo&gt; listRevokedCertInfo(String issuerdn, long lastbasecrldate) {
+<span class="nc bnc" id="L334" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L335">            log.trace(&quot;&gt;listRevokedCertInfo()&quot;);</span>
+        }
+<span class="nc" id="L337">        return certificateDataSession.getRevokedCertInfos(CertTools.stringToBCDNString(StringTools.strip(issuerdn)), lastbasecrldate);</span>
+    }
+
+    @Override
+    public List&lt;Certificate&gt; findCertificatesBySubjectAndIssuer(String subjectDN, String issuerDN) {
+<span class="nc" id="L342">        return findCertificatesBySubjectAndIssuer(subjectDN, issuerDN, false);</span>
+    }
+
+    @Override
+    public List&lt;Certificate&gt; findCertificatesBySubjectAndIssuer(String subjectDN, String issuerDN, boolean onlyActive) {
+<span class="nc bnc" id="L347" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L348">            log.trace(&quot;&gt;findCertificatesBySubjectAndIssuer(), dn='&quot; + subjectDN + &quot;' and issuer='&quot; + issuerDN + &quot;'&quot;);</span>
+        }
+<span class="nc" id="L350">        final List&lt;Certificate&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L351" title="All 2 branches missed.">        for (final CertificateDataWrapper cdw : getCertificateDatasBySubjectAndIssuer(subjectDN, issuerDN, onlyActive)) {</span>
+<span class="nc" id="L352">            ret.add(cdw.getCertificate());</span>
+<span class="nc" id="L353">        }</span>
+<span class="nc bnc" id="L354" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L355">            log.trace(&quot;&lt;findCertificatesBySubjectAndIssuer(), dn='&quot; + subjectDN + &quot;' and issuer='&quot; + issuerDN + &quot;'&quot;);</span>
+        }
+<span class="nc" id="L357">        return ret;</span>
+    }
+
+    @Override
+    public List&lt;CertificateDataWrapper&gt; getCertificateDatasBySubjectAndIssuer(String subjectDN, String issuerDN, boolean onlyActive) {
+        // First make a DN in our well-known format
+<span class="nc" id="L363">        final String dn = CertTools.stringToBCDNString(StringTools.strip(subjectDN));</span>
+<span class="nc" id="L364">        final String issuerdn = CertTools.stringToBCDNString(StringTools.strip(issuerDN));</span>
+<span class="nc bnc" id="L365" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L366">            log.debug(&quot;Looking for cert with (transformed)DN: &quot; + dn);</span>
+        }
+<span class="nc" id="L368">        final List&lt;CertificateDataWrapper&gt; ret = new ArrayList&lt;&gt;();</span>
+        final Query query;
+<span class="nc bnc" id="L370" title="All 2 branches missed.">        if (onlyActive) {</span>
+<span class="nc" id="L371">            query = entityManager.createQuery(&quot;SELECT a FROM CertificateData a WHERE &quot; + &quot;a.subjectDN=:subjectDN AND a.issuerDN=:issuerDN&quot;</span>
+                    + &quot; AND (a.status=:active OR a.status=:notifiedexpired OR (a.status=:revoked AND a.revocationReason=:onhold))&quot; + &quot;AND a.expireDate&gt;:expireDate&quot;);
+<span class="nc" id="L373">            query.setParameter(&quot;active&quot;, CertificateConstants.CERT_ACTIVE);</span>
+<span class="nc" id="L374">            query.setParameter(&quot;notifiedexpired&quot;, CertificateConstants.CERT_NOTIFIEDABOUTEXPIRATION);</span>
+<span class="nc" id="L375">            query.setParameter(&quot;revoked&quot;, CertificateConstants.CERT_REVOKED);</span>
+<span class="nc" id="L376">            query.setParameter(&quot;onhold&quot;, RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD);</span>
+<span class="nc" id="L377">            query.setParameter(&quot;expireDate&quot;, System.currentTimeMillis());</span>
+        } else {
+<span class="nc" id="L379">            query = entityManager.createQuery(&quot;SELECT a FROM CertificateData a WHERE a.subjectDN=:subjectDN AND a.issuerDN=:issuerDN&quot;);</span>
+        }
+<span class="nc" id="L381">        query.setParameter(&quot;subjectDN&quot;, dn);</span>
+<span class="nc" id="L382">        query.setParameter(&quot;issuerDN&quot;, issuerdn);</span>
+<span class="nc bnc" id="L383" title="All 2 branches missed.">        for (final Object certificateDataObject : query.getResultList()) {</span>
+<span class="nc" id="L384">            final CertificateData certificateData = (CertificateData) certificateDataObject;</span>
+<span class="nc" id="L385">            ret.add(new CertificateDataWrapper(certificateData, Base64CertData.findByFingerprint(entityManager, certificateData.getFingerprint())));</span>
+<span class="nc" id="L386">        }</span>
+<span class="nc" id="L387">        return ret;</span>
+    }
+
+    @Override
+    public Set&lt;String&gt; findUsernamesByIssuerDNAndSubjectDN(String issuerDN, String subjectDN) {
+<span class="nc bnc" id="L392" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L393">            log.trace(&quot;&gt;findUsernamesByIssuerDNAndSubjectDN(), issuer='&quot; + issuerDN + &quot;'&quot;);</span>
+        }
+        // First make a DN in our well-known format
+<span class="nc" id="L396">        final String transformedIssuerDN = CertTools.stringToBCDNString(StringTools.strip(issuerDN));</span>
+<span class="nc" id="L397">        final String transformedSubjectDN = CertTools.stringToBCDNString(StringTools.strip(subjectDN));</span>
+<span class="nc bnc" id="L398" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L399">            log.debug(&quot;Looking for user with a certificate with issuer DN(transformed) '&quot; + transformedIssuerDN + &quot;' and subject DN(transformed) '&quot;</span>
+                    + transformedSubjectDN + &quot;'.&quot;);
+        }
+        try {
+<span class="nc" id="L403">            return certificateDataSession.findUsernamesBySubjectDNAndIssuerDN(transformedSubjectDN, transformedIssuerDN);</span>
+        } finally {
+<span class="nc bnc" id="L405" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L406">                log.trace(&quot;&lt;findUsernamesByIssuerDNAndSubjectDN(), issuer='&quot; + issuerDN + &quot;'&quot;);</span>
+            }
+        }
+    }
+
+    @Override
+    public Set&lt;String&gt; findUsernamesByIssuerDNAndSubjectKeyId(String issuerDN, byte[] subjectKeyId) {
+<span class="nc bnc" id="L413" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L414">            log.trace(&quot;&gt;findUsernamesByIssuerDNAndSubjectKeyId(), issuer='&quot; + issuerDN + &quot;'&quot;);</span>
+        }
+        // First make a DN in our well-known format
+<span class="nc" id="L417">        final String transformedIssuerDN = CertTools.stringToBCDNString(StringTools.strip(issuerDN));</span>
+<span class="nc" id="L418">        final String sSubjectKeyId = new String(Base64.encode(subjectKeyId, false));</span>
+<span class="nc bnc" id="L419" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L420">            log.debug(&quot;Looking for user with a certificate with issuer DN(transformed) '&quot; + transformedIssuerDN + &quot;' and SubjectKeyId '&quot;</span>
+                    + sSubjectKeyId + &quot;'.&quot;);
+        }
+        try {
+<span class="nc" id="L424">            return certificateDataSession.findUsernamesByIssuerDNAndSubjectKeyId(transformedIssuerDN, sSubjectKeyId);</span>
+        } finally {
+<span class="nc bnc" id="L426" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L427">                log.trace(&quot;&lt;findUsernamesByIssuerDNAndSubjectKeyId(), issuer='&quot; + issuerDN + &quot;'&quot;);</span>
+            }
+        }
+    }
+
+    @Override
+    public String findUsernameByIssuerDnAndSerialNumber(String issuerDn, BigInteger serialNumber) {
+<span class="nc" id="L434">        return certificateDataSession.findUsernameByIssuerDnAndSerialNumber(issuerDn, serialNumber.toString());</span>
+    }
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    @Override
+    public String findUsernameByFingerprint(String fingerprint) {
+<span class="nc" id="L440">        final Query query = entityManager.createQuery(&quot;SELECT a.username FROM CertificateData a WHERE a.fingerprint=:fingerprint&quot;);</span>
+<span class="nc" id="L441">        query.setParameter(&quot;fingerprint&quot;, fingerprint);</span>
+<span class="nc" id="L442">        final List&lt;String&gt; usernames = query.getResultList();</span>
+<span class="nc bnc" id="L443" title="All 2 branches missed.">        if (usernames.isEmpty()) {</span>
+<span class="nc" id="L444">            return null;</span>
+        } else {
+<span class="nc" id="L446">            return usernames.get(0);</span>
+        }
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public boolean isOnlyUsernameForSubjectKeyIdOrDnAndIssuerDN(final String issuerDN, final byte subjectKeyId[], final String subjectDN, final String username) {
+<span class="nc bnc" id="L453" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L454">            log.trace(&quot;&gt;isOnlyUsernameForSubjectKeyIdOrDnAndIssuerDN(), issuer='&quot; + issuerDN + &quot;'&quot;);</span>
+        }
+        // First make a DN in our well-known format
+<span class="nc" id="L457">        final String transformedIssuerDN = CertTools.stringToBCDNString(StringTools.strip(issuerDN));</span>
+<span class="nc" id="L458">        final String sSubjectKeyId = new String(Base64.encode(subjectKeyId, false));</span>
+<span class="nc" id="L459">        final String transformedSubjectDN = CertTools.stringToBCDNString(StringTools.strip(subjectDN));</span>
+<span class="nc bnc" id="L460" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L461">            log.debug(&quot;Looking for user with a certificate with issuer DN(transformed) '&quot; + transformedIssuerDN + &quot;' and SubjectKeyId '&quot;</span>
+                    + sSubjectKeyId + &quot;' OR subject DN(transformed) '&quot;+ transformedSubjectDN + &quot;'.&quot;);
+        }
+        try {
+<span class="nc" id="L465">            final Set&lt;String&gt; usernames = certificateDataSession.findUsernamesBySubjectKeyIdOrDnAndIssuer(transformedIssuerDN, sSubjectKeyId, transformedSubjectDN);</span>
+<span class="nc bnc" id="L466" title="All 6 branches missed.">            return usernames.size()==0 || (usernames.size()==1 &amp;&amp; usernames.contains(username));</span>
+        } finally {
+<span class="nc bnc" id="L468" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L469">                log.trace(&quot;&lt;isOnlyUsernameForSubjectKeyIdOrDnAndIssuerDN(), issuer='&quot; + issuerDN + &quot;'&quot;);</span>
+            }
+        }
+    }
+
+    @Override
+    public List&lt;Certificate&gt; findCertificatesBySubject(final String subjectDN) {
+<span class="nc bnc" id="L476" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L477">            log.trace(&quot;&gt;findCertificatesBySubject(), dn='&quot; + subjectDN + &quot;'&quot;);</span>
+        }
+        // First make a DN in our well-known format
+<span class="nc" id="L480">        final List&lt;Certificate&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L481" title="All 2 branches missed.">        for (final CertificateDataWrapper cdw : getCertificateDatasBySubject(subjectDN)) {</span>
+<span class="nc" id="L482">            ret.add(cdw.getCertificate());</span>
+<span class="nc" id="L483">        }</span>
+<span class="nc bnc" id="L484" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L485">            log.trace(&quot;&lt;findCertificatesBySubject(), dn='&quot; + subjectDN + &quot;': &quot;+ret.size());</span>
+        }
+<span class="nc" id="L487">        return ret;</span>
+    }
+
+    @Override
+    public List&lt;CertificateDataWrapper&gt; getCertificateDatasBySubject(final String subjectDN) {
+        // First make a DN in our well-known format
+<span class="nc" id="L493">        final String dn = CertTools.stringToBCDNString(StringTools.strip(subjectDN));</span>
+<span class="nc bnc" id="L494" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L495">            log.debug(&quot;Looking for cert with (transformed) DN: &quot; + dn);</span>
+        }
+<span class="nc" id="L497">        final List&lt;CertificateDataWrapper&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L498" title="All 2 branches missed.">        for (final CertificateData certificateData : certificateDataSession.findBySubjectDN(dn)) {</span>
+<span class="nc" id="L499">            ret.add(new CertificateDataWrapper(certificateData, Base64CertData.findByFingerprint(entityManager, certificateData.getFingerprint())));</span>
+<span class="nc" id="L500">        }</span>
+<span class="nc" id="L501">        return ret;</span>
+    }
+
+    @Override
+    public X509Certificate findLatestX509CertificateBySubject(String subjectDN) {
+<span class="nc" id="L506">        return findLatestX509CertificateBySubject(subjectDN, null, false);</span>
+    }
+
+    @Override
+    public X509Certificate findLatestX509CertificateBySubject(String subjectDN, X509Certificate rolloverCA, boolean findRollover) {
+<span class="nc" id="L511">        final Collection&lt;CertificateDataWrapper&gt; certificateDatas = getCertificateDatasBySubject(subjectDN);</span>
+<span class="nc" id="L512">        X509Certificate result = null;</span>
+<span class="nc" id="L513">        Collection&lt;X509Certificate&gt; trustedChain = null;</span>
+<span class="nc bnc" id="L514" title="All 2 branches missed.">        if (rolloverCA != null) {</span>
+<span class="nc" id="L515">            trustedChain = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L516">            trustedChain.add(rolloverCA);</span>
+        }
+
+        // Find the newest certificate
+<span class="nc bnc" id="L520" title="All 2 branches missed.">        for (CertificateDataWrapper certDataWrapper : certificateDatas) {</span>
+<span class="nc" id="L521">            final int status = certDataWrapper.getCertificateData().getStatus();</span>
+            // Ignore rollover CA certificates unless explicitly requested
+<span class="nc bnc" id="L523" title="All 4 branches missed.">            if (status == CertificateConstants.CERT_ROLLOVERPENDING &amp;&amp; !findRollover) {</span>
+<span class="nc" id="L524">                continue;</span>
+            }
+<span class="nc bnc" id="L526" title="All 2 branches missed.">            if (certDataWrapper.getCertificate() instanceof X509Certificate) {</span>
+<span class="nc" id="L527">                final X509Certificate x509Certificate = (X509Certificate) certDataWrapper.getCertificate();</span>
+<span class="nc bnc" id="L528" title="All 2 branches missed.">                if (rolloverCA != null) {</span>
+                    // The old and new CA certificate will generally have different keys, but we also handle the case where they don't by checking the date
+<span class="nc" id="L530">                    boolean signedByRolloverCAKey = false;</span>
+                    try {
+<span class="nc" id="L532">                        CertTools.verify(x509Certificate, trustedChain, CertTools.getNotBefore(x509Certificate));</span>
+<span class="nc" id="L533">                        signedByRolloverCAKey = true;</span>
+<span class="nc" id="L534">                    } catch (CertPathValidatorException e) {</span>
+                        // NOPMD
+<span class="nc" id="L536">                    }</span>
+                    // Check that the EE roll-over certificate validity starts equal to or after the roll-over CA certificates validity
+<span class="nc" id="L538">                    final Date notBeforeX509Certificate = CertTools.getNotBefore(x509Certificate);</span>
+<span class="nc" id="L539">                    final Date notBeforeRolloverCA = CertTools.getNotBefore(rolloverCA);</span>
+<span class="nc bnc" id="L540" title="All 2 branches missed.">                    final boolean eeCertValidUnderCaValidity = !notBeforeX509Certificate.before(notBeforeRolloverCA);</span>
+<span class="nc bnc" id="L541" title="All 4 branches missed.">                    final boolean isRollover = signedByRolloverCAKey &amp;&amp; eeCertValidUnderCaValidity;</span>
+<span class="nc bnc" id="L542" title="All 2 branches missed.">                    if (isRollover != findRollover) {</span>
+<span class="nc bnc" id="L543" title="All 2 branches missed.">                        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L544">                            final String fingerprint = CertTools.getFingerprintAsString(x509Certificate);</span>
+<span class="nc" id="L545">                            log.trace(&quot;Certificate with fingerprint '&quot;+fingerprint+&quot;' is not considered a rollover certificate. signedByRolloverCAKey: &quot; +</span>
+                                    signedByRolloverCAKey + &quot; leaf not before: &quot; + notBeforeX509Certificate + &quot; CA not before: &quot; + notBeforeRolloverCA);
+<span class="nc" id="L547">                        }</span>
+                        continue;
+                    }
+                }
+<span class="nc bnc" id="L551" title="All 4 branches missed.">                if (result == null || CertTools.getNotBefore(x509Certificate).after(CertTools.getNotBefore(result))) {</span>
+<span class="nc" id="L552">                    result = x509Certificate;</span>
+                }
+            }
+<span class="nc" id="L555">        }</span>
+
+<span class="nc" id="L557">        return result;</span>
+    }
+
+    @Override
+    public Collection&lt;CertificateWrapper&gt; findCertificatesByExpireTimeWithLimit(Date expireTime) {
+<span class="nc bnc" id="L562" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L563">            log.trace(&quot;&gt;findCertificatesByExpireTimeWithLimit(), time=&quot; + expireTime);</span>
+        }
+        // First make expire time in well know format
+<span class="nc bnc" id="L566" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L567">            log.debug(&quot;Looking for certs that expire before: &quot; + expireTime);</span>
+        }
+<span class="nc" id="L569">        final List&lt;CertificateData&gt; certificateDatas = certificateDataSession.findByExpireDateWithLimit(expireTime.getTime(),</span>
+<span class="nc" id="L570">                getGlobalCesecoreConfiguration().getMaximumQueryCount());</span>
+<span class="nc bnc" id="L571" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L572">            log.debug(&quot;Found &quot; + certificateDatas.size() + &quot; certificates that expire before &quot; + expireTime);</span>
+        }
+<span class="nc" id="L574">        final List&lt;Certificate&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L575" title="All 2 branches missed.">        for (final CertificateData certificateData : certificateDatas) {</span>
+<span class="nc" id="L576">            final Certificate certificate = certificateData.getCertificate(entityManager);</span>
+<span class="nc bnc" id="L577" title="All 2 branches missed.">            if (certificate==null) {</span>
+<span class="nc bnc" id="L578" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L579">                    log.debug(&quot;Skipping CertificateData with fingerprint '&quot; + certificateData.getFingerprint() + &quot;' since it has no stored certificate.&quot;);</span>
+                }
+            } else {
+<span class="nc" id="L582">                ret.add(certificate);</span>
+            }
+<span class="nc" id="L584">        }</span>
+<span class="nc bnc" id="L585" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L586">            log.trace(&quot;&lt;findCertificatesByExpireTimeWithLimit(), time=&quot; + expireTime);</span>
+        }
+<span class="nc" id="L588">        return EJBTools.wrapCertCollection(ret);</span>
+    }
+
+    @Override
+    public List&lt;Certificate&gt; findCertificatesByExpireTimeWithLimit(Date expireTime, int maxNumberOfResults) {
+<span class="nc bnc" id="L593" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L594">            log.trace(&quot;&gt;findCertificatesByExpireTimeWithLimit(), time=&quot; + expireTime + &quot; - maxNumberOfResults=&quot; + maxNumberOfResults);</span>
+        }
+<span class="nc bnc" id="L596" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L597">            log.debug(&quot;Looking for certs that expire before: &quot; + expireTime);</span>
+        }
+<span class="nc" id="L599">        List&lt;CertificateData&gt; certificateDatas = certificateDataSession.findByExpireDateWithLimit(expireTime.getTime(), maxNumberOfResults);</span>
+<span class="nc bnc" id="L600" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L601">            log.debug(&quot;Found &quot; + certificateDatas.size() + &quot; certificates that expire before &quot; + expireTime);</span>
+        }
+<span class="nc" id="L603">        final List&lt;Certificate&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L604" title="All 2 branches missed.">        for (final CertificateData certificateData : certificateDatas) {</span>
+<span class="nc" id="L605">            final Certificate certificate = certificateData.getCertificate(entityManager);</span>
+<span class="nc bnc" id="L606" title="All 2 branches missed.">            if (certificate==null) {</span>
+<span class="nc bnc" id="L607" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L608">                    log.debug(&quot;Skipping CertificateData with fingerprint '&quot; + certificateData.getFingerprint() + &quot;' since it has no stored certificate.&quot;);</span>
+                }
+            } else {
+<span class="nc" id="L611">                ret.add(certificate);</span>
+            }
+<span class="nc" id="L613">        }</span>
+<span class="nc bnc" id="L614" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L615">            log.trace(&quot;&lt;findCertificatesByExpireTimeWithLimit(), time=&quot; + expireTime + &quot; - maxNumberOfResults=&quot; + maxNumberOfResults);</span>
+        }
+<span class="nc" id="L617">        return ret;</span>
+    }
+
+    @Override
+    public int findNumberOfExpiringCertificates(Date expirationDate) {
+<span class="nc" id="L622">        return certificateDataSession.countByExpireDate(expirationDate.getTime());</span>
+    }
+
+    @Override
+    public List&lt;Certificate&gt; findExpiringCertificates(Date expirationDate, int maxNumberOfResults, int offset) {
+<span class="nc" id="L627">        log.trace(&quot;&gt;findExpiringCertificates(), time=&quot; + expirationDate + &quot; - maxNumberOfResults=&quot; + maxNumberOfResults + &quot; - offset=&quot; + offset);</span>
+<span class="nc" id="L628">        log.debug(&quot;Looking for certs that expire before: &quot; + expirationDate);</span>
+<span class="nc" id="L629">        List&lt;CertificateData&gt; certificateDatas = certificateDataSession.findByExpireDateWithLimitAndOffset(expirationDate.getTime(), maxNumberOfResults, offset);</span>
+<span class="nc" id="L630">        log.debug(&quot;Found &quot; + certificateDatas.size() + &quot; certificates that expire before &quot; + expirationDate);</span>
+<span class="nc" id="L631">        final List&lt;Certificate&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L632" title="All 2 branches missed.">        for (final CertificateData certificateData : certificateDatas) {</span>
+<span class="nc" id="L633">            final Certificate certificate = certificateData.getCertificate(entityManager);</span>
+<span class="nc bnc" id="L634" title="All 2 branches missed.">            if (certificate == null) {</span>
+<span class="nc" id="L635">                log.debug(&quot;Skipping CertificateData with fingerprint '&quot; + certificateData.getFingerprint() + &quot;' since it has no stored certificate.&quot;);</span>
+            } else {
+<span class="nc" id="L637">                ret.add(certificate);</span>
+            }
+<span class="nc" id="L639">        }</span>
+<span class="nc" id="L640">        log.trace(&quot;&lt;findExpiringCertificates(), time=&quot; + expirationDate + &quot; - maxNumberOfResults=&quot; + maxNumberOfResults + &quot; - offset=&quot; + offset);</span>
+<span class="nc" id="L641">        return ret;</span>
+    }
+
+    @Override
+    public List&lt;Certificate&gt; findCertificatesByExpireTimeAndIssuerWithLimit(Date expireTime, String issuerDN, int maxNumberOfResults) {
+<span class="nc bnc" id="L646" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L647">            log.trace(&quot;&gt;findCertificatesByExpireTimeWithLimit(), time=&quot; + expireTime + &quot;  - issuerDN=&quot; + issuerDN + &quot;  - maxNumberOfResults=&quot; + maxNumberOfResults);</span>
+        }
+<span class="nc bnc" id="L649" title="All 2 branches missed.">        if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L650">            log.debug(&quot;Looking for certs that expire before: &quot; + expireTime);</span>
+        }
+<span class="nc" id="L652">        List&lt;CertificateData&gt; coll = certificateDataSession.findByExpireDateAndIssuerWithLimit(expireTime.getTime(), issuerDN, maxNumberOfResults);</span>
+<span class="nc bnc" id="L653" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L654">            log.debug(&quot;Found &quot; + coll.size() + &quot; certificates that expire before &quot; + expireTime + &quot; and issuerDN &quot; + issuerDN);</span>
+        }
+<span class="nc" id="L656">        List&lt;Certificate&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L657" title="All 2 branches missed.">        for(CertificateData certData : coll) {</span>
+<span class="nc" id="L658">            ret.add(certData.getCertificate(entityManager));</span>
+<span class="nc" id="L659">        }</span>
+<span class="nc bnc" id="L660" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L661">            log.trace(&quot;&lt;findCertificatesByExpireTimeWithLimit(), time=&quot; + expireTime + &quot;  issuerDN=&quot; + issuerDN + &quot;  - maxNumberOfResults=&quot; + maxNumberOfResults);</span>
+        }
+<span class="nc" id="L663">        return ret;</span>
+    }
+
+    @Override
+    public List&lt;Certificate&gt; findCertificatesByExpireTimeAndTypeWithLimit(Date expireTime, int certificateType, int maxNumberOfResults) {
+<span class="nc bnc" id="L668" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L669">            log.trace(&quot;&gt;findCertificatesByExpireTimeAndTypeWithLimit(), time=&quot; + expireTime + &quot;  - type=&quot; + certificateType + &quot;  - maxNumberOfResults=&quot; + maxNumberOfResults);</span>
+        }
+<span class="nc bnc" id="L671" title="All 2 branches missed.">        if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L672">            log.debug(&quot;Looking for certs that expire before &quot; + expireTime + &quot; and of type &quot; + certificateType);</span>
+        }
+<span class="nc" id="L674">        List&lt;CertificateData&gt; coll = certificateDataSession.findByExpireDateAndTypeWithLimit(expireTime.getTime(), certificateType, maxNumberOfResults);</span>
+<span class="nc bnc" id="L675" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L676">            log.debug(&quot;Found &quot; + coll.size() + &quot; certificates that expire before &quot; + expireTime + &quot; and of type &quot; + certificateType);</span>
+        }
+<span class="nc" id="L678">        List&lt;Certificate&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L679" title="All 2 branches missed.">        for(CertificateData certData : coll) {</span>
+<span class="nc" id="L680">            ret.add(certData.getCertificate(entityManager));</span>
+<span class="nc" id="L681">        }</span>
+<span class="nc bnc" id="L682" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L683">            log.trace(&quot;&lt;findCertificatesByExpireTimeAndTypeWithLimit(), time=&quot; + expireTime + &quot;  - type=&quot; + certificateType + &quot;  - maxNumberOfResults=&quot; + maxNumberOfResults);</span>
+        }
+<span class="nc" id="L685">        return ret;</span>
+    }
+
+    @Override
+    public Collection&lt;String&gt; findUsernamesByExpireTimeWithLimit(Date expiretime) {
+<span class="nc bnc" id="L690" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L691">            log.trace(&quot;&gt;findCertificatesByExpireTimeWithLimit: &quot; + expiretime);</span>
+        }
+<span class="nc" id="L693">        return certificateDataSession.findUsernamesByExpireTimeWithLimit(new Date().getTime(), expiretime.getTime(),</span>
+<span class="nc" id="L694">                getGlobalCesecoreConfiguration().getMaximumQueryCount());</span>
+    }
+
+    @Override
+    public boolean existsByIssuerAndSerno(String issuerDN, BigInteger serno) {
+<span class="nc bnc" id="L699" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L700">            log.trace(&quot;&gt;existsByIssuerAndSerno(), dn:&quot; + issuerDN + &quot;, serno=&quot; + serno.toString(16));</span>
+        }
+        // Selecting an int column is optimal speed
+<span class="nc" id="L703">        final Query query = entityManager.createQuery(&quot;SELECT 1 FROM CertificateData a WHERE a.issuerDN=:issuerDN AND a.serialNumber=:serialNumber&quot;);</span>
+        // First make a DN in our well-known format
+<span class="nc" id="L705">        query.setParameter(&quot;issuerDN&quot;, CertTools.stringToBCDNString(StringTools.strip(issuerDN)));</span>
+<span class="nc" id="L706">        query.setParameter(&quot;serialNumber&quot;, serno.toString());</span>
+<span class="nc bnc" id="L707" title="All 2 branches missed.">        final boolean ret = query.getResultList().size() &gt; 0;</span>
+<span class="nc bnc" id="L708" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L709">            log.trace(&quot;&lt;existsByIssuerAndSerno(), dn:&quot; + issuerDN + &quot;, serno=&quot; + serno.toString(16)+&quot;, ret=&quot;+ret);</span>
+        }
+<span class="nc" id="L711">        return ret;</span>
+    }
+
+
+    @Override
+    public Certificate findCertificateByIssuerAndSerno(String issuerDN, BigInteger serno) {
+<span class="nc bnc" id="L717" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L718">            log.trace(&quot;&gt;findCertificateByIssuerAndSerno(), dn:&quot; + issuerDN + &quot;, serno=&quot; + serno.toString(16));</span>
+        }
+        // First make a DN in our well-known format
+<span class="nc" id="L721">        String dn = CertTools.stringToBCDNString(StringTools.strip(issuerDN));</span>
+<span class="nc bnc" id="L722" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L723">            log.debug(&quot;Looking for cert with (transformed)DN: &quot; + dn);</span>
+        }
+<span class="nc" id="L725">        Collection&lt;CertificateData&gt; coll = certificateDataSession.findByIssuerDNSerialNumber(dn, serno.toString());</span>
+<span class="nc" id="L726">        Certificate ret = null;</span>
+<span class="nc bnc" id="L727" title="All 2 branches missed.">        if (coll.size() &gt; 1) {</span>
+<span class="nc" id="L728">            String msg = INTRES.getLocalizedMessage(&quot;store.errorseveralissuerserno&quot;, issuerDN, serno.toString(16));</span>
+<span class="nc" id="L729">            log.error(msg);</span>
+        }
+<span class="nc" id="L731">        Certificate cert = null;</span>
+        // There are several certs, we will try to find the latest issued one
+<span class="nc bnc" id="L733" title="All 2 branches missed.">        for(CertificateData certificateData : coll) {</span>
+<span class="nc" id="L734">            cert = certificateData.getCertificate(this.entityManager);</span>
+<span class="nc bnc" id="L735" title="All 2 branches missed.">            if (ret != null) {</span>
+<span class="nc bnc" id="L736" title="All 2 branches missed.">                if (CertTools.getNotBefore(cert).after(CertTools.getNotBefore(ret))) {</span>
+                    // cert is never than ret
+<span class="nc" id="L738">                    ret = cert;</span>
+                }
+            } else {
+<span class="nc" id="L741">                ret = cert;</span>
+            }
+<span class="nc" id="L743">        }</span>
+<span class="nc bnc" id="L744" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L745">            log.trace(&quot;&lt;findCertificateByIssuerAndSerno(), dn:&quot; + issuerDN + &quot;, serno=&quot; + serno.toString(16));</span>
+        }
+<span class="nc" id="L747">        return ret;</span>
+    }
+
+    @Override
+    public CertificateDataWrapper getCertificateDataByIssuerAndSerno(String issuerDN, BigInteger serno) {
+        // First make a DN in our well-known format
+<span class="nc" id="L753">        final String dn = CertTools.stringToBCDNString(StringTools.strip(issuerDN));</span>
+<span class="nc" id="L754">        final List&lt;CertificateData&gt; certs = certificateDataSession.findByIssuerDNSerialNumber(dn, serno.toString());</span>
+<span class="nc bnc" id="L755" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L756">            log.debug(&quot;Found &quot;+certs.size()+&quot; cert(s) with (transformed) DN: &quot; + dn + &quot; serialNumber: &quot; + serno.toString());</span>
+        }
+<span class="nc bnc" id="L758" title="All 2 branches missed.">        if (certs.size() &gt; 1) {</span>
+<span class="nc" id="L759">            log.error(INTRES.getLocalizedMessage(&quot;store.errorseveralissuerserno&quot;, issuerDN, serno.toString(16)));</span>
+        }
+<span class="nc bnc" id="L761" title="All 2 branches missed.">        if (certs.size()==0) {</span>
+<span class="nc" id="L762">            return null;</span>
+        }
+<span class="nc" id="L764">        final List&lt;CertificateDataWrapper&gt; cdws = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L765" title="All 2 branches missed.">        for (final CertificateData certificateData : certs) {</span>
+<span class="nc bnc" id="L766" title="All 2 branches missed.">            if (CesecoreConfiguration.useBase64CertTable()) {</span>
+<span class="nc" id="L767">                final Base64CertData base64CertData = Base64CertData.findByFingerprint(entityManager, certificateData.getFingerprint());</span>
+<span class="nc" id="L768">                cdws.add(new CertificateDataWrapper(certificateData, base64CertData));</span>
+<span class="nc" id="L769">            } else {</span>
+<span class="nc" id="L770">                cdws.add(new CertificateDataWrapper(certificateData, null));</span>
+            }
+<span class="nc" id="L772">        }</span>
+<span class="nc" id="L773">        Collections.sort(cdws);</span>
+<span class="nc" id="L774">        return cdws.get(0);</span>
+    }
+
+    @Override
+    public CertificateInfo findFirstCertificateInfo(final String issuerDN, final BigInteger serno) {
+<span class="nc" id="L779">        return certificateDataSession.findFirstCertificateInfo(CertTools.stringToBCDNString(issuerDN), serno.toString());</span>
+    }
+
+    @Override
+    public int getFirstStatusByIssuerAndSerno(final String issuerDN, final BigInteger serno) {
+<span class="nc" id="L784">        final Query query = entityManager.createQuery(&quot;SELECT a.status FROM CertificateData a WHERE a.issuerDN=:issuerDN AND a.serialNumber=:serialNumber&quot;);</span>
+<span class="nc" id="L785">        query.setParameter(&quot;issuerDN&quot;, CertTools.stringToBCDNString(issuerDN));</span>
+<span class="nc" id="L786">        query.setParameter(&quot;serialNumber&quot;, serno.toString());</span>
+        final int status;
+        @SuppressWarnings(&quot;rawtypes&quot;)
+<span class="nc" id="L789">        final List result = query.getResultList();</span>
+<span class="nc bnc" id="L790" title="All 2 branches missed.">        if (result.size() &gt; 0) {</span>
+<span class="nc" id="L791">            status = ValueExtractor.extractIntValue(result.get(0));</span>
+        } else {
+<span class="nc" id="L793">            status = -1;</span>
+        }
+<span class="nc" id="L795">        return status;</span>
+    }
+
+    @Override
+    public Collection&lt;Certificate&gt; findCertificatesByIssuerAndSernos(String issuerDN, Collection&lt;BigInteger&gt; sernos) {
+<span class="nc bnc" id="L800" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L801">            log.trace(&quot;&gt;findCertificateByIssuerAndSernos()&quot;);</span>
+        }
+<span class="nc" id="L803">        List&lt;Certificate&gt; ret = null;</span>
+<span class="nc bnc" id="L804" title="All 8 branches missed.">        if (null == issuerDN || issuerDN.length() &lt;= 0 || null == sernos || sernos.isEmpty()) {</span>
+<span class="nc" id="L805">            ret = new ArrayList&lt;&gt;();</span>
+        } else {
+<span class="nc" id="L807">            String dn = CertTools.stringToBCDNString(issuerDN);</span>
+<span class="nc bnc" id="L808" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L809">                log.debug(&quot;Looking for cert with (transformed)DN: &quot; + dn);</span>
+            }
+<span class="nc" id="L811">            ret = certificateDataSession.findCertificatesByIssuerDnAndSerialNumbers(dn, sernos);</span>
+        }
+<span class="nc bnc" id="L813" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L814">            log.trace(&quot;&lt;findCertificateByIssuerAndSernos()&quot;);</span>
+        }
+<span class="nc" id="L816">        return ret;</span>
+    }
+
+    @Override
+    public List&lt;CertificateDataWrapper&gt; getCertificateDataBySerno(final BigInteger serno) {
+<span class="nc bnc" id="L821" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L822">            log.trace(&quot;&gt;findCertificatesBySerno(),  serno=&quot; + serno);</span>
+        }
+<span class="nc" id="L824">        final List&lt;CertificateDataWrapper&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L825">        final List&lt;CertificateData&gt; coll = certificateDataSession.findBySerialNumber(serno.toString());</span>
+<span class="nc bnc" id="L826" title="All 2 branches missed.">        for (final CertificateData certificateData : coll) {</span>
+<span class="nc" id="L827">            ret.add(new CertificateDataWrapper(certificateData, Base64CertData.findByFingerprint(entityManager, certificateData.getFingerprint())));</span>
+<span class="nc" id="L828">        }</span>
+<span class="nc bnc" id="L829" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L830">            log.trace(&quot;&lt;findCertificatesBySerno(), serno=&quot; + serno);</span>
+        }
+<span class="nc" id="L832">        return ret;</span>
+    }
+
+    @Override
+    public String findUsernameByCertSerno(final BigInteger serno, final String issuerdn) {
+<span class="nc bnc" id="L837" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L838">            log.trace(&quot;&gt;findUsernameByCertSerno(), serno: &quot; + serno.toString(16) + &quot;, issuerdn: &quot; + issuerdn);</span>
+        }
+<span class="nc" id="L840">        final String ret = certificateDataSession.findLastUsernameByIssuerDNSerialNumber(CertTools.stringToBCDNString(issuerdn), serno.toString());</span>
+<span class="nc bnc" id="L841" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L842">            log.trace(&quot;&lt;findUsernameByCertSerno(), ret=&quot; + ret);</span>
+        }
+<span class="nc" id="L844">        return ret;</span>
+    }
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    @Override
+    public List&lt;CertificateDataWrapper&gt; getCertificateDataByUsername(String username, boolean excludeExpired, List&lt;Integer&gt; excludedStatuses) {
+<span class="nc" id="L850">        final List&lt;CertificateDataWrapper&gt; ret = new ArrayList&lt;&gt;();</span>
+        final List&lt;CertificateData&gt; certificateDatas;
+<span class="nc bnc" id="L852" title="All 2 branches missed.">        if (excludeExpired) {</span>
+<span class="nc bnc" id="L853" title="All 4 branches missed.">            if (excludedStatuses==null || excludedStatuses.isEmpty()) {</span>
+<span class="nc" id="L854">                final Query query = entityManager</span>
+<span class="nc" id="L855">                        .createQuery(&quot;SELECT a FROM CertificateData a WHERE a.username=:username AND (a.expireDate&gt;=:afterExpireDate OR a.expireDate=0) ORDER BY a.expireDate DESC, a.serialNumber DESC&quot;);</span>
+<span class="nc" id="L856">                query.setParameter(&quot;username&quot;, username);</span>
+<span class="nc" id="L857">                query.setParameter(&quot;afterExpireDate&quot;, System.currentTimeMillis());</span>
+<span class="nc" id="L858">                certificateDatas = query.getResultList();</span>
+<span class="nc" id="L859">            } else {</span>
+<span class="nc" id="L860">                final Query query = entityManager</span>
+<span class="nc" id="L861">                        .createQuery(&quot;SELECT a FROM CertificateData a WHERE a.username=:username AND a.status NOT IN (:statusExcluded) AND (a.expireDate&gt;=:afterExpireDate OR a.expireDate=0) ORDER BY a.expireDate DESC, a.serialNumber DESC&quot;);</span>
+<span class="nc" id="L862">                query.setParameter(&quot;username&quot;, username);</span>
+<span class="nc" id="L863">                query.setParameter(&quot;statusExcluded&quot;, excludedStatuses);</span>
+<span class="nc" id="L864">                query.setParameter(&quot;afterExpireDate&quot;, System.currentTimeMillis());</span>
+<span class="nc" id="L865">                certificateDatas = query.getResultList();</span>
+<span class="nc" id="L866">            }</span>
+        } else {
+<span class="nc bnc" id="L868" title="All 4 branches missed.">            if (excludedStatuses==null || excludedStatuses.isEmpty()) {</span>
+<span class="nc" id="L869">                certificateDatas = certificateDataSession.findByUsernameOrdered(username);</span>
+            } else {
+<span class="nc" id="L871">                final Query query = entityManager</span>
+<span class="nc" id="L872">                        .createQuery(&quot;SELECT a FROM CertificateData a WHERE a.username=:username AND a.status NOT IN (:statusExcluded) ORDER BY a.expireDate DESC, a.serialNumber DESC&quot;);</span>
+<span class="nc" id="L873">                query.setParameter(&quot;username&quot;, username);</span>
+<span class="nc" id="L874">                query.setParameter(&quot;statusExcluded&quot;, excludedStatuses);</span>
+<span class="nc" id="L875">                certificateDatas = query.getResultList();</span>
+            }
+        }
+<span class="nc bnc" id="L878" title="All 2 branches missed.">        for (final CertificateData certificateData : certificateDatas) {</span>
+<span class="nc bnc" id="L879" title="All 2 branches missed.">            if (CesecoreConfiguration.useBase64CertTable()) {</span>
+<span class="nc" id="L880">                ret.add(new CertificateDataWrapper(certificateData, Base64CertData.findByFingerprint(entityManager, certificateData.getFingerprint())));</span>
+            } else {
+<span class="nc" id="L882">                ret.add(new CertificateDataWrapper(certificateData, null));</span>
+            }
+<span class="nc" id="L884">        }</span>
+<span class="nc" id="L885">        return ret;</span>
+    }
+
+    @Override
+    public Collection&lt;CertificateWrapper&gt; findCertificatesByUsername(String username) {
+<span class="nc bnc" id="L890" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L891">            log.trace(&quot;&gt;findCertificatesByUsername(),  username=&quot; + username);</span>
+        }
+        // This method on the entity bean does the ordering in the database
+<span class="nc" id="L894">        final List&lt;CertificateData&gt; certificateDatas = certificateDataSession.findByUsernameOrdered(username);</span>
+<span class="nc" id="L895">        final List&lt;Certificate&gt; ret = getAsCertificateListWithoutNulls(certificateDatas);</span>
+<span class="nc bnc" id="L896" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L897">            log.trace(&quot;&lt;findCertificatesByUsername(), username=&quot; + username);</span>
+        }
+<span class="nc" id="L899">        return EJBTools.wrapCertCollection(ret);</span>
+    }
+
+    @Override
+    public Collection&lt;Certificate&gt; findCertificatesByUsernameAndStatus(final String username, final int status) {
+<span class="nc bnc" id="L904" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L905">            log.trace(&quot;&gt;findCertificatesByUsernameAndStatus(),  username=&quot; + username);</span>
+        }
+        // This method on the entity bean does the ordering in the database
+<span class="nc" id="L908">        final List&lt;CertificateData&gt; certificateDatas = certificateDataSession.findByUsernameAndStatus(username, status);</span>
+<span class="nc" id="L909">        final List&lt;Certificate&gt; ret = getAsCertificateListWithoutNulls(certificateDatas);</span>
+<span class="nc bnc" id="L910" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L911">            log.trace(&quot;&lt;findCertificatesByUsernameAndStatus(), username=&quot; + username);</span>
+        }
+<span class="nc" id="L913">        return ret;</span>
+    }
+
+    @Override
+    public Collection&lt;Certificate&gt; findCertificatesByUsernameAndStatusAfterExpireDate(final String username, final int status, final long afterExpireDate) {
+<span class="nc bnc" id="L918" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L919">            log.trace(&quot;&gt;findCertificatesByUsernameAndStatusAfterExpireDate(),  username=&quot; + username);</span>
+        }
+        // This method on the data bean does the ordering in the database
+<span class="nc" id="L922">        final List&lt;CertificateData&gt; certificateDatas = certificateDataSession.findByUsernameAndStatusAfterExpireDate(username, status, afterExpireDate);</span>
+<span class="nc" id="L923">        final List&lt;Certificate&gt; ret = getAsCertificateListWithoutNulls(certificateDatas);</span>
+<span class="nc bnc" id="L924" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L925">            log.trace(&quot;&lt;findCertificatesByUsernameAndStatusAfterExpireDate(), username=&quot; + username);</span>
+        }
+<span class="nc" id="L927">        return ret;</span>
+    }
+
+    /** Fetch the actual certificate is stored in a separate table and filter out entries where we don't store base64CertData at all 
+     * @param certificateDatas Data
+     * @return Certs */
+    private List&lt;Certificate&gt; getAsCertificateListWithoutNulls(List&lt;CertificateData&gt; certificateDatas) {
+<span class="nc" id="L934">        final ArrayList&lt;Certificate&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L935" title="All 2 branches missed.">        for (final CertificateData certificateData : certificateDatas) {</span>
+<span class="nc" id="L936">            final Certificate certificate = certificateData.getCertificate(this.entityManager);</span>
+<span class="nc bnc" id="L937" title="All 2 branches missed.">            if (certificate!=null) {</span>
+<span class="nc" id="L938">                ret.add(certificate);</span>
+            }
+<span class="nc" id="L940">        }</span>
+<span class="nc" id="L941">        return ret;</span>
+    }
+
+    @Override
+    public CertificateInfo getCertificateInfo(String fingerprint) {
+<span class="nc bnc" id="L946" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L947">            log.trace(&quot;&gt;getCertificateInfo(): &quot; + fingerprint);</span>
+        }
+<span class="nc bnc" id="L949" title="All 2 branches missed.">        if (fingerprint == null) {</span>
+<span class="nc" id="L950">            return null;</span>
+        }
+<span class="nc" id="L952">        return certificateDataSession.getCertificateInfo(fingerprint);</span>
+    }
+
+    @Override
+    public Certificate findCertificateByFingerprint(String fingerprint) {
+<span class="nc bnc" id="L957" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L958">            log.trace(&quot;&gt;findCertificateByFingerprint()&quot;);</span>
+        }
+<span class="nc" id="L960">        Certificate ret = null;</span>
+        try {
+<span class="nc" id="L962">            CertificateData res = certificateDataSession.findByFingerprint(fingerprint);</span>
+<span class="nc bnc" id="L963" title="All 2 branches missed.">            if (res != null) {</span>
+<span class="nc" id="L964">                ret = res.getCertificate(this.entityManager);</span>
+            }
+<span class="nc" id="L966">        } catch (Exception e) {</span>
+<span class="nc" id="L967">            log.error(&quot;Error finding certificate with fp: &quot; + fingerprint);</span>
+<span class="nc" id="L968">            throw new EJBException(e);</span>
+<span class="nc" id="L969">        }</span>
+<span class="nc bnc" id="L970" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L971">            log.trace(&quot;&lt;findCertificateByFingerprint()&quot;);</span>
+        }
+<span class="nc" id="L973">        return ret;</span>
+    }
+
+    @Override
+    public CertificateWrapper findCertificateByFingerprintRemote(String fingerprint) {
+<span class="nc bnc" id="L978" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L979">            log.trace(&quot;&gt;findCertificateByFingerprintRemote()&quot;);</span>
+        }
+<span class="nc" id="L981">        final CertificateWrapper ret = EJBTools.wrap(findCertificateByFingerprint(fingerprint));</span>
+<span class="nc bnc" id="L982" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L983">            log.trace(&quot;&lt;findCertificateByFingerprintRemote()&quot;);</span>
+        }
+<span class="nc" id="L985">        return ret;</span>
+    }
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    @Override
+    public Collection&lt;Certificate&gt; findCertificatesBySubjectKeyId(byte[] subjectKeyId) {
+<span class="nc" id="L991">        final Query query = entityManager.createQuery(&quot;SELECT a FROM CertificateData a WHERE a.subjectKeyId=:subjectKeyId&quot;);</span>
+<span class="nc" id="L992">        query.setParameter(&quot;subjectKeyId&quot;, new String(Base64.encode(subjectKeyId, false)));</span>
+
+<span class="nc" id="L994">        Collection&lt;Certificate&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L995" title="All 2 branches missed.">        for(CertificateData certificateData : (Collection&lt;CertificateData&gt;) query.getResultList()) {</span>
+<span class="nc" id="L996">            result.add(certificateData.getCertificate(this.entityManager));</span>
+<span class="nc" id="L997">        }</span>
+<span class="nc" id="L998">        return result;</span>
+    }
+
+    @Override
+    public Collection&lt;CertificateWrapper&gt; findCertificatesByType(int type, String issuerDN) throws IllegalArgumentException {
+<span class="nc bnc" id="L1003" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1004">            log.trace(&quot;&gt;findCertificatesByType()&quot;);</span>
+        }
+<span class="nc bnc" id="L1006" title="All 4 branches missed.">        if (type &lt;= 0</span>
+                || type &gt; CertificateConstants.CERTTYPE_SUBCA + CertificateConstants.CERTTYPE_ENDENTITY + CertificateConstants.CERTTYPE_ROOTCA) {
+<span class="nc" id="L1008">            throw new IllegalArgumentException();</span>
+        }
+<span class="nc" id="L1010">        Collection&lt;Integer&gt; ctypes = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L1011" title="All 2 branches missed.">        if ((type &amp; CertificateConstants.CERTTYPE_SUBCA) &gt; 0) {</span>
+<span class="nc" id="L1012">            ctypes.add(CertificateConstants.CERTTYPE_SUBCA);</span>
+        }
+<span class="nc bnc" id="L1014" title="All 2 branches missed.">        if ((type &amp; CertificateConstants.CERTTYPE_ENDENTITY) &gt; 0) {</span>
+<span class="nc" id="L1015">            ctypes.add(CertificateConstants.CERTTYPE_ENDENTITY);</span>
+        }
+<span class="nc bnc" id="L1017" title="All 2 branches missed.">        if ((type &amp; CertificateConstants.CERTTYPE_ROOTCA) &gt; 0) {</span>
+<span class="nc" id="L1018">            ctypes.add(CertificateConstants.CERTTYPE_ROOTCA);</span>
+        }
+        List&lt;Certificate&gt; ret;
+        // FIXME: These queries can easily make the server run out of memory on a large database
+<span class="nc bnc" id="L1022" title="All 4 branches missed.">        if (null != issuerDN &amp;&amp; issuerDN.length() &gt; 0) {</span>
+<span class="nc" id="L1023">            ret = certificateDataSession.findActiveCertificatesByTypeAndIssuer(ctypes, CertTools.stringToBCDNString(issuerDN));</span>
+        } else {
+<span class="nc" id="L1025">            ret = certificateDataSession.findActiveCertificatesByType(ctypes);</span>
+        }
+<span class="nc bnc" id="L1027" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1028">            log.trace(&quot;&lt;findCertificatesByType()&quot;);</span>
+        }
+<span class="nc" id="L1030">        return EJBTools.wrapCertCollection(ret);</span>
+    }
+
+    @Override
+    public List&lt;Certificate&gt; getCertificateChain(final CertificateInfo certinfo) {
+<span class="nc" id="L1035">        final List&lt;Certificate&gt; chain = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1036">        final Set&lt;String&gt; seenFingerprints = new HashSet&lt;&gt;();</span>
+
+<span class="nc" id="L1038">        CertificateInfo certInChain = certinfo;</span>
+        do {
+<span class="nc" id="L1040">            final String fingerprint = certInChain.getFingerprint();</span>
+<span class="nc" id="L1041">            final Certificate thecert = findCertificateByFingerprint(fingerprint);</span>
+<span class="nc bnc" id="L1042" title="All 4 branches missed.">            if (!seenFingerprints.add(fingerprint) || thecert == null) {</span>
+<span class="nc" id="L1043">                break; // detected loop or missing cert. should not happen</span>
+            }
+<span class="nc" id="L1045">            chain.add(thecert);</span>
+            // roots are self-signed
+<span class="nc bnc" id="L1047" title="All 2 branches missed.">            if (certInChain.getCAFingerprint().equals(fingerprint)) {</span>
+<span class="nc" id="L1048">                break;</span>
+            }
+            // proceed with issuer
+<span class="nc" id="L1051">            certInChain = getCertificateInfo(certInChain.getCAFingerprint());</span>
+<span class="nc bnc" id="L1052" title="All 2 branches missed.">        } while (certInChain != null); // should not happen</span>
+<span class="nc" id="L1053">        return chain;</span>
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public boolean setRevokeStatus(AuthenticationToken admin, CertificateDataWrapper cdw, Date revokedDate, int reason) throws CertificateRevokeException, AuthorizationDeniedException {
+<span class="nc bnc" id="L1059" title="All 2 branches missed.">        if (cdw == null) {</span>
+<span class="nc" id="L1060">            throw new IllegalArgumentException(&quot;Passed certificate data may not be null.&quot;);</span>
+        }
+<span class="nc" id="L1062">        final BaseCertificateData certificateData = cdw.getBaseCertificateData();</span>
+<span class="nc" id="L1063">        final int caid = certificateData.getIssuerDN().hashCode();</span>
+<span class="nc" id="L1064">        authorizedToCA(admin, caid);</span>
+<span class="nc" id="L1065">        return setRevokeStatusNoAuth(admin, certificateData, revokedDate, reason);</span>
+    }
+
+    @Override
+    public boolean setRevokeStatusNoAuth(AuthenticationToken admin, BaseCertificateData certificateData, Date revokeDate, int reason) throws CertificateRevokeException {
+<span class="nc" id="L1070">        String serialNumber = &quot;unknown&quot;;</span>
+        try {
+            // This will work for X.509
+<span class="nc" id="L1073">            serialNumber = new BigInteger(certificateData.getSerialNumber(), 10).toString(16).toUpperCase();</span>
+<span class="nc" id="L1074">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L1075">            serialNumber = certificateData.getSerialNumber();</span>
+<span class="nc" id="L1076">        }</span>
+<span class="nc" id="L1077">        final String issuerDn = certificateData.getIssuerDN();</span>
+<span class="nc" id="L1078">        final int caid = issuerDn.hashCode();</span>
+<span class="nc" id="L1079">        final String username = certificateData.getUsername();</span>
+<span class="nc" id="L1080">        final Date now = new Date();</span>
+
+<span class="nc" id="L1082">        boolean returnVal = false;</span>
+        // A normal revocation
+<span class="nc bnc" id="L1084" title="All 8 branches missed.">        if ( (certificateData.getStatus()!=CertificateConstants.CERT_REVOKED || certificateData.getRevocationReason()==RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD) &amp;&amp;</span>
+                reason!=RevokedCertInfo.NOT_REVOKED &amp;&amp; reason!=RevokedCertInfo.REVOCATION_REASON_REMOVEFROMCRL ) {
+<span class="nc bnc" id="L1086" title="All 2 branches missed.">            if ( certificateData.getStatus()!=CertificateConstants.CERT_REVOKED ) {</span>
+<span class="nc" id="L1087">                certificateData.setStatus(CertificateConstants.CERT_REVOKED);</span>
+<span class="nc" id="L1088">                certificateData.setRevocationDate(revokeDate); // keep date if certificate on hold.</span>
+            }
+<span class="nc" id="L1090">            certificateData.setUpdateTime(now.getTime());</span>
+<span class="nc" id="L1091">            certificateData.setRevocationReason(reason);</span>
+
+<span class="nc" id="L1093">            final String msg = INTRES.getLocalizedMessage(&quot;store.revokedcert&quot;, username, certificateData.getFingerprint(), Integer.valueOf(reason), certificateData.getSubjectDnNeverNull(), certificateData.getIssuerDN(), serialNumber);</span>
+<span class="nc" id="L1094">            Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L1095">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L1096">            logSession.log(EventTypes.CERT_REVOKED, EventStatus.SUCCESS, ModuleTypes.CERTIFICATE, ServiceTypes.CORE, admin.toString(), String.valueOf(caid), serialNumber, username, details);</span>
+<span class="nc" id="L1097">            returnVal = true; // we did change status</span>
+<span class="nc bnc" id="L1098" title="All 4 branches missed.">        } else if (((reason == RevokedCertInfo.NOT_REVOKED) || (reason == RevokedCertInfo.REVOCATION_REASON_REMOVEFROMCRL))</span>
+<span class="nc bnc" id="L1099" title="All 2 branches missed.">                &amp;&amp; (certificateData.getRevocationReason() == RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD)) {</span>
+            // Unrevoke, can only be done when the certificate was previously revoked with reason CertificateHold
+            // Only allow unrevocation if the certificate is revoked and the revocation reason is CERTIFICATE_HOLD
+<span class="nc" id="L1102">            int status = CertificateConstants.CERT_ACTIVE;</span>
+<span class="nc" id="L1103">            certificateData.setStatus(status);</span>
+<span class="nc" id="L1104">            certificateData.setRevocationDate(revokeDate);</span>
+<span class="nc" id="L1105">            certificateData.setUpdateTime(now.getTime());</span>
+<span class="nc" id="L1106">            certificateData.setRevocationReason(RevokedCertInfo.NOT_REVOKED);</span>
+
+<span class="nc" id="L1108">            final String msg = INTRES.getLocalizedMessage(&quot;store.unrevokedcert&quot;, username, certificateData.getFingerprint(), Integer.valueOf(reason), certificateData.getSubjectDnNeverNull(), certificateData.getIssuerDN(), serialNumber);</span>
+<span class="nc" id="L1109">            Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L1110">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L1111">            logSession.log(EventTypes.CERT_REVOKED, EventStatus.SUCCESS, ModuleTypes.CERTIFICATE, ServiceTypes.CORE, admin.toString(), String.valueOf(caid), serialNumber, username, details);</span>
+<span class="nc" id="L1112">            returnVal = true; // we did change status</span>
+<span class="nc" id="L1113">        } else {</span>
+<span class="nc" id="L1114">            final String msg = INTRES.getLocalizedMessage(&quot;store.ignorerevoke&quot;, serialNumber, Integer.valueOf(certificateData.getStatus()), Integer.valueOf(reason));</span>
+<span class="nc" id="L1115">            log.info(msg);</span>
+<span class="nc" id="L1116">            returnVal = false; // we did _not_ change status in the database</span>
+        }
+<span class="nc bnc" id="L1118" title="All 2 branches missed.">        if (returnVal) {</span>
+            // Persist changes
+<span class="nc bnc" id="L1120" title="All 2 branches missed.">            if (certificateData instanceof NoConflictCertificateData) {</span>
+<span class="nc" id="L1121">                entityManager.persist(certificateData); // Ensure append-only operation</span>
+            } else {
+<span class="nc" id="L1123">                entityManager.merge(certificateData);</span>
+            }
+        }
+<span class="nc bnc" id="L1126" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1127">            log.trace(&quot;&lt;private setRevokeStatusNoAuth(), issuerdn=&quot; + issuerDn + &quot;, serno=&quot; + serialNumber);</span>
+        }
+<span class="nc" id="L1129">        return returnVal;</span>
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void revokeAllCertByCA(AuthenticationToken admin, String issuerdn, int reason) throws AuthorizationDeniedException {
+<span class="nc" id="L1135">        int revoked = 0;</span>
+
+        // Must be authorized to CA in order to change status is certificates issued by the CA
+<span class="nc" id="L1138">        String bcdn = CertTools.stringToBCDNString(issuerdn);</span>
+<span class="nc" id="L1139">    	int caid = bcdn.hashCode();</span>
+<span class="nc" id="L1140">        authorizedToCA(admin, caid);</span>
+        try {
+<span class="nc" id="L1142">            final int maxRows = 10000;</span>
+<span class="nc" id="L1143">            int firstResult = 0;</span>
+            // Revoking all non revoked certificates.
+
+            // Update 10000 records at a time
+<span class="nc" id="L1147">            firstResult = 0;</span>
+<span class="nc" id="L1148">            List&lt;CertificateData&gt; list = findAllNonRevokedCertificates(bcdn, firstResult, maxRows);</span>
+<span class="nc bnc" id="L1149" title="All 2 branches missed.">            while (list.size() &gt; 0) {</span>
+<span class="nc bnc" id="L1150" title="All 2 branches missed.">            	for (int i = 0; i&lt;list.size(); i++) {</span>
+<span class="nc" id="L1151">                	CertificateData d = list.get(i);</span>
+<span class="nc" id="L1152">                	d.setStatus(CertificateConstants.CERT_REVOKED);</span>
+<span class="nc" id="L1153">                	d.setRevocationDate(System.currentTimeMillis());</span>
+<span class="nc" id="L1154">                	d.setRevocationReason(reason);</span>
+<span class="nc" id="L1155">                	revoked++;</span>
+            	}
+<span class="nc" id="L1157">            	firstResult += maxRows;</span>
+<span class="nc" id="L1158">            	list = findAllNonRevokedCertificates(bcdn, firstResult, maxRows);</span>
+            }
+<span class="nc" id="L1160">            final String msg = INTRES.getLocalizedMessage(&quot;store.revokedallbyca&quot;, issuerdn, Integer.valueOf(revoked), Integer.valueOf(reason));</span>
+<span class="nc" id="L1161">    		Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L1162">    		details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L1163">    		logSession.log(EventTypes.CERT_REVOKED, EventStatus.SUCCESS, ModuleTypes.CERTIFICATE, ServiceTypes.CORE, admin.toString(), String.valueOf(caid), null, null, details);</span>
+<span class="nc" id="L1164">        } catch (Exception e) {</span>
+<span class="nc" id="L1165">            final String msg = INTRES.getLocalizedMessage(&quot;store.errorrevokeallbyca&quot;, issuerdn);</span>
+<span class="nc" id="L1166">            log.info(msg);</span>
+<span class="nc" id="L1167">            throw new EJBException(e);</span>
+<span class="nc" id="L1168">        }</span>
+<span class="nc" id="L1169">    }</span>
+
+    /**
+     * @param issuerDN DN
+     * @return the certificates that have CertificateConstants.CERT_REVOKED.
+     * @param firstResult pagination variable, 0 for the first call, insrease by maxRows for further calls if return value is == maxRows
+     * @param maxRows pagination variable max number of rows that should be returned, used in order to make it somewhat efficient on large data
+     *            volumes
+     * */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    private List&lt;CertificateData&gt; findAllNonRevokedCertificates(String issuerDN, int firstResult, int maxRows) {
+<span class="nc" id="L1180">        final Query query = entityManager.createQuery(&quot;SELECT a FROM CertificateData a WHERE a.issuerDN=:issuerDN AND a.status &lt;&gt; :status&quot;);</span>
+<span class="nc" id="L1181">        query.setParameter(&quot;issuerDN&quot;, issuerDN);</span>
+<span class="nc" id="L1182">        query.setParameter(&quot;status&quot;, CertificateConstants.CERT_REVOKED);</span>
+<span class="nc" id="L1183">        query.setFirstResult(firstResult);</span>
+<span class="nc" id="L1184">        query.setMaxResults(maxRows);</span>
+<span class="nc" id="L1185">        return query.getResultList();</span>
+    }
+
+
+    @Override
+    public boolean isRevoked(String issuerDN, BigInteger serno) {
+<span class="nc bnc" id="L1191" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1192">            log.trace(&quot;&gt;isRevoked(), dn:&quot; + issuerDN + &quot;, serno=&quot; + serno.toString(16));</span>
+        }
+        // First make a DN in our well-known format
+<span class="nc" id="L1195">        String dn = CertTools.stringToBCDNString(issuerDN);</span>
+<span class="nc" id="L1196">        boolean ret = false;</span>
+        try {
+<span class="nc" id="L1198">            Collection&lt;CertificateData&gt; coll = certificateDataSession.findByIssuerDNSerialNumber(dn, serno.toString());</span>
+<span class="nc bnc" id="L1199" title="All 2 branches missed.">            if (coll.size() &gt; 0) {</span>
+<span class="nc bnc" id="L1200" title="All 2 branches missed.">                if (coll.size() &gt; 1) {</span>
+<span class="nc" id="L1201">                    final String msg = INTRES.getLocalizedMessage(&quot;store.errorseveralissuerserno&quot;, issuerDN, serno.toString(16));</span>
+<span class="nc" id="L1202">                    log.error(msg);</span>
+                }
+<span class="nc" id="L1204">                Iterator&lt;CertificateData&gt; iter = coll.iterator();</span>
+<span class="nc bnc" id="L1205" title="All 2 branches missed.">                while (iter.hasNext()) {</span>
+<span class="nc" id="L1206">                    CertificateData data = iter.next();</span>
+                    // if any of the certificates with this serno is revoked, return true
+<span class="nc bnc" id="L1208" title="All 2 branches missed.">                    if (data.getStatus() == CertificateConstants.CERT_REVOKED) {</span>
+<span class="nc" id="L1209">                        ret = true;</span>
+<span class="nc" id="L1210">                        break;</span>
+                    }
+<span class="nc" id="L1212">                }</span>
+<span class="nc" id="L1213">            } else {</span>
+                // If there are no certificates with this serial number, return true (=revoked). Better safe than sorry!
+<span class="nc" id="L1215">                ret = true;</span>
+<span class="nc bnc" id="L1216" title="All 2 branches missed.">                if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1217">                    log.trace(&quot;isRevoked() did not find certificate with dn &quot; + dn + &quot; and serno &quot; + serno.toString(16));</span>
+                }
+            }
+<span class="nc" id="L1220">        } catch (Exception e) {</span>
+<span class="nc" id="L1221">            throw new EJBException(e);</span>
+<span class="nc" id="L1222">        }</span>
+<span class="nc bnc" id="L1223" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1224">            log.trace(&quot;&lt;isRevoked() returned &quot; + ret);</span>
+        }
+<span class="nc" id="L1226">        return ret;</span>
+    }
+
+    @Override
+    public CertificateStatus getStatus(String issuerDN, BigInteger serno) {
+<span class="nc bnc" id="L1231" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1232">            log.trace(&quot;&gt;getStatus(), dn:&quot; + issuerDN + &quot;, serno=&quot; + serno.toString(16));</span>
+        }
+        // First make a DN in our well-known format
+<span class="nc" id="L1235">        final String dn = CertTools.stringToBCDNString(issuerDN);</span>
+
+        try {
+<span class="nc" id="L1238">            Collection&lt;CertificateData&gt; coll = certificateDataSession.findByIssuerDNSerialNumber(dn, serno.toString());</span>
+
+
+<span class="nc bnc" id="L1241" title="All 2 branches missed.">            if (coll.size() &gt; 1) {</span>
+<span class="nc" id="L1242">                final String msg = INTRES.getLocalizedMessage(&quot;store.errorseveralissuerserno&quot;, issuerDN, serno.toString(16));</span>
+<span class="nc" id="L1243">                log.error(msg);</span>
+            }
+
+<span class="nc bnc" id="L1246" title="All 2 branches missed.">            for(CertificateData data : coll) {</span>
+<span class="nc" id="L1247">                final CertificateStatus result = CertificateStatusHelper.getCertificateStatus(data);</span>
+<span class="nc bnc" id="L1248" title="All 2 branches missed.">                if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1249">                    log.trace(&quot;&lt;getStatus() returned &quot; + result + &quot; for cert number &quot; + serno.toString(16));</span>
+                }
+<span class="nc" id="L1251">                return result;</span>
+            }
+<span class="nc bnc" id="L1253" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1254">                log.trace(&quot;&lt;getStatus() did not find certificate with dn &quot; + dn + &quot; and serno &quot; + serno.toString(16));</span>
+            }
+<span class="nc" id="L1256">        } catch (Exception e) {</span>
+<span class="nc" id="L1257">            throw new EJBException(e);</span>
+<span class="nc" id="L1258">        }</span>
+<span class="nc" id="L1259">        return CertificateStatus.NOT_AVAILABLE;</span>
+    }
+
+    @Override
+    public CertificateStatusHolder getCertificateAndStatus(String issuerDN, BigInteger serno) {
+<span class="nc bnc" id="L1264" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1265">            log.trace(&quot;&gt;getCertificateAndStatus(), dn:&quot; + issuerDN + &quot;, serno=&quot; + serno.toString(16));</span>
+        }
+        // First make a DN in our well-known format
+<span class="nc" id="L1268">        final String dn = CertTools.stringToBCDNString(issuerDN);</span>
+<span class="nc" id="L1269">        Collection&lt;CertificateData&gt; collection = certificateDataSession.findByIssuerDNSerialNumber(dn, serno.toString());</span>
+<span class="nc bnc" id="L1270" title="All 2 branches missed.">        if (collection.size() &gt; 1) {</span>
+<span class="nc" id="L1271">            final String msg = INTRES.getLocalizedMessage(&quot;store.errorseveralissuerserno&quot;, issuerDN, serno.toString(16));</span>
+<span class="nc" id="L1272">            log.error(msg);</span>
+        }
+<span class="nc bnc" id="L1274" title="All 2 branches missed.">        for (CertificateData data : collection) {</span>
+<span class="nc" id="L1275">            final CertificateStatus result = CertificateStatusHelper.getCertificateStatus(data);</span>
+<span class="nc bnc" id="L1276" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1277">                log.trace(&quot;&lt;getStatus() returned &quot; + result + &quot; for cert number &quot; + serno.toString(16));</span>
+            }
+<span class="nc" id="L1279">            return new CertificateStatusHolder(data.getCertificate(entityManager), result);</span>
+        }
+<span class="nc bnc" id="L1281" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1282">            log.trace(&quot;&lt;getCertificateAndStatus() did not find certificate with dn &quot; + dn + &quot; and serno &quot; + serno.toString(16));</span>
+        }
+<span class="nc" id="L1284">        return new CertificateStatusHolder(null, CertificateStatus.NOT_AVAILABLE);</span>
+    }
+
+    @Override
+    public List&lt;Object[]&gt; findExpirationInfo(Collection&lt;String&gt; cas, Collection&lt;Integer&gt; certificateProfiles, long activeNotifiedExpireDateMin,
+            long activeNotifiedExpireDateMax, long activeExpireDateMin) {
+<span class="nc" id="L1290">        return certificateDataSession.findExpirationInfo(cas, certificateProfiles, activeNotifiedExpireDateMin, activeNotifiedExpireDateMax,</span>
+                activeExpireDateMin);
+    }
+
+    private void changeStatus(AuthenticationToken admin, CertificateData certificateData, int status) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L1295" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1296">            log.debug(&quot;Set status &quot; + status + &quot; for certificate with fp: &quot; + certificateData.getFingerprint());</span>
+        }
+
+        // Must be authorized to CA in order to change status is certificates issued by the CA
+<span class="nc" id="L1300">        String bcdn = CertTools.stringToBCDNString(certificateData.getIssuerDN());</span>
+<span class="nc" id="L1301">        int caid = bcdn.hashCode();</span>
+<span class="nc" id="L1302">        authorizedToCA(admin, caid);</span>
+
+<span class="nc" id="L1304">        certificateData.setStatus(status);</span>
+<span class="nc" id="L1305">        final Certificate certificate = certificateData.getCertificate(this.entityManager);</span>
+        String serialNo;
+<span class="nc bnc" id="L1307" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L1308">            serialNo = certificateData.getSerialNumberHex();</span>
+        } else {
+<span class="nc" id="L1310">            serialNo = CertTools.getSerialNumberAsString(certificate);</span>
+        }
+<span class="nc" id="L1312">        final String msg = INTRES.getLocalizedMessage(&quot;store.setstatus&quot;, certificateData.getUsername(), certificateData.getFingerprint(), status, certificateData.getSubjectDnNeverNull(), certificateData.getIssuerDN(), serialNo);</span>
+<span class="nc" id="L1313">        Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L1314">        details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L1315">        logSession.log(EventTypes.CERT_CHANGEDSTATUS, EventStatus.SUCCESS, ModuleTypes.CERTIFICATE, ServiceTypes.CORE, admin.toString(), String.valueOf(caid), serialNo, certificateData.getUsername(), details);</span>
+<span class="nc" id="L1316">    }</span>
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public boolean setStatus(AuthenticationToken admin, String fingerprint, int status) throws IllegalArgumentException, AuthorizationDeniedException {
+
+<span class="nc bnc" id="L1322" title="All 4 branches missed.">        if (status == CertificateConstants.CERT_REVOKED || status == CertificateConstants.CERT_ACTIVE) {</span>
+<span class="nc" id="L1323">            final String msg = INTRES.getLocalizedMessage(&quot;store.errorsetstatusargument&quot;, fingerprint, status);</span>
+<span class="nc" id="L1324">            throw new IllegalArgumentException(msg);</span>
+        }
+<span class="nc" id="L1326">    	CertificateData certificateData = certificateDataSession.findByFingerprint(fingerprint);</span>
+<span class="nc bnc" id="L1327" title="All 2 branches missed.">    	if (certificateData != null) {</span>
+<span class="nc" id="L1328">    	    changeStatus(admin, certificateData, status);</span>
+    	} else {
+<span class="nc bnc" id="L1330" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1331">                final String msg = INTRES.getLocalizedMessage(&quot;store.setstatusfailed&quot;, fingerprint, status);</span>
+<span class="nc" id="L1332">                log.debug(msg);</span>
+            }
+    	}
+<span class="nc bnc" id="L1335" title="All 2 branches missed.">        return (certificateData != null);</span>
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void setRolloverDoneStatus(AuthenticationToken admin, String fingerprint) throws IllegalArgumentException, AuthorizationDeniedException {
+
+<span class="nc" id="L1342">        CertificateData certificateData = certificateDataSession.findByFingerprint(fingerprint);</span>
+<span class="nc bnc" id="L1343" title="All 2 branches missed.">        if (certificateData == null) {</span>
+<span class="nc" id="L1344">            throw new IllegalStateException(&quot;CA certificate with fingerprint '&quot;+fingerprint+&quot;' does not exist.&quot;);</span>
+        }
+
+<span class="nc" id="L1347">        final int prevStatus = certificateData.getStatus();</span>
+<span class="nc bnc" id="L1348" title="All 2 branches missed.">        if (prevStatus == CertificateConstants.CERT_ACTIVE) {</span>
+<span class="nc" id="L1349">            return; // Nothing to do</span>
+        }
+
+<span class="nc bnc" id="L1352" title="All 2 branches missed.">        if (prevStatus != CertificateConstants.CERT_ROLLOVERPENDING) {</span>
+<span class="nc" id="L1353">            throw new IllegalStateException(&quot;Certificate was not in the CERT_ROLLOVERPENDING state&quot;);</span>
+        }
+<span class="nc" id="L1355">        changeStatus(admin, certificateData, CertificateConstants.CERT_ACTIVE);</span>
+<span class="nc" id="L1356">    }</span>
+
+    private void authorizedToCA(final AuthenticationToken admin, final int caid) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L1359" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(admin, StandardRules.CAACCESS.resource() + caid)) {</span>
+<span class="nc" id="L1360">        	final String msg = INTRES.getLocalizedMessage(&quot;caadmin.notauthorizedtoca&quot;, admin.toString(), caid);</span>
+<span class="nc" id="L1361">            throw new AuthorizationDeniedException(msg);</span>
+        }
+<span class="nc" id="L1363">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public Certificate findMostRecentlyUpdatedActiveCertificate(byte[] subjectKeyId) {
+<span class="nc" id="L1368">        Certificate certificate = null;</span>
+<span class="nc" id="L1369">        final String subjectKeyIdString = new String(Base64.encode(subjectKeyId, false));</span>
+<span class="nc" id="L1370">        log.debug(&quot;Searching for subjectKeyIdString &quot; + subjectKeyIdString);</span>
+<span class="nc" id="L1371">        final Query query = this.entityManager.createQuery(&quot;SELECT a FROM CertificateData a WHERE a.subjectKeyId=:subjectKeyId AND a.status=:status ORDER BY a.updateTime DESC&quot;);</span>
+<span class="nc" id="L1372">        query.setParameter(&quot;subjectKeyId&quot;, subjectKeyIdString);</span>
+<span class="nc" id="L1373">        query.setParameter(&quot;status&quot;, CertificateConstants.CERT_ACTIVE);</span>
+<span class="nc" id="L1374">        query.setMaxResults(1);</span>
+        @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L1376">        final List&lt;CertificateData&gt; resultList = query.getResultList();</span>
+<span class="nc bnc" id="L1377" title="All 2 branches missed.">        if (resultList.size() == 1) {</span>
+<span class="nc" id="L1378">            certificate = resultList.get(0).getCertificate(this.entityManager);</span>
+<span class="nc bnc" id="L1379" title="All 4 branches missed.">            if (certificate==null &amp;&amp; log.isDebugEnabled()) {</span>
+<span class="nc" id="L1380">                log.debug(&quot;Reference to an issued certificate with subjectKeyId &quot;+subjectKeyId+&quot; found, but the certificate is not stored in the database.&quot;);</span>
+            }
+        }
+<span class="nc" id="L1383">        return certificate;</span>
+    }
+
+
+    @Override
+    public String getCADnFromRequest(final RequestMessage req) {
+<span class="nc" id="L1389">        String dn = req.getIssuerDN();</span>
+<span class="nc bnc" id="L1390" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1391">            log.debug(&quot;Got an issuerDN: &quot; + dn);</span>
+        }
+        // If we have issuer and serialNo, we must find the CA certificate, to get the CAs subject name
+        // If we don't have a serialNumber, we take a chance that it was actually the subjectDN (for example a RootCA)
+<span class="nc" id="L1395">        final BigInteger serno = req.getSerialNo();</span>
+<span class="nc bnc" id="L1396" title="All 2 branches missed.">        if (serno != null) {</span>
+<span class="nc bnc" id="L1397" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1398">                log.debug(&quot;Got a serialNumber: &quot; + serno.toString(16));</span>
+            }
+
+<span class="nc" id="L1401">            final Certificate cert = findCertificateByIssuerAndSerno(dn, serno);</span>
+<span class="nc bnc" id="L1402" title="All 2 branches missed.">            if (cert != null) {</span>
+<span class="nc" id="L1403">                dn = CertTools.getSubjectDN(cert);</span>
+            }
+        }
+<span class="nc bnc" id="L1406" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1407">            log.debug(&quot;Using DN: &quot; + dn);</span>
+        }
+<span class="nc" id="L1409">        return dn;</span>
+    }
+
+    //
+    // Classes for checking Unique issuerDN/serialNumber index in the database. If we have such an index, we can allow
+    // certificate serial number override, where user specifies the serial number to be put in the certificate.
+    //
+
+    @Override
+    public void resetUniqueCertificateSerialNumberIndex() {
+<span class="nc" id="L1419">        log.info(&quot;Resetting isUniqueCertificateSerialNumberIndex to null.&quot;);</span>
+<span class="nc" id="L1420">        UniqueSernoHelper.setIsUniqueCertificateSerialNumberIndex(null);</span>
+<span class="nc" id="L1421">    }</span>
+
+    @Override
+    public void setUniqueCertificateSerialNumberIndex(final Boolean value) {
+<span class="nc" id="L1425">        log.info(&quot;Setting isUniqueCertificateSerialNumberIndex to: &quot;+value);</span>
+<span class="nc" id="L1426">        UniqueSernoHelper.setIsUniqueCertificateSerialNumberIndex(value);</span>
+<span class="nc" id="L1427">    }</span>
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public boolean isUniqueCertificateSerialNumberIndex() {
+        // Must always run in a transaction in order to store certificates, EntityManager requires use within a transaction
+<span class="nc bnc" id="L1433" title="All 2 branches missed.">        if (UniqueSernoHelper.getIsUniqueCertificateSerialNumberIndex() == null) {</span>
+            // Only create new transactions to store certificates and call this, if the variable is not initialized.
+            // If it is already set we don't have to waste time creating a new transaction
+
+            // Sets variables (but only once) that can be checked with isUniqueCertificateSerialNumberIndex().
+            // This part must be called first (at least once).
+<span class="nc" id="L1439">            final String userName = &quot;checkUniqueIndexTestUserNotToBeUsed_fjasdfjsdjfsad&quot;; // This name should only be used for this test. Made complex so that no one else will use the same.</span>
+            // Loading two dummy certificates. These certificates has same serial number and issuer.
+            // It should not be possible to store both of them in the DB.
+<span class="nc" id="L1442">            final X509Certificate cert1 = UniqueSernoHelper.getTestCertificate1();</span>
+<span class="nc" id="L1443">            final X509Certificate cert2 = UniqueSernoHelper.getTestCertificate2();</span>
+<span class="nc" id="L1444">            final Certificate c1 = findCertificateByFingerprint(CertTools.getFingerprintAsString(cert1));</span>
+<span class="nc" id="L1445">            final Certificate c2 = findCertificateByFingerprint(CertTools.getFingerprintAsString(cert2));</span>
+<span class="nc bnc" id="L1446" title="All 4 branches missed.">            if ( (c1 != null) &amp;&amp; (c2 != null) ) {</span>
+                // already proved that not checking index for serial number.
+<span class="nc" id="L1448">                UniqueSernoHelper.setIsUniqueCertificateSerialNumberIndex(Boolean.FALSE);</span>
+            }
+<span class="nc" id="L1450">            final AuthenticationToken admin = new AlwaysAllowLocalAuthenticationToken(new UsernamePrincipal(&quot;Internal database constraint test&quot;));</span>
+<span class="nc bnc" id="L1451" title="All 2 branches missed.">            if (c1 == null) {// storing initial certificate if no test certificate created.</span>
+                try {
+                    // needs to call using &quot;certificateStoreSession.&quot; in order to honor the transaction annotations
+<span class="nc" id="L1454">                    certificateStoreSession.checkForUniqueCertificateSerialNumberIndexInTransaction(admin, cert1, userName, &quot;abcdef0123456789&quot;,</span>
+<span class="nc" id="L1455">                            CertificateConstants.CERT_INACTIVE, 0, CertificateProfileConstants.NO_CERTIFICATE_PROFILE, EndEntityConstants.NO_END_ENTITY_PROFILE, &quot;&quot;, new Date().getTime());</span>
+<span class="nc" id="L1456">                } catch (Throwable e) { // NOPMD, we really need to catch all, never crash</span>
+<span class="nc" id="L1457">                    throw new RuntimeException(&quot;It should always be possible to store initial dummy certificate.&quot;, e);</span>
+<span class="nc" id="L1458">                }</span>
+            }
+<span class="nc" id="L1460">            UniqueSernoHelper.setIsUniqueCertificateSerialNumberIndex(Boolean.FALSE);</span>
+<span class="nc bnc" id="L1461" title="All 2 branches missed.">            if (c2 == null) { // storing a second certificate with same issuer</span>
+                try {
+                    // needs to call using &quot;certificateStoreSession.&quot; in order to honor the transaction annotations
+<span class="nc" id="L1464">                    certificateStoreSession.checkForUniqueCertificateSerialNumberIndexInTransaction(admin, cert2, userName, &quot;fedcba9876543210&quot;,</span>
+<span class="nc" id="L1465">                            CertificateConstants.CERT_INACTIVE, 0, CertificateProfileConstants.NO_CERTIFICATE_PROFILE, EndEntityConstants.NO_END_ENTITY_PROFILE, &quot;&quot;, new Date().getTime());</span>
+<span class="nc" id="L1466">                } catch (Throwable e) { // NOPMD, we really need to catch all, never crash</span>
+<span class="nc" id="L1467">                    log.info(&quot;certificateStoreSession.checkForUniqueCertificateSerialNumberIndexInTransaction threw Throwable (normal if there is a unique issuerDN/serialNumber index): &quot;+e.getMessage());</span>
+<span class="nc" id="L1468">                    log.info(&quot;Unique index in CertificateData table for certificate serial number&quot;);</span>
+                    // Exception is thrown when unique index is working and a certificate with same serial number is in the database.
+<span class="nc" id="L1470">                    UniqueSernoHelper.setIsUniqueCertificateSerialNumberIndex(Boolean.TRUE);</span>
+<span class="nc" id="L1471">                }</span>
+            }
+<span class="nc bnc" id="L1473" title="All 2 branches missed.">            if (!UniqueSernoHelper.getIsUniqueCertificateSerialNumberIndex().booleanValue()) {</span>
+                // It was possible to store a second certificate with same serial number. Unique number not working.
+<span class="nc" id="L1475">                log.info( INTRES.getLocalizedMessage(&quot;createcert.not_unique_certserialnumberindex&quot;) );</span>
+            }
+            // Remove potentially stored certificates so anyone can create the unique index if wanted
+            try {
+<span class="nc" id="L1479">                certificateStoreSession.removeUniqueCertificateSerialNumberTestCertificates();</span>
+<span class="nc" id="L1480">                log.info(&quot;Removed rows used during test for unique certificate serial number database constraint.&quot;);</span>
+<span class="nc" id="L1481">            } catch (Throwable e) { // NOPMD, we really need to catch all, never crash</span>
+<span class="nc" id="L1482">                log.debug(&quot;Unable to clean up database rows used during test for unique certificate serial number.&quot;+</span>
+                        &quot; This is expected if DELETE is not granted to the EJBCA database user.&quot;, e);
+<span class="nc" id="L1484">            }</span>
+        }
+<span class="nc bnc" id="L1486" title="All 4 branches missed.">        return UniqueSernoHelper.getIsUniqueCertificateSerialNumberIndex()!=null &amp;&amp; UniqueSernoHelper.getIsUniqueCertificateSerialNumberIndex().booleanValue();</span>
+    }
+
+
+    // We want each storage of a certificate to run in a new transactions, so we can catch errors as they happen..
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public void checkForUniqueCertificateSerialNumberIndexInTransaction(AuthenticationToken admin, Certificate incert, String username, String cafp, int status, int type,
+            int certificateProfileId, final int endEntityProfileId, String tag, long updateTime) throws AuthorizationDeniedException {
+<span class="nc" id="L1495">        storeCertificateNoAuthInternal(admin, incert, username, cafp, status, type, certificateProfileId, endEntityProfileId, tag, updateTime, false);</span>
+<span class="nc" id="L1496">    }</span>
+
+    // We want deletion of a certificates to run in a new transactions, so we can catch errors as they happen..
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public void removeUniqueCertificateSerialNumberTestCertificates() {
+<span class="nc" id="L1502">        final X509Certificate x509Certificate1 = UniqueSernoHelper.getTestCertificate1();</span>
+<span class="nc" id="L1503">        final X509Certificate x509Certificate2 = UniqueSernoHelper.getTestCertificate2();</span>
+<span class="nc" id="L1504">        final String fingerprint1 = CertTools.getFingerprintAsString(x509Certificate1);</span>
+<span class="nc" id="L1505">        final String fingerprint2 = CertTools.getFingerprintAsString(x509Certificate2);</span>
+<span class="nc" id="L1506">        entityManager.createNativeQuery(&quot;DELETE FROM Base64CertData WHERE fingerprint IN ('&quot;+fingerprint1+&quot;', '&quot;+fingerprint2+&quot;')&quot;).executeUpdate();</span>
+<span class="nc" id="L1507">        entityManager.createNativeQuery(&quot;DELETE FROM CertificateData WHERE fingerprint IN ('&quot;+fingerprint1+&quot;', '&quot;+fingerprint2+&quot;')&quot;).executeUpdate();</span>
+<span class="nc" id="L1508">    }</span>
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void updateLimitedCertificateDataStatus(final AuthenticationToken admin, final int caId, final String issuerDn, final BigInteger serialNumber,
+            final Date revocationDate, final int reasonCode, final String caFingerprint) throws AuthorizationDeniedException {
+        // The idea is to set SubjectDN to an empty string. However, since Oracle treats an empty String as NULL,
+        // and since CertificateData.SubjectDN has a constraint that it should not be NULL, we are setting it to
+        // &quot;CN=limited&quot; instead of an empty string
+<span class="nc" id="L1517">        updateLimitedCertificateDataStatus(admin, caId, issuerDn, &quot;CN=limited&quot;, null, serialNumber,</span>
+                CertificateConstants.CERT_REVOKED, revocationDate, reasonCode, caFingerprint);
+<span class="nc" id="L1519">    }</span>
+
+	@Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void updateLimitedCertificateDataStatus(final AuthenticationToken admin, final int caId, final String issuerDn, final String subjectDn, final String username, final BigInteger serialNumber,
+            final int status, final Date revocationDate, final int reasonCode, final String caFingerprint) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L1525" title="All 2 branches missed.">        if (!authorizationSession.isAuthorizedNoLogging(admin, StandardRules.CAACCESS.resource() + caId)) {</span>
+<span class="nc" id="L1526">            final String msg = INTRES.getLocalizedMessage(&quot;caadmin.notauthorizedtoca&quot;, admin.toString(), caId);</span>
+<span class="nc" id="L1527">            throw new AuthorizationDeniedException(msg);</span>
+        }
+<span class="nc" id="L1529">        final String limitedFingerprint = getLimitedCertificateDataFingerprint(issuerDn, serialNumber);</span>
+<span class="nc" id="L1530">        final CertificateDataWrapper cdw = getCertificateDataByIssuerAndSerno(issuerDn, serialNumber);</span>
+<span class="nc bnc" id="L1531" title="All 2 branches missed.">        if (cdw==null) {</span>
+<span class="nc bnc" id="L1532" title="All 2 branches missed.">            if (reasonCode==RevokedCertInfo.REVOCATION_REASON_REMOVEFROMCRL) {</span>
+<span class="nc" id="L1533">                deleteLimitedCertificateData(limitedFingerprint);</span>
+            } else {
+                // Create a limited entry
+<span class="nc" id="L1536">                final CertificateData limitedCertificateData = new CertificateData();</span>
+<span class="nc" id="L1537">                limitedCertificateData.setFingerprint(limitedFingerprint);</span>
+<span class="nc" id="L1538">                limitedCertificateData.setSerialNumber(serialNumber.toString());</span>
+<span class="nc" id="L1539">                limitedCertificateData.setIssuer(issuerDn);</span>
+<span class="nc" id="L1540">                limitedCertificateData.setSubjectDN(subjectDn);</span>
+<span class="nc" id="L1541">                limitedCertificateData.setUsername(username);</span>
+<span class="nc" id="L1542">                limitedCertificateData.setCertificateProfileId(Integer.valueOf(CertificateProfileConstants.CERTPROFILE_NO_PROFILE));</span>
+<span class="nc" id="L1543">                limitedCertificateData.setStatus(status);</span>
+<span class="nc" id="L1544">                limitedCertificateData.setRevocationReason(reasonCode);</span>
+<span class="nc" id="L1545">                limitedCertificateData.setRevocationDate(revocationDate);</span>
+<span class="nc" id="L1546">                limitedCertificateData.setUpdateTime(Long.valueOf(System.currentTimeMillis()));</span>
+<span class="nc" id="L1547">                limitedCertificateData.setCaFingerprint(caFingerprint);</span>
+<span class="nc" id="L1548">                log.info(&quot;Adding limited CertificateData entry with fingerprint=&quot; + limitedFingerprint + &quot;, serialNumber=&quot; + serialNumber.toString(16).toUpperCase()+&quot;, issuerDn='&quot;+issuerDn+&quot;'&quot;);</span>
+<span class="nc" id="L1549">                entityManager.persist(limitedCertificateData);</span>
+<span class="nc" id="L1550">            }</span>
+<span class="nc bnc" id="L1551" title="All 2 branches missed.">        } else if (limitedFingerprint.equals(cdw.getCertificateData().getFingerprint())) {</span>
+<span class="nc bnc" id="L1552" title="All 2 branches missed.">        	if (reasonCode==RevokedCertInfo.REVOCATION_REASON_REMOVEFROMCRL) {</span>
+<span class="nc" id="L1553">                deleteLimitedCertificateData(limitedFingerprint);</span>
+        	} else {
+<span class="nc" id="L1555">        	    final CertificateData limitedCertificateData = cdw.getCertificateData();</span>
+<span class="nc bnc" id="L1556" title="All 4 branches missed.">        	    if (cdw.getCertificateData().getRevocationDate()!=revocationDate.getTime() || cdw.getCertificateData().getRevocationReason()!=reasonCode) {</span>
+                    // Update the limited entry
+<span class="nc" id="L1558">                    log.info(&quot;Updating limited CertificateData entry with fingerprint=&quot; + limitedFingerprint + &quot;, serialNumber=&quot; + serialNumber.toString(16).toUpperCase()+&quot;, issuerDn='&quot;+issuerDn+&quot;'&quot;);</span>
+<span class="nc" id="L1559">                    limitedCertificateData.setStatus(CertificateConstants.CERT_REVOKED);</span>
+<span class="nc" id="L1560">                    limitedCertificateData.setRevocationReason(reasonCode);</span>
+<span class="nc" id="L1561">                    limitedCertificateData.setRevocationDate(revocationDate);</span>
+<span class="nc" id="L1562">                    limitedCertificateData.setUpdateTime(Long.valueOf(System.currentTimeMillis()));</span>
+<span class="nc" id="L1563">                    entityManager.merge(limitedCertificateData);</span>
+        	    } else {
+<span class="nc bnc" id="L1565" title="All 2 branches missed.">        	        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1566">                        log.debug(&quot;Limited CertificateData entry with fingerprint=&quot; + limitedFingerprint + &quot;, serialNumber=&quot; + serialNumber.toString(16).toUpperCase()+&quot;, issuerDn='&quot;+issuerDn+&quot;' was already up to date.&quot;);</span>
+        	        }
+        	    }
+<span class="nc" id="L1569">        	}</span>
+        } else {
+            // Refuse to update a normal entry with this method
+<span class="nc" id="L1572">        	throw new UnsupportedOperationException(&quot;Only limited certificate entries can be updated using this method.&quot;);</span>
+        }
+<span class="nc" id="L1574">    }</span>
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public void reloadCaCertificateCache() {
+<span class="nc" id="L1579">        log.info(&quot;Reloading CA certificate cache.&quot;);</span>
+<span class="nc" id="L1580">        Collection&lt;Certificate&gt; certs = EJBTools.unwrapCertCollection(certificateStoreSession.findCertificatesByType(CertificateConstants.CERTTYPE_SUBCA +</span>
+                CertificateConstants.CERTTYPE_ROOTCA, null));
+<span class="nc" id="L1582">        CaCertificateCache.INSTANCE.loadCertificates(certs);</span>
+<span class="nc" id="L1583">        log.info(&quot;Reloaded CA certificate cache with &quot;+certs.size()+&quot; certificates&quot;);</span>
+<span class="nc" id="L1584">    }</span>
+
+    /**
+     * When a timer expires, this method will update
+     *
+     * According to JSR 220 FR (18.2.2), this method may not throw any exceptions.
+     *
+     * @param timer The timer whose expiration caused this notification.
+     */
+    @Timeout
+    /* Glassfish 2.1.1:
+     * &quot;Timeout method ....timeoutHandler(javax.ejb.Timer)must have TX attribute of TX_REQUIRES_NEW or TX_REQUIRED or TX_NOT_SUPPORTED&quot;
+     * JBoss 5.1.0.GA: We cannot mix timer updates with our EJBCA DataSource transactions.
+     */
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public void timeoutHandler(Timer timer) {
+<span class="nc bnc" id="L1600" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1601">            log.trace(&quot;&gt;timeoutHandler: &quot; + timer.getInfo().toString());</span>
+        }
+<span class="nc bnc" id="L1603" title="All 2 branches missed.">        if (timer.getInfo() instanceof Integer) {</span>
+<span class="nc" id="L1604">            final int currentTimerId = ((Integer)timer.getInfo()).intValue();</span>
+<span class="nc bnc" id="L1605" title="All 2 branches missed.">            if (currentTimerId==TIMERID_CACERTIFICATECACHE) {</span>
+<span class="nc" id="L1606">            	reloadCaCertificateCacheAndSetTimeout();</span>
+            }
+        }
+<span class="nc bnc" id="L1609" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1610">            log.trace(&quot;&lt;timeoutHandler&quot;);</span>
+        }
+<span class="nc" id="L1612">    }</span>
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public void reloadCaCertificateCacheAndSetTimeout() {
+<span class="nc bnc" id="L1617" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1618">            log.trace(&quot;&gt;timeOutReloadCaCertificateCache&quot;);</span>
+        }
+        // Cancel any waiting timers of this type
+<span class="nc" id="L1621">        final Collection&lt;Timer&gt; timers = timerService.getTimers();</span>
+<span class="nc bnc" id="L1622" title="All 2 branches missed.">        for (final Timer timer : timers) {</span>
+<span class="nc bnc" id="L1623" title="All 2 branches missed.">            if (timer.getInfo() instanceof Integer) {</span>
+<span class="nc" id="L1624">                final int currentTimerId = ((Integer)timer.getInfo()).intValue();</span>
+<span class="nc bnc" id="L1625" title="All 2 branches missed.">                if (currentTimerId==TIMERID_CACERTIFICATECACHE) {</span>
+<span class="nc" id="L1626">                    timer.cancel();</span>
+                }
+            }
+<span class="nc" id="L1629">        }</span>
+        try {
+<span class="nc" id="L1631">            certificateStoreSession.reloadCaCertificateCache();</span>
+        } finally {
+            // Schedule a new timer of this type
+<span class="nc" id="L1634">            final long interval = OcspConfiguration.getSigningCertsValidTimeInMilliseconds();</span>
+<span class="nc bnc" id="L1635" title="All 2 branches missed.">            if (interval &gt; 0) {</span>
+<span class="nc" id="L1636">                timerService.createSingleActionTimer(interval, new TimerConfig(Integer.valueOf(TIMERID_CACERTIFICATECACHE), false));</span>
+            }
+        }
+<span class="nc" id="L1639">    }</span>
+
+    /** @param id ID
+     * @return the number of timers where TimerInfo is an Integer and hold the specified value */
+    private int getTimerCount(final int id) {
+<span class="nc bnc" id="L1644" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1645">            log.trace(&quot;&gt;getTimerCount&quot;);</span>
+        }
+<span class="nc" id="L1647">        int count = 0;</span>
+<span class="nc" id="L1648">        final Collection&lt;Timer&gt; timers = timerService.getTimers();</span>
+<span class="nc bnc" id="L1649" title="All 2 branches missed.">        for (final Timer timer : timers) {</span>
+<span class="nc bnc" id="L1650" title="All 2 branches missed.">            if (timer.getInfo() instanceof Integer) {</span>
+<span class="nc" id="L1651">                final int currentTimerId = ((Integer)timer.getInfo()).intValue();</span>
+<span class="nc bnc" id="L1652" title="All 2 branches missed.">                if (currentTimerId==id) {</span>
+<span class="nc" id="L1653">                    count++;</span>
+                }
+            }
+<span class="nc" id="L1656">        }</span>
+<span class="nc bnc" id="L1657" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1658">            log.trace(&quot;&lt;getTimerCount, timers: &quot; + count);</span>
+        }
+<span class="nc" id="L1660">        return count;</span>
+    }
+
+    /** @param issuerDn DN
+     * @param serialNumber Serial 
+     * @return something that looks like a normal certificate fingerprint and is unique for each certificate entry */
+    private String getLimitedCertificateDataFingerprint(final String issuerDn, final BigInteger serialNumber) {
+<span class="nc" id="L1667">        return CertTools.getFingerprintAsString((issuerDn+&quot;;&quot;+serialNumber).getBytes());</span>
+    }
+
+    /** Remove limited CertificateData by fingerprint (and ensures that this is not a full entry by making sure that subjectKeyId is NULL 
+     * @param fingerprint FP
+     * @return success */
+    private boolean deleteLimitedCertificateData(final String fingerprint) {
+<span class="nc" id="L1674">        log.info(&quot;Removing CertificateData entry with fingerprint=&quot; + fingerprint + &quot; and no subjectKeyId is defined.&quot;);</span>
+<span class="nc" id="L1675">        final Query query = entityManager.createQuery(&quot;DELETE FROM CertificateData a WHERE a.fingerprint=:fingerprint AND subjectKeyId IS NULL&quot;);</span>
+<span class="nc" id="L1676">        query.setParameter(&quot;fingerprint&quot;, fingerprint);</span>
+<span class="nc" id="L1677">        final int deletedRows = query.executeUpdate();</span>
+<span class="nc bnc" id="L1678" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1679">            log.debug(&quot;Deleted &quot;+deletedRows+&quot; rows with fingerprint &quot; + fingerprint);</span>
+        }
+<span class="nc bnc" id="L1681" title="All 2 branches missed.">        return deletedRows == 1;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

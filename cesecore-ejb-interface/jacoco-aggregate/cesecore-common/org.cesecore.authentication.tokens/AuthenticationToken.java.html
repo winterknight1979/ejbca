@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AuthenticationToken.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-ejb-interface</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.authentication.tokens</a> &gt; <span class="el_source">AuthenticationToken.java</span></div><h1>AuthenticationToken.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.authentication.tokens;
+
+import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
+import java.util.Set;
+
+import org.bouncycastle.util.encoders.Hex;
+import org.cesecore.authentication.AuthenticationFailedException;
+import org.cesecore.authorization.user.AccessUserAspect;
+import org.cesecore.authorization.user.matchvalues.AccessMatchValue;
+
+/**
+ * A token returned by the act of authentication. Ownership of such a token denotes that the caller has previously authenticated herself via the
+ * Authentication session bean.
+ * 
+ * The Sets of Principals and credentials contained within this class will correspond to the subset of those found in the Subject class submitted for
+ * authentication used for that process.
+ * 
+ * @version $Id: AuthenticationToken.java 26983 2017-11-02 13:58:25Z samuellb $
+ * 
+ */
+public abstract class AuthenticationToken implements Serializable {
+
+    private static final long serialVersionUID = 1888731103952962350L;
+
+    private final Set&lt;? extends Principal&gt; principals;
+    private final Set&lt;?&gt; credentials;
+<span class="fc" id="L43">    private transient String uniqueId = null;</span>
+    
+    public static final int NO_PREFERRED_MATCH_KEY = -1;
+
+<span class="fc" id="L47">    public AuthenticationToken(Set&lt;? extends Principal&gt; principals, Set&lt;?&gt; credentials) {</span>
+<span class="fc" id="L48">        this.principals = principals;</span>
+<span class="fc" id="L49">        this.credentials = credentials;</span>
+<span class="fc" id="L50">    }</span>
+
+    public Set&lt;? extends Principal&gt; getPrincipals() {
+<span class="fc" id="L53">        return principals;</span>
+    }
+
+    public Set&lt;?&gt; getCredentials() {
+<span class="nc" id="L57">        return credentials;</span>
+    }
+
+    /**
+     * This method will take an &lt;code&gt;AccessUserAspectData&lt;/code&gt; entity and return whether or not it matches to this AuthenticationToken. Will 
+     * specifically check for locality if required. 
+     * 
+     * @param accessUser An &lt;code&gt;AccessUserAspectData&lt;/code&gt; entity to match.
+     * @return &lt;code&gt;true&lt;/code&gt; if matching.
+     * @throws AuthenticationFailedException if any authentication errors were encountered during process
+     */
+    public abstract boolean matches(AccessUserAspect accessUser) throws AuthenticationFailedException;
+        
+    @Override
+    public abstract boolean equals(Object authenticationToken);
+    
+    @Override
+    public abstract int hashCode();
+    
+    public abstract AuthenticationTokenMetaData getMetaData();
+
+    /**
+     * Default way of returning the user information of the user(s) this authentication token belongs to.
+     * This should never return sensitive information, since it is used in logging (CESeCore.FAU_GEN.1.2).
+     * @return a comma-separated list of all principal names in this token
+     */
+    @Override
+    public String toString() {
+<span class="nc" id="L85">    	final StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L86">    	final Set&lt;? extends Principal&gt; principals = getPrincipals();</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">    	if (principals != null) {</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">    		for (final Principal principal : principals) {</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">    			if (sb.length() &gt; 0) {</span>
+<span class="nc" id="L90">        			sb.append(&quot;, &quot;);</span>
+    			}
+<span class="nc" id="L92">    			sb.append(principal.getName());</span>
+<span class="nc" id="L93">    		}</span>
+    	}
+<span class="nc" id="L95">    	return sb.toString();</span>
+    }
+    
+    /**
+     * @param tokenType String a String from an AccessMatchValue derivative that matches this token type.
+     * @return true if the given value matches this AuthenticationToken's inherent token type.
+     */
+    public boolean matchTokenType(String tokenType) {
+<span class="nc" id="L103">        return getMetaData().getTokenType().equals(tokenType);</span>
+    }
+    
+    /**
+     * 
+     * @return the first available AccessMatchValue inherent to the implementing token type.
+     */
+    public AccessMatchValue getDefaultMatchValue() {
+<span class="nc" id="L111">        return getMetaData().getAccessMatchValueDefault();</span>
+    }
+
+    /**
+     * 
+     * @param databaseValue the numeric value from the database.
+     * @return the enum implementing AccessMatchValue that matches the given numeric value from the database.
+     */
+    public AccessMatchValue getMatchValueFromDatabaseValue(Integer databaseValue) {
+<span class="nc" id="L120">        return getMetaData().getAccessMatchValueIdMap().get(databaseValue);</span>
+    }
+    
+    /**
+     * Returns the preferred match key for this type of authentication token. E.g. serial number for X.509 tokens
+     * If not applicable to this authentication token, then it returns {@link #NO_PREFERRED_MATCH_KEY}.
+     * @return Key
+     */
+    public abstract int getPreferredMatchKey();
+    
+    /**
+     * Returns the preferred match value for this authentication token. E.g. the serial number of X.509 tokens.
+     * &lt;b&gt;Note:&lt;/b&gt; For performance reasons, this value must support case sensitive searching.
+     * @return Value
+     */
+    public abstract String getPreferredMatchValue();
+    
+    /** @return a String that is guaranteed to be unique across all AuthenticationTokens of this type. */
+    protected abstract String generateUniqueId();
+
+    /** @param arguments Args
+     * @return a hex-encoded string of the hash over all the provided arguments */
+    protected String generateUniqueId(final Object...arguments) {
+        try {
+<span class="fc" id="L144">            final MessageDigest messageDigest = MessageDigest.getInstance(&quot;SHA-256&quot;);</span>
+<span class="fc bfc" id="L145" title="All 2 branches covered.">            for (final Object argument : arguments) {</span>
+<span class="pc bpc" id="L146" title="1 of 2 branches missed.">                if (argument instanceof byte[]) {</span>
+<span class="nc" id="L147">                    messageDigest.update((byte[]) argument);</span>
+<span class="nc" id="L148">                    messageDigest.update((byte) ';');</span>
+                } else {
+<span class="fc" id="L150">                    messageDigest.update((String.valueOf(argument)+&quot;;&quot;).getBytes(StandardCharsets.UTF_8));</span>
+                }
+            }
+<span class="fc" id="L153">            return new String(Hex.encode(messageDigest.digest()));</span>
+<span class="nc" id="L154">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L155">            throw new IllegalStateException(e);</span>
+        }
+    }
+    
+    /** @return a String that is guaranteed to be unique across all AuthenticationTokens (and will be different if nested with different AuthenticationTokens). */
+    public String getUniqueId() {
+<span class="fc bfc" id="L161" title="All 2 branches covered.">        if (uniqueId==null) {</span>
+<span class="fc" id="L162">            uniqueId = getMetaData().getTokenType() + &quot;;&quot; + generateUniqueId();</span>
+        }
+<span class="fc" id="L164">        return uniqueId;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

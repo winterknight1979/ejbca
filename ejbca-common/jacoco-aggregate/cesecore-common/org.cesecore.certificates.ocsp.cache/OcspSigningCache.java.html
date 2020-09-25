@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>OcspSigningCache.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-common</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.ocsp.cache</a> &gt; <span class="el_source">OcspSigningCache.java</span></div><h1>OcspSigningCache.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.ocsp.cache;
+
+import java.math.BigInteger;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
+import org.bouncycastle.asn1.oiw.OIWObjectIdentifiers;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.cert.ocsp.CertificateID;
+import org.bouncycastle.cert.ocsp.OCSPException;
+import org.bouncycastle.cert.ocsp.jcajce.JcaCertificateID;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.bc.BcDigestCalculatorProvider;
+import org.cesecore.certificates.ocsp.exception.OcspFailureException;
+import org.cesecore.util.CertTools;
+
+/**
+ * Hold information needed to create OCSP responses without database lookups.
+ * 
+ * @version $Id: OcspSigningCache.java 28643 2018-04-06 08:53:57Z samuellb $
+ */
+<span class="nc" id="L43">public enum OcspSigningCache {</span>
+<span class="nc" id="L44">    INSTANCE;</span>
+    
+<span class="nc" id="L46">    private Map&lt;Integer, OcspSigningCacheEntry&gt; cache = new HashMap&lt;Integer, OcspSigningCacheEntry&gt;();</span>
+<span class="nc" id="L47">    private Map&lt;Integer, OcspSigningCacheEntry&gt; staging = new HashMap&lt;Integer, OcspSigningCacheEntry&gt;();</span>
+<span class="nc" id="L48">    private OcspSigningCacheEntry defaultResponderCacheEntry = null;</span>
+<span class="nc" id="L49">    private final ReentrantLock lock = new ReentrantLock(false);</span>
+<span class="nc" id="L50">    private final static Logger log = Logger.getLogger(OcspSigningCache.class);</span>
+    /** Flag to detect and log non-existence of a default responder once. */
+<span class="nc" id="L52">    private boolean logDefaultHasRunOnce = false;</span>
+
+    public OcspSigningCacheEntry getEntry(final CertificateID certID) {
+<span class="nc" id="L55">        return cache.get(getCacheIdFromCertificateID(certID));</span>
+    }
+
+    /**
+     * 
+     * @return the entry corresponding to the default responder, or null if it wasn't found.
+     */
+    public OcspSigningCacheEntry getDefaultEntry() {
+<span class="nc" id="L63">        return defaultResponderCacheEntry;</span>
+    }
+
+    /** WARNING: This method potentially exports references to CAs private keys! 
+     * @return entries*/
+    public Collection&lt;OcspSigningCacheEntry&gt; getEntries() {
+<span class="nc" id="L69">        return cache.values();</span>
+    }
+
+    public void stagingStart() {
+<span class="nc" id="L73">        lock.lock();</span>
+<span class="nc" id="L74">        staging = new HashMap&lt;Integer, OcspSigningCacheEntry&gt;();</span>
+<span class="nc" id="L75">    }</span>
+
+    public void stagingAdd(OcspSigningCacheEntry ocspSigningCacheEntry) {
+<span class="nc" id="L78">        List&lt;CertificateID&gt; certIDs = ocspSigningCacheEntry.getCertificateID();</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        for (CertificateID certID : certIDs) {</span>
+<span class="nc" id="L80">            staging.put(getCacheIdFromCertificateID(certID), ocspSigningCacheEntry);            </span>
+<span class="nc" id="L81">        }</span>
+<span class="nc" id="L82">    }</span>
+
+    public void stagingCommit(final String defaultResponderSubjectDn) {
+<span class="nc" id="L85">        OcspSigningCacheEntry defaultResponderCacheEntry = null;</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        for (final OcspSigningCacheEntry entry : staging.values()) {</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">            if (entry.getOcspSigningCertificate() != null) {</span>
+<span class="nc" id="L88">                final X509Certificate signingCertificate = entry.getOcspSigningCertificate();</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">                if (CertTools.getIssuerDN(signingCertificate).equals(defaultResponderSubjectDn)) {</span>
+<span class="nc" id="L90">                    defaultResponderCacheEntry = entry;</span>
+<span class="nc" id="L91">                    break;</span>
+                }
+<span class="nc bnc" id="L93" title="All 4 branches missed.">            } else if (entry.getCaCertificateChain() != null &amp;&amp; !entry.getCaCertificateChain().isEmpty()) {</span>
+<span class="nc" id="L94">                final X509Certificate signingCertificate = entry.getCaCertificateChain().get(0);</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">                if (CertTools.getSubjectDN(signingCertificate).equals(defaultResponderSubjectDn)) {</span>
+<span class="nc" id="L96">                    defaultResponderCacheEntry = entry;</span>
+<span class="nc" id="L97">                    break;</span>
+                }
+            }
+<span class="nc" id="L100">        }</span>
+        //Lastly, walk through the list of entries and replace all placeholders with the default responder
+<span class="nc" id="L102">        Map&lt;Integer, OcspSigningCacheEntry&gt; modifiedEntries = new HashMap&lt;Integer, OcspSigningCacheEntry&gt;();</span>
+<span class="nc" id="L103">        List&lt;Integer&gt; removedEntries = new ArrayList&lt;Integer&gt;();</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        for (Integer key : staging.keySet()) {</span>
+<span class="nc" id="L105">            OcspSigningCacheEntry entry = staging.get(key);</span>
+            //If entry has been created without a private key, replace it with the default responder.
+<span class="nc bnc" id="L107" title="All 2 branches missed.">            if (entry.isPlaceholder()) {</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">                if (defaultResponderCacheEntry != null) {</span>
+<span class="nc" id="L109">                    entry = new OcspSigningCacheEntry(entry.getIssuerCaCertificate(), entry.getIssuerCaCertificateStatus(),</span>
+<span class="nc" id="L110">                            defaultResponderCacheEntry.getCaCertificateChain(), defaultResponderCacheEntry.getOcspSigningCertificate(),</span>
+<span class="nc" id="L111">                            defaultResponderCacheEntry.getPrivateKey(), defaultResponderCacheEntry.getSignatureProviderName(),</span>
+<span class="nc" id="L112">                            defaultResponderCacheEntry.getOcspKeyBinding(), defaultResponderCacheEntry.getResponderIdType());</span>
+<span class="nc" id="L113">                    modifiedEntries.put(key, entry);</span>
+                } else {
+                    //If no default responder is defined, remove placeholder. 
+<span class="nc" id="L116">                    removedEntries.add(key);</span>
+                }
+            }
+<span class="nc" id="L119">        }</span>
+<span class="nc" id="L120">        staging.putAll(modifiedEntries);</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        for (Integer removedKey : removedEntries) {</span>
+<span class="nc" id="L122">            staging.remove(removedKey);</span>
+<span class="nc" id="L123">        }</span>
+<span class="nc" id="L124">        logDefaultResponderChanges(this.defaultResponderCacheEntry, defaultResponderCacheEntry, defaultResponderSubjectDn);</span>
+<span class="nc" id="L125">        cache = staging;</span>
+<span class="nc" id="L126">        this.defaultResponderCacheEntry = defaultResponderCacheEntry;</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L128">            log.debug(&quot;Committing the following to OCSP cache:&quot;);</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">            for (final Integer key : staging.keySet()) {</span>
+<span class="nc" id="L130">                final OcspSigningCacheEntry entry = staging.get(key);</span>
+<span class="nc" id="L131">                log.debug(&quot; KeyBindingId: &quot; + key + &quot;, SubjectDN '&quot; + CertTools.getSubjectDN(entry.getFullCertificateChain().get(0))</span>
+<span class="nc" id="L132">                        + &quot;', IssuerDN '&quot; + CertTools.getIssuerDN(entry.getFullCertificateChain().get(0)) + &quot;', SerialNumber &quot;</span>
+<span class="nc" id="L133">                        + entry.getFullCertificateChain().get(0).getSerialNumber().toString() + &quot;/&quot;</span>
+<span class="nc" id="L134">                        + entry.getFullCertificateChain().get(0).getSerialNumber().toString(16));</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">                if (entry.getOcspKeyBinding() != null) {</span>
+<span class="nc" id="L136">                    log.debug(&quot;   keyPairAlias: &quot; + entry.getOcspKeyBinding().getKeyPairAlias());</span>
+                }
+<span class="nc" id="L138">            }</span>
+        }
+<span class="nc" id="L140">    }</span>
+
+    public void stagingRelease() {
+<span class="nc" id="L143">        lock.unlock();</span>
+<span class="nc" id="L144">    }</span>
+
+    /** Log any change in default responder 
+     * @param currentEntry current entry
+     * @param stagedEntry  staged entry
+     * @param defaultResponderSubjectDn boolean */
+    private void logDefaultResponderChanges(final OcspSigningCacheEntry currentEntry, final OcspSigningCacheEntry stagedEntry, final String defaultResponderSubjectDn) {
+<span class="nc" id="L151">        String msg = null;</span>
+<span class="nc bnc" id="L152" title="All 6 branches missed.">        if (stagedEntry==null &amp;&amp; (currentEntry!=null || !logDefaultHasRunOnce)) {</span>
+            // No default responder after staging. Did we loose it or is it the first time we run this check?
+<span class="nc bnc" id="L154" title="All 2 branches missed.">            if (StringUtils.isEmpty(defaultResponderSubjectDn)) {</span>
+<span class="nc" id="L155">                msg = &quot;No default responder was defined.&quot;;</span>
+            } else {
+<span class="nc" id="L157">                msg = &quot;The default OCSP responder with subject '&quot; + defaultResponderSubjectDn + &quot;' was not found.&quot;;</span>
+            }
+<span class="nc" id="L159">            msg += &quot; OCSP requests for certificates issued by unknown CAs will return \&quot;unauthorized\&quot; as per RFC6960, Section 2.3&quot;;</span>
+<span class="nc bnc" id="L160" title="All 4 branches missed.">        } else if (stagedEntry!=null &amp;&amp; currentEntry==null) {</span>
+            // We gained a default responder.
+<span class="nc bnc" id="L162" title="All 2 branches missed.">            if (stagedEntry.isUsingSeparateOcspSigningCertificate()) {</span>
+<span class="nc" id="L163">                msg = &quot;Setting keybinding with ID&quot; + stagedEntry.getOcspKeyBinding().getId() + &quot; and DN &quot; + defaultResponderSubjectDn</span>
+                        + &quot; as default OCSP responder.&quot;;
+            } else {
+<span class="nc" id="L166">                msg = &quot;Setting CA with DN &quot; + defaultResponderSubjectDn + &quot; as default OCSP responder.&quot;;</span>
+            }
+<span class="nc bnc" id="L168" title="All 4 branches missed.">        } else if (stagedEntry!=null &amp;&amp; currentEntry!=null) {</span>
+            // We have a default responder both before and after. Did it change in any way?
+<span class="nc bnc" id="L170" title="All 2 branches missed.">            if (stagedEntry.isUsingSeparateOcspSigningCertificate()!=currentEntry.isUsingSeparateOcspSigningCertificate()</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">                    || !CertTools.getSubjectDN(stagedEntry.getIssuerCaCertificate()).equals(CertTools.getSubjectDN(currentEntry.getIssuerCaCertificate()))) {</span>
+                // We switched from signing with a CA to OcspKeyBindinig or vice versa, or use a different default.
+<span class="nc bnc" id="L173" title="All 2 branches missed.">                if (stagedEntry.isUsingSeparateOcspSigningCertificate()) {</span>
+<span class="nc" id="L174">                    msg = &quot;Setting keybinding with ID&quot; + stagedEntry.getOcspKeyBinding().getId() + &quot; and DN &quot; + defaultResponderSubjectDn</span>
+                            + &quot; as default OCSP responder.&quot;;
+                } else {
+<span class="nc" id="L177">                    msg = &quot;Setting CA with DN &quot; + defaultResponderSubjectDn + &quot; as default OCSP responder.&quot;;</span>
+                }
+<span class="nc bnc" id="L179" title="All 2 branches missed.">            } else if (stagedEntry.isUsingSeparateOcspSigningCertificate()) {</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">                if (stagedEntry.getOcspKeyBinding().getId() != currentEntry.getOcspKeyBinding().getId()) {</span>
+                    // A different OcspKeyBinding will be used to respond to requests even though the issuing CA has not changed
+<span class="nc" id="L182">                    msg = &quot;Setting keybinding with ID&quot; + stagedEntry.getOcspKeyBinding().getId() + &quot; and DN &quot; + defaultResponderSubjectDn</span>
+                            + &quot; as default OCSP responder.&quot;;
+                }
+            }
+        }
+<span class="nc bnc" id="L187" title="All 2 branches missed.">        if (msg==null) {</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L189">                log.debug(&quot;No change in default responder.&quot;);</span>
+            }
+        } else {
+<span class="nc" id="L192">            log.info(msg);</span>
+        }
+<span class="nc" id="L194">        logDefaultHasRunOnce = true;</span>
+<span class="nc" id="L195">    }</span>
+
+    /**
+     * This method will add a single cache entry to the cache. It should only be used to solve temporary cache inconsistencies.
+     * 
+     * @param ocspSigningCacheEntry the entry to add
+     */
+    public void addSingleEntry(OcspSigningCacheEntry ocspSigningCacheEntry) {
+<span class="nc" id="L203">        List&lt;CertificateID&gt; certIDs = ocspSigningCacheEntry.getCertificateID();</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">        for (CertificateID certID : certIDs) {</span>
+<span class="nc" id="L205">            int cacheId = getCacheIdFromCertificateID(certID);</span>
+<span class="nc" id="L206">            lock.lock();</span>
+            try {
+                //Make sure that another thread didn't add the same entry while this one was waiting.
+<span class="nc bnc" id="L209" title="All 2 branches missed.">                if (!cache.containsKey(cacheId)) {</span>
+<span class="nc" id="L210">                    cache.put(cacheId, ocspSigningCacheEntry);</span>
+                }
+            } finally {
+<span class="nc" id="L213">                lock.unlock();</span>
+            }
+<span class="nc" id="L215">        }</span>
+<span class="nc" id="L216">    }</span>
+
+    /** @param certID ID
+     * @return a cache identifier based on the provided CertificateID. */
+    public static int getCacheIdFromCertificateID(final CertificateID certID) {
+        // Use bitwise XOR of the hashcodes for IssuerNameHash and IssuerKeyHash to produce the integer.
+<span class="nc" id="L222">        int result = new BigInteger(certID.getIssuerNameHash()).hashCode() ^ new BigInteger(certID.getIssuerKeyHash()).hashCode();</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L224">            log.debug(&quot;Using getIssuerNameHash &quot; + new BigInteger(certID.getIssuerNameHash()).toString(16) + &quot; and getIssuerKeyHash &quot;</span>
+<span class="nc" id="L225">                    + new BigInteger(certID.getIssuerKeyHash()).toString(16) + &quot; to produce id &quot; + result);</span>
+        }
+<span class="nc" id="L227">        return result;</span>
+    }
+
+    /** @param certificate certificate
+     * @return the CertificateID's based on the provided certificate */
+    public static List&lt;CertificateID&gt; getCertificateIDFromCertificate(final X509Certificate certificate) {
+        try {
+<span class="nc bnc" id="L234" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L235">                log.trace(&quot;Building CertificateId's from certificate with subjectDN '&quot; + CertTools.getSubjectDN(certificate) + &quot;'.&quot;);</span>
+            }
+<span class="nc" id="L237">            List&lt;CertificateID&gt; ret = new ArrayList&lt;CertificateID&gt;();</span>
+<span class="nc" id="L238">            ret.add(new JcaCertificateID(new BcDigestCalculatorProvider().get(new AlgorithmIdentifier(OIWObjectIdentifiers.idSHA1)), certificate, certificate.getSerialNumber()));</span>
+<span class="nc" id="L239">            ret.add(new JcaCertificateID(new BcDigestCalculatorProvider().get(new AlgorithmIdentifier(NISTObjectIdentifiers.id_sha256)), certificate, certificate.getSerialNumber()));</span>
+<span class="nc" id="L240">            return ret;</span>
+<span class="nc" id="L241">        } catch (OCSPException e) {</span>
+<span class="nc" id="L242">            throw new OcspFailureException(e);</span>
+<span class="nc" id="L243">        } catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L244">            throw new OcspFailureException(e);</span>
+<span class="nc" id="L245">        } catch (OperatorCreationException e) {</span>
+<span class="nc" id="L246">            throw new OcspFailureException(e);</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

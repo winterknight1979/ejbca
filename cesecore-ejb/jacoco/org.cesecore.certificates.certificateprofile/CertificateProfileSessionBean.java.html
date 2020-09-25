@@ -1,0 +1,568 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CertificateProfileSessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cesecore-ejb</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.certificateprofile</a> &gt; <span class="el_source">CertificateProfileSessionBean.java</span></div><h1>CertificateProfileSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.certificateprofile;
+
+import java.beans.XMLEncoder;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.apache.log4j.Logger;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.enums.EventTypes;
+import org.cesecore.audit.enums.ModuleTypes;
+import org.cesecore.audit.enums.ServiceTypes;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.internal.InternalResources;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.util.ProfileID;
+
+/**
+ * Bean managing certificate profiles, see CertificateProfileSession for Javadoc.
+ * 
+ * Version moved from EJBCA: CertificateProfileSessionBean.java 11170 2011-01-12 17:08:32Z anatom
+ * 
+ * @version $Id: CertificateProfileSessionBean.java 29589 2018-08-08 12:02:53Z bastianf $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;CertificateProfileSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+<span class="nc" id="L61">public class CertificateProfileSessionBean implements CertificateProfileSessionLocal, CertificateProfileSessionRemote {</span>
+
+<span class="nc" id="L63">    private static final Logger LOG = Logger.getLogger(CertificateProfileSessionBean.class);</span>
+    /** Internal localization of logs and errors */
+<span class="nc" id="L65">    private static final InternalResources INTRES = InternalResources.getInstance();</span>
+
+    @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+    private EntityManager entityManager;
+
+    @EJB
+    private CaSessionLocal caSession;
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private SecurityEventsLoggerSessionLocal logSession;
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public int addCertificateProfile(final AuthenticationToken admin, final String name, final CertificateProfile profile)
+            throws CertificateProfileExistsException, AuthorizationDeniedException {
+<span class="nc" id="L81">        return addCertificateProfile(admin, findFreeCertificateProfileId(), name, profile);</span>
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public int addCertificateProfile(final AuthenticationToken admin, final int id, final String name, final CertificateProfile profile)
+            throws CertificateProfileExistsException, AuthorizationDeniedException {
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        if (isCertificateProfileNameFixed(name)) {</span>
+<span class="nc" id="L89">            final String msg = INTRES.getLocalizedMessage(&quot;store.errorcertprofilefixed&quot;, name);</span>
+<span class="nc" id="L90">            LOG.info(msg);</span>
+            // Things logged:
+            // adminInfo: certserno, remote ip etc
+            // module (integer), CA, RA etc
+            // eventTime
+            // username, if the event affects a user data (not here)
+            // certificate info, if the event affects a certificate (not here)
+            // event id
+            // log message (free text string)
+            // logSession.log(admin, admin.getCaId(), LogConstants.MODULE_CA, new java.util.Date(), null, null, LogConstants.EVENT_ERROR_CERTPROFILE,
+            // msg);
+<span class="nc" id="L101">            throw new CertificateProfileExistsException(msg);</span>
+        }
+
+        // We need to check that admin also have rights to edit certificate profiles
+<span class="nc" id="L105">        authorizedToEditProfile(admin, profile, id);</span>
+
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        if (isFreeCertificateProfileId(id)) {</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">            if (CertificateProfileData.findByProfileName(entityManager, name) == null) {</span>
+<span class="nc" id="L109">                entityManager.persist(new CertificateProfileData(Integer.valueOf(id), name, profile));</span>
+<span class="nc" id="L110">                flushProfileCache();</span>
+<span class="nc" id="L111">                final String msg = INTRES.getLocalizedMessage(&quot;store.addedcertprofile&quot;, name);</span>
+<span class="nc" id="L112">                Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L113">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L114">                logSession.log(EventTypes.CERTPROFILE_CREATION, EventStatus.SUCCESS, ModuleTypes.CERTIFICATEPROFILE, ServiceTypes.CORE,</span>
+<span class="nc" id="L115">                        admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L116">                return id;</span>
+            } else {
+<span class="nc" id="L118">                final String msg = INTRES.getLocalizedMessage(&quot;store.errorcertprofileexists&quot;, name);</span>
+<span class="nc" id="L119">                Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L120">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L121">                throw new CertificateProfileExistsException(msg);</span>
+            }
+        } else {
+<span class="nc" id="L124">            final String msg = INTRES.getLocalizedMessage(&quot;store.errorcertprofileexists&quot;, id);</span>
+<span class="nc" id="L125">            throw new CertificateProfileExistsException(msg);</span>
+        }
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void changeCertificateProfile(final AuthenticationToken admin, final String name, final CertificateProfile profile)
+            throws AuthorizationDeniedException {
+<span class="nc" id="L133">        internalChangeCertificateProfileNoFlushCache(admin, name, profile);</span>
+<span class="nc" id="L134">        flushProfileCache();</span>
+<span class="nc" id="L135">    }</span>
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void internalChangeCertificateProfileNoFlushCache(final AuthenticationToken admin, final String name, final CertificateProfile profile)
+            throws AuthorizationDeniedException {
+
+<span class="nc" id="L142">        final CertificateProfileData pdl = CertificateProfileData.findByProfileName(entityManager, name);</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">        if (pdl == null) {</span>
+<span class="nc" id="L144">            final String msg = INTRES.getLocalizedMessage(&quot;store.erroreditprofile&quot;, name);</span>
+<span class="nc" id="L145">            Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L146">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L147">            logSession.log(EventTypes.CERTPROFILE_EDITING, EventStatus.FAILURE, ModuleTypes.CERTIFICATEPROFILE, ServiceTypes.CORE,</span>
+<span class="nc" id="L148">                    admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L149">        } else {</span>
+            // We need to check that admin also have rights to edit certificate profiles
+<span class="nc" id="L151">            authorizedToEditProfile(admin, profile, pdl.getId());</span>
+
+            // Get the diff of what changed
+<span class="nc" id="L154">            Map&lt;Object, Object&gt; diff = pdl.getCertificateProfile().diff(profile);</span>
+<span class="nc" id="L155">            final String msg = INTRES.getLocalizedMessage(&quot;store.editedprofile&quot;, name);</span>
+            // Use a LinkedHashMap because we want the details logged (in the final log string) in the order we insert them, and not randomly
+<span class="nc" id="L157">            Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L158">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">            for (Map.Entry&lt;Object, Object&gt; entry : diff.entrySet()) {</span>
+<span class="nc" id="L160">                details.put(entry.getKey().toString(), entry.getValue().toString());</span>
+<span class="nc" id="L161">            }</span>
+            // Do the actual change
+<span class="nc" id="L163">            pdl.setCertificateProfile(profile);</span>
+<span class="nc" id="L164">            logSession.log(EventTypes.CERTPROFILE_EDITING, EventStatus.SUCCESS, ModuleTypes.CERTIFICATEPROFILE, ServiceTypes.CORE,</span>
+<span class="nc" id="L165">                    admin.toString(), null, null, null, details);</span>
+        }
+<span class="nc" id="L167">    }</span>
+
+    @Override
+    public void flushProfileCache() {
+<span class="nc bnc" id="L171" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L172">            LOG.trace(&quot;&gt;flushProfileCache&quot;);</span>
+        }
+<span class="nc" id="L174">        CertificateProfileCache.INSTANCE.updateProfileCache(entityManager, true);</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L176">            LOG.debug(&quot;Flushed profile cache.&quot;);</span>
+        }
+<span class="nc" id="L178">    } // flushProfileCache</span>
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void cloneCertificateProfile(final AuthenticationToken admin, final String orgname, final String newname,
+            final List&lt;Integer&gt; authorizedCaIds) throws CertificateProfileExistsException, CertificateProfileDoesNotExistException,
+            AuthorizationDeniedException {
+<span class="nc" id="L185">        CertificateProfile profile = null;</span>
+
+<span class="nc bnc" id="L187" title="All 2 branches missed.">        if (isCertificateProfileNameFixed(newname)) {</span>
+<span class="nc" id="L188">            final String msg = INTRES.getLocalizedMessage(&quot;store.errorcertprofilefixed&quot;, newname);</span>
+<span class="nc" id="L189">            LOG.info(msg);</span>
+<span class="nc" id="L190">            throw new CertificateProfileExistsException(msg);</span>
+        }
+
+        try {
+<span class="nc" id="L194">            final int origProfileId = getCertificateProfileId(orgname);</span>
+<span class="nc bnc" id="L195" title="All 2 branches missed.">            if (origProfileId == 0) {</span>
+<span class="nc" id="L196">                final String msg = INTRES.getLocalizedMessage(&quot;store.errorcertprofilenotexist&quot;, orgname);</span>
+<span class="nc" id="L197">                LOG.info(msg);</span>
+<span class="nc" id="L198">                throw new CertificateProfileDoesNotExistException(msg);</span>
+            }
+<span class="nc" id="L200">            final CertificateProfile p = getCertificateProfile(origProfileId);</span>
+
+
+<span class="nc" id="L203">            profile = p.clone();</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">            if (authorizedCaIds != null) {</span>
+<span class="nc" id="L205">                profile.setAvailableCAs(authorizedCaIds);</span>
+            }
+
+            // We need to check that admin also have rights to edit certificate profiles
+<span class="nc" id="L209">            authorizedToEditProfile(admin, profile, origProfileId);</span>
+
+<span class="nc bnc" id="L211" title="All 2 branches missed.">            if (CertificateProfileData.findByProfileName(entityManager, newname) == null) {</span>
+<span class="nc" id="L212">                entityManager.persist(new CertificateProfileData(findFreeCertificateProfileId(), newname, profile));</span>
+<span class="nc" id="L213">                flushProfileCache();</span>
+<span class="nc" id="L214">                final String msg = INTRES.getLocalizedMessage(&quot;store.addedprofilewithtempl&quot;, newname, orgname);</span>
+<span class="nc" id="L215">                Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L216">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L217">                logSession.log(EventTypes.CERTPROFILE_CREATION, EventStatus.SUCCESS, ModuleTypes.CERTIFICATEPROFILE, ServiceTypes.CORE,</span>
+<span class="nc" id="L218">                        admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L219">            } else {</span>
+<span class="nc" id="L220">                final String msg = INTRES.getLocalizedMessage(&quot;store.erroraddprofilewithtempl&quot;, newname, orgname);</span>
+<span class="nc" id="L221">                throw new CertificateProfileExistsException(msg);</span>
+            }
+<span class="nc" id="L223">        } catch (CloneNotSupportedException f) {</span>
+            // If this happens it's a programming error. Throw an exception!
+<span class="nc" id="L225">            throw new IllegalStateException(f);</span>
+<span class="nc" id="L226">        }</span>
+<span class="nc" id="L227">    }</span>
+    
+    @Override
+    public List&lt;Integer&gt; getAuthorizedCertificateProfileIds(final AuthenticationToken admin, final int certprofiletype) {
+<span class="nc" id="L231">        final ArrayList&lt;Integer&gt; returnval = new ArrayList&lt;Integer&gt;();</span>
+<span class="nc" id="L232">        final HashSet&lt;Integer&gt; authorizedcaids = new HashSet&lt;Integer&gt;(caSession.getAuthorizedCaIds(admin));</span>
+<span class="nc" id="L233">        final HashSet&lt;Integer&gt; allcaids = new HashSet&lt;Integer&gt;(caSession.getAllCaIds());</span>
+
+        // Add fixed certificate profiles.
+<span class="nc bnc" id="L236" title="All 6 branches missed.">        if (certprofiletype == CertificateConstants.CERTTYPE_UNKNOWN || certprofiletype == CertificateConstants.CERTTYPE_ENDENTITY</span>
+                || certprofiletype == CertificateConstants.CERTTYPE_HARDTOKEN) {
+<span class="nc" id="L238">            returnval.add(Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER));</span>
+<span class="nc" id="L239">            returnval.add(Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_OCSPSIGNER));</span>
+<span class="nc" id="L240">            returnval.add(Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_SERVER));</span>
+        }
+<span class="nc bnc" id="L242" title="All 4 branches missed.">        if (certprofiletype == CertificateConstants.CERTTYPE_UNKNOWN || certprofiletype == CertificateConstants.CERTTYPE_SUBCA) {</span>
+<span class="nc" id="L243">            returnval.add(Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_SUBCA));</span>
+        }
+<span class="nc bnc" id="L245" title="All 4 branches missed.">        if (certprofiletype == CertificateConstants.CERTTYPE_UNKNOWN || certprofiletype == CertificateConstants.CERTTYPE_ROOTCA) {</span>
+<span class="nc" id="L246">            returnval.add(Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_ROOTCA));</span>
+        }
+<span class="nc bnc" id="L248" title="All 4 branches missed.">        if (certprofiletype == CertificateConstants.CERTTYPE_UNKNOWN || certprofiletype == CertificateConstants.CERTTYPE_HARDTOKEN) {</span>
+<span class="nc" id="L249">            returnval.add(Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENAUTH));</span>
+<span class="nc" id="L250">            returnval.add(Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENAUTHENC));</span>
+<span class="nc" id="L251">            returnval.add(Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENENC));</span>
+<span class="nc" id="L252">            returnval.add(Integer.valueOf(CertificateProfileConstants.CERTPROFILE_FIXED_HARDTOKENSIGN));</span>
+        }
+<span class="nc" id="L254">        final boolean rootAccess = authorizationSession.isAuthorizedNoLogging(admin, StandardRules.ROLE_ROOT.resource());</span>
+<span class="nc bnc" id="L255" title="All 2 branches missed.">        for (final Entry&lt;Integer,CertificateProfile&gt; cpEntry : CertificateProfileCache.INSTANCE.getProfileCache(entityManager).entrySet()) {</span>
+<span class="nc" id="L256">                final CertificateProfile profile = cpEntry.getValue();</span>
+                // Check if all profiles available CAs exists in authorizedcaids.          
+<span class="nc bnc" id="L258" title="All 8 branches missed.">                if (certprofiletype == 0 || certprofiletype == profile.getType() || (profile.getType() == CertificateConstants.CERTTYPE_ENDENTITY &amp;&amp;</span>
+                        certprofiletype == CertificateConstants.CERTTYPE_HARDTOKEN)) {
+<span class="nc" id="L260">                boolean allexists = true;</span>
+<span class="nc bnc" id="L261" title="All 2 branches missed.">                for (final Integer nextcaid : profile.getAvailableCAs()) {</span>
+<span class="nc bnc" id="L262" title="All 2 branches missed.">                    if (nextcaid.intValue() == CertificateProfile.ANYCA) {</span>
+<span class="nc" id="L263">                        allexists = true;</span>
+<span class="nc" id="L264">                        break;</span>
+                    }
+                    // superadmin should be able to access profiles with missing CA Ids
+<span class="nc bnc" id="L267" title="All 6 branches missed.">                    if (!authorizedcaids.contains(nextcaid) &amp;&amp; (!rootAccess || allcaids.contains(nextcaid))) {</span>
+<span class="nc" id="L268">                        allexists = false;</span>
+<span class="nc" id="L269">                        break;</span>
+                    }
+<span class="nc" id="L271">                }</span>
+<span class="nc bnc" id="L272" title="All 2 branches missed.">                if (allexists) {</span>
+<span class="nc" id="L273">                    returnval.add(cpEntry.getKey());</span>
+                }
+            }
+<span class="nc" id="L276">        }</span>
+<span class="nc" id="L277">        return returnval;</span>
+    } 
+    
+    @Override
+    public List&lt;Integer&gt; getAuthorizedCertificateProfileWithMissingCAs(final AuthenticationToken admin) {
+<span class="nc" id="L282">        final ArrayList&lt;Integer&gt; returnval = new ArrayList&lt;Integer&gt;();</span>
+<span class="nc bnc" id="L283" title="All 2 branches missed.">        if (!authorizationSession.isAuthorizedNoLogging(admin, StandardRules.ROLE_ROOT.resource())) {</span>
+<span class="nc" id="L284">            return returnval;</span>
+        }
+        
+<span class="nc" id="L287">        final HashSet&lt;Integer&gt; allcaids = new HashSet&lt;Integer&gt;(caSession.getAllCaIds());</span>
+<span class="nc" id="L288">        allcaids.add(CertificateProfile.ANYCA);</span>
+<span class="nc bnc" id="L289" title="All 2 branches missed.">        for (final Entry&lt;Integer,CertificateProfile&gt; cpEntry : CertificateProfileCache.INSTANCE.getProfileCache(entityManager).entrySet()) {</span>
+<span class="nc" id="L290">            final CertificateProfile profile = cpEntry.getValue();</span>
+<span class="nc" id="L291">            boolean nonExistingCA = false;</span>
+<span class="nc bnc" id="L292" title="All 2 branches missed.">            for (final Integer caid : profile.getAvailableCAs()) {</span>
+<span class="nc bnc" id="L293" title="All 2 branches missed.">                if (!allcaids.contains(caid)) {</span>
+<span class="nc" id="L294">                    nonExistingCA = true;</span>
+<span class="nc" id="L295">                    break;</span>
+                }
+<span class="nc" id="L297">            }</span>
+<span class="nc bnc" id="L298" title="All 2 branches missed.">            if (nonExistingCA) {</span>
+<span class="nc" id="L299">                returnval.add(cpEntry.getKey());</span>
+            }
+<span class="nc" id="L301">        }</span>
+<span class="nc" id="L302">        return returnval;</span>
+    } // getAuthorizedCertificateProfileWithMissingCAs
+
+    @Override
+    public CertificateProfile getCertificateProfile(final int id) {
+<span class="nc bnc" id="L307" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L308">            LOG.trace(&quot;&gt;getCertificateProfile(&quot; + id + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L310">        CertificateProfile returnval = null;</span>
+<span class="nc bnc" id="L311" title="All 2 branches missed.">        if (id &lt; CertificateProfileConstants.FIXED_CERTIFICATEPROFILE_BOUNDRY) {</span>
+<span class="nc" id="L312">            returnval = new CertificateProfile(id);</span>
+        } else {
+            // We need to clone the profile, otherwise the cache contents will be modifyable from the outside
+<span class="nc" id="L315">            final CertificateProfile cprofile = CertificateProfileCache.INSTANCE.getProfileCache(entityManager).get(Integer.valueOf(id));</span>
+            try {
+<span class="nc bnc" id="L317" title="All 2 branches missed.">                if (cprofile != null) {</span>
+<span class="nc" id="L318">                    returnval = cprofile.clone();</span>
+                }
+<span class="nc" id="L320">            } catch (CloneNotSupportedException e) {</span>
+<span class="nc" id="L321">                LOG.error(&quot;Should never happen: &quot;, e);</span>
+<span class="nc" id="L322">                throw new IllegalStateException(e);</span>
+<span class="nc" id="L323">            }</span>
+        }
+<span class="nc bnc" id="L325" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc bnc" id="L326" title="All 2 branches missed.">            LOG.trace(&quot;&lt;getCertificateProfile(&quot; + id + &quot;): &quot; + (returnval == null ? &quot;null&quot; : &quot;not null&quot;));</span>
+        }
+<span class="nc" id="L328">        return returnval;</span>
+    }
+    
+    @Override
+    public Map&lt;Integer, CertificateProfile&gt; getAllCertificateProfiles() {
+<span class="nc" id="L333">        return CertificateProfileCache.INSTANCE.getProfileCache(entityManager);</span>
+    }
+
+    @Override
+    public CertificateProfile getCertificateProfile(final String name) {
+<span class="nc" id="L338">        final Integer id = CertificateProfileCache.INSTANCE.getNameIdMapCache(entityManager).get(name);</span>
+<span class="nc bnc" id="L339" title="All 2 branches missed.">        if (id == null) {</span>
+<span class="nc" id="L340">            return null;</span>
+        } else {
+<span class="nc" id="L342">            return getCertificateProfile(id);</span>
+        }
+    }
+
+    @Override
+    public int getCertificateProfileId(final String certificateprofilename) {
+<span class="nc bnc" id="L348" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L349">            LOG.trace(&quot;&gt;getCertificateProfileId: &quot; + certificateprofilename);</span>
+        }
+<span class="nc" id="L351">        int returnval = 0;</span>
+<span class="nc" id="L352">        final Integer id = CertificateProfileCache.INSTANCE.getNameIdMapCache(entityManager).get(certificateprofilename);</span>
+<span class="nc bnc" id="L353" title="All 2 branches missed.">        if (id != null) {</span>
+<span class="nc" id="L354">            returnval = id.intValue();</span>
+        }
+<span class="nc bnc" id="L356" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L357">            LOG.trace(&quot;&lt;getCertificateProfileId: &quot; + certificateprofilename + &quot;): &quot; + returnval);</span>
+        }
+<span class="nc" id="L359">        return returnval;</span>
+    }
+
+    @Override
+    public String getCertificateProfileName(final int id) {
+<span class="nc bnc" id="L364" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L365">            LOG.trace(&quot;&gt;getCertificateProfileName: &quot; + id);</span>
+        }
+<span class="nc" id="L367">        final String returnval = CertificateProfileCache.INSTANCE.getIdNameMapCache(entityManager).get(Integer.valueOf(id));</span>
+<span class="nc bnc" id="L368" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L369">            LOG.trace(&quot;&lt;getCertificateProfileName: &quot; + id + &quot;): &quot; + returnval);</span>
+        }
+<span class="nc" id="L371">        return returnval;</span>
+    }
+
+    @Override
+    public Map&lt;Integer, String&gt; getCertificateProfileIdToNameMap() {
+<span class="nc bnc" id="L376" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L377">            LOG.trace(&quot;&gt;&lt;getCertificateProfileIdToNameMap&quot;);</span>
+        }
+<span class="nc" id="L379">        return CertificateProfileCache.INSTANCE.getIdNameMapCache(entityManager);</span>
+    }
+
+    /* 
+     * This method will read all Certificate Profiles and as a side-effect upgrade them if the version if changed for upgrade.
+     * Can have a side-effect of upgrading a profile, therefore the Required transaction setting.
+     */
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void initializeAndUpgradeProfiles() {
+<span class="nc" id="L389">        final Collection&lt;CertificateProfileData&gt; result = CertificateProfileData.findAll(entityManager);</span>
+<span class="nc" id="L390">        final Iterator&lt;CertificateProfileData&gt; iter = result.iterator();</span>
+<span class="nc bnc" id="L391" title="All 2 branches missed.">        while (iter.hasNext()) {</span>
+<span class="nc" id="L392">            final CertificateProfileData pdata = iter.next();</span>
+<span class="nc" id="L393">            final String name = pdata.getCertificateProfileName();</span>
+<span class="nc" id="L394">            pdata.upgradeProfile();</span>
+<span class="nc" id="L395">            final float version = pdata.getCertificateProfile().getVersion();</span>
+<span class="nc bnc" id="L396" title="All 2 branches missed.">            if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L397">                LOG.debug(&quot;Loaded certificate profile: &quot; + name + &quot; with version &quot; + version);</span>
+            }
+<span class="nc" id="L399">        }</span>
+<span class="nc" id="L400">        flushProfileCache();</span>
+<span class="nc" id="L401">    }</span>
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void renameCertificateProfile(final AuthenticationToken admin, final String oldname, final String newname)
+            throws CertificateProfileExistsException, AuthorizationDeniedException {
+<span class="nc bnc" id="L407" title="All 2 branches missed.">        if (isCertificateProfileNameFixed(newname)) {</span>
+<span class="nc" id="L408">            final String msg = INTRES.getLocalizedMessage(&quot;store.errorcertprofilefixed&quot;, newname);</span>
+<span class="nc" id="L409">            throw new CertificateProfileExistsException(msg);</span>
+        }
+<span class="nc bnc" id="L411" title="All 2 branches missed.">        if (isCertificateProfileNameFixed(oldname)) {</span>
+<span class="nc" id="L412">            final String msg = INTRES.getLocalizedMessage(&quot;store.errorcertprofilefixed&quot;, oldname);</span>
+<span class="nc" id="L413">            throw new CertificateProfileExistsException(msg);</span>
+        }
+<span class="nc bnc" id="L415" title="All 2 branches missed.">        if (CertificateProfileData.findByProfileName(entityManager, newname) == null) {</span>
+<span class="nc" id="L416">            final CertificateProfileData pdl = CertificateProfileData.findByProfileName(entityManager, oldname);</span>
+<span class="nc bnc" id="L417" title="All 2 branches missed.">            if (pdl == null) {</span>
+<span class="nc" id="L418">                final String msg = INTRES.getLocalizedMessage(&quot;store.errorrenameprofile&quot;, oldname, newname);</span>
+<span class="nc" id="L419">                Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L420">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L421">                logSession.log(EventTypes.CERTPROFILE_RENAMING, EventStatus.FAILURE, ModuleTypes.CERTIFICATEPROFILE, ServiceTypes.CORE,</span>
+<span class="nc" id="L422">                        admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L423">            } else {</span>
+                // We need to check that admin also have rights to edit certificate profiles
+<span class="nc" id="L425">                authorizedToEditProfile(admin, pdl.getCertificateProfile(), pdl.getId());</span>
+
+<span class="nc" id="L427">                pdl.setCertificateProfileName(newname);</span>
+<span class="nc" id="L428">                flushProfileCache();</span>
+<span class="nc" id="L429">                final String msg = INTRES.getLocalizedMessage(&quot;store.renamedprofile&quot;, oldname, newname);</span>
+<span class="nc" id="L430">                Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L431">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L432">                logSession.log(EventTypes.CERTPROFILE_RENAMING, EventStatus.SUCCESS, ModuleTypes.CERTIFICATEPROFILE, ServiceTypes.CORE,</span>
+<span class="nc" id="L433">                        admin.toString(), null, null, null, details);</span>
+            }
+<span class="nc" id="L435">        } else {</span>
+<span class="nc" id="L436">            final String msg = INTRES.getLocalizedMessage(&quot;store.errorcertprofileexists&quot;, newname);</span>
+<span class="nc" id="L437">            throw new CertificateProfileExistsException(msg);</span>
+        }
+<span class="nc" id="L439">    }</span>
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void removeCertificateProfile(final AuthenticationToken admin, final String name) throws AuthorizationDeniedException {
+<span class="nc" id="L444">        final CertificateProfileData pdl = CertificateProfileData.findByProfileName(entityManager, name);</span>
+<span class="nc bnc" id="L445" title="All 2 branches missed.">        if (pdl == null) {</span>
+<span class="nc bnc" id="L446" title="All 2 branches missed.">            if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L447">                LOG.debug(&quot;Trying to remove a certificate profile that does not exist: &quot; + name);</span>
+            }
+        } else {
+            // We need to check that admin also have rights to edit certificate profiles
+<span class="nc" id="L451">            authorizedToEditProfile(admin, pdl.getCertificateProfile(), pdl.getId());</span>
+
+<span class="nc" id="L453">            entityManager.remove(pdl);</span>
+<span class="nc" id="L454">            flushProfileCache();</span>
+<span class="nc" id="L455">            final String msg = INTRES.getLocalizedMessage(&quot;store.removedprofile&quot;, name);</span>
+<span class="nc" id="L456">            Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L457">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L458">            logSession.log(EventTypes.CERTPROFILE_DELETION, EventStatus.SUCCESS, ModuleTypes.CERTIFICATEPROFILE, ServiceTypes.CORE,</span>
+<span class="nc" id="L459">                    admin.toString(), null, null, null, details);</span>
+        }
+<span class="nc" id="L461">    }</span>
+
+    @Override
+    public boolean existsCAIdInCertificateProfiles(final int caid) {
+<span class="nc bnc" id="L465" title="All 2 branches missed.">        for (final Entry&lt;Integer,CertificateProfile&gt; cpEntry : CertificateProfileCache.INSTANCE.getProfileCache(entityManager).entrySet()) {</span>
+<span class="nc" id="L466">            final CertificateProfile certProfile = cpEntry.getValue();</span>
+<span class="nc bnc" id="L467" title="All 2 branches missed.">            if (certProfile.getType() == CertificateConstants.CERTTYPE_ENDENTITY) {</span>
+<span class="nc bnc" id="L468" title="All 2 branches missed.">                for (Integer availableCaId : certProfile.getAvailableCAs()) {</span>
+<span class="nc bnc" id="L469" title="All 2 branches missed.">                    if (availableCaId.intValue() == caid) {                      </span>
+<span class="nc bnc" id="L470" title="All 2 branches missed.">                        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L471">                            LOG.debug(&quot;CA exists in certificate profile &quot; + cpEntry.getKey().toString());</span>
+                        }
+<span class="nc" id="L473">                        return true;</span>
+                    }
+<span class="nc" id="L475">                }</span>
+            }
+<span class="nc" id="L477">        }</span>
+<span class="nc" id="L478">        return false;</span>
+    }
+    
+    @Override
+    public boolean existsPublisherIdInCertificateProfiles(final int publisherid) {
+<span class="nc bnc" id="L483" title="All 2 branches missed.">        for (final Entry&lt;Integer,CertificateProfile&gt; cpEntry : CertificateProfileCache.INSTANCE.getProfileCache(entityManager).entrySet()) {</span>
+<span class="nc bnc" id="L484" title="All 2 branches missed.">            for (Integer availablePublisherId : cpEntry.getValue().getPublisherList()) {</span>
+<span class="nc bnc" id="L485" title="All 2 branches missed.">                if (availablePublisherId.intValue() == publisherid) {</span>
+<span class="nc bnc" id="L486" title="All 2 branches missed.">                    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L487">                        LOG.debug(&quot;Publisher exists in certificate profile &quot; + cpEntry.getKey().toString());</span>
+                    }
+<span class="nc" id="L489">                    return true;</span>
+                }
+<span class="nc" id="L491">            }</span>
+<span class="nc" id="L492">        }</span>
+<span class="nc" id="L493">        return false;</span>
+    }
+
+    private boolean isCertificateProfileNameFixed(final String profilename) {
+<span class="nc bnc" id="L497" title="All 2 branches missed.">        if (CertificateProfile.FIXED_PROFILENAMES.contains(profilename)) {</span>
+<span class="nc" id="L498">            return true;</span>
+        }
+<span class="nc" id="L500">        return false;</span>
+    }
+
+    private int findFreeCertificateProfileId() {
+<span class="nc" id="L504">        final ProfileID.DB db = new ProfileID.DB() {</span>
+            @Override
+            public boolean isFree(int i) {
+<span class="nc bnc" id="L507" title="All 2 branches missed.">                return CertificateProfileData.findById(entityManager, Integer.valueOf(i))==null;</span>
+            }
+        };
+<span class="nc" id="L510">        return ProfileID.getNotUsedID(db);</span>
+    }
+
+    private boolean isFreeCertificateProfileId(final int id) {
+<span class="nc" id="L514">        boolean foundfree = false;</span>
+<span class="nc bnc" id="L515" title="All 2 branches missed.">        if ((id &gt; CertificateProfileConstants.FIXED_CERTIFICATEPROFILE_BOUNDRY)</span>
+<span class="nc bnc" id="L516" title="All 2 branches missed.">                &amp;&amp; (CertificateProfileData.findById(entityManager, Integer.valueOf(id)) == null)) {</span>
+<span class="nc" id="L517">            foundfree = true;</span>
+        }
+<span class="nc" id="L519">        return foundfree;</span>
+    }
+
+    private void authorizedToEditProfile(AuthenticationToken admin, CertificateProfile profile, int id) throws AuthorizationDeniedException {
+        // We need to check that admin also have rights to edit certificate profiles
+<span class="nc bnc" id="L524" title="All 2 branches missed.">        if (!authorizedToProfileWithResource(admin, profile, true, StandardRules.CERTIFICATEPROFILEEDIT.resource())) {</span>
+<span class="nc" id="L525">            final String msg = INTRES.getLocalizedMessage(&quot;store.editcertprofilenotauthorized&quot;, admin.toString(), id);</span>
+<span class="nc" id="L526">            throw new AuthorizationDeniedException(msg);            </span>
+        }
+<span class="nc" id="L528">    }</span>
+    @Override
+    public boolean authorizedToProfileWithResource(AuthenticationToken admin, CertificateProfile profile, boolean logging, String... resources) {
+        // We need to check that admin also have rights to the passed in resources
+<span class="nc" id="L532">        final List&lt;String&gt; rules = new ArrayList&lt;&gt;(Arrays.asList(resources));</span>
+        // Check that admin is authorized to all CAids
+<span class="nc bnc" id="L534" title="All 2 branches missed.">        for (final Integer caid : profile.getAvailableCAs()) {</span>
+<span class="nc" id="L535">            rules.add(StandardRules.CAACCESS.resource() + caid);</span>
+<span class="nc" id="L536">        }</span>
+        // Perform authorization check
+<span class="nc" id="L538">        boolean ret = false;</span>
+<span class="nc bnc" id="L539" title="All 2 branches missed.">        if (logging) {</span>
+<span class="nc" id="L540">            ret = authorizationSession.isAuthorized(admin, rules.toArray(new String[rules.size()]));</span>
+        } else {
+<span class="nc" id="L542">            ret = authorizationSession.isAuthorizedNoLogging(admin, rules.toArray(new String[rules.size()]));</span>
+        }
+<span class="nc" id="L544">        return ret;</span>
+    }
+    
+    @Override
+    public byte[] getProfileAsXml(final AuthenticationToken authenticationToken, final int profileId) throws CertificateProfileDoesNotExistException, AuthorizationDeniedException {
+<span class="nc" id="L549">        CertificateProfile profile = null;</span>
+<span class="nc" id="L550">        profile = getCertificateProfile(profileId);</span>
+<span class="nc bnc" id="L551" title="All 2 branches missed.">        if (profile == null) {</span>
+<span class="nc" id="L552">            throw new CertificateProfileDoesNotExistException(&quot;Could not find certificate profile with ID '&quot; + profileId + &quot;' in the database.&quot;);</span>
+        }
+<span class="nc bnc" id="L554" title="All 2 branches missed.">        if(!authorizedToProfileWithResource(authenticationToken, profile, true, StandardRules.CERTIFICATEPROFILEVIEW.resource())) {</span>
+<span class="nc" id="L555">            throw new AuthorizationDeniedException(&quot;User &quot; + authenticationToken.toString() + &quot; was not authorized to view certificate profile with id &quot; + profileId);</span>
+        }
+<span class="nc" id="L557">        try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); XMLEncoder encoder = new XMLEncoder(baos)) {</span>
+<span class="nc" id="L558">            encoder.writeObject(profile.saveData());</span>
+<span class="nc" id="L559">            encoder.close();</span>
+<span class="nc" id="L560">            return baos.toByteArray();</span>
+<span class="nc" id="L561">        } catch (IOException e) {</span>
+<span class="nc" id="L562">            String msg = &quot;Could not encode profile with ID &quot; + profileId + &quot; to XML: &quot; + e.getMessage();</span>
+<span class="nc" id="L563">            LOG.debug(msg, e);</span>
+<span class="nc" id="L564">            throw new IllegalStateException(msg, e);</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

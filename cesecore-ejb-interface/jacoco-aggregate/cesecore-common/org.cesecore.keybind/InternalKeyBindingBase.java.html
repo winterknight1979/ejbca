@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>InternalKeyBindingBase.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-ejb-interface</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.keybind</a> &gt; <span class="el_source">InternalKeyBindingBase.java</span></div><h1>InternalKeyBindingBase.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.keybind;
+
+import java.io.Serializable;
+import java.security.cert.Certificate;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.log4j.Logger;
+import org.cesecore.config.AvailableExtendedKeyUsagesConfiguration;
+import org.cesecore.internal.UpgradeableDataHashMap;
+import org.cesecore.util.ui.DynamicUiProperty;
+
+/**
+ * Holder of general InternalKeyBinding relevant properties.
+ * 
+ * @version $Id: InternalKeyBindingBase.java 30208 2018-10-26 09:04:57Z samuellb $
+ */
+<span class="fc" id="L36">public abstract class InternalKeyBindingBase extends UpgradeableDataHashMap implements InternalKeyBinding {</span>
+
+    private static final long serialVersionUID = 1L;
+<span class="fc" id="L39">    private static final Logger log = Logger.getLogger(InternalKeyBindingBase.class);</span>
+    private static final String PROP_NEXT_KEY_PAIR_ALIAS = &quot;nextKeyPairAlias&quot;;
+    private static final String PROP_TRUSTED_CERTIFICATE_REFERENCES = &quot;trustedCertificateReferences&quot;;
+    private static final String PROP_SIGNATURE_ALGORITHM = &quot;signatureAlgorithm&quot;;
+    private static final String PROP_OCSP_EXTENSION = &quot;ocspExtensions&quot;;
+    private static final String BASECLASS_PREFIX = &quot;BASECLASS_&quot;;
+    public static final String SUBCLASS_PREFIX = &quot;SUBCLASS_&quot;;
+    
+    private int internalKeyBindingId;
+    private String name;
+    private InternalKeyBindingStatus status;
+    private InternalKeyBindingOperationalStatus operationalStatus;
+    private String certificateId;
+    private int cryptoTokenId;
+    private String keyPairAlias;
+    private List&lt;InternalKeyBindingTrustEntry&gt; trustedCertificateReferences;
+    private List&lt;String&gt; ocspExtensions;
+    private String signatureAlgorithm;
+    
+<span class="fc" id="L58">    private final LinkedHashMap&lt;String,DynamicUiProperty&lt;? extends Serializable&gt;&gt; propertyTemplates = new LinkedHashMap&lt;&gt;();</span>
+    
+    protected void addProperty(DynamicUiProperty&lt;? extends Serializable&gt; property) {
+<span class="fc" id="L61">        propertyTemplates.put(property.getName(), property);</span>
+<span class="fc" id="L62">    }</span>
+    
+    @Override
+    public Map&lt;String, DynamicUiProperty&lt;? extends Serializable&gt;&gt; getCopyOfProperties() {
+<span class="nc" id="L66">        final LinkedHashMap&lt;String, DynamicUiProperty&lt;? extends Serializable&gt;&gt; ret = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        for (String key : propertyTemplates.keySet()) {</span>
+<span class="nc" id="L68">            DynamicUiProperty&lt;? extends Serializable&gt; current = propertyTemplates.get(key);</span>
+<span class="nc" id="L69">            final DynamicUiProperty&lt;? extends Serializable&gt; clone = current.clone();</span>
+<span class="nc" id="L70">            clone.setValueGeneric(getProperty(clone.getName()).getValue());</span>
+<span class="nc" id="L71">            ret.put(key, clone);</span>
+<span class="nc" id="L72">        }</span>
+<span class="nc" id="L73">        return ret;</span>
+    }
+
+    @Override
+    public DynamicUiProperty&lt;? extends Serializable&gt; getProperty(final String name) {
+<span class="fc" id="L78">        DynamicUiProperty&lt;? extends Serializable&gt; property = propertyTemplates.get(name);</span>
+<span class="fc" id="L79">        property = new DynamicUiProperty&lt;&gt;(property);</span>
+<span class="fc" id="L80">        property.setValueGeneric(getData(name, property.getDefaultValue()));</span>
+<span class="fc" id="L81">        return property;</span>
+    }
+
+    @Override
+    public void setProperty(final String name, Serializable value) {
+<span class="fc" id="L86">        putData(name, value);</span>
+<span class="fc" id="L87">    }</span>
+
+    @Override
+    public void init(int internalKeyBindingId, String name, InternalKeyBindingStatus status, String certificateId, int cryptoTokenId, String keyPairAlias, LinkedHashMap&lt;Object, Object&gt; dataMap) {
+<span class="nc" id="L91">        this.internalKeyBindingId = internalKeyBindingId;</span>
+<span class="nc" id="L92">        setName(name);</span>
+<span class="nc" id="L93">        setStatus(status);</span>
+<span class="nc" id="L94">        setCertificateId(certificateId);</span>
+<span class="nc" id="L95">        setCryptoTokenId(cryptoTokenId);</span>
+<span class="nc" id="L96">        setKeyPairAlias(keyPairAlias);</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        if (dataMap.get(VERSION) == null) {</span>
+            // If we are creating a new object we need a version
+<span class="nc" id="L99">            dataMap.put(VERSION,  Float.valueOf(getLatestVersion()));</span>
+        }
+<span class="nc" id="L101">        loadData(dataMap);</span>
+<span class="nc" id="L102">    }</span>
+
+    @Override
+<span class="nc" id="L105">    public int getId() { return internalKeyBindingId; }</span>
+    @Override
+<span class="nc" id="L107">    public String getName() { return name; }</span>
+    @Override
+<span class="nc" id="L109">    public void setName(final String name) { this.name = name; }</span>
+    @Override
+    public InternalKeyBindingStatus getStatus() {
+<span class="nc bnc" id="L112" title="All 2 branches missed.">        if (status==null) {</span>
+<span class="nc" id="L113">            status = InternalKeyBindingStatus.DISABLED;</span>
+        }
+<span class="nc" id="L115">        return status;</span>
+    }
+    @Override
+    public void setStatus(final InternalKeyBindingStatus status) {
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        if (status==null) {</span>
+<span class="nc" id="L120">            this.status = InternalKeyBindingStatus.DISABLED;</span>
+        } else {
+<span class="nc" id="L122">            this.status = status;</span>
+        }
+<span class="nc" id="L124">    }</span>
+    
+    @Override
+    public InternalKeyBindingOperationalStatus getOperationalStatus() {
+<span class="nc bnc" id="L128" title="All 2 branches missed.">        if (operationalStatus == null) {</span>
+<span class="nc" id="L129">            operationalStatus = InternalKeyBindingOperationalStatus.OFFLINE;</span>
+        }
+<span class="nc" id="L131">        return operationalStatus;</span>
+    }
+    @Override
+    public void setOperationalStatus(final InternalKeyBindingOperationalStatus operationalStatus) {
+<span class="nc bnc" id="L135" title="All 2 branches missed.">        if (operationalStatus == null) {</span>
+<span class="nc" id="L136">            this.operationalStatus = InternalKeyBindingOperationalStatus.OFFLINE;</span>
+        } else {
+<span class="nc" id="L138">            this.operationalStatus = operationalStatus;</span>
+        }
+<span class="nc" id="L140">    }</span>
+    
+    @Override
+<span class="nc" id="L143">    public String getCertificateId() { return certificateId; }</span>
+    @Override
+<span class="nc" id="L145">    public void setCertificateId(final String certificateId) { this.certificateId = certificateId; }</span>
+    @Override
+<span class="nc" id="L147">    public int getCryptoTokenId() { return cryptoTokenId; }</span>
+    @Override
+<span class="nc" id="L149">    public void setCryptoTokenId(final int cryptoTokenId) { this.cryptoTokenId = cryptoTokenId; }</span>
+    @Override
+<span class="nc" id="L151">    public String getKeyPairAlias() { return keyPairAlias; }</span>
+    @Override
+<span class="nc" id="L153">    public void setKeyPairAlias(final String keyPairAlias) { this.keyPairAlias = keyPairAlias; }</span>
+
+    @Override
+    public String getNextKeyPairAlias() {
+<span class="nc" id="L157">        return getData(PROP_NEXT_KEY_PAIR_ALIAS, (String)null);</span>
+    }
+    @Override
+    public void setNextKeyPairAlias(final String nextKeyPairAlias) {
+<span class="nc" id="L161">        putData(PROP_NEXT_KEY_PAIR_ALIAS, nextKeyPairAlias);</span>
+<span class="nc" id="L162">    }</span>
+
+    @Override
+    public void updateCertificateIdAndCurrentKeyAlias(String certificateId) {
+<span class="nc" id="L166">        setCertificateId(certificateId);</span>
+<span class="nc" id="L167">        setKeyPairAlias(getNextKeyPairAlias());</span>
+<span class="nc" id="L168">        setNextKeyPairAlias(null);</span>
+<span class="nc" id="L169">    }</span>
+
+<span class="fc" id="L171">    private static final SimpleDateFormat DATE_FORMAT_MS = new SimpleDateFormat(&quot;yyyyMMddHHmmssSSS&quot;);</span>
+<span class="fc" id="L172">    private static final Pattern DATE_FORMAT_PATTERN = Pattern.compile(&quot;_\\d{8}\\d{6}$&quot;);</span>
+<span class="fc" id="L173">    private static final Pattern DATE_FORMAT_PATTERN_MS = Pattern.compile(&quot;_\\d{8}\\d{9}$&quot;);</span>
+    
+    /** Replace existing postfix or generate add a new one (using current time with millisecond granularity). 
+     * @param oldAlias alias
+     * @return  new alias*/
+    private String getNewAlias(final String oldAlias) {
+<span class="nc" id="L179">        final Matcher matcherMs = DATE_FORMAT_PATTERN_MS.matcher(oldAlias);</span>
+<span class="nc" id="L180">        final String newPostFix = &quot;_&quot; + DATE_FORMAT_MS.format(new Date());</span>
+        // Check if the key alias postfix is in EJBCA 6.2.4+ format
+<span class="nc bnc" id="L182" title="All 2 branches missed.">        if (matcherMs.find()) {</span>
+            // Replace postfix in millisecond format
+<span class="nc" id="L184">            return matcherMs.replaceAll(newPostFix);</span>
+        } else {
+<span class="nc" id="L186">            final Matcher matcher = DATE_FORMAT_PATTERN.matcher(oldAlias);</span>
+            // Check if the key alias postfix is in EJBCA 6.2.3- format
+<span class="nc bnc" id="L188" title="All 2 branches missed.">            if (matcher.find()) {</span>
+                // Replace postfix with millisecond format
+<span class="nc" id="L190">                return matcher.replaceAll(newPostFix);</span>
+            } else {
+                // No postfix, add one
+<span class="nc" id="L193">                return oldAlias + newPostFix;</span>
+            }
+        }
+    }
+
+    @Override
+    public void generateNextKeyPairAlias() {
+<span class="nc" id="L200">        final String currentKeyPairAlias = getKeyPairAlias();</span>
+<span class="nc" id="L201">        final String nextKeyPairAlias = getNewAlias(currentKeyPairAlias);</span>
+<span class="nc bnc" id="L202" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L203">            log.debug(&quot;nextKeyPairAlias for internalKeyBinding &quot; + internalKeyBindingId + &quot; will be &quot; + nextKeyPairAlias);</span>
+        }
+<span class="nc" id="L205">        setNextKeyPairAlias(nextKeyPairAlias);</span>
+<span class="nc" id="L206">    }</span>
+
+    @Override
+    public List&lt;InternalKeyBindingTrustEntry&gt; getTrustedCertificateReferences() {
+<span class="nc bnc" id="L210" title="All 2 branches missed.">        if (trustedCertificateReferences == null) {</span>
+<span class="nc" id="L211">            trustedCertificateReferences = getDataInternal(PROP_TRUSTED_CERTIFICATE_REFERENCES, new ArrayList&lt;InternalKeyBindingTrustEntry&gt;());</span>
+        }
+        // Return a shallow copy of the list
+<span class="nc" id="L214">        final ArrayList&lt;InternalKeyBindingTrustEntry&gt; trustedCertificateReferences = new ArrayList&lt;InternalKeyBindingTrustEntry&gt;();</span>
+<span class="nc" id="L215">        trustedCertificateReferences.addAll(this.trustedCertificateReferences);</span>
+<span class="nc" id="L216">        return trustedCertificateReferences;</span>
+    }
+
+    @Override
+    public void setTrustedCertificateReferences(final List&lt;InternalKeyBindingTrustEntry&gt; trustedCertificateReferences) {
+<span class="nc" id="L221">        this.trustedCertificateReferences = trustedCertificateReferences;</span>
+        // Always save it as an ArrayList that we know is Serializable
+<span class="nc" id="L223">        final ArrayList&lt;InternalKeyBindingTrustEntry&gt; arrayList = new ArrayList&lt;InternalKeyBindingTrustEntry&gt;(trustedCertificateReferences.size());</span>
+<span class="nc" id="L224">        arrayList.addAll(trustedCertificateReferences);</span>
+<span class="nc" id="L225">        putDataInternal(PROP_TRUSTED_CERTIFICATE_REFERENCES, arrayList);</span>
+<span class="nc" id="L226">    }</span>
+
+    @Override
+    public List&lt;String&gt; getOcspExtensions() {
+<span class="nc bnc" id="L230" title="All 2 branches missed.">        if (ocspExtensions == null) {</span>
+<span class="nc" id="L231">            ocspExtensions = getDataInternal(PROP_OCSP_EXTENSION, new ArrayList&lt;String&gt;());</span>
+        }
+<span class="nc" id="L233">        final ArrayList&lt;String&gt; ocspExensions = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L234">        ocspExensions.addAll(this.ocspExtensions);</span>
+<span class="nc" id="L235">        return ocspExtensions;</span>
+    }
+    
+    @Override
+    public void setOcspExtensions(List&lt;String&gt; ocspExtensions) {
+<span class="nc" id="L240">        this.ocspExtensions = ocspExtensions;</span>
+<span class="nc" id="L241">        final ArrayList&lt;String&gt; arrayList = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L242">        arrayList.addAll(ocspExtensions);</span>
+<span class="nc" id="L243">        putDataInternal(PROP_OCSP_EXTENSION, arrayList);</span>
+<span class="nc" id="L244">    }</span>
+    
+    @Override
+    public String getSignatureAlgorithm() {
+<span class="nc bnc" id="L248" title="All 2 branches missed.">        if (signatureAlgorithm == null) {</span>
+<span class="nc" id="L249">            signatureAlgorithm = getDataInternal(PROP_SIGNATURE_ALGORITHM, null);</span>
+        }
+<span class="nc" id="L251">        return signatureAlgorithm;</span>
+    }
+
+    @Override
+    public void setSignatureAlgorithm(String signatureAlgorithm) {
+<span class="nc" id="L256">        this.signatureAlgorithm = signatureAlgorithm;</span>
+<span class="nc" id="L257">        putDataInternal(PROP_SIGNATURE_ALGORITHM, signatureAlgorithm);</span>
+<span class="nc" id="L258">    }</span>
+    
+    @Override
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public LinkedHashMap&lt;Object, Object&gt; getDataMapToPersist() {
+<span class="nc" id="L263">        return (LinkedHashMap&lt;Object, Object&gt;) saveData();</span>
+    }
+    
+    @Override
+    public abstract float getLatestVersion();
+    @Override
+    public abstract void assertCertificateCompatability(Certificate certificate, final AvailableExtendedKeyUsagesConfiguration ekuConfig) throws CertificateImportException;
+
+    @Override
+    public void upgrade() {
+        // TODO: Here we can to upgrades of base properties when needed.. we do not to store a version for this as well tough..
+<span class="nc" id="L274">        upgrade(getLatestVersion(), getVersion());</span>
+<span class="nc" id="L275">    }</span>
+
+    /** Invoked after the all data has been loaded in init(...) 
+     * @param latestVersion new version
+     * @param currentVersion old version */
+    protected abstract void upgrade(final float latestVersion, final float currentVersion);
+
+    /** Store data in the underlying map. Encourages use of String valued keys. 
+     * @param key key
+     * @param value value */
+    private void putData(final String key, final Object value) {
+<span class="fc" id="L286">        data.put(SUBCLASS_PREFIX + key, value);</span>
+<span class="fc" id="L287">    }</span>
+
+    /** @param key key
+     * @param defaultValue value 
+     * @param &lt;T&gt; type
+     * @return data from the underlying map. Encourages use of String valued keys. */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    private &lt;T&gt; T getData(final String key, final T defaultValue) {
+<span class="fc" id="L295">        final T ret = (T) data.get(SUBCLASS_PREFIX + key);</span>
+<span class="fc bfc" id="L296" title="All 2 branches covered.">        return ret==null ? defaultValue : ret;</span>
+    }
+
+    /** Store data in the underlying map. Encourages use of String valued keys. 
+     * @param key key
+     * @param value value*/
+    private void putDataInternal(final String key, final Object value) {
+<span class="nc" id="L303">        data.put(BASECLASS_PREFIX + key, value);</span>
+<span class="nc" id="L304">    }</span>
+
+    /** @param key key
+     * @param defaultValue value
+     * @param &lt;T&gt; type
+     * @return data from the underlying map. Encourages use of String valued keys. */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    private &lt;T&gt; T getDataInternal(final String key, final T defaultValue) {
+<span class="nc" id="L312">        final T ret = (T) data.get(BASECLASS_PREFIX + key);</span>
+<span class="nc bnc" id="L313" title="All 2 branches missed.">        return ret==null ? defaultValue : ret;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

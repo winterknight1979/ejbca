@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>EndEntityTypes.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-common</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.endentity</a> &gt; <span class="el_source">EndEntityTypes.java</span></div><h1>EndEntityTypes.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.endentity;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 
+ * Constants for users and certificates. Constants for Type of user: Type is constructed as a mask
+ * since one user can be of several types. To test a user type:
+ * &lt;pre&gt;
+ * if (((type &amp;amp; USER_ENDUSER) == USER_ENDUSER) &amp;amp;&amp;amp; ((type &amp;amp; USER_CAADMIN) == USER_ADMINISTOR) || ...
+ *    ...
+ * &lt;/pre&gt;
+ * Bit usage: bits 0-7   (1:st byte):  user types bits 8-15  (2:nd byte):  unused bits 16-23 (3:rd
+ * byte):  unused bits 24-30 (4:th byte):  unused Constants for certificates are simple integer
+ * types. Constants for Token Types Token type is constructed of integer constants since only one
+ * 
+ * @version $Id: EndEntityTypes.java 17625 2013-09-20 07:12:06Z netmackan $
+ *
+ */
+<span class="fc" id="L35">public enum EndEntityTypes  { </span>
+<span class="fc" id="L36">    INVALID(0x0, &quot;Dummy type.&quot;),</span>
+<span class="fc" id="L37">    ENDUSER(0x1, &quot;This is an end user certificate (default).&quot;),</span>
+<span class="fc" id="L38">    ADMINISTRATOR(0x40, &quot;This user is an administrator.&quot;),</span>
+<span class="fc" id="L39">    KEYRECOVERABLE(0x80, &quot;This users keystores are key recoverable.&quot;),</span>
+<span class="fc" id="L40">    SENDNOTIFICATION(0x100, &quot;Notification will be sent to this users emailaddress&quot;), </span>
+<span class="fc" id="L41">    PRINT(0x200, &quot;Registration data will be printed for this user&quot;);</span>
+    
+    private static final Map&lt;Integer, EndEntityTypes&gt; lookupTable;
+    
+    private int hexCode;
+    private String description;
+    
+    static {
+<span class="fc" id="L49">        lookupTable = new HashMap&lt;Integer, EndEntityTypes&gt;();</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">        for(EndEntityTypes type : EndEntityTypes.values()) {</span>
+<span class="fc" id="L51">            lookupTable.put(type.hexValue(), type);</span>
+        }
+<span class="fc" id="L53">    }</span>
+    
+<span class="fc" id="L55">    private EndEntityTypes(int hexCode, String description) {</span>
+<span class="fc" id="L56">        this.hexCode = hexCode;</span>
+<span class="fc" id="L57">        this.description = description;</span>
+<span class="fc" id="L58">    }</span>
+
+    /**
+     * 
+     * @return the hexcode value for this end entity type.
+     */
+    public int hexValue() {
+<span class="fc" id="L65">        return hexCode;</span>
+    }
+    
+    public String getDescription() {
+<span class="nc" id="L69">        return description;</span>
+    }
+    
+    public boolean equals(EndEntityTypes endEntityType) {
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        return hexCode == endEntityType.hexValue();</span>
+    }
+    
+    public static EndEntityTypes[] getTypesFromHexCode(int hexCode) {
+<span class="nc" id="L77">        List&lt;EndEntityTypes&gt; result = new ArrayList&lt;EndEntityTypes&gt;();</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        for(EndEntityTypes type : EndEntityTypes.values()) {</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">            if(type.isContainedInType(hexCode)) {</span>
+<span class="nc" id="L80">                result.add(type);</span>
+            }
+        }
+<span class="nc" id="L83">        return result.toArray(new EndEntityTypes[result.size()]);</span>
+    }
+    
+    public static int combineAll(EndEntityTypes[] types) {
+<span class="nc" id="L87">        int result = 0;</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        for(EndEntityTypes type : types) {</span>
+<span class="nc" id="L89">            result = type.addTo(result);</span>
+        }
+<span class="nc" id="L91">        return result;</span>
+    }
+    
+    /**
+     * Filters this end entity type to the given parameter by performing a binary AND operation on
+     * their hex values and returning whatever type which matches the result.  
+     * 
+     * @param otherHexCode hex code EndEntityType to filter with
+     * @return the corresponding EndEntityType, or null if not found.
+     */
+    public boolean isContainedInType(int otherHexCode) {
+<span class="fc bfc" id="L102" title="All 2 branches covered.">        return (hexCode &amp; otherHexCode) == hexCode; </span>
+    }
+
+
+    /**
+     * Joins this end entity type to the given parameter by performing a binary OR operation on
+     * their hex valyes and returning whatever type which matches the result
+     * 
+     * @param otherHexCode hex code of an EndEntityType to join with
+     * @return the resulting amalgam 
+     */
+    public int addTo(int otherHexCode) {   
+<span class="fc" id="L114">        return hexCode | otherHexCode;</span>
+    }
+    
+    /**
+     * Removes this type from the given hexcode
+     * 
+     * @param otherHexCode the hexcode to remove this type from
+     * @return the resulting hexcode
+     */
+    public int removeFromType(int otherHexCode) {
+<span class="fc" id="L124">        return otherHexCode &amp; ~this.hexCode;</span>
+    }
+    
+    /**
+     * Simple utility method for creating an EndEntityType with a single type.
+     * 
+     * @return a new EndEntityType.
+     */
+    public EndEntityType toEndEntityType() {
+<span class="nc" id="L133">        return new EndEntityType(this);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

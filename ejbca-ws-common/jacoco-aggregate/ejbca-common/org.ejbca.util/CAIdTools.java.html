@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CAIdTools.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-ws-common</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util</a> &gt; <span class="el_source">CAIdTools.java</span></div><h1>CAIdTools.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.util;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import org.apache.commons.lang.StringUtils;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.authorization.rules.AccessRuleData;
+import org.cesecore.authorization.user.AccessUserAspectData;
+import org.cesecore.authorization.user.matchvalues.AccessMatchValue;
+import org.cesecore.authorization.user.matchvalues.AccessMatchValueReverseLookupRegistry;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceInfo;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.config.GlobalOcspConfiguration;
+import org.cesecore.keybind.InternalKeyBinding;
+import org.cesecore.keybind.InternalKeyBindingTrustEntry;
+import org.cesecore.roles.AccessRulesHelper;
+import org.cesecore.roles.Role;
+import org.cesecore.roles.member.RoleMember;
+import org.ejbca.config.CmpConfiguration;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.core.model.ca.caadmin.extendedcaservices.CmsCAServiceInfo;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
+import org.ejbca.core.model.ra.userdatasource.BaseUserDataSource;
+import org.ejbca.core.model.services.IWorker;
+import org.ejbca.core.model.services.ServiceConfiguration;
+
+/**
+ * &lt;p&gt;Methods to update a changed CA Subject DN and CA Id in various objects.&lt;/p&gt;
+ * 
+ * &lt;p&gt;The methods always take an object to change, as well as the old and new CA Ids and the new Subject DN.
+ * They return true if the object was changed and should be updated in the database.&lt;/p&gt;
+ * 
+ * &lt;p&gt;The reason for having the methods here and not in the respective objects is:&lt;/p&gt;
+ * &lt;ol&gt;
+ * &lt;li&gt;Access rules are simply a list of access rule objects, so it can't have any methods directly on it anyway.&lt;/li&gt;
+ * &lt;li&gt;Some objects do not know about all of their properties. The ServiceConfiguration object
+ * does not know about the different types of services it can store.&lt;/li&gt;
+ * &lt;li&gt;Some objects do not have a single base class, such as InternalKeyBindings which has two.&lt;/li&gt;
+ * &lt;/ol&gt;
+ * 
+ * @version $Id: CAIdTools.java 28117 2018-01-29 09:58:24Z samuellb $
+ */
+
+@SuppressWarnings(&quot;deprecation&quot;)
+public final class CAIdTools {
+
+    /** Static class. Can't be instantiated */ 
+    private CAIdTools() { }
+
+    /**
+     * Updates any references to a CA's CAId and Subject DN.
+     * @param certProfile Profile object to modify.
+     * @param fromId Old CA Id to replace.
+     * @param toId New CA Id to replace with.
+     * @param toSubjectDN New CA Subject DN.
+     * @return True if the certificate profile was changed. If so it should be persisted to the database.
+     */
+    public static boolean updateCAIds(final CertificateProfile certProfile, final int fromId, final int toId, final String toSubjectDN) {
+<span class="nc" id="L76">        boolean changed = false;</span>
+<span class="nc" id="L77">        final List&lt;Integer&gt; availableCAs = new ArrayList&lt;&gt;(certProfile.getAvailableCAs());</span>
+        // The list is modified so we can't use an iterator
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        for (int i = 0; i &lt; availableCAs.size(); i++) {</span>
+<span class="nc" id="L80">            int value = availableCAs.get(i);</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">            if (value == fromId) {</span>
+<span class="nc" id="L82">                availableCAs.set(i, toId);</span>
+<span class="nc" id="L83">                changed = true;</span>
+            }
+        }
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (changed) {</span>
+<span class="nc" id="L87">            certProfile.setAvailableCAs(availableCAs);</span>
+        }
+<span class="nc" id="L89">        return changed;</span>
+    }
+
+    /**
+     * Updates any references to a CA's CAId and Subject DN.
+     * @param endEntityProfile Profile object to modify.
+     * @param fromId Old CA Id to replace.
+     * @param toId New CA Id to replace with.
+     * @param toSubjectDN New CA Subject DN.
+     * @return True if the end entity profile was changed. If so it should be persisted to the database.
+     */
+    public static boolean updateCAIds(final EndEntityProfile endEntityProfile, final int fromId, final int toId, final String toSubjectDN) {
+<span class="nc" id="L101">        boolean changed = false;</span>
+        
+<span class="nc" id="L103">        final Collection&lt;Integer&gt; original = endEntityProfile.getAvailableCAs();</span>
+<span class="nc" id="L104">        final List&lt;Integer&gt; updated = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">        for (int oldvalue : original) {</span>
+            int newvalue;
+<span class="nc bnc" id="L107" title="All 2 branches missed.">            if (oldvalue == fromId) {</span>
+<span class="nc" id="L108">                newvalue = toId;</span>
+<span class="nc" id="L109">                changed = true;</span>
+            } else {
+<span class="nc" id="L111">                newvalue = oldvalue;</span>
+            }
+<span class="nc" id="L113">            updated.add(newvalue);</span>
+<span class="nc" id="L114">        }</span>
+        
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        if (changed) {</span>
+<span class="nc" id="L117">            endEntityProfile.setAvailableCAs(updated);</span>
+        }
+        
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        if (endEntityProfile.getDefaultCA() == fromId) {</span>
+<span class="nc" id="L121">            endEntityProfile.setDefaultCA(toId);</span>
+<span class="nc" id="L122">            changed = true;</span>
+        }
+        
+<span class="nc" id="L125">        return changed;</span>
+    }
+    
+    /**
+     * Updates any references to a CA's CAId and Subject DN.
+     * @param dataSource Data source object to modify.
+     * @param fromId Old CA Id to replace.
+     * @param toId New CA Id to replace with.
+     * @param toSubjectDN New CA Subject DN.
+     * @return True if the data source was changed. If so it should be persisted to the database.
+     */
+    public static boolean updateCAIds(final BaseUserDataSource dataSource, final int fromId, final int toId, final String toSubjectDN) {
+<span class="nc" id="L137">        boolean changed = false;</span>
+<span class="nc" id="L138">        final List&lt;Integer&gt; applicableCAs = new ArrayList&lt;&gt;(dataSource.getApplicableCAs());</span>
+        // The list is modified so we can't use an iterator
+<span class="nc bnc" id="L140" title="All 2 branches missed.">        for (int i = 0; i &lt; applicableCAs.size(); i++) {</span>
+<span class="nc" id="L141">            int value = applicableCAs.get(i);</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">            if (value == fromId) {</span>
+<span class="nc" id="L143">                applicableCAs.set(i, toId);</span>
+<span class="nc" id="L144">                changed = true;</span>
+            }
+        }
+<span class="nc bnc" id="L147" title="All 2 branches missed.">        if (changed) {</span>
+<span class="nc" id="L148">            dataSource.setApplicableCAs(applicableCAs);</span>
+        }
+<span class="nc" id="L150">        return changed;</span>
+    }
+
+    /**
+     * Updates any references to a CA's CAId and Subject DN.
+     * @param serviceConf Service object to modify.
+     * @param fromId Old CA Id to replace.
+     * @param toId New CA Id to replace with.
+     * @param toSubjectDN New CA Subject DN.
+     * @return True if the service was changed. If so it should be persisted to the database.
+     */
+    public static boolean updateCAIds(final ServiceConfiguration serviceConf, final int fromId, final int toId, final String toSubjectDN) {
+<span class="nc" id="L162">        boolean changed = false;</span>
+<span class="nc" id="L163">        final Properties workerProps = serviceConf.getWorkerProperties();</span>
+<span class="nc" id="L164">        final String idsToCheckStr = workerProps.getProperty(IWorker.PROP_CAIDSTOCHECK);</span>
+<span class="nc bnc" id="L165" title="All 2 branches missed.">        if (!StringUtils.isEmpty(idsToCheckStr)) {</span>
+<span class="nc" id="L166">            final String[] caIds = idsToCheckStr.split(&quot;;&quot;);</span>
+<span class="nc bnc" id="L167" title="All 2 branches missed.">            for (int i = 0; i &lt; caIds.length; i++) {</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">                if (Integer.parseInt(caIds[i]) == fromId) {</span>
+<span class="nc" id="L169">                    caIds[i] = String.valueOf(toId);</span>
+<span class="nc" id="L170">                    changed = true;</span>
+                }
+            }
+<span class="nc bnc" id="L173" title="All 2 branches missed.">            if (changed) {</span>
+<span class="nc" id="L174">                workerProps.setProperty(IWorker.PROP_CAIDSTOCHECK, StringUtils.join(caIds, ';'));</span>
+<span class="nc" id="L175">                serviceConf.setWorkerProperties(workerProps);</span>
+            }
+        }
+<span class="nc" id="L178">        return changed;</span>
+    }
+
+    /**
+     * Updates any references to a CA's CAId and Subject DN.
+     * @param keybind Internal key binding object to modify.
+     * @param fromId Old CA Id to replace.
+     * @param toId New CA Id to replace with.
+     * @param toSubjectDN New CA Subject DN.
+     * @return True if the key binding was changed. If so it should be persisted to the database.
+     */
+    public static boolean updateCAIds(final InternalKeyBinding keybind, final int fromId, final int toId, final String toSubjectDN) {
+<span class="nc" id="L190">        boolean changed = false;</span>
+<span class="nc" id="L191">        List&lt;InternalKeyBindingTrustEntry&gt; trustentries = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">        for (InternalKeyBindingTrustEntry trustentry : keybind.getTrustedCertificateReferences()) {</span>
+<span class="nc" id="L193">            int trustCaId = trustentry.getCaId();</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">            if (trustCaId == fromId) {</span>
+<span class="nc" id="L195">                trustCaId = toId;</span>
+<span class="nc" id="L196">                changed = true;</span>
+            }
+<span class="nc" id="L198">            trustentries.add(new InternalKeyBindingTrustEntry(trustCaId, trustentry.fetchCertificateSerialNumber()));</span>
+<span class="nc" id="L199">        }</span>
+<span class="nc bnc" id="L200" title="All 2 branches missed.">        if (changed) {</span>
+<span class="nc" id="L201">            keybind.setTrustedCertificateReferences(trustentries);</span>
+        }
+<span class="nc" id="L203">        return changed;</span>
+    }
+
+    /**
+     * Updates any references to a CA's CAId and Subject DN.
+     * @param globalConfig Global configuration object to modify.
+     * @param fromId Old CA Id to replace.
+     * @param toId New CA Id to replace with.
+     * @param toSubjectDN New CA Subject DN.
+     * @return True if the configuration was changed. If so it should be persisted to the database.
+     */
+    public static boolean updateCAIds(final GlobalConfiguration globalConfig, final int fromId, final int toId, final String toSubjectDN) {
+<span class="nc" id="L215">        boolean changed = false;</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">        if (globalConfig.getAutoEnrollCA() == fromId) {</span>
+<span class="nc" id="L217">            globalConfig.setAutoEnrollCA(toId);</span>
+<span class="nc" id="L218">            changed = true;</span>
+        }
+<span class="nc" id="L220">        return changed;</span>
+    }
+
+    /**
+     * Updates any references to a CA's CAId and Subject DN.
+     * @param cmpConfig CMP configuration object to modify.
+     * @param fromId Old CA Id to replace.
+     * @param toId New CA Id to replace with.
+     * @param toSubjectDN New CA Subject DN.
+     * @return True if the configuration changed. If so it should be persisted to the database.
+     */
+    public static boolean updateCAIds(final CmpConfiguration cmpConfig, final int fromId, final int toId, final String toSubjectDN) {
+<span class="nc" id="L232">        boolean changed = false;</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">        for (String alias : cmpConfig.getAliasList()) {</span>
+<span class="nc" id="L234">            final String defaultCaDN = cmpConfig.getCMPDefaultCA(alias);</span>
+<span class="nc bnc" id="L235" title="All 4 branches missed.">            if (defaultCaDN != null &amp;&amp; defaultCaDN.hashCode() == fromId) {</span>
+<span class="nc" id="L236">                cmpConfig.setCMPDefaultCA(alias, toSubjectDN);</span>
+<span class="nc" id="L237">                changed = true;</span>
+            }
+<span class="nc" id="L239">        }</span>
+<span class="nc" id="L240">        return changed;</span>
+    }
+
+    /**
+     * Updates any references to a CA's CAId and Subject DN.
+     * @param ocspConfig OCSP configuration object to modify.
+     * @param fromId Old CA Id to replace.
+     * @param toId New CA Id to replace with.
+     * @param toSubjectDN New CA Subject DN.
+     * @return True if the configuration was changed. If so it should be persisted to the database.
+     */
+    public static boolean updateCAIds(final GlobalOcspConfiguration ocspConfig, final int fromId, final int toId, final String toSubjectDN) {
+<span class="nc" id="L252">        boolean changed = false;</span>
+<span class="nc bnc" id="L253" title="All 2 branches missed.">        if (ocspConfig.getOcspDefaultResponderReference() != null &amp;&amp;</span>
+<span class="nc bnc" id="L254" title="All 2 branches missed.">                ocspConfig.getOcspDefaultResponderReference().hashCode() == fromId) {</span>
+<span class="nc" id="L255">            ocspConfig.setOcspDefaultResponderReference(toSubjectDN);</span>
+<span class="nc" id="L256">            changed = true;</span>
+        }
+<span class="nc" id="L258">        return changed;</span>
+    }
+    
+    /**
+     * Updates any references to a CA's CAId and Subject DN in the given role and list of role members.
+     * @param role Role to modify.
+     * @param roleMembers List of the role's members. The members may be modified.
+     * @param fromId Old CA Id.
+     * @param toId New CA Id.
+     * @param toSubjectDN New CA Subject DN.
+     * @return True if there was a change.
+     */
+    public static boolean updateCAIds(final Role role, final List&lt;RoleMember&gt; roleMembers, final int fromId, final int toId, final String toSubjectDN) {
+<span class="nc" id="L271">        boolean changed = false;</span>
+        // Look for references from access rules (currently only the /ca/&lt;CA ID&gt; rule) */
+<span class="nc" id="L273">        final String oldResource = AccessRulesHelper.normalizeResource(StandardRules.CAACCESS.resource() + String.valueOf(fromId));</span>
+<span class="nc" id="L274">        final String newResource = AccessRulesHelper.normalizeResource(StandardRules.CAACCESS.resource() + String.valueOf(toId));</span>
+<span class="nc" id="L275">        final Boolean state = role.getAccessRules().remove(oldResource);</span>
+<span class="nc bnc" id="L276" title="All 2 branches missed.">        if (state != null) { // rule for old CA ID exists</span>
+<span class="nc" id="L277">            role.getAccessRules().put(newResource, state);</span>
+<span class="nc" id="L278">            changed = true;</span>
+        }
+        // Look for references from members
+<span class="nc bnc" id="L281" title="All 2 branches missed.">        for (final RoleMember roleMember : roleMembers) {</span>
+<span class="nc bnc" id="L282" title="All 2 branches missed.">            if (roleMember.getTokenIssuerId() == fromId) {</span>
+                // Also check that tokenIssuerId refers to a CA. This check is more expensive performance-wise so it's done last
+<span class="nc" id="L284">                final AccessMatchValue accessMatchValue = AccessMatchValueReverseLookupRegistry.INSTANCE.getMetaData(</span>
+<span class="nc" id="L285">                        roleMember.getTokenType()).getAccessMatchValueIdMap().get(roleMember.getTokenMatchKey());</span>
+<span class="nc bnc" id="L286" title="All 2 branches missed.">                if (accessMatchValue.isIssuedByCa()) {</span>
+<span class="nc" id="L287">                    roleMember.setTokenIssuerId(toId);</span>
+<span class="nc" id="L288">                    changed = true;</span>
+                }
+            }
+<span class="nc" id="L291">        }</span>
+<span class="nc" id="L292">        return changed;</span>
+    }
+    
+    /**
+     * Updates any references to a CA's CAId and Subject DN.
+     * @param roleName Name of the role. Used when creating roles to replace the old roles with.
+     * @param rules Access rules of the role. Updated in place.
+     * @param users Access users of the role. Updated in place.
+     * @param fromId Old CA Id.
+     * @param toId New CA Id.
+     * @param toSubjectDN New CA Subject DN.
+     * @return True if there was a change.
+     */
+    @Deprecated
+    public static boolean updateCAIds(final String roleName, final Map&lt;Integer,AccessRuleData&gt; rules, final Map&lt;Integer,AccessUserAspectData&gt; users, final int fromId, final int toId, final String toSubjectDN) {
+<span class="nc" id="L307">        final String toReplace = StandardRules.CAACCESS.resource()+String.valueOf(fromId);</span>
+<span class="nc" id="L308">        final String toReplaceSlash = toReplace+&quot;/&quot;;</span>
+<span class="nc" id="L309">        boolean changed = false;</span>
+        // Look for references from access rules
+<span class="nc bnc" id="L311" title="All 2 branches missed.">        for (int id : new ArrayList&lt;&gt;(rules.keySet())) {</span>
+<span class="nc" id="L312">            AccessRuleData rule = rules.get(id);</span>
+<span class="nc" id="L313">            final String accessRuleName = rule.getAccessRuleName();</span>
+            
+<span class="nc bnc" id="L315" title="All 4 branches missed.">            if (accessRuleName.equals(toReplace) || accessRuleName.startsWith(toReplaceSlash)) {</span>
+<span class="nc" id="L316">                final String newName = StandardRules.CAACCESS.resource() + String.valueOf(toId) + accessRuleName.substring(toReplace.length());</span>
+<span class="nc" id="L317">                final int state = rule.getState();</span>
+<span class="nc" id="L318">                rule = new AccessRuleData(roleName, newName, rule.getInternalState(), rule.getRecursive());</span>
+<span class="nc" id="L319">                rule.setState(state);</span>
+<span class="nc" id="L320">                rules.put(id, rule);</span>
+<span class="nc" id="L321">                changed = true;</span>
+            }
+<span class="nc" id="L323">        }</span>
+        // Look for references from access users
+<span class="nc bnc" id="L325" title="All 2 branches missed.">        for (int id : new ArrayList&lt;&gt;(users.keySet())) {</span>
+<span class="nc" id="L326">            AccessUserAspectData user = users.get(id);</span>
+<span class="nc bnc" id="L327" title="All 2 branches missed.">            if (user.getCaId() == fromId) {</span>
+<span class="nc" id="L328">                user = new AccessUserAspectData(roleName, toId, user.getMatchWith(), user.getTokenType(), user.getMatchTypeAsType(), user.getMatchValue());</span>
+<span class="nc" id="L329">                users.put(id, user);</span>
+<span class="nc" id="L330">                changed = true;</span>
+            }
+<span class="nc" id="L332">        }</span>
+<span class="nc" id="L333">        return changed;</span>
+    }
+    
+    /**
+     * Rebuilds extended services so the Subject DN gets updated.
+     * @param cainfo Info
+     */
+    public static void rebuildExtendedServices(final CAInfo cainfo) {
+<span class="nc" id="L341">        final List&lt;ExtendedCAServiceInfo&gt; extsvcs = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L342">        final String casubjdn = cainfo.getSubjectDN();</span>
+<span class="nc bnc" id="L343" title="All 2 branches missed.">        for (ExtendedCAServiceInfo extsvc : cainfo.getExtendedCAServiceInfos()) {</span>
+<span class="nc bnc" id="L344" title="All 2 branches missed.">            if (extsvc instanceof CmsCAServiceInfo) {</span>
+<span class="nc" id="L345">                final CmsCAServiceInfo cmssvc = (CmsCAServiceInfo) extsvc;</span>
+<span class="nc" id="L346">                extsvc = new CmsCAServiceInfo(extsvc.getStatus(), &quot;CN=CMSCertificate, &quot; + casubjdn, cmssvc.getSubjectAltName(), cmssvc.getKeySpec(), cmssvc.getKeyAlgorithm());</span>
+            }
+<span class="nc" id="L348">            extsvcs.add(extsvc);</span>
+<span class="nc" id="L349">        }</span>
+<span class="nc" id="L350">        cainfo.setExtendedCAServiceInfos(extsvcs);</span>
+<span class="nc" id="L351">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ServiceManifestBuilder.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-ejb-interface</a> &gt; <a href="../index.html" class="el_bundle">shared-resources</a> &gt; <a href="index.source.html" class="el_package">com.primekey.anttools</a> &gt; <span class="el_source">ServiceManifestBuilder.java</span></div><h1>ServiceManifestBuilder.java</h1><pre class="source lang-java linenums">// 
+// Decompiled by Procyon v0.5.36
+// 
+
+package com.primekey.anttools;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.io.PrintWriter;
+import java.lang.reflect.Modifier;
+import java.io.IOException;
+import java.io.File;
+
+<span class="nc" id="L14">public class ServiceManifestBuilder</span>
+{
+	
+
+	public static void main(final String[] args) {
+<span class="nc" id="L19">		final int errorCode = mainInternal(args);</span>
+<span class="nc bnc" id="L20" title="All 2 branches missed.">		if (errorCode != 0) {</span>
+<span class="nc" id="L21">			System.exit(errorCode);</span>
+		}
+<span class="nc" id="L23">	}</span>
+
+	static int mainInternal(final String[] args) {
+<span class="nc bnc" id="L26" title="All 4 branches missed.">		if (args.length &lt; 2 || args.length &gt; 3) {</span>
+<span class="nc" id="L27">			final StringBuffer out = new StringBuffer();</span>
+<span class="nc" id="L28">			out.append(&quot;DESCRIPTION:\n&quot;);</span>
+<span class="nc" id="L29">			out.append(&quot;     This command line tool inserts service manifest files into a given directory.\n&quot;);</span>
+<span class="nc" id="L30">			out.append(&quot;     It uses the following two arguments (without flags):\n&quot;);</span>
+<span class="nc" id="L31">			out.append(&quot;     (1) Path to a directory\n&quot;);</span>
+<span class="nc" id="L32">			out.append(&quot;     (2) A semicolon separated list of interfaces\n&quot;);</span>
+<span class="nc" id="L33">			out.append(&quot;     (3) (OPTIONAL) Temporary working directory, only applicable (but not required) when writing to jar. Will use system default if left blank.\n&quot;);</span>
+<span class="nc" id="L34">			out.append(&quot;\n&quot;);</span>
+<span class="nc" id="L35">			out.append(&quot;EXAMPLES:\n&quot;);</span>
+<span class="nc" id="L36">			out.append(&quot;     /usr/ejbca/modules/ejbca-ejb-cli/build/ com.foo.bar.InterfaceAlpha;com.bar.foo.InterfaceBeta /var/tmp/ \n&quot;);</span>
+<span class="nc" id="L37">			out.append(&quot;\n&quot;);</span>
+<span class="nc" id="L38">			out.append(&quot;WARNING: Adding a service manifest to a JAR with a file manifest is unstable at the moment.&quot;);</span>
+<span class="nc" id="L39">			System.err.println(out.toString());</span>
+<span class="nc" id="L40">			return 1;</span>
+		}
+<span class="nc" id="L42">		final File archive = new File(args[0]);</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">		if (!archive.exists()) {</span>
+<span class="nc" id="L44">			System.err.println(archive + &quot; does not exist on the system.&quot;);</span>
+<span class="nc" id="L45">			return 1;</span>
+		}
+<span class="nc bnc" id="L47" title="All 4 branches missed.">		if (archive.isFile() &amp;&amp; !archive.getName().endsWith(&quot;.jar&quot;)) {</span>
+<span class="nc" id="L48">			System.err.println(archive + &quot; does not appear to be a .jar file.&quot;);</span>
+<span class="nc" id="L49">			return 1;</span>
+		}
+		/*
+		 * We shouldn't need to hack the classpath because Maven automatically adds the output directory
+		 * 
+		 * final String cp = System.getProperty(&quot;java.class.path&quot;); String[] paths =
+		 * cp.split(&quot;:&quot;); URL urls[] = new URL[paths.length]; try { for (int i = 0; i &lt;
+		 * paths.length; i++) { urls[i] = new File(paths[i]).toURI().toURL(); } }catch
+		 * (MalformedURLException e) { // TODO: handle exception }
+		 * 
+		 * final URLClassLoader sysloader = new URLClassLoader(urls,
+		 * ClassLoader.getSystemClassLoader()); try { final Method method =
+		 * URLClassLoader.class.getDeclaredMethod(&quot;addURL&quot;, URL.class);
+		 * method.setAccessible(true); method.invoke(sysloader,
+		 * archive.toURI().toURL()); } catch (Throwable t) { throw new
+		 * RuntimeException(&quot;Exception caught while trying to modify classpath&quot;, t); }
+		 */
+<span class="nc" id="L66">		final String[] classNames = args[1].split(&quot;;&quot;);</span>
+<span class="nc" id="L67">		final Class&lt;?&gt;[] classes = new Class[classNames.length];</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">		for (int i = 0; i &lt; classNames.length; ++i) {</span>
+			try {
+<span class="nc" id="L70">				classes[i] = Class.forName(classNames[i]);</span>
+			}
+<span class="nc" id="L72">			catch (ClassNotFoundException e2) {</span>
+<span class="nc" id="L73">				System.err.println(&quot;Class &quot; + classNames[i] + &quot; not found on classpath, cannot continue.&quot;);</span>
+<span class="nc" id="L74">				return 1;</span>
+<span class="nc" id="L75">			}</span>
+		}
+		try {
+<span class="nc" id="L78">			buildServiceManifestToLocation(archive, classes);</span>
+		}
+<span class="nc" id="L80">		catch (IOException e) {</span>
+<span class="nc" id="L81">			System.err.println(&quot;Disk related error occured while building manifest, see following stacktrace&quot;);</span>
+<span class="nc" id="L82">			e.printStackTrace();</span>
+<span class="nc" id="L83">			return 1;</span>
+<span class="nc" id="L84">		}</span>
+<span class="nc" id="L85">		return 0;</span>
+	}
+
+	public static void delete(final File file) {
+<span class="nc bnc" id="L89" title="All 2 branches missed.">		if (file.isDirectory()) {</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">			for (final File subFile : file.listFiles()) {</span>
+<span class="nc" id="L91">				delete(subFile);</span>
+			}
+		}
+<span class="nc bnc" id="L94" title="All 2 branches missed.">		if (!file.delete()) {</span>
+<span class="nc" id="L95">			System.err.println(&quot;Could not delete directory &quot; + file.getAbsolutePath());</span>
+		}
+<span class="nc" id="L97">	}</span>
+
+	public static File createTempDirectory() throws IOException {
+<span class="nc" id="L100">		return createTempDirectory(null);</span>
+	}
+
+	public static File createTempDirectory(final File location) throws IOException {
+<span class="nc" id="L104">		final File temp = File.createTempFile(&quot;tmp&quot;, Long.toString(System.nanoTime()), location);</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">		if (!temp.delete()) {</span>
+<span class="nc" id="L106">			throw new IOException(&quot;Could not delete temp file: &quot; + temp.getAbsolutePath());</span>
+		}
+<span class="nc bnc" id="L108" title="All 2 branches missed.">		if (!temp.mkdir()) {</span>
+<span class="nc" id="L109">			throw new IOException(&quot;Could not create temp directory: &quot; + temp.getAbsolutePath());</span>
+		}
+<span class="nc" id="L111">		return temp;</span>
+	}
+
+	public static void buildServiceManifestToLocation(final File location, final Class&lt;?&gt;... interfaceClasses) throws IOException {
+<span class="nc bnc" id="L115" title="All 2 branches missed.">		if (!location.isDirectory()) {</span>
+<span class="nc" id="L116">			throw new IOException(&quot;File &quot; + location + &quot; was not a directory.&quot;);</span>
+		}
+<span class="nc bnc" id="L118" title="All 4 branches missed.">		if (!location.canWrite() &amp;&amp; !location.canRead()) {</span>
+<span class="nc" id="L119">			throw new IOException(&quot;Could not read/write to directory &quot; + location);</span>
+		}
+<span class="nc bnc" id="L121" title="All 2 branches missed.">		for (final Class&lt;?&gt; interfaceClass : interfaceClasses) {</span>
+<span class="nc bnc" id="L122" title="All 4 branches missed.">			if (!interfaceClass.isInterface() &amp;&amp; !Modifier.isAbstract(interfaceClass.getModifiers())) {</span>
+<span class="nc" id="L123">				throw new IllegalArgumentException(&quot;Class &quot; + interfaceClass.getName() + &quot; was not an interface or an asbtract class.&quot;);</span>
+			}
+<span class="nc" id="L125">			final List&lt;Class&lt;?&gt;&gt; implementingClasses = getImplementingClasses(location, location, interfaceClass);</span>
+<span class="nc" id="L126">			System.out.println(&quot;Added &quot; + implementingClasses.size() + &quot; implementations of &quot; + interfaceClass.getName());</span>
+<span class="nc" id="L127">			final File metaInf = new File(location, &quot;META-INF&quot;);</span>
+<span class="nc bnc" id="L128" title="All 4 branches missed.">			if (!metaInf.exists() &amp;&amp; !metaInf.mkdir()) {</span>
+<span class="nc" id="L129">				throw new IOException(&quot;Could not create directory &quot; + metaInf);</span>
+			}
+<span class="nc" id="L131">			final File servicesDirectory = new File(metaInf, &quot;services&quot;);</span>
+<span class="nc bnc" id="L132" title="All 4 branches missed.">			if (!servicesDirectory.exists() &amp;&amp; !servicesDirectory.mkdirs()) {</span>
+<span class="nc" id="L133">				throw new IOException(&quot;Could not create directory &quot; + servicesDirectory);</span>
+			}
+<span class="nc" id="L135">			final File manifestFile = new File(servicesDirectory, interfaceClass.getName());</span>
+<span class="nc bnc" id="L136" title="All 4 branches missed.">			if (!manifestFile.exists() &amp;&amp; !manifestFile.createNewFile()) {</span>
+<span class="nc" id="L137">				throw new IOException(&quot;Could not create manifest file.&quot;);</span>
+			}
+<span class="nc" id="L139">			final PrintWriter printWriter = new PrintWriter(manifestFile);</span>
+			try {
+<span class="nc bnc" id="L141" title="All 2 branches missed.">				for (final Class&lt;?&gt; implementingClass : implementingClasses) {</span>
+<span class="nc" id="L142">					printWriter.println(implementingClass.getName());</span>
+<span class="nc" id="L143">				}</span>
+			}
+			finally {
+<span class="nc" id="L146">				printWriter.flush();</span>
+<span class="nc" id="L147">				printWriter.close();</span>
+			}
+		}
+<span class="nc" id="L150">	}</span>
+
+	private static List&lt;Class&lt;?&gt;&gt; getImplementingClasses(final File baseLocation, final File location, final Class&lt;?&gt; interfaceClass) {
+<span class="nc" id="L153">		final List&lt;Class&lt;?&gt;&gt; result = new ArrayList&lt;Class&lt;?&gt;&gt;();</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">		if (location.isDirectory()) {</span>
+<span class="nc" id="L155">			final int baseLocationAbsolutePathLength = baseLocation.getAbsolutePath().length() + File.separator.length();</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">			for (final File file : location.listFiles()) {</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">				if (file.isDirectory()) {</span>
+<span class="nc" id="L158">					result.addAll(getImplementingClasses(baseLocation, file, interfaceClass));</span>
+				}
+				else {
+<span class="nc" id="L161">					final String absolutePath = file.getAbsolutePath();</span>
+<span class="nc" id="L162">					final int indexOfExtension = absolutePath.indexOf(&quot;.class&quot;);</span>
+<span class="nc bnc" id="L163" title="All 4 branches missed.">					if (indexOfExtension != -1 &amp;&amp; indexOfExtension == absolutePath.length() - &quot;.class&quot;.length()) {</span>
+<span class="nc" id="L164">						final String className = absolutePath.substring(baseLocationAbsolutePathLength, indexOfExtension).replace(File.separatorChar, '.');</span>
+						try {
+<span class="nc" id="L166">							final Class&lt;?&gt; candidate = Class.forName(className, false, ServiceManifestBuilder.class.getClassLoader());</span>
+<span class="nc bnc" id="L167" title="All 6 branches missed.">							if (interfaceClass.isAssignableFrom(candidate) &amp;&amp; !Modifier.isAbstract(candidate.getModifiers()) &amp;&amp; !candidate.isInterface()) {</span>
+<span class="nc" id="L168">								result.add(candidate);</span>
+							}
+						}
+<span class="nc" id="L171">						catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L172">							throw new IllegalArgumentException(&quot;Class of name &quot; + className + &quot; was not found, even though a class file&quot; + &quot; of that name was found in &quot; + baseLocation.getAbsolutePath(), e);</span>
+<span class="nc" id="L173">						}</span>
+					}
+				}
+			}
+		}
+<span class="nc" id="L178">		return result;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

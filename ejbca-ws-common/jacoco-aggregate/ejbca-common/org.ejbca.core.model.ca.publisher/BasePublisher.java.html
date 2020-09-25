@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>BasePublisher.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-ws-common</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.ca.publisher</a> &gt; <span class="el_source">BasePublisher.java</span></div><h1>BasePublisher.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.model.ca.publisher;
+
+import java.io.Serializable;
+import java.security.cert.Certificate;
+import java.util.LinkedHashMap;
+
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.certificates.certificate.Base64CertData;
+import org.cesecore.certificates.certificate.CertificateData;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.internal.UpgradeableDataHashMap;
+
+
+/**
+ * BasePublisher is a basic class that should be inherited by all types
+ * of publishers in the system.
+ *  
+ *
+ * @version $Id: BasePublisher.java 34192 2020-01-07 15:10:21Z aminkh $
+ */
+public abstract class BasePublisher extends UpgradeableDataHashMap implements Serializable, Cloneable, FullEntityPublisher {    
+
+    private static final long serialVersionUID = -735659148394853025L;
+    public static final String TRUE  = &quot;true&quot;;
+    public static final String FALSE = &quot;false&quot;;
+    
+    public static final int PUBLISHER_BASE_VERSION = 1;
+    public static final int CERTDATA_CAPABLE_PUBLISHER = 2; //Since 6.3.0
+
+    // Protected Constants.
+	public static final String TYPE                           = &quot;type&quot;;
+	
+    protected static final String DESCRIPTION                    = &quot;description&quot;;
+    protected static final String ONLYUSEQUEUE                   = &quot;onlyUseQueue&quot;;
+    protected static final String KEEPPUBLISHEDINQUEUE           = &quot;keepPublishedInQueue&quot;;
+    protected static final String USEQUEUEFORCRLS                = &quot;useQueueForCrls&quot;;
+    protected static final String USEQUEUEFORCERTIFICATES        = &quot;useQueueForCertificates&quot;;
+
+    // Default values
+    public static final boolean DEFAULT_ONLYUSEQUEUE 			 = false;
+    
+    // Values used for lookup that are not stored in the data hashmap
+    private int id;
+    private String name;
+    
+    // Public Methods
+
+    /**
+     * Creates a new instance of BasePublisher
+     */
+<span class="nc" id="L64">    public BasePublisher() {</span>
+<span class="nc" id="L65">      setDescription(&quot;&quot;);	       </span>
+<span class="nc" id="L66">      setOnlyUseQueue(DEFAULT_ONLYUSEQUEUE);</span>
+<span class="nc" id="L67">    }</span>
+    
+    /**
+     * Copy constructor for BasePublisher
+     * @param publisher publisher
+     */
+<span class="nc" id="L73">    public BasePublisher(BasePublisher publisher) {</span>
+<span class="nc" id="L74">      this.data = new LinkedHashMap&lt;Object, Object&gt;(publisher.data);</span>
+<span class="nc" id="L75">      this.id = publisher.id;</span>
+<span class="nc" id="L76">      this.name = publisher.name;</span>
+<span class="nc" id="L77">    }</span>
+
+    // Public Methods
+<span class="nc" id="L80">    public int getPublisherId() { return id; }</span>
+<span class="nc" id="L81">    public String getName() { return name; }</span>
+
+    // Used by configdump tool ECA-6466
+    public int getType() {
+<span class="nc" id="L85">        return (Integer) data.get(TYPE);</span>
+    }
+    
+    /** Sets the id. Used internally by PublisherSessionBean 
+     * @param id ID*/ 
+<span class="nc" id="L90">    public void setPublisherId(int id) { this.id = id; }</span>
+    /** Sets the name. Used internally by PublisherSessionBean 
+     * @param name Name*/
+<span class="nc" id="L93">    public void setName(String name) { this.name = name; }</span>
+    
+    /**
+     * @return the description of publisher
+     */
+<span class="nc" id="L98">    public String getDescription() { return (String) data.get(DESCRIPTION);}</span>
+
+	/**
+	 * Sets the description. 
+	 * @param description desc
+	 */
+<span class="nc" id="L104">	public void setDescription(String description){ data.put(DESCRIPTION, description); }</span>
+
+
+    /**
+     * @return If only the publisher queue should be used instead of publishing directly.
+     */
+<span class="nc" id="L110">    public boolean getOnlyUseQueue() { return Boolean.TRUE.equals(data.get(ONLYUSEQUEUE));}</span>
+    
+    /**
+     * Sets whether only the publisher queue should be used instead of publishing directly.
+     * @param onlyUseQueue true if only the queue should be used.
+     */
+<span class="nc" id="L116">    public void setOnlyUseQueue(boolean onlyUseQueue) { data.put(ONLYUSEQUEUE, Boolean.valueOf(onlyUseQueue));}</span>
+
+    /**
+     * @return true if successfully published items should remain in the queue (with a different status) 
+     */
+<span class="nc" id="L121">    public boolean getKeepPublishedInQueue() { return Boolean.TRUE.equals(data.get(KEEPPUBLISHEDINQUEUE));}</span>
+    
+    /**
+     * Sets whether a successfully published items should remain in the queue (with a different status)
+     * @param keepPublishedInQueue bool
+     */
+<span class="nc" id="L127">    public void setKeepPublishedInQueue(boolean keepPublishedInQueue) { data.put(KEEPPUBLISHEDINQUEUE, Boolean.valueOf(keepPublishedInQueue));}</span>
+
+    /**
+     * @return true if CRLs should be kept in in the queue if publishing fails 
+     */
+    public boolean getUseQueueForCRLs() {
+<span class="nc" id="L133">    	boolean ret = true;</span>
+<span class="nc" id="L134">    	Object o = data.get(USEQUEUEFORCRLS);</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">    	if (o != null) {</span>
+<span class="nc" id="L136">        	ret = Boolean.TRUE.equals(o);    		</span>
+    	}
+<span class="nc" id="L138">    	return ret;</span>
+    }
+
+    /**
+     * Sets whether a CRLs should be put in the publish queue if publish failed
+     * @param useQueueForCRLs bool
+     */
+<span class="nc" id="L145">    public void setUseQueueForCRLs(boolean useQueueForCRLs) { data.put(USEQUEUEFORCRLS, Boolean.valueOf(useQueueForCRLs));}</span>
+
+    /**
+     * @return true if Certificates should be kept in in the queue if publishing fails 
+     */
+    public boolean getUseQueueForCertificates() {
+<span class="nc" id="L151">    	boolean ret = true;</span>
+<span class="nc" id="L152">    	Object o = data.get(USEQUEUEFORCERTIFICATES);</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">    	if (o != null) {</span>
+<span class="nc" id="L154">        	ret = Boolean.TRUE.equals(o);    		</span>
+    	}
+<span class="nc" id="L156">    	return ret;</span>
+    }
+
+    /**
+     * Sets whether a certificate should be put in the publish queue if publish failed
+     * @param useQueueForCertificates bool
+     */
+<span class="nc" id="L163">    public void setUseQueueForCertificates(boolean useQueueForCertificates) { data.put(USEQUEUEFORCERTIFICATES, Boolean.valueOf(useQueueForCertificates));}</span>
+
+    /** Asks the publisher if the certificate with these parameters will be published. Used by the publisher queue to avoid
+     * storing things that will never be published in the publisher queue.
+     * @param status status
+     * @param revocationReason reason  
+     * 
+     * @return true if the certificate should be published.
+     */
+    public abstract boolean willPublishCertificate(int status, int revocationReason);
+     
+    /**
+     * Publishes a certificate to a certificate store. If status is not active for the certificate, the publisher may choose
+     * to not publish the certificate, for instance if revoke removes a certificate from LDAP,
+     * re-publishing the certificate should not add it again if the status is revoked.
+     *
+     * To revoke a certificate (already revoked by the CA) call with status=CertificateDataBean.CERT_ACTIVE, the Publisher decides what to do, if
+     * anything.
+     * @param admin admin 
+     * 
+     * @param incert The certificate to be stored.
+     * @param username Username of end entity owning the certificate.
+     * @param password Password given to the user, may be null if no password exists for the user.
+     * @param userDN if a DN object is not found in the certificate use object from user data instead, can be null.
+     * @param cafp Fingerprint (hex) of the CAs certificate.
+     * @param status Status of the certificate (from CertificateDataBean.CERT_ACTIVE, CERT_REVOKED etc).
+     * @param type Type of certificate (from CertificateDataBean.CERTTYPE_ENDENTITY etc).
+     * @param revocationDate Date for revocation (of revoked), like System.currentTimeMillis(), or -1 if not revoked.
+     * @param revocationReason reason for revocation from RevokedCertInfo, RevokedCertInfo.NOT_REVOKED if not revoked.
+     * @param tag  TAg
+     * @param certificateProfileId Profile
+     * @param lastUpdate Date
+     * @param extendedinformation contains extended information about the user, like picture, is null if no extendedinformation exists about the user.
+     *
+     * @return true if storage was successful.
+     *
+     * @throws PublisherException if a communication or other error occurs.
+     */    
+    public abstract boolean storeCertificate(AuthenticationToken admin, Certificate incert, String username, String password, String userDN, String cafp, int status, int type, long revocationDate, int revocationReason, String tag, int certificateProfileId, long lastUpdate, ExtendedInformation extendedinformation) throws PublisherException;
+
+    @Override
+    public boolean storeCertificate(final AuthenticationToken authenticationToken, final CertificateData certificateData, final Base64CertData base64CertData) throws PublisherException {
+<span class="nc" id="L205">        throw new UnsupportedOperationException(&quot;This publisher has not implemented this method, and it has been called in error.&quot;);</span>
+    }
+
+    /**
+     * Variation of the storeCertificate method which gets the full information needed to call either of the other storeCertificate methods.
+     * This is needed for MultiGroupPublisher for example, which can call publishers of either type.
+     * @param authenticationToken token
+     * @param certificateData data
+     * @param base64CertData cert data
+     * @param password pwd
+     * @param userDN DN
+     * @param extendedinformation  Info
+     *
+     * @see #storeCertificate(AuthenticationToken, Certificate, String, String, String, String, int, int, long, int, String, int, long, ExtendedInformation)
+     * @see #storeCertificate(AuthenticationToken, CertificateData, Base64CertData)
+     * @return true if storage was successful.
+     * @throws PublisherException if a communication or other error occurs.
+     */
+    @SuppressWarnings(&quot;unused&quot;)
+    public boolean storeCertificate(final AuthenticationToken authenticationToken, final CertificateData certificateData, final Base64CertData base64CertData, final String password, final String userDN, final ExtendedInformation extendedinformation) throws PublisherException {
+<span class="nc" id="L225">        return storeCertificate(authenticationToken, certificateData, base64CertData);</span>
+    }
+
+    @Override
+    public boolean isFullEntityPublishingSupported() {
+<span class="nc" id="L230">        return false;</span>
+    }
+
+    /**
+     * Published a CRL to a CRL store.
+     * @param admin token
+     *
+     * @param incrl The DER coded CRL to be stored.
+     * @param cafp Fingerprint (hex) of the CAs certificate.
+     * @param number CRL number.
+     * @param userDN if an DN object is not found in the certificate use object from user data instead, can be null.
+     *
+     * @return true if storage was successful.
+     *
+     * @throws PublisherException if a communication or other error occurs.
+     */    
+    public abstract boolean storeCRL(AuthenticationToken admin, byte[] incrl, String cafp, int number, String userDN) throws PublisherException;
+    
+    /**
+     * Method used to test the connection to a publisher.
+     * 
+     * @throws PublisherConnectionException when couldn't be set up correctly in any way.
+     */
+    public abstract void testConnection() throws PublisherConnectionException; // NOPMD: this is not a JUnit test
+    
+
+    /**
+     * clone() is used to create new publishers in the user interface, with an existing publisher as a template.
+     * The publishers currently do not copy the name and id, which is a deviation from how clone() is supposed to work.
+     */
+    @Override
+    public abstract Object clone() throws CloneNotSupportedException;
+
+    
+    @Override
+    public abstract float getLatestVersion();
+
+    @Override
+    public void upgrade(){
+    	// Performing upgrade routines
+<span class="nc" id="L270">    }</span>
+    
+    /**
+     * Utility method that must be implemented in the custom publisher classes (those which use a data-source) 
+     * and is used for validating the data source field. 
+     * See {@link CustomPublisherContainer#validateDataSource(String)} for a sample validation.
+     * 
+     * @param dataSource source
+     * @throws PublisherException in case of invalid data source. 
+     * 
+     */
+    public abstract void validateDataSource(final String dataSource) throws PublisherException;
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

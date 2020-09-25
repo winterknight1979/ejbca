@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CryptoTokenSessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cesecore-ejb</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.keys.token</a> &gt; <span class="el_source">CryptoTokenSessionBean.java</span></div><h1>CryptoTokenSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.keys.token;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+
+import org.apache.log4j.Logger;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.internal.InternalResources;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.keys.token.p11.exception.NoSuchSlotException;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.QueryResultWrapper;
+
+/**
+ * Basic CRUD and activation caching of CryptoTokens is provided through this local access SSB.
+ * 
+ * @version $Id: CryptoTokenSessionBean.java 28332 2018-02-20 14:40:52Z anatom $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;CryptoTokenSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L43">public class CryptoTokenSessionBean implements CryptoTokenSessionLocal, CryptoTokenSessionRemote {</span>
+
+<span class="nc" id="L45">    private static final Logger log = Logger.getLogger(CryptoTokenSessionBean.class);</span>
+<span class="nc" id="L46">    private static final InternalResources intres = InternalResources.getInstance();</span>
+
+    @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+    private EntityManager entityManager;
+
+    @PostConstruct
+    public void postConstruct() {
+<span class="nc" id="L53">        CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+<span class="nc" id="L54">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public void flushCache() {
+<span class="nc" id="L59">        CryptoTokenCache.INSTANCE.flush();</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L61">            log.debug(&quot;Flushed CryptoToken cache.&quot;);</span>
+        }
+<span class="nc" id="L63">    }</span>
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public void flushExcludingIDs(List&lt;Integer&gt; ids) {
+<span class="nc" id="L68">        CryptoTokenCache.INSTANCE.replaceCacheWith(ids);</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L70">            log.debug(&quot;Flushed CryptoToken cache except for &quot; + ids.size() + &quot; specific entries.&quot;);</span>
+        }
+<span class="nc" id="L72">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public CryptoToken getCryptoToken(final int cryptoTokenId) {
+        // 1. Check (new) CryptoTokenCache if it is time to sync-up with database
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        if (CryptoTokenCache.INSTANCE.shouldCheckForUpdates(cryptoTokenId)) {</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L80">                log.debug(&quot;CryptoToken with ID &quot; + cryptoTokenId + &quot; will be checked for updates.&quot;);</span>
+            }
+            // 2. If cache is expired or missing, first thread to discover this reloads item from database and sends it to the cache
+<span class="nc" id="L83">            final CryptoTokenData cryptoTokenData = readCryptoTokenData(cryptoTokenId);</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">            if (cryptoTokenData==null) {</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L86">                    log.debug(&quot;Requested cryptoTokenId did not exist in database and will be purged from cache if present: &quot; + cryptoTokenId);</span>
+                }
+                // Ensure that it is removed from cache
+<span class="nc" id="L89">                CryptoTokenCache.INSTANCE.removeEntry(cryptoTokenId);</span>
+            } else {
+<span class="nc" id="L91">                final int digest = cryptoTokenData.getProtectString(0).hashCode();</span>
+                // 3. The cache compares the database data with what is in the cache
+<span class="nc bnc" id="L93" title="All 2 branches missed.">                if (CryptoTokenCache.INSTANCE.willUpdate(cryptoTokenId, digest)) {</span>
+<span class="nc" id="L94">                    final String tokenType = cryptoTokenData.getTokenType();</span>
+<span class="nc" id="L95">                    final Properties properties = cryptoTokenData.getTokenProperties();</span>
+<span class="nc" id="L96">                    final byte[] data = cryptoTokenData.getTokenDataAsBytes();</span>
+<span class="nc" id="L97">                    final String tokenName = cryptoTokenData.getTokenName();</span>
+                    // Create new token and store it in the cache.
+<span class="nc" id="L99">                    String inClassname = getClassNameForType(tokenType);</span>
+                    CryptoToken cryptoToken;
+                    // 4. If database is different from cache, create the crypto token and replace it in the cache (while trying to keep activation)
+                    //    (Invokes org.cesecore.keys.token.CryptoTokenFactory.createCryptoToken)
+                    try {
+<span class="nc" id="L104">                        cryptoToken = CryptoTokenFactory.createCryptoToken(inClassname, properties, data, cryptoTokenId, tokenName, true);</span>
+<span class="nc" id="L105">                    } catch (NoSuchSlotException e) {</span>
+                        // This should never happen now, since the specify allowNonExistingSlot in the createCryptoToken call
+<span class="nc" id="L107">                        throw new IllegalStateException(&quot;Attempted to find a slot for a PKCS#11 crypto token, but it did not exists. Perhaps the token was removed?&quot;);</span>
+<span class="nc" id="L108">                    }</span>
+<span class="nc" id="L109">                    CryptoTokenCache.INSTANCE.updateWith(cryptoTokenId, digest, tokenName, cryptoToken);                    </span>
+                }
+            }
+        }
+        // 5. Get CryptoToken from cache (or null) and be merry
+<span class="nc" id="L114">        return CryptoTokenCache.INSTANCE.getEntry(cryptoTokenId);</span>
+    }
+
+    @Override
+    public String getClassNameForType(String tokenType) {
+<span class="nc" id="L119">        String inClassname = null;</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        for (final AvailableCryptoToken act : CryptoTokenFactory.instance().getAvailableCryptoTokens()) {</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">            if (act.getClassPath().endsWith(tokenType)) {</span>
+                // We found a available token with the same Class.getSimpleName() as the CryptoToken's type, so use it!
+                // (By only storing the &quot;simple&quot; classname we can switch implementation package without care)
+<span class="nc" id="L124">                inClassname = act.getClassPath();</span>
+            }
+<span class="nc" id="L126">        }</span>
+<span class="nc" id="L127">        return inClassname;</span>
+    }
+
+    @Override
+    public int mergeCryptoToken(final CryptoToken cryptoToken) throws CryptoTokenNameInUseException {
+<span class="nc bnc" id="L132" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L133">            log.trace(&quot;&gt;addCryptoToken &quot; + cryptoToken.getTokenName() + &quot; &quot; + cryptoToken.getClass().getName());</span>
+        }
+<span class="nc" id="L135">        final int cryptoTokenId = cryptoToken.getId();</span>
+<span class="nc" id="L136">        final String tokenName = cryptoToken.getTokenName();</span>
+<span class="nc" id="L137">        String tokenType = &quot;null&quot;;</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">        for (final AvailableCryptoToken act : CryptoTokenFactory.instance().getAvailableCryptoTokens()) {</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">            if (cryptoToken.getClass().getName().equals(act.getClassPath())) {</span>
+<span class="nc" id="L140">                tokenType = cryptoToken.getClass().getSimpleName();</span>
+<span class="nc" id="L141">                break;</span>
+            }
+<span class="nc" id="L143">        }</span>
+<span class="nc" id="L144">        final long lastUpdate = System.currentTimeMillis();</span>
+<span class="nc" id="L145">        final Properties tokenProperties = cryptoToken.getProperties();</span>
+<span class="nc" id="L146">        final byte[] tokenDataAsBytes = cryptoToken.getTokenData();</span>
+<span class="nc" id="L147">        CryptoTokenData cryptoTokenData = entityManager.find(CryptoTokenData.class, cryptoTokenId);</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        if (cryptoTokenData == null) {</span>
+            // The cryptoToken does not exist in the database, before we add it we want to check that the name is not in use
+<span class="nc bnc" id="L150" title="All 2 branches missed.">            if (isCryptoTokenNameUsed(tokenName)) {</span>
+<span class="nc" id="L151">                throw new CryptoTokenNameInUseException(intres.getLocalizedMessage(&quot;token.nameisinuse&quot;, tokenName));</span>
+            }
+<span class="nc" id="L153">            cryptoTokenData = new CryptoTokenData(cryptoTokenId, tokenName, tokenType, lastUpdate, tokenProperties, tokenDataAsBytes);</span>
+        } else {
+<span class="nc bnc" id="L155" title="All 2 branches missed.">            if (!isCryptoTokenNameUsedByIdOnly(tokenName, cryptoTokenId)) {</span>
+<span class="nc" id="L156">                throw new CryptoTokenNameInUseException(intres.getLocalizedMessage(&quot;token.nameisinuse&quot;, tokenName));</span>
+            }
+            // It might be the case that the calling transaction has already loaded a reference to this token
+            // and hence we need to get the same one and perform updates on this object instead of trying to
+            // merge a new object.
+<span class="nc" id="L161">            cryptoTokenData.setTokenName(tokenName);</span>
+<span class="nc" id="L162">            cryptoTokenData.setTokenType(tokenType);</span>
+<span class="nc" id="L163">            cryptoTokenData.setLastUpdate(lastUpdate);</span>
+<span class="nc" id="L164">            cryptoTokenData.setTokenProperties(tokenProperties);</span>
+<span class="nc" id="L165">            cryptoTokenData.setTokenDataAsBytes(tokenDataAsBytes);</span>
+        }
+<span class="nc" id="L167">        cryptoTokenData = createOrUpdateCryptoTokenData(cryptoTokenData);</span>
+        // Update cache with provided token (it might be active and we like keeping things active)
+<span class="nc" id="L169">        CryptoTokenCache.INSTANCE.updateWith(cryptoTokenId, cryptoTokenData.getProtectString(0).hashCode(), tokenName, cryptoToken);</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L171">            log.trace(&quot;&lt;addCryptoToken &quot; + cryptoToken.getTokenName());</span>
+        }
+<span class="nc" id="L173">        return cryptoTokenId;   // tokenId</span>
+    }
+
+    @Override
+    public boolean removeCryptoToken(final int cryptoTokenId) {
+<span class="nc" id="L178">        final boolean ret = deleteCryptoTokenData(cryptoTokenId);</span>
+<span class="nc" id="L179">        CryptoTokenCache.INSTANCE.updateWith(cryptoTokenId, 0, null, null);</span>
+<span class="nc" id="L180">        return ret;</span>
+    }
+    
+    @Override
+    public Map&lt;String,Integer&gt; getCachedNameToIdMap() {
+<span class="nc" id="L185">        return CryptoTokenCache.INSTANCE.getNameToIdMap();</span>
+    }
+    
+    @Override
+    public String getCryptoTokenName(final int cryptoTokenId) {
+<span class="nc" id="L190">        return CryptoTokenCache.INSTANCE.getName(cryptoTokenId);</span>
+    }
+    
+    @Override
+    public boolean isCryptoTokenNameUsed(final String cryptoTokenName) {
+<span class="nc" id="L195">        final Query query = entityManager.createQuery(&quot;SELECT a FROM CryptoTokenData a WHERE a.tokenName=:tokenName&quot;);</span>
+<span class="nc" id="L196">        query.setParameter(&quot;tokenName&quot;, cryptoTokenName);</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">        return !query.getResultList().isEmpty();</span>
+    }
+
+    @Override
+    public boolean isCryptoTokenNameUsedByIdOnly(final String cryptoTokenName, final int cryptoTokenId) {
+<span class="nc" id="L202">        final Query query = entityManager.createQuery(&quot;SELECT a FROM CryptoTokenData a WHERE a.tokenName=:tokenName&quot;);</span>
+<span class="nc" id="L203">        query.setParameter(&quot;tokenName&quot;, cryptoTokenName);</span>
+        @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L205">        final List&lt;CryptoTokenData&gt; cryptoTokenDatas = query.getResultList();</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">        for (final CryptoTokenData cryptoTokenData: cryptoTokenDatas) {</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">            if (cryptoTokenData.getId() != cryptoTokenId) {</span>
+<span class="nc" id="L208">                return false;</span>
+            }
+<span class="nc" id="L210">        }</span>
+<span class="nc" id="L211">        return true;</span>
+    }
+
+    //
+    // Create Read Update Delete (CRUD) methods
+    //
+
+    private CryptoTokenData readCryptoTokenData(final int cryptoTokenId) {
+<span class="nc" id="L219">        final Query query = entityManager.createQuery(&quot;SELECT a FROM CryptoTokenData a WHERE a.id=:id&quot;);</span>
+<span class="nc" id="L220">        query.setParameter(&quot;id&quot;, cryptoTokenId);</span>
+<span class="nc" id="L221">        return QueryResultWrapper.getSingleResult(query);</span>
+    }
+
+    private CryptoTokenData createOrUpdateCryptoTokenData(final CryptoTokenData data) {
+<span class="nc" id="L225">        return entityManager.merge(data);</span>
+    }
+
+    private boolean deleteCryptoTokenData(final int cryptoTokenId) {
+<span class="nc" id="L229">        final Query query = entityManager.createQuery(&quot;DELETE FROM CryptoTokenData a WHERE a.id=:id&quot;);</span>
+<span class="nc" id="L230">        query.setParameter(&quot;id&quot;, cryptoTokenId);</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">        return query.executeUpdate() == 1;</span>
+    }
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    @Override
+    public List&lt;Integer&gt; getCryptoTokenIds() {
+<span class="nc" id="L237">        return entityManager.createQuery(&quot;SELECT a.id FROM CryptoTokenData a&quot;).getResultList();</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public Map&lt;Integer,String&gt; getCryptoTokenIdToNameMap() {
+<span class="nc" id="L243">        final Map&lt;Integer,String&gt; ret = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L244" title="All 2 branches missed.">        for (final CryptoTokenData cryptoTokenData : entityManager.createQuery(&quot;SELECT a FROM CryptoTokenData a&quot;, CryptoTokenData.class).getResultList()) {</span>
+<span class="nc" id="L245">            ret.put(cryptoTokenData.getId(), cryptoTokenData.getTokenName());</span>
+<span class="nc" id="L246">        }</span>
+<span class="nc" id="L247">        return ret;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

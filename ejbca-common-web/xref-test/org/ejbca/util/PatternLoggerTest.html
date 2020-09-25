@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>PatternLoggerTest xref</title>
+<link type="text/css" rel="stylesheet" href="../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../testapidocs/org/ejbca/util/PatternLoggerTest.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <em class="jxr_javadoccomment">/*************************************************************************</em>
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <em class="jxr_javadoccomment"> *  EJBCA Community: The OpenSource Certificate Authority                *</em>
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <em class="jxr_javadoccomment"> *  This software is free software; you can redistribute it and/or       *</em>
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <em class="jxr_javadoccomment"> *  modify it under the terms of the GNU Lesser General Public           *</em>
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <em class="jxr_javadoccomment"> *  License as published by the Free Software Foundation; either         *</em>
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <em class="jxr_javadoccomment"> *  version 2.1 of the License, or any later version.                    *</em>
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_javadoccomment"> *  See terms of license at gnu.org.                                     *</em>
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <em class="jxr_javadoccomment"> *************************************************************************/</em>
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">package</strong> org.ejbca.util;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.junit.Assert.assertTrue;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> java.lang.reflect.Method;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> java.util.regex.Pattern;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.apache.log4j.Logger;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.junit.Test;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <em class="jxr_javadoccomment">/** </em>
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <em class="jxr_javadoccomment"> * Test the PatternLogger</em>
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <em class="jxr_javadoccomment"> * </em>
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_javadoccomment"> * @version $Id: PatternLoggerTest.java 22139 2015-11-03 10:41:56Z mikekushner $</em>
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="PatternLoggerTest" href="../../../org/ejbca/util/PatternLoggerTest.html#PatternLoggerTest">PatternLoggerTest</a> {
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger log = Logger.getLogger(PatternLoggerTest.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>      <em class="jxr_javadoccomment">/** Try out some interpolation with focus on different date formats. </em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment">     * @throws Exception Fail*/</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>      @Test 
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testPatternLoggerDateFormats() <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>          log.trace(<span class="jxr_string">"&gt;testPatternLogger"</span>);
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>          <strong class="jxr_keyword">final</strong> String LOG_PATTERN = <span class="jxr_string">"${VAR1};\&quot;${VAR2}\&quot;;${"</span> + IPatternLogger.LOG_TIME + <span class="jxr_string">"};${"</span> + IPatternLogger.LOG_ID + <span class="jxr_string">"};${VAR3}"</span>;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>          testPatternLoggerInternal(LOG_PATTERN, <span class="jxr_string">"yyyy-MM-dd:HH:mm:ss:z"</span>, <span class="jxr_string">"GMT"</span>,
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>                  <span class="jxr_string">"^content1;\&quot;content2\&quot;;&#92;&#92;d{4}-&#92;&#92;d{2}-&#92;&#92;d{2}:&#92;&#92;d{2}:&#92;&#92;d{2}:&#92;&#92;d{2}:GMT;0;content3$"</span>);
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>          testPatternLoggerInternal(LOG_PATTERN, <span class="jxr_string">"yyyy-MM-dd HH:mm:ssZ"</span>, <span class="jxr_string">"CET"</span>,
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>                  <span class="jxr_string">"^content1;\&quot;content2\&quot;;&#92;&#92;d{4}-&#92;&#92;d{2}-&#92;&#92;d{2} &#92;&#92;d{2}:&#92;&#92;d{2}:&#92;&#92;d{2}&#92;&#92;+0&#92;&#92;d00;0;content3$"</span>);
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>          testPatternLoggerInternal(LOG_PATTERN, <span class="jxr_string">"yyyy-MM-dd'T'HH:mm:ssZ"</span>, <span class="jxr_string">"CET"</span>,
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>                  <span class="jxr_string">"^content1;\&quot;content2\&quot;;&#92;&#92;d{4}-&#92;&#92;d{2}-&#92;&#92;d{2}T&#92;&#92;d{2}:&#92;&#92;d{2}:&#92;&#92;d{2}&#92;&#92;+0&#92;&#92;d00;0;content3$"</span>);
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>          log.trace(<span class="jxr_string">"&lt;testPatternLogger"</span>);
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>      }
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>      <em class="jxr_javadoccomment">/** Helper method that replaces all ${VARx} where x={0..10} with "contentx" and asserts that the result is the expected using regexp. </em>
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <em class="jxr_javadoccomment">     * @param pattern Pattern</em>
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <em class="jxr_javadoccomment">     * @param dateFormat Date</em>
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  <em class="jxr_javadoccomment">     * @param timeZone TZ</em>
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  <em class="jxr_javadoccomment">     * @param expected Expected</em>
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  <em class="jxr_javadoccomment">     * @throws Exception Fail*/</em>
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> testPatternLoggerInternal(String pattern, String dateFormat, String timeZone, String expected) <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>          log.trace(<span class="jxr_string">"&gt;testPatternLoggerInternal"</span>);
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>          <strong class="jxr_keyword">final</strong> IPatternLogger patternLogger = <strong class="jxr_keyword">new</strong> PatternLogger(Pattern.compile(<span class="jxr_string">"&#92;&#92;$&#92;&#92;{(.+?)&#92;&#92;}"</span>).matcher(pattern), pattern, log, dateFormat, timeZone);
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; 10; i++) {
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>              patternLogger.paramPut(<span class="jxr_string">"VAR"</span> + i, <span class="jxr_string">"content"</span> + i);
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>          }
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>          <em class="jxr_comment">// We reference the private method here, which is a bit ugly but works.</em>
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>          <strong class="jxr_keyword">final</strong> Method m = PatternLogger.<strong class="jxr_keyword">class</strong>.getDeclaredMethod(<span class="jxr_string">"interpolate"</span>, <strong class="jxr_keyword">new</strong> Class[0]);
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>          m.setAccessible(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>          <strong class="jxr_keyword">final</strong> String result = (String) m.invoke(patternLogger);
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>          log.debug(<span class="jxr_string">"result: "</span> + result);
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>          assertTrue(<span class="jxr_string">"Result of interpolation operation did not match expected result."</span>, result.matches(expected));
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>          log.trace(<span class="jxr_string">"&lt;testPatternLoggerInternal"</span>);
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      }
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2020. All rights reserved.</div>
+</body>
+</html>

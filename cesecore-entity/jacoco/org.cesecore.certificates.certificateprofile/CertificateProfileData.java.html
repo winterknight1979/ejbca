@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CertificateProfileData.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cesecore-entity</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.certificateprofile</a> &gt; <span class="el_source">CertificateProfileData.java</span></div><h1>CertificateProfileData.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.certificateprofile;
+
+import java.io.Serializable;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.List;
+
+import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.PostLoad;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
+import javax.persistence.Query;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.apache.log4j.Logger;
+import org.cesecore.dbprotection.DatabaseProtectionException;
+import org.cesecore.dbprotection.ProtectedData;
+import org.cesecore.dbprotection.ProtectionStringBuilder;
+import org.cesecore.internal.UpgradeableDataHashMap;
+import org.cesecore.legacy.Eca7277CertificateProfileData;
+import org.cesecore.util.QueryResultWrapper;
+
+/**
+ * Representation of a certificate profile (template).
+ *
+ * @version $Id: CertificateProfileData.java 34415 2020-01-30 12:29:30Z aminkh $
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+@Entity
+@Table(name = &quot;CertificateProfileData&quot;)
+public class CertificateProfileData extends ProtectedData implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L48">    private static final Logger log = Logger.getLogger(CertificateProfileData.class); // NOPMD</span>
+
+    private Integer id;
+    private String certificateProfileName; // NOPMD, this is what the database column is called.
+    private Serializable data;
+<span class="nc" id="L53">    private int rowVersion = 0;</span>
+    private String rowProtection;
+
+    /** Needed by JPA */
+<span class="nc" id="L57">    public CertificateProfileData() {</span>
+<span class="nc" id="L58">    }</span>
+
+    /**
+     * Entity holding data of a certificate profile.
+     * @param id ID
+     * @param profilename Name 
+     * @param profile Profile
+     */
+<span class="nc" id="L66">    public CertificateProfileData(final Integer id, final String profilename, final CertificateProfile profile) {</span>
+<span class="nc" id="L67">        setId(id);</span>
+<span class="nc" id="L68">        setCertificateProfileName(profilename);</span>
+<span class="nc" id="L69">        setCertificateProfile(profile);</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L71">            log.debug(&quot;Created certificateprofile &quot; + profilename+&quot;, &quot;+id);</span>
+        }
+<span class="nc" id="L73">    }</span>
+
+    // @Id @Column
+    public Integer getId() {
+<span class="nc" id="L77">        return id;</span>
+    }
+
+    public final void setId(final Integer id) {
+<span class="nc" id="L81">        this.id = id;</span>
+<span class="nc" id="L82">    }</span>
+
+    // @Column
+    public String getCertificateProfileName() {
+<span class="nc" id="L86">        return certificateProfileName;</span>
+    }
+
+    public void setCertificateProfileName(String certificateProfileName) {
+<span class="nc" id="L90">        this.certificateProfileName = certificateProfileName;</span>
+<span class="nc" id="L91">    }</span>
+
+    // @Column @Lob
+    public Serializable getDataUnsafe() {
+<span class="nc" id="L95">        return data;</span>
+    }
+
+    /** DO NOT USE! Stick with setData(HashMap data) instead. 
+     * @param data data*/
+    public void setDataUnsafe(Serializable data) { 
+<span class="nc" id="L101">        this.data = data;</span>
+<span class="nc" id="L102">    }</span>
+
+    // @Version @Column
+    public int getRowVersion() {
+<span class="nc" id="L106">        return rowVersion;</span>
+    }
+
+    public void setRowVersion(final int rowVersion) {
+<span class="nc" id="L110">        this.rowVersion = rowVersion;</span>
+<span class="nc" id="L111">    }</span>
+
+    // @Column @Lob
+    @Override
+    public String getRowProtection() {
+<span class="nc" id="L116">        return rowProtection;</span>
+    }
+
+    @Override
+    public void setRowProtection(final String rowProtection) {
+<span class="nc" id="L121">        this.rowProtection = rowProtection;</span>
+<span class="nc" id="L122">    }</span>
+    
+    @Transient
+    private LinkedHashMap&lt;?, ?&gt; getData() {
+<span class="nc" id="L126">        final Serializable map = getDataUnsafe();</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">        if (map instanceof LinkedHashMap&lt;?, ?&gt;) {</span>
+<span class="nc" id="L128">            return (LinkedHashMap&lt;?, ?&gt;) map;</span>
+        } else {
+<span class="nc" id="L130">            return new LinkedHashMap&lt;&gt;((Map&lt;?, ?&gt;) map);</span>
+        }
+    }
+
+    private final void setData(final LinkedHashMap&lt;?, ?&gt; data) {
+<span class="nc" id="L135">        setDataUnsafe(data);</span>
+<span class="nc" id="L136">    }</span>
+
+    /**
+     * Method that returns the certificate profiles and updates it if necessary.
+     * @return profile
+     */
+    @Transient
+    public CertificateProfile getCertificateProfile() {
+<span class="nc" id="L144">        return readAndUpgradeProfileInternal();</span>
+    }
+
+    /**
+     * Method that saves the certificate profile to database.
+     * @param profile profile
+     */
+    public final void setCertificateProfile(final CertificateProfile profile) {
+<span class="nc" id="L152">        setData((LinkedHashMap&lt;?, ?&gt;) profile.saveData());</span>
+<span class="nc" id="L153">    }</span>
+
+    /**
+     * Method that upgrades a Certificate Profile, if needed.
+     */
+    public void upgradeProfile() {
+<span class="nc" id="L159">        readAndUpgradeProfileInternal();</span>
+<span class="nc" id="L160">    }</span>
+
+    /**
+     * We have an internal method for this read operation with a side-effect. This is because getCertificateProfile() is a read-only method, so the
+     * possible side-effect of upgrade will not happen, and therefore this internal method can be called from another non-read-only method,
+     * upgradeProfile().
+     *
+     * @return CertificateProfile
+     *
+     *         TODO: Verify read-only? apply read-only?
+     */
+    private CertificateProfile readAndUpgradeProfileInternal() {
+<span class="nc" id="L172">        CertificateProfile returnval = null;</span>
+<span class="nc" id="L173">        returnval = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_NO_PROFILE);</span>
+<span class="nc" id="L174">        final LinkedHashMap&lt;?, ?&gt; data = getData();</span>
+        // If CertificateProfile-data is upgraded we want to save the new data, so we must get the old version before loading the data
+        // and perhaps upgrading
+<span class="nc" id="L177">        final float oldversion = ((Float) data.get(UpgradeableDataHashMap.VERSION)).floatValue();</span>
+        // Load the profile data, this will potentially upgrade the CertificateProfile
+<span class="nc" id="L179">        returnval.loadData(data);</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">        if (Float.compare(oldversion, returnval.getVersion()) != 0) {</span>
+            // Save new data versions differ
+<span class="nc" id="L182">            setCertificateProfile(returnval);</span>
+        }
+<span class="nc" id="L184">        return returnval;</span>
+    }
+
+    //
+    // Search functions.
+    //
+
+    /** @param entityManager EM
+     * @param id ID
+     * @return the found entity instance or null if the entity does not exist */
+    public static CertificateProfileData findById(final EntityManager entityManager, final Integer id) {
+<span class="nc" id="L195">        return entityManager.find(CertificateProfileData.class, id);</span>
+    }
+
+    /**
+     * @param entityManager EM
+     * @param certificateProfileName Name 
+     * @throws javax.persistence.NonUniqueResultException
+     *             if more than one entity with the name exists
+     * @return the found entity instance or null if the entity does not exist
+     */
+    public static CertificateProfileData findByProfileName(final EntityManager entityManager, final String certificateProfileName) {
+<span class="nc" id="L206">        final Query query = entityManager.createQuery(&quot;SELECT a FROM CertificateProfileData a WHERE a.certificateProfileName=:certificateProfileName&quot;);</span>
+<span class="nc" id="L207">        query.setParameter(&quot;certificateProfileName&quot;, certificateProfileName);</span>
+<span class="nc" id="L208">        return (CertificateProfileData) QueryResultWrapper.getSingleResult(query);</span>
+    }
+
+    /** @param entityManager EM
+     * @return return the query results as a List. */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public static List&lt;CertificateProfileData&gt; findAll(final EntityManager entityManager) {
+<span class="nc" id="L215">        final Query query = entityManager.createQuery(&quot;SELECT a FROM CertificateProfileData a&quot;);</span>
+<span class="nc" id="L216">        return query.getResultList();</span>
+    }
+
+    //
+    // Start Database integrity protection methods
+    //
+
+    @Transient
+    @Override
+    protected String getProtectString(final int version) {
+<span class="nc" id="L226">    	final ProtectionStringBuilder build = new ProtectionStringBuilder(2200); // an almost empty profile gives ~2100 chars of protect string</span>
+        // What is important to protect here is the data that we define, id, name and certificate profile data
+        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
+<span class="nc" id="L229">        build.append(getId()).append(getCertificateProfileName()).append(getData());</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+            // Some profiling
+<span class="nc bnc" id="L232" title="All 2 branches missed.">            if (build.length() &gt; 2200) {</span>
+<span class="nc" id="L233">                log.debug(&quot;CertificateProfileData.getProtectString gives size: &quot; + build.length());</span>
+            }
+        }
+<span class="nc" id="L236">        return build.toString();</span>
+    }
+
+    @Transient
+    @Override
+    protected int getProtectVersion() {
+<span class="nc" id="L242">        return 1;</span>
+    }
+
+    @PrePersist
+    @PreUpdate
+    @Override
+    protected void protectData() {
+<span class="nc" id="L249">        super.protectData();</span>
+<span class="nc" id="L250">    }</span>
+
+    @PostLoad
+    @Override
+    protected void verifyData() {
+<span class="nc" id="L255">        super.verifyData();</span>
+<span class="nc" id="L256">    }</span>
+
+    /**
+     * Due to an issue with db protection between EJBCA 6.12 and 6.14.1 we need special handling to verify protection
+     * created between those versions. If the initial data verification failed, we should to &quot;patch&quot; the protect string
+     * and verify again. If this fails we behave as usual, i.e. throw the original exception if erroronverify is set,
+     * or if not set just log a warning.
+     *
+     * This code can be removed once we are sure that all installations have performed post-upgrade on EJBCA version
+     * 7.x or later.
+     *
+     * @param possibleTamper an exception raised due to a possible database tamper
+     * @throws DatabaseProtectionException possibleTamper is thrown if the exception was not caused by ECA-7277, i.e
+     * the signature did not verify over the &quot;patched&quot; protect string either.
+     */
+    @Transient
+    @Override
+    @Deprecated
+    protected void onDataVerificationError(final DatabaseProtectionException possibleTamper) {
+        try {
+            // Try to verify again with a mocked CertificateProfileData object returning a &quot;patched&quot;
+            // protect string
+<span class="nc" id="L278">            impl.verifyData(new Eca7277CertificateProfileData(this));</span>
+<span class="nc" id="L279">        } catch (final DatabaseProtectionException e) {</span>
+            // Ignore the new exception and fall back to the default behaviour
+<span class="nc" id="L281">            super.onDataVerificationError(possibleTamper);</span>
+<span class="nc" id="L282">        }</span>
+<span class="nc" id="L283">    }</span>
+
+    @Override
+    @Transient
+    protected String getRowId() {
+<span class="nc" id="L288">        return String.valueOf(getId());</span>
+    }
+    //
+    // End Database integrity protection methods
+    //
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

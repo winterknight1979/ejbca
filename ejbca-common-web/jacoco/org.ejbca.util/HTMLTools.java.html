@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HTMLTools.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util</a> &gt; <span class="el_source">HTMLTools.java</span></div><h1>HTMLTools.java</h1><pre class="source lang-java linenums">/*
+ * ====================================================================
+ * Copyright (c) 1995-1999 Purple Technology, Inc. All rights
+ * reserved.
+ *
+ * PLAIN LANGUAGE LICENSE: Do whatever you like with this code, free
+ * of charge, just give credit where credit is due. If you improve it,
+ * please send your improvements to alex@purpletech.com. Check
+ * http://www.purpletech.com/code/ for the latest version and news.
+ *
+ * LEGAL LANGUAGE LICENSE: Redistribution and use in source and binary
+ * forms, with or without modification, are permitted provided that
+ * the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above
+ * copyright notice, this list of conditions and the following
+ * disclaimer in the documentation and/or other materials provided
+ * with the distribution.
+ *
+ * 3. The names of the authors and the names &quot;Purple Technology,&quot;
+ * &quot;Purple Server&quot; and &quot;Purple Chat&quot; must not be used to endorse or
+ * promote products derived from this software without prior written
+ * permission. For written permission, please contact
+ * server@purpletech.com.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHORS AND PURPLE TECHNOLOGY ``AS
+ * IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
+ * AUTHORS OR PURPLE TECHNOLOGY BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * ====================================================================
+ *
+ **/
+package org.ejbca.util;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * 
+ * @version $Id: HTMLTools.java 24816 2016-12-01 13:30:02Z samuellb $
+ *
+ */
+<span class="nc" id="L55">public class HTMLTools {</span>
+//	 see http://hotwired.lycos.com/webmonkey/reference/special_characters/
+<span class="fc" id="L57">    static Object[][] entities = {</span>
+       // {&quot;#39&quot;, Integer.valueOf(39)},       // ' - apostrophe
+<span class="fc" id="L59">        {&quot;quot&quot;, Integer.valueOf(34)},      // &quot; - double-quote</span>
+<span class="fc" id="L60">        {&quot;amp&quot;, Integer.valueOf(38)},       // &amp; - ampersand</span>
+<span class="fc" id="L61">        {&quot;lt&quot;, Integer.valueOf(60)},        // &lt; - less-than</span>
+<span class="fc" id="L62">        {&quot;gt&quot;, Integer.valueOf(62)},        // &gt; - greater-than</span>
+<span class="fc" id="L63">        {&quot;nbsp&quot;, Integer.valueOf(160)},     // non-breaking space</span>
+<span class="fc" id="L64">        {&quot;copy&quot;, Integer.valueOf(169)},     // © - copyright</span>
+<span class="fc" id="L65">        {&quot;reg&quot;, Integer.valueOf(174)},      // ® - registered trademark</span>
+<span class="fc" id="L66">        {&quot;Agrave&quot;, Integer.valueOf(192)},   // À - uppercase A, grave accent</span>
+<span class="fc" id="L67">        {&quot;Aacute&quot;, Integer.valueOf(193)},   // Á - uppercase A, acute accent</span>
+<span class="fc" id="L68">        {&quot;Acirc&quot;, Integer.valueOf(194)},    // Â - uppercase A, circumflex accent</span>
+<span class="fc" id="L69">        {&quot;Atilde&quot;, Integer.valueOf(195)},   // Ã - uppercase A, tilde</span>
+<span class="fc" id="L70">        {&quot;Auml&quot;, Integer.valueOf(196)},     // Ä - uppercase A, umlaut</span>
+<span class="fc" id="L71">        {&quot;Aring&quot;, Integer.valueOf(197)},    // Å - uppercase A, ring</span>
+<span class="fc" id="L72">        {&quot;AElig&quot;, Integer.valueOf(198)},    // Æ - uppercase AE</span>
+<span class="fc" id="L73">        {&quot;Ccedil&quot;, Integer.valueOf(199)},   // Ç - uppercase C, cedilla</span>
+<span class="fc" id="L74">        {&quot;Egrave&quot;, Integer.valueOf(200)},   // È - uppercase E, grave accent</span>
+<span class="fc" id="L75">        {&quot;Eacute&quot;, Integer.valueOf(201)},   // É - uppercase E, acute accent</span>
+<span class="fc" id="L76">        {&quot;Ecirc&quot;, Integer.valueOf(202)},    // Ê - uppercase E, circumflex accent</span>
+<span class="fc" id="L77">        {&quot;Euml&quot;, Integer.valueOf(203)},     // Ë - uppercase E, umlaut</span>
+<span class="fc" id="L78">        {&quot;Igrave&quot;, Integer.valueOf(204)},   // Ì - uppercase I, grave accent</span>
+<span class="fc" id="L79">        {&quot;Iacute&quot;, Integer.valueOf(205)},   // Í - uppercase I, acute accent</span>
+<span class="fc" id="L80">        {&quot;Icirc&quot;, Integer.valueOf(206)},    // Î - uppercase I, circumflex accent</span>
+<span class="fc" id="L81">        {&quot;Iuml&quot;, Integer.valueOf(207)},     // Ï - uppercase I, umlaut</span>
+<span class="fc" id="L82">        {&quot;ETH&quot;, Integer.valueOf(208)},      // Ð - uppercase Eth, Icelandic</span>
+<span class="fc" id="L83">        {&quot;Ntilde&quot;, Integer.valueOf(209)},   // Ñ - uppercase N, tilde</span>
+<span class="fc" id="L84">        {&quot;Ograve&quot;, Integer.valueOf(210)},   // Ò - uppercase O, grave accent</span>
+<span class="fc" id="L85">        {&quot;Oacute&quot;, Integer.valueOf(211)},   // Ó - uppercase O, acute accent</span>
+<span class="fc" id="L86">        {&quot;Ocirc&quot;, Integer.valueOf(212)},    // Ô - uppercase O, circumflex accent</span>
+<span class="fc" id="L87">        {&quot;Otilde&quot;, Integer.valueOf(213)},   // Õ - uppercase O, tilde</span>
+<span class="fc" id="L88">        {&quot;Ouml&quot;, Integer.valueOf(214)},     // Ö - uppercase O, umlaut</span>
+<span class="fc" id="L89">        {&quot;Oslash&quot;, Integer.valueOf(216)},   // Ø - uppercase O, slash</span>
+<span class="fc" id="L90">        {&quot;Ugrave&quot;, Integer.valueOf(217)},   // Ù - uppercase U, grave accent</span>
+<span class="fc" id="L91">        {&quot;Uacute&quot;, Integer.valueOf(218)},   // Ú - uppercase U, acute accent</span>
+<span class="fc" id="L92">        {&quot;Ucirc&quot;, Integer.valueOf(219)},    // Û - uppercase U, circumflex accent</span>
+<span class="fc" id="L93">        {&quot;Uuml&quot;, Integer.valueOf(220)},     // Ü - uppercase U, umlaut</span>
+<span class="fc" id="L94">        {&quot;Yacute&quot;, Integer.valueOf(221)},   // Ý - uppercase Y, acute accent</span>
+<span class="fc" id="L95">        {&quot;THORN&quot;, Integer.valueOf(222)},    // Þ - uppercase THORN, Icelandic</span>
+<span class="fc" id="L96">        {&quot;szlig&quot;, Integer.valueOf(223)},    // ß - lowercase sharps, German</span>
+<span class="fc" id="L97">        {&quot;agrave&quot;, Integer.valueOf(224)},   // à - lowercase a, grave accent</span>
+<span class="fc" id="L98">        {&quot;aacute&quot;, Integer.valueOf(225)},   // á - lowercase a, acute accent</span>
+<span class="fc" id="L99">        {&quot;acirc&quot;, Integer.valueOf(226)},    // â - lowercase a, circumflex accent</span>
+<span class="fc" id="L100">        {&quot;atilde&quot;, Integer.valueOf(227)},   // ã - lowercase a, tilde</span>
+<span class="fc" id="L101">        {&quot;auml&quot;, Integer.valueOf(228)},     // ä - lowercase a, umlaut</span>
+<span class="fc" id="L102">        {&quot;aring&quot;, Integer.valueOf(229)},    // å - lowercase a, ring</span>
+<span class="fc" id="L103">        {&quot;aelig&quot;, Integer.valueOf(230)},    // æ - lowercase ae</span>
+<span class="fc" id="L104">        {&quot;ccedil&quot;, Integer.valueOf(231)},   // ç - lowercase c, cedilla</span>
+<span class="fc" id="L105">        {&quot;egrave&quot;, Integer.valueOf(232)},   // è - lowercase e, grave accent</span>
+<span class="fc" id="L106">        {&quot;eacute&quot;, Integer.valueOf(233)},   // é - lowercase e, acute accent</span>
+<span class="fc" id="L107">        {&quot;ecirc&quot;, Integer.valueOf(234)},    // ê - lowercase e, circumflex accent</span>
+<span class="fc" id="L108">        {&quot;euml&quot;, Integer.valueOf(235)},     // ë - lowercase e, umlaut</span>
+<span class="fc" id="L109">        {&quot;igrave&quot;, Integer.valueOf(236)},   // ì - lowercase i, grave accent</span>
+<span class="fc" id="L110">        {&quot;iacute&quot;, Integer.valueOf(237)},   // í - lowercase i, acute accent</span>
+<span class="fc" id="L111">        {&quot;icirc&quot;, Integer.valueOf(238)},    // î - lowercase i, circumflex accent</span>
+<span class="fc" id="L112">        {&quot;iuml&quot;, Integer.valueOf(239)},     // ï - lowercase i, umlaut</span>
+<span class="fc" id="L113">        {&quot;igrave&quot;, Integer.valueOf(236)},   // ì - lowercase i, grave accent</span>
+<span class="fc" id="L114">        {&quot;iacute&quot;, Integer.valueOf(237)},   // í - lowercase i, acute accent</span>
+<span class="fc" id="L115">        {&quot;icirc&quot;, Integer.valueOf(238)},    // î - lowercase i, circumflex accent</span>
+<span class="fc" id="L116">        {&quot;iuml&quot;, Integer.valueOf(239)},     // ï - lowercase i, umlaut</span>
+<span class="fc" id="L117">        {&quot;eth&quot;, Integer.valueOf(240)},      // ð - lowercase eth, Icelandic</span>
+<span class="fc" id="L118">        {&quot;ntilde&quot;, Integer.valueOf(241)},   // ñ - lowercase n, tilde</span>
+<span class="fc" id="L119">        {&quot;ograve&quot;, Integer.valueOf(242)},   // ò - lowercase o, grave accent</span>
+<span class="fc" id="L120">        {&quot;oacute&quot;, Integer.valueOf(243)},   // ó - lowercase o, acute accent</span>
+<span class="fc" id="L121">        {&quot;ocirc&quot;, Integer.valueOf(244)},    // ô - lowercase o, circumflex accent</span>
+<span class="fc" id="L122">        {&quot;otilde&quot;, Integer.valueOf(245)},   // õ - lowercase o, tilde</span>
+<span class="fc" id="L123">        {&quot;ouml&quot;, Integer.valueOf(246)},     // ö - lowercase o, umlaut</span>
+<span class="fc" id="L124">        {&quot;oslash&quot;, Integer.valueOf(248)},   // ø - lowercase o, slash</span>
+<span class="fc" id="L125">        {&quot;ugrave&quot;, Integer.valueOf(249)},   // ù - lowercase u, grave accent</span>
+<span class="fc" id="L126">        {&quot;uacute&quot;, Integer.valueOf(250)},   // ú - lowercase u, acute accent</span>
+<span class="fc" id="L127">        {&quot;ucirc&quot;, Integer.valueOf(251)},    // û - lowercase u, circumflex accent</span>
+<span class="fc" id="L128">        {&quot;uuml&quot;, Integer.valueOf(252)},     // ü - lowercase u, umlaut</span>
+<span class="fc" id="L129">        {&quot;yacute&quot;, Integer.valueOf(253)},   // ý - lowercase y, acute accent</span>
+<span class="fc" id="L130">        {&quot;thorn&quot;, Integer.valueOf(254)},    // þ - lowercase thorn, Icelandic</span>
+<span class="fc" id="L131">        {&quot;yuml&quot;, Integer.valueOf(255)},     // ÿ - lowercase y, umlaut</span>
+<span class="fc" id="L132">        {&quot;euro&quot;, Integer.valueOf(8364)},    // Euro symbol</span>
+    };
+<span class="fc" id="L134">    static Map&lt;String,Integer&gt; e2i = new HashMap&lt;String,Integer&gt;();</span>
+<span class="fc" id="L135">    static Map&lt;Integer,String&gt; i2e = new HashMap&lt;Integer,String&gt;();</span>
+    static {
+<span class="fc bfc" id="L137" title="All 2 branches covered.">        for (int i=0; i&lt;entities.length; ++i) {</span>
+<span class="fc" id="L138">            e2i.put((String)entities[i][0], (Integer)entities[i][1]);</span>
+<span class="fc" id="L139">            i2e.put((Integer)entities[i][1], (String)entities[i][0]);</span>
+        }
+<span class="fc" id="L141">    }</span>
+
+    /** 
+     * Turns funky characters into HTML entity equivalents&lt;p&gt;
+     * e.g. {@literal &quot;bread&quot; &amp;amp; &quot;butter&quot;} =&amp;lt; {@literal &amp;amp;quot;bread&amp;amp;quot; &amp;amp;amp; &amp;amp;quot;butter&amp;amp;quot;}
+     * Update: supports nearly all HTML entities, including funky accents. See the source code for more detail.
+     * @param s1 Sq
+     * @return escape
+     * @see #htmlunescape(String)
+     **/
+    public static String htmlescape(String s1) {
+<span class="pc bpc" id="L152" title="1 of 2 branches missed.">    	if (s1 == null) {</span>
+<span class="nc" id="L153">    		return null;</span>
+    	}
+<span class="fc" id="L155">    	final StringBuilder buf = new StringBuilder();</span>
+        int i;
+<span class="fc bfc" id="L157" title="All 2 branches covered.">        for (i=0; i&lt;s1.length(); ++i) {</span>
+<span class="fc" id="L158">            char ch = s1.charAt(i);</span>
+<span class="fc" id="L159">            String entity = i2e.get( Integer.valueOf(ch) );</span>
+<span class="fc bfc" id="L160" title="All 2 branches covered.">            if (entity == null) {</span>
+<span class="pc bpc" id="L161" title="1 of 2 branches missed.">                if ((ch) &gt; 128) {</span>
+<span class="nc" id="L162">                    buf.append(&quot;&amp;#&quot; + ((int)ch) + &quot;;&quot;);</span>
+                }
+                else {
+<span class="fc" id="L165">                    buf.append(ch);</span>
+                }
+            }
+            else {
+<span class="fc" id="L169">                buf.append(&quot;&amp;&quot; + entity + &quot;;&quot;);</span>
+            }
+        }
+<span class="fc" id="L172">        return buf.toString();</span>
+    }
+
+    /**
+     * Given a string containing entity escapes, returns a string
+     * containing the actual Unicode characters corresponding to the
+     * escapes.
+     *
+     * Note: nasty bug fixed by Helge Tesgaard (and, in parallel, by
+     * Alex, but Helge deserves major props for emailing me the fix).
+     * 15-Feb-2002 Another bug fixed by Sean Brown &amp;lt;sean@boohai.com&amp;gt;
+     * @param s1 String
+     * @return html
+     *
+     * @see #htmlescape(String)
+     **/
+    public static String htmlunescape(String s1) {
+<span class="nc bnc" id="L189" title="All 2 branches missed.">    	if (s1 == null) {</span>
+<span class="nc" id="L190">    		return null;</span>
+    	}
+<span class="nc" id="L192">    	final StringBuilder buf = new StringBuilder();</span>
+        int i;
+<span class="nc bnc" id="L194" title="All 2 branches missed.">        for (i=0; i&lt;s1.length(); ++i) {</span>
+<span class="nc" id="L195">            char ch = s1.charAt(i);</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">            if (ch == '&amp;') {</span>
+<span class="nc" id="L197">                int semi = s1.indexOf(';', i+1);</span>
+<span class="nc bnc" id="L198" title="All 2 branches missed.">                if (semi == -1) {</span>
+<span class="nc" id="L199">                    buf.append(ch);</span>
+<span class="nc" id="L200">                    continue;</span>
+                }
+<span class="nc" id="L202">                String entity = s1.substring(i+1, semi);</span>
+                Integer iso;
+<span class="nc bnc" id="L204" title="All 2 branches missed.">                if (entity.charAt(0) == '#') {</span>
+<span class="nc" id="L205">                    iso = Integer.valueOf(entity.substring(1));</span>
+                }
+                else {
+<span class="nc" id="L208">                    iso = e2i.get(entity);</span>
+                }
+<span class="nc bnc" id="L210" title="All 2 branches missed.">                if (iso == null) {</span>
+<span class="nc" id="L211">                    buf.append(&quot;&amp;&quot; + entity + &quot;;&quot;);</span>
+                }
+                else {
+<span class="nc" id="L214">                    buf.append((char)(iso.intValue()));</span>
+                }
+<span class="nc" id="L216">                i = semi;</span>
+<span class="nc" id="L217">            }</span>
+            else {
+<span class="nc" id="L219">                buf.append(ch);</span>
+            }
+        }
+<span class="nc" id="L222">        return buf.toString();</span>
+    }
+    
+    public static String javascriptEscape(String str) {
+<span class="fc" id="L226">    	String ret = str;</span>
+    	// In Javascript strings we need to escape the backslash and apostrophe/quote characters
+<span class="fc" id="L228">    	ret = ret.replaceAll(&quot;\\\\&quot;, &quot;\\\\\\\\&quot;).replaceAll(&quot;'&quot;, &quot;\\\\'&quot;).replaceAll(&quot;\&quot;&quot;, &quot;\\\\\&quot;&quot;).replaceAll(&quot;&lt;&quot;, &quot;\\\\x3c&quot;).replaceAll(&quot;&gt;&quot;, &quot;\\\\x3e&quot;);</span>
+<span class="fc" id="L229">    	return ret;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

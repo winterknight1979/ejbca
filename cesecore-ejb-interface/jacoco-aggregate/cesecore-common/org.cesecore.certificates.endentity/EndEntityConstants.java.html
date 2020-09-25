@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>EndEntityConstants.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-ejb-interface</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.endentity</a> &gt; <span class="el_source">EndEntityConstants.java</span></div><h1>EndEntityConstants.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.endentity;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+
+/** Constants for End Entity types
+ *
+ * @version $Id: EndEntityConstants.java 27816 2018-01-09 16:19:36Z samuellb $
+ */
+<span class="nc" id="L25">public final class EndEntityConstants {</span>
+    /**
+     * The id of a non-existing end entity profile.
+     */
+    public static final int NO_END_ENTITY_PROFILE = 0;
+    /**
+     * The id for the built-in EMPTY end entity profile.
+     */
+    public static final int EMPTY_END_ENTITY_PROFILE = 1;
+    public static final String EMPTY_ENDENTITYPROFILENAME = &quot;EMPTY&quot;;
+
+    //
+    // User status codes
+    //
+    public static final int STATUS_NEW = 10;        // New user
+    public static final int STATUS_FAILED = 11;     // Generation of user certificate failed
+    public static final int STATUS_INITIALIZED = 20;// User has been initialized
+    public static final int STATUS_INPROCESS = 30;  // Generation of user certificate in process
+    public static final int STATUS_GENERATED = 40;  // A certificate has been generated for the user
+    public static final int STATUS_REVOKED = 50;  // The user has been revoked and should not have any more certificates issued
+    public static final int STATUS_HISTORICAL = 60; // The user is old and archived
+    public static final int STATUS_KEYRECOVERY  = 70; // The user is should use key recovery functions in next certificate generation.
+    public static final int STATUS_WAITINGFORADDAPPROVAL = 80; // the operation is waiting to be approved before execution. This status
+                                                            // is never stored in the database, but is used transiently when a request
+                                                            // is not stored because it's waiting for approval. This status is primarily
+                                                            // used to send the right notification note when a request is waiting for approval.
+
+    //
+    // Token types.
+    //
+    /** Indicates that a user generated token should be used, i.e not token generated but we expect a request and will create a certificate */
+    public static final int TOKEN_USERGEN = 1;
+    /** Indicates that a p12 token should be generated. */
+    public static final int TOKEN_SOFT_P12 = 2;
+    /** Indicates that a jks token should be generated. */
+    public static final int TOKEN_SOFT_JKS = 3;
+    /** Indicates that a pem token should be generated. */
+    public static final int TOKEN_SOFT_PEM = 4;
+    /** All values equal or below this constant should be treated as a soft token. */
+    public static final int TOKEN_SOFT = 100;
+
+    //
+    // Names and language strings of statuses
+    //
+    /** These string values maps a status code to a language string in the admin GUI language property files */
+<span class="nc" id="L70">    private static final HashMap&lt;Integer, String&gt; STATUS_TEXT_TRANS = new HashMap&lt;Integer, String&gt;();</span>
+    static {
+<span class="nc" id="L72">        STATUS_TEXT_TRANS.put(Integer.valueOf(STATUS_NEW),&quot;STATUSNEW&quot;);</span>
+<span class="nc" id="L73">        STATUS_TEXT_TRANS.put(Integer.valueOf(STATUS_FAILED),&quot;STATUSFAILED&quot;);</span>
+<span class="nc" id="L74">        STATUS_TEXT_TRANS.put(Integer.valueOf(STATUS_INITIALIZED),&quot;STATUSINITIALIZED&quot;);</span>
+<span class="nc" id="L75">        STATUS_TEXT_TRANS.put(Integer.valueOf(STATUS_INPROCESS),&quot;STATUSINPROCESS&quot;);</span>
+<span class="nc" id="L76">        STATUS_TEXT_TRANS.put(Integer.valueOf(STATUS_GENERATED),&quot;STATUSGENERATED&quot;);</span>
+<span class="nc" id="L77">        STATUS_TEXT_TRANS.put(Integer.valueOf(STATUS_REVOKED),&quot;STATUSREVOKED&quot;);</span>
+<span class="nc" id="L78">        STATUS_TEXT_TRANS.put(Integer.valueOf(STATUS_HISTORICAL),&quot;STATUSHISTORICAL&quot;);</span>
+<span class="nc" id="L79">        STATUS_TEXT_TRANS.put(Integer.valueOf(STATUS_KEYRECOVERY),&quot;STATUSKEYRECOVERY&quot;);</span>
+<span class="nc" id="L80">        STATUS_TEXT_TRANS.put(Integer.valueOf(STATUS_WAITINGFORADDAPPROVAL),&quot;STATUSWAITINGFORADDAPPROVAL&quot;);</span>
+    }
+
+    public static String getTranslatableStatusText(int status) {
+<span class="nc" id="L84">        String ret = null;</span>
+<span class="nc" id="L85">        Object o =  STATUS_TEXT_TRANS.get(Integer.valueOf(status));</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (o != null) {</span>
+<span class="nc" id="L87">            ret = (String)o;</span>
+        }
+<span class="nc" id="L89">        return ret;</span>
+    }
+
+    /** These string values maps a status code to a plain string */
+<span class="nc" id="L93">    private static final HashMap&lt;Integer, String&gt; STATUS_TEXT = new HashMap&lt;Integer, String&gt;();</span>
+    static {
+<span class="nc" id="L95">        STATUS_TEXT.put(Integer.valueOf(STATUS_NEW),&quot;NEW&quot;);</span>
+<span class="nc" id="L96">        STATUS_TEXT.put(Integer.valueOf(STATUS_FAILED),&quot;FAILED&quot;);</span>
+<span class="nc" id="L97">        STATUS_TEXT.put(Integer.valueOf(STATUS_INITIALIZED),&quot;INITIALIZED&quot;);</span>
+<span class="nc" id="L98">        STATUS_TEXT.put(Integer.valueOf(STATUS_INPROCESS),&quot;INPROCESS&quot;);</span>
+<span class="nc" id="L99">        STATUS_TEXT.put(Integer.valueOf(STATUS_GENERATED),&quot;GENERATED&quot;);</span>
+<span class="nc" id="L100">        STATUS_TEXT.put(Integer.valueOf(STATUS_REVOKED),&quot;REVOKED&quot;);</span>
+<span class="nc" id="L101">        STATUS_TEXT.put(Integer.valueOf(STATUS_HISTORICAL),&quot;HISTORICAL&quot;);</span>
+<span class="nc" id="L102">        STATUS_TEXT.put(Integer.valueOf(STATUS_KEYRECOVERY),&quot;KEYRECOVERY&quot;);</span>
+<span class="nc" id="L103">    }</span>
+
+    public static String getStatusText(int status) {
+<span class="nc" id="L106">        String ret = null;</span>
+<span class="nc" id="L107">        Object o =  STATUS_TEXT.get(Integer.valueOf(status));</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        if (o != null) {</span>
+<span class="nc" id="L109">            ret = (String)o;</span>
+        }
+<span class="nc" id="L111">        return ret;</span>
+    }
+
+    public static Collection&lt;Integer&gt; getAllStatusCodes() {
+<span class="nc" id="L115">        List&lt;Integer&gt; statuses = new ArrayList&lt;Integer&gt;(STATUS_TEXT.keySet());</span>
+<span class="nc" id="L116">        Collections.sort(statuses);</span>
+<span class="nc" id="L117">        return statuses;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

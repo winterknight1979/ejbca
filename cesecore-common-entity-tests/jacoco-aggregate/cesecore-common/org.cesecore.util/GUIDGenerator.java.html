@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>GUIDGenerator.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-common-entity-tests</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.util</a> &gt; <span class="el_source">GUIDGenerator.java</span></div><h1>GUIDGenerator.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.cesecore.util;
+
+import java.util.Random;
+
+import org.apache.log4j.Logger;
+
+/**
+ * Shamelessly ripped from generated XDoclet source, because I don't want to generate util classes.
+ * 
+ * @version $Id: GUIDGenerator.java 20325 2014-11-25 19:22:49Z samuellb $
+ */
+<span class="nc" id="L25">public class GUIDGenerator {</span>
+<span class="fc" id="L26">    private static final Logger log = Logger.getLogger(GUIDGenerator.class);</span>
+
+    /** Cached per JVM server IP. */
+<span class="fc" id="L29">    private static String hexServerIP = null;</span>
+
+    // Initialize the secure random instance
+<span class="fc" id="L32">    private static final Random seeder = new Random();</span>
+
+    /**
+     * A 32 byte GUID generator (Globally Unique ID). These artificial keys SHOULD &lt;strong&gt;NOT &lt;/strong&gt; be seen by the user, not even touched by the
+     * DBA but with very rare exceptions, just manipulated by the database and the programs.
+     * NOTE: This guid is not cryptographically secure, and should not be used as such.
+     * 
+     * Usage: Add an id field (type java.lang.String) to your EJB, and add setId(XXXUtil.generateGUID(this)); to the ejbCreate method.
+     * @param o object
+     * @return guid
+     */
+    public static final String generateGUID(Object o) {
+
+<span class="fc bfc" id="L45" title="All 2 branches covered.">        if (hexServerIP == null) {</span>
+<span class="fc" id="L46">            java.net.InetAddress localInetAddress = null;</span>
+            try {
+                // get the inet address
+<span class="fc" id="L49">                localInetAddress = java.net.InetAddress.getLocalHost();</span>
+<span class="nc" id="L50">            } catch (java.net.UnknownHostException uhe) {</span>
+<span class="nc" id="L51">                log.error(&quot;Could not get the local IP address using InetAddress.getLocalHost(): &quot;, uhe);</span>
+                // todo: find better way to get around this...
+<span class="nc" id="L53">                return null;</span>
+<span class="fc" id="L54">            }</span>
+<span class="fc" id="L55">            byte serverIP[] = localInetAddress.getAddress();</span>
+<span class="fc" id="L56">            hexServerIP = hexFormat(getInt(serverIP), 8);</span>
+        }
+
+<span class="fc" id="L59">        final String hashcode = hexFormat(System.identityHashCode(o), 8);</span>
+        // Use a combination of milliseconds and nanoseconds:
+        // - milliseconds is not good enough for the test case (which makes a lot of calls in a quick succession).
+        // - nanoseconds is also not good enough since some of the low-order bits may be always zero (how many is system and JDK dependent).
+<span class="fc" id="L63">        long timeNow = System.currentTimeMillis() ^ System.nanoTime();</span>
+<span class="fc" id="L64">        int timeLow = (int) timeNow &amp; 0xFFFFFFFF;</span>
+<span class="fc" id="L65">        int node = seeder.nextInt();</span>
+<span class="fc" id="L66">        final StringBuilder guid = new StringBuilder(32);</span>
+
+<span class="fc" id="L68">        guid.append(hexFormat(timeLow, 8));</span>
+<span class="fc" id="L69">        guid.append(hexServerIP);</span>
+<span class="fc" id="L70">        guid.append(hashcode);</span>
+<span class="fc" id="L71">        guid.append(hexFormat(node, 8));</span>
+<span class="fc" id="L72">        return guid.toString();</span>
+    }
+
+    private static int getInt(byte bytes[]) {
+<span class="fc" id="L76">        int i = 0;</span>
+<span class="fc" id="L77">        int j = 24;</span>
+<span class="fc bfc" id="L78" title="All 2 branches covered.">        for (int k = 0; j &gt;= 0; k++) {</span>
+<span class="fc" id="L79">            int l = bytes[k] &amp; 0xff;</span>
+<span class="fc" id="L80">            i += l &lt;&lt; j;</span>
+<span class="fc" id="L81">            j -= 8;</span>
+        }
+<span class="fc" id="L83">        return i;</span>
+    }
+
+    private static String hexFormat(int i, int j) {
+<span class="fc" id="L87">        final String s = Integer.toHexString(i);</span>
+<span class="fc" id="L88">        return padHex(s, j) + s;</span>
+    }
+
+    private static String padHex(String s, int i) {
+<span class="fc" id="L92">        final StringBuilder tmpBuffer = new StringBuilder();</span>
+<span class="fc bfc" id="L93" title="All 2 branches covered.">        if (s.length() &lt; i) {</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">            for (int j = 0; j &lt; i - s.length(); j++) {</span>
+<span class="fc" id="L95">                tmpBuffer.append('0');</span>
+            }
+        }
+<span class="fc" id="L98">        return tmpBuffer.toString();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

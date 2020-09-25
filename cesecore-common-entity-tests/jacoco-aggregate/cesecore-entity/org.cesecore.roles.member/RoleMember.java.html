@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RoleMember.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-common-entity-tests</a> &gt; <a href="../index.html" class="el_bundle">cesecore-entity</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.roles.member</a> &gt; <span class="el_source">RoleMember.java</span></div><h1>RoleMember.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.roles.member;
+
+import java.io.Serializable;
+
+import org.cesecore.authorization.user.AccessMatchType;
+import org.cesecore.roles.Role;
+
+/**
+ * Value object for the RoleMemberData entity bean, so that we don't have to pass information like row protection remotely. 
+ * 
+ * @version $Id: RoleMember.java 25626 2017-03-30 17:09:50Z jeklund $
+ */
+public class RoleMember implements Serializable {
+    
+<span class="nc" id="L27">    public static int ROLE_MEMBER_ID_UNASSIGNED = 0;</span>
+<span class="nc" id="L28">    public static int NO_ROLE = Role.ROLE_ID_UNASSIGNED;</span>
+<span class="nc" id="L29">    public static int NO_ISSUER = 0;</span>
+
+    private static final long serialVersionUID = 1L;
+    private int id;
+    private String tokenType;
+    private int tokenIssuerId;
+    private int tokenMatchKey;
+    private int tokenMatchOperator;
+    private String tokenMatchValue;
+    private int roleId;
+    private String description;
+
+    /**
+     * Constructor for a new RoleMember. Will by default be constructed with the primary key 0, which means that this object hasn't been
+     * persisted yet. In that case, the primary key will be set by the CRUD bean. 
+     * @param tokenType Type
+     * 
+     * @param tokenIssuerId the issuer identifier of this token or 0 if not relevant
+     * @param tokenMatchKey Key
+     * @param tokenMatchOperator Operator
+     * @param tokenMatchValue the actual value with which to match
+     * @param roleId roleId the ID of the role to which this member belongs. May be null.
+     * @param description a human readable description of this role member.
+     */
+    public RoleMember(final String tokenType, final int tokenIssuerId, final int tokenMatchKey, final int tokenMatchOperator,
+            final String tokenMatchValue, final int roleId, final String description) {
+<span class="nc" id="L55">        this(ROLE_MEMBER_ID_UNASSIGNED, tokenType, tokenIssuerId, tokenMatchKey, tokenMatchOperator, tokenMatchValue, roleId, description);</span>
+<span class="nc" id="L56">    }</span>
+
+    /**
+     * Constructor for a new RoleMember. Will by default be constructed with the primary key 0, which means that this object hasn't been
+     * persisted yet. In that case, the primary key will be set by the CRUD bean. 
+     * @param id ID
+     * @param tokenType Type
+     * 
+     * @param tokenIssuerId the issuer identifier of this token or 0 if not relevant
+     * @param tokenMatchKey Key
+     * @param tokenMatchOperator Operator
+     * @param tokenMatchValue the actual value with which to match
+     * @param roleId roleId the ID of the role to which this member belongs. May be null.
+     * @param description a human readable description of this role member.
+     */
+    public RoleMember(final int id, final String tokenType, final int tokenIssuerId, final int tokenMatchKey, final int tokenMatchOperator,
+<span class="nc" id="L72">            final String tokenMatchValue, final int roleId, final String description) {</span>
+<span class="nc" id="L73">        this.id = id;</span>
+<span class="nc" id="L74">        this.tokenType = tokenType;</span>
+<span class="nc" id="L75">        this.tokenIssuerId = tokenIssuerId;</span>
+<span class="nc" id="L76">        this.tokenMatchKey = tokenMatchKey;</span>
+<span class="nc" id="L77">        this.tokenMatchOperator = tokenMatchOperator;</span>
+<span class="nc" id="L78">        this.tokenMatchValue = tokenMatchValue;</span>
+<span class="nc" id="L79">        this.roleId = roleId;</span>
+<span class="nc" id="L80">        this.description = description;</span>
+<span class="nc" id="L81">    }</span>
+
+    /** Copy constructor 
+     * @param roleMember original */
+<span class="nc" id="L85">    public RoleMember(final RoleMember roleMember) {</span>
+<span class="nc" id="L86">        this.id = roleMember.id;</span>
+<span class="nc" id="L87">        this.tokenType = roleMember.tokenType;</span>
+<span class="nc" id="L88">        this.tokenIssuerId = roleMember.tokenIssuerId;</span>
+<span class="nc" id="L89">        this.tokenMatchKey = roleMember.tokenMatchKey;</span>
+<span class="nc" id="L90">        this.tokenMatchOperator = roleMember.tokenMatchOperator;</span>
+<span class="nc" id="L91">        this.tokenMatchValue = roleMember.tokenMatchValue;</span>
+<span class="nc" id="L92">        this.roleId = roleMember.roleId;</span>
+<span class="nc" id="L93">        this.description = roleMember.description;</span>
+<span class="nc" id="L94">    }</span>
+
+    public int getId() {
+<span class="nc" id="L97">        return id;</span>
+    }
+
+    public void setId(int id) {
+<span class="nc" id="L101">        this.id = id;</span>
+<span class="nc" id="L102">    }</span>
+
+    public String getTokenType() {
+<span class="nc" id="L105">        return tokenType;</span>
+    }
+
+    public void setTokenType(String tokenType) {
+<span class="nc" id="L109">        this.tokenType = tokenType;</span>
+<span class="nc" id="L110">    }</span>
+
+    public int getTokenIssuerId() {
+<span class="nc" id="L113">        return tokenIssuerId;</span>
+    }
+
+    public void setTokenIssuerId(final int tokenIssuerId) {
+<span class="nc" id="L117">        this.tokenIssuerId = tokenIssuerId;</span>
+<span class="nc" id="L118">    }</span>
+
+    public AccessMatchType getAccessMatchType() {
+<span class="nc" id="L121">        return AccessMatchType.matchFromDatabase(tokenMatchOperator);</span>
+    }
+
+    public int getTokenMatchKey() {
+<span class="nc" id="L125">        return tokenMatchKey;</span>
+    }
+
+    public void setTokenMatchKey(int tokenMatchKey) {
+<span class="nc" id="L129">        this.tokenMatchKey = tokenMatchKey;</span>
+<span class="nc" id="L130">    }</span>
+
+    public int getTokenMatchOperator() {
+<span class="nc" id="L133">        return tokenMatchOperator;</span>
+    }
+
+    public void setTokenMatchOperator(int tokenMatchOperator) {
+<span class="nc" id="L137">        this.tokenMatchOperator = tokenMatchOperator;</span>
+<span class="nc" id="L138">    }</span>
+
+    public String getTokenMatchValue() {
+<span class="nc" id="L141">        return tokenMatchValue;</span>
+    }
+
+    public void setTokenMatchValue(String tokenMatchValue) {
+<span class="nc" id="L145">        this.tokenMatchValue = tokenMatchValue;</span>
+<span class="nc" id="L146">    }</span>
+
+    public int getRoleId() {
+<span class="nc" id="L149">        return roleId;</span>
+    }
+
+    public void setRoleId(int roleId) {
+<span class="nc" id="L153">        this.roleId = roleId;</span>
+<span class="nc" id="L154">    }</span>
+    
+    public String getDescription() {
+<span class="nc" id="L157">        return description;</span>
+    }
+
+    public void setDescription(String description) {
+<span class="nc" id="L161">        this.description = description;</span>
+<span class="nc" id="L162">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

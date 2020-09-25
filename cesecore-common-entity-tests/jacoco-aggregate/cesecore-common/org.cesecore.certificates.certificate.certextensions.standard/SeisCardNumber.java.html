@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>SeisCardNumber.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-common-entity-tests</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.certificate.certextensions.standard</a> &gt; <span class="el_source">SeisCardNumber.java</span></div><h1>SeisCardNumber.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/ 
+package org.cesecore.certificates.certificate.certextensions.standard;
+
+import java.security.PublicKey;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.DERPrintableString;
+import org.cesecore.certificates.ca.CA;
+import org.cesecore.certificates.ca.internal.CertificateValidity;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+
+/** The Card Number is a PrintableString that shall respond to the number printed on a card on which the certificate is stored.
+ * The extension is specified in the the Seis document SS 614331 chapter 4.3 and has OID 1.2.752.34.2.1 
+ * 
+ * CardNumber EXTENSION ::= {
+ *       SYNTAX        CardNumber
+ *       IDENTIFIED BY id-seis-pe-cn}
+ *       -- id-seis-pe-cn is defined in Annex A
+ * CardNumber ::= PrintableString 
+ *
+ * @version $Id: SeisCardNumber.java 22092 2015-10-26 13:58:55Z mikekushner $
+ */
+<span class="nc" id="L37">public class SeisCardNumber extends StandardCertificateExtension {</span>
+
+	private static final long serialVersionUID = 1L;
+
+<span class="nc" id="L41">    private static final Logger log = Logger.getLogger(SeisCardNumber.class);</span>
+
+    /** OID for creating Smartcard Number Certificate Extension
+     *  SEIS Cardnumber Extension according to SS 614330/31 */
+    public static final String OID_CARDNUMBER = CertificateProfile.OID_CARDNUMBER;	//&quot;1.2.752.34.2.1&quot;;
+
+    @Override
+	public void init(final CertificateProfile certProf) {
+<span class="nc" id="L49">		super.setOID(SeisCardNumber.OID_CARDNUMBER);</span>
+<span class="nc" id="L50">		super.setCriticalFlag(false);</span>
+<span class="nc" id="L51">	}</span>
+	
+    @Override
+    public ASN1Encodable getValue(final EndEntityInformation userData, final CA ca, final CertificateProfile certProfile,
+            final PublicKey userPublicKey, final PublicKey caPublicKey, CertificateValidity val) {
+<span class="nc" id="L56">		final String cardnumber = userData.getCardNumber();</span>
+<span class="nc" id="L57">		ASN1Encodable ret = null;</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">		if (StringUtils.isNotEmpty(cardnumber)) {</span>
+<span class="nc" id="L59">			ret = new DERPrintableString(cardnumber);</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">			if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L61">				log.debug(&quot;Seis card numer: &quot;+cardnumber);</span>
+			}
+		} else {
+<span class="nc bnc" id="L64" title="All 2 branches missed.">			if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L65">				log.debug(&quot;Seis card numer is empty&quot;);</span>
+			}			
+		}
+<span class="nc" id="L68">		return ret;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

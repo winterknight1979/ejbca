@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SecurityEventsLoggerSessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cesecore-ejb</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.audit.log</a> &gt; <span class="el_source">SecurityEventsLoggerSessionBean.java</span></div><h1>SecurityEventsLoggerSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.audit.log;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+
+import org.apache.log4j.Logger;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.enums.EventType;
+import org.cesecore.audit.enums.ModuleType;
+import org.cesecore.audit.enums.ServiceType;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.AuditLogRules;
+import org.cesecore.internal.InternalResources;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.time.TrustedTime;
+import org.cesecore.time.TrustedTimeWatcherSessionLocal;
+import org.cesecore.time.providers.TrustedTimeProviderException;
+
+/**
+ * This class implements the SecurityEventsLogger interface. It handles the
+ * creation of a signed log for an event.
+ * 
+ * @version $Id: SecurityEventsLoggerSessionBean.java 29010 2018-05-23 13:09:53Z jekaterina_b_helmes $
+ * 
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;SecurityEventsLoggerSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+<span class="nc" id="L47">public class SecurityEventsLoggerSessionBean implements SecurityEventsLoggerSessionLocal, SecurityEventsLoggerSessionRemote {</span>
+
+<span class="nc" id="L49">    private static final Logger log = Logger.getLogger(SecurityEventsLoggerSessionBean.class);</span>
+    /** Internal localization of logs and errors */
+<span class="nc" id="L51">    private static final InternalResources intres = InternalResources.getInstance();</span>
+
+    @EJB
+    private InternalSecurityEventsLoggerSessionLocal internalSecurityEventsLoggerSession;
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private TrustedTimeWatcherSessionLocal trustedTimeWatcherSession;
+
+    @Override
+    public void log(final AuthenticationToken authToken, EventType eventType, EventStatus eventStatus, ModuleType module, ServiceType service)
+            throws AuditRecordStorageException, AuthorizationDeniedException {
+<span class="nc" id="L63">        log(authToken, eventType, eventStatus, module, service, null, null, null, null);</span>
+<span class="nc" id="L64">    }</span>
+
+    @Override
+    public void log(final AuthenticationToken authToken, EventType eventType, EventStatus eventStatus, ModuleType module, ServiceType service, String customId, String searchDetail1, String searchDetail2,
+            Map&lt;String, Object&gt; additionalDetails) throws AuditRecordStorageException, AuthorizationDeniedException {        
+        // We need to check that admin have rights to log
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(authToken, AuditLogRules.LOG.resource())) {</span>
+<span class="nc" id="L71">            final String msg = intres.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, AuditLogRules.LOG.resource(), null);</span>
+<span class="nc" id="L72">            throw new AuthorizationDeniedException(msg);</span>
+        }
+<span class="nc" id="L74">        log(eventType, eventStatus, module, service, authToken.toString(), customId, searchDetail1, searchDetail2, additionalDetails);</span>
+<span class="nc" id="L75">    }</span>
+    
+    @Override
+    public void log(final EventType eventType, final EventStatus eventStatus, final ModuleType module, final ServiceType service, final String authToken, final String customId, final String searchDetail1, final String searchDetail2,
+            final String additionalDetailsMsg) throws AuditRecordStorageException {
+<span class="nc" id="L80">        final Map&lt;String, Object&gt; additionalDetails = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L81">        additionalDetails.put(&quot;msg&quot;, additionalDetailsMsg);</span>
+<span class="nc" id="L82">        log(eventType, eventStatus, module, service, authToken, customId, searchDetail1, searchDetail2, additionalDetails);</span>
+<span class="nc" id="L83">    }</span>
+
+    @Override
+    public void log(final EventType eventType, final EventStatus eventStatus, final ModuleType module, final ServiceType service, final String authToken, final String customId, final String searchDetail1, final String searchDetail2,
+            final Map&lt;String, Object&gt; additionalDetails) throws AuditRecordStorageException {
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L89">            log.trace(String.format(&quot;&gt;log:%s:%s:%s:%s:%s:%s:%s:%s:%s&quot;, eventType, eventStatus, module, service, authToken, customId, searchDetail1, searchDetail2, additionalDetails));</span>
+        }
+        try {
+<span class="nc" id="L92">            final TrustedTime tt = trustedTimeWatcherSession.getTrustedTime(false);</span>
+<span class="nc" id="L93">            internalSecurityEventsLoggerSession.log(tt, eventType, eventStatus, module, service, authToken, customId, searchDetail1, searchDetail2, additionalDetails);</span>
+<span class="nc" id="L94">        } catch (TrustedTimeProviderException e) {</span>
+<span class="nc" id="L95">            log.error(e.getMessage(), e);</span>
+<span class="nc" id="L96">            throw new AuditRecordStorageException(e.getMessage(), e);</span>
+        } finally {
+<span class="nc bnc" id="L98" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L99">                log.trace(&quot;&lt;log&quot;);</span>
+            }
+        }
+<span class="nc" id="L102">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

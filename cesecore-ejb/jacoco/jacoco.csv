@@ -1,0 +1,63 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+cesecore-ejb,org.cesecore.certificates.crl,CrlStoreSessionBean,574,0,56,0,117,0,37,0,9,0
+cesecore-ejb,org.cesecore.certificates.crl,CrlCreateSessionBean,347,0,28,0,61,0,19,0,5,0
+cesecore-ejb,org.cesecore.certificates.ca.internal,CACacheHelper,18,0,0,0,4,0,3,0,3,0
+cesecore-ejb,org.cesecore.certificates.ca.internal,CaCache.new CommonCacheBase() {...},0,10,0,0,0,3,0,3,0,3
+cesecore-ejb,org.cesecore.certificates.ca.internal,CaIDCacheBean,128,0,18,0,36,0,15,0,6,0
+cesecore-ejb,org.cesecore.certificates.ca.internal,CaCache,31,52,2,0,9,10,6,7,5,7
+cesecore-ejb,org.cesecore.authorization.cache,AuthorizationCacheReloadListeners,60,0,4,0,12,0,6,0,4,0
+cesecore-ejb,org.cesecore.authorization.cache,AccessTreeUpdateSessionBean,109,0,8,0,30,0,11,0,7,0
+cesecore-ejb,org.cesecore.profiles,ProfileSessionBean,208,0,10,0,51,0,17,0,12,0
+cesecore-ejb,org.cesecore.profiles,ProfileSessionBean.new ProfileID.DB() {...},15,0,2,0,2,0,3,0,2,0
+cesecore-ejb,org.cesecore.audit.log,InternalSecurityEventsLoggerSessionBean,165,0,26,0,37,0,18,0,5,0
+cesecore-ejb,org.cesecore.audit.log,SecurityEventsLoggerSessionBean,170,0,6,0,24,0,9,0,6,0
+cesecore-ejb,org.cesecore.keybind,InternalKeyBindingDataSessionBean,479,0,46,0,113,0,38,0,15,0
+cesecore-ejb,org.cesecore.keybind,InternalKeyBindingMgmtSessionBean,2668,0,254,0,560,0,161,0,34,0
+cesecore-ejb,org.cesecore.keybind,InternalKeyBindingMgmtSessionBean.new Comparator() {...},12,0,0,0,2,0,2,0,2,0
+cesecore-ejb,org.cesecore.authorization,AuthorizationSessionBean.new AuthorizationCache.AuthorizationCacheCallback() {...},63,0,6,0,14,0,7,0,4,0
+cesecore-ejb,org.cesecore.authorization,AuthorizationSessionBean,447,0,46,0,97,0,37,0,14,0
+cesecore-ejb,org.cesecore.keys.token,CryptoTokenCache.new CommonCacheBase() {...},10,0,0,0,3,0,3,0,3,0
+cesecore-ejb,org.cesecore.keys.token,CryptoTokenSessionBean,425,0,42,0,99,0,39,0,18,0
+cesecore-ejb,org.cesecore.keys.token,CryptoTokenCache,83,0,2,0,19,0,13,0,12,0
+cesecore-ejb,org.cesecore.keys.token,CryptoTokenManagementSessionBean,2242,0,220,0,485,0,151,0,41,0
+cesecore-ejb,org.cesecore.certificates.certificate,CertificateCreateSessionBean,1667,0,168,0,366,0,100,0,16,0
+cesecore-ejb,org.cesecore.certificates.certificate,CertificateCreateSessionBean.new CTAuditLogCallback() {...},85,0,4,0,14,0,4,0,2,0
+cesecore-ejb,org.cesecore.certificates.certificate,CertificateDataSessionBean,996,0,28,0,210,0,45,0,31,0
+cesecore-ejb,org.cesecore.certificates.certificate,CertificateStoreSessionBean,3869,0,478,0,847,0,318,0,79,0
+cesecore-ejb,org.cesecore.certificates.certificate,NoConflictCertificateDataSessionBean,114,0,8,0,27,0,12,0,8,0
+cesecore-ejb,org.cesecore.certificates.certificate,BaseCertificateDataSessionBean,206,0,12,0,44,0,10,0,4,0
+cesecore-ejb,org.cesecore.certificates.certificate,UniqueSernoHelper,46,0,0,0,15,0,6,0,6,0
+cesecore-ejb,org.cesecore.certificates.certificate,NoConflictCertificateStoreSessionBean,639,0,74,0,140,0,55,0,18,0
+cesecore-ejb,org.cesecore.audit.impl.integrityprotected,IntegrityProtectedLoggerSessionBean.new NodeSequenceHolder.OnInitCallBack() {...},26,0,0,0,5,0,3,0,3,0
+cesecore-ejb,org.cesecore.audit.impl.integrityprotected,IntegrityProtectedAuditorSessionBean.Holder,16,0,0,0,3,0,3,0,3,0
+cesecore-ejb,org.cesecore.audit.impl.integrityprotected,IntegrityProtectedLoggerSessionBean,102,0,4,0,18,0,6,0,4,0
+cesecore-ejb,org.cesecore.audit.impl.integrityprotected,IntegrityProtectedAuditorSessionBean,637,0,42,0,132,0,35,0,14,0
+cesecore-ejb,org.cesecore.configuration,GlobalConfigurationSessionBean,345,0,29,0,77,0,25,0,10,0
+cesecore-ejb,org.cesecore.configuration,GlobalConfigurationSessionBean.GlobalConfigurationCacheHolder,151,0,14,0,35,0,17,0,10,0
+cesecore-ejb,org.cesecore.keys.validation,KeyValidatorSessionBean,2171,0,242,0,441,0,154,0,33,0
+cesecore-ejb,org.cesecore.keys.validation,ValidatorCache.new CommonCacheBase() {...},0,14,0,0,0,4,0,3,0,3
+cesecore-ejb,org.cesecore.keys.validation,ValidatorCache,26,57,2,0,8,11,5,8,4,8
+cesecore-ejb,org.cesecore.certificates.ocsp,OcspResponseGeneratorSessionBean,4907,48,655,3,1143,11,363,3,34,3
+cesecore-ejb,org.cesecore.certificates.ocsp,HsmResponseThread,67,0,2,0,15,0,3,0,2,0
+cesecore-ejb,org.cesecore.certificates.ocsp,CardKeyHolder,63,0,2,0,18,0,5,0,4,0
+cesecore-ejb,org.cesecore.certificates.ocsp,OcspResponseGeneratorSessionBean.CanLogCache,29,0,0,0,8,0,4,0,4,0
+cesecore-ejb,org.cesecore.certificates.ocsp,OCSPResponseItem,70,0,2,0,18,0,8,0,7,0
+cesecore-ejb,org.cesecore.audit.audit,SecurityEventsAuditorSessionBean,199,0,6,0,39,0,15,0,12,0
+cesecore-ejb,org.cesecore.certificates.ca,CaSessionBean,2340,0,278,0,451,0,189,0,50,0
+cesecore-ejb,org.cesecore.roles.management,RoleDataSessionBean.new ProfileID.DB() {...},17,0,4,0,2,0,4,0,2,0
+cesecore-ejb,org.cesecore.roles.management,RoleSessionBean,1363,0,150,0,260,0,99,0,24,0
+cesecore-ejb,org.cesecore.roles.management,RoleCache,87,0,2,0,20,0,14,0,13,0
+cesecore-ejb,org.cesecore.roles.management,RoleCache.new CommonCacheBase() {...},10,0,0,0,3,0,3,0,3,0
+cesecore-ejb,org.cesecore.roles.management,RoleDataSessionBean,312,0,38,0,71,0,31,0,12,0
+cesecore-ejb,org.cesecore.certificates.certificateprofile,CertificateProfileSessionBean,1365,0,146,0,281,0,100,0,27,0
+cesecore-ejb,org.cesecore.certificates.certificateprofile,CertificateProfileCache,326,0,18,0,67,0,15,0,6,0
+cesecore-ejb,org.cesecore.certificates.certificateprofile,CertificateProfileSessionBean.new ProfileID.DB() {...},17,0,2,0,2,0,3,0,2,0
+cesecore-ejb,org.cesecore.roles.member,AuthenticationTokenCacheKey,180,0,30,0,45,0,19,0,4,0
+cesecore-ejb,org.cesecore.roles.member,AuthenticationTokenCache.new CommonCacheBase() {...},10,0,0,0,3,0,3,0,3,0
+cesecore-ejb,org.cesecore.roles.member,RoleMemberDataSessionBean,435,0,50,0,106,0,41,0,16,0
+cesecore-ejb,org.cesecore.roles.member,AuthenticationTokenCache,185,0,8,0,40,0,19,0,15,0
+cesecore-ejb,org.cesecore.roles.member,RoleMemberCache,91,0,2,0,20,0,14,0,13,0
+cesecore-ejb,org.cesecore.roles.member,RoleMemberSessionBean,752,0,100,0,135,0,60,0,10,0
+cesecore-ejb,org.cesecore.roles.member,RoleMemberDataSessionBean.new ProfileID.DB() {...},17,0,4,0,2,0,4,0,2,0
+cesecore-ejb,org.cesecore.roles.member,RoleMemberDataSessionBean.new AccessUserAspect() {...},46,0,2,0,13,0,14,0,13,0
+cesecore-ejb,org.cesecore.roles.member,RoleMemberCache.new CommonCacheBase() {...},10,0,0,0,3,0,3,0,3,0

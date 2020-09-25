@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RoleData.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-common-entity-tests</a> &gt; <a href="../index.html" class="el_bundle">cesecore-entity</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.roles</a> &gt; <span class="el_source">RoleData.java</span></div><h1>RoleData.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.roles;
+
+import java.beans.XMLEncoder;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import javax.persistence.Entity;
+import javax.persistence.PostLoad;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.dbprotection.ProtectedData;
+import org.cesecore.dbprotection.ProtectionStringBuilder;
+import org.cesecore.util.Base64GetHashMap;
+import org.cesecore.util.Base64PutHashMap;
+import org.cesecore.util.SecureXMLDecoder;
+
+/**
+ * Represents a role.
+ * 
+ * @version $Id: RoleData.java 34163 2020-01-02 15:00:17Z samuellb $
+ */
+@Entity
+@Table(name = &quot;RoleData&quot;)
+public class RoleData extends ProtectedData implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+<span class="fc" id="L49">    private static final Logger log = Logger.getLogger(RoleData.class);</span>
+
+    private int id;
+    private String nameSpaceColumn;
+    private String roleName;
+    private String rawData;
+<span class="pc" id="L55">    private int rowVersion = 0;</span>
+    private String rowProtection;
+
+<span class="nc" id="L58">    public RoleData() {</span>
+<span class="nc" id="L59">    }</span>
+
+<span class="fc" id="L61">    public RoleData(final Role role) {</span>
+<span class="fc" id="L62">        setRole(role);</span>
+<span class="fc" id="L63">    }</span>
+
+    // @Id @Column
+<span class="nc" id="L66">    public int getId() { return id; }</span>
+<span class="fc" id="L67">    public void setId(int id) { this.id = id; }</span>
+
+    //@Column(name=&quot;nameSpace&quot;)
+    @Deprecated
+    /** @deprecated (Only for database mapping) {@link #getNameSpaceNeverNull()} */
+<span class="nc" id="L72">    public String getNameSpaceColumn() { return nameSpaceColumn; }</span>
+    @Deprecated
+    /** @deprecated (Only for database mapping) {@link #setNameSpaceNeverNull(String)} */
+<span class="fc" id="L75">    public void setNameSpaceColumn(String nameSpaceColumn) { this.nameSpaceColumn = nameSpaceColumn; }</span>
+
+    // Ensure that we treat empty string as null for consistent behavior with Oracle
+    @Transient
+    public String getNameSpace() {
+<span class="nc" id="L80">        return StringUtils.defaultIfEmpty(getNameSpaceColumn(), &quot;&quot;);</span>
+    }
+
+    // Ensure that we treat empty string as null for consistent behavior with Oracle
+    @Transient
+    public void setNameSpace(final String nameSpace) {
+<span class="fc" id="L86">        setNameSpaceColumn(StringUtils.defaultIfEmpty(nameSpace, null));</span>
+<span class="fc" id="L87">    }</span>
+
+    // @Column
+<span class="nc" id="L90">    public String getRoleName() { return roleName; }</span>
+<span class="fc" id="L91">    public void setRoleName(String roleName) { this.roleName = roleName; }</span>
+
+
+    // @Column
+    /** Should not be invoked directly. Use getDataMap() instead. 
+     * @return data*/
+<span class="nc" id="L97">    public String getRawData() { return rawData; }</span>
+    /** Should not be invoked directly. Use setDataMap(..) instead. 
+     * @param rawData data */
+<span class="fc" id="L100">    public void setRawData(String rawData) { this.rawData = rawData; }</span>
+
+    @Transient
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public LinkedHashMap&lt;Object, Object&gt; getDataMap() {
+<span class="nc" id="L105">        try (final SecureXMLDecoder decoder = new SecureXMLDecoder(new ByteArrayInputStream(getRawData().getBytes(StandardCharsets.UTF_8)));) {</span>
+            // Handle Base64 encoded string values
+<span class="nc" id="L107">            return new Base64GetHashMap((Map&lt;?, ?&gt;)decoder.readObject());</span>
+<span class="nc" id="L108">        } catch (IOException e) {</span>
+<span class="nc" id="L109">            final String msg = &quot;Failed to parse data map for role '&quot; + roleName + &quot;': &quot; + e.getMessage();</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L111">                log.debug(msg + &quot;. Data:\n&quot; + getRawData());</span>
+            }
+<span class="nc" id="L113">            throw new IllegalStateException(msg, e);</span>
+        }
+    }
+
+    @Transient
+    public void setDataMap(final LinkedHashMap&lt;Object, Object&gt; dataMap) {
+<span class="fc" id="L119">        final ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+<span class="fc" id="L120">        try (final XMLEncoder encoder = new XMLEncoder(baos);){</span>
+            // We must base64 encode string for UTF safety
+<span class="fc" id="L122">            encoder.writeObject(new Base64PutHashMap(dataMap));</span>
+        }
+<span class="fc" id="L124">        setRawData(new String(baos.toByteArray(), StandardCharsets.UTF_8));</span>
+<span class="fc" id="L125">    }</span>
+
+    @Transient
+    public Role getRole() {
+<span class="nc" id="L129">        return new Role(getId(), getNameSpace(), getRoleName(), getDataMap());</span>
+    }
+
+    @Transient
+    public void setRole(final Role role) {
+<span class="fc" id="L134">        setId(role.getRoleId());</span>
+<span class="fc" id="L135">        setNameSpace(role.getNameSpace());</span>
+<span class="fc" id="L136">        setRoleName(role.getRoleName());</span>
+<span class="fc" id="L137">        setDataMap(role.getRawData());</span>
+<span class="fc" id="L138">    }</span>
+
+    // @Version @Column
+<span class="nc" id="L141">    public int getRowVersion() { return rowVersion; }</span>
+<span class="nc" id="L142">    public void setRowVersion(final int rowVersion) { this.rowVersion = rowVersion; }</span>
+
+    // @Column @Lob
+    @Override
+<span class="nc" id="L146">    public String getRowProtection() { return rowProtection; }</span>
+    @Override
+<span class="nc" id="L148">    public void setRowProtection(final String rowProtection) { this.rowProtection = rowProtection; }</span>
+
+    //
+    // Start Database integrity protection methods
+    //
+
+    @Transient
+    @Override
+    protected String getProtectString(final int version) {
+<span class="nc" id="L157">        final ProtectionStringBuilder build = new ProtectionStringBuilder();</span>
+        // What is important to protect here is the data that we define, id, name and certificate profile data
+        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
+<span class="nc" id="L160">        build.append(getId()).append(getNameSpace()).append(getRoleName()).append(getRawData()).append(getRawData());</span>
+<span class="nc" id="L161">        return build.toString();</span>
+    }
+
+    @Transient
+    @Override
+    protected int getProtectVersion() {
+<span class="nc" id="L167">        return 1;</span>
+    }
+
+    @PrePersist
+    @PreUpdate
+    @Override
+    protected void protectData() {
+<span class="nc" id="L174">        super.protectData();</span>
+<span class="nc" id="L175">    }</span>
+
+    @PostLoad
+    @Override
+    protected void verifyData() {
+<span class="nc" id="L180">        super.verifyData();</span>
+<span class="nc" id="L181">    }</span>
+
+    @Override
+    @Transient
+    protected String getRowId() {
+<span class="nc" id="L186">        return String.valueOf(getId());</span>
+    }
+
+    //
+    // End Database integrity protection methods
+    //
+    
+    @Override
+    public String toString() {
+<span class="nc" id="L195">        return roleName;</span>
+    }
+    
+    @Override
+    public int hashCode() {
+<span class="fc" id="L200">        final int prime = 31;</span>
+<span class="fc" id="L201">        int result = 1;</span>
+<span class="fc" id="L202">        result = prime * result + id;</span>
+<span class="pc bpc" id="L203" title="1 of 2 branches missed.">        result = prime * result + ((nameSpaceColumn == null) ? 0 : nameSpaceColumn.hashCode());</span>
+<span class="pc bpc" id="L204" title="1 of 2 branches missed.">        result = prime * result + ((roleName == null) ? 0 : roleName.hashCode());</span>
+<span class="fc" id="L205">        return result;</span>
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+<span class="fc bfc" id="L210" title="All 2 branches covered.">        if (this == obj)</span>
+<span class="fc" id="L211">            return true;</span>
+<span class="pc bpc" id="L212" title="1 of 2 branches missed.">        if (obj == null)</span>
+<span class="nc" id="L213">            return false;</span>
+<span class="pc bpc" id="L214" title="1 of 2 branches missed.">        if (getClass() != obj.getClass())</span>
+<span class="nc" id="L215">            return false;</span>
+<span class="fc" id="L216">        RoleData other = (RoleData) obj;</span>
+<span class="pc bpc" id="L217" title="1 of 2 branches missed.">        if (id != other.id)</span>
+<span class="nc" id="L218">            return false;</span>
+<span class="pc bpc" id="L219" title="1 of 2 branches missed.">        if (nameSpaceColumn == null) {</span>
+<span class="pc bpc" id="L220" title="1 of 2 branches missed.">            if (other.nameSpaceColumn != null)</span>
+<span class="nc" id="L221">                return false;</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">        } else if (!nameSpaceColumn.equals(other.nameSpaceColumn))</span>
+<span class="nc" id="L223">            return false;</span>
+<span class="pc bpc" id="L224" title="1 of 2 branches missed.">        if (roleName == null) {</span>
+<span class="nc bnc" id="L225" title="All 2 branches missed.">            if (other.roleName != null)</span>
+<span class="nc" id="L226">                return false;</span>
+<span class="pc bpc" id="L227" title="1 of 2 branches missed.">        } else if (!roleName.equals(other.roleName))</span>
+<span class="nc" id="L228">            return false;</span>
+<span class="fc" id="L229">        return true;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

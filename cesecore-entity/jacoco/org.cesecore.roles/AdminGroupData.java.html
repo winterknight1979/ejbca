@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdminGroupData.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cesecore-entity</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.roles</a> &gt; <span class="el_source">AdminGroupData.java</span></div><h1>AdminGroupData.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.roles;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.persistence.Entity;
+import javax.persistence.PostLoad;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.cesecore.authorization.rules.AccessRuleData;
+import org.cesecore.authorization.rules.AccessRuleState;
+import org.cesecore.authorization.user.AccessUserAspectData;
+import org.cesecore.dbprotection.ProtectedData;
+import org.cesecore.dbprotection.ProtectionStringBuilder;
+
+/**
+ * Represents a role, and is based in the AdminGroup concept from EJBCA.
+ * 
+ * @version $Id: AdminGroupData.java 25021 2017-01-18 01:30:19Z jeklund $
+ * 
+ */
+@Deprecated // EJBCA 6.8.0
+@Entity
+@Table(name = &quot;AdminGroupData&quot;)
+public class AdminGroupData extends ProtectedData implements Serializable, Comparable&lt;AdminGroupData&gt; {
+
+    public static final String DEFAULT_ROLE_NAME = &quot;DEFAULT&quot;;
+
+    private static final long serialVersionUID = -160810489638829430L;
+    private Integer primaryKey;
+    private Map&lt;Integer, AccessRuleData&gt; accessRules;
+    private Map&lt;Integer, AccessUserAspectData&gt; accessUsers;
+    private String roleName;
+<span class="pc" id="L50">    private int rowVersion = 0;</span>
+    private String rowProtection;
+
+<span class="nc" id="L53">    public AdminGroupData() {</span>
+
+<span class="nc" id="L55">    }</span>
+
+<span class="fc" id="L57">    public AdminGroupData(final Integer primaryKey, final String roleName) {</span>
+<span class="fc" id="L58">        this.primaryKey = primaryKey;</span>
+<span class="fc" id="L59">        this.roleName = roleName;</span>
+<span class="fc" id="L60">        accessUsers = new HashMap&lt;Integer, AccessUserAspectData&gt;();</span>
+<span class="fc" id="L61">        accessRules = new HashMap&lt;Integer, AccessRuleData&gt;();</span>
+<span class="fc" id="L62">    }</span>
+
+    // @Id @Column
+    public Integer getPrimaryKey() {
+<span class="nc" id="L66">        return primaryKey;</span>
+    }
+
+    public void setPrimaryKey(Integer primaryKey) {
+<span class="nc" id="L70">        this.primaryKey = primaryKey;</span>
+<span class="nc" id="L71">    }</span>
+
+    // @Column
+    public String getRoleName() {
+<span class="nc" id="L75">        return roleName;</span>
+    }
+
+    public void setRoleName(String roleName) {
+<span class="nc" id="L79">        this.roleName = roleName;</span>
+<span class="nc" id="L80">    }</span>
+
+    // @Version @Column
+    public int getRowVersion() {
+<span class="nc" id="L84">        return rowVersion;</span>
+    }
+
+    public void setRowVersion(final int rowVersion) {
+<span class="nc" id="L88">        this.rowVersion = rowVersion;</span>
+<span class="nc" id="L89">    }</span>
+
+    // @Column @Lob
+    @Override
+    public String getRowProtection() {
+<span class="nc" id="L94">        return rowProtection;</span>
+    }
+
+    @Override
+    public void setRowProtection(final String rowProtection) {
+<span class="nc" id="L99">        this.rowProtection = rowProtection;</span>
+<span class="nc" id="L100">    }</span>
+
+    /*
+     * If we use lazy fetching we have to take care so that the Entity is managed until we fetch the values. Set works better with eager fetching for
+     * Hibernate.
+     */
+    // @OneToMany(cascade = { CascadeType.ALL }, fetch = FetchType.EAGER) @JoinColumn(name = &quot;RoleData_accessUsers&quot;)
+    public Map&lt;Integer, AccessUserAspectData&gt; getAccessUsers() {
+<span class="nc" id="L108">        return accessUsers;</span>
+    }
+
+    public void setAccessUsers(Map&lt;Integer, AccessUserAspectData&gt; accessUsers) {
+<span class="nc" id="L112">        this.accessUsers = accessUsers;</span>
+<span class="nc" id="L113">    }</span>
+
+    /*
+     * If we use lazy fetching we have to take care so that the Entity is managed until we fetch the values. Set works better with eager fetching for
+     * Hibernate.
+     */
+    // @OneToMany(cascade = { CascadeType.ALL }, fetch = FetchType.EAGER) @JoinColumn(name = &quot;RoleData_accessRules&quot;)
+    public Map&lt;Integer, AccessRuleData&gt; getAccessRules() {
+<span class="nc" id="L121">        return accessRules;</span>
+    }
+
+    public void setAccessRules(Map&lt;Integer, AccessRuleData&gt; accessRules) {
+<span class="fc" id="L125">        this.accessRules = accessRules;</span>
+<span class="fc" id="L126">    }</span>
+    
+    /**
+     * Utility method that makes a tree search of this Role's rules and checks for a positive match. 
+     * @param rule the rule to check
+     * @return true if this Role has access to the given rule. 
+     */
+    @Transient
+    public boolean hasAccessToRule(final String rule) {
+<span class="fc" id="L135">        return hasAccessToRule(rule, false);</span>
+    }
+    
+    /**
+     * Utility method that makes a tree search of this Role's rules and checks for a positive match. 
+     * 
+     * @param rule the rule to check
+     * @param requireRecursive if rule has to be recursive (for an an exact match)
+     * @return true if this Role has access to the given rule. 
+     */
+    @Transient
+    public boolean hasAccessToRule(final String rule, boolean requireRecursive) {
+<span class="pc bpc" id="L147" title="1 of 2 branches missed.">        if(!rule.startsWith(&quot;/&quot;)) {</span>
+<span class="nc" id="L148">            throw new IllegalArgumentException(&quot;Rule must start with a \&quot;/\&quot;&quot;);</span>
+        }
+<span class="fc" id="L150">        boolean result = false;</span>
+<span class="fc bfc" id="L151" title="All 2 branches covered.">        for(AccessRuleData accessRuleData : accessRules.values()) {</span>
+<span class="fc" id="L152">            String currentRule = accessRuleData.getAccessRuleName();</span>
+<span class="fc bfc" id="L153" title="All 2 branches covered.">            if(rule.equals(currentRule)) {</span>
+<span class="fc bfc" id="L154" title="All 2 branches covered.">                if(accessRuleData.getInternalState().equals(AccessRuleState.RULE_ACCEPT)) {</span>
+<span class="fc bfc" id="L155" title="All 2 branches covered.">                    if(requireRecursive) {</span>
+<span class="fc" id="L156">                        result = accessRuleData.getRecursiveBool();</span>
+                    } else {
+<span class="fc" id="L158">                        result = true;</span>
+                    }
+                } else {
+<span class="fc" id="L161">                    result = false;</span>
+<span class="fc" id="L162">                    break;</span>
+                }
+<span class="fc bfc" id="L164" title="All 4 branches covered.">            } else if (rule.startsWith(currentRule) || currentRule.startsWith(rule)) {</span>
+<span class="pc bpc" id="L165" title="1 of 6 branches missed.">                if (rule.length() &gt; currentRule.length() &amp;&amp; currentRule.length() &gt; 1 &amp;&amp; rule.charAt(currentRule.length()) != '/') {</span>
+                    // Not a parent rule but just one with a similar name, compare /foo/bar to /foo_bar,
+                    // also ignoring the root &quot;/&quot; rule. 
+<span class="fc" id="L168">                    continue;</span>
+<span class="fc bfc" id="L169" title="All 4 branches covered.">                } else if (rule.length() &lt; currentRule.length() &amp;&amp; currentRule.charAt(rule.length()) != '/') {</span>
+                    //This is not a subrule (i.e rule == /foo, currentRule == /foo/bar
+<span class="fc" id="L171">                    continue;</span>
+                } else {
+<span class="pc bpc" id="L173" title="1 of 4 branches missed.">                    if (accessRuleData.getInternalState().equals(AccessRuleState.RULE_ACCEPT) &amp;&amp; accessRuleData.getRecursive()) {</span>
+                        // A possible match, but there may be a contraindicator down the line
+<span class="fc" id="L175">                        result = true;</span>
+<span class="pc bpc" id="L176" title="1 of 2 branches missed.">                    } else if (accessRuleData.getInternalState().equals(AccessRuleState.RULE_DECLINE)) {</span>
+                        // Definitely a non-match, break. 
+<span class="fc" id="L178">                        result = false;</span>
+<span class="fc" id="L179">                        break;</span>
+                    }
+                }
+            }
+<span class="fc" id="L183">        }</span>
+<span class="fc" id="L184">        return result;</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="nc" id="L189">        final int prime = 31;</span>
+<span class="nc" id="L190">        int result = 1;</span>
+<span class="nc bnc" id="L191" title="All 2 branches missed.">        result = prime * result + ((accessRules == null) ? 0 : accessRules.hashCode());</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">        result = prime * result + ((accessUsers == null) ? 0 : accessUsers.hashCode());</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">        result = prime * result + ((primaryKey == null) ? 0 : primaryKey.hashCode());</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">        result = prime * result + ((roleName == null) ? 0 : roleName.hashCode());</span>
+<span class="nc" id="L195">        return result;</span>
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+<span class="nc bnc" id="L200" title="All 2 branches missed.">        if (this == obj) {</span>
+<span class="nc" id="L201">            return true;</span>
+        }
+<span class="nc bnc" id="L203" title="All 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L204">            return false;</span>
+        }
+<span class="nc bnc" id="L206" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L207">            return false;</span>
+        }
+<span class="nc" id="L209">        AdminGroupData other = (AdminGroupData) obj;</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">        if (accessRules == null) {</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">            if (other.accessRules != null) {</span>
+<span class="nc" id="L212">                return false;</span>
+            }
+<span class="nc bnc" id="L214" title="All 2 branches missed.">        } else if (!accessRules.equals(other.accessRules)) {</span>
+<span class="nc" id="L215">            return false;</span>
+        }
+<span class="nc bnc" id="L217" title="All 2 branches missed.">        if (accessUsers == null) {</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">            if (other.accessUsers != null) {</span>
+<span class="nc" id="L219">                return false;</span>
+            }
+<span class="nc bnc" id="L221" title="All 2 branches missed.">        } else if (!accessUsers.equals(other.accessUsers)) {</span>
+<span class="nc" id="L222">            return false;</span>
+        }
+<span class="nc bnc" id="L224" title="All 2 branches missed.">        if (primaryKey == null) {</span>
+<span class="nc bnc" id="L225" title="All 2 branches missed.">            if (other.primaryKey != null) {</span>
+<span class="nc" id="L226">                return false;</span>
+            }
+<span class="nc bnc" id="L228" title="All 2 branches missed.">        } else if (!primaryKey.equals(other.primaryKey)) {</span>
+<span class="nc" id="L229">            return false;</span>
+        }
+<span class="nc bnc" id="L231" title="All 2 branches missed.">        if (roleName == null) {</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">            if (other.roleName != null) {</span>
+<span class="nc" id="L233">                return false;</span>
+            }
+<span class="nc bnc" id="L235" title="All 2 branches missed.">        } else if (!roleName.equals(other.roleName)) {</span>
+<span class="nc" id="L236">            return false;</span>
+        }
+<span class="nc" id="L238">        return true;</span>
+    }
+
+    //
+    // Start Database integrity protection methods
+    //
+
+    @Transient
+    @Override
+    protected String getProtectString(final int version) {
+<span class="nc" id="L248">    	final ProtectionStringBuilder build = new ProtectionStringBuilder();</span>
+        // What is important to protect here is the data that we define, id, name and certificate profile data
+        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
+<span class="nc" id="L251">        build.append(getPrimaryKey()).append(getRoleName());</span>
+<span class="nc" id="L252">        return build.toString();</span>
+    }
+
+    @Transient
+    @Override
+    protected int getProtectVersion() {
+<span class="nc" id="L258">        return 1;</span>
+    }
+
+    @PrePersist
+    @PreUpdate
+    @Override
+    protected void protectData() {
+<span class="nc" id="L265">        super.protectData();</span>
+<span class="nc" id="L266">    }</span>
+
+    @PostLoad
+    @Override
+    protected void verifyData() {
+<span class="nc" id="L271">        super.verifyData();</span>
+<span class="nc" id="L272">    }</span>
+
+    @Override
+    @Transient
+    protected String getRowId() {
+<span class="nc" id="L277">        return String.valueOf(getPrimaryKey());</span>
+    }
+
+    //
+    // End Database integrity protection methods
+    //
+
+    @Override
+    public int compareTo(AdminGroupData o) {
+<span class="nc" id="L286">        return roleName.compareToIgnoreCase(o.roleName);</span>
+    }
+    
+    @Override
+    public String toString() {
+<span class="nc" id="L291">        return roleName;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

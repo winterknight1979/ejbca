@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EditEndEntityApprovalRequest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.approval.approvalrequests</a> &gt; <span class="el_source">EditEndEntityApprovalRequest.java</span></div><h1>EditEndEntityApprovalRequest.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.approval.approvalrequests;
+
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ejb.EJBException;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSession;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.ca.IllegalNameException;
+import org.cesecore.certificates.certificate.exception.CertificateSerialNumberException;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSession;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.util.CertTools;
+import org.ejbca.core.ejb.hardtoken.HardTokenSession;
+import org.ejbca.core.ejb.ra.EndEntityManagementSession;
+import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSession;
+import org.ejbca.core.model.approval.ApprovalDataText;
+import org.ejbca.core.model.approval.ApprovalDataVO;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.ApprovalRequest;
+import org.ejbca.core.model.approval.ApprovalRequestExecutionException;
+import org.ejbca.core.model.approval.ApprovalRequestHelper;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.core.model.approval.profile.ApprovalProfile;
+import org.ejbca.core.model.ra.CustomFieldException;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
+
+/**
+ * Approval Request created when trying to edit an end entity.
+ * 
+ * @version $Id: EditEndEntityApprovalRequest.java 27740 2018-01-05 07:24:53Z mikekushner $
+ */
+public class EditEndEntityApprovalRequest extends ApprovalRequest {
+
+	private static final long serialVersionUID = -1L;
+
+<span class="nc" id="L62">	private static final Logger log = Logger.getLogger(EditEndEntityApprovalRequest.class);</span>
+	
+	private static final int LATEST_VERSION = 1;
+		
+	private EndEntityInformation newuserdata;
+	private boolean clearpwd;
+	private EndEntityInformation orguserdata;
+	private boolean useOrgUsername;
+	
+	/** Constructor used in externalization only */
+<span class="nc" id="L72">	public EditEndEntityApprovalRequest() {}</span>
+
+    public EditEndEntityApprovalRequest(EndEntityInformation newuserdata, boolean clearpwd, EndEntityInformation orguserdata,
+            AuthenticationToken requestAdmin, String requestSignature, int cAId, int endEntityProfileId, ApprovalProfile approvalProfile) {
+<span class="nc" id="L76">        super(requestAdmin, requestSignature, REQUESTTYPE_COMPARING, cAId, endEntityProfileId, approvalProfile);</span>
+<span class="nc" id="L77">        this.newuserdata = newuserdata;</span>
+<span class="nc" id="L78">        this.clearpwd = clearpwd;</span>
+<span class="nc" id="L79">        this.orguserdata = orguserdata;</span>
+<span class="nc" id="L80">    }</span>
+    
+    public EditEndEntityApprovalRequest(EndEntityInformation newuserdata, boolean clearpwd, EndEntityInformation orguserdata,
+            AuthenticationToken requestAdmin, String requestSignature, int cAId, int endEntityProfileId, ApprovalProfile approvalProfile, boolean useOrgUsername) {
+<span class="nc" id="L84">        super(requestAdmin, requestSignature, REQUESTTYPE_COMPARING, cAId, endEntityProfileId, approvalProfile);</span>
+<span class="nc" id="L85">        this.newuserdata = newuserdata;</span>
+<span class="nc" id="L86">        this.clearpwd = clearpwd;</span>
+<span class="nc" id="L87">        this.orguserdata = orguserdata;</span>
+<span class="nc" id="L88">        this.useOrgUsername = useOrgUsername;</span>
+<span class="nc" id="L89">    }</span>
+
+	@Override
+	public void execute() throws ApprovalRequestExecutionException {
+<span class="nc" id="L93">		throw new IllegalStateException(&quot;This execution requires additional bean references.&quot;);</span>
+	}
+	
+    public void execute(EndEntityManagementSession endEntityManagementSession, final int approvalRequestID, 
+            final AuthenticationToken lastApprovingAdmin) throws ApprovalRequestExecutionException {
+<span class="nc" id="L98">        log.debug(&quot;Executing ChangeEndEntity for user:&quot; + newuserdata.getUsername());</span>
+        
+        // Add the ID of the approval request to the end entity as extended information.
+<span class="nc" id="L101">        ExtendedInformation ext = newuserdata.getExtendedInformation();</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">        if(ext == null) {</span>
+<span class="nc" id="L103">            ext = orguserdata.getExtendedInformation();</span>
+        }
+<span class="nc bnc" id="L105" title="All 2 branches missed.">        if(ext == null) {</span>
+<span class="nc" id="L106">            ext = new ExtendedInformation();</span>
+        }
+<span class="nc" id="L108">        ext.addEditEndEntityApprovalRequestId(approvalRequestID);</span>
+<span class="nc" id="L109">        newuserdata.setExtendedInformation(ext);</span>
+        
+        try {
+<span class="nc bnc" id="L112" title="All 2 branches missed.">            if (newuserdata.getUsername().equals(orguserdata.getUsername())) {</span>
+<span class="nc" id="L113">        	    endEntityManagementSession.changeUserAfterApproval(getRequestAdmin(), newuserdata, clearpwd, approvalRequestID, lastApprovingAdmin);</span>
+            } else {
+<span class="nc" id="L115">                endEntityManagementSession.changeUserAfterApproval(getRequestAdmin(), newuserdata, clearpwd, approvalRequestID, lastApprovingAdmin, orguserdata.getUsername());</span>
+            }
+<span class="nc" id="L117">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L118">            throw new ApprovalRequestExecutionException(&quot;Authorization Denied :&quot; + e.getMessage(), e);</span>
+<span class="nc" id="L119">        } catch (EndEntityProfileValidationException e) {</span>
+<span class="nc" id="L120">            throw new ApprovalRequestExecutionException(&quot;User Doesn't fullfil end entity profile :&quot; + e.getMessage() + e.getMessage(), e);</span>
+<span class="nc" id="L121">        } catch (ApprovalException e) {</span>
+<span class="nc" id="L122">            throw new EJBException(&quot;This should never happen&quot;, e);</span>
+<span class="nc" id="L123">        } catch (WaitingForApprovalException e) {</span>
+<span class="nc" id="L124">            throw new EJBException(&quot;This should never happen&quot;, e);</span>
+<span class="nc" id="L125">        } catch (CADoesntExistsException e) {</span>
+<span class="nc" id="L126">            throw new ApprovalRequestExecutionException(&quot;CA does not exist:&quot; + e.getMessage(), e);</span>
+<span class="nc" id="L127">		} catch (CertificateSerialNumberException e) {</span>
+<span class="nc" id="L128">		    throw new ApprovalRequestExecutionException(&quot;Error with the SubjectDN serialnumber :&quot; + e.getErrorCode() + e.getMessage(), e);</span>
+<span class="nc" id="L129">        } catch (IllegalNameException e) {</span>
+<span class="nc" id="L130">            throw new ApprovalRequestExecutionException(&quot;The Subject DN failed constraints. &quot; + e.getErrorCode() + e.getMessage(), e);</span>
+<span class="nc" id="L131">        } catch (NoSuchEndEntityException e) {</span>
+<span class="nc" id="L132">            throw new ApprovalRequestExecutionException(&quot;End entity not found.&quot;, e);</span>
+<span class="nc" id="L133">        } catch (CustomFieldException e) {</span>
+<span class="nc" id="L134">            throw new ApprovalRequestExecutionException(&quot;The end entity was not validated by a locally defined field validator&quot;, e);</span>
+<span class="nc" id="L135">        }</span>
+<span class="nc" id="L136">    }</span>
+
+    /**
+     * Approval Id is genereated of This approval type (i.e AddEndEntityApprovalRequest) and UserName
+     */
+    @Override
+    public int generateApprovalId() {	
+<span class="nc bnc" id="L143" title="All 2 branches missed.">        if (useOrgUsername) {</span>
+<span class="nc" id="L144">            return new String(getApprovalType() + &quot;;&quot; + orguserdata.getUsername() + &quot;;&quot; + getApprovalProfile().getProfileName()).hashCode();</span>
+        } else {
+<span class="nc" id="L146">            return new String(getApprovalType() + &quot;;&quot; + newuserdata.getUsername() + &quot;;&quot; + getApprovalProfile().getProfileName()).hashCode();</span>
+        }
+    }
+
+    @Override
+	public int getApprovalType() {		
+<span class="nc" id="L152">		return ApprovalDataVO.APPROVALTYPE_EDITENDENTITY;</span>
+	}
+    
+    public EndEntityInformation getNewEndEntityInformation() {
+<span class="nc" id="L156">        return newuserdata;</span>
+    }
+
+	/** Returns a summary of the information in the request, without doing any database queries. See also the overloaded method */
+	@Override
+	public List&lt;ApprovalDataText&gt; getNewRequestDataAsText(AuthenticationToken admin) {
+<span class="nc" id="L162">	    ArrayList&lt;ApprovalDataText&gt; retval = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L163">        retval.add(new ApprovalDataText(&quot;USERNAME&quot;,newuserdata.getUsername(),true,false));</span>
+<span class="nc" id="L164">        String passwordtext = &quot;NOTSHOWN&quot;;</span>
+<span class="nc bnc" id="L165" title="All 4 branches missed.">        if((newuserdata.getPassword() == null &amp;&amp; !StringUtils.isEmpty(orguserdata.getPassword())) ||</span>
+<span class="nc bnc" id="L166" title="All 4 branches missed.">           (!StringUtils.isEmpty(newuserdata.getPassword()) &amp;&amp; orguserdata.getPassword() == null)) {            </span>
+<span class="nc" id="L167">            passwordtext = &quot;NEWPASSWORD&quot;;           </span>
+        }       
+<span class="nc bnc" id="L169" title="All 4 branches missed.">        if(newuserdata.getPassword() != null &amp;&amp; orguserdata.getPassword() != null){</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">            if(!newuserdata.getPassword().equals(orguserdata.getPassword())){</span>
+<span class="nc" id="L171">                passwordtext = &quot;NEWPASSWORD&quot;;</span>
+            }
+        }               
+<span class="nc" id="L174">        retval.add(new ApprovalDataText(&quot;PASSWORD&quot;,passwordtext,true,true));</span>
+<span class="nc" id="L175">        retval.add(new ApprovalDataText(&quot;SUBJECTDN&quot;,CertTools.stringToBCDNString(newuserdata.getDN()),true,false));</span>
+<span class="nc" id="L176">        retval.add(getTextWithNoValueString(&quot;SUBJECTALTNAME&quot;,newuserdata.getSubjectAltName()));</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">        String dirattrs = newuserdata.getExtendedInformation() != null ? newuserdata.getExtendedInformation().getSubjectDirectoryAttributes() : null;</span>
+<span class="nc" id="L178">        retval.add(getTextWithNoValueString(&quot;SUBJECTDIRATTRIBUTES&quot;,dirattrs));</span>
+<span class="nc" id="L179">        retval.add(getTextWithNoValueString(&quot;EMAIL&quot;,newuserdata.getEmail()));</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">        retval.add(new ApprovalDataText(&quot;KEYRECOVERABLE&quot;,newuserdata.getKeyRecoverable() ? &quot;YES&quot; : &quot;NO&quot;,true,true));</span>
+<span class="nc bnc" id="L181" title="All 2 branches missed.">        retval.add(new ApprovalDataText(&quot;SENDNOTIFICATION&quot;,newuserdata.getSendNotification() ? &quot;YES&quot; : &quot;NO&quot;,true,true));</span>
+<span class="nc" id="L182">        retval.add(new ApprovalDataText(&quot;STATUS&quot;,EndEntityConstants.getTranslatableStatusText(newuserdata.getStatus()),true,true));</span>
+<span class="nc" id="L183">        return retval;</span>
+	}
+
+	public List&lt;ApprovalDataText&gt; getNewRequestDataAsText(CaSessionLocal caSession, EndEntityProfileSession endEntityProfileSession,
+			CertificateProfileSession certificateProfileSession, HardTokenSession hardTokenSession) {
+<span class="nc" id="L188">		ArrayList&lt;ApprovalDataText&gt; retval = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L189">		retval.add(new ApprovalDataText(&quot;USERNAME&quot;,newuserdata.getUsername(),true,false));</span>
+<span class="nc" id="L190">		String passwordtext = &quot;NOTSHOWN&quot;;</span>
+<span class="nc bnc" id="L191" title="All 4 branches missed.">		if((newuserdata.getPassword() == null &amp;&amp; !StringUtils.isEmpty(orguserdata.getPassword())) ||</span>
+<span class="nc bnc" id="L192" title="All 4 branches missed.">		   (!StringUtils.isEmpty(newuserdata.getPassword()) &amp;&amp; orguserdata.getPassword() == null)) {			</span>
+<span class="nc" id="L193">			passwordtext = &quot;NEWPASSWORD&quot;;			</span>
+		}		
+<span class="nc bnc" id="L195" title="All 4 branches missed.">		if(newuserdata.getPassword() != null &amp;&amp; orguserdata.getPassword() != null){</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">			if(!newuserdata.getPassword().equals(orguserdata.getPassword())){</span>
+<span class="nc" id="L197">				passwordtext = &quot;NEWPASSWORD&quot;;</span>
+			}
+		}				
+<span class="nc" id="L200">		retval.add(new ApprovalDataText(&quot;PASSWORD&quot;,passwordtext,true,true));</span>
+<span class="nc" id="L201">		retval.add(new ApprovalDataText(&quot;SUBJECTDN&quot;,CertTools.stringToBCDNString(newuserdata.getDN()),true,false));</span>
+<span class="nc" id="L202">		retval.add(getTextWithNoValueString(&quot;SUBJECTALTNAME&quot;,newuserdata.getSubjectAltName()));</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">		String dirattrs = newuserdata.getExtendedInformation() != null ? newuserdata.getExtendedInformation().getSubjectDirectoryAttributes() : null;</span>
+<span class="nc" id="L204">		retval.add(getTextWithNoValueString(&quot;SUBJECTDIRATTRIBUTES&quot;,dirattrs));</span>
+<span class="nc" id="L205">		retval.add(getTextWithNoValueString(&quot;EMAIL&quot;,newuserdata.getEmail()));</span>
+<span class="nc" id="L206">		CAInfo caInfo = caSession.getCAInfoInternal(newuserdata.getCAId());</span>
+		String caname;
+<span class="nc bnc" id="L208" title="All 2 branches missed.">		if(caInfo != null) {</span>
+<span class="nc" id="L209">			caname = caInfo.getName();</span>
+		} else {
+<span class="nc" id="L211">			caname = &quot;NotExist&quot;;</span>
+		}
+<span class="nc" id="L213">		retval.add(new ApprovalDataText(&quot;CA&quot;, caname, true, false));</span>
+<span class="nc" id="L214">		retval.add(new ApprovalDataText(&quot;ENDENTITYPROFILE&quot;, endEntityProfileSession.getEndEntityProfileName(newuserdata.getEndEntityProfileId()),true,false));		</span>
+<span class="nc" id="L215">		retval.add(new ApprovalDataText(&quot;CERTIFICATEPROFILE&quot;, certificateProfileSession.getCertificateProfileName(newuserdata.getCertificateProfileId()),true,false));</span>
+<span class="nc" id="L216">		final ExtendedInformation neweei = newuserdata.getExtendedInformation();</span>
+<span class="nc bnc" id="L217" title="All 4 branches missed.">		if (neweei != null &amp;&amp; neweei.getKeyStoreAlgorithmType() != null) {</span>
+<span class="nc" id="L218">		    String keyTypeString = neweei.getKeyStoreAlgorithmType();</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">		    if (neweei.getKeyStoreAlgorithmSubType() != null) {</span>
+<span class="nc" id="L220">		        keyTypeString += &quot; &quot; + neweei.getKeyStoreAlgorithmSubType();</span>
+		    }
+<span class="nc" id="L222">		    retval.add(new ApprovalDataText(&quot;KEYALGORITHM&quot;, keyTypeString, true, false));</span>
+		}
+<span class="nc" id="L224">		retval.add(ApprovalRequestHelper.getTokenName(hardTokenSession, newuserdata.getTokenType()));</span>
+<span class="nc" id="L225">		retval.add(getTextWithNoValueString(&quot;HARDTOKENISSUERALIAS&quot;, hardTokenSession.getHardTokenIssuerAlias(newuserdata.getHardTokenIssuerId())));</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">		retval.add(new ApprovalDataText(&quot;KEYRECOVERABLE&quot;,newuserdata.getKeyRecoverable() ? &quot;YES&quot; : &quot;NO&quot;,true,true));</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">		retval.add(new ApprovalDataText(&quot;SENDNOTIFICATION&quot;,newuserdata.getSendNotification() ? &quot;YES&quot; : &quot;NO&quot;,true,true));</span>
+<span class="nc" id="L228">		retval.add(new ApprovalDataText(&quot;STATUS&quot;,EndEntityConstants.getTranslatableStatusText(newuserdata.getStatus()),true,true));</span>
+<span class="nc" id="L229">		return retval;</span>
+	}
+	
+	private ApprovalDataText getTextWithNoValueString(String header, String data){
+<span class="nc bnc" id="L233" title="All 4 branches missed.">		if(data==null || data.equals(&quot;&quot;)){</span>
+<span class="nc" id="L234">			return new ApprovalDataText(header,&quot;NOVALUE&quot;,true,true);</span>
+		}
+<span class="nc" id="L236">		return new ApprovalDataText(header,data,true,false);</span>
+	}
+
+	@Override
+	public List&lt;ApprovalDataText&gt; getOldRequestDataAsText(AuthenticationToken admin) {
+<span class="nc" id="L241">		throw new RuntimeException(&quot;This getOldRequestDataAsText requires additional bean references.&quot;);</span>
+	}
+
+	public List&lt;ApprovalDataText&gt; getOldRequestDataAsText(AuthenticationToken admin, CaSession caSession, EndEntityProfileSession endEntityProfileSession,
+			CertificateProfileSession certificateProfileSession, HardTokenSession hardTokenSession) {
+<span class="nc" id="L246">		final List&lt;ApprovalDataText&gt; retval = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L247">		retval.add(new ApprovalDataText(&quot;USERNAME&quot;, orguserdata.getUsername(), true, false));</span>
+<span class="nc" id="L248">		retval.add(new ApprovalDataText(&quot;PASSWORD&quot;, &quot;NOTSHOWN&quot;, true, true));</span>
+<span class="nc" id="L249">		retval.add(new ApprovalDataText(&quot;SUBJECTDN&quot;, CertTools.stringToBCDNString(orguserdata.getDN()), true, false));</span>
+<span class="nc" id="L250">		retval.add(getTextWithNoValueString(&quot;SUBJECTALTNAME&quot;, orguserdata.getSubjectAltName()));</span>
+<span class="nc bnc" id="L251" title="All 2 branches missed.">		String dirattrs = orguserdata.getExtendedInformation() != null ? orguserdata.getExtendedInformation().getSubjectDirectoryAttributes() : null;</span>
+<span class="nc" id="L252">		retval.add(getTextWithNoValueString(&quot;SUBJECTDIRATTRIBUTES&quot;, dirattrs));</span>
+<span class="nc" id="L253">		retval.add(getTextWithNoValueString(&quot;EMAIL&quot;, orguserdata.getEmail()));</span>
+		String caname;
+        try {
+<span class="nc" id="L256">            CAInfo caInfo = caSession.getCAInfo(admin, orguserdata.getCAId());</span>
+<span class="nc bnc" id="L257" title="All 2 branches missed.">            if (caInfo != null) {</span>
+<span class="nc" id="L258">                caname = caInfo.getName();</span>
+            } else {
+<span class="nc" id="L260">                caname = &quot;NotExist&quot;;</span>
+            }
+<span class="nc" id="L262">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L263">            caname = &quot;AuthDenied&quot;;</span>
+<span class="nc" id="L264">        }</span>
+<span class="nc" id="L265">		retval.add(new ApprovalDataText(&quot;CA&quot;, caname, true, false));</span>
+<span class="nc" id="L266">		retval.add(new ApprovalDataText(&quot;ENDENTITYPROFILE&quot;, endEntityProfileSession.getEndEntityProfileName(orguserdata.getEndEntityProfileId()), true, false));		</span>
+<span class="nc" id="L267">		retval.add(new ApprovalDataText(&quot;CERTIFICATEPROFILE&quot;, certificateProfileSession.getCertificateProfileName(orguserdata.getCertificateProfileId()), true, false));</span>
+<span class="nc" id="L268">		retval.add(ApprovalRequestHelper.getTokenName(hardTokenSession, orguserdata.getTokenType()));</span>
+<span class="nc" id="L269">		retval.add(getTextWithNoValueString(&quot;HARDTOKENISSUERALIAS&quot;, hardTokenSession.getHardTokenIssuerAlias(orguserdata.getHardTokenIssuerId())));</span>
+<span class="nc bnc" id="L270" title="All 2 branches missed.">		retval.add(new ApprovalDataText(&quot;KEYRECOVERABLE&quot;, orguserdata.getKeyRecoverable() ? &quot;YES&quot; : &quot;NO&quot;, true, true));</span>
+<span class="nc bnc" id="L271" title="All 2 branches missed.">		retval.add(new ApprovalDataText(&quot;SENDNOTIFICATION&quot;, orguserdata.getSendNotification() ? &quot;YES&quot; : &quot;NO&quot;, true, true));</span>
+<span class="nc" id="L272">		retval.add(new ApprovalDataText(&quot;STATUS&quot;, EndEntityConstants.getTranslatableStatusText(orguserdata.getStatus()), true, true));</span>
+<span class="nc" id="L273">		return retval;</span>
+	}
+
+	@Override
+	public boolean isExecutable() {		
+<span class="nc" id="L278">		return true;</span>
+	}
+	
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+<span class="nc" id="L283">		super.writeExternal(out);</span>
+<span class="nc" id="L284">		out.writeInt(LATEST_VERSION);</span>
+<span class="nc" id="L285">		out.writeObject(newuserdata);</span>
+<span class="nc" id="L286">		out.writeBoolean(clearpwd);</span>
+<span class="nc" id="L287">		out.writeObject(orguserdata);</span>
+<span class="nc" id="L288">	}</span>
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {        
+<span class="nc" id="L292">		super.readExternal(in);</span>
+<span class="nc" id="L293">        int version = in.readInt();</span>
+<span class="nc bnc" id="L294" title="All 2 branches missed.">        if(version == 1){</span>
+<span class="nc" id="L295">    		newuserdata = (EndEntityInformation) in.readObject();</span>
+<span class="nc" id="L296">    		clearpwd = in.readBoolean();</span>
+<span class="nc" id="L297">    		orguserdata = (EndEntityInformation) in.readObject();</span>
+        }
+<span class="nc" id="L299">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

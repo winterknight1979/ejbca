@@ -1,0 +1,145 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>ApprovalSessionLocal xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../../apidocs/org/ejbca/core/ejb/approval/ApprovalSessionLocal.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <em class="jxr_javadoccomment">/*************************************************************************</em>
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <em class="jxr_javadoccomment"> *  EJBCA Community: The OpenSource Certificate Authority                *</em>
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <em class="jxr_javadoccomment"> *  This software is free software; you can redistribute it and/or       *</em>
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <em class="jxr_javadoccomment"> *  modify it under the terms of the GNU Lesser General Public           *</em>
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <em class="jxr_javadoccomment"> *  License as published by the Free Software Foundation; either         *</em>
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <em class="jxr_javadoccomment"> *  version 2.1 of the License, or any later version.                    *</em>
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_javadoccomment"> *  See terms of license at gnu.org.                                     *</em>
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <em class="jxr_javadoccomment"> *************************************************************************/</em>
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">package</strong> org.ejbca.core.ejb.approval;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> java.util.Collection;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> java.util.Date;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> javax.ejb.Local;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.cesecore.authentication.tokens.AuthenticationToken;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.model.approval.Approval;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.model.approval.ApprovalDataVO;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.model.approval.ApprovalRequest;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.model.approval.profile.ApprovalProfile;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.ejbca.util.query.IllegalQueryException;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.ejbca.util.query.Query;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment"> * Local interface for ApprovalSession.</em>
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment"> * </em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment"> * @version $Id: ApprovalSessionLocal.java 26119 2017-07-03 15:02:08Z oskareriksson $</em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  @Local
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">interface</strong> <a name="ApprovalSessionLocal" href="../../../../../org/ejbca/core/ejb/approval/ApprovalSessionLocal.html#ApprovalSessionLocal">ApprovalSessionLocal</a> <strong class="jxr_keyword">extends</strong> <a name="ApprovalSession" href="../../../../../org/ejbca/core/ejb/approval/ApprovalSession.html#ApprovalSession">ApprovalSession</a> {
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <em class="jxr_javadoccomment">     * Send all work-flow related approval notifications given the last added Approval to the approvalsPerformed.</em>
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <em class="jxr_javadoccomment">     * @param approvalRequest the approval request</em>
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <em class="jxr_javadoccomment">     * @param approvalProfile the profile determining the approval work flow</em>
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <em class="jxr_javadoccomment">     * @param approvalData the ApprovalData object referring to the approval request</em>
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <em class="jxr_javadoccomment">     * @param expired should be set to true if the notification is due to expiration of the approval request</em>
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>      <strong class="jxr_keyword">void</strong> sendApprovalNotifications(ApprovalRequest approvalRequest, ApprovalProfile approvalProfile,
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>              ApprovalData approvalData, <strong class="jxr_keyword">boolean</strong> expired);
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <em class="jxr_javadoccomment">	 * Encode a Collection of Approval and set it in ApprovalData object.</em>
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  <em class="jxr_javadoccomment">	 * @param approvalData data</em>
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  <em class="jxr_javadoccomment">	 * @param approvals cannot be null.</em>
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  	<strong class="jxr_keyword">void</strong> setApprovals(ApprovalData approvalData, Collection&lt;Approval&gt; approvals);
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>  	
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  	ApprovalData findNonExpiredApprovalDataLocal(<strong class="jxr_keyword">int</strong> approvalId);
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  	
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>  	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>  <em class="jxr_javadoccomment">	 * Returns a list of all approval requests whose status is WAITING_FOR_APPROVAL only (aka. not including status APPROVED).</em>
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  <em class="jxr_javadoccomment">	 * This method is called mainly when upgrading older approval requests to EJBCA 6.6.0 or later.</em>
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>  <em class="jxr_javadoccomment">	 * @return A list of all approval requests whose status is WAITING_FOR_APPROVAL</em>
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>  <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>  	List&lt;ApprovalData&gt; findWaitingForApprovalApprovalDataLocal();
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>  	
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>  <em class="jxr_javadoccomment">     * Method that takes an approvalId (hash) and returns the request's ID (the value in the "Id" column in the "ApprovalData" table in the database)</em>
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>  <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  <em class="jxr_javadoccomment">     * @param approvalId the request hash (approvalId in the database)</em>
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  <em class="jxr_javadoccomment">     * @return the ID of the approval request or 0 if it does not exist</em>
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>      <strong class="jxr_keyword">int</strong> getIdFromApprovalId(<strong class="jxr_keyword">int</strong> approvalId);
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>  
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>  	 <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>  <em class="jxr_javadoccomment">      * Updates the approval request field for an approval. Doesn't do any authorization checks.</em>
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>  <em class="jxr_javadoccomment">      * </em>
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>  <em class="jxr_javadoccomment">      * @param approvalDataId the ID of an approvalData object (not the approvalID hash)</em>
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>  <em class="jxr_javadoccomment">      * @param approvalRequest the updated approval request</em>
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>  <em class="jxr_javadoccomment">      */</em>
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>       <strong class="jxr_keyword">void</strong> updateApprovalRequest(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> approvalDataId, <strong class="jxr_keyword">final</strong> ApprovalRequest approvalRequest);
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>       
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>       <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>  <em class="jxr_javadoccomment">      * Moves the expiration date forward and sets the status for Waiting for Approval. Doesn't do any authorization checks.</em>
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>  <em class="jxr_javadoccomment">      * </em>
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>  <em class="jxr_javadoccomment">      * @param authenticationToken The administrator requesting extension of the request. Used for audit logging only.</em>
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>  <em class="jxr_javadoccomment">      * @param approvalDataId Id of the approval request</em>
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>  <em class="jxr_javadoccomment">      * @param extendForMillis The new expiration date will be set to current time plus this number of milliseconds</em>
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>  <em class="jxr_javadoccomment">      * @throws IllegalStateException if the request has been approved or denied already.</em>
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>  <em class="jxr_javadoccomment">      */</em>
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>       <strong class="jxr_keyword">void</strong> extendApprovalRequestNoAuth(AuthenticationToken authenticationToken, <strong class="jxr_keyword">int</strong> approvalDataId, <strong class="jxr_keyword">long</strong> extendForMillis);
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>       
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>       <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>  <em class="jxr_javadoccomment">      * Method returning a list of approvals from the give query</em>
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>  <em class="jxr_javadoccomment">      * </em>
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>  <em class="jxr_javadoccomment">      * @param query should be a Query object containing ApprovalMatch and</em>
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>  <em class="jxr_javadoccomment">      *            TimeMatch</em>
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>  <em class="jxr_javadoccomment">      * @param index where the ResultSet should start</em>
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>  <em class="jxr_javadoccomment">      * @param numberofrows maximum number of rows </em>
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>  <em class="jxr_javadoccomment">      * @param caAuthorizationString</em>
+<a class="jxr_linenumber" name="L100" href="#L100">100</a> <em class="jxr_javadoccomment">      *            a list of authorized CA Ids in the form 'cAId=... OR cAId=...'</em>
+<a class="jxr_linenumber" name="L101" href="#L101">101</a> <em class="jxr_javadoccomment">      * @param endEntityProfileAuthorizationString</em>
+<a class="jxr_linenumber" name="L102" href="#L102">102</a> <em class="jxr_javadoccomment">      *            a list of authorized end entity profile ids in the form</em>
+<a class="jxr_linenumber" name="L103" href="#L103">103</a> <em class="jxr_javadoccomment">      *            '(endEntityProfileId=... OR endEntityProfileId=...) objects</em>
+<a class="jxr_linenumber" name="L104" href="#L104">104</a> <em class="jxr_javadoccomment">      *            only</em>
+<a class="jxr_linenumber" name="L105" href="#L105">105</a> <em class="jxr_javadoccomment">      * @return a List of ApprovalDataVO, never null</em>
+<a class="jxr_linenumber" name="L106" href="#L106">106</a> <em class="jxr_javadoccomment">      * @throws IllegalQueryException fail</em>
+<a class="jxr_linenumber" name="L107" href="#L107">107</a> <em class="jxr_javadoccomment">      */</em>
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>      List&lt;ApprovalDataVO&gt; query(<strong class="jxr_keyword">final</strong> Query query, <strong class="jxr_keyword">int</strong> index, <strong class="jxr_keyword">int</strong> numberofrows, String caAuthorizationString,
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>              String endEntityProfileAuthorizationString) <strong class="jxr_keyword">throws</strong> IllegalQueryException;
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>      
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L112" href="#L112">112</a> <em class="jxr_javadoccomment">      * Returns a list of non-expired approvals with the given statuses.</em>
+<a class="jxr_linenumber" name="L113" href="#L113">113</a> <em class="jxr_javadoccomment">      * @param includeUnfinished Includes requests that haven't been executed or rejected yet.</em>
+<a class="jxr_linenumber" name="L114" href="#L114">114</a> <em class="jxr_javadoccomment">      * @param includeProcessed Includes requests that have been approved and executed, or rejected.</em>
+<a class="jxr_linenumber" name="L115" href="#L115">115</a> <em class="jxr_javadoccomment">      * @param includeExpired Includes requests that have expired.</em>
+<a class="jxr_linenumber" name="L116" href="#L116">116</a> <em class="jxr_javadoccomment">      * @param startDate Include requests from this date and later, or null for no limit.</em>
+<a class="jxr_linenumber" name="L117" href="#L117">117</a> <em class="jxr_javadoccomment">      * @param endDate Include requests up to this date, or null for no limit.</em>
+<a class="jxr_linenumber" name="L118" href="#L118">118</a> <em class="jxr_javadoccomment">      * @param expiresBefore When searching unfinished requests, include only those that expire before this date. Set to null to include all.</em>
+<a class="jxr_linenumber" name="L119" href="#L119">119</a> <em class="jxr_javadoccomment">      * @param index where the ResultSet should start</em>
+<a class="jxr_linenumber" name="L120" href="#L120">120</a> <em class="jxr_javadoccomment">      * @param numberofrows maximum number of rows</em>
+<a class="jxr_linenumber" name="L121" href="#L121">121</a> <em class="jxr_javadoccomment">      * @param caAuthorizationString</em>
+<a class="jxr_linenumber" name="L122" href="#L122">122</a> <em class="jxr_javadoccomment">      *            a list of authorized CA Ids in the form 'cAId=... OR cAId=...'</em>
+<a class="jxr_linenumber" name="L123" href="#L123">123</a> <em class="jxr_javadoccomment">      * @param endEntityProfileAuthorizationString</em>
+<a class="jxr_linenumber" name="L124" href="#L124">124</a> <em class="jxr_javadoccomment">      *            a list of authorized end entity profile ids in the form</em>
+<a class="jxr_linenumber" name="L125" href="#L125">125</a> <em class="jxr_javadoccomment">      *            '(endEntityProfileId=... OR endEntityProfileId=...) objects</em>
+<a class="jxr_linenumber" name="L126" href="#L126">126</a> <em class="jxr_javadoccomment">      *            only</em>
+<a class="jxr_linenumber" name="L127" href="#L127">127</a> <em class="jxr_javadoccomment">      * @return a List of ApprovalDataVO, never null</em>
+<a class="jxr_linenumber" name="L128" href="#L128">128</a> <em class="jxr_javadoccomment">      */</em>
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>      List&lt;ApprovalDataVO&gt; queryByStatus(<strong class="jxr_keyword">boolean</strong> includeUnfinished, <strong class="jxr_keyword">boolean</strong> includeProcessed, <strong class="jxr_keyword">boolean</strong> includeExpired,
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>              <strong class="jxr_keyword">final</strong> Date startDate, <strong class="jxr_keyword">final</strong> Date endDate, <strong class="jxr_keyword">final</strong> Date expiresBefore, <strong class="jxr_keyword">int</strong> index, <strong class="jxr_keyword">int</strong> numberofrows, String caAuthorizationString,
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>              String endEntityProfileAuthorizationString);
+<a class="jxr_linenumber" name="L132" href="#L132">132</a> }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2020. All rights reserved.</div>
+</body>
+</html>

@@ -1,0 +1,888 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>X509CAInfo.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-ejb</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.ca</a> &gt; <span class="el_source">X509CAInfo.java</span></div><h1>X509CAInfo.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.ca;
+
+import java.security.NoSuchProviderException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.cesecore.certificates.ca.catoken.CAToken;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceInfo;
+import org.cesecore.certificates.certificateprofile.CertificatePolicy;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.SimpleTime;
+import org.cesecore.util.StringTools;
+
+
+/**
+ * Holds non-sensitive information about a X509CA.
+ *
+ * @version $Id: X509CAInfo.java 34456 2020-02-06 18:36:20Z anatom $
+ */
+public class X509CAInfo extends CAInfo {
+
+	private static final long serialVersionUID = 2L;
+	private List&lt;CertificatePolicy&gt; policies;
+	private boolean useauthoritykeyidentifier;
+	private boolean authoritykeyidentifiercritical;
+	private boolean usecrlnumber;
+	private boolean crlnumbercritical;
+	private String defaultcrldistpoint;
+	private String defaultcrlissuer;
+	private String defaultocsplocator;
+	private String cadefinedfreshestcrl;
+	private String subjectaltname;
+	private boolean useUTF8PolicyText;
+	private boolean usePrintableStringSubjectDN;
+	private boolean useLdapDNOrder;
+	private boolean useCrlDistributionPointOnCrl;
+	private boolean crlDistributionPointOnCrlCritical;
+<span class="pc" id="L58">	private String cmpRaAuthSecret = &quot;&quot;;</span>
+	private List&lt;String&gt; authorityInformationAccess;
+	private List&lt;String&gt; certificateAiaDefaultCaIssuerUri;
+	private List&lt;String&gt; nameConstraintsPermitted;
+	private List&lt;String&gt; nameConstraintsExcluded;
+	private String externalCdp;
+	private boolean nameChanged;
+	private int caSerialNumberOctetSize;
+
+    /**
+     * This constructor can be used when creating a CA.
+     * This constructor uses defaults for the fields that are not specified.
+     * @param subjectdn DN
+     * @param name Name
+     * @param status Status
+     * @param certificateProfileId Profile
+     * @param encodedValidity Vlidity
+     * @param signedby Signer
+     * @param certificatechain Certs 
+     * @param catoken Token
+     */
+    public X509CAInfo(final String subjectdn, final String name, final int status,
+            final int certificateProfileId, final String encodedValidity, int signedby, final Collection&lt;Certificate&gt; certificatechain, final CAToken catoken) {
+<span class="fc" id="L81">        this(subjectdn,</span>
+             name,
+             status, // CA status (CAConstants.CA_ACTIVE, etc.)
+             new Date(), // update time
+             &quot;&quot;, // Subject Alternative name
+             certificateProfileId, // CA certificate profile
+                0, // default ca profile
+             false, // default is certificate data table   
+             encodedValidity, null, // Expiretime
+             CAInfo.CATYPE_X509, // CA type (X509/CVC)
+             signedby, // Signed by CA
+             certificatechain, // Certificate chain
+             catoken, // CA Token
+             &quot;&quot;, // Description
+<span class="fc" id="L95">             CesecoreConfiguration.getSerialNumberOctetSizeForNewCa(), // serial number octet size</span>
+             -1, // Revocation reason
+             null, // Revocation date
+             null, // PolicyId
+             1 * SimpleTime.MILLISECONDS_PER_DAY, // CRLPeriod
+             0L, // CRLIssueInterval
+             10 * SimpleTime.MILLISECONDS_PER_MINUTE, // CRLOverlapTime
+             0L, // DeltaCRLPeriod
+             new ArrayList&lt;Integer&gt;(),
+             new ArrayList&lt;Integer&gt;(),
+             true, // Authority Key Identifier
+             false, // Authority Key Identifier Critical
+             true, // CRL Number
+             false, // CRL Number Critical
+             null, // defaultcrldistpoint
+             null, // defaultcrlissuer
+             null, // defaultocsplocator
+             null, // CRL Authority Information Access (AIA) extension
+             null, // Certificate AIA default CA issuer URI
+             null, null, // Name Constraints (permitted/excluded)
+             null, // defaultfreshestcrl
+             true, // Finish User
+             new ArrayList&lt;ExtendedCAServiceInfo&gt;(), // no extended services
+             false, // use default utf8 settings
+             new HashMap&lt;ApprovalRequestType, Integer&gt;(), //approvals
+             false, // Use UTF8 subject DN by default
+             true, // Use LDAP DN order by default
+             false, // Use CRL Distribution Point on CRL
+             false, // CRL Distribution Point on CRL critical
+             true, // Include in HealthCheck
+             true, // isDoEnforceUniquePublicKeys
+             true, // isDoEnforceUniqueDistinguishedName
+             false, // isDoEnforceUniqueSubjectDNSerialnumber
+             false, // useCertReqHistory
+             true, // useUserStorage
+             true, // useCertificateStorage
+             false, // acceptRevocationNonExistingEntry
+             null, // cmpRaAuthSecret
+             false // keepExpiredCertsOnCRL
+        );
+<span class="fc" id="L135">    }</span>
+
+    /**
+     * Constructor that should be used when creating CA and retrieving CA info.
+     * Please use the shorter form if you do not need to set all of the values.
+     * @param subjectDn the Subject DN of the CA as found in the certificate
+     * @param name the name of the CA shown in EJBCA, can be changed by the user
+     * @param status the operational status of the CA, one of the constants in {@link CAConstants}
+     * @param updateTime the last time this CA was updated, normally the current date and time
+     * @param subjectaltname the Subject Alternative Name (SAN) of the CA, as found in the certificate
+     * @param certificateprofileid the ID of the certificate profile for this CA
+     * @param defaultCertprofileId the id of default cetificate profile for certificates this CA issues
+     * @param useNoConflictCertificateData should use NoConflictCertificate data table to write to
+     * @param encodedValidity the validity of this CA as a human-readable string, e.g. 25y
+     * @param expiretime the date when this CA expires
+     * @param catype the type of CA, in this case CAInfo.CATYPE_X509
+     * @param signedBy the id of the CA which signed this CA
+     * @param certificatechain the certificate chain containing the CA certificate of this CA
+     * @param catoken the CA token for this CA, containing e.g. a reference to the crypto token
+     * @param description a text describing this CA
+     * @param caSerialNumberOctetSize serial number octet size for this CA
+     * @param revocationReason the reason why this CA was revoked, or -1 if not revoked
+     * @param revocationDate the date of revocation, or null if not revoked
+     * @param policies a policy OID
+     * @param crlperiod the CRL validity period in ms
+     * @param crlIssueInterval how often in ms the CRLs should be distributed, e.g. 3600000 will generate a new CRL every hour
+     * @param crlOverlapTime the validity overlap in ms for a subsequent CRL, e.g. 5000 will generate a CRL 5m before the previous CRL expires
+     * @param deltacrlperiod how often Delta CRLs should be distributed
+     * @param crlpublishers a collection of publisher IDs for this CA
+     * @param keyValidators a collection of key validator IDs for this CA
+     * @param useauthoritykeyidentifier bool
+     * @param authoritykeyidentifiercritical bool
+     * @param usecrlnumber bool
+     * @param crlnumbercritical bool
+     * @param defaultcrldistpoint the URI of the default CRL distribution point
+     * @param defaultcrlissuer Issuer
+     * @param defaultocspservicelocator Locator
+     * @param authorityInformationAccess Acces
+     * @param certificateAiaDefaultCaIssuerUri Issuer URI
+     * @param nameConstraintsPermitted a list of name constraints which should be permitted
+     * @param nameConstraintsExcluded a list of name constraints which should be excluded
+     * @param cadefinedfreshestcrl CRL
+     * @param finishuser bool
+     * @param extendedcaserviceinfos bool
+     * @param useUTF8PolicyText bool
+     * @param approvals a map of approval profiles which should be used for different operations
+     * @param usePrintableStringSubjectDN bool
+     * @param useLdapDnOrder biik
+     * @param useCrlDistributionPointOnCrl bool
+     * @param crlDistributionPointOnCrlCritical bool
+     * @param includeInHealthCheck enable healthcheck for this CA
+     * @param _doEnforceUniquePublicKeys bool
+     * @param _doEnforceUniqueDistinguishedName bool
+     * @param _doEnforceUniqueSubjectDNSerialnumber bool
+     * @param _useCertReqHistory bool
+     * @param _useUserStorage bool
+     * @param _useCertificateStorage bool
+     * @param _acceptRevocationNonExistingEntry bool
+     * @param _cmpRaAuthSecret bool
+     * @param keepExpiredCertsOnCRL bool
+     */
+    private X509CAInfo(final String subjectDn, final String name, final int status, final Date updateTime, final String subjectaltname,
+            final int certificateprofileid, final int defaultCertprofileId, final boolean useNoConflictCertificateData, final String encodedValidity, final Date expiretime, final int catype, final int signedBy,
+            final Collection&lt;Certificate&gt; certificatechain, final CAToken catoken,
+    		final String description, final int caSerialNumberOctetSize, final int revocationReason, final Date revocationDate, final List&lt;CertificatePolicy&gt; policies,
+    		final long crlperiod, final long crlIssueInterval, final long crlOverlapTime, final long deltacrlperiod,
+    		final Collection&lt;Integer&gt; crlpublishers, final Collection&lt;Integer&gt; keyValidators, final boolean useauthoritykeyidentifier, final boolean authoritykeyidentifiercritical,
+    		final boolean usecrlnumber, final boolean crlnumbercritical, final String defaultcrldistpoint, final String defaultcrlissuer,
+    		final String defaultocspservicelocator,
+    		final List&lt;String&gt; authorityInformationAccess,
+    		final List&lt;String&gt; certificateAiaDefaultCaIssuerUri,
+    		final List&lt;String&gt; nameConstraintsPermitted, final List&lt;String&gt; nameConstraintsExcluded, final String cadefinedfreshestcrl,
+    		final boolean finishuser, final Collection&lt;ExtendedCAServiceInfo&gt; extendedcaserviceinfos,
+    		final boolean useUTF8PolicyText, final Map&lt;ApprovalRequestType, Integer&gt; approvals, final boolean usePrintableStringSubjectDN,
+    		final boolean useLdapDnOrder, final boolean useCrlDistributionPointOnCrl, final boolean crlDistributionPointOnCrlCritical, final boolean includeInHealthCheck,
+    		final boolean _doEnforceUniquePublicKeys, final boolean _doEnforceUniqueDistinguishedName, final boolean _doEnforceUniqueSubjectDNSerialnumber,
+    		final boolean _useCertReqHistory, final boolean _useUserStorage, final boolean _useCertificateStorage, final boolean _acceptRevocationNonExistingEntry,
+<span class="fc" id="L212">            final String _cmpRaAuthSecret, final boolean keepExpiredCertsOnCRL) {</span>
+<span class="fc" id="L213">        this.subjectdn = CertTools.stringToBCDNString(StringTools.strip(subjectDn));</span>
+<span class="fc" id="L214">        this.caid = CertTools.stringToBCDNString(this.subjectdn).hashCode();</span>
+<span class="fc" id="L215">        this.name = name;</span>
+<span class="fc" id="L216">        this.status = status;</span>
+<span class="fc" id="L217">        this.updatetime = updateTime;</span>
+<span class="fc" id="L218">        this.encodedValidity = encodedValidity;</span>
+<span class="fc" id="L219">        this.expiretime = expiretime;</span>
+<span class="fc" id="L220">        this.catype = catype;</span>
+<span class="fc" id="L221">        this.signedby = signedBy;</span>
+        // Due to a bug in Glassfish v1 (fixed in v2), we used to have to make sure all certificates in this
+        // Array were of SUNs own provider, using CertTools.SYSTEM_SECURITY_PROVIDER.
+        // As of EJBCA 3.9.3 we decided that we don't have to support Glassfish v1 anymore.
+		try {
+<span class="pc bpc" id="L226" title="1 of 2 branches missed.">			if (certificatechain != null) {</span>
+<span class="nc" id="L227">		        X509Certificate[] certs = certificatechain.toArray(new X509Certificate[certificatechain.size()]);</span>
+<span class="nc" id="L228">                List&lt;Certificate&gt; list = CertTools.getCertCollectionFromArray(certs, null);</span>
+<span class="nc" id="L229">		        setCertificateChain(list);</span>
+<span class="nc" id="L230">			} else {</span>
+<span class="fc" id="L231">			    setCertificateChain(null);</span>
+			}
+<span class="nc" id="L233">		} catch (CertificateException e) {</span>
+<span class="nc" id="L234">			throw new IllegalArgumentException(e);</span>
+<span class="nc" id="L235">		} catch (NoSuchProviderException e) {</span>
+<span class="nc" id="L236">			throw new IllegalArgumentException(e);</span>
+<span class="fc" id="L237">		}</span>
+<span class="fc" id="L238">        this.catoken = catoken;</span>
+<span class="fc" id="L239">        this.description = description;</span>
+<span class="fc" id="L240">        setRevocationReason(revocationReason);</span>
+<span class="fc" id="L241">        this.revocationDate = revocationDate;</span>
+<span class="fc" id="L242">        this.policies = policies;</span>
+<span class="fc" id="L243">        this.crlperiod = crlperiod;</span>
+<span class="fc" id="L244">        this.crlIssueInterval = crlIssueInterval;</span>
+<span class="fc" id="L245">        this.crlOverlapTime = crlOverlapTime;</span>
+<span class="fc" id="L246">        this.deltacrlperiod = deltacrlperiod;</span>
+<span class="fc" id="L247">        this.crlpublishers = crlpublishers;</span>
+<span class="fc" id="L248">        this.validators = keyValidators;</span>
+<span class="fc" id="L249">        this.useauthoritykeyidentifier = useauthoritykeyidentifier;</span>
+<span class="fc" id="L250">        this.authoritykeyidentifiercritical = authoritykeyidentifiercritical;</span>
+<span class="fc" id="L251">        this.usecrlnumber = usecrlnumber;</span>
+<span class="fc" id="L252">        this.crlnumbercritical = crlnumbercritical;</span>
+<span class="fc" id="L253">        this.defaultcrldistpoint = defaultcrldistpoint;</span>
+<span class="fc" id="L254">        this.defaultcrlissuer = defaultcrlissuer;</span>
+<span class="fc" id="L255">        this.defaultocsplocator = defaultocspservicelocator;</span>
+<span class="fc" id="L256">        this.cadefinedfreshestcrl = cadefinedfreshestcrl;</span>
+<span class="fc" id="L257">        this.finishuser = finishuser;</span>
+<span class="fc" id="L258">        this.subjectaltname = subjectaltname;</span>
+<span class="fc" id="L259">        this.certificateprofileid = certificateprofileid;</span>
+<span class="fc" id="L260">        this.defaultCertificateProfileId = defaultCertprofileId;</span>
+<span class="fc" id="L261">        this.extendedcaserviceinfos = extendedcaserviceinfos;</span>
+<span class="fc" id="L262">        this.useUTF8PolicyText = useUTF8PolicyText;</span>
+<span class="fc" id="L263">        setApprovals(approvals);</span>
+<span class="fc" id="L264">        this.usePrintableStringSubjectDN = usePrintableStringSubjectDN;</span>
+<span class="fc" id="L265">        this.useLdapDNOrder = useLdapDnOrder;</span>
+<span class="fc" id="L266">        this.useCrlDistributionPointOnCrl = useCrlDistributionPointOnCrl;</span>
+<span class="fc" id="L267">        this.crlDistributionPointOnCrlCritical = crlDistributionPointOnCrlCritical;</span>
+<span class="fc" id="L268">        this.includeInHealthCheck = includeInHealthCheck;</span>
+<span class="fc" id="L269">        this.doEnforceUniquePublicKeys = _doEnforceUniquePublicKeys;</span>
+<span class="fc" id="L270">        this.doEnforceUniqueDistinguishedName = _doEnforceUniqueDistinguishedName;</span>
+<span class="fc" id="L271">        this.doEnforceUniqueSubjectDNSerialnumber = _doEnforceUniqueSubjectDNSerialnumber;</span>
+<span class="fc" id="L272">        this.useCertReqHistory = _useCertReqHistory;</span>
+<span class="fc" id="L273">        this.useUserStorage = _useUserStorage;</span>
+<span class="fc" id="L274">        this.useCertificateStorage = _useCertificateStorage;</span>
+<span class="fc" id="L275">        this.acceptRevocationNonExistingEntry = _acceptRevocationNonExistingEntry;</span>
+<span class="fc" id="L276">        setCmpRaAuthSecret(_cmpRaAuthSecret);</span>
+<span class="fc" id="L277">        this.keepExpiredCertsOnCRL = keepExpiredCertsOnCRL;</span>
+<span class="fc" id="L278">        this.authorityInformationAccess = authorityInformationAccess;</span>
+<span class="fc" id="L279">        this.certificateAiaDefaultCaIssuerUri = certificateAiaDefaultCaIssuerUri;</span>
+<span class="fc" id="L280">        this.nameConstraintsPermitted = nameConstraintsPermitted;</span>
+<span class="fc" id="L281">        this.nameConstraintsExcluded = nameConstraintsExcluded;</span>
+<span class="fc" id="L282">        this.useNoConflictCertificateData = useNoConflictCertificateData;</span>
+<span class="fc" id="L283">        this.caSerialNumberOctetSize = caSerialNumberOctetSize;</span>
+<span class="fc" id="L284">    }</span>
+
+    /**
+     * Constructor that should be used when creating CA and retrieving CA info.
+     * Please use the shorter form if you do not need to set all of the values.
+     * @param caid ID of the CA
+     * @param defaultCertprofileId the id of default cetificate profile for certificates this CA issues
+     * @param useNoConflictCertificateData should use NoConflictCertificate data table to write to
+     * @param encodedValidity the validity of this CA as a human-readable string, e.g. 25y
+     * @param catoken the CA token for this CA, containing e.g. a reference to the crypto token
+     * @param description a text describing this CA
+     * @param caSerialNumberOctetSize serial number octet size for this CA
+     * @param crlperiod the CRL validity period in ms
+     * @param crlIssueInterval how often in ms the CRLs should be distributed, e.g. 3600000 will generate a new CRL every hour
+     * @param crlOverlapTime the validity overlap in ms for a subsequent CRL, e.g. 5000 will generate a CRL 5m before the previous CRL expires
+     * @param deltacrlperiod how often Delta CRLs should be distributed
+     * @param crlpublishers a collection of publisher IDs for this CA
+     * @param keyValidators a collection of key validator IDs for this CA
+     * @param useauthoritykeyidentifier bool
+     * @param authoritykeyidentifiercritical bool
+     * @param usecrlnumber bool
+     * @param crlnumbercritical bool
+     * @param defaultcrldistpoint the URI of the default CRL distribution point
+     * @param defaultcrlissuer Issuer
+     * @param defaultocspservicelocator Locator
+     * @param crlAuthorityInformationAccess Access info to CRLs 
+     * @param certificateAiaDefaultCaIssuerUri Issuer URI
+     * @param nameConstraintsPermitted a list of name constraints which should be permitted
+     * @param nameConstraintsExcluded a list of name constraints which should be excluded
+     * @param cadefinedfreshestcrl CRL
+     * @param finishuser bool
+     * @param extendedcaserviceinfos bool
+     * @param useUTF8PolicyText bool
+     * @param approvals a map of approval profiles which should be used for different operations
+     * @param usePrintableStringSubjectDN bool
+     * @param useLdapDnOrder biik
+     * @param useCrlDistributionPointOnCrl bool
+     * @param crlDistributionPointOnCrlCritical bool
+     * @param includeInHealthCheck enable healthcheck for this CA
+     * @param _doEnforceUniquePublicKeys bool
+     * @param _doEnforceUniqueDistinguishedName bool
+     * @param _doEnforceUniqueSubjectDNSerialnumber bool
+     * @param _useCertReqHistory bool
+     * @param _useUserStorage bool
+     * @param _useCertificateStorage bool
+     * @param _acceptRevocationNonExistingEntry bool
+     * @param _cmpRaAuthSecret bool
+     * @param keepExpiredCertsOnCRL bool
+     */
+    public X509CAInfo(final int caid, final String encodedValidity, final CAToken catoken, final String description, final int caSerialNumberOctetSize, 
+            final long crlperiod, final long crlIssueInterval, final long crlOverlapTime, final long deltacrlperiod, final Collection&lt;Integer&gt; crlpublishers,
+            final Collection&lt;Integer&gt; keyValidators, final boolean useauthoritykeyidentifier, final boolean authoritykeyidentifiercritical,
+            final boolean usecrlnumber, final boolean crlnumbercritical, final String defaultcrldistpoint, final String defaultcrlissuer,
+            final String defaultocspservicelocator, final List&lt;String&gt; crlAuthorityInformationAccess,
+            final List&lt;String&gt; certificateAiaDefaultCaIssuerUri, final List&lt;String&gt; nameConstraintsPermitted,
+            final List&lt;String&gt; nameConstraintsExcluded, final String cadefinedfreshestcrl, final boolean finishuser,
+            final Collection&lt;ExtendedCAServiceInfo&gt; extendedcaserviceinfos, final boolean useUTF8PolicyText,
+            final Map&lt;ApprovalRequestType, Integer&gt; approvals, final boolean usePrintableStringSubjectDN, final boolean useLdapDnOrder,
+            final boolean useCrlDistributionPointOnCrl, final boolean crlDistributionPointOnCrlCritical, final boolean includeInHealthCheck,
+            final boolean _doEnforceUniquePublicKeys, final boolean _doEnforceUniqueDistinguishedName,
+            final boolean _doEnforceUniqueSubjectDNSerialnumber, final boolean _useCertReqHistory, final boolean _useUserStorage,
+            final boolean _useCertificateStorage, final boolean _acceptRevocationNonExistingEntry, final String _cmpRaAuthSecret, final boolean keepExpiredCertsOnCRL,
+<span class="nc" id="L346">            final int defaultCertprofileId, final boolean useNoConflictCertificateData) {</span>
+<span class="nc" id="L347">        this.caid = caid;</span>
+<span class="nc" id="L348">        this.encodedValidity = encodedValidity;</span>
+<span class="nc" id="L349">        this.catoken = catoken;</span>
+<span class="nc" id="L350">        this.description = description;</span>
+<span class="nc" id="L351">        this.caSerialNumberOctetSize = caSerialNumberOctetSize;</span>
+<span class="nc" id="L352">        this.crlperiod = crlperiod;</span>
+<span class="nc" id="L353">        this.crlIssueInterval = crlIssueInterval;</span>
+<span class="nc" id="L354">        this.crlOverlapTime = crlOverlapTime;</span>
+<span class="nc" id="L355">        this.deltacrlperiod = deltacrlperiod;</span>
+<span class="nc" id="L356">        this.crlpublishers = crlpublishers;</span>
+<span class="nc" id="L357">        this.validators = keyValidators;</span>
+<span class="nc" id="L358">        this.useauthoritykeyidentifier = useauthoritykeyidentifier;</span>
+<span class="nc" id="L359">        this.authoritykeyidentifiercritical = authoritykeyidentifiercritical;</span>
+<span class="nc" id="L360">        this.usecrlnumber = usecrlnumber;</span>
+<span class="nc" id="L361">        this.crlnumbercritical = crlnumbercritical;</span>
+<span class="nc" id="L362">        this.defaultcrldistpoint = defaultcrldistpoint;</span>
+<span class="nc" id="L363">        this.defaultcrlissuer = defaultcrlissuer;</span>
+<span class="nc" id="L364">        this.defaultocsplocator = defaultocspservicelocator;</span>
+<span class="nc" id="L365">        this.cadefinedfreshestcrl = cadefinedfreshestcrl;</span>
+<span class="nc" id="L366">        this.finishuser = finishuser;</span>
+<span class="nc" id="L367">        this.extendedcaserviceinfos = extendedcaserviceinfos;</span>
+<span class="nc" id="L368">        this.useUTF8PolicyText = useUTF8PolicyText;</span>
+<span class="nc" id="L369">        setApprovals(approvals);</span>
+<span class="nc" id="L370">        this.usePrintableStringSubjectDN = usePrintableStringSubjectDN;</span>
+<span class="nc" id="L371">        this.useLdapDNOrder = useLdapDnOrder;</span>
+<span class="nc" id="L372">        this.useCrlDistributionPointOnCrl = useCrlDistributionPointOnCrl;</span>
+<span class="nc" id="L373">        this.crlDistributionPointOnCrlCritical = crlDistributionPointOnCrlCritical;</span>
+<span class="nc" id="L374">        this.includeInHealthCheck = includeInHealthCheck;</span>
+<span class="nc" id="L375">        this.doEnforceUniquePublicKeys = _doEnforceUniquePublicKeys;</span>
+<span class="nc" id="L376">        this.doEnforceUniqueDistinguishedName = _doEnforceUniqueDistinguishedName;</span>
+<span class="nc" id="L377">        this.doEnforceUniqueSubjectDNSerialnumber = _doEnforceUniqueSubjectDNSerialnumber;</span>
+<span class="nc" id="L378">        this.useCertReqHistory = _useCertReqHistory;</span>
+<span class="nc" id="L379">        this.useUserStorage = _useUserStorage;</span>
+<span class="nc" id="L380">        this.useCertificateStorage = _useCertificateStorage;</span>
+<span class="nc" id="L381">        this.acceptRevocationNonExistingEntry = _acceptRevocationNonExistingEntry;</span>
+<span class="nc" id="L382">        setCmpRaAuthSecret(_cmpRaAuthSecret);</span>
+<span class="nc" id="L383">        this.keepExpiredCertsOnCRL = keepExpiredCertsOnCRL;</span>
+<span class="nc" id="L384">        this.authorityInformationAccess = crlAuthorityInformationAccess;</span>
+<span class="nc" id="L385">        this.certificateAiaDefaultCaIssuerUri = certificateAiaDefaultCaIssuerUri;</span>
+<span class="nc" id="L386">        this.nameConstraintsPermitted = nameConstraintsPermitted;</span>
+<span class="nc" id="L387">        this.nameConstraintsExcluded = nameConstraintsExcluded;</span>
+<span class="nc" id="L388">        this.defaultCertificateProfileId = defaultCertprofileId;</span>
+<span class="nc" id="L389">        this.useNoConflictCertificateData = useNoConflictCertificateData;</span>
+<span class="nc" id="L390">    }</span>
+
+  public List&lt;CertificatePolicy&gt; getPolicies() {
+<span class="fc" id="L393">	  return this.policies;</span>
+  }
+  public void setPolicies(final List&lt;CertificatePolicy&gt; policies) {
+<span class="nc" id="L396">      this.policies = policies;</span>
+<span class="nc" id="L397">  }</span>
+<span class="fc" id="L398">  public boolean getUseCRLNumber(){ return usecrlnumber;}</span>
+<span class="nc" id="L399">  public void setUseCRLNumber(boolean usecrlnumber){ this.usecrlnumber=usecrlnumber;}</span>
+
+<span class="fc" id="L401">  public boolean getCRLNumberCritical(){ return crlnumbercritical;}</span>
+<span class="nc" id="L402">  public void setCRLNumberCritical(boolean crlnumbercritical){ this.crlnumbercritical=crlnumbercritical;}</span>
+
+<span class="fc" id="L404">  public boolean getUseAuthorityKeyIdentifier(){ return useauthoritykeyidentifier;}</span>
+<span class="nc" id="L405">  public void setUseAuthorityKeyIdentifier(boolean useauthoritykeyidentifier) {this.useauthoritykeyidentifier=useauthoritykeyidentifier;}</span>
+
+<span class="fc" id="L407">  public boolean getAuthorityKeyIdentifierCritical(){ return authoritykeyidentifiercritical;}</span>
+  public void setAuthorityKeyIdentifierCritical(boolean authoritykeyidentifiercritical)
+<span class="nc" id="L409">                {this.authoritykeyidentifiercritical=authoritykeyidentifiercritical;}</span>
+
+<span class="fc" id="L411">  public String getDefaultCRLDistPoint(){ return defaultcrldistpoint; }</span>
+
+  public void setDefaultCRLDistPoint(String defaultCRLDistPoint) {
+<span class="nc" id="L414">      this.defaultcrldistpoint = defaultCRLDistPoint;</span>
+<span class="nc" id="L415">  }</span>
+
+<span class="fc" id="L417">  public String getDefaultCRLIssuer(){ return defaultcrlissuer; }</span>
+  public void setDefaultCRLIssuer(String defaultcrlissuer) {
+<span class="nc" id="L419">      this.defaultcrlissuer = defaultcrlissuer;</span>
+<span class="nc" id="L420">  }</span>
+
+<span class="fc" id="L422">  public String getDefaultOCSPServiceLocator(){ return defaultocsplocator; }</span>
+  public void setDefaultOCSPServiceLocator(String defaultocsplocator) {
+<span class="nc" id="L424">      this.defaultocsplocator = defaultocsplocator;</span>
+<span class="nc" id="L425">  }</span>
+
+<span class="fc" id="L427">  public String getCADefinedFreshestCRL(){ return this.cadefinedfreshestcrl; }</span>
+
+  public void setCADefinedFreshestCRL(String cADefinedFreshestCRL) {
+<span class="nc" id="L430">      this.cadefinedfreshestcrl = cADefinedFreshestCRL;</span>
+<span class="nc" id="L431">  }</span>
+
+<span class="fc" id="L433">  public String getSubjectAltName(){ return subjectaltname; }</span>
+  public void setSubjectAltName(final String subjectaltname) {
+<span class="nc" id="L435">      this.subjectaltname = subjectaltname;</span>
+<span class="nc" id="L436">  }</span>
+<span class="fc" id="L437">  public boolean getUseUTF8PolicyText() { return useUTF8PolicyText; }</span>
+  public void setUseUTF8PolicyText(final boolean useUTF8PolicyText) {
+<span class="nc" id="L439">      this.useUTF8PolicyText = useUTF8PolicyText;</span>
+<span class="nc" id="L440">  }</span>
+
+<span class="fc" id="L442">  public boolean getUsePrintableStringSubjectDN() { return usePrintableStringSubjectDN; }</span>
+  public void setUsePrintableStringSubjectDN(final boolean usePrintableStringSubjectDN) {
+<span class="nc" id="L444">      this.usePrintableStringSubjectDN = usePrintableStringSubjectDN;</span>
+<span class="nc" id="L445">  }</span>
+
+<span class="fc" id="L447">  public boolean getUseLdapDnOrder() { return useLdapDNOrder; }</span>
+  public void setUseLdapDnOrder(final boolean useLdapDNOrder) {
+<span class="nc" id="L449">      this.useLdapDNOrder = useLdapDNOrder;</span>
+<span class="nc" id="L450">  }</span>
+
+  public boolean getUseCrlDistributionPointOnCrl() {
+<span class="fc" id="L453">      return this.useCrlDistributionPointOnCrl;</span>
+  }
+
+  public void setUseCrlDistributionPointOnCrl(boolean useCrlDistributionPointOnCrl) {
+<span class="nc" id="L457">      this.useCrlDistributionPointOnCrl = useCrlDistributionPointOnCrl;</span>
+<span class="nc" id="L458">  }</span>
+
+  public boolean getCrlDistributionPointOnCrlCritical() {
+<span class="fc" id="L461">      return this.crlDistributionPointOnCrlCritical;</span>
+  }
+  public void setCrlDistributionPointOnCrlCritical(boolean crlDistributionPointOnCrlCritical) {
+<span class="nc" id="L464">      this.crlDistributionPointOnCrlCritical = crlDistributionPointOnCrlCritical;</span>
+<span class="nc" id="L465">  }</span>
+
+<span class="fc" id="L467">  public String getCmpRaAuthSecret() { return cmpRaAuthSecret; }</span>
+<span class="pc bpc" id="L468" title="1 of 2 branches missed.">  public void setCmpRaAuthSecret(String cmpRaAuthSecret) { this.cmpRaAuthSecret = cmpRaAuthSecret == null ? &quot;&quot; : cmpRaAuthSecret; }</span>
+
+    public List&lt;String&gt; getAuthorityInformationAccess() {
+<span class="fc" id="L471">        return authorityInformationAccess;</span>
+    }
+
+    public void setAuthorityInformationAccess(List&lt;String&gt; list) {
+<span class="nc" id="L475">        this.authorityInformationAccess = list;</span>
+<span class="nc" id="L476">    }</span>
+
+    /** @return the certificateAiaDefaultCaIssuerUri */
+    public List&lt;String&gt; getCertificateAiaDefaultCaIssuerUri() {
+<span class="fc" id="L480">        return certificateAiaDefaultCaIssuerUri;</span>
+    }
+
+    /** @param list the certificateAiaDefaultCaIssuerUri to set */
+    public void setCertificateAiaDefaultCaIssuerUri(List&lt;String&gt; list) {
+<span class="nc" id="L485">        this.certificateAiaDefaultCaIssuerUri = list;</span>
+<span class="nc" id="L486">    }</span>
+
+    /** @return a list of encoded names of the permitted names in issued certificates */
+    public List&lt;String&gt; getNameConstraintsPermitted() {
+<span class="fc" id="L490">        return nameConstraintsPermitted;</span>
+    }
+
+    public void setNameConstraintsPermitted(List&lt;String&gt; encodedNames) {
+<span class="nc" id="L494">        nameConstraintsPermitted = encodedNames;</span>
+<span class="nc" id="L495">    }</span>
+
+    /** @return a list of encoded names of the forbidden names in issued certificates */
+    public List&lt;String&gt; getNameConstraintsExcluded() {
+<span class="fc" id="L499">        return nameConstraintsExcluded;</span>
+    }
+
+    public void setNameConstraintsExcluded(List&lt;String&gt; encodedNames) {
+<span class="nc" id="L503">        nameConstraintsExcluded = encodedNames;</span>
+<span class="nc" id="L504">    }</span>
+
+    /** @return what should be a String formatted URL pointing to an external CA's CDP. */
+    public String getExternalCdp() {
+<span class="nc" id="L508">        return externalCdp;</span>
+    }
+
+    /** Set what should be a String formatted URL pointing to an external CA's CDP. 
+     * @param externalCdp CDP*/
+    public void setExternalCdp(final String externalCdp) {
+<span class="nc" id="L514">        this.externalCdp = externalCdp;</span>
+<span class="nc" id="L515">    }</span>
+
+    /** @return true if CA has undergone through name change at some renewal process, otherwise false. */
+    public boolean getNameChanged() {
+<span class="nc" id="L519">        return nameChanged;</span>
+    }
+
+    /** NameChanged attribute should only be set when X509CA is retrieved from DB 
+     * @param value new name*/
+    void setNameChanged(final boolean value){
+<span class="nc" id="L525">        nameChanged = value;</span>
+<span class="nc" id="L526">    }</span>
+
+    public int getCaSerialNumberOctetSize() {
+<span class="fc" id="L529">        return caSerialNumberOctetSize;</span>
+    }
+
+    public void setCaSerialNumberOctetSize(int caSerialNumberOctetSize) {
+<span class="nc" id="L533">        this.caSerialNumberOctetSize = caSerialNumberOctetSize;</span>
+<span class="nc" id="L534">    }</span>
+    
+    
+<span class="nc" id="L537">    public static class X509CAInfoBuilder {</span>
+        private String subjectDn;
+        private String name;
+        private int status;
+        private int certificateProfileId;
+        private String encodedValidity;
+        private int signedBy;
+        private Collection&lt;Certificate&gt; certificateChain;
+        private CAToken caToken;
+<span class="nc" id="L546">        private Date updateTime = new Date();</span>
+<span class="nc" id="L547">        private String subjectAltName = &quot;&quot;;</span>
+<span class="nc" id="L548">        private int defaultCertProfileId = 0;</span>
+<span class="nc" id="L549">        private boolean useNoConflictCertificateData = false;</span>
+<span class="nc" id="L550">        private Date expireTime = null;</span>
+<span class="nc" id="L551">        private int caType = CAInfo.CATYPE_X509;</span>
+<span class="nc" id="L552">        private String description = &quot;&quot;;</span>
+<span class="nc" id="L553">        private int caSerialNumberOctetSize = -1;</span>
+<span class="nc" id="L554">        private int revocationReason = -1;</span>
+<span class="nc" id="L555">        private Date revocationDate = null;</span>
+<span class="nc" id="L556">        private List&lt;CertificatePolicy&gt; policies = null;</span>
+<span class="nc" id="L557">        private long crlPeriod = 1 * SimpleTime.MILLISECONDS_PER_DAY;</span>
+<span class="nc" id="L558">        private long crlIssueInterval = 0L;</span>
+<span class="nc" id="L559">        private long crlOverlapTime = 10 * SimpleTime.MILLISECONDS_PER_MINUTE;</span>
+<span class="nc" id="L560">        private long deltaCrlPeriod = 0L;</span>
+<span class="nc" id="L561">        private Collection&lt;Integer&gt; crlPublishers = new ArrayList&lt;Integer&gt;();</span>
+<span class="nc" id="L562">        private Collection&lt;Integer&gt; validators = new ArrayList&lt;Integer&gt;();</span>
+<span class="nc" id="L563">        private boolean useAuthorityKeyIdentifier = true;</span>
+<span class="nc" id="L564">        private boolean authorityKeyIdentifierCritical = false;</span>
+<span class="nc" id="L565">        private boolean useCrlNumber = true;</span>
+<span class="nc" id="L566">        private boolean crlNumberCritical = false;</span>
+<span class="nc" id="L567">        private String defaultCrlDistPoint = null;</span>
+<span class="nc" id="L568">        private String defaultCrlIssuer = null;</span>
+<span class="nc" id="L569">        private String defaultOcspCerviceLocator = null;</span>
+<span class="nc" id="L570">        private List&lt;String&gt; authorityInformationAccess = null;</span>
+<span class="nc" id="L571">        private List&lt;String&gt; certificateAiaDefaultCaIssuerUri = null;</span>
+<span class="nc" id="L572">        private List&lt;String&gt; nameConstraintsPermitted = null;</span>
+<span class="nc" id="L573">        private List&lt;String&gt; nameConstraintsExcluded = null;</span>
+<span class="nc" id="L574">        private String caDefinedFreshestCrl = null;</span>
+<span class="nc" id="L575">        private boolean finishUser = true;</span>
+<span class="nc" id="L576">        private Collection&lt;ExtendedCAServiceInfo&gt; extendedCaServiceInfos = new ArrayList&lt;ExtendedCAServiceInfo&gt;();</span>
+<span class="nc" id="L577">        private boolean useUtf8PolicyText = false;</span>
+<span class="nc" id="L578">        private Map&lt;ApprovalRequestType, Integer&gt; approvals = new HashMap&lt;ApprovalRequestType, Integer&gt;();</span>
+<span class="nc" id="L579">        private boolean usePrintableStringSubjectDN = false;</span>
+<span class="nc" id="L580">        private boolean useLdapDnOrder = true;</span>
+<span class="nc" id="L581">        private boolean useCrlDistributionPointOnCrl = false;</span>
+<span class="nc" id="L582">        private boolean crlDistributionPointOnCrlCritical = false;</span>
+<span class="nc" id="L583">        private boolean includeInHealthCheck = true;</span>
+<span class="nc" id="L584">        private boolean doEnforceUniquePublicKeys = true;</span>
+<span class="nc" id="L585">        private boolean doEnforceUniqueDistinguishedName = true;</span>
+<span class="nc" id="L586">        private boolean doEnforceUniqueSubjectDNSerialnumber = false;</span>
+<span class="nc" id="L587">        private boolean useCertReqHistory = false;</span>
+<span class="nc" id="L588">        private boolean useUserStorage = true;</span>
+<span class="nc" id="L589">        private boolean useCertificateStorage = true;</span>
+<span class="nc" id="L590">        private boolean acceptRevocationNonExistingEntry = false;</span>
+<span class="nc" id="L591">        private String cmpRaAuthSecret = null;</span>
+<span class="nc" id="L592">        private boolean keepExpiredCertsOnCRL = false;</span>
+        
+        public X509CAInfoBuilder setSubjectDn(String subjectDn) {
+<span class="nc" id="L595">            this.subjectDn = subjectDn;</span>
+<span class="nc" id="L596">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setName(String name) {
+<span class="nc" id="L600">            this.name = name;</span>
+<span class="nc" id="L601">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setStatus(int status) {
+<span class="nc" id="L605">            this.status = status;</span>
+<span class="nc" id="L606">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setCertificateProfileId(int certificateProfileId) {
+<span class="nc" id="L610">            this.certificateProfileId = certificateProfileId;</span>
+<span class="nc" id="L611">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setEncodedValidity(String encodedValidity) {
+<span class="nc" id="L615">            this.encodedValidity = encodedValidity;</span>
+<span class="nc" id="L616">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setSignedBy(int signedBy) {
+<span class="nc" id="L620">            this.signedBy = signedBy;</span>
+<span class="nc" id="L621">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setCertificateChain(Collection&lt;Certificate&gt; certificateChain) {
+<span class="nc" id="L625">            this.certificateChain = certificateChain;</span>
+<span class="nc" id="L626">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setCaToken(CAToken caToken) {
+<span class="nc" id="L630">            this.caToken = caToken;</span>
+<span class="nc" id="L631">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setUpdateTime(Date updateTime) {
+<span class="nc" id="L635">            this.updateTime = updateTime;</span>
+<span class="nc" id="L636">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setSubjectAltName(String subjectAltName) {
+<span class="nc" id="L640">            this.subjectAltName = subjectAltName;</span>
+<span class="nc" id="L641">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setDefaultCertProfileId(int defaultCertProfileId) {
+<span class="nc" id="L645">            this.defaultCertProfileId = defaultCertProfileId;</span>
+<span class="nc" id="L646">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setUseNoConflictCertificateData(boolean useNoConflictCertificateData) {
+<span class="nc" id="L650">            this.useNoConflictCertificateData = useNoConflictCertificateData;</span>
+<span class="nc" id="L651">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setExpireTime(Date expireTime) {
+<span class="nc" id="L655">            this.expireTime = expireTime;</span>
+<span class="nc" id="L656">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setCaType(int caType) {
+<span class="nc" id="L660">            this.caType = caType;</span>
+<span class="nc" id="L661">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setDescription(String description) {
+<span class="nc" id="L665">            this.description = description;</span>
+<span class="nc" id="L666">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setRevocationReason(int revocationReason) {
+<span class="nc" id="L670">            this.revocationReason = revocationReason;</span>
+<span class="nc" id="L671">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setRevocationDate(Date revocationDate) {
+<span class="nc" id="L675">            this.revocationDate = revocationDate;</span>
+<span class="nc" id="L676">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setPolicies(List&lt;CertificatePolicy&gt; policies) {
+<span class="nc" id="L680">            this.policies = policies;</span>
+<span class="nc" id="L681">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setCrlPeriod(long crlPeriod) {
+<span class="nc" id="L685">            this.crlPeriod = crlPeriod;</span>
+<span class="nc" id="L686">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setCrlIssueInterval(long crlIssueInterval) {
+<span class="nc" id="L690">            this.crlIssueInterval = crlIssueInterval;</span>
+<span class="nc" id="L691">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setCrlOverlapTime(long crlOverlapTime) {
+<span class="nc" id="L695">            this.crlOverlapTime = crlOverlapTime;</span>
+<span class="nc" id="L696">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setDeltaCrlPeriod(long deltaCrlPeriod) {
+<span class="nc" id="L700">            this.deltaCrlPeriod = deltaCrlPeriod;</span>
+<span class="nc" id="L701">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setCrlPublishers(Collection&lt;Integer&gt; crlPublishers) {
+<span class="nc" id="L705">            this.crlPublishers = crlPublishers;</span>
+<span class="nc" id="L706">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setValidators(Collection&lt;Integer&gt; validators) {
+<span class="nc" id="L710">            this.validators = validators;</span>
+<span class="nc" id="L711">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setUseAuthorityKeyIdentifier(boolean useAuthorityKeyIdentifier) {
+<span class="nc" id="L715">            this.useAuthorityKeyIdentifier = useAuthorityKeyIdentifier;</span>
+<span class="nc" id="L716">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setAuthorityKeyIdentifierCritical(boolean authorityKeyIdentifierCritical) {
+<span class="nc" id="L720">            this.authorityKeyIdentifierCritical = authorityKeyIdentifierCritical;</span>
+<span class="nc" id="L721">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setUseCrlNumber(boolean useCrlNumber) {
+<span class="nc" id="L725">            this.useCrlNumber = useCrlNumber;</span>
+<span class="nc" id="L726">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setCrlNumberCritical(boolean crlNumberCritical) {
+<span class="nc" id="L730">            this.crlNumberCritical = crlNumberCritical;</span>
+<span class="nc" id="L731">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setDefaultCrlDistPoint(String defaultCrlDistPoint) {
+<span class="nc" id="L735">            this.defaultCrlDistPoint = defaultCrlDistPoint;</span>
+<span class="nc" id="L736">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setDefaultCrlIssuer(String defaultCrlIssuer) {
+<span class="nc" id="L740">            this.defaultCrlIssuer = defaultCrlIssuer;</span>
+<span class="nc" id="L741">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setDefaultOcspCerviceLocator(String defaultOcspCerviceLocator) {
+<span class="nc" id="L745">            this.defaultOcspCerviceLocator = defaultOcspCerviceLocator;</span>
+<span class="nc" id="L746">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setAuthorityInformationAccess(List&lt;String&gt; authorityInformationAccess) {
+<span class="nc" id="L750">            this.authorityInformationAccess = authorityInformationAccess;</span>
+<span class="nc" id="L751">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setCertificateAiaDefaultCaIssuerUri(List&lt;String&gt; certificateAiaDefaultCaIssuerUri) {
+<span class="nc" id="L755">            this.certificateAiaDefaultCaIssuerUri = certificateAiaDefaultCaIssuerUri;</span>
+<span class="nc" id="L756">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setNameConstraintsPermitted(List&lt;String&gt; nameConstraintsPermitted) {
+<span class="nc" id="L760">            this.nameConstraintsPermitted = nameConstraintsPermitted;</span>
+<span class="nc" id="L761">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setNameConstraintsExcluded(List&lt;String&gt; nameConstraintsExcluded) {
+<span class="nc" id="L765">            this.nameConstraintsExcluded = nameConstraintsExcluded;</span>
+<span class="nc" id="L766">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setCaDefinedFreshestCrl(String caDefinedFreshestCrl) {
+<span class="nc" id="L770">            this.caDefinedFreshestCrl = caDefinedFreshestCrl;</span>
+<span class="nc" id="L771">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setFinishUser(boolean finishUser) {
+<span class="nc" id="L775">            this.finishUser = finishUser;</span>
+<span class="nc" id="L776">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setExtendedCaServiceInfos(Collection&lt;ExtendedCAServiceInfo&gt; extendedCaServiceInfos) {
+<span class="nc" id="L780">            this.extendedCaServiceInfos = extendedCaServiceInfos;</span>
+<span class="nc" id="L781">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setUseUtf8PolicyText(boolean useUtf8PolicyText) {
+<span class="nc" id="L785">            this.useUtf8PolicyText = useUtf8PolicyText;</span>
+<span class="nc" id="L786">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setApprovals(Map&lt;ApprovalRequestType, Integer&gt; approvals) {
+<span class="nc" id="L790">            this.approvals = approvals;</span>
+<span class="nc" id="L791">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setUsePrintableStringSubjectDN(boolean usePrintableStringSubjectDN) {
+<span class="nc" id="L795">            this.usePrintableStringSubjectDN = usePrintableStringSubjectDN;</span>
+<span class="nc" id="L796">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setUseLdapDnOrder(boolean useLdapDnOrder) {
+<span class="nc" id="L800">            this.useLdapDnOrder = useLdapDnOrder;</span>
+<span class="nc" id="L801">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setUseCrlDistributionPointOnCrl(boolean useCrlDistributionPointOnCrl) {
+<span class="nc" id="L805">            this.useCrlDistributionPointOnCrl = useCrlDistributionPointOnCrl;</span>
+<span class="nc" id="L806">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setCrlDistributionPointOnCrlCritical(boolean crlDistributionPointOnCrlCritical) {
+<span class="nc" id="L810">            this.crlDistributionPointOnCrlCritical = crlDistributionPointOnCrlCritical;</span>
+<span class="nc" id="L811">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setIncludeInHealthCheck(boolean includeInHealthCheck) {
+<span class="nc" id="L815">            this.includeInHealthCheck = includeInHealthCheck;</span>
+<span class="nc" id="L816">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setDoEnforceUniquePublicKeys(boolean doEnforceUniquePublicKeys) {
+<span class="nc" id="L820">            this.doEnforceUniquePublicKeys = doEnforceUniquePublicKeys;</span>
+<span class="nc" id="L821">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setDoEnforceUniqueDistinguishedName(boolean doEnforceUniqueDistinguishedName) {
+<span class="nc" id="L825">            this.doEnforceUniqueDistinguishedName = doEnforceUniqueDistinguishedName;</span>
+<span class="nc" id="L826">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setDoEnforceUniqueSubjectDNSerialnumber(boolean doEnforceUniqueSubjectDNSerialnumber) {
+<span class="nc" id="L830">            this.doEnforceUniqueSubjectDNSerialnumber = doEnforceUniqueSubjectDNSerialnumber;</span>
+<span class="nc" id="L831">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setUseCertReqHistory(boolean useCertReqHistory) {
+<span class="nc" id="L835">            this.useCertReqHistory = useCertReqHistory;</span>
+<span class="nc" id="L836">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setUseUserStorage(boolean useUserStorage) {
+<span class="nc" id="L840">            this.useUserStorage = useUserStorage;</span>
+<span class="nc" id="L841">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setUseCertificateStorage(boolean useCertificateStorage) {
+<span class="nc" id="L845">            this.useCertificateStorage = useCertificateStorage;</span>
+<span class="nc" id="L846">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setAcceptRevocationNonExistingEntry(boolean acceptRevocationNonExistingEntry) {
+<span class="nc" id="L850">            this.acceptRevocationNonExistingEntry = acceptRevocationNonExistingEntry;</span>
+<span class="nc" id="L851">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setCmpRaAuthSecret(String cmpRaAuthSecret) {
+<span class="nc" id="L855">            this.cmpRaAuthSecret = cmpRaAuthSecret;</span>
+<span class="nc" id="L856">            return this;</span>
+        }
+
+        public X509CAInfoBuilder setKeepExpiredCertsOnCRL(boolean keepExpiredCertsOnCRL) {
+<span class="nc" id="L860">            this.keepExpiredCertsOnCRL = keepExpiredCertsOnCRL;</span>
+<span class="nc" id="L861">            return this;</span>
+        }
+        
+        public X509CAInfoBuilder setCaSerialNumberOctetSize(int caSerialNumberOctetSize) {
+<span class="nc" id="L865">            this.caSerialNumberOctetSize = caSerialNumberOctetSize;</span>
+<span class="nc" id="L866">            return this;</span>
+        }
+
+        public X509CAInfo build() {
+<span class="nc" id="L870">            return new X509CAInfo(subjectDn, name, status, updateTime, subjectAltName, certificateProfileId, defaultCertProfileId, useNoConflictCertificateData,</span>
+                    encodedValidity, expireTime, caType, signedBy, certificateChain, caToken, description, caSerialNumberOctetSize, revocationReason, revocationDate, policies, crlPeriod,
+                    crlIssueInterval, crlOverlapTime, deltaCrlPeriod, crlPublishers, validators, useAuthorityKeyIdentifier, authorityKeyIdentifierCritical,
+                    useCrlNumber, crlNumberCritical, defaultCrlDistPoint, defaultCrlIssuer,
+                    defaultOcspCerviceLocator,
+                    authorityInformationAccess,
+                    certificateAiaDefaultCaIssuerUri,
+                    nameConstraintsPermitted, nameConstraintsExcluded, caDefinedFreshestCrl,
+                    finishUser, extendedCaServiceInfos,
+                    useUtf8PolicyText, approvals, usePrintableStringSubjectDN,
+                    useLdapDnOrder, useCrlDistributionPointOnCrl, crlDistributionPointOnCrlCritical, includeInHealthCheck,
+                    doEnforceUniquePublicKeys, doEnforceUniqueDistinguishedName, doEnforceUniqueSubjectDNSerialnumber,
+                    useCertReqHistory, useUserStorage, useCertificateStorage, acceptRevocationNonExistingEntry,
+                    cmpRaAuthSecret, keepExpiredCertsOnCRL);
+        }
+
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

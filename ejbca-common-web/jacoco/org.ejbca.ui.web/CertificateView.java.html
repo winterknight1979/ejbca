@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CertificateView.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web</a> &gt; <span class="el_source">CertificateView.java</span></div><h1>CertificateView.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.ui.web;
+
+import java.io.Serializable;
+import java.math.BigInteger;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
+import java.security.cert.CertificateParsingException;
+import java.security.cert.X509Certificate;
+import java.security.interfaces.DSAPublicKey;
+import java.security.interfaces.ECPublicKey;
+import java.security.interfaces.RSAPublicKey;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.util.encoders.Hex;
+import org.cesecore.certificates.certificate.CertificateData;
+import org.cesecore.certificates.certificate.CertificateDataWrapper;
+import org.cesecore.certificates.certificate.CertificateStatusHelper;
+import org.cesecore.certificates.certificatetransparency.CertificateTransparency;
+import org.cesecore.certificates.certificatetransparency.CertificateTransparencyFactory;
+import org.cesecore.certificates.util.AlgorithmTools;
+import org.cesecore.certificates.util.DNFieldExtractor;
+import org.cesecore.certificates.util.cert.QCStatementExtension;
+import org.cesecore.certificates.util.cert.SubjectDirAttrExtension;
+import org.cesecore.config.AvailableExtendedKeyUsagesConfiguration;
+import org.cesecore.keys.util.KeyTools;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.ValidityDate;
+import org.ejbca.cvc.CVCertificateBody;
+import org.ejbca.cvc.CardVerifiableCertificate;
+import org.ejbca.util.HTMLTools;
+
+/**
+ * A class transforming X509 certificate data into more readable form used
+ * by JSP pages.
+ *
+ * @version $Id: CertificateView.java 28737 2018-04-17 14:03:02Z aminkh $
+ */
+public class CertificateView implements Serializable {
+
+    private static final long serialVersionUID = -3511834437471085177L;
+    private Certificate certificate;
+    private DNFieldExtractor subjectDnFieldExtractor;
+    private DNFieldExtractor issuerDnFieldExtractor;
+    private RevokedInfoView revokedinfo;
+    private String username;
+    private String subjectaltnamestring;
+    private String subjectdirattrstring;
+    private CertificateData certificateData;
+
+<span class="nc" id="L69">    public static final String[] KEYUSAGETEXTS = {&quot;KU_DIGITALSIGNATURE&quot;,&quot;KU_NONREPUDIATION&quot;, &quot;KU_KEYENCIPHERMENT&quot;, &quot;KU_DATAENCIPHERMENT&quot;, &quot;KU_KEYAGREEMENT&quot;, &quot;KU_KEYCERTSIGN&quot;, &quot;KU_CRLSIGN&quot;, &quot;KU_ENCIPHERONLY&quot;, &quot;KU_DECIPHERONLY&quot; };</span>
+    public static final String UNKNOWN = &quot;-&quot;;
+
+    /** Creates a new instance of CertificateView 
+     * @param cdw CDW*/
+<span class="nc" id="L74">    public CertificateView(final CertificateDataWrapper cdw) {</span>
+<span class="nc" id="L75">        certificateData = cdw.getCertificateData();</span>
+<span class="nc" id="L76">        revokedinfo = new RevokedInfoView(CertificateStatusHelper.getCertificateStatus(certificateData), getSerialNumberBigInt(certificate, certificateData));</span>
+<span class="nc" id="L77">        certificate = cdw.getCertificate();</span>
+<span class="nc" id="L78">        username = certificateData.getUsername();</span>
+<span class="nc" id="L79">        subjectDnFieldExtractor = new DNFieldExtractor(certificateData.getSubjectDnNeverNull(), DNFieldExtractor.TYPE_SUBJECTDN);</span>
+<span class="nc" id="L80">        issuerDnFieldExtractor = new DNFieldExtractor(certificateData.getIssuerDN(), DNFieldExtractor.TYPE_SUBJECTDN);</span>
+<span class="nc" id="L81">    }</span>
+
+    /** Creates a new instance of CertificateView for CA certificates 
+     * @param certificate Cert
+     * @param revokedinfo Info */
+<span class="nc" id="L86">    public CertificateView(Certificate certificate, RevokedInfoView revokedinfo) {</span>
+<span class="nc" id="L87">        this.certificate=certificate;</span>
+<span class="nc" id="L88">        this.revokedinfo= revokedinfo;</span>
+<span class="nc" id="L89">        this.username=null;</span>
+<span class="nc" id="L90">        subjectDnFieldExtractor = new DNFieldExtractor(CertTools.getSubjectDN(certificate), DNFieldExtractor.TYPE_SUBJECTDN);</span>
+<span class="nc" id="L91">        subjectDnFieldExtractor = new DNFieldExtractor(CertTools.getIssuerDN(certificate), DNFieldExtractor.TYPE_SUBJECTDN);</span>
+<span class="nc" id="L92">    }</span>
+
+    /** Method that returns the version number of the X509 certificate. 
+     * @return String*/
+    public String getVersion() {
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L98">            return UNKNOWN;</span>
+        }
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        if (certificate instanceof X509Certificate) {</span>
+<span class="nc" id="L101">            X509Certificate x509cert = (X509Certificate)certificate;</span>
+<span class="nc" id="L102">            return Integer.toString(x509cert.getVersion());</span>
+        } else {
+<span class="nc" id="L104">            return String.valueOf(CVCertificateBody.CVC_VERSION);</span>
+        }
+    }
+
+    public String getType() {
+<span class="nc bnc" id="L109" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L110">            return UNKNOWN;</span>
+        }
+<span class="nc" id="L112">        return certificate.getType();</span>
+    }
+
+    public String getSerialNumber() {
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L117">            return certificateData.getSerialNumberHex();</span>
+        }
+<span class="nc" id="L119">        return CertTools.getSerialNumberAsString(certificate);</span>
+    }
+
+    public BigInteger getSerialNumberBigInt() {
+<span class="nc" id="L123">        return getSerialNumberBigInt(certificate, certificateData);</span>
+    }
+
+    private BigInteger getSerialNumberBigInt(final Certificate certificate, final CertificateData certificateData) {
+<span class="nc bnc" id="L127" title="All 2 branches missed.">        if (certificate==null) {</span>
+            try {
+                // This will work for X.509
+<span class="nc" id="L130">                return new BigInteger(certificateData.getSerialNumber(), 10);</span>
+<span class="nc" id="L131">            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L132">                return BigInteger.valueOf(0);</span>
+            }
+        }
+<span class="nc" id="L135">        return CertTools.getSerialNumber(certificate);</span>
+    }
+
+    public String getIssuerDN() {
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L140">            return HTMLTools.htmlescape(certificateData.getIssuerDN());</span>
+        }
+<span class="nc" id="L142">    	return HTMLTools.htmlescape(CertTools.getIssuerDN(certificate));</span>
+    }
+
+    public String getIssuerDNUnEscaped() {
+<span class="nc bnc" id="L146" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L147">            return certificateData.getIssuerDN();</span>
+        }
+<span class="nc" id="L149">        return CertTools.getIssuerDN(certificate);</span>
+    }
+
+    public String getIssuerDNField(int field, int number) {
+<span class="nc" id="L153">      return HTMLTools.htmlescape(issuerDnFieldExtractor.getField(field, number));</span>
+    }
+
+    public String getSubjectDN() {
+<span class="nc bnc" id="L157" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L158">            return HTMLTools.htmlescape(certificateData.getSubjectDnNeverNull());</span>
+        }
+<span class="nc" id="L160">    	return HTMLTools.htmlescape(CertTools.getSubjectDN(certificate));</span>
+    }
+
+    /**
+     *
+     * @return subjectDN in unescaped format to be passed later to custom publishers.
+     */
+    public String getSubjectDNUnescaped() {
+<span class="nc bnc" id="L168" title="All 2 branches missed.">        if (certificate == null) {</span>
+<span class="nc" id="L169">            return certificateData.getSubjectDnNeverNull();</span>
+        }
+<span class="nc" id="L171">        return CertTools.getSubjectDN(certificate);</span>
+    }
+
+    /**
+     * @param value String to enescape
+     * @return value in unescaped RDN format
+     */
+    public final String getUnescapedRdnValue(final String value){
+<span class="nc bnc" id="L179" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(value)) {</span>
+<span class="nc" id="L180">            return org.ietf.ldap.LDAPDN.unescapeRDN(value);</span>
+        } else {
+<span class="nc" id="L182">            return value;</span>
+        }
+    }
+
+    /** @return the Subject DN string of the current certificate in unescaped RDN format */
+    public final String getSubjectDnUnescapedRndValue() {
+<span class="nc" id="L188">        String subjectDn = getSubjectDN();</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(subjectDn)) {</span>
+<span class="nc" id="L190">            return org.ietf.ldap.LDAPDN.unescapeRDN(subjectDn);</span>
+        } else {
+<span class="nc" id="L192">            return subjectDn;</span>
+        }
+    }
+
+    public String getSubjectDNField(int field, int number) {
+<span class="nc" id="L197">      return HTMLTools.htmlescape(subjectDnFieldExtractor.getField(field, number));</span>
+    }
+
+    public Date getValidFrom() {
+<span class="nc bnc" id="L201" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L202">            return new Date(0);</span>
+        }
+<span class="nc" id="L204">        return CertTools.getNotBefore(certificate);</span>
+    }
+
+    public String getValidFromString() {
+<span class="nc bnc" id="L208" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L209">            return &quot;-&quot;;</span>
+        }
+<span class="nc" id="L211">        return ValidityDate.formatAsISO8601(CertTools.getNotBefore(certificate), ValidityDate.TIMEZONE_SERVER);</span>
+    }
+
+    public Date getValidTo() {
+<span class="nc bnc" id="L215" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L216">            return new Date(certificateData.getExpireDate());</span>
+        }
+<span class="nc" id="L218">        return CertTools.getNotAfter(certificate);</span>
+    }
+
+    public String getValidToString() {
+<span class="nc" id="L222">        return ValidityDate.formatAsISO8601(getValidTo(), ValidityDate.TIMEZONE_SERVER);</span>
+    }
+
+    public boolean checkValidity() {
+<span class="nc bnc" id="L226" title="All 2 branches missed.">        if (certificate==null) {</span>
+            // We can't check not before field in this case, so make a best effort
+<span class="nc bnc" id="L228" title="All 2 branches missed.">            return certificateData.getExpireDate()&gt;=System.currentTimeMillis();</span>
+        }
+<span class="nc" id="L230">        boolean valid = true;</span>
+        try {
+<span class="nc" id="L232">            CertTools.checkValidity(certificate, new Date());</span>
+<span class="nc" id="L233">        } catch (CertificateExpiredException e) {</span>
+<span class="nc" id="L234">            valid = false;</span>
+<span class="nc" id="L235">        } catch (CertificateNotYetValidException e) {</span>
+<span class="nc" id="L236">            valid = false;</span>
+<span class="nc" id="L237">        }</span>
+<span class="nc" id="L238">        return valid;</span>
+    }
+
+    public boolean checkValidity(final Date date)  {
+<span class="nc bnc" id="L242" title="All 2 branches missed.">        if (certificate==null) {</span>
+            // We can't check not before field in this case, so make a best effort
+<span class="nc bnc" id="L244" title="All 2 branches missed.">            return certificateData.getExpireDate()&gt;=date.getTime();</span>
+        }
+<span class="nc" id="L246">        boolean valid = true;</span>
+        try {
+<span class="nc" id="L248">            CertTools.checkValidity(certificate, date);</span>
+<span class="nc" id="L249">        } catch (CertificateExpiredException e) {</span>
+<span class="nc" id="L250">            valid = false;</span>
+<span class="nc" id="L251">        } catch (CertificateNotYetValidException e) {</span>
+<span class="nc" id="L252">            valid = false;</span>
+<span class="nc" id="L253">        }</span>
+<span class="nc" id="L254">        return valid;</span>
+    }
+
+    public String getPublicKeyAlgorithm(){
+<span class="nc bnc" id="L258" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L259">            return UNKNOWN;</span>
+        }
+<span class="nc" id="L261">        return certificate.getPublicKey().getAlgorithm();</span>
+    }
+    
+    public String getKeySpec(String localizedBitsText) {
+<span class="nc bnc" id="L265" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L266">            return UNKNOWN;</span>
+        }
+<span class="nc bnc" id="L268" title="All 2 branches missed.">    	if (certificate.getPublicKey() instanceof ECPublicKey) {</span>
+<span class="nc" id="L269">    		return AlgorithmTools.getKeySpecification(certificate.getPublicKey());</span>
+    	} else {
+<span class="nc" id="L271">    		return &quot;&quot; + KeyTools.getKeyLength(certificate.getPublicKey()) + &quot; &quot; + localizedBitsText;</span>
+    	}
+    }
+
+    public String getPublicKeyLength(){
+<span class="nc bnc" id="L276" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L277">            return UNKNOWN;</span>
+        }
+<span class="nc" id="L279">        int len = KeyTools.getKeyLength(certificate.getPublicKey());</span>
+<span class="nc bnc" id="L280" title="All 2 branches missed.">        return len &gt; 0 ? &quot;&quot;+len : null; </span>
+    }
+
+    public String getPublicKeyModulus(){
+<span class="nc bnc" id="L284" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L285">            return UNKNOWN;</span>
+        }
+<span class="nc" id="L287">    	String mod = null;</span>
+<span class="nc bnc" id="L288" title="All 2 branches missed.">    	if( certificate.getPublicKey() instanceof RSAPublicKey){</span>
+<span class="nc" id="L289">    		mod = &quot;&quot; + ((RSAPublicKey)certificate.getPublicKey()).getModulus().toString(16);</span>
+<span class="nc" id="L290">    		mod = mod.toUpperCase();</span>
+<span class="nc" id="L291">    		mod = StringUtils.abbreviate(mod, 50);</span>
+<span class="nc bnc" id="L292" title="All 2 branches missed.">    	} else if( certificate.getPublicKey() instanceof DSAPublicKey){</span>
+<span class="nc" id="L293">    		mod = &quot;&quot; + ((DSAPublicKey)certificate.getPublicKey()).getY().toString(16);</span>
+<span class="nc" id="L294">    		mod = mod.toUpperCase();</span>
+<span class="nc" id="L295">    		mod = StringUtils.abbreviate(mod, 50);</span>
+<span class="nc bnc" id="L296" title="All 2 branches missed.">    	} else if( certificate.getPublicKey() instanceof ECPublicKey){</span>
+<span class="nc" id="L297">    		mod = &quot;&quot; + ((ECPublicKey)certificate.getPublicKey()).getW().getAffineX().toString(16);</span>
+<span class="nc" id="L298">    		mod = mod + ((ECPublicKey)certificate.getPublicKey()).getW().getAffineY().toString(16);</span>
+<span class="nc" id="L299">    		mod = mod.toUpperCase();</span>
+<span class="nc" id="L300">    		mod = StringUtils.abbreviate(mod, 50);</span>
+    	}
+<span class="nc" id="L302">    	return mod;</span>
+    }
+
+    public String getSignatureAlgoritm() {
+<span class="nc bnc" id="L306" title="All 2 branches missed.">        if (certificate==null) {</span>
+            // We could lookup the issuer and show a probably algorithm that was used, but we will never know for sure
+<span class="nc" id="L308">            return UNKNOWN;</span>
+        }
+    	// Only used for displaying to user so we can use this value that always works
+<span class="nc" id="L311">    	return AlgorithmTools.getCertSignatureAlgorithmNameAsString(certificate);</span>
+    }
+
+    /** Method that returns if key is allowed for given usage. Usage must be one of this class key usage constants. 
+     * @param usage Usage
+     * @return bool */
+    public boolean getKeyUsage(int usage) {
+<span class="nc bnc" id="L318" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L319">            return false;</span>
+        }
+<span class="nc" id="L321">    	boolean returnval = false;</span>
+<span class="nc bnc" id="L322" title="All 2 branches missed.">    	if (certificate instanceof X509Certificate) {</span>
+<span class="nc" id="L323">    		X509Certificate x509cert = (X509Certificate)certificate;</span>
+<span class="nc bnc" id="L324" title="All 2 branches missed.">    		if(x509cert.getKeyUsage() != null) {</span>
+<span class="nc" id="L325">    			returnval= x509cert.getKeyUsage()[usage];</span>
+    		}
+<span class="nc" id="L327">    	} else {</span>
+<span class="nc" id="L328">    		returnval = false;</span>
+    	}
+<span class="nc" id="L330">    	return returnval;</span>
+    }
+
+    public String[] getExtendedKeyUsageAsTexts(AvailableExtendedKeyUsagesConfiguration ekuConfig){
+<span class="nc bnc" id="L334" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L335">            return new String[0];</span>
+        }
+<span class="nc" id="L337">        List&lt;String&gt; extendedkeyusage = null;</span>
+<span class="nc bnc" id="L338" title="All 2 branches missed.">        if (certificate instanceof X509Certificate) {</span>
+<span class="nc" id="L339">            X509Certificate x509cert = (X509Certificate)certificate;</span>
+            try {
+<span class="nc" id="L341">                extendedkeyusage = x509cert.getExtendedKeyUsage();  </span>
+<span class="nc" id="L342">            } catch (CertificateParsingException e) {}</span>
+        }
+<span class="nc bnc" id="L344" title="All 2 branches missed.">        if (extendedkeyusage == null) {</span>
+<span class="nc" id="L345">            extendedkeyusage = new ArrayList&lt;&gt;();</span>
+        }
+<span class="nc" id="L347">        final String[] returnval = new String[extendedkeyusage.size()];</span>
+<span class="nc bnc" id="L348" title="All 2 branches missed.">        for (int i=0; i&lt;extendedkeyusage.size(); i++) {</span>
+<span class="nc" id="L349">            returnval[i] = ekuConfig.getExtKeyUsageName(extendedkeyusage.get(i));</span>
+        }
+<span class="nc" id="L351">        return returnval; </span>
+    }
+    
+    public List&lt;String&gt; getAuthorityInformationAccessCaIssuerUris() {
+<span class="nc" id="L355">        return CertTools.getAuthorityInformationAccessCAIssuerUris(certificate);</span>
+    }
+    
+    public List&lt;String&gt; getAuthorityInformationAccessOcspUrls() {
+<span class="nc" id="L359">        return CertTools.getAuthorityInformationAccessOcspUrls(certificate);</span>
+    }
+
+    public String getBasicConstraints(String localizedNoneText, String localizedNolimitText, String localizedEndEntityText, String localizedCaPathLengthText) {
+<span class="nc bnc" id="L363" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L364">            return UNKNOWN;</span>
+        }
+<span class="nc" id="L366">    	String retval = localizedNoneText;	//ejbcawebbean.getText(&quot;EXT_NONE&quot;);</span>
+<span class="nc bnc" id="L367" title="All 2 branches missed.">    	if (certificate instanceof X509Certificate) {</span>
+<span class="nc" id="L368">    		X509Certificate x509cert = (X509Certificate)certificate;</span>
+<span class="nc" id="L369">    		int bc = x509cert.getBasicConstraints();</span>
+<span class="nc bnc" id="L370" title="All 2 branches missed.">    		if (bc == Integer.MAX_VALUE) {</span>
+<span class="nc" id="L371">    			retval = localizedNolimitText;	//ejbcawebbean.getText(&quot;EXT_PKIX_BC_CANOLIMIT&quot;);</span>
+<span class="nc bnc" id="L372" title="All 2 branches missed.">    		} else if (bc == -1) {</span>
+<span class="nc" id="L373">    			retval = localizedEndEntityText;	//ejbcawebbean.getText(&quot;EXT_PKIX_BC_ENDENTITY&quot;);</span>
+    		} else {
+<span class="nc" id="L375">    			retval = localizedCaPathLengthText /*ejbcawebbean.getText(&quot;EXT_PKIX_BC_CAPATHLENGTH&quot;)*/ + &quot; : &quot; + x509cert.getBasicConstraints();                    	     			</span>
+    		}
+<span class="nc bnc" id="L377" title="All 2 branches missed.">    	} else if (certificate.getType().equals(&quot;CVC&quot;)) {</span>
+<span class="nc" id="L378">    		CardVerifiableCertificate cvccert = (CardVerifiableCertificate)certificate;</span>
+    		try {
+<span class="nc" id="L380">    			retval = cvccert.getCVCertificate().getCertificateBody().getAuthorizationTemplate().getAuthorizationField().getAuthRole().toString();</span>
+<span class="nc" id="L381">    		} catch (NoSuchFieldException e) {</span>
+<span class="nc" id="L382">    	    	retval = localizedNoneText;	//ejbcawebbean.getText(&quot;EXT_NONE&quot;);</span>
+<span class="nc" id="L383">    		}</span>
+    	}
+<span class="nc" id="L385">    	return retval;</span>
+    }
+
+    public String getSignature() {
+<span class="nc bnc" id="L389" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L390">            return UNKNOWN;</span>
+        }
+<span class="nc" id="L392">        return new BigInteger(CertTools.getSignature(certificate)).toString(16);</span>
+    }
+
+    public String getSHA1Fingerprint(){
+<span class="nc bnc" id="L396" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L397">            return certificateData.getFingerprint().toUpperCase();</span>
+        }
+<span class="nc" id="L399">        String returnval = &quot;&quot;;</span>
+        try {
+<span class="nc" id="L401">            byte[] res = CertTools.generateSHA1Fingerprint(certificate.getEncoded());</span>
+<span class="nc" id="L402">            String ret = new String(Hex.encode(res));</span>
+<span class="nc" id="L403">            returnval = ret.toUpperCase();</span>
+<span class="nc" id="L404">        } catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L405">        }</span>
+<span class="nc" id="L406">        return returnval;</span>
+    }
+
+    public String getSHA256Fingerprint(){
+<span class="nc bnc" id="L410" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L411">            return UNKNOWN;</span>
+        }
+<span class="nc" id="L413">        String returnval = &quot;&quot;;</span>
+        try {
+<span class="nc" id="L415">            byte[] res = CertTools.generateSHA256Fingerprint(certificate.getEncoded());</span>
+<span class="nc" id="L416">            String ret = new String(Hex.encode(res));</span>
+<span class="nc" id="L417">            returnval = ret.toUpperCase();</span>
+<span class="nc" id="L418">        } catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L419">        }</span>
+<span class="nc" id="L420">        return returnval;</span>
+    }
+
+    public String getMD5Fingerprint(){
+<span class="nc bnc" id="L424" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L425">            return UNKNOWN;</span>
+        }
+<span class="nc" id="L427">        String returnval = &quot;&quot;;</span>
+        try {
+<span class="nc" id="L429">            byte[] res = CertTools.generateMD5Fingerprint(certificate.getEncoded());</span>
+<span class="nc" id="L430">            String ret = new String(Hex.encode(res));</span>
+<span class="nc" id="L431">            returnval = ret.toUpperCase();</span>
+<span class="nc" id="L432">        } catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L433">        }</span>
+<span class="nc" id="L434">        return returnval;</span>
+    }
+
+    public boolean isRevokedAndOnHold(){
+<span class="nc bnc" id="L438" title="All 4 branches missed.">    	return revokedinfo != null &amp;&amp; revokedinfo.isRevokedAndOnHold();     </span>
+    }
+
+    public boolean isRevoked(){
+<span class="nc bnc" id="L442" title="All 4 branches missed.">        return revokedinfo != null &amp;&amp; revokedinfo.isRevoked();     </span>
+    }
+
+    public String getRevocationReason(){
+<span class="nc" id="L446">        String returnval = null;</span>
+<span class="nc bnc" id="L447" title="All 2 branches missed.">        if (revokedinfo != null) {</span>
+<span class="nc" id="L448">            returnval = revokedinfo.getRevocationReason();</span>
+        }
+<span class="nc" id="L450">        return returnval;</span>
+    }
+
+    public Date getRevocationDate(){
+<span class="nc" id="L454">        Date returnval = null;</span>
+<span class="nc bnc" id="L455" title="All 2 branches missed.">        if (revokedinfo != null) {</span>
+<span class="nc" id="L456">            returnval = revokedinfo.getRevocationDate();</span>
+        }
+<span class="nc" id="L458">        return returnval;</span>
+    }
+
+    public String getUsername(){
+<span class="nc" id="L462">        return username;</span>
+    }
+
+    public Certificate getCertificate(){
+<span class="nc" id="L466">        return certificate;</span>
+    }
+    
+    public String getSubjectDirAttr() {
+<span class="nc bnc" id="L470" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L471">            return UNKNOWN;</span>
+        }
+<span class="nc bnc" id="L473" title="All 2 branches missed.">        if (subjectdirattrstring == null) {</span>
+            try {
+<span class="nc" id="L475">                subjectdirattrstring = SubjectDirAttrExtension.getSubjectDirectoryAttributes(certificate);</span>
+<span class="nc" id="L476">            } catch (Exception e) {</span>
+<span class="nc" id="L477">                subjectdirattrstring = e.getMessage();</span>
+<span class="nc" id="L478">            }</span>
+        }
+<span class="nc" id="L480">        return subjectdirattrstring;</span>
+    }
+    
+    public String getSubjectAltName() {
+<span class="nc bnc" id="L484" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L485">            return UNKNOWN;</span>
+        }
+<span class="nc bnc" id="L487" title="All 2 branches missed.">        if (subjectaltnamestring == null) {</span>
+<span class="nc" id="L488">            subjectaltnamestring = CertTools.getSubjectAlternativeName(certificate);</span>
+        }        
+<span class="nc" id="L490">        return subjectaltnamestring; 	</span>
+    }
+    
+    public boolean hasNameConstraints() {
+<span class="nc bnc" id="L494" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L495">            return false;</span>
+        }
+<span class="nc bnc" id="L497" title="All 2 branches missed.">        if (certificate instanceof X509Certificate) {</span>
+<span class="nc" id="L498">            X509Certificate x509cert = (X509Certificate)certificate;</span>
+<span class="nc" id="L499">            byte[] ext = x509cert.getExtensionValue(Extension.nameConstraints.getId());</span>
+<span class="nc bnc" id="L500" title="All 2 branches missed.">            return ext != null;</span>
+        }
+<span class="nc" id="L502">        return false;</span>
+    }
+
+    public boolean hasQcStatement() {
+<span class="nc bnc" id="L506" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L507">            return false;</span>
+        }
+<span class="nc" id="L509">    	return QCStatementExtension.hasQcStatement(certificate);</span>
+    }
+
+    public boolean hasCertificateTransparencySCTs() {
+<span class="nc bnc" id="L513" title="All 2 branches missed.">        if (certificate==null) {</span>
+<span class="nc" id="L514">            return false;</span>
+        }
+<span class="nc" id="L516">        CertificateTransparency ct = CertificateTransparencyFactory.getInstance();</span>
+<span class="nc bnc" id="L517" title="All 4 branches missed.">        return (ct != null &amp;&amp; ct.hasSCTs(certificate));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

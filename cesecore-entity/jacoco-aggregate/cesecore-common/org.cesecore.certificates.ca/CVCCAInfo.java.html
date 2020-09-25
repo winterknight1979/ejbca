@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CVCCAInfo.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-entity</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.ca</a> &gt; <span class="el_source">CVCCAInfo.java</span></div><h1>CVCCAInfo.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.ca;
+
+import java.security.cert.Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.cesecore.certificates.ca.catoken.CAToken;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceInfo;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.SimpleTime;
+import org.cesecore.util.StringTools;
+
+
+/**
+ * Holds non-sensitive information about a CVC CA (Card Verifiable Certificate).
+ *
+ * @version $Id: CVCCAInfo.java 34456 2020-02-06 18:36:20Z anatom $
+ */
+public class CVCCAInfo extends CAInfo {
+
+	private static final long serialVersionUID = 2L;
+
+    /**
+     * This constructor can be used when creating a CA.
+     * This constructor uses defaults for the fields that are not specified.
+     * @param subjectdn DN
+     * @param name name
+     * @param status status
+     * @param certificateprofileid ID
+     * @param encodedValidity Validity
+     * @param signedby signer
+     * @param certificatechain chain 
+     * @param catoken token
+     * */
+    public CVCCAInfo(String subjectdn, String name, int status, int certificateprofileid, String encodedValidity, int signedby,
+            List&lt;Certificate&gt; certificatechain, CAToken catoken) {
+<span class="nc" id="L53">        this(subjectdn, name, status, new Date(), certificateprofileid,</span>
+                0, // defaultCertprofileId
+                encodedValidity, null, // expire time
+                CAInfo.CATYPE_CVC, signedby,
+                certificatechain, // Certificate chain
+                catoken, // CA token
+                &quot;&quot;, // Description
+                -1, // Revocation reason
+                null, // Revocation date
+                1 * SimpleTime.MILLISECONDS_PER_DAY, // CRL period
+                0L, // CRL issue interval
+                10 * SimpleTime.MILLISECONDS_PER_MINUTE, // CRL overlap time
+                0L, // Delta CRL period
+                new ArrayList&lt;Integer&gt;(), // CRL publishers
+                new ArrayList&lt;Integer&gt;(), // Key validators
+                true, // Finish user
+                new ArrayList&lt;ExtendedCAServiceInfo&gt;(), // Extended CA services
+                new HashMap&lt;ApprovalRequestType, Integer&gt;(),
+                true, // includeInHealthCheck
+                true, // isDoEnforceUniquePublicKeys
+                true, // isDoEnforceUniqueDistinguishedName
+                false, // isDoEnforceUniqueSubjectDNSerialnumber
+                false, // useCertReqHistory
+                true, // useUserStorage
+                true, // useCertificateStorage
+				false // acceptRevocationNonExistingEntry
+            );
+<span class="nc" id="L80">    }</span>
+
+	/**
+	 * Constructor that should be used when creating CA and retrieving CA info.
+	 * Please use the shorter form if you do not need to set all of the values.
+	 * @param subjectDn DN
+	 * @param name Name
+	 * @param status Status
+	 * @param updateTime Update
+	 * @param certificateprofileid ID 
+	 * @param defaultCertprofileId ID
+	 * @param encodedValidity Validity
+	 * @param expiretime Expiry
+	 * @param catype Type of CA
+	 * @param signedBy Signer
+	 * @param certificatechain Chain 
+	 * @param catoken Token
+	 * @param description Description
+	 * @param revocationReason Reason for revoking
+	 * @param revocationDate Date of revoking
+	 * @param crlperiod CRL period
+	 * @param crlIssueInterval CRL Issue interval
+	 * @param crlOverlapTime CRL Overlap
+	 * @param deltacrlperiod CRL change
+	 * @param crlpublishers Publisher of CRL
+	 * @param keyValidators Validators
+	 * @param finishuser boolean
+	 * @param extendedcaserviceinfos info 
+	 * @param approvals approvals
+	 * @param includeInHealthCheck bool 
+	 * @param _doEnforceUniquePublicKeys bool 
+	 * @param _doEnforceUniqueDistinguishedName bool 
+	 * @param _doEnforceUniqueSubjectDNSerialnumber bool
+	 * @param _useCertReqHistory bool
+	 * @param _useUserStorage bool
+	 * @param _useCertificateStorage bool 
+	 * @param _acceptRevocationNonExistingEntry bool  
+	 */
+	public CVCCAInfo(String subjectDn, String name, int status, Date updateTime, int certificateprofileid, int defaultCertprofileId,
+            String encodedValidity, Date expiretime, int catype, int signedBy, List&lt;Certificate&gt; certificatechain,
+			CAToken catoken, String description, int revocationReason, Date revocationDate,
+			long crlperiod, long crlIssueInterval, long crlOverlapTime, long deltacrlperiod,
+			Collection&lt;Integer&gt; crlpublishers, Collection&lt;Integer&gt; keyValidators,
+			boolean finishuser,Collection&lt;ExtendedCAServiceInfo&gt; extendedcaserviceinfos,
+			Map&lt;ApprovalRequestType, Integer&gt; approvals,
+			boolean includeInHealthCheck, boolean _doEnforceUniquePublicKeys,
+			boolean _doEnforceUniqueDistinguishedName, boolean _doEnforceUniqueSubjectDNSerialnumber,
+<span class="nc" id="L127">			boolean _useCertReqHistory, boolean _useUserStorage, boolean _useCertificateStorage, boolean _acceptRevocationNonExistingEntry) {</span>
+<span class="nc" id="L128">		this.subjectdn = CertTools.stringToBCDNString(StringTools.strip(subjectDn));</span>
+<span class="nc" id="L129">		this.caid = CertTools.stringToBCDNString(this.subjectdn).hashCode();</span>
+<span class="nc" id="L130">		this.name = name;</span>
+<span class="nc" id="L131">		this.status = status;</span>
+<span class="nc" id="L132">		this.updatetime = updateTime;</span>
+<span class="nc" id="L133">		setEncodedValidity(encodedValidity);</span>
+<span class="nc" id="L134">		this.expiretime = expiretime;</span>
+<span class="nc" id="L135">		this.catype = catype;</span>
+<span class="nc" id="L136">		this.signedby = signedBy;</span>
+<span class="nc" id="L137">		setCertificateChain(certificatechain);</span>
+<span class="nc" id="L138">		this.catoken = catoken;</span>
+<span class="nc" id="L139">		this.description = description;</span>
+<span class="nc" id="L140">		this.revocationReason = revocationReason;</span>
+<span class="nc" id="L141">		this.revocationDate = revocationDate;</span>
+<span class="nc" id="L142">		this.crlperiod = crlperiod;</span>
+<span class="nc" id="L143">		this.crlIssueInterval = crlIssueInterval;</span>
+<span class="nc" id="L144">		this.crlOverlapTime = crlOverlapTime;</span>
+<span class="nc" id="L145">		this.deltacrlperiod = deltacrlperiod;</span>
+<span class="nc" id="L146">		this.crlpublishers = crlpublishers;</span>
+<span class="nc" id="L147">		this.validators = keyValidators;</span>
+<span class="nc" id="L148">		this.finishuser = finishuser;</span>
+<span class="nc" id="L149">		this.certificateprofileid = certificateprofileid;</span>
+<span class="nc" id="L150">		this.defaultCertificateProfileId = defaultCertprofileId;</span>
+<span class="nc" id="L151">		this.extendedcaserviceinfos = extendedcaserviceinfos;</span>
+<span class="nc" id="L152">		setApprovals(approvals);</span>
+<span class="nc" id="L153">		this.includeInHealthCheck = includeInHealthCheck;</span>
+<span class="nc" id="L154">		this.doEnforceUniquePublicKeys = _doEnforceUniquePublicKeys;</span>
+<span class="nc" id="L155">		this.doEnforceUniqueDistinguishedName = _doEnforceUniqueDistinguishedName;</span>
+<span class="nc" id="L156">		this.doEnforceUniqueSubjectDNSerialnumber = _doEnforceUniqueSubjectDNSerialnumber;</span>
+<span class="nc" id="L157">		this.useCertReqHistory = _useCertReqHistory;</span>
+<span class="nc" id="L158">        this.useUserStorage = _useUserStorage;</span>
+<span class="nc" id="L159">        this.useCertificateStorage = _useCertificateStorage;</span>
+<span class="nc" id="L160">        this.acceptRevocationNonExistingEntry = _acceptRevocationNonExistingEntry;</span>
+<span class="nc" id="L161">	}</span>
+
+	/**
+	 * Constructor that should be used when updating CA data.
+     * Used by the web. Jsp and stuff like that.
+	 * @param caid CA ID
+	 * @param encodedValidity Validity 
+	 * @param catoken Token
+	 * @param description Description
+	 * @param crlperiod CRL period
+	 * @param crlIssueInterval CRL Issue
+	 * @param crlOverlapTime CRL Overlap
+	 * @param deltacrlperiod CRL Delta
+	 * @param crlpublishers CRL Publisher
+	 * @param keyValidators Validators
+	 * @param finishuser bool
+	 * @param extendedcaserviceinfos info
+	 * @param approvals approvals
+	 * @param includeInHealthCheck bool 
+	 * @param _doEnforceUniquePublicKeys bool 
+	 * @param _doEnforceUniqueDistinguishedName bool 
+	 * @param _doEnforceUniqueSubjectDNSerialnumber bool
+	 * @param _useCertReqHistory bool
+	 * @param _useUserStorage bool
+	 * @param _useCertificateStorage bool 
+	 * @param _acceptRevocationNonExistingEntry bool 
+	 * @param defaultCertprofileId ID
+	 */
+	public CVCCAInfo(int caid, String encodedValidity, CAToken catoken, String description,
+			long crlperiod, long crlIssueInterval, long crlOverlapTime, long deltacrlperiod,
+			Collection&lt;Integer&gt; crlpublishers, Collection&lt;Integer&gt; keyValidators,
+			boolean finishuser, Collection&lt;ExtendedCAServiceInfo&gt; extendedcaserviceinfos,
+			Map&lt;ApprovalRequestType, Integer&gt; approvals,
+			boolean includeInHealthCheck, boolean _doEnforceUniquePublicKeys,
+			boolean _doEnforceUniqueDistinguishedName, boolean _doEnforceUniqueSubjectDNSerialnumber,
+			boolean _useCertReqHistory, boolean _useUserStorage, boolean _useCertificateStorage, boolean _acceptRevocationNonExistingEntry,
+<span class="nc" id="L197">			int defaultCertprofileId) {</span>
+<span class="nc" id="L198">		this.caid = caid;</span>
+<span class="nc" id="L199">		setEncodedValidity(encodedValidity);</span>
+<span class="nc" id="L200">		this.catoken = catoken;</span>
+<span class="nc" id="L201">		this.description = description;</span>
+<span class="nc" id="L202">		this.crlperiod = crlperiod;</span>
+<span class="nc" id="L203">		this.crlIssueInterval = crlIssueInterval;</span>
+<span class="nc" id="L204">		this.crlOverlapTime = crlOverlapTime;</span>
+<span class="nc" id="L205">		this.deltacrlperiod = deltacrlperiod;</span>
+<span class="nc" id="L206">		this.crlpublishers = crlpublishers;</span>
+<span class="nc" id="L207">		this.validators = keyValidators;</span>
+<span class="nc" id="L208">		this.finishuser = finishuser;</span>
+<span class="nc" id="L209">		this.extendedcaserviceinfos = extendedcaserviceinfos;</span>
+<span class="nc" id="L210">		setApprovals(approvals);</span>
+<span class="nc" id="L211">		this.includeInHealthCheck = includeInHealthCheck;</span>
+<span class="nc" id="L212">		this.doEnforceUniquePublicKeys = _doEnforceUniquePublicKeys;</span>
+<span class="nc" id="L213">		this.doEnforceUniqueDistinguishedName = _doEnforceUniqueDistinguishedName;</span>
+<span class="nc" id="L214">		this.doEnforceUniqueSubjectDNSerialnumber = _doEnforceUniqueSubjectDNSerialnumber;</span>
+<span class="nc" id="L215">		this.useCertReqHistory = _useCertReqHistory;</span>
+<span class="nc" id="L216">        this.useUserStorage = _useUserStorage;</span>
+<span class="nc" id="L217">        this.useCertificateStorage = _useCertificateStorage;</span>
+<span class="nc" id="L218">        this.acceptRevocationNonExistingEntry = _acceptRevocationNonExistingEntry;</span>
+<span class="nc" id="L219">        this.defaultCertificateProfileId = defaultCertprofileId;</span>
+<span class="nc" id="L220">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

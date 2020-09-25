@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ContentSecurityPolicyFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.owasp.filters</a> &gt; <span class="el_source">ContentSecurityPolicyFilter.java</span></div><h1>ContentSecurityPolicyFilter.java</h1><pre class="source lang-java linenums">/**
+ *  Software published by the Open Web Application Security Project (http://www.owasp.org)
+ *  https://www.owasp.org/index.php/Content_Security_Policy
+ *
+ */
+
+package org.owasp.filters;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang.StringUtils;
+
+/**
+ * Sample filter implementation to define a set of Content Security Policies, and other security headers.&lt;br&gt;
+ * 
+ * This implementation has a dependency on Commons Codec API.&lt;br&gt;
+ * 
+ * This filter set CSP policies using all HTTP headers defined into W3C specification.&lt;br&gt;
+ * and X-XSS-Protection, X-Content-Type-Options, X-FRAME-OPTIONS
+ * &lt;br&gt;
+ * This implementation is oriented to be easily understandable and easily adapted.&lt;br&gt;
+ * 
+ * @version $Id: ContentSecurityPolicyFilter.java 34257 2020-01-13 09:37:53Z anatom $
+ */
+<span class="nc" id="L34">public class ContentSecurityPolicyFilter implements Filter {</span>
+
+    /** Configuration member to specify if web app use web fonts */
+    public static final boolean APP_USE_WEBFONTS = false;
+
+    /** Configuration member to specify if web app use videos or audios */
+    public static final boolean APP_USE_AUDIOS_OR_VIDEOS = false;
+
+    /** List CSP HTTP Headers */
+<span class="nc" id="L43">    private List&lt;String&gt; cspHeaders = new ArrayList&lt;String&gt;();</span>
+
+    /** Collection of CSP polcies that will be applied */
+<span class="nc" id="L46">    private String policies = null;</span>
+
+    /** which mode X-FRAME-OPTIONS should have, default DENY */
+<span class="nc" id="L49">    private String frameOptionsMode = &quot;DENY&quot;;</span>
+    
+    /** Used for Script Nonce */
+    //private SecureRandom prng = null;
+
+    /**
+     * Used to prepare (one time for all) set of CSP policies that will be applied on each HTTP response.
+     * 
+     * @see javax.servlet.Filter#init(javax.servlet.FilterConfig)
+     */
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+<span class="nc" id="L61">        String plugins = filterConfig.getInitParameter(&quot;plugins&quot;);</span>
+<span class="nc" id="L62">        String objects = filterConfig.getInitParameter(&quot;objects&quot;);</span>
+<span class="nc" id="L63">        String unsafeeval = filterConfig.getInitParameter(&quot;unsafeeval&quot;);</span>
+
+        // Init secure random
+        /*
+        try {
+            this.prng = SecureRandom.getInstance(&quot;SHA1PRNG&quot;);
+        } catch (NoSuchAlgorithmException e) {
+            throw new ServletException(e);
+        }
+        */
+
+        // Define list of CSP HTTP Headers
+        // Used by all modern real browsers
+<span class="nc" id="L76">        this.cspHeaders.add(&quot;Content-Security-Policy&quot;);</span>
+        // Used by IE10 that partially implements CSP
+<span class="nc" id="L78">        this.cspHeaders.add(&quot;X-Content-Security-Policy&quot;);</span>
+
+        // Define CSP policies
+        // Loading policies for Frame and Sandboxing will be dynamically defined : We need to know if context use Frame
+<span class="nc" id="L82">        List&lt;String&gt; cspPolicies = new ArrayList&lt;String&gt;();</span>
+<span class="nc" id="L83">        String originLocationRef = &quot;'self'&quot;;</span>
+        // --Disable default source in order to avoid browser fallback loading using 'default-src' locations
+<span class="nc" id="L85">        cspPolicies.add(&quot;default-src 'none'&quot;);</span>
+        // --Define loading policies for Objects (&lt;object&gt; tags)
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(objects)) {</span>
+<span class="nc" id="L88">            cspPolicies.add(&quot;object-src &quot; + originLocationRef);</span>
+        }
+        // --Define loading policies for Styles (CSS), allow inline style elements
+<span class="nc" id="L91">        cspPolicies.add(&quot;style-src &quot; + originLocationRef+&quot; 'unsafe-inline'&quot;);</span>
+        // --Define loading policies for javascript, allow inline style elements in order to use onClick attributes
+        final String evalstr;
+<span class="nc bnc" id="L94" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(unsafeeval)) {</span>
+<span class="nc" id="L95">            evalstr = &quot; 'unsafe-eval'&quot;;</span>
+        } else {
+<span class="nc" id="L97">            evalstr = &quot;&quot;;</span>
+        }
+<span class="nc" id="L99">        cspPolicies.add(&quot;script-src &quot; + originLocationRef+&quot; 'unsafe-inline'&quot;+evalstr);</span>
+        // --Define loading policies for Images
+<span class="nc" id="L101">        cspPolicies.add(&quot;img-src &quot; + originLocationRef);</span>
+        // Frame + Sandbox : Here sandbox allow nothing, customize sandbox options depending on your app....
+        //policiesBuffer.append(&quot;;&quot;).append(&quot;frame-src 'self';sandbox&quot;);
+<span class="nc" id="L104">        cspPolicies.add(&quot;frame-src 'self'&quot;);</span>
+        // --Define loading policies for Audios/Videos
+        if (APP_USE_AUDIOS_OR_VIDEOS) {
+            cspPolicies.add(&quot;media-src &quot; + originLocationRef);
+        }
+        // --Define loading policies for Fonts
+        if (APP_USE_WEBFONTS) {
+            cspPolicies.add(&quot;font-src &quot; + originLocationRef);
+        }
+        // --Define loading policies for Connection, which we don't use, but may use when we move to advanced JSF pages and components
+<span class="nc" id="L114">        cspPolicies.add(&quot;connect-src &quot; + originLocationRef);</span>
+        // --Define loading policies for Form
+<span class="nc" id="L116">        cspPolicies.add(&quot;form-action &quot; + originLocationRef);</span>
+        // --Define loading policies for Plugins Types, only allow PDF documents, if plug-ins are enabled in web.xml
+<span class="nc bnc" id="L118" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(plugins)) {</span>
+<span class="nc" id="L119">            cspPolicies.add(&quot;plugin-types application/pdf&quot;);</span>
+        }
+        // --Define browser XSS filtering feature running mode
+<span class="nc" id="L122">        cspPolicies.add(&quot;reflected-xss block&quot;);</span>
+
+        // Target formating
+<span class="nc" id="L125">        this.policies = cspPolicies.toString().replaceAll(&quot;(\\[|\\])&quot;, &quot;&quot;).replaceAll(&quot;,&quot;, &quot;;&quot;).trim();</span>
+
+<span class="nc" id="L127">        String mode = filterConfig.getInitParameter(&quot;frameoptionsmode&quot;);</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">        if ( mode != null ) {</span>
+<span class="nc" id="L129">            frameOptionsMode = mode;</span>
+        }
+<span class="nc" id="L131">    }</span>
+
+    /**
+     * Add CSP policies on each HTTP response.
+     * 
+     * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse, javax.servlet.FilterChain)
+     */
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain fchain) throws IOException, ServletException {
+        //HttpServletRequest httpRequest = ((HttpServletRequest) request);
+<span class="nc" id="L141">        HttpServletResponse httpResponse = ((HttpServletResponse) response);</span>
+
+        /* Step 1 : Detect if target resource is a Frame */
+        // Customize here according to your context...
+
+        /* Step 2 : Add CSP policies to HTTP response */
+<span class="nc" id="L147">        StringBuilder policiesBuffer = new StringBuilder(this.policies);</span>
+
+        // Add Script Nonce CSP Policy
+        // With this:
+        // Content security policy script-nonce. Only javascripts that are in a self-source js file, or in-line and declare a nonce 
+        // will be allowed to execute in the browser when the content-security-policy headers are defined with 
+        // &quot;script-src 'self' 'nonce-$RANDOM&quot;. 
+        // The RANDOM is passed in each request as an attribute CSP_SCRIPT_NONCE. See ContentSecurityPolicyFilter.java
+        // Add nonce to in-line java scripts like:
+        // &lt;script nonce=&quot;&lt;%= (String)request.getAttribute(&quot;CSP_SCRIPT_NONCE&quot;) %&gt;&quot; type=&quot;text/javascript&quot;&gt;
+        
+        // We can not use this currently because it would require moving all &lt;a id=&quot;item-id&quot; ...onclick=&quot;callMethod()&quot;/&gt; into setting event handlers in the javascript methods instead:
+        // document.getElementById('item-id').onclick = callMethod();
+        /*
+        // Set nonce in session variable instead of on the request only
+        // This is needed because EJBCA uses frames. If/when we do not use frames anymore we can simply set the nonce in every request
+        // httpRequest.setAttribute(&quot;CSP_SCRIPT_NONCE&quot;, scriptNonce);
+        HttpSession session = httpRequest.getSession(false);
+        final String scriptNonce;
+        if ((session == null) || (session.getAttribute(&quot;CSP_SCRIPT_NONCE&quot;) == null)) {
+            // Generate a new random nonce
+            // --Generate a random number
+            String randomNum = new Integer(this.prng.nextInt()).toString();
+            // --Get its digest
+            MessageDigest sha;
+            try {
+                sha = MessageDigest.getInstance(&quot;SHA-1&quot;);
+            }
+            catch (NoSuchAlgorithmException e) {
+                throw new ServletException(e);
+            }
+            byte[] digest = sha.digest(randomNum.getBytes());
+            // --Encode it into HEXA
+            scriptNonce = Hex.encodeHexString(digest);
+            // Old style, pre-draft standard &quot;script-nonce&quot; directive&quot;
+            //policiesBuffer.append(&quot;;&quot;).append(&quot;script-nonce &quot;).append(scriptNonce);
+            // Standard script-src directive, including nonce
+            /// Content-Security-Policy: script-src 'self' 'nonce-$RANDOM';
+            // Allow all inline javascript with 'unsafe-inline' and 'unsafe-eval'
+            //policiesBuffer.append(&quot;;script-src 'self' 'unsafe-inline' 'unsafe-eval'&quot;);
+            // Only allow in-line javascript with nonces
+            // --Made available script nonce in view app layer, so we can include it in scripts by retrieving this parameter
+            //httpRequest.setAttribute(&quot;CSP_SCRIPT_NONCE&quot;, scriptNonce);
+            if (session == null) {
+                session = httpRequest.getSession();
+            }
+            session.setAttribute(&quot;CSP_SCRIPT_NONCE&quot;, scriptNonce);
+        } else {
+            scriptNonce = (String)session.getAttribute(&quot;CSP_SCRIPT_NONCE&quot;);
+            
+        }
+        policiesBuffer.append(&quot;; script-src 'self' 'nonce-&quot;).append(scriptNonce).append(&quot;'&quot;);
+        */
+        
+        // Add policies to all HTTP headers
+<span class="nc bnc" id="L202" title="All 2 branches missed.">        for (String header : this.cspHeaders) {</span>
+<span class="nc" id="L203">            httpResponse.setHeader(header, policiesBuffer.toString());</span>
+<span class="nc" id="L204">        }</span>
+        // Also add X-XSS-Protection, newer header. 
+        // See https://www.owasp.org/index.php/List_of_useful_HTTP_headers
+        // https://blogs.msdn.microsoft.com/ie/2008/07/02/ie8-security-part-iv-the-xss-filter/
+<span class="nc" id="L208">        httpResponse.setHeader(&quot;X-XSS-Protection&quot;, &quot;1; mode=block&quot;);</span>
+        // Also X-Content-Type-Options, see https://blogs.msdn.microsoft.com/ie/2008/09/02/ie8-security-part-vi-beta-2-update/
+<span class="nc" id="L210">        httpResponse.setHeader(&quot;X-Content-Type-Options&quot;, &quot;nosniff&quot;);</span>
+        // Also X-FRAME-OPTIONS, see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+        // Used to be in a separate filter, ClickjackFilter, but there is no point in having multiple filters adding security headers
+<span class="nc" id="L213">        httpResponse.setHeader(&quot;X-FRAME-OPTIONS&quot;, frameOptionsMode );            </span>
+        // New header in 2018, Feature-Policy. https://scotthelme.co.uk/a-new-security-header-feature-policy/
+        // https://github.com/w3c/webappsec-feature-policy/blob/master/features.md
+        // https://w3c.github.io/webappsec-feature-policy/
+        // Add some sensible denies
+<span class="nc" id="L218">        httpResponse.setHeader(&quot;Feature-Policy&quot;, &quot;vibrate 'none'; autoplay 'none'; camera 'none'; microphone 'none'; midi 'none'; gyroscope 'none'; accelerometer 'none'; magnetometer 'none'; payment 'none'&quot; );            </span>
+        // Referrer policy: https://www.w3.org/TR/referrer-policy/
+<span class="nc" id="L220">        httpResponse.setHeader(&quot;Referrer-Policy&quot;, &quot;no-referrer-when-downgrade&quot; );            </span>
+
+        /* Step 3 : Let request continue chain filter */
+<span class="nc" id="L223">        fchain.doFilter(request, response);</span>
+<span class="nc" id="L224">    }</span>
+
+    /**
+     * {@inheritDoc}
+     * 
+     * @see javax.servlet.Filter#destroy()
+     */
+    @Override
+    public void destroy() {
+        // Not used
+<span class="nc" id="L234">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

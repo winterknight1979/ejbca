@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ExternalScriptsWhitelist.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-common</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.keys.validation</a> &gt; <span class="el_source">ExternalScriptsWhitelist.java</span></div><h1>ExternalScriptsWhitelist.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General                  *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.cesecore.keys.validation;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.util.StringTools;
+
+/**
+ * Class containing logic for a whitelist of scripts allowed to be executed by &quot;External Command Validators&quot;.
+ * @version $Id: ExternalScriptsWhitelist.java 30973 2019-01-03 14:33:40Z samuellb $
+ */
+public class ExternalScriptsWhitelist {
+    
+    /** Class logger. */
+<span class="fc" id="L33">    private static final Logger log = Logger.getLogger(ExternalScriptsWhitelist.class);</span>
+
+    private final List&lt;File&gt; scripts;
+    private final boolean isEnabled;
+
+    /**
+     * Creates a whitelist which permits all external commands to be executed.
+     * @return a new empty whitelist marked as disabled
+     */
+    public static ExternalScriptsWhitelist permitAll() {
+<span class="fc" id="L43">        return new ExternalScriptsWhitelist(new ArrayList&lt;File&gt;(), false);</span>
+    }
+
+    /**
+     * Create a new whitelist from text. The input should contain one path per line, lines beginning
+     * with '#' are treated as comments.
+     * @param text an input string containing the content of the whitelist
+     * @param isEnabled true if the whitelist is enabled
+     * @return an External Scripts Whitelist object constructed from the input
+     */
+    public static ExternalScriptsWhitelist fromText(final String text, final boolean isEnabled) {
+<span class="fc" id="L54">        final List&lt;File&gt; scripts = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L55">        final String[] lines = StringTools.splitByNewlines(text);</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">        for (int i = 0; i &lt; lines.length; i++) {</span>
+<span class="fc" id="L57">            final String path = lines[i].trim();</span>
+<span class="pc bpc" id="L58" title="1 of 4 branches missed.">            if (path.startsWith(&quot;#&quot;) || StringUtils.isBlank(path)) {</span>
+                // This is a comment or blank line
+<span class="nc" id="L60">                continue;</span>
+            }
+<span class="fc" id="L62">            final File script = new File(path);</span>
+<span class="fc" id="L63">            scripts.add(script);</span>
+        }
+<span class="fc" id="L65">        return new ExternalScriptsWhitelist(scripts, isEnabled);</span>
+    }
+
+    /**
+     * Create a new whitelist from text marked as enabled. The input should contain one path per line,
+     * lines beginning with '#' are treated as comments.
+     * @param text an input string containing the content of the whitelist
+     * @return an External Scripts Whitelist object constructed from the input
+     */
+    public static ExternalScriptsWhitelist fromText(final String text) {
+<span class="fc" id="L75">        return ExternalScriptsWhitelist.fromText(text, true);</span>
+    }
+
+    /**
+     * Create a new whitelist permitting execution of the scripts given as input.
+     * @param scripts a list of files
+     * @param isEnabled true if the whitelist is enabled
+     */
+<span class="fc" id="L83">    public ExternalScriptsWhitelist(final List&lt;File&gt; scripts, final boolean isEnabled) {</span>
+<span class="fc" id="L84">        this.scripts = scripts;</span>
+<span class="fc" id="L85">        this.isEnabled = isEnabled;</span>
+<span class="fc" id="L86">    }</span>
+
+    /**
+     * Create a new enabled whitelist permitting execution of the scripts given as input.
+     * @param paths a list of path strings
+     */
+<span class="fc" id="L92">    public ExternalScriptsWhitelist(final String... paths) {</span>
+<span class="fc" id="L93">        this.scripts = new ArrayList&lt;File&gt;();</span>
+<span class="fc" id="L94">        this.isEnabled = true;</span>
+<span class="fc bfc" id="L95" title="All 2 branches covered.">        for (final String path : paths) {</span>
+<span class="fc" id="L96">            scripts.add(new File(path));</span>
+        }
+<span class="fc" id="L98">    }</span>
+
+    /**
+     * Performs validation on the scripts in this whitelist. After invoking this
+     * method, validation will be performed on each script present in the whitelist.
+     * The result of the validation is a validation message which contains
+     * a human-readable description of the validation outcome or null if no problem
+     * was detected.
+     * @return a map with a script as key and a validation message as value
+     */
+    public Map&lt;File, String&gt; validateScripts() {
+<span class="nc" id="L109">        final Map&lt;File, String&gt; result = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        for (final File script : scripts) {</span>
+            try {
+<span class="nc bnc" id="L112" title="All 2 branches missed.">                if (!script.isFile()) {</span>
+<span class="nc" id="L113">                    result.put(script, &quot;This file does not exist or is not a file.&quot;);</span>
+<span class="nc" id="L114">                    continue;</span>
+                }
+<span class="nc bnc" id="L116" title="All 2 branches missed.">                if (!script.canRead()) {</span>
+<span class="nc" id="L117">                    result.put(script, &quot;This file cannot be read.&quot;);</span>
+<span class="nc" id="L118">                    continue;</span>
+                }
+<span class="nc bnc" id="L120" title="All 2 branches missed.">                if (!script.canExecute()) {</span>
+<span class="nc" id="L121">                    result.put(script, &quot;This file cannot be executed.&quot;);</span>
+<span class="nc" id="L122">                    continue;</span>
+                }
+<span class="nc" id="L124">                result.put(script, null);</span>
+<span class="nc" id="L125">            } catch (final SecurityException e) {</span>
+<span class="nc" id="L126">                result.put(script, e.getMessage());</span>
+<span class="nc" id="L127">            }</span>
+<span class="nc" id="L128">        }</span>
+<span class="nc" id="L129">        return result;</span>
+    }
+
+    /**
+     * Get the paths to the scripts in this whitelist.
+     * @return the paths to the scripts in this whitelist
+     */
+    public List&lt;String&gt; getScriptsPaths() {
+<span class="fc" id="L137">        final List&lt;String&gt; paths = new ArrayList&lt;String&gt;();</span>
+<span class="fc bfc" id="L138" title="All 2 branches covered.">        for (final File script : scripts) {</span>
+<span class="fc" id="L139">            paths.add(script.getPath());</span>
+<span class="fc" id="L140">        }</span>
+<span class="fc" id="L141">        return paths;</span>
+    }
+
+    /**
+     * Returns the number of entries in this whitelist.
+     * @return the number of entries in this whitelist
+     */
+    public int size() {
+<span class="fc" id="L149">        return scripts.size();</span>
+    }
+
+    /**
+     * Check the paths stored in this whitelist.
+     * @return true if one or more paths are invalid
+     */
+    public boolean hasInvalidPaths() {
+<span class="pc bpc" id="L157" title="1 of 2 branches missed.">        for (final File script : scripts) {</span>
+<span class="pc bpc" id="L158" title="1 of 2 branches missed.">            if (!script.isFile()) {</span>
+<span class="fc" id="L159">                return true;</span>
+            }
+<span class="nc" id="L161">        }</span>
+<span class="nc" id="L162">        return false;</span>
+    }
+
+    /**
+     * Determine if the command given as argument, e.g. &lt;code&gt;/usr/bin/foo&lt;/code&gt; is permitted according to
+     * this whitelist.
+     * @param command the command to check
+     * @return true if the command is permitted according to this whitelist, false otherwise
+     */
+    public boolean isPermitted(final String command) {
+<span class="fc bfc" id="L172" title="All 2 branches covered.">        if (!isEnabled) {</span>
+            // All commands are permitted if the whitelist is disabled
+<span class="fc" id="L174">            return true;</span>
+        }
+<span class="fc bfc" id="L176" title="All 2 branches covered.">        for (final String path : getScriptsPaths()) {</span>
+<span class="pc bpc" id="L177" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L178">                log.debug( &quot;Compare command '&quot; + command + &quot;' with whitlisted path '&quot; + path + &quot;'.&quot;);</span>
+            }
+<span class="fc bfc" id="L180" title="All 2 branches covered.">            if (StringUtils.equals(command, path)) {</span>
+<span class="fc" id="L181">                return true;</span>
+            }
+<span class="fc" id="L183">        }</span>
+<span class="fc" id="L184">        return false;</span>
+    }
+
+    /**
+     * Returns the contents of this whitelist in a debug-friendly format.
+     * @return a string containing the contents of this whitelist
+     */
+    @Override
+    public String toString() {
+<span class="nc" id="L193">        return &quot;# Is this whitelist enabled? &quot; + isEnabled + System.lineSeparator() +</span>
+<span class="nc" id="L194">                StringUtils.join(getScriptsPaths(), System.lineSeparator());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

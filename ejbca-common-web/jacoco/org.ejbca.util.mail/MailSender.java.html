@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MailSender.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util.mail</a> &gt; <span class="el_source">MailSender.java</span></div><h1>MailSender.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.util.mail;
+
+import java.util.Date;
+import java.util.List;
+
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Multipart;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+
+import org.apache.log4j.Logger;
+import org.ejbca.config.MailConfiguration;
+import org.ejbca.core.ejb.ServiceLocator;
+
+/**
+ * Simple wrapper for JavaMail.
+ * 
+ * @version $Id: MailSender.java 26387 2017-08-22 14:14:36Z mikekushner $
+ */
+<span class="nc" id="L38">public class MailSender {</span>
+	
+<span class="nc" id="L40">	private static final Logger log = Logger.getLogger(MailSender.class);</span>
+	
+	// Some constants to make it easier to read the client code
+<span class="nc" id="L43">	public final static List&lt;String&gt; NO_TO = null;	//List&lt;String&gt;</span>
+<span class="nc" id="L44">	public final static List&lt;String&gt; NO_CC = null;	//List&lt;String&gt;</span>
+<span class="nc" id="L45">	public final static List&lt;MailAttachment&gt; NO_ATTACHMENTS = null;	//List&lt;MailAttachment&gt;</span>
+
+	/**
+	 * Helper method for sending mail using the mail service configured in mail.properties.
+	 * 
+	 * @param fromAddress The &quot;From&quot; address
+	 * @param toList List&amp;lt;String&amp;gt; of addresses that will end up in the &quot;To&quot;-field or null to disable
+	 * @param ccList List&amp;lt;String&amp;gt; of addresses that will end up in the &quot;Cc&quot;-field or null to disable
+	 * @param subject The email subject
+	 * @param content The text message body
+	 * @param attachments List&amp;lt;MailAttachment&amp;gt; of files and objects to attach to the email or null to disable multipart messages
+	 * @throws MailException if the message could not be successfully handed over to JavaMail
+	 */
+	public static void sendMailOrThrow(String fromAddress, List&lt;String&gt; toList, List&lt;String&gt; ccList, String subject, String content, List&lt;MailAttachment&gt; attachments) throws MailException {
+<span class="nc bnc" id="L59" title="All 2 branches missed.">		if (!sendMail(fromAddress, toList, ccList, subject, content, attachments)) {</span>
+<span class="nc" id="L60">			throw new MailException(&quot;Failed to hand over email to JavaMail.&quot;);</span>
+		}
+<span class="nc" id="L62">	}</span>
+
+	/**
+	 * Helper method for sending mail using the mail service configured in mail.properties.
+	 * 
+	 * @param fromAddress The &quot;From&quot; address
+	 * @param toList List&amp;lt;String&amp;gt; of addresses that will end up in the &quot;To&quot;-field or null to disable
+	 * @param ccList List&amp;lt;String&amp;gt; of addresses that will end up in the &quot;Cc&quot;-field or null to disable
+	 * @param subject The email subject
+	 * @param content The text message body
+	 * @param attachments List&amp;lt;MailAttachment&amp;gt; of files and objects to attach to the email or null to disable multipart messages
+	 * @return true if the message was successfully handed over to JavaMail
+	 */
+	public static boolean sendMail(String fromAddress, List&lt;String&gt; toList, List&lt;String&gt; ccList, String subject, String content, List&lt;MailAttachment&gt; attachments) {
+<span class="nc" id="L76">        Session mailSession = ServiceLocator.getInstance().getMailSession(MailConfiguration.getMailJndiName());</span>
+        // It would be good if we could set mail session properties, but it seems not possible
+        // See https://javamail.java.net/nonav/docs/api/com/sun/mail/smtp/package-summary.html
+        // mail.smtp.timeout
+        // mail.smtp.connectiontimeout
+        // mail.smtp.writetimeout
+<span class="nc" id="L82">        Message msg = new MimeMessage(mailSession);</span>
+        try {
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        	if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L85">        		log.debug(&quot;from: &quot; + fromAddress);</span>
+        	}
+<span class="nc" id="L87">			msg.setFrom(new InternetAddress(fromAddress));</span>
+<span class="nc" id="L88">			boolean atLeastOneRecipient = false;</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">			if (toList != null) {</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">				for (int i=0; i&lt;toList.size(); i++) {</span>
+<span class="nc" id="L91">					String to = toList.get(i);</span>
+<span class="nc" id="L92">					msg.addRecipients(javax.mail.Message.RecipientType.TO, InternetAddress.parse(to, false));</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">		        	if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L94">		        		log.debug(&quot;to: &quot; + to);</span>
+		        	}
+<span class="nc" id="L96">					atLeastOneRecipient = true;</span>
+				}
+			}
+<span class="nc bnc" id="L99" title="All 2 branches missed.">			if (ccList != null) {</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">				for (int i=0; i&lt;ccList.size(); i++) {</span>
+<span class="nc" id="L101">					String cc = ccList.get(i);</span>
+<span class="nc" id="L102">					msg.addRecipients(javax.mail.Message.RecipientType.CC, InternetAddress.parse(cc, false));</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">		        	if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L104">		        		log.debug(&quot;cc: &quot; + cc);</span>
+		        	}
+<span class="nc" id="L106">					atLeastOneRecipient = true;</span>
+				}
+			}
+<span class="nc bnc" id="L109" title="All 2 branches missed.">			if (!atLeastOneRecipient) {</span>
+<span class="nc" id="L110">				return false;	// We need at least one recipient.. either TO or CC</span>
+			}
+<span class="nc" id="L112">	        msg.setSubject(subject);</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        	if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L114">        		log.debug(&quot;subject: &quot; + subject);</span>
+        	}
+<span class="nc bnc" id="L116" title="All 4 branches missed.">	        if (attachments == null || attachments.size() == 0) {</span>
+<span class="nc" id="L117">		        msg.setContent(content, MailConfiguration.getMailMimeType());</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">	        	if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L119">	        		log.debug(&quot;content: &quot; + content);</span>
+	        	}
+	        } else {
+<span class="nc" id="L122">		        Multipart multipart = new MimeMultipart();</span>
+		        // Add the text message first
+<span class="nc" id="L124">		        MimeBodyPart msgBody = new MimeBodyPart();</span>
+<span class="nc" id="L125">		        msgBody.setContent(content, MailConfiguration.getMailMimeType());</span>
+<span class="nc" id="L126">		        multipart.addBodyPart(msgBody);</span>
+		        // Attach all the requested files
+<span class="nc bnc" id="L128" title="All 2 branches missed.">                for (MailAttachment mailAttachment : attachments) {</span>
+<span class="nc" id="L129">                    MimeBodyPart msgAttachment = new MimeBodyPart();</span>
+<span class="nc" id="L130">                    msgAttachment.setDataHandler(mailAttachment.getDataHandler());</span>
+<span class="nc" id="L131">                    msgAttachment.setFileName(mailAttachment.getName());</span>
+<span class="nc" id="L132">                    multipart.addBodyPart(msgAttachment);</span>
+<span class="nc" id="L133">                }</span>
+<span class="nc" id="L134">		        msg.setContent(multipart);</span>
+	        }
+<span class="nc" id="L136">	        msg.setHeader(&quot;X-Mailer&quot;, &quot;JavaMailer&quot;);</span>
+<span class="nc" id="L137">	        msg.setSentDate(new Date());</span>
+<span class="nc" id="L138">	        Transport.send(msg);</span>
+<span class="nc" id="L139">		} catch (MessagingException e) {</span>
+<span class="nc" id="L140">			log.error(&quot;Unable to send email: &quot;, e);</span>
+<span class="nc" id="L141">			return false;</span>
+<span class="nc" id="L142">		}</span>
+<span class="nc" id="L143">        return true;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

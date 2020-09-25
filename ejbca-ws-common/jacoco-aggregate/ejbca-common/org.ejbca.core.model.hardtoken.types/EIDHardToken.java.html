@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>EIDHardToken.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-ws-common</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.hardtoken.types</a> &gt; <span class="el_source">EIDHardToken.java</span></div><h1>EIDHardToken.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.model.hardtoken.types;
+
+import org.ejbca.core.model.SecConst;
+
+
+/**
+ *  EIDHardToken is a class defining data stored in database for a EID token.
+ *  
+ *  OBSERVE This class should only be used for backward compability with EJBCA 2.0 
+ * @version $Id: EIDHardToken.java 19901 2014-09-30 14:29:38Z anatom $
+ */
+public class EIDHardToken extends HardToken {
+    private static final long serialVersionUID = -3757040668436850815L;
+    // Public Constants
+    public static final String INITIALBASICPIN = &quot;INITIALBASICPIN&quot;;
+    public static final String BASICPUK = &quot;BASICPUK&quot;;
+    public static final String INITIALSIGNATUREPIN = &quot;INITIALSIGNATUREPIN&quot;;
+    public static final String SIGNATUREPUK = &quot;SIGNATUREPUK&quot;;
+    public static final int THIS_TOKENTYPE = SecConst.TOKEN_EID;
+
+<span class="nc" id="L34">    public static final String[] FIELDSWITHPUK = new String[] {INITIALBASICPIN, BASICPUK, EMPTYROW_FIELD, INITIALSIGNATUREPIN, SIGNATUREPUK};</span>
+<span class="nc" id="L35">    public static final int[] DATATYPESWITHPUK = new int[] { STRING, STRING, EMPTYROW, STRING, STRING };</span>
+<span class="nc" id="L36">    public static final String[] FIELDTEXTSWITHPUK = new String[] { INITIALBASICPIN, BASICPUK, EMPTYROW_FIELD, INITIALSIGNATUREPIN, SIGNATUREPUK};</span>
+    
+<span class="nc" id="L38">    public static final String[] FIELDSWITHOUTPUK = new String[] {};</span>
+<span class="nc" id="L39">    public static final int[] DATATYPESWITHOUTPUK = new int[] {};</span>
+<span class="nc" id="L40">    public static final String[] FIELDTEXTSWITHOUTPUK = new String[] {};</span>
+    
+    
+
+    // Public Methods
+
+    /**
+     * Creates a certificate with the characteristics of an end user.
+     * @param includePUK Boolean
+     */
+    public EIDHardToken(boolean includePUK) {
+<span class="nc" id="L51">    	super(includePUK);</span>
+<span class="nc" id="L52">        setInitialBasicPIN(&quot;&quot;);</span>
+<span class="nc" id="L53">        setBasicPUK(&quot;&quot;);</span>
+<span class="nc" id="L54">        setInitialSignaturePIN(&quot;&quot;);</span>
+<span class="nc" id="L55">        setSignaturePUK(&quot;&quot;);</span>
+
+<span class="nc" id="L57">        data.put(TOKENTYPE, Integer.valueOf(THIS_TOKENTYPE));</span>
+<span class="nc" id="L58">    }</span>
+
+
+    // Public Methods.
+    public String getInitialBasicPIN() {
+<span class="nc" id="L63">        return (String) data.get(INITIALBASICPIN);</span>
+    }
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param initialbasicpin DOCUMENT ME!
+     */
+    public void setInitialBasicPIN(String initialbasicpin) {
+<span class="nc" id="L72">        data.put(INITIALBASICPIN, initialbasicpin);</span>
+<span class="nc" id="L73">    }</span>
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     */
+    public String getBasicPUK() {
+<span class="nc" id="L81">        return (String) data.get(BASICPUK);</span>
+    }
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param basicpuk DOCUMENT ME!
+     */
+    public void setBasicPUK(String basicpuk) {
+<span class="nc" id="L90">        data.put(BASICPUK, basicpuk);</span>
+<span class="nc" id="L91">    }</span>
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     */
+    public String getInitialSignaturePIN() {
+<span class="nc" id="L99">        return (String) data.get(INITIALSIGNATUREPIN);</span>
+    }
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param initialsignaturepin DOCUMENT ME!
+     */
+    public void setInitialSignaturePIN(String initialsignaturepin) {
+<span class="nc" id="L108">        data.put(INITIALSIGNATUREPIN, initialsignaturepin);</span>
+<span class="nc" id="L109">    }</span>
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     */
+    public String getSignaturePUK() {
+<span class="nc" id="L117">        return (String) data.get(SIGNATUREPUK);</span>
+    }
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param signaturepuk DOCUMENT ME!
+     */
+    public void setSignaturePUK(String signaturepuk) {
+<span class="nc" id="L126">        data.put(SIGNATUREPUK, signaturepuk);</span>
+<span class="nc" id="L127">    }</span>
+
+
+    
+	public int[] getDataTypes(boolean includePUK) {
+<span class="nc bnc" id="L132" title="All 2 branches missed.">		if(includePUK){</span>
+<span class="nc" id="L133">			return DATATYPESWITHPUK;	</span>
+		}
+<span class="nc" id="L135">		return DATATYPESWITHOUTPUK;</span>
+	}
+
+	public String[] getFieldTexts(boolean includePUK) {
+<span class="nc bnc" id="L139" title="All 2 branches missed.">		if(includePUK){</span>
+<span class="nc" id="L140">			return FIELDTEXTSWITHPUK;	</span>
+		}
+<span class="nc" id="L142">		return FIELDTEXTSWITHOUTPUK;</span>
+	}
+
+	public String[] getFields(boolean includePUK) {
+<span class="nc bnc" id="L146" title="All 2 branches missed.">		if(includePUK){</span>
+<span class="nc" id="L147">			return FIELDSWITHPUK;	</span>
+		}
+<span class="nc" id="L149">		return FIELDSWITHOUTPUK;</span>
+	}
+
+    // Private fields.
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

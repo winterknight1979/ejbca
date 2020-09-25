@@ -1,0 +1,748 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RequestHelper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web</a> &gt; <span class="el_source">RequestHelper.java</span></div><h1>RequestHelper.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.ui.web;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.regex.Pattern;
+
+import javax.ejb.ObjectNotFoundException;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.jce.netscape.NetscapeCertRequest;
+import org.cesecore.CesecoreException;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.ca.SignRequestSignatureException;
+import org.cesecore.certificates.certificate.certextensions.CertificateExtensionException;
+import org.cesecore.certificates.certificate.request.CVCRequestMessage;
+import org.cesecore.certificates.certificate.request.PKCS10RequestMessage;
+import org.cesecore.certificates.certificate.request.RequestMessageUtils;
+import org.cesecore.certificates.certificate.request.ResponseMessage;
+import org.cesecore.certificates.certificate.request.ResponseStatus;
+import org.cesecore.certificates.certificate.request.X509ResponseMessage;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.StringTools;
+import org.ejbca.core.EjbcaException;
+import org.ejbca.core.ejb.ca.sign.SignSessionLocal;
+import org.ejbca.cvc.CAReferenceField;
+import org.ejbca.cvc.CardVerifiableCertificate;
+import org.ejbca.cvc.HolderReferenceField;
+import org.ejbca.ui.web.pub.ServletDebug;
+import org.ejbca.ui.web.pub.ServletUtils;
+import org.ejbca.util.HTMLTools;
+
+/**
+ * Helper class for handling certificate request from browsers or general PKCS#10
+ * 
+ * @version $Id: RequestHelper.java 28947 2018-05-17 08:51:45Z jekaterina_b_helmes $
+ */
+public class RequestHelper {
+<span class="fc" id="L80">    private static Logger log = Logger.getLogger(RequestHelper.class);</span>
+    private AuthenticationToken administrator;
+    private ServletDebug debug;
+<span class="fc" id="L83">    private static final Pattern CLASSID = Pattern.compile(&quot;\\$CLASSID&quot;);</span>
+
+	public static final  String BEGIN_CERTIFICATE_REQUEST_WITH_NL = &quot;-----BEGIN CERTIFICATE REQUEST-----\n&quot;;
+	public static final  String END_CERTIFICATE_REQUEST_WITH_NL    = &quot;\n-----END CERTIFICATE REQUEST-----\n&quot;;
+
+    public static final  String BEGIN_CRL_WITH_NL = &quot;-----BEGIN X509 CRL-----\n&quot;;
+    public static final  String END_CRL_WITH_NL    = &quot;\n-----END X509 CRL-----\n&quot;;
+
+	public static final  String BEGIN_PKCS7  = &quot;-----BEGIN PKCS7-----\n&quot;;
+	public static final  String END_PKCS7     = &quot;\n-----END PKCS7-----\n&quot;;	
+	public static final  String BEGIN_PKCS7_WITH_NL = &quot;-----BEGIN PKCS7-----\n&quot;;
+	public static final  String END_PKCS7_WITH_NL    = &quot;\n-----END PKCS7-----\n&quot;;
+	
+	/** @deprecated Since 6.1.0, remove in 7.0.0. Use CertificateResponseType.ENCODED_CERTIFICATE instead */
+	@Deprecated
+	public static final int ENCODED_CERTIFICATE = 1;
+	/** @deprecated Since 6.1.0, remove in 7.0.0. Use CertificateResponseType.ENCODED_PKCS7 instead */
+	@Deprecated
+	public static final int ENCODED_PKCS7          = 2;
+	/** @deprecated Since 6.1.0, remove in 7.0.0. Use CertificateResponseType.BINARY_CERTIFICATE instead */
+	@Deprecated
+	public static final int BINARY_CERTIFICATE = 3;
+	/** @deprecated Since 6.1.0, remove in 7.0.0. Use CertificateResponseType.ENCODED_CERTIFICATE_CHAIN instead */
+	@Deprecated
+	public static final int ENCODED_CERTIFICATE_CHAIN = 4;
+	
+    /** String reported by Firefox when the key generation fails */
+<span class="fc" id="L110">    private static final byte[] HIGHGRADE_STRING = &quot;High Grade&quot;.getBytes();</span>
+<span class="fc" id="L111">    private static final byte[] MEDIUMGRADE_STRING = &quot;Medium Grade&quot;.getBytes();</span>
+
+    /**
+     * Creates a new RequestHelper object.
+     *
+     * @param administrator Admin doing the request
+     * @param debug object to send debug to or null to disable
+     */
+<span class="fc" id="L119">    public RequestHelper(AuthenticationToken administrator, ServletDebug debug) {</span>
+<span class="fc" id="L120">        this.administrator = administrator;</span>
+<span class="fc" id="L121">        this.debug = debug;</span>
+<span class="fc" id="L122">    }</span>
+
+    /**
+     * Handles Firefox certificate request (KEYGEN), these are constructed as: &lt;code&gt;
+     * SignedPublicKeyAndChallenge ::= SEQUENCE { publicKeyAndChallenge    PublicKeyAndChallenge,
+     * signatureAlgorithm   AlgorithmIdentifier, signature        BIT STRING }&lt;/code&gt; PublicKey's
+     * encoded-format has to be RSA X.509.
+     *
+     * @param signsession EJB session to signature bean.
+     * @param reqBytes buffer holding te request from NS.
+     * @param username username in EJBCA for authoriation.
+     * @param password users password for authorization.
+     *
+     * @return byte[] containing DER-encoded certificate.
+     *
+     * @throws CesecoreException fail 
+     * @throws AuthorizationDeniedException  fail
+     * @throws EjbcaException fail
+     * @throws CADoesntExistsException fail 
+     * @throws ObjectNotFoundException fail
+     * @throws CertificateEncodingException fail 
+     * @throws NoSuchProviderException fail
+     * @throws SignatureException fail
+     * @throws NoSuchAlgorithmException fail 
+     * @throws InvalidKeyException fail
+     */
+    public byte[] nsCertRequest(SignSessionLocal signsession, byte[] reqBytes, String username, String password) throws 
+            ObjectNotFoundException, CADoesntExistsException, EjbcaException, AuthorizationDeniedException, CesecoreException,
+            CertificateEncodingException, InvalidKeyException, NoSuchAlgorithmException, SignatureException, NoSuchProviderException {
+<span class="nc bnc" id="L151" title="All 4 branches missed.">        if (reqBytes == null || reqBytes.length == 0) {</span>
+<span class="nc" id="L152">            throw new IllegalStateException(&quot;Invalid request sent from browser (null or zero length).&quot;);</span>
+        }
+<span class="nc bnc" id="L154" title="All 4 branches missed.">        if (Arrays.equals(reqBytes, HIGHGRADE_STRING) || Arrays.equals(reqBytes, MEDIUMGRADE_STRING)) {</span>
+<span class="nc" id="L155">            throw new IllegalStateException(&quot;Key generation failed. If enrolling using a hardware token, please check the token and the token middleware.&quot;);</span>
+        }
+
+<span class="nc" id="L158">        byte[] buffer = Base64.decode(reqBytes);</span>
+
+<span class="nc bnc" id="L160" title="All 2 branches missed.">        if (buffer == null) {</span>
+<span class="nc" id="L161">            return null;</span>
+        }
+
+        final ASN1Sequence spkac;
+<span class="nc" id="L165">        try (ASN1InputStream in = new ASN1InputStream(new ByteArrayInputStream(buffer))) {</span>
+<span class="nc" id="L166">            spkac = (ASN1Sequence) in.readObject();</span>
+<span class="nc" id="L167">        } catch (IOException e) {</span>
+<span class="nc" id="L168">            throw new IllegalStateException(&quot;Unexpected IOException was caught.&quot;, e);</span>
+<span class="nc" id="L169">        }</span>
+       
+<span class="nc" id="L171">        NetscapeCertRequest nscr = new NetscapeCertRequest(spkac);</span>
+
+        // Verify POPO, we don't care about the challenge, it's not important.
+<span class="nc" id="L174">        nscr.setChallenge(&quot;challenge&quot;);</span>
+
+<span class="nc bnc" id="L176" title="All 2 branches missed.">        if (nscr.verify(&quot;challenge&quot;) == false) {</span>
+<span class="nc" id="L177">            throw new SignRequestSignatureException(</span>
+                &quot;Invalid signature in NetscapeCertRequest, popo-verification failed.&quot;);
+        }
+<span class="nc bnc" id="L180" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L181">        	log.debug(&quot;POPO verification successful&quot;);</span>
+        }
+<span class="nc" id="L183">        X509Certificate cert = (X509Certificate) signsession.createCertificate(administrator,</span>
+<span class="nc" id="L184">                username, password, nscr.getPublicKey());</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L186">        	log.debug(&quot;Created certificate for &quot; + username);</span>
+        }
+<span class="nc bnc" id="L188" title="All 2 branches missed.">        if (debug != null) {</span>
+<span class="nc" id="L189">            debug.print(&quot;&lt;h4&gt;Generated certificate:&lt;/h4&gt;&quot;);</span>
+<span class="nc" id="L190">            debug.printInsertLineBreaks(cert.toString().getBytes());</span>
+        }
+<span class="nc" id="L192">        return cert.getEncoded();</span>
+
+/* ECA-2065: the &lt;keygen&gt; specification doesn't say anything about the
+ * returned certificate.  Originally EJBCA used a PKCS7 container but
+ * this has proved to be incompatible with Safari and Chrome.  ECA-2065
+ * changes returned data to just a DER-encoded certificate which has
+ * been verified to work in Firefox, Chrome and Safari.  The mime-type
+ * remains application/x-x509-user-certificate.  Below is the deleted
+ * code: 
+        // Don't include certificate chain in the PKCS7 to Firefox
+        byte[] pkcs7 = signsession.createPKCS7(administrator, cert, false);
+        log.debug(&quot;Created certificate (PKCS7) for &quot; + username);
+        if (debug != null) {
+            debug.print(&quot;&lt;h4&gt;Generated certificate:&lt;/h4&gt;&quot;);
+            debug.printInsertLineBreaks(cert.toString().getBytes());
+        }
+
+        return pkcs7;
+*/
+    } //nsCertRequest
+
+    /**
+     * Handles PKCS10 certificate request, these are constructed as: &lt;code&gt; CertificationRequest
+     * ::= SEQUENCE { certificationRequestInfo  CertificationRequestInfo, signatureAlgorithm
+     * AlgorithmIdentifier{{ SignatureAlgorithms }}, signature                       BIT STRING }
+     * CertificationRequestInfo ::= SEQUENCE { version             INTEGER { v1(0) } (v1,...),
+     * subject             Name, subjectPKInfo   SubjectPublicKeyInfo{{ PKInfoAlgorithms }},
+     * attributes          [0] Attributes{{ CRIAttributes }}} SubjectPublicKeyInfo { ALGORITHM :
+     * IOSet} ::= SEQUENCE { algorithm           AlgorithmIdentifier {{IOSet}}, subjectPublicKey
+     * BIT STRING }&lt;/code&gt; PublicKey's encoded-format has to be RSA X.509.
+     *
+     * @param signsession signsession to get certificate from
+     * @param caSession a reference to CaSessionBean
+     * @param b64Encoded base64 encoded pkcs10 request message
+     * @param username username of requesting user
+     * @param password password of requesting user
+     * @param resulttype should indicate if a PKCS7 or just the certificate is wanted.
+     * @param doSplitLines bool
+     * @return Base64 encoded byte[] 
+     * @throws AuthorizationDeniedException fail 
+     * @throws CesecoreException fail
+     * @throws EjbcaException fail
+     * @throws CertificateException fail 
+     * @throws CertificateEncodingException fail 
+     * @throws CertificateExtensionException if b64Encoded specified invalid extensions
+     */
+    public CertificateRequestResponse pkcs10CertRequest(SignSessionLocal signsession, CaSessionLocal caSession, byte[] b64Encoded, String username, String password,
+            CertificateResponseType resulttype, boolean doSplitLines) throws EjbcaException, CesecoreException, AuthorizationDeniedException,
+            CertificateEncodingException, CertificateException, CertificateExtensionException {
+<span class="fc" id="L241">        byte[] encoded = null;</span>
+<span class="fc" id="L242">        X509Certificate cert = null;</span>
+<span class="fc" id="L243">		PKCS10RequestMessage req = RequestMessageUtils.genPKCS10RequestMessage(b64Encoded);</span>
+<span class="fc" id="L244">		req.setUsername(username);</span>
+<span class="fc" id="L245">        req.setPassword(password);</span>
+<span class="fc" id="L246">        ResponseMessage resp = signsession.createCertificate(administrator, req, X509ResponseMessage.class, null);</span>
+<span class="fc" id="L247">        cert = CertTools.getCertfromByteArray(resp.getResponseMessage(), X509Certificate.class);</span>
+<span class="pc bpc" id="L248" title="3 of 4 branches missed.">        switch (resulttype) {</span>
+        case ENCODED_CERTIFICATE:            
+<span class="nc" id="L250">            encoded = Base64.encode(cert.getEncoded(), doSplitLines);</span>
+<span class="nc" id="L251">            break;</span>
+        case ENCODED_CERTIFICATE_CHAIN:
+<span class="fc" id="L253">            CAInfo caInfo = signsession.getCAFromRequest(administrator, req, false).getCAInfo();</span>
+<span class="fc" id="L254">            LinkedList&lt;Certificate&gt; chain = new LinkedList&lt;&gt;(caInfo.getCertificateChain());</span>
+<span class="fc" id="L255">            chain.addFirst(cert);</span>
+<span class="fc" id="L256">            encoded = CertTools.getPemFromCertificateChain(chain);</span>
+<span class="fc" id="L257">            break;</span>
+        case ENCODED_PKCS7:
+<span class="nc" id="L259">            encoded = Base64.encode(signsession.createPKCS7(administrator, cert, true), doSplitLines);</span>
+<span class="nc" id="L260">            break;</span>
+        default:           
+            break;
+        }
+<span class="fc" id="L264">        log.debug(&quot;Created certificate (PKCS7) for &quot; + username);</span>
+<span class="pc bpc" id="L265" title="1 of 2 branches missed.">        if (debug != null) {</span>
+<span class="nc" id="L266">            debug.print(&quot;&lt;h4&gt;Generated certificate:&lt;/h4&gt;&quot;);</span>
+<span class="nc" id="L267">            debug.printInsertLineBreaks(cert.toString().getBytes());</span>
+        }
+<span class="fc" id="L269">        return new CertificateRequestResponse(cert, encoded);</span>
+    } //pkcs10CertReq
+    
+    /**
+     * @param signsession session
+     * @param caSession CA
+     * @param b64Encoded bytes
+     * @param username user
+     * @param password pwd
+     * @param resulttype type
+     * @param doSplitLines bool
+     * @return req
+     * @throws EjbcaException fail
+     * @throws CesecoreException fail
+     * @throws AuthorizationDeniedException fail 
+     * @throws CertificateEncodingException fail
+     * @throws CertificateException dail
+     * @throws CertificateExtensionException fail 
+     * @deprecated Since 6.1.0, remove in 7.0.0. Use the other overloaded version taking a CertificateResponseType in the resulttype parameter.
+     */
+    @Deprecated
+    public byte[] pkcs10CertRequest(SignSessionLocal signsession, CaSessionLocal caSession, byte[] b64Encoded, String username, String password,
+            int resulttype, boolean doSplitLines) throws EjbcaException, CesecoreException, AuthorizationDeniedException,
+            CertificateEncodingException, CertificateException, CertificateExtensionException {
+<span class="nc" id="L293">        return pkcs10CertRequest(signsession, caSession, b64Encoded, username, password, CertificateResponseType.fromNumber(resulttype), doSplitLines).getEncoded();</span>
+    }
+    
+    public CertificateRequestResponse pkcs10CertRequest(SignSessionLocal signsession, CaSessionLocal caSession, byte[] b64Encoded, String username, String password,
+            CertificateResponseType resulttype) throws CertificateEncodingException, CertificateException, EjbcaException, CesecoreException,
+            AuthorizationDeniedException, CertificateExtensionException {
+<span class="fc" id="L299">        return pkcs10CertRequest(signsession, caSession, b64Encoded, username, password, resulttype, true);</span>
+    }
+    
+    /**
+     *  @param signsession session
+     * @param caSession CA
+     * @param b64Encoded bytes
+     * @param username user
+     * @param password pwd
+     * @param resulttype type
+     * @return req
+     * @throws EjbcaException fail
+     * @throws CesecoreException fail
+     * @throws AuthorizationDeniedException fail 
+     * @throws CertificateEncodingException fail
+     * @throws CertificateException dail
+     * @throws CertificateExtensionException fail 
+     * @deprecated Since 6.1.0, remove in 7.0.0. Use the other overloaded version taking a CertificateResponseType in the resulttype parameter.
+     */
+    @Deprecated
+    public byte[] pkcs10CertRequest(SignSessionLocal signsession, CaSessionLocal caSession, byte[] b64Encoded, String username, String password,
+            int resulttype) throws CertificateEncodingException, CertificateException, EjbcaException, CesecoreException,
+            AuthorizationDeniedException, CertificateExtensionException {
+<span class="nc" id="L322">        return pkcs10CertRequest(signsession, caSession, b64Encoded, username, password, resulttype, true);</span>
+    }
+
+    /** Handles CVC certificate requests. These are the special certificates for EAC ePassport PKI.
+     * 
+     * @param signsession signsession to get certificate from
+     * @param b64Encoded base64 encoded cvc request message
+     * @param username username of requesting user
+     * @param password password of requesting user
+     * @return Base64 encoded byte[] 
+     * @throws Exception fail
+     */
+    public byte[] cvcCertRequest(SignSessionLocal signsession, byte[] b64Encoded, String username, String password) throws Exception {            
+<span class="nc" id="L335">			CVCRequestMessage req = RequestMessageUtils.genCVCRequestMessage(b64Encoded);</span>
+<span class="nc" id="L336">    		req.setUsername(username);</span>
+<span class="nc" id="L337">            req.setPassword(password);</span>
+            // Yes it says X509ResponseMessage, but for CVC it means it just contains the binary certificate blob
+<span class="nc" id="L339">            ResponseMessage resp = signsession.createCertificate(administrator, req, X509ResponseMessage.class, null);</span>
+<span class="nc bnc" id="L340" title="All 2 branches missed.">            if (resp.getStatus() == ResponseStatus.FAILURE) {</span>
+<span class="nc" id="L341">                final String msg = &quot;Failed to generate CVC certificate: &quot; + resp.getFailText();</span>
+<span class="nc" id="L342">                log.debug(msg);</span>
+<span class="nc" id="L343">                throw new EjbcaException(msg);</span>
+            }
+<span class="nc" id="L345">            CardVerifiableCertificate cert = CertTools.getCertfromByteArray(resp.getResponseMessage(), CardVerifiableCertificate.class);</span>
+<span class="nc" id="L346">            byte[] result = cert.getEncoded();</span>
+<span class="nc" id="L347">            log.debug(&quot;Created CV certificate for &quot; + username);</span>
+<span class="nc bnc" id="L348" title="All 2 branches missed.">            if (debug != null) {</span>
+<span class="nc" id="L349">                debug.print(&quot;&lt;h4&gt;Generated certificate:&lt;/h4&gt;&quot;);</span>
+<span class="nc" id="L350">                debug.printInsertLineBreaks(cert.toString().getBytes());            	</span>
+            }
+<span class="nc" id="L352">            return Base64.encode(result);</span>
+        } //cvcCertRequest
+
+    /**
+     * Formats certificate in form to be received by IE
+     *
+     * @param bA input
+     * @param out Output
+     * @throws Exception fail
+     */
+    public static void ieCertFormat(byte[] bA, PrintStream out)
+        throws Exception {
+<span class="nc" id="L364">        BufferedReader br = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(bA)));</span>
+<span class="nc" id="L365">        int rowNr = 0;</span>
+
+        while (true) {
+<span class="nc" id="L368">            String line = br.readLine();</span>
+
+<span class="nc bnc" id="L370" title="All 2 branches missed.">            if (line == null) {</span>
+<span class="nc" id="L371">                break;</span>
+            }
+
+<span class="nc bnc" id="L374" title="All 2 branches missed.">            if (line.indexOf(&quot;END CERT&quot;) &lt; 0) {</span>
+<span class="nc bnc" id="L375" title="All 2 branches missed.">                if (line.indexOf(&quot; CERT&quot;) &lt; 0) {</span>
+<span class="nc bnc" id="L376" title="All 2 branches missed.">                    if (++rowNr &gt; 1) {</span>
+<span class="nc" id="L377">                        out.println(&quot; &amp; _ &quot;);</span>
+                    } else {
+<span class="nc" id="L379">                        out.print(&quot;    cert = &quot;);</span>
+                    }
+
+<span class="nc" id="L382">                    out.print('\&quot;' + line + '\&quot;');</span>
+                }
+            } else {
+                break;
+            }
+<span class="nc" id="L387">        }</span>
+
+<span class="nc" id="L389">        out.println();</span>
+<span class="nc" id="L390">    } // ieCertFormat</span>
+
+   
+    /**
+     * Reads template and inserts cert to send back to IE for installation of cert
+     *
+     * @param b64cert cert to be installed in IE-client
+     * @param out utput stream to send to
+     * @param sc serveltcontext
+     * @param responseTemplate path to responseTemplate
+     * @param classid replace
+     *
+     * @throws Exception on error
+     */
+    public static void sendNewCertToIEClient(byte[] b64cert, OutputStream out, ServletContext sc,
+        String responseTemplate, String classid) throws Exception {
+<span class="nc bnc" id="L406" title="All 2 branches missed.">        if (b64cert.length == 0) {</span>
+<span class="nc" id="L407">            log.error(&quot;0 length certificate can not be sent to IE client!&quot;);</span>
+<span class="nc" id="L408">            return;</span>
+        }
+
+<span class="nc" id="L411">        PrintStream ps = new PrintStream(out);</span>
+<span class="nc bnc" id="L412" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L413">            log.debug(&quot;Response template is: &quot;+responseTemplate);</span>
+        }
+<span class="nc" id="L415">        InputStream is = sc.getResourceAsStream(responseTemplate);</span>
+<span class="nc bnc" id="L416" title="All 2 branches missed.">        if (is == null) {</span>
+        	// Some app servers (oracle) require a / first...
+<span class="nc bnc" id="L418" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L419">                log.debug(&quot;Trying to read responseTemplate with / first&quot;);</span>
+            }
+<span class="nc" id="L421">            is = sc.getResourceAsStream(&quot;/&quot;+responseTemplate);</span>
+        }
+<span class="nc bnc" id="L423" title="All 2 branches missed.">        if (is == null) {</span>
+<span class="nc" id="L424">        	throw new IOException(&quot;Template '(/)&quot;+responseTemplate+&quot;' can not be found or read.&quot;);</span>
+        }
+<span class="nc" id="L426">        BufferedReader br = new BufferedReader(new InputStreamReader(is));</span>
+
+        while (true) {
+<span class="nc" id="L429">            String line = br.readLine();</span>
+
+<span class="nc bnc" id="L431" title="All 2 branches missed.">            if (line == null) {</span>
+<span class="nc" id="L432">                break;</span>
+            }
+
+<span class="nc bnc" id="L435" title="All 2 branches missed.">            if (line.indexOf(&quot;cert =&quot;) &lt; 0) {</span>
+<span class="nc" id="L436">                ps.println(CLASSID.matcher(line).replaceFirst(classid));</span>
+            } else {
+<span class="nc" id="L438">                RequestHelper.ieCertFormat(b64cert, ps);</span>
+            }
+<span class="nc" id="L440">        }</span>
+
+<span class="nc" id="L442">        ps.close();</span>
+<span class="nc bnc" id="L443" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L444">            log.debug(&quot;Sent reply to IE client&quot;);</span>
+<span class="nc" id="L445">            log.debug(new String(b64cert));</span>
+        }
+<span class="nc" id="L447">    } // sendNewCertToIEClient</span>
+
+    /**
+     * Sends back cert to Firefox for installation of cert
+     *
+     * @param certs DER encoded certificates to be installed in browser
+     * @param out output stream to send to
+     *
+     * @throws Exception on error
+     */
+    public static void sendNewCertToNSClient(byte[] certs, HttpServletResponse out)
+        throws Exception {
+<span class="nc" id="L459">    	log.trace(&quot;&gt;nsCertRequest&quot;);</span>
+<span class="nc bnc" id="L460" title="All 2 branches missed.">        if (certs.length == 0) {</span>
+<span class="nc" id="L461">            log.error(&quot;0 length certificate can not be sent to NS client!&quot;);</span>
+<span class="nc" id="L462">            return;</span>
+        }
+
+        // Set content-type to what NS wants
+<span class="nc" id="L466">        out.setContentType(&quot;application/x-x509-user-cert&quot;);</span>
+<span class="nc" id="L467">        out.setContentLength(certs.length);</span>
+
+        // Print the certificate
+<span class="nc" id="L470">        out.getOutputStream().write(certs);</span>
+<span class="nc bnc" id="L471" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L472">            log.debug(&quot;Sent reply to NS client&quot;);</span>
+<span class="nc" id="L473">            log.debug(new String(Base64.encode(certs)));</span>
+        }
+<span class="nc" id="L475">    	log.trace(&quot;&lt;nsCertRequest&quot;);</span>
+<span class="nc" id="L476">    } // sendNewCertToNSClient</span>
+
+    /**
+     * Sends back certificate as binary file (application/octet-stream)
+     *
+     * @param b64cert base64 encoded certificate to be returned
+     * @param out output stream to send to
+     * @param filename filename sent as 'Content-disposition' header 
+     * @param beginKey String containing key information, i.e. BEGIN_CERTIFICATE_WITH_NL or BEGIN_PKCS7_WITH_NL
+     * @param endKey String containing key information, i.e. END_CERTIFICATE_WITH_NL or END_PKCS7_WITH_NL
+     * @throws IOException on error
+     */
+    public static void sendNewB64File(byte[] b64cert, HttpServletResponse out, String filename, String beginKey, String endKey) 
+    throws IOException {
+<span class="nc bnc" id="L490" title="All 2 branches missed.">        if (b64cert.length == 0) {</span>
+<span class="nc" id="L491">            log.error(&quot;0 length certificate can not be sent to client!&quot;);</span>
+<span class="nc" id="L492">            return;</span>
+        }
+
+        // We must remove cache headers for IE
+<span class="nc" id="L496">        ServletUtils.removeCacheHeaders(out);</span>
+
+        // Set content-type to general file
+<span class="nc" id="L499">        out.setContentType(&quot;application/octet-stream&quot;);        </span>
+<span class="nc" id="L500">        out.setHeader(&quot;Content-disposition&quot;, &quot;filename=\&quot;&quot;+StringTools.stripFilename(filename)+&quot;\&quot;&quot;);</span>
+
+<span class="nc" id="L502">        out.setContentLength(b64cert.length + beginKey.length() + endKey.length());</span>
+
+        // Write the certificate
+<span class="nc" id="L505">        ServletOutputStream os = out.getOutputStream();</span>
+<span class="nc" id="L506">        os.write(beginKey.getBytes());</span>
+<span class="nc" id="L507">        os.write(b64cert);</span>
+<span class="nc" id="L508">        os.write(endKey.getBytes());</span>
+<span class="nc" id="L509">        out.flushBuffer();</span>
+<span class="nc bnc" id="L510" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L511">            log.debug(&quot;Sent reply to client&quot;);</span>
+<span class="nc" id="L512">            log.debug(new String(b64cert));   </span>
+        }
+<span class="nc" id="L514">    }</span>
+    /**
+     * Sends back certificate as binary file (application/octet-stream)
+     *
+     * @param b64cert base64 encoded certificate to be returned
+     * @param out output stream to send to
+     * @param beginKey String containing key information, i.e. BEGIN_CERTIFICATE_WITH_NL or BEGIN_PKCS7_WITH_NL
+     * @param endKey String containing key information, i.e. END_CERTIFICATE_WITH_NL or END_PKCS7_WITH_NL
+     * @throws IOException on error
+     */
+    public static void sendNewB64Cert(byte[] b64cert, HttpServletResponse out, String beginKey, String endKey)
+        throws IOException {
+<span class="nc" id="L526">        RequestHelper.sendNewB64File(b64cert, out, &quot;cert.pem&quot;, beginKey, endKey);</span>
+<span class="nc" id="L527">    } // sendNewB64Cert</span>
+
+    /**
+     * Sends back CA-certificate as binary file (application/x-x509-ca-cert)
+     *
+     * @param cert DER encoded certificate to be returned
+     * @param out output stream to send to
+     *
+     * @throws IOException on error
+     */
+    public static void sendNewX509CaCert(byte[] cert, HttpServletResponse out)
+        throws IOException {
+        // Set content-type to CA-cert
+<span class="nc" id="L540">        sendBinaryBytes(cert, out, &quot;application/x-x509-ca-cert&quot;, null);</span>
+<span class="nc" id="L541">    } // sendNewX509CaCert</span>
+
+    /**
+     * Sends back a number of bytes
+     *
+     * @param bytes DER encoded certificate to be returned
+     * @param out output stream to send to
+     * @param contentType mime type to send back bytes as
+     * @param filename to call the file in a Content-disposition, can be null to leave out this header
+     *
+     * @throws IOException on error
+     */
+    public static void sendBinaryBytes(final byte[] bytes, final HttpServletResponse out, final String contentType, final String filename)
+        throws IOException {
+<span class="nc bnc" id="L555" title="All 4 branches missed.">        if ( (bytes == null) || (bytes.length == 0) ) {</span>
+<span class="nc" id="L556">            log.error(&quot;0 length can not be sent to client!&quot;);</span>
+<span class="nc" id="L557">            return;</span>
+        }
+
+<span class="nc bnc" id="L560" title="All 2 branches missed.">        if (filename != null) {</span>
+            // We must remove cache headers for IE
+<span class="nc" id="L562">            ServletUtils.removeCacheHeaders(out);</span>
+<span class="nc" id="L563">            out.setHeader(&quot;Content-disposition&quot;, &quot;filename=\&quot;&quot;+StringTools.stripFilename(filename)+&quot;\&quot;&quot;);        	</span>
+        }
+
+        // Set content-type to general file
+<span class="nc" id="L567">        out.setContentType(contentType);</span>
+<span class="nc" id="L568">        out.setContentLength(bytes.length);</span>
+
+        // Write the certificate
+<span class="nc" id="L571">        final ServletOutputStream os = out.getOutputStream();</span>
+<span class="nc" id="L572">        os.write(bytes);</span>
+<span class="nc" id="L573">        out.flushBuffer();</span>
+<span class="nc bnc" id="L574" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L575">            log.debug(&quot;Sent &quot; + bytes.length + &quot; bytes to client&quot;);</span>
+        }
+<span class="nc" id="L577">    } // sendBinaryBytes</span>
+
+        /**
+     * Sends back a number of bytes first encoded as base64
+     *
+     * @param bytes Data to be encoded
+     * @param out output stream to send to
+     * @param contentType mime type to send back bytes as
+     * @param filename to call the file in a Content-disposition, can be null to leave out this header
+     *
+     * @throws IOException on error
+     */
+    public static void sendB64BinaryBytes(final byte[] bytes, final HttpServletResponse out, final String contentType, final String filename)
+    throws IOException {
+<span class="nc" id="L591">        final byte[] b64bytes = Base64.encode(bytes);</span>
+
+<span class="nc" id="L593">        out.setHeader(&quot;Content-Transfer-Encoding&quot;, &quot;base64&quot;);</span>
+<span class="nc" id="L594">        sendBinaryBytes(b64bytes, out, contentType, filename);</span>
+<span class="nc" id="L595">} // sendB64BinaryBytes</span>
+
+    /**
+     * Sends a page with certificate information and an automatic redirect to the
+     * download page. The issuer must not be a &quot;throw away&quot; CA.
+     * 
+     * @param certbytes DER encoded certificate
+     * @param out output stream to send to
+     * @param hidemenu whether the menu should be hidden (translates to the &quot;hidemenu&quot; URL parameter)
+     * @param resulttype type of desired result, e.g. cert, certchain, pkcs7...
+     * @throws Exception fail
+     */
+    public static void sendResultPage(byte[] certbytes, HttpServletResponse out, boolean hidemenu, CertificateResponseType resulttype) throws Exception {
+<span class="nc" id="L608">        Certificate cert = CertTools.getCertfromByteArray(certbytes, Certificate.class);</span>
+<span class="nc" id="L609">        String issuerDN = CertTools.getIssuerDN(cert);</span>
+<span class="nc" id="L610">        String serialNumber = CertTools.getSerialNumberAsString(cert);</span>
+<span class="nc" id="L611">        String resultTypeStr = String.valueOf(resulttype.getNumber()); </span>
+        
+<span class="nc" id="L613">        out.sendRedirect(&quot;enrol/result_download.jsp?issuer=&quot;+URLEncoder.encode(issuerDN, &quot;UTF-8&quot;)+&quot;&amp;serno=&quot;+serialNumber+&quot;&amp;resulttype=&quot;+resultTypeStr+&quot;&amp;hidemenu=&quot;+hidemenu);</span>
+<span class="nc" id="L614">    }</span>
+    
+    /**
+     * Sends a page with certificate information and an automatic redirect to the
+     * download page. The issuer must not be a &quot;throw away&quot; CA. The certificate
+     * is automatically installed in the browser.
+     * @param certbytes bytes
+     * @param out response
+     * @param hidemenu bool
+     * 
+     * @param installToBrowser Browser type. Only &quot;netscape&quot; is supported,
+     *                         which means &quot;most browsers except IE&quot;.
+     * @throws Exception fail
+     */
+    public static void sendResultPage(byte[] certbytes, HttpServletResponse out, boolean hidemenu, String installToBrowser) throws Exception {
+<span class="nc" id="L629">        Certificate cert = CertTools.getCertfromByteArray(certbytes, Certificate.class);</span>
+        
+<span class="nc" id="L631">        String issuerDN = CertTools.getIssuerDN(cert);</span>
+<span class="nc" id="L632">        String serialNumber = CertTools.getSerialNumberAsString(cert);</span>
+        
+<span class="nc" id="L634">        out.sendRedirect(&quot;enrol/result_download.jsp?issuer=&quot;+URLEncoder.encode(issuerDN, &quot;UTF-8&quot;)+&quot;&amp;serno=&quot;+serialNumber+&quot;&amp;installtobrowser=&quot;+installToBrowser+&quot;&amp;hidemenu=&quot;+hidemenu);</span>
+<span class="nc" id="L635">    }</span>
+    
+    /** Sets the default character encoding for decoding post and get parameters. 
+     * First tries to get the character encoding from the request, if the browser is so kind to tell us which it is using, which it never does...
+     * Otherwise, when the browser is silent, it sets the character encoding to the same encoding that we use to display the pages.
+     * 
+     * @param request HttpServletRequest   
+     * @throws UnsupportedEncodingException fail
+     * 
+     */
+    public static void setDefaultCharacterEncoding(HttpServletRequest request) throws UnsupportedEncodingException {
+<span class="nc" id="L646">        String encoding = request.getCharacterEncoding();</span>
+<span class="nc bnc" id="L647" title="All 2 branches missed.">        if(StringUtils.isEmpty(encoding)) {</span>
+<span class="nc" id="L648">            encoding = org.ejbca.config.WebConfiguration.getWebContentEncoding();</span>
+<span class="nc bnc" id="L649" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L650">                log.debug(&quot;Setting encoding to default value: &quot;+encoding);</span>
+            }
+<span class="nc" id="L652">            request.setCharacterEncoding(encoding);</span>
+        } else {
+<span class="nc bnc" id="L654" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L655">                log.debug(&quot;Setting encoding to value from request: &quot;+encoding);</span>
+            }
+<span class="nc" id="L657">            request.setCharacterEncoding(encoding);         </span>
+        }        
+<span class="nc" id="L659">    }</span>
+
+    public static String getFileNameFromCertNoEnding(Certificate cacert, String defaultname) throws NoSuchFieldException {
+<span class="nc" id="L662">    	String dnpart = null;</span>
+<span class="nc bnc" id="L663" title="All 2 branches missed.">    	if (StringUtils.equals(cacert.getType(), &quot;CVC&quot;)) {</span>
+<span class="nc" id="L664">    		CardVerifiableCertificate cvccert = (CardVerifiableCertificate) cacert;</span>
+<span class="nc" id="L665">    		String car = &quot;car&quot;;</span>
+<span class="nc" id="L666">    		CAReferenceField carf = cvccert.getCVCertificate().getCertificateBody().getAuthorityReference();</span>
+<span class="nc bnc" id="L667" title="All 2 branches missed.">    		if (carf != null) {</span>
+<span class="nc" id="L668">    			car = carf.getConcatenated();</span>
+    		}
+<span class="nc" id="L670">    		String chr = &quot;chr&quot;;</span>
+<span class="nc" id="L671">    		HolderReferenceField chrf = cvccert.getCVCertificate().getCertificateBody().getHolderReference();</span>
+<span class="nc bnc" id="L672" title="All 2 branches missed.">    		if (chrf != null) {</span>
+<span class="nc" id="L673">    			chr = chrf.getConcatenated();</span>
+    		}
+<span class="nc" id="L675">    		dnpart = car + &quot;_&quot; + chr;</span>
+<span class="nc" id="L676">    	} else {</span>
+<span class="nc" id="L677">    		String dn = CertTools.getSubjectDN(cacert);</span>
+<span class="nc" id="L678">    		dnpart = CertTools.getPartFromDN(dn, &quot;CN&quot;);</span>
+<span class="nc bnc" id="L679" title="All 2 branches missed.">    		if (dnpart == null) {</span>
+<span class="nc" id="L680">    			dnpart = CertTools.getPartFromDN(dn, &quot;SN&quot;);</span>
+    		}
+<span class="nc bnc" id="L682" title="All 2 branches missed.">    		if (dnpart == null) {</span>
+<span class="nc" id="L683">    			dnpart = CertTools.getPartFromDN(dn, &quot;O&quot;);</span>
+    		}
+    	}
+<span class="nc bnc" id="L686" title="All 2 branches missed.">    	if (dnpart == null) {</span>
+<span class="nc" id="L687">    		dnpart = defaultname;</span>
+    	}
+<span class="nc bnc" id="L689" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L690">            log.debug(&quot;dnpart: &quot;+dnpart);</span>
+        }
+    	// Strip whitespace though
+<span class="nc" id="L693">    	String filename = dnpart.replaceAll(&quot;\\W&quot;, &quot;&quot;);</span>
+<span class="nc" id="L694">    	return filename;</span>
+    }
+
+    // Uniform Resource Identifier specification has a section on parsing URIs with a regular expression. The regular expression, written by Berners-Lee, et al., is:
+    // For example: http://www.ics.uci.edu/pub/ietf/uri/#Related
+    // results in the following subexpression matches:
+    //$1 = http:
+    //$2 = http
+    //$3 = //www.ics.uci.edu
+    //$4 = www.ics.uci.edu
+    //$5 = /pub/ietf/uri/
+    //$6 = &lt;undefined&gt;
+    //$7 = &lt;undefined&gt;
+    //$8 = #Related
+    //$9 = Related
+    // Port is part of the name in $4
+    // See https://stackoverflow.com/questions/27745/getting-parts-of-a-url-regex
+<span class="fc" id="L711">    private static java.util.regex.Pattern reg = java.util.regex.Pattern.compile(&quot;^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?&quot;);</span>
+    /**
+     * Method that returns the servername including port, extracted from the HTTPServlet Request, no protocol or application path is returned
+     * @param request req
+     *
+     * @return the server name and port requested, i.e. localhost:8443
+     */
+    public static String getRequestServerName(final String request) {
+<span class="fc bfc" id="L719" title="All 2 branches covered.">        if (request == null) {</span>
+<span class="fc" id="L720">            return null;</span>
+        }
+<span class="fc" id="L722">        final java.util.regex.Matcher m = reg.matcher(request);</span>
+<span class="fc" id="L723">        String requestURL = null;</span>
+<span class="pc bpc" id="L724" title="2 of 4 branches missed.">        if (m.matches() &amp;&amp; m.groupCount() &gt;= 4) {</span>
+<span class="pc bpc" id="L725" title="1 of 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L726">                log.trace(&quot;regexp match with &quot;+m.groupCount()+&quot; groups, 0 being: &quot;+m.group(0));</span>
+            }
+<span class="fc" id="L728">            requestURL = m.group(4);</span>
+        } else {
+<span class="nc bnc" id="L730" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L731">                log.trace(&quot;no reqexp match: &quot;+request);</span>
+            }
+            // Remove https://
+<span class="nc" id="L734">            requestURL = request.substring(8);</span>
+<span class="nc" id="L735">            int firstSlash = requestURL.indexOf(&quot;/&quot;);</span>
+            // Remove application path
+<span class="nc" id="L737">            requestURL = requestURL.substring(0, firstSlash);            </span>
+        }        
+        // Escape in order to be sure not to have any XSS
+<span class="fc" id="L740">        requestURL = HTMLTools.htmlescape(requestURL);</span>
+<span class="pc bpc" id="L741" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L742">            log.debug(&quot;requestServerName: &quot; + requestURL);</span>
+        }
+<span class="fc" id="L744">        return requestURL;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

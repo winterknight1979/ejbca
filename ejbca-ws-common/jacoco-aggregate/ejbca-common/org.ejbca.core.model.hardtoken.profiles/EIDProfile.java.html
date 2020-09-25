@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>EIDProfile.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-ws-common</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.hardtoken.profiles</a> &gt; <span class="el_source">EIDProfile.java</span></div><h1>EIDProfile.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.model.hardtoken.profiles;
+
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+
+import org.cesecore.certificates.ca.CAInfo;
+import org.ejbca.core.model.SecConst;
+
+
+
+
+/**
+ * EIDProfile is a basic class that should be inherited by all types
+ * of eidprofiles in the system.
+ *  
+ *
+ * @version $Id: EIDProfile.java 22117 2015-10-29 10:53:42Z mikekushner $
+ */
+public abstract class EIDProfile extends HardTokenProfileWithAdressLabel {
+	
+	private static final long serialVersionUID = 5516097629038242905L;
+
+    public static final String KEYTYPE_RSA = &quot;RSA&quot;;
+	
+	public static final int CAID_USEUSERDEFINED = SecConst.CAID_USEUSERDEFINED;
+	
+	// Protected Constants
+	protected static final String CERTIFICATEPROFILEID           = &quot;certificateprofileid&quot;;
+	protected static final String CAID                           = &quot;caid&quot;;	
+	protected static final String ISKEYRECOVERABLE               = &quot;iskeyrecoverable&quot;;
+	protected static final String REUSEOLDCERTIFICATE            = &quot;reuseoldcertificate&quot;;
+	protected static final String MINIMUMKEYLENGTH               = &quot;minimunkeylength&quot;;
+	protected static final String KEYTYPES                       = &quot;keytypes&quot;;
+	protected static final String CERTWRITABLE                   = &quot;certwritable&quot;;
+
+  
+			
+    // Default Values
+    public EIDProfile() {
+<span class="nc" id="L58">      super();</span>
+            
+<span class="nc" id="L60">    }</span>
+
+    // Public Methods
+    /**
+     * Indicates which certificate profileid that should be requested when
+     * generating certificate of given certusage.
+     * 
+     * @param certusage should be one of the CERTUSAGE_ constants.
+     * @return The certificate profile id that should be used.
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L71">    public int getCertificateProfileId(int certusage){return ((Integer) ((List&lt;Integer&gt;) data.get(CERTIFICATEPROFILEID)).get(certusage)).intValue();}</span>
+
+
+    /**
+     * Field indicating if a certificate should be set to rewritable on the token.
+     * 
+     * 
+     * @param certusage should be one of the CERTUSAGE_ constants.
+     * @return boolean indicating if the certificate should be rewritabes, if false 
+     * the certificate is written as read-only and cannot be renewed.
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L83">    public boolean getCertWritable(int certusage){ return ((Boolean) ((List&lt;Boolean&gt;) data.get(CERTWRITABLE)).get(certusage)).booleanValue();}</span>
+    
+	/**
+	 * Indicates which ca id that should be requested when
+	 * generating certificate of given certusage.
+	 * 
+	 * RESERVED FOR FUTURE USE
+	 * 
+	 * @param certusage should be one of the CERTUSAGE_ constants.
+	 * @return The caid that should be used.
+	 */
+	@SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L95">    public int getCAId (int certusage){return ((Integer) ((List&lt;Integer&gt;) data.get(CAID)).get(certusage)).intValue();}</span>
+
+
+	/**
+	 * Indicates if a keys used for the given certusage should be saved to database.
+	 * 
+	 * @param certusage should be one of the CERTUSAGE_ constants.
+	 * @return true if the keys used for the certusage should be saved to database.
+	 */
+	@SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L105">    public boolean getIsKeyRecoverable (int certusage){return ((Boolean) ((List&lt;Boolean&gt;) data.get(ISKEYRECOVERABLE)).get(certusage)).booleanValue();}</span>
+
+	/**
+	 * Indicates if the certificate should be reused when recovering a token. This
+	 * since some application requires the same certificate when decrypting data.
+	 * 
+	 * @param certusage should be one of the CERTUSAGE_ constants.
+	 * @return true if the certificate should bereused
+	 */
+	@SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L115">    public boolean getReuseOldCertificate (int certusage){return ((Boolean) ((List&lt;Boolean&gt;) data.get(REUSEOLDCERTIFICATE)).get(certusage)).booleanValue();}</span>
+	
+	/**
+	 * Gives the minimum key length allowed. 
+	 * Generally will the tokens maximum kapacity of key be generated
+	 * 
+	 * @param certusage should be one of the CERTUSAGE_ constants.
+	 * @return The caid that should be used.
+	 */
+	@SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L125">    public int getMinimumKeyLength (int certusage){return ((Integer) ((List&lt;Integer&gt;) data.get(MINIMUMKEYLENGTH)).get(certusage)).intValue(); }</span>
+
+	/**
+	 * Indicates which type of key that should be generated for the certusage.
+	 * 
+	 * RESERVED FOR FUTURE USE
+	 * 
+	 * @param certusage should be one of the CERTUSAGE_ constants.
+	 * @return The keytype that should be generated, one of the KEYTYPE_ Constants
+	 */
+	@SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L136">    public String getKeyType (int certusage){return ((String) ((List&lt;String&gt;) data.get(KEYTYPES)).get(certusage)); }</span>
+
+	// Public Methods used By EJBCA
+
+	/**
+	 * See above
+	 * @param certusage Usage
+	 * @param certprofileid ID
+	 */
+	public void setCertificateProfileId(int certusage, int certprofileid){
+		@SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L147">	  List&lt;Integer&gt; list = (List&lt;Integer&gt;) data.get(CERTIFICATEPROFILEID);	  </span>
+<span class="nc" id="L148">	  list.set(certusage, Integer.valueOf(certprofileid));</span>
+<span class="nc" id="L149">	  data.put(CERTIFICATEPROFILEID, list);</span>
+<span class="nc" id="L150">	}</span>
+
+	
+	/**
+	 * See above
+	 * @param certusage Usage
+	 * @param certWritable ID
+	 */
+    @SuppressWarnings(&quot;unchecked&quot;)
+	public void setCertWritable(int certusage, boolean certWritable){ 
+<span class="nc" id="L160">		List&lt;Boolean&gt; list = (List&lt;Boolean&gt;) data.get(CERTWRITABLE);	  </span>
+<span class="nc" id="L161">		list.set(certusage, Boolean.valueOf(certWritable));</span>
+<span class="nc" id="L162">		data.put(CERTWRITABLE, list);</span>
+<span class="nc" id="L163">    }</span>
+	
+	/**
+	 * See above
+	 * @param certusage Usage
+	 * @param caid IF
+	 */
+	@SuppressWarnings(&quot;unchecked&quot;)
+	public void setCAId (int certusage, int caid){
+<span class="nc" id="L172">      List&lt;Integer&gt; list = (List&lt;Integer&gt;) data.get(CAID);	  </span>
+<span class="nc" id="L173">	  list.set(certusage, Integer.valueOf(caid));</span>
+<span class="nc" id="L174">	  data.put(CAID, list);		</span>
+<span class="nc" id="L175">	}</span>
+
+	/**
+	 * See above
+	 * @param certusage Usage
+	 * @param iskeyrecoverable bool
+	 */
+	@SuppressWarnings(&quot;unchecked&quot;)
+	public void setIsKeyRecoverable (int certusage, boolean iskeyrecoverable){		
+<span class="nc" id="L184">		List&lt;Boolean&gt; list = (List&lt;Boolean&gt;) data.get(ISKEYRECOVERABLE);	  </span>
+<span class="nc" id="L185">		list.set(certusage, Boolean.valueOf(iskeyrecoverable));</span>
+<span class="nc" id="L186">		data.put(ISKEYRECOVERABLE, list);		</span>
+<span class="nc" id="L187">	}</span>
+	
+	/**
+	 * See above
+	 * @param certusage Usage
+	 * @param reuseoldcertificate bool 
+	 */
+	@SuppressWarnings(&quot;unchecked&quot;)
+	public void setReuseOldCertificate (int certusage, boolean reuseoldcertificate){
+<span class="nc" id="L196">		List&lt;Boolean&gt; list = (List&lt;Boolean&gt;) data.get(REUSEOLDCERTIFICATE);	  </span>
+<span class="nc" id="L197">		list.set(certusage, Boolean.valueOf(reuseoldcertificate));</span>
+<span class="nc" id="L198">		data.put(REUSEOLDCERTIFICATE, list);				</span>
+<span class="nc" id="L199">	}</span>
+
+	/**
+	 * See above
+	 * @param certusage Usage
+	 * @param minimumkeylength length
+	 */
+	@SuppressWarnings(&quot;unchecked&quot;)
+	public void setMinimumKeyLength (int certusage, int minimumkeylength){		
+<span class="nc" id="L208">		List&lt;Integer&gt; list = (List&lt;Integer&gt;) data.get(MINIMUMKEYLENGTH);	  </span>
+<span class="nc" id="L209">		list.set(certusage, Integer.valueOf(minimumkeylength));</span>
+<span class="nc" id="L210">		data.put(MINIMUMKEYLENGTH, list);				 </span>
+<span class="nc" id="L211">	}</span>
+
+	/**
+	 * See above
+	 * @param certusage Usage
+	 * @param keytype type
+	 */
+	@SuppressWarnings(&quot;unchecked&quot;)
+	public void setKeyType (int certusage, String keytype){
+<span class="nc" id="L220">	  List&lt;String&gt; list = (List&lt;String&gt;) data.get(KEYTYPES);	  </span>
+<span class="nc" id="L221">	  list.set(certusage, keytype);</span>
+<span class="nc" id="L222">	  data.put(KEYTYPES, list);				 </span>
+<span class="nc" id="L223">	}</span>
+	
+	/**
+	 * Returns a collection of all defined certificate profiles.
+	 * @return IDs
+	 *
+	 */
+	@SuppressWarnings(&quot;unchecked&quot;)
+    public Collection&lt;Integer&gt; getAllCertificateProfileIds(){
+<span class="nc" id="L232">	  return (Collection&lt;Integer&gt;) data.get(CERTIFICATEPROFILEID);	</span>
+	}
+	
+	/**
+	 * Returns all valid CAids, if a certusage have CAID_USEUSERDEFINED defined then
+	 * it will not be among available valus in returned collection.
+	 * 
+	 * @return IDs
+	 */
+	public Collection&lt;Integer&gt; getAllCAIds(){
+		@SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L243">      Collection&lt;Integer&gt; caids = (Collection&lt;Integer&gt;) data.get(CAID);	</span>
+<span class="nc" id="L244">      List&lt;Integer&gt; retval = new ArrayList&lt;Integer&gt;();</span>
+<span class="nc" id="L245">      Iterator&lt;Integer&gt; iter = caids.iterator();</span>
+<span class="nc bnc" id="L246" title="All 2 branches missed.">      while(iter.hasNext()){</span>
+<span class="nc" id="L247">      	Integer value = (Integer) iter.next();</span>
+<span class="nc bnc" id="L248" title="All 4 branches missed.">      	if(value.intValue() &gt; CAInfo.SPECIALCAIDBORDER || value.intValue() &lt; 0){</span>
+<span class="nc" id="L249">      	  retval.add(value);</span>
+      	}      	
+<span class="nc" id="L251">      }</span>
+      
+<span class="nc" id="L253">      return retval;</span>
+	}	
+	
+	public abstract int[] getAvailableMinimumKeyLengths();
+	  		      
+    // Protected methods
+	public boolean isTokenSupported(String[][] supportedcards, String tokenidentificationstring){
+<span class="nc" id="L260">      boolean returnval = true;	</span>
+      @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L262">      Iterator&lt;Integer&gt; iter = ((List&lt;Integer&gt;) data.get(MINIMUMKEYLENGTH)).iterator();</span>
+<span class="nc" id="L263">	  int[] availablekeylengths = getAvailableMinimumKeyLengths();</span>
+	  
+<span class="nc bnc" id="L265" title="All 2 branches missed.">      while(iter.hasNext()){</span>
+<span class="nc" id="L266">      	int index = -1;</span>
+<span class="nc" id="L267">      	int keylength = iter.next().intValue();</span>
+<span class="nc bnc" id="L268" title="All 2 branches missed.">        for(int i=0;i&lt;availablekeylengths.length;i++){</span>
+<span class="nc bnc" id="L269" title="All 2 branches missed.">		  if(availablekeylengths[i] == keylength){</span>
+<span class="nc" id="L270">		  	index=i;</span>
+<span class="nc" id="L271">		  	break;   		 	</span>
+		  }
+        }        
+<span class="nc bnc" id="L274" title="All 4 branches missed.">        returnval = returnval &amp;&amp; super.isTokenSupported(supportedcards[index], tokenidentificationstring);        </span>
+<span class="nc" id="L275">      }</span>
+    	    	
+<span class="nc" id="L277">      return returnval;	 </span>
+    }
+    
+    /**
+     * Help Method that should be used 
+     * @param emptyclone clone
+     */
+    
+    @SuppressWarnings(&quot;rawtypes&quot;)
+    public void clone(EIDProfile emptyclone){
+<span class="nc" id="L287">		java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();</span>
+
+		try{
+<span class="nc" id="L290">			ObjectOutputStream oos = new ObjectOutputStream(baos);	</span>
+<span class="nc" id="L291">			oos.writeObject(this.saveData());</span>
+<span class="nc" id="L292">			oos.close();</span>
+<span class="nc" id="L293">			ObjectInputStream ois = new ObjectInputStream(new java.io.ByteArrayInputStream(baos.toByteArray()));</span>
+<span class="nc" id="L294">            HashMap cloneddata = (HashMap) ois.readObject();		</span>
+<span class="nc" id="L295">			ois.close();</span>
+<span class="nc" id="L296">			emptyclone.loadData(cloneddata);</span>
+<span class="nc" id="L297">		}catch(Exception e){</span>
+<span class="nc" id="L298">			throw new RuntimeException(e);</span>
+<span class="nc" id="L299">		}   	    </span>
+<span class="nc" id="L300">    }</span>
+
+    /**
+     * Method used to reinit a hardtoken profile to its default values.
+     * Used when changing the profile but want to keep the values that
+     * are in common between the two types.
+     */
+    public abstract void reInit();
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

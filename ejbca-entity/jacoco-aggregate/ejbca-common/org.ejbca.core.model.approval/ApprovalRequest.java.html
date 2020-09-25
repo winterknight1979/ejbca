@@ -1,0 +1,539 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ApprovalRequest.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-entity</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.approval</a> &gt; <span class="el_source">ApprovalRequest.java</span></div><h1>ApprovalRequest.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.approval;
+
+import java.io.ByteArrayInputStream;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.security.auth.x500.X500Principal;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.LocalJvmOnlyAuthenticationToken;
+import org.cesecore.authentication.tokens.UsernamePrincipal;
+import org.cesecore.authentication.tokens.X509CertificateAuthenticationToken;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+import org.ejbca.core.ejb.authentication.cli.CliAuthenticationToken;
+import org.ejbca.core.ejb.authentication.cli.CliAuthenticationTokenReferenceRegistry;
+import org.ejbca.core.model.approval.profile.ApprovalProfile;
+import org.ejbca.core.model.log.Admin;
+
+/**
+ * Abstract Base class representing one approval request created when an administrator performs an action that requires an approval.
+ * 
+ * Contains information like: Admin that performs the request Data necessary to display the request to the approver Eventual data necessary to execute
+ * the request.
+ * 
+ * @version $Id: ApprovalRequest.java 25898 2017-05-24 15:59:21Z mikekushner $
+ */ 
+// Suppressing deprecation due to backwards compatibility
+@SuppressWarnings(&quot;deprecation&quot;)
+public abstract class ApprovalRequest implements Externalizable {
+
+    private static final long serialVersionUID = -1L;
+<span class="nc" id="L58">    private static final Logger log = Logger.getLogger(ApprovalRequest.class);</span>
+    private static final int LATEST_BASE_VERSION = 5;
+
+    /**
+     * Constants indicating approval settings for viewing hard token through WS
+     */
+    public static final int REQ_APPROVAL_VIEW_HARD_TOKEN = 5;
+
+    /**
+     * Constants indicating approval settings for generating token certificate through WS
+     */
+    public static final int REQ_APPROVAL_GENERATE_TOKEN_CERTIFICATE = 6;
+    
+    /**
+     * Simple request type means that the approver will only see new data about the action and will not compare it to old data
+     */
+    public static final int REQUESTTYPE_SIMPLE = 1;
+
+    /**
+     * Comparing request type means that the approving administrator have to compare old data with new data in the request.
+     * 
+     */
+    public static final int REQUESTTYPE_COMPARING = 2;
+
+<span class="nc" id="L82">    private AuthenticationToken requestAdmin = null; </span>
+<span class="nc" id="L83">    private String requestSignature = null;</span>
+<span class="nc" id="L84">    private int approvalRequestType = REQUESTTYPE_SIMPLE;</span>
+    /**
+     * @deprecated since 6.6.0 kept only for 100% uptime reasons.
+     */
+<span class="nc" id="L88">    @Deprecated</span>
+    private int numOfRequiredApprovals = 0;
+<span class="nc" id="L90">    private int cAId = 0;</span>
+<span class="nc" id="L91">    private int endEntityProfileId = 0;</span>
+<span class="nc" id="L92">    private boolean[] approvalSteps = { false };</span>
+    
+    private ApprovalProfile approvalProfile;
+    
+    /** Admins who have edited the request, in order of time. The last admin will not be allowed to approve the request. */
+<span class="nc" id="L97">    private List&lt;TimeAndAdmin&gt; editedByAdmins = new ArrayList&lt;&gt;();</span>
+    
+    /**
+     * Main constructor of an approval request for standard one step approval request.
+     * 
+     * @param requestAdmin the certificate of the requesting admit
+     * @param requestSignature signature of the requester (OPTIONAL, for future use)
+     * @param approvalRequestType one of TYPE_ constants
+     * @param approvalProfile Profile
+     * @param cAId the related cAId of the request that the approver must be authorized to or ApprovalDataVO.ANY_CA in applicable to any ca
+     * @param endEntityProfileId the related profile id that the approver must be authorized to or ApprovalDataVO.ANY_ENDENTITYPROFILE if applicable
+     *            to any end entity profile
+     */
+    protected ApprovalRequest(AuthenticationToken requestAdmin, String requestSignature, int approvalRequestType, int cAId, int endEntityProfileId,
+            ApprovalProfile approvalProfile) {
+<span class="nc" id="L112">        super();</span>
+<span class="nc" id="L113">        setRequestAdmin(requestAdmin);</span>
+<span class="nc" id="L114">        this.requestSignature = requestSignature;</span>
+<span class="nc" id="L115">        this.approvalRequestType = approvalRequestType;</span>
+<span class="nc" id="L116">        this.cAId = cAId;</span>
+<span class="nc" id="L117">        this.endEntityProfileId = endEntityProfileId;</span>
+<span class="nc" id="L118">        this.approvalProfile = approvalProfile;</span>
+<span class="nc" id="L119">    }</span>
+
+    /**
+     * Main constructor of an approval request.
+     * 
+     * @param requestAdmin the certificate of the requesting admin
+     * @param requestSignature signature of the requester (OPTIONAL, for future use)
+     * @param approvalRequestType one of TYPE_ constants
+     * @param cAId the related cAId of the request that the approver must be authorized to or ApprovalDataVO.ANY_CA in applicable to any ca
+     * @param endEntityProfileId the related profile id that the approver must be authorized to or ApprovalDataVO.ANY_ENDENTITYPROFILE if applicable
+     *            to any end entity profile
+     * @param numberOfSteps that this type approval request supports.
+     * @param approvalProfile Profile
+     */
+    protected ApprovalRequest(AuthenticationToken requestAdmin, String requestSignature, int approvalRequestType, int cAId, int endEntityProfileId,
+            int numberOfSteps, ApprovalProfile approvalProfile) {
+<span class="nc" id="L135">        super();</span>
+<span class="nc" id="L136">        setRequestAdmin(requestAdmin);</span>
+<span class="nc" id="L137">        this.requestSignature = requestSignature;</span>
+<span class="nc" id="L138">        this.approvalRequestType = approvalRequestType;</span>
+<span class="nc" id="L139">        this.cAId = cAId;</span>
+<span class="nc" id="L140">        this.endEntityProfileId = endEntityProfileId;</span>
+        
+<span class="nc" id="L142">        this.approvalProfile = approvalProfile;</span>
+<span class="nc" id="L143">        this.approvalSteps = new boolean[numberOfSteps];</span>
+<span class="nc" id="L144">    }</span>
+
+    /** Constructor used in externalization only */
+<span class="nc" id="L147">    public ApprovalRequest() {</span>
+<span class="nc" id="L148">    }</span>
+    
+    /**
+     * Should return true if the request if of the type that should be executed by the last approver.
+     * 
+     * @return False if the request admin should do a polling action to try again.
+     */
+    public abstract boolean isExecutable();
+
+    /**
+     * A main function of the ApprovalRequest, the execute() method is run when all required approvals have been made.
+     * 
+     * execute should perform the action or nothing if the requesting admin is supposed to try his action again.
+     * @throws ApprovalRequestExecutionException on fail
+     */
+    public abstract void execute() throws ApprovalRequestExecutionException;
+
+    /**
+     * Generate an approval hash (called ID which is confusing since there is a unique requestID as well) for this type of approval, the same request 
+     * i.e the same admin want's to do the same thing twice should result in the same approval hash. This is the value that will be stored in the 
+     * ApprovalData.approvalId column.
+     * This hash is not used to identify a specific request, but is used to be able to compare to requests if they are for the same thing. As an 
+     * example trying to add the exact same user twice will result in the same approval hash so it is possible to find an already existing request 
+     * for adding this user. 
+     * 
+     * @return a hash code for the action the request is for, should be the same code every time the same action is performed.
+     */
+    public abstract int generateApprovalId();
+
+    /**
+     * This method should return the request data in text representation. This text is presented for the approving administrator in order for him to
+     * make a decision about the request. The AddEndEntityApprovalRequest and EditEndEntityApprovalRequest classes have a more detailed overloaded version,
+     * that performs database queries to fill in the CA and profile names, etc. 
+     * 
+     * Should return a List of ApprovalDataText, one for each row
+     * @param admin Token
+     * @return a List of ApprovalDataText
+     */
+    public abstract List&lt;ApprovalDataText&gt; getNewRequestDataAsText(AuthenticationToken admin);
+
+    /**
+     * This method should return the original request data in text representation. Should only be implemented by TYPE_COMPARING ApprovalRequests.
+     * TYPE_SIMPLE requests should return null;
+     * 
+     * This text is presented for the approving administrator for him to compare of what will be done.
+     * 
+     * Should return a List of ApprovalDataText, one for each row
+     * @param admin Token
+     * @return a List of ApprovalDataText
+     */
+    public abstract List&lt;ApprovalDataText&gt; getOldRequestDataAsText(AuthenticationToken admin);
+
+    /**
+     * This method is used to check if this is an allowed transition between two states, so that it does not require approval. Override this method to
+     * add allowed transitions.
+     * 
+     * @return true if this transition does not require approval, false by default.
+     * 
+     */
+    public boolean isAllowedTransition() {
+<span class="nc" id="L208">        return false;</span>
+    }
+
+    /**
+     * Should return the time in millisecond that the request should be valid or Long.MAX_VALUE if it should never expire
+     * 
+     * Default if will return the value defined in the ejbca.properties
+     * @return long
+     */
+    public long getRequestValidity() {
+<span class="nc" id="L218">        return getApprovalProfile().getRequestExpirationPeriod();</span>
+    }
+
+    /**
+     * Should return the time in millisecond that the approval should be valid or Long.MAX_VALUE if it should never expire
+     * 
+     * Default if will return the value defined in the ejbca.properties
+     * @return long
+     */
+    public long getApprovalValidity() {
+<span class="nc" id="L228">        return getApprovalProfile().getApprovalExpirationPeriod();</span>
+    }
+
+    /**
+     * Should return one of the ApprovalDataVO.APPROVALTYPE_ constants
+     * @return int
+     */
+    public abstract int getApprovalType();
+
+    /**
+     * Method returning the number of required approvals in order to execute the request.
+     * @return int
+     */
+    public int getNumOfRequiredApprovals() {
+<span class="nc" id="L242">        return numOfRequiredApprovals;</span>
+    }
+
+    
+    public ApprovalProfile getApprovalProfile() {
+<span class="nc" id="L247">        return approvalProfile;</span>
+    }
+    
+    public void setApprovalProfile(final ApprovalProfile approvalProfile) {
+<span class="nc" id="L251">        this.approvalProfile = approvalProfile;</span>
+<span class="nc" id="L252">    }</span>
+    
+    /**
+     * The type of request type, one of TYPE_ constants
+     * @return int
+     * 
+     */
+    public int getApprovalRequestType() {
+<span class="nc" id="L260">        return approvalRequestType;</span>
+    }
+
+    /**
+     * @return Returns the requestSignature. OPTIONAL
+     */
+    public String getRequestSignature() {
+<span class="nc" id="L267">        return requestSignature;</span>
+    }
+
+    /**
+     * @return the related ca id. The approving administrator must be authorized to this ca in order to approve it.
+     */
+    public int getCAId() {
+<span class="nc" id="L274">        return cAId;</span>
+    }
+    
+    /**
+     * @return the related end entity profile id. The approving administrator must be authorized to this profile in order to approve it.
+     */
+    public int getEndEntityProfileId() {
+<span class="nc" id="L281">        return endEntityProfileId;</span>
+    }
+
+    /**
+     * NOTE: This method should never be used publicly except from UpgradeSessionBean
+     * @param requestAdmin admin
+     */
+    public void setRequestAdmin(AuthenticationToken requestAdmin) {
+    	
+<span class="nc" id="L290">        this.requestAdmin = requestAdmin;</span>
+<span class="nc" id="L291">    }</span>
+
+    /**
+     * Returns the certificate of the request admin, if there is any. 
+     * Walks through credentials of the request admins AuthenticationToken and returns the first certifciate encountered.
+     * @return returns Certificate or null
+     */
+    public Certificate getRequestAdminCert() {
+<span class="nc" id="L299">    	Set&lt;?&gt; credentials = requestAdmin.getCredentials();</span>
+<span class="nc bnc" id="L300" title="All 2 branches missed.">    	if (credentials != null) {</span>
+<span class="nc bnc" id="L301" title="All 2 branches missed.">        	for (Object credential : credentials) {</span>
+<span class="nc bnc" id="L302" title="All 2 branches missed.">        		if (credential instanceof Certificate) {</span>
+<span class="nc" id="L303">    				return (Certificate) credential;</span>
+    			}
+<span class="nc" id="L305">        	}    		</span>
+    	}
+<span class="nc" id="L307">        return null;</span>
+    }
+
+    public AuthenticationToken getRequestAdmin() {
+<span class="nc" id="L311">        return requestAdmin;</span>
+    }
+    
+    /** 
+     * 
+     * @param admin the admin we want to check if has edited the request _last_
+     * @return true if admin was the last of admins who edited this approval request, false otherwise
+     */
+    public boolean isEditedByMe(final AuthenticationToken admin) {
+        // admin who edited last can't approve
+<span class="nc bnc" id="L321" title="All 2 branches missed.">        if (editedByAdmins.isEmpty()) {</span>
+<span class="nc" id="L322">            return false;</span>
+        } else {
+<span class="nc" id="L324">            final AuthenticationToken lastEditedBy = editedByAdmins.get(editedByAdmins.size()-1).getAdmin();</span>
+<span class="nc" id="L325">            return lastEditedBy.equals(admin);</span>
+        }
+    }
+    
+    /** When an approval request is edited, we keep a list of which admin edited a request
+     * 
+     * @param admin an admin that edited a request
+     */
+    public void addEditedByAdmin(final AuthenticationToken admin) {
+<span class="nc" id="L334">        editedByAdmins.add(new TimeAndAdmin(new Date(), admin));</span>
+<span class="nc" id="L335">    }</span>
+    
+    /** When an approval request is edited, we keep a list of which admin edited a request
+     * 
+     * @return a list of admins that has edited a request
+     */
+    public List&lt;TimeAndAdmin&gt; getEditedByAdmins() {
+<span class="nc" id="L342">        return editedByAdmins;</span>
+    }
+
+    /**
+     * Returns true if this step have been executed before.
+     * 
+     * @param step to query
+     * @return bool
+     * 
+     * @deprecated this method denotes a outdated feature pertaining to hard tokens, and should not be used. 
+     */
+    @Deprecated
+    public boolean isStepDone(int step) {
+<span class="nc" id="L355">        return approvalSteps[step];</span>
+    }
+
+    /**
+     * Marks the given step as done.
+     * 
+     * @param step to query
+     */
+    public void markStepAsDone(int step) {
+<span class="nc" id="L364">        approvalSteps[step] = true;</span>
+<span class="nc" id="L365">    }</span>
+
+    /**
+     * Returns the number of steps that this approval request supports.
+     * @return int
+     * 
+     * @deprecated this method denotes a outdated feature pertaining to hard tokens, and should not be used. 
+     */
+    @Deprecated
+    public int getNumberOfApprovalSteps() {
+<span class="nc" id="L375">        return approvalSteps.length;</span>
+    }
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+<span class="nc" id="L380">        out.writeInt(LATEST_BASE_VERSION);</span>
+<span class="nc" id="L381">        out.writeObject(this.requestAdmin);</span>
+<span class="nc" id="L382">        out.writeObject(this.requestSignature);</span>
+<span class="nc" id="L383">        out.writeInt(this.approvalRequestType);</span>
+<span class="nc" id="L384">        out.writeInt(this.numOfRequiredApprovals);</span>
+<span class="nc" id="L385">        out.writeInt(this.cAId);</span>
+<span class="nc" id="L386">        out.writeInt(this.endEntityProfileId);</span>
+<span class="nc" id="L387">        out.writeInt(this.approvalSteps.length);</span>
+<span class="nc bnc" id="L388" title="All 2 branches missed.">        for (int i = 0; i &lt; approvalSteps.length; i++) {</span>
+<span class="nc" id="L389">            out.writeBoolean(approvalSteps[i]);</span>
+        }
+        
+<span class="nc" id="L392">        out.writeObject(approvalProfile);</span>
+<span class="nc" id="L393">        out.writeObject(editedByAdmins);</span>
+<span class="nc" id="L394">    }</span>
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+<span class="nc" id="L399">        final int version = in.readInt();</span>
+<span class="nc bnc" id="L400" title="All 2 branches missed.">        if (version == 1) {</span>
+<span class="nc" id="L401">            final String requestAdminCert = (String) in.readObject();</span>
+<span class="nc" id="L402">            final byte[] certbuf = Base64.decode(requestAdminCert.getBytes());</span>
+<span class="nc" id="L403">            final CertificateFactory cf = CertTools.getCertificateFactory();</span>
+<span class="nc" id="L404">            X509Certificate x509cert = null;</span>
+            try {
+<span class="nc" id="L406">                x509cert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(certbuf));</span>
+<span class="nc" id="L407">            } catch (CertificateException e) {</span>
+<span class="nc" id="L408">                log.error(e);</span>
+<span class="nc" id="L409">            }</span>
+<span class="nc" id="L410">            this.requestAdmin = new X509CertificateAuthenticationToken(x509cert);</span>
+<span class="nc" id="L411">            this.requestSignature = (String) in.readObject();</span>
+<span class="nc" id="L412">            this.approvalRequestType = in.readInt();</span>
+<span class="nc" id="L413">            this.numOfRequiredApprovals = in.readInt();</span>
+<span class="nc" id="L414">            this.cAId = in.readInt();</span>
+<span class="nc" id="L415">            this.endEntityProfileId = in.readInt();</span>
+<span class="nc" id="L416">            this.approvalSteps = new boolean[1];</span>
+        }
+<span class="nc bnc" id="L418" title="All 2 branches missed.">        if (version == 2) {</span>
+<span class="nc" id="L419">            final Admin admin = (Admin) in.readObject();</span>
+<span class="nc" id="L420">            final X509Certificate x509cert = (X509Certificate)admin.getAdminInformation().getX509Certificate();</span>
+<span class="nc" id="L421">            AuthenticationToken token = null;</span>
+<span class="nc bnc" id="L422" title="All 2 branches missed.">            if (x509cert == null) {</span>
+<span class="nc bnc" id="L423" title="All 4 branches missed.">            	if (admin.getAdminInformation().isSpecialUser() &amp;&amp; (admin.getUsername() != null)) {</span>
+<span class="nc" id="L424">            		token = new AlwaysAllowLocalAuthenticationToken(new UsernamePrincipal(admin.getUsername()));</span>
+            	}
+            } else {
+<span class="nc" id="L427">                token = new X509CertificateAuthenticationToken(x509cert);</span>
+            }
+<span class="nc" id="L429">            this.requestAdmin = token;</span>
+<span class="nc" id="L430">            this.requestAdmin = null;</span>
+<span class="nc" id="L431">            this.requestSignature = (String) in.readObject();</span>
+<span class="nc" id="L432">            this.approvalRequestType = in.readInt();</span>
+<span class="nc" id="L433">            this.numOfRequiredApprovals = in.readInt();</span>
+<span class="nc" id="L434">            this.cAId = in.readInt();</span>
+<span class="nc" id="L435">            this.endEntityProfileId = in.readInt();</span>
+<span class="nc" id="L436">            this.approvalSteps = new boolean[1];</span>
+        }
+<span class="nc bnc" id="L438" title="All 2 branches missed.">        if (version == 3) {</span>
+        	// Version 2 and 3 only care about the certificate from the old Admin object
+<span class="nc" id="L440">            final Admin admin = (Admin) in.readObject();</span>
+<span class="nc" id="L441">            final X509Certificate x509cert = (X509Certificate)admin.getAdminInformation().getX509Certificate();</span>
+<span class="nc" id="L442">            AuthenticationToken token = null;</span>
+<span class="nc bnc" id="L443" title="All 2 branches missed.">            if (x509cert == null) {</span>
+<span class="nc bnc" id="L444" title="All 4 branches missed.">            	if (admin.getAdminInformation().isSpecialUser() &amp;&amp; (admin.getUsername() != null)) {</span>
+<span class="nc" id="L445">            		token = new AlwaysAllowLocalAuthenticationToken(new UsernamePrincipal(admin.getUsername()));</span>
+            	}
+            } else {
+<span class="nc" id="L448">            	final Set&lt;X509Certificate&gt; credentials = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L449">                credentials.add(x509cert);</span>
+<span class="nc" id="L450">                final Set&lt;X500Principal&gt; principals = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L451">                principals.add(x509cert.getSubjectX500Principal());</span>
+<span class="nc" id="L452">                token = new X509CertificateAuthenticationToken(principals, credentials);</span>
+            }
+<span class="nc" id="L454">            this.requestAdmin = token;</span>
+<span class="nc" id="L455">            this.requestSignature = (String) in.readObject();</span>
+<span class="nc" id="L456">            this.approvalRequestType = in.readInt();</span>
+<span class="nc" id="L457">            this.numOfRequiredApprovals = in.readInt();</span>
+<span class="nc" id="L458">            this.cAId = in.readInt();</span>
+<span class="nc" id="L459">            this.endEntityProfileId = in.readInt();</span>
+<span class="nc" id="L460">            final int stepSize = in.readInt();</span>
+<span class="nc" id="L461">            this.approvalSteps = new boolean[stepSize];</span>
+<span class="nc bnc" id="L462" title="All 2 branches missed.">            for (int i = 0; i &lt; approvalSteps.length; i++) {</span>
+<span class="nc" id="L463">                approvalSteps[i] = in.readBoolean();</span>
+            }
+        }
+<span class="nc bnc" id="L466" title="All 2 branches missed.">        if (version == 4) {</span>
+        	// Version 4 after conversion to CESeCore where Admin was deprecated.
+<span class="nc" id="L468">            this.requestAdmin = (AuthenticationToken) in.readObject();</span>
+<span class="nc bnc" id="L469" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L470">                log.trace(&quot;ApprovalRequest has a requestAdmin token of type: &quot;+this.requestAdmin.getClass().getName());</span>
+            }
+<span class="nc bnc" id="L472" title="All 2 branches missed.">            if (this.requestAdmin instanceof LocalJvmOnlyAuthenticationToken) {</span>
+<span class="nc bnc" id="L473" title="All 2 branches missed.">                if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L474">                	log.trace(&quot;It was a LocalJvmOnlyAuthenticationToken so we will re-init it with local random token.&quot;);</span>
+                }
+<span class="nc" id="L476">				LocalJvmOnlyAuthenticationToken localtoken = (LocalJvmOnlyAuthenticationToken) this.requestAdmin;</span>
+<span class="nc" id="L477">				localtoken.initRandomToken();</span>
+<span class="nc bnc" id="L478" title="All 2 branches missed.">            } else if (this.requestAdmin instanceof CliAuthenticationToken) {</span>
+                // A Cli authentication token was probably used already and must thus be &quot;re-registered&quot;
+<span class="nc" id="L480">                CliAuthenticationToken ctok = (CliAuthenticationToken)this.requestAdmin;</span>
+<span class="nc" id="L481">                CliAuthenticationTokenReferenceRegistry.INSTANCE.registerToken(ctok);</span>
+            }
+<span class="nc" id="L483">            this.requestSignature = (String) in.readObject();</span>
+<span class="nc" id="L484">            this.approvalRequestType = in.readInt();</span>
+<span class="nc" id="L485">            this.numOfRequiredApprovals = in.readInt();</span>
+<span class="nc" id="L486">            this.cAId = in.readInt();</span>
+<span class="nc" id="L487">            this.endEntityProfileId = in.readInt();</span>
+<span class="nc" id="L488">            final int stepSize = in.readInt();</span>
+<span class="nc bnc" id="L489" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L490">                log.trace(&quot;ApprovalRequest have &quot;+stepSize+&quot; approval steps.&quot;);                </span>
+            }
+<span class="nc" id="L492">            this.approvalSteps = new boolean[stepSize];</span>
+<span class="nc bnc" id="L493" title="All 2 branches missed.">            for (int i = 0; i &lt; approvalSteps.length; i++) {</span>
+<span class="nc" id="L494">                approvalSteps[i] = in.readBoolean();</span>
+            }
+<span class="nc bnc" id="L496" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L497">                log.debug(&quot;ApprovalRequest (version 4) of type &quot;+getApprovalType()+&quot; read.&quot;);</span>
+            }
+        }
+<span class="nc bnc" id="L500" title="All 2 branches missed.">        if (version == 5) {</span>
+            // Version 5 after introducing approval profiles
+<span class="nc" id="L502">            this.requestAdmin = (AuthenticationToken) in.readObject();</span>
+<span class="nc bnc" id="L503" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L504">                log.trace(&quot;ApprovalRequest has a requestAdmin token of type: &quot;+this.requestAdmin.getClass().getName());</span>
+            }
+<span class="nc bnc" id="L506" title="All 2 branches missed.">            if (this.requestAdmin instanceof LocalJvmOnlyAuthenticationToken) {</span>
+<span class="nc bnc" id="L507" title="All 2 branches missed.">                if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L508">                    log.trace(&quot;It was a LocalJvmOnlyAuthenticationToken so we will re-init it with local random token.&quot;);</span>
+                }
+<span class="nc" id="L510">                LocalJvmOnlyAuthenticationToken localtoken = (LocalJvmOnlyAuthenticationToken) this.requestAdmin;</span>
+<span class="nc" id="L511">                localtoken.initRandomToken();</span>
+<span class="nc bnc" id="L512" title="All 2 branches missed.">            } else if (this.requestAdmin instanceof CliAuthenticationToken) {</span>
+                // A Cli authentication token was probably used already and must thus be &quot;re-registered&quot;
+<span class="nc" id="L514">                CliAuthenticationToken ctok = (CliAuthenticationToken)this.requestAdmin;</span>
+<span class="nc" id="L515">                CliAuthenticationTokenReferenceRegistry.INSTANCE.registerToken(ctok);</span>
+            }
+<span class="nc" id="L517">            this.requestSignature = (String) in.readObject();</span>
+<span class="nc" id="L518">            this.approvalRequestType = in.readInt();</span>
+<span class="nc" id="L519">            this.numOfRequiredApprovals = in.readInt();</span>
+<span class="nc" id="L520">            this.cAId = in.readInt();</span>
+<span class="nc" id="L521">            this.endEntityProfileId = in.readInt();</span>
+<span class="nc" id="L522">            final int stepSize = in.readInt();</span>
+<span class="nc bnc" id="L523" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L524">                log.trace(&quot;ApprovalRequest have &quot;+stepSize+&quot; approval steps.&quot;);                </span>
+            }
+<span class="nc" id="L526">            this.approvalSteps = new boolean[stepSize];</span>
+<span class="nc bnc" id="L527" title="All 2 branches missed.">            for (int i = 0; i &lt; approvalSteps.length; i++) {</span>
+<span class="nc" id="L528">                approvalSteps[i] = in.readBoolean();</span>
+            }
+<span class="nc" id="L530">            this.approvalProfile = (ApprovalProfile) in.readObject();</span>
+<span class="nc" id="L531">            this.editedByAdmins = (List&lt;TimeAndAdmin&gt;) in.readObject();</span>
+<span class="nc bnc" id="L532" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L533">                log.debug(&quot;ApprovalRequest (version 5) of type &quot;+getApprovalType()+&quot; read.&quot;);</span>
+            }
+        }
+<span class="nc" id="L536">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

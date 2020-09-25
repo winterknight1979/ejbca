@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>NameConstraint.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-common</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.certificate.certextensions.standard</a> &gt; <span class="el_source">NameConstraint.java</span></div><h1>NameConstraint.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.certificate.certextensions.standard;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.security.PublicKey;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.DEROctetString;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralSubtree;
+import org.bouncycastle.asn1.x509.NameConstraints;
+import org.cesecore.certificates.ca.CA;
+import org.cesecore.certificates.ca.X509CA;
+import org.cesecore.certificates.ca.internal.CertificateValidity;
+import org.cesecore.certificates.certificate.certextensions.CertificateExtensionException;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.util.CeSecoreNameStyle;
+
+/**
+ * Extension for Name Constraints.
+ * &lt;a href=&quot;https://tools.ietf.org/html/rfc5280#section-4.2.1.10&quot;&gt;RFC 5280&lt;/a&gt;
+ *
+ * For storing Name Constraints, an internal encoded form is used. The format is &quot;type-id:data&quot;
+ * where data is either a regular string or hex-encoded data, depending on the type.
+ * Use parseNameConstraintList to convert human-readable strings into encoded strings.
+ *
+ * @version $Id: NameConstraint.java 29904 2018-09-26 13:14:30Z samuellb $
+ */
+<span class="nc" id="L49">public class NameConstraint extends StandardCertificateExtension {</span>
+
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public void init(CertificateProfile certProf) {
+<span class="nc" id="L55">        super.setOID(Extension.nameConstraints.getId());</span>
+<span class="nc" id="L56">        super.setCriticalFlag(certProf.getNameConstraintsCritical());</span>
+<span class="nc" id="L57">    }</span>
+
+    @Override
+    public ASN1Encodable getValue(EndEntityInformation userData, CA ca, CertificateProfile certProfile, PublicKey userPublicKey,
+            PublicKey caPublicKey, CertificateValidity val) throws CertificateExtensionException {
+<span class="nc" id="L62">        NameConstraints nc = null;</span>
+
+<span class="nc bnc" id="L64" title="All 2 branches missed.">        if (!(ca instanceof X509CA)) {</span>
+<span class="nc" id="L65">            throw new CertificateExtensionException(&quot;Can't issue non-X509 certificate with Name Constraint&quot;);</span>
+        }
+
+<span class="nc" id="L68">        final ExtendedInformation ei = userData.getExtendedInformation();</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">        if (ei != null) {</span>
+<span class="nc" id="L70">            final List&lt;String&gt; permittedNames = ei.getNameConstraintsPermitted();</span>
+<span class="nc" id="L71">            final List&lt;String&gt; excludedNames = ei.getNameConstraintsExcluded();</span>
+
+            // Do not include an empty name constraints extension
+<span class="nc bnc" id="L74" title="All 4 branches missed.">            if (permittedNames != null || excludedNames != null) {</span>
+<span class="nc" id="L75">                final GeneralSubtree[] permitted = toGeneralSubtrees(permittedNames);</span>
+<span class="nc" id="L76">                final GeneralSubtree[] excluded = toGeneralSubtrees(excludedNames);</span>
+
+<span class="nc" id="L78">                nc = new NameConstraints(permitted, excluded);</span>
+            }
+        }
+
+<span class="nc" id="L82">        return nc;</span>
+    }
+
+    /**
+     * Converts a list of encoded strings of Name Constraints into ASN1 GeneralSubtree objects.
+     * This is needed when creating an BouncyCastle ASN1 NameConstraint object for inclusion
+     * in a certificate.
+     * @param list encoded strings
+     * @return ASN1 subtree
+     */
+    public static GeneralSubtree[] toGeneralSubtrees(List&lt;String&gt; list) {
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">        if (list == null) {</span>
+<span class="nc" id="L94">            return null;</span>
+        }
+
+<span class="fc" id="L97">        GeneralSubtree[] ret = new GeneralSubtree[list.size()];</span>
+<span class="fc" id="L98">        int i = 0;</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">        for (String entry : list) {</span>
+<span class="fc" id="L100">            int type = getNameConstraintType(entry);</span>
+<span class="fc" id="L101">            Object data = getNameConstraintData(entry);</span>
+            GeneralName genname;
+<span class="pc bpc" id="L103" title="1 of 4 branches missed.">            switch (type) {</span>
+            case GeneralName.dNSName:
+            case GeneralName.rfc822Name:
+<span class="fc" id="L106">                genname = new GeneralName(type, (String)data);</span>
+<span class="fc" id="L107">                break;</span>
+            case GeneralName.directoryName:
+<span class="fc" id="L109">                genname = new GeneralName(new X500Name(CeSecoreNameStyle.INSTANCE, (String)data));</span>
+<span class="fc" id="L110">                break;</span>
+            case GeneralName.iPAddress:
+<span class="fc" id="L112">                genname = new GeneralName(type, new DEROctetString((byte[])data));</span>
+<span class="fc" id="L113">                break;</span>
+            default:
+<span class="nc" id="L115">                throw new UnsupportedOperationException(&quot;Encoding of name constraint type &quot;+type+&quot; is not implemented.&quot;);</span>
+            }
+<span class="fc" id="L117">            ret[i++] = new GeneralSubtree(genname);</span>
+<span class="fc" id="L118">        }</span>
+<span class="fc" id="L119">        return ret;</span>
+    }
+
+    /**
+     * @param encoded name constraint
+     * @return the GeneralName type code for an encoded Name Constraint.
+     */
+    private static int getNameConstraintType(String encoded) {
+<span class="fc" id="L127">        String typeString = encoded.split(&quot;:&quot;, 2)[0];</span>
+<span class="fc bfc" id="L128" title="All 2 branches covered.">        if (&quot;iPAddress&quot;.equals(typeString)) {</span>
+<span class="fc" id="L129">            return GeneralName.iPAddress;</span>
+        }
+<span class="fc bfc" id="L131" title="All 2 branches covered.">        if (&quot;dNSName&quot;.equals(typeString)) {</span>
+<span class="fc" id="L132">            return GeneralName.dNSName;</span>
+        }
+<span class="fc bfc" id="L134" title="All 2 branches covered.">        if (&quot;directoryName&quot;.equals(typeString)) {</span>
+<span class="fc" id="L135">            return GeneralName.directoryName;</span>
+        }
+<span class="pc bpc" id="L137" title="1 of 2 branches missed.">        if (&quot;rfc822Name&quot;.equals(typeString)) {</span>
+<span class="fc" id="L138">            return GeneralName.rfc822Name;</span>
+        }
+<span class="nc" id="L140">        throw new UnsupportedOperationException(&quot;Unsupported name constraint type &quot;+typeString);</span>
+    }
+
+    /**
+     * Returns the GeneralName data (as a byte array or String) from an encoded string.
+     * @param encoded string
+     * @return GeneralName
+     */
+    private static Object getNameConstraintData(String encoded) {
+<span class="fc" id="L149">        int type = getNameConstraintType(encoded);</span>
+<span class="fc" id="L150">        String data = encoded.split(&quot;:&quot;, 2)[1];</span>
+
+<span class="pc bpc" id="L152" title="1 of 3 branches missed.">        switch (type) {</span>
+        case GeneralName.dNSName:
+        case GeneralName.directoryName:
+        case GeneralName.rfc822Name:
+<span class="fc" id="L156">            return data;</span>
+        case GeneralName.iPAddress:
+            try {
+<span class="fc" id="L159">                return Hex.decodeHex(data.toCharArray());</span>
+<span class="nc" id="L160">            } catch (DecoderException e) {</span>
+<span class="nc" id="L161">                throw new IllegalStateException(&quot;internal name constraint data could not be decoded as hex&quot;, e);</span>
+            }
+        default:
+<span class="nc" id="L164">            throw new UnsupportedOperationException(&quot;Unsupported name constraint type &quot;+type);</span>
+        }
+    }
+
+    /**
+     * Parses a single name constraint entry in human-readable form into
+     * an encoded string for database storage etc. The intention is to make it possible
+     * to change the human readable form at a later point.
+     *
+     * This format is essentially a hex string representation of a RFC 5280 GeneralName,
+     * but only DNS Names and IP Addresses are supported so far.
+     * @param str constraint
+     * @return encoded string
+     *
+     * @throws CertificateExtensionException if the string can not be parsed.
+     */
+    public static String parseNameConstraintEntry(String str) throws CertificateExtensionException {
+<span class="fc bfc" id="L181" title="All 2 branches covered.">        if (str.matches(&quot;^([0-9]+\\.){3,3}([0-9]+)/[0-9]+$&quot;) ||</span>
+<span class="fc bfc" id="L182" title="All 2 branches covered.">            str.matches(&quot;^[0-9a-fA-F]{0,4}:[0-9a-fA-F]{0,4}:[0-9a-fA-F:]*/[0-9]+$&quot;)) {</span>
+            // IPv4 or IPv6 address
+            try {
+<span class="fc" id="L185">                String[] pieces = str.split(&quot;/&quot;, 2);</span>
+<span class="fc" id="L186">                byte[] addr = InetAddress.getByName(pieces[0]).getAddress();</span>
+<span class="fc" id="L187">                byte[] encoded = new byte[2*addr.length]; // will hold address and netmask</span>
+<span class="fc" id="L188">                System.arraycopy(addr, 0, encoded, 0, addr.length);</span>
+
+                // The second half in the encoded form is the netmask
+<span class="fc" id="L191">                int netmask = Integer.parseInt(pieces[1]);</span>
+<span class="pc bpc" id="L192" title="1 of 2 branches missed.">                if (netmask &gt; 8*addr.length) {</span>
+<span class="nc" id="L193">                    throw new CertificateExtensionException(&quot;Netmask is too large: &quot;+str);</span>
+                }
+<span class="fc bfc" id="L195" title="All 2 branches covered.">                for (int i = 0; i &lt; netmask; i++) {</span>
+<span class="fc" id="L196">                    encoded[addr.length + i/8] |= 1 &lt;&lt; (7 - i%8);</span>
+                }
+                // Clear host part from IP address
+<span class="fc bfc" id="L199" title="All 2 branches covered.">                for (int i = netmask; i &lt; 8*addr.length; i++) {</span>
+<span class="fc" id="L200">                    encoded[i/8] &amp;= ~(1 &lt;&lt; (7 - i%8));</span>
+                }
+<span class="fc" id="L202">                return &quot;iPAddress:&quot;+Hex.encodeHexString(encoded);</span>
+<span class="nc" id="L203">            } catch (UnknownHostException e) {</span>
+<span class="nc" id="L204">                throw new CertificateExtensionException(&quot;Failed to parse IP address in name constraint: &quot;+str, e);</span>
+            }
+<span class="pc bpc" id="L206" title="1 of 2 branches missed.">        } else if (str.matches(&quot;^([0-9]+\\.){3,3}([0-9]+)$&quot;)) {</span>
+            // IP address without netmask. This is not a valid DNS name, so catch it here.
+<span class="nc" id="L208">            throw new CertificateExtensionException(&quot;Name constraint entry with IP address is missing a netmask: &quot;+str+&quot;. Use /32 to match only this address.&quot;);</span>
+<span class="fc bfc" id="L209" title="All 2 branches covered.">        } else if (str.matches(&quot;^\\.?([a-zA-Z0-9_-]+\\.)*[a-zA-Z0-9_-]+$&quot;)) {</span>
+            // DNS name (it can start with a &quot;.&quot;, this means &quot;all subdomains&quot;)
+<span class="fc" id="L211">            return &quot;dNSName:&quot;+str;</span>
+<span class="fc bfc" id="L212" title="All 2 branches covered.">        } else if (str.matches(&quot;^[^=,]*@[a-zA-Z0-9_.\\[\\]:-]+$&quot;)) {</span>
+<span class="fc" id="L213">            String email = str;</span>
+            // RFC 822 Name (i.e. e-mail)
+<span class="fc bfc" id="L215" title="All 2 branches covered.">            if (str.startsWith(&quot;@&quot;)) {</span>
+                // In EJBCA, rfc822Names without a user part start with @ to distinguish them from domain names.
+                // This is not the case in the encoded form.
+<span class="fc" id="L218">                email = email.substring(1);</span>
+            }
+<span class="fc" id="L220">            return &quot;rfc822Name:&quot;+email;</span>
+<span class="pc bpc" id="L221" title="1 of 2 branches missed.">        } else if (str.contains(&quot;=&quot;)) {</span>
+            // Directory name
+<span class="fc" id="L223">            return &quot;directoryName:&quot; + new X500Name(CeSecoreNameStyle.INSTANCE, str).toString();</span>
+        } else {
+<span class="nc" id="L225">            throw new CertificateExtensionException(&quot;Cannot parse name constraint entry (only DNS Name, RFC 822 Name, Directory Name, IPv4/Netmask and IPv6/Netmask are supported): &quot;+str);</span>
+        }
+    }
+
+    /**
+     * Parses human readable name constraints, one entry per line, into a list of encoded name constraints.
+     * @param input Constraints
+     * @return encoded constraints
+     * @throws CertificateExtensionException if the string cannot be parsed
+     * @see #parseNameConstraintEntry
+     */
+    public static List&lt;String&gt; parseNameConstraintsList(String input) throws CertificateExtensionException {
+<span class="fc" id="L237">        List&lt;String&gt; encodedNames = new ArrayList&lt;&gt;();</span>
+<span class="pc bpc" id="L238" title="1 of 2 branches missed.">        if (input != null) {</span>
+<span class="fc" id="L239">            String[] pieces = input.split(&quot;\n&quot;);</span>
+<span class="fc bfc" id="L240" title="All 2 branches covered.">            for (String piece : pieces) {</span>
+<span class="fc" id="L241">                piece = piece.trim();</span>
+<span class="pc bpc" id="L242" title="1 of 2 branches missed.">                if (!piece.isEmpty()) {</span>
+<span class="fc" id="L243">                    encodedNames.add(NameConstraint.parseNameConstraintEntry(piece));</span>
+                }
+            }
+        }
+<span class="fc" id="L247">        return encodedNames;</span>
+    }
+
+    /**
+     * Formats an encoded name constraint from parseNameConstraintEntry into human-readable form.
+     * @param encoded encoded string
+     * @return human-readable
+     */
+    public static String formatNameConstraintEntry(String encoded) {
+<span class="nc bnc" id="L256" title="All 2 branches missed.">        if (encoded == null) {</span>
+<span class="nc" id="L257">            return &quot;&quot;;</span>
+        }
+
+<span class="nc" id="L260">        int type = getNameConstraintType(encoded);</span>
+<span class="nc" id="L261">        Object data = getNameConstraintData(encoded);</span>
+
+<span class="nc bnc" id="L263" title="All 4 branches missed.">        switch (type) {</span>
+        case GeneralName.dNSName:
+        case GeneralName.directoryName:
+<span class="nc" id="L266">            return (String)data; // not changed during encoding</span>
+        case GeneralName.iPAddress:
+<span class="nc" id="L268">            byte[] bytes = (byte[])data;</span>
+<span class="nc" id="L269">            byte[] ip = new byte[bytes.length/2];</span>
+<span class="nc" id="L270">            byte[] netmaskBytes = new byte[bytes.length/2];</span>
+<span class="nc" id="L271">            System.arraycopy(bytes, 0, ip, 0, ip.length);</span>
+<span class="nc" id="L272">            System.arraycopy(bytes, ip.length, netmaskBytes, 0, netmaskBytes.length);</span>
+
+<span class="nc" id="L274">            int netmask = 0;</span>
+<span class="nc bnc" id="L275" title="All 2 branches missed.">            for (int i = 0; i &lt; 8*netmaskBytes.length; i++) {</span>
+<span class="nc bnc" id="L276" title="All 2 branches missed.">                final boolean one = (netmaskBytes[i/8] &gt;&gt; (7 - i%8) &amp; 1) == 1;</span>
+<span class="nc bnc" id="L277" title="All 4 branches missed.">                if (one &amp;&amp; netmask == i) {</span>
+<span class="nc" id="L278">                    netmask++; // leading ones</span>
+<span class="nc bnc" id="L279" title="All 2 branches missed.">                } else if (one) {</span>
+                    // trailings ones = error!
+<span class="nc" id="L281">                    throw new IllegalArgumentException(&quot;Unsupported netmask with mixed ones/zeros&quot;);</span>
+                }
+            }
+
+            try {
+<span class="nc" id="L286">                return InetAddress.getByAddress(ip).getHostAddress() + &quot;/&quot; + netmask;</span>
+<span class="nc" id="L287">            } catch (UnknownHostException e) {</span>
+<span class="nc" id="L288">                throw new IllegalArgumentException(e);</span>
+            }
+        case GeneralName.rfc822Name:
+            // Prepend @ is it's only the domain part to distinguish from DNS names
+<span class="nc" id="L292">            String str = (String)data;</span>
+<span class="nc bnc" id="L293" title="All 2 branches missed.">            return (str.contains(&quot;@&quot;) ? str : &quot;@&quot;+str);</span>
+        default:
+<span class="nc" id="L295">            throw new UnsupportedOperationException(&quot;Unsupported name constraint type &quot;+type);</span>
+        }
+    }
+
+    /**
+     * Formats an encoded list of name constraints into a human-readable list, with one entry per line.
+     * @param encodedList List of constraints
+     * @return a newline-separated string of encoded name constraints
+     */
+    public static String formatNameConstraintsList(final List&lt;String&gt; encodedList) {
+<span class="nc" id="L305">        final StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L306" title="All 2 branches missed.">        if (encodedList != null) {</span>
+<span class="nc" id="L307">            boolean first = true;</span>
+<span class="nc bnc" id="L308" title="All 2 branches missed.">            for (String encodedName : encodedList) {</span>
+<span class="nc bnc" id="L309" title="All 2 branches missed.">                if (!first) {</span>
+<span class="nc" id="L310">                    sb.append('\n');</span>
+                }
+<span class="nc" id="L312">                first = false;</span>
+<span class="nc" id="L313">                sb.append(formatNameConstraintEntry(encodedName)); // notice the call to formatNameConstraintEntry, so this is different from StringUtils.join</span>
+<span class="nc" id="L314">            }</span>
+        }
+<span class="nc" id="L316">        return sb.toString();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CaCertificateCache.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-common</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.ca.internal</a> &gt; <span class="el_source">CaCertificateCache.java</span></div><h1>CaCertificateCache.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.cesecore.certificates.ca.internal;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.certificate.HashID;
+import org.cesecore.config.OcspConfiguration;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+
+
+/**
+ * A cache for storing CA certificates
+ *
+ * @version $Id: CaCertificateCache.java 27419 2017-12-05 13:18:18Z anatom $
+ *
+ */
+<span class="fc" id="L41">public enum CaCertificateCache  {</span>
+<span class="fc" id="L42">    INSTANCE;</span>
+    
+<span class="fc" id="L44">	private final Logger log = Logger.getLogger(CaCertificateCache.class);</span>
+
+    /** Mapping from subjectDN to key in the certs HashMap. */
+<span class="fc" id="L47">    private Map&lt;Integer, X509Certificate&gt; certsFromSubjectDN = new HashMap&lt;Integer, X509Certificate&gt;();</span>
+    /** Mapping from issuerDN to key in the certs HashMap. */
+<span class="fc" id="L49">    private Map&lt;Integer, Set&lt;X509Certificate&gt;&gt; certsFromIssuerDN = new HashMap&lt;Integer, Set&lt;X509Certificate&gt;&gt;();</span>
+    /** Mapping from subject key identifier to key in the certs HashMap. */
+<span class="fc" id="L51">    private Map&lt;Integer, X509Certificate&gt; certsFromSubjectKeyIdentifier = new HashMap&lt;Integer, X509Certificate&gt;();</span>
+    /** All root certificates. */
+<span class="fc" id="L53">    private Set&lt;X509Certificate&gt; rootCertificates = new HashSet&lt;X509Certificate&gt;();</span>
+
+	/** Cache time counter, set and used by loadCertificates */
+<span class="fc" id="L56">	private long certValidTo = 0;</span>
+
+    public X509Certificate findLatestBySubjectDN(final HashID id) {
+<span class="fc" id="L59">        final X509Certificate ret = certsFromSubjectDN.get(id.getKey());</span>
+<span class="pc bpc" id="L60" title="1 of 4 branches missed.">        if (ret==null &amp;&amp; log.isDebugEnabled()) {</span>
+<span class="nc" id="L61">            log.debug(&quot;Certificate not found from SubjectDN HashId in certsFromSubjectDN map. HashID=&quot; + id.getB64());</span>
+        }
+<span class="fc" id="L63">        return ret;</span>
+	}
+
+	public X509Certificate[] findLatestByIssuerDN(final HashID id) {	    
+<span class="nc" id="L67">        final Set&lt;X509Certificate&gt; sCert = certsFromIssuerDN.get(id.getKey());</span>
+<span class="nc bnc" id="L68" title="All 4 branches missed.">        if (sCert == null || sCert.isEmpty()) {</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L70">                log.debug(&quot;Certificate not found from IssuerDN HashId in certsFromIssuerDN map. HashID=&quot; + id.getB64());</span>
+            }
+<span class="nc" id="L72">            return null;</span>
+        }
+<span class="nc" id="L74">        return sCert.toArray(new X509Certificate[sCert.size()]);</span>
+
+    }
+
+    public X509Certificate[] getRootCertificates() {
+<span class="nc" id="L79">        return rootCertificates.toArray(new X509Certificate[0]);</span>
+    }
+
+    public X509Certificate findBySubjectKeyIdentifier(final HashID id) {
+<span class="nc" id="L83">        final X509Certificate ret = certsFromSubjectKeyIdentifier.get(id.getKey());</span>
+<span class="nc bnc" id="L84" title="All 4 branches missed.">        if (ret==null &amp;&amp; log.isDebugEnabled()) {</span>
+<span class="nc" id="L85">            log.debug(&quot;Certificate not found from SubjectKeyIdentifier HashId in certsFromSubjectKeyIdentifier map. HashID=&quot; + id.getB64());</span>
+        }
+<span class="nc" id="L87">        return ret;</span>
+    }
+
+    public boolean isCacheExpired() {
+<span class="nc bnc" id="L91" title="All 2 branches missed.">        return certValidTo &lt; System.currentTimeMillis();</span>
+    }
+
+	/** Loads CA certificates but holds a cache so it's reloaded only every five minutes (configurable).
+	 *
+	 * We keep this method as synchronized, it should not take more than a few microseconds to complete if the cache does not have
+	 * to be reloaded. If the cache must be reloaded, we must wait for it anyway to not have ConcurrentModificationException.
+	 * We also only want one single thread to do the rebuilding.
+	 * @param certs Certificates
+	 * 
+	 */
+    public synchronized void loadCertificates(final Collection&lt;Certificate&gt; certs) {
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">            log.debug(&quot;Loaded &quot; + (certs == null ? &quot;0&quot; : Integer.toString(certs.size())) + &quot; ca certificates&quot;);</span>
+        }
+
+<span class="fc" id="L107">        Map&lt;Integer, X509Certificate&gt; newCertsFromSubjectDN = new HashMap&lt;Integer, X509Certificate&gt;();</span>
+<span class="fc" id="L108">        Map&lt;Integer, Set&lt;X509Certificate&gt;&gt; newCertsFromIssuerDN = new HashMap&lt;Integer, Set&lt;X509Certificate&gt;&gt;();</span>
+<span class="fc" id="L109">        Map&lt;Integer, X509Certificate&gt; newCertsFromSubjectKeyIdentifier = new HashMap&lt;Integer, X509Certificate&gt;();</span>
+<span class="fc" id="L110">        Set&lt;X509Certificate&gt; newRootCertificates = new HashSet&lt;X509Certificate&gt;();</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">        for (final Certificate tmp : certs) {</span>
+<span class="fc bfc" id="L112" title="All 2 branches covered.">            if (!(tmp instanceof X509Certificate)) {</span>
+<span class="fc" id="L113">                log.debug(&quot;Not adding CA certificate of type: &quot; + tmp.getType());</span>
+<span class="fc" id="L114">                continue;</span>
+            }
+<span class="fc" id="L116">            final X509Certificate cert = (X509Certificate) tmp;</span>
+            try { // test if certificate is OK. we have experienced that BC could decode a certificate that later on could not be used.
+<span class="fc" id="L118">                final Integer key = HashID.getFromKeyID(cert).getKey();</span>
+<span class="fc" id="L119">                final X509Certificate pastCert = newCertsFromSubjectKeyIdentifier.get(key);</span>
+                // Add the entry if it's the first, or if it is more recent than the one existing (in that case replace it)
+<span class="pc bpc" id="L121" title="5 of 6 branches missed.">                if ( pastCert == null || (pastCert != null &amp;&amp; CertTools.getNotBefore(cert).after(CertTools.getNotBefore(pastCert))) ) {</span>
+<span class="fc" id="L122">                    newCertsFromSubjectKeyIdentifier.put(key, cert);</span>
+                }
+<span class="nc" id="L124">            } catch (Throwable t) { // NOPMD: catch all to not break with an error here.</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L126">                    final StringWriter sw = new StringWriter();</span>
+<span class="nc" id="L127">                    final PrintWriter pw = new PrintWriter(sw);</span>
+<span class="nc" id="L128">                    pw.println(&quot;Erroneous certificate fetched from database.&quot;);</span>
+<span class="nc" id="L129">                    pw.println(&quot;The public key can not be extracted from the certificate.&quot;);</span>
+<span class="nc" id="L130">                    pw.println(&quot;Here follows a base64 encoding of the certificate:&quot;);</span>
+                    try {
+<span class="nc" id="L132">                        final String b64encoded = new String(Base64.encode(cert.getEncoded()));</span>
+<span class="nc" id="L133">                        pw.println(CertTools.BEGIN_CERTIFICATE);</span>
+<span class="nc" id="L134">                        pw.println(b64encoded);</span>
+<span class="nc" id="L135">                        pw.println(CertTools.END_CERTIFICATE);</span>
+<span class="nc" id="L136">                    } catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L137">                        pw.println(&quot;Not possible to encode certificate.&quot;);</span>
+<span class="nc" id="L138">                    }</span>
+<span class="nc" id="L139">                    pw.flush();</span>
+<span class="nc" id="L140">                    log.debug(sw.toString());</span>
+                }
+<span class="nc" id="L142">                continue;</span>
+<span class="fc" id="L143">            }</span>
+<span class="fc" id="L144">            final Integer subjectDNKey = HashID.getFromSubjectDN(cert).getKey();</span>
+            // Check if we already have a certificate from this issuer in the HashMap.
+            // We only want to store the latest cert from each issuer in this map
+<span class="fc" id="L147">            final X509Certificate pastCert = newCertsFromSubjectDN.get(subjectDNKey);</span>
+            final boolean isLatest;
+<span class="fc bfc" id="L149" title="All 2 branches covered.">            if (pastCert != null) {</span>
+<span class="pc bpc" id="L150" title="1 of 2 branches missed.">                if (CertTools.getNotBefore(cert).after(CertTools.getNotBefore(pastCert))) {</span>
+<span class="fc" id="L151">                    isLatest = true;</span>
+                } else {
+<span class="nc" id="L153">                    isLatest = false;</span>
+                }
+            } else {
+<span class="fc" id="L156">                isLatest = true;</span>
+            }
+<span class="pc bpc" id="L158" title="1 of 2 branches missed.">            if (isLatest) {</span>
+<span class="fc" id="L159">                newCertsFromSubjectDN.put(subjectDNKey, cert);</span>
+<span class="fc" id="L160">                final Integer issuerDNKey = HashID.getFromIssuerDN(cert).getKey();</span>
+<span class="fc bfc" id="L161" title="All 2 branches covered.">                if (!issuerDNKey.equals(subjectDNKey)) { // don't add roots to themselves</span>
+<span class="fc" id="L162">                    Set&lt;X509Certificate&gt; sIssuer = newCertsFromIssuerDN.get(issuerDNKey);</span>
+<span class="pc bpc" id="L163" title="1 of 2 branches missed.">                    if (sIssuer == null) {</span>
+<span class="fc" id="L164">                        sIssuer = new HashSet&lt;X509Certificate&gt;();</span>
+<span class="fc" id="L165">                        newCertsFromIssuerDN.put(issuerDNKey, sIssuer);</span>
+                    }
+<span class="fc" id="L167">                    sIssuer.add(cert);</span>
+<span class="fc" id="L168">                    sIssuer.remove(pastCert);</span>
+<span class="fc" id="L169">                } else {</span>
+<span class="fc" id="L170">                    newRootCertificates.add(cert);</span>
+<span class="fc" id="L171">                    newRootCertificates.remove(pastCert);</span>
+                }
+            }
+<span class="fc" id="L174">        }</span>
+        // Log what we have stored in the cache
+<span class="pc bpc" id="L176" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L177">            final StringWriter sw = new StringWriter();</span>
+<span class="nc" id="L178">            final PrintWriter pw = new PrintWriter(sw, true);</span>
+<span class="nc" id="L179">            pw.println(&quot;Found the following CA certificates :&quot;);</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">            for (Entry&lt;Integer, X509Certificate&gt; key : newCertsFromSubjectKeyIdentifier.entrySet()) {</span>
+<span class="nc" id="L181">                final Certificate cert = key.getValue();</span>
+<span class="nc" id="L182">                pw.print(CertTools.getSubjectDN(cert));</span>
+<span class="nc" id="L183">                pw.print(',');</span>
+<span class="nc" id="L184">                pw.println(CertTools.getSerialNumberAsString(cert));</span>
+<span class="nc" id="L185">            }</span>
+<span class="nc" id="L186">            log.debug(sw);</span>
+        }
+        //Replace the old caches
+<span class="fc" id="L189">        certsFromSubjectKeyIdentifier = newCertsFromSubjectKeyIdentifier;</span>
+<span class="fc" id="L190">        certsFromIssuerDN = newCertsFromIssuerDN;</span>
+<span class="fc" id="L191">        certsFromSubjectDN = newCertsFromSubjectDN;</span>
+<span class="fc" id="L192">        rootCertificates = newRootCertificates;</span>
+<span class="fc" id="L193">        certValidTo = System.currentTimeMillis() + OcspConfiguration.getSigningCertsValidTimeInMilliseconds();</span>
+<span class="fc" id="L194">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

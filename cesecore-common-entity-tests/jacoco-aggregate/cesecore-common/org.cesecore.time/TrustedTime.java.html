@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>TrustedTime.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-common-entity-tests</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.time</a> &gt; <span class="el_source">TrustedTime.java</span></div><h1>TrustedTime.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.time;
+
+import java.io.Serializable;
+import java.util.Date;
+
+/**
+ * This class encapsulates a Date object that represents a trusted time. It also
+ * provides information related to thhe trusted time source: accuracy and
+ * stratum
+ * 
+ * @version $Id: TrustedTime.java 17625 2013-09-20 07:12:06Z netmackan $
+ */
+public class TrustedTime implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L28">    private static final Integer delta = 1;</span>
+
+    private String source;
+    private Double accuracy;
+    private Integer stratum;
+    private Long previousUpdate; //seconds
+    private Long nextUpdate; //seconds
+<span class="nc" id="L35">    private boolean sync = false;</span>
+
+<span class="nc" id="L37">    public TrustedTime() { }</span>
+
+<span class="nc" id="L39">    public Integer getStratum() { return stratum; }</span>
+<span class="nc" id="L40">    public void setStratum(final Integer stratum) { this.stratum = stratum; }</span>
+
+<span class="nc" id="L42">    public Long getPreviousUpdate() { return this.previousUpdate; }</span>
+<span class="nc" id="L43">    public Long getNextUpdate() { return this.nextUpdate; }</span>
+
+    public void setNextUpdate(Integer when, Integer poll) {
+<span class="nc" id="L46">        Long nextUpdate = Long.valueOf(((poll - when) + delta)*1000);</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">        if(nextUpdate.longValue() &lt;= 0) { </span>
+<span class="nc" id="L48">            nextUpdate = Long.valueOf(1); </span>
+        }
+
+<span class="nc bnc" id="L51" title="All 2 branches missed.">        if(this.nextUpdate != null) {</span>
+<span class="nc" id="L52">            this.previousUpdate = this.nextUpdate;</span>
+        } 
+
+<span class="nc" id="L55">        this.nextUpdate = nextUpdate;</span>
+<span class="nc" id="L56">    }</span>
+
+<span class="nc" id="L58">    public boolean isSync() { return this.sync; }</span>
+<span class="nc" id="L59">    public void setSync(boolean sync) { this.sync = sync; }</span>
+
+<span class="nc" id="L61">    public Date getTime() { return new Date(); }</span>
+
+<span class="nc" id="L63">    public String getSource() { return this.source; }</span>
+<span class="nc" id="L64">    public void setSource(String source) { this.source = source; }</span>
+
+
+<span class="nc" id="L67">    public Double getAccuracy() { return accuracy; }</span>
+<span class="nc" id="L68">    public void setAccuracy(final Double accuracy) { this.accuracy = accuracy; }</span>
+
+<span class="nc" id="L70">    public TrustedTime(final Double accuracy) {</span>
+<span class="nc" id="L71">        this.accuracy = accuracy;</span>
+<span class="nc" id="L72">    }</span>
+
+    public String toString() {
+<span class="nc" id="L75">        final StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L76">        sb.append(this.accuracy).append(&quot;;&quot;).append(this.stratum).append(&quot;;&quot;).</span>
+<span class="nc" id="L77">            append(this.previousUpdate).append(&quot;;&quot;).append(this.nextUpdate).</span>
+<span class="nc" id="L78">            append(&quot;;&quot;).append(this.sync).append(this.source);</span>
+<span class="nc" id="L79">        return sb.toString();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

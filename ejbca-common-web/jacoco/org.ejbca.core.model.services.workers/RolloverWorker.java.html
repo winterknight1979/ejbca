@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RolloverWorker.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.services.workers</a> &gt; <span class="el_source">RolloverWorker.java</span></div><h1>RolloverWorker.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.services.workers;
+
+import java.security.cert.Certificate;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CA;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.util.CertTools;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionLocal;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.services.BaseWorker;
+import org.ejbca.core.model.services.ServiceExecutionFailedException;
+
+/**
+ * Replaces CA certificate chains with a pending new rollover certificate chain once the new certificate chain becomes valid.
+ *
+ * version: $Id: RolloverWorker.java 27740 2018-01-05 07:24:53Z mikekushner $
+ */
+<span class="nc" id="L38">public class RolloverWorker extends BaseWorker {</span>
+
+<span class="nc" id="L40">	private static final Logger log = Logger.getLogger(RolloverWorker.class);</span>
+    /** Internal localization of logs and errors */
+
+    @Override
+    public void work(Map&lt;Class&lt;?&gt;, Object&gt; ejbs) throws ServiceExecutionFailedException {
+<span class="nc" id="L45">        log.trace(&quot;&gt;Worker started&quot;);</span>
+<span class="nc" id="L46">        final CaSessionLocal caSession = ((CaSessionLocal) ejbs.get(CaSessionLocal.class));</span>
+        // Find CAs that have a roll over certificate chain that has became valid.
+<span class="nc" id="L48">        final Date now = new Date(new Date().getTime() - 10 * 60 * 1000); // delay by 10 minutes to account for clock scew on the clients. TODO make configurable?</span>
+
+        // Roll over these CAs using the CAAdminSessionBean
+<span class="nc" id="L51">        Collection&lt;Integer&gt; caids = getCAIdsToCheck(false);</span>
+<span class="nc bnc" id="L52" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L53">            log.debug(&quot;Checking &quot; + caids.size() + &quot; CAs for rollover&quot;);</span>
+        }
+<span class="nc bnc" id="L55" title="All 2 branches missed.">        if (caids.contains(SecConst.ALLCAS)) {</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">            for (CAInfo caInfo : caSession.getAuthorizedAndNonExternalCaInfos(getAdmin())) {</span>
+<span class="nc" id="L57">                attemptToPerformRollover(ejbs, caInfo.getCAId(), now);</span>
+<span class="nc" id="L58">            }</span>
+        } else {
+<span class="nc bnc" id="L60" title="All 2 branches missed.">            for (int caid : caids) {</span>
+<span class="nc" id="L61">                attemptToPerformRollover(ejbs, caid, now);</span>
+<span class="nc" id="L62">            }</span>
+        }
+<span class="nc" id="L64">        log.trace(&quot;&lt;Worker ended&quot;);</span>
+<span class="nc" id="L65">    }</span>
+	
+	private void attemptToPerformRollover(Map&lt;Class&lt;?&gt;, Object&gt; ejbs, int caid, Date now) {
+<span class="nc" id="L68">        final CaSessionLocal caSession = ((CaSessionLocal)ejbs.get(CaSessionLocal.class));</span>
+<span class="nc" id="L69">        final CAAdminSessionLocal caAdminSession = ((CAAdminSessionLocal)ejbs.get(CAAdminSessionLocal.class));</span>
+	    try {
+<span class="nc" id="L71">            final CA ca = caSession.getCA(getAdmin(), caid);</span>
+<span class="nc" id="L72">            final List&lt;Certificate&gt; rolloverChain = ca.getRolloverCertificateChain();</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">            if (rolloverChain != null) {</span>
+<span class="nc" id="L74">                final Certificate cert = rolloverChain.get(0);</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">                if (now.after(CertTools.getNotBefore(cert))) {</span>
+                    // Replace certificate chain with the roll over chain
+<span class="nc bnc" id="L77" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L78">                        log.debug(&quot;New certificate of CA &quot;+caid+&quot; is now valid, switching certificate.&quot;);</span>
+                    }
+<span class="nc" id="L80">                    caAdminSession.rolloverCA(getAdmin(), ca.getCAId());</span>
+                }
+            }
+<span class="nc" id="L83">        }  catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L84">            log.error(&quot;Error checking CA for rollover: &quot;, e);</span>
+<span class="nc" id="L85">        } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L86">            log.error(&quot;Error rolling over CA: &quot;, e);</span>
+<span class="nc" id="L87">        }</span>
+<span class="nc" id="L88">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

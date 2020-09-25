@@ -1,0 +1,70 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>AcmeProblem xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../../../apidocs/org/ejbca/core/protocol/acme/response/AcmeProblem.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <em class="jxr_javadoccomment">/*************************************************************************</em>
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <em class="jxr_javadoccomment"> *  EJBCA: The OpenSource Certificate Authority                          *</em>
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <em class="jxr_javadoccomment"> *  This software is free software; you can redistribute it and/or       *</em>
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <em class="jxr_javadoccomment"> *  modify it under the terms of the GNU Lesser General Public           *</em>
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <em class="jxr_javadoccomment"> *  License as published by the Free Software Foundation; either         *</em>
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <em class="jxr_javadoccomment"> *  version 2.1 of the License, or any later version.                    *</em>
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_javadoccomment"> *  See terms of license at gnu.org.                                     *</em>
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <em class="jxr_javadoccomment"> *************************************************************************/</em>
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">package</strong> org.ejbca.core.protocol.acme.response;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <em class="jxr_javadoccomment"> * @version $Id: AcmeProblem.java 29845 2018-09-08 21:49:10Z aminkh $</em>
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">public</strong> enum <a name="AcmeProblem" href="../../../../../../org/ejbca/core/protocol/acme/response/AcmeProblem.html#AcmeProblem">AcmeProblem</a> {
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>      PROBLEM_BAD_CSR(<span class="jxr_string">"badCSR"</span>, <span class="jxr_string">"The CSR is unacceptable (e.g., due to a short key)"</span>),
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>      PROBLEM_BAD_NONCE(<span class="jxr_string">"badNonce"</span>, <span class="jxr_string">"The client sent an unacceptable anti-replay nonce"</span>),
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>      PROBLEM_BAD_SIGNATURE_ALGORITHM(<span class="jxr_string">"badSignatureAlgorithm"</span>,
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>                      <span class="jxr_string">"The JWS was signed with an algorithm the server does not support"</span>),
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>      PROBLEM_INVALID_CONTACT(<span class="jxr_string">"invalidContact"</span>, <span class="jxr_string">"The contact URI for an account was invalid"</span>),
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>      PROBLEM_MALFORMED(<span class="jxr_string">"malformed"</span>, <span class="jxr_string">"The request message was malformed"</span>),
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>      PROBLEM_RATE_LIMITED(<span class="jxr_string">"rateLimited"</span>, <span class="jxr_string">"The request exceeds a rate limit"</span>),
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>      PROBLEM_REJECTED_INDENTIFIER(<span class="jxr_string">"rejectedIdentifier"</span>, <span class="jxr_string">"The server will not issue certificate for the identifier"</span>),
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>      PROBLEM_SERVER_INTERNAL(<span class="jxr_string">"serverInternal"</span>, <span class="jxr_string">"The server experienced an internal error"</span>),
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>      PROBLEM_UNAUTHORIZED(<span class="jxr_string">"unauthorized"</span>, <span class="jxr_string">"The client lacks sufficient authorization"</span>),
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>      PROBLEM_UNSUPPORTED_INDENTIFIER(<span class="jxr_string">"unsupportedIdentifier"</span>, <span class="jxr_string">"Identifier is not supported, but may be in future"</span>),
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>      PROBLEM_USER_ACTION_REQUIRED(<span class="jxr_string">"userActionRequired"</span>, <span class="jxr_string">"Visit the \&quot;instance\&quot; URL and take actions specified there"</span>),
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>      PROBLEM_BAD_REVOCATION_REASON(<span class="jxr_string">"badRevocationReason"</span>, <span class="jxr_string">"The revocation reason provided is not allowed by the server"</span>),
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>      PROBLEM_CAA(<span class="jxr_string">"caa"</span>, <span class="jxr_string">"CAA records forbid the CA from issuing"</span>),
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>      PROBLEM_DNS(<span class="jxr_string">"dns"</span>, <span class="jxr_string">"There was a problem with a DNS query"</span>),
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>      PROBLEM_CONNECTION(<span class="jxr_string">"connection"</span>, <span class="jxr_string">"The server could not connect to validation target"</span>),
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>      PROBLEM_TLS(<span class="jxr_string">"tls"</span>, <span class="jxr_string">"The server received a TLS error during validation"</span>),
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>      PROBLEM_INCORRECT_RESPONSE(<span class="jxr_string">"incorrectResponse"</span>, <span class="jxr_string">"Response received didn't match the challenge's requirements"</span>),
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>      PROBLEM_ACCOUNT_DOES_NOT_EXIST(<span class="jxr_string">"accountDoesNotExist"</span>, <span class="jxr_string">"The request specified an account that does not exist"</span>);
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>      
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>      
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> String type;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> String detail;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      <strong class="jxr_keyword">private</strong> <a name="AcmeProblem" href="../../../../../../org/ejbca/core/protocol/acme/response/AcmeProblem.html#AcmeProblem">AcmeProblem</a>(<strong class="jxr_keyword">final</strong> String subType, <strong class="jxr_keyword">final</strong> String description) {
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>          <strong class="jxr_keyword">this</strong>.type = <span class="jxr_string">"urn:ietf:params:acme:error:"</span> + subType;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>          <strong class="jxr_keyword">this</strong>.detail = description;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>      }
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      <strong class="jxr_keyword">public</strong> String getType() {
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>          <strong class="jxr_keyword">return</strong> type;
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>      }
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      <strong class="jxr_keyword">public</strong> String getDetail() {
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>          <strong class="jxr_keyword">return</strong> detail;
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>      }
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2020. All rights reserved.</div>
+</body>
+</html>

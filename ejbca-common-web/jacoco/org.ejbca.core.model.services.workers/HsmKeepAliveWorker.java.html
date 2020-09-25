@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HsmKeepAliveWorker.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.services.workers</a> &gt; <span class="el_source">HsmKeepAliveWorker.java</span></div><h1>HsmKeepAliveWorker.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.services.workers;
+
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.audit.log.InternalSecurityEventsLoggerSessionLocal;
+import org.cesecore.keys.token.CryptoToken;
+import org.cesecore.keys.token.CryptoTokenInfo;
+import org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.ejbca.core.model.services.BaseWorker;
+import org.ejbca.core.model.services.ServiceExecutionFailedException;
+
+/**
+ * Worker that keeps HSM sessions active.
+ * 
+ * @version $Id: HsmKeepAliveWorker.java 19901 2014-09-30 14:29:38Z anatom $
+ *
+ */
+<span class="nc" id="L36">public class HsmKeepAliveWorker extends BaseWorker {</span>
+
+<span class="nc" id="L38">    private static final Logger log = Logger.getLogger(HsmKeepAliveWorker.class);</span>
+
+    @Override
+    public void work(Map&lt;Class&lt;?&gt;, Object&gt; ejbs) throws ServiceExecutionFailedException {
+        // Health checking will be done in three steps: 
+<span class="nc bnc" id="L43" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L44">            log.debug(&quot;Performing HSM Keepalive operation.&quot;);</span>
+        }
+        // 1. If we use Audit log integrity protection, make a test integrity protection calculation
+<span class="nc" id="L47">        InternalSecurityEventsLoggerSessionLocal logSession = (InternalSecurityEventsLoggerSessionLocal)ejbs.get(InternalSecurityEventsLoggerSessionLocal.class);</span>
+<span class="nc" id="L48">        logSession.auditLogCryptoTest(this.getClass().getSimpleName());</span>
+
+        // 2. Call testKeyPair on all active crypto tokens that has an alias named testKey
+<span class="nc" id="L51">        CryptoTokenManagementSessionLocal tokenSession = (CryptoTokenManagementSessionLocal)ejbs.get(CryptoTokenManagementSessionLocal.class);</span>
+<span class="nc" id="L52">        List&lt;CryptoTokenInfo&gt; infos = tokenSession.getCryptoTokenInfos(admin);</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L54">            log.debug(&quot;Performing keepalive on all active crypto tokens (&quot;+infos.size()+&quot;), but skipping soft tokens.&quot;);</span>
+        }
+<span class="nc bnc" id="L56" title="All 2 branches missed.">        for (CryptoTokenInfo info : infos) {</span>
+            // Only test active, PKCS11, crypto tokens. o need to do keepalive on soft tokens, they will not time out
+<span class="nc bnc" id="L58" title="All 4 branches missed.">            if (info.isActive() &amp;&amp; StringUtils.isNotEmpty(info.getP11Library())) {</span>
+<span class="nc" id="L59">                CryptoToken token = tokenSession.getCryptoToken(info.getCryptoTokenId());</span>
+                try {
+<span class="nc" id="L61">                    List&lt;String&gt; aliases = token.getAliases();</span>
+<span class="nc" id="L62">                    boolean tested = false;</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">                    for(final String alias : aliases) {</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">                        if (&quot;testKey&quot;.equals(alias)) {</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">                            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L66">                                log.debug(&quot;Keepalive testing crypto token '&quot;+info.getName()+&quot;' with id &quot;+info.getCryptoTokenId());</span>
+                            }
+<span class="nc" id="L68">                            token.testKeyPair(&quot;testKey&quot;);</span>
+<span class="nc" id="L69">                            tested = true;</span>
+                        }
+<span class="nc" id="L71">                    }</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">                    if (!tested) {</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L74">                            log.debug(&quot;No testKey on crypto token '&quot;+info.getName()+&quot;' with id &quot;+info.getCryptoTokenId());</span>
+                        }                        
+                    }
+<span class="nc" id="L77">                } catch (InvalidKeyException e) {</span>
+<span class="nc" id="L78">                    log.info(&quot;Error testing crypto token that suppposedly was active: &quot;, e);</span>
+<span class="nc" id="L79">                } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L80">                    log.info(&quot;Error testing crypto token that suppposedly was active: &quot;, e);</span>
+<span class="nc" id="L81">                } catch (KeyStoreException e) {</span>
+<span class="nc" id="L82">                    log.info(&quot;Error testing crypto token that suppposedly was active: &quot;, e);</span>
+<span class="nc" id="L83">                }</span>
+<span class="nc" id="L84">            } else {</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L86">                    log.debug(&quot;Not testing inactive, or soft, crypto token '&quot;+info.getName()+&quot;' with id &quot;+info.getCryptoTokenId());</span>
+                }
+            }
+<span class="nc" id="L89">        }</span>
+        
+<span class="nc" id="L91">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

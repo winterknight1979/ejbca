@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AuditRecordData.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-common</a> &gt; <a href="../index.html" class="el_bundle">cesecore-entity</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.audit.impl.integrityprotected</a> &gt; <span class="el_source">AuditRecordData.java</span></div><h1>AuditRecordData.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.audit.impl.integrityprotected;
+
+import java.io.Serializable;
+import java.util.Map;
+
+import javax.persistence.Entity;
+import javax.persistence.PostLoad;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.apache.commons.lang.StringUtils;
+import org.cesecore.audit.AuditLogEntry;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.enums.EventType;
+import org.cesecore.audit.enums.EventTypeHolder;
+import org.cesecore.audit.enums.ModuleType;
+import org.cesecore.audit.enums.ModuleTypeHolder;
+import org.cesecore.audit.enums.ServiceType;
+import org.cesecore.audit.enums.ServiceTypeHolder;
+import org.cesecore.dbprotection.ProtectedData;
+import org.cesecore.dbprotection.ProtectionStringBuilder;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.GUIDGenerator;
+import org.cesecore.util.XmlSerializer;
+
+/**
+ * This class represents an audit log record.
+ * 
+ * The following index is recommended as a minimum:
+ * create unique index auditrecorddata_idx1 on AuditRecordData (nodeId,timeStamp,sequenceNumber);
+ * 
+ * @version $Id: AuditRecordData.java 28560 2018-03-27 12:39:10Z jekaterina_b_helmes $
+ */
+@Entity
+@Table(name=&quot;AuditRecordData&quot;)
+public class AuditRecordData extends ProtectedData implements Serializable, AuditLogEntry {
+
+    private static final long serialVersionUID = 3998646190932834045L;
+   
+    private String pk;
+    private String nodeId;
+    private Long sequenceNumber;
+    private Long timeStamp;
+    private String eventType;
+    private String eventStatus;
+    private String authToken;
+    private String service;
+    private String module;
+    private String customId;
+    private String searchDetail1;
+    private String searchDetail2;
+    private String additionalDetails;
+<span class="nc" id="L67">    private int rowVersion = 0;</span>
+    private String rowProtection;
+
+<span class="nc" id="L70">    public AuditRecordData() {}</span>
+    
+    public AuditRecordData(final String nodeId, final Long sequenceNumber, final Long timeStamp, final EventType eventType,
+    		final EventStatus eventStatus, final String authToken, final ServiceType service, final ModuleType module, final String customId,
+<span class="nc" id="L74">    		final String searchDetail1, final String searchDetail2, final Map&lt;String, Object&gt; additionalDetails) {</span>
+<span class="nc" id="L75">    	this.pk = GUIDGenerator.generateGUID(this);</span>
+<span class="nc" id="L76">    	this.nodeId = nodeId;</span>
+<span class="nc" id="L77">    	this.sequenceNumber = sequenceNumber;</span>
+<span class="nc" id="L78">    	this.timeStamp = timeStamp;</span>
+<span class="nc" id="L79">    	this.eventType = eventType.toString();</span>
+<span class="nc" id="L80">    	this.eventStatus = eventStatus.toString();</span>
+<span class="nc" id="L81">    	this.authToken = authToken;</span>
+<span class="nc" id="L82">    	this.service = service.toString();</span>
+<span class="nc" id="L83">    	this.module = module.toString();</span>
+<span class="nc" id="L84">    	this.customId = customId;</span>
+<span class="nc" id="L85">    	this.searchDetail1 = searchDetail1;</span>
+<span class="nc" id="L86">    	this.searchDetail2 = searchDetail2;</span>
+<span class="nc" id="L87">    	setMapAdditionalDetails(additionalDetails);</span>
+<span class="nc" id="L88">    }</span>
+
+    /** @return the primary key */
+    public String getPk() {
+<span class="nc" id="L92">    	return pk;</span>
+    }
+
+    /** @param pk is the primary key */
+    public void setPk(final String pk) {
+<span class="nc" id="L97">    	this.pk = pk;</span>
+<span class="nc" id="L98">    }</span>
+
+	@Override
+    public String getNodeId() {
+<span class="nc" id="L102">        return nodeId;</span>
+    }
+
+    /** @param nodeId The node identifier that this log record comes from. */
+    public void setNodeId(final String nodeId) {
+<span class="nc" id="L107">        this.nodeId = nodeId;</span>
+<span class="nc" id="L108">    }</span>
+
+	@Override
+    public Long getSequenceNumber() {
+<span class="nc" id="L112">        return sequenceNumber;</span>
+    }
+
+    /** @param sequenceNumber This log sequence number MUST be unique. */
+    public void setSequenceNumber(final Long sequenceNumber) {
+<span class="nc" id="L117">        this.sequenceNumber = sequenceNumber;</span>
+<span class="nc" id="L118">    }</span>
+
+	@Override
+    public Long getTimeStamp() {
+<span class="nc" id="L122">    	return timeStamp;</span>
+    }
+
+    /** @param timeStamp Sets Timestamp to this value. */
+    public void setTimeStamp(final Long timeStamp) {
+<span class="nc" id="L127">    	this.timeStamp = timeStamp;</span>
+<span class="nc" id="L128">    }</span>
+
+    /** @return event type string. @see EventTypes */
+    public String getEventType() {
+<span class="nc" id="L132">    	return eventType;</span>
+    }
+
+    /**
+     * Sets event type. @see EventTypes
+     * @param eventType should match the enumeration names.
+     */
+    public void setEventType(final String eventType) {
+<span class="nc" id="L140">        this.eventType = eventType;</span>
+<span class="nc" id="L141">    }</span>
+
+    /** @return event status. @see EventStatusEnum */
+    public String getEventStatus() {
+<span class="nc" id="L145">        return eventStatus;</span>
+    }
+
+    @Transient
+    @Override
+    public EventStatus getEventStatusValue() {
+<span class="nc" id="L151">        return EventStatus.valueOf(getEventStatus());</span>
+    }
+
+    /** Sets event type. @see EventStatusEnum
+     * @param eventStatus should match the enumeration names.
+     */
+    public void setEventStatus(final String eventStatus) {
+<span class="nc" id="L158">    	this.eventStatus = eventStatus;</span>
+<span class="nc" id="L159">    }</span>
+
+	@Override
+    public String getAuthToken() {
+<span class="nc" id="L163">        return authToken;</span>
+    }
+
+    /**
+     * Sets the user that triggered the creation of a log
+     *
+     * @param authToken user id. Normally obtained by the following example: authenticationToken.toString()
+     */
+    public void setAuthToken(final String authToken) {
+<span class="nc" id="L172">        this.authToken = authToken;</span>
+<span class="nc" id="L173">    }</span>
+
+    /**
+     * Gets service type. @see ServiceTypes
+     * 
+     * @return service
+     */
+    public String getService() {
+<span class="nc" id="L181">        return service;</span>
+    }
+
+    /**
+     * Sets service type. @see ServiceTypes
+     * 
+     * @param service service
+     */
+    public void setService(final String service) {
+<span class="nc" id="L190">        this.service = service;</span>
+<span class="nc" id="L191">    }</span>
+
+    /**
+     * Gets module type. @see ModuleTypes
+     *
+     * @return module type.
+     */
+    public String getModule() {
+<span class="nc" id="L199">        return module;</span>
+    }
+
+    /**
+     * Sets module type. @see ModuleTypes
+     *
+     * @param module Module type.
+     */
+    public void setModule(final String module) {
+<span class="nc" id="L208">        this.module = module;</span>
+<span class="nc" id="L209">    }</span>
+
+	@Override
+    public String getCustomId() {
+<span class="nc" id="L213">        return customId;</span>
+    }
+
+    public void setCustomId(final String customId) {
+<span class="nc" id="L217">        this.customId = customId;</span>
+<span class="nc" id="L218">    }</span>
+
+	@Override
+    public String getSearchDetail1() {
+<span class="nc" id="L222">        return searchDetail1;</span>
+    }
+
+    public void setSearchDetail1(final String searchDetail1) {
+<span class="nc" id="L226">        this.searchDetail1 = searchDetail1;</span>
+<span class="nc" id="L227">    }</span>
+
+	@Override
+    public String getSearchDetail2() {
+<span class="nc" id="L231">        return searchDetail2;</span>
+    }
+
+    public void setSearchDetail2(final String searchDetail2) {
+<span class="nc" id="L235">        this.searchDetail2 = searchDetail2;</span>
+<span class="nc" id="L236">    }</span>
+
+    @Transient
+    public String getUnescapedRndValue(){
+<span class="nc" id="L240">        String value = getAdditionalDetails();</span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(value)) {</span>
+<span class="nc" id="L242">            return CertTools.getUnescapedRdnValue(value);</span>
+        } else {
+<span class="nc" id="L244">            return value;</span>
+        }
+    }
+
+    /** @return additional details in raw format. */
+    public String getAdditionalDetails() {
+<span class="nc" id="L250">        return additionalDetails;</span>
+    }
+
+    /** Sets additional details in raw format. 
+     * @param additionalDetails details*/
+    public void setAdditionalDetails(final String additionalDetails) {
+<span class="nc" id="L256">        this.additionalDetails = additionalDetails;</span>
+<span class="nc" id="L257">    }</span>
+
+    // @Version @Column
+    public int getRowVersion() {
+<span class="nc" id="L261">        return rowVersion;</span>
+    }
+
+    public void setRowVersion(final int rowVersion) {
+<span class="nc" id="L265">        this.rowVersion = rowVersion;</span>
+<span class="nc" id="L266">    }</span>
+
+    // @Column @Lob
+	@Override
+    public String getRowProtection() {
+<span class="nc" id="L271">        return rowProtection;</span>
+    }
+
+	@Override
+    public void setRowProtection(final String rowProtection) {
+<span class="nc" id="L276">        this.rowProtection = rowProtection;</span>
+<span class="nc" id="L277">    }</span>
+
+    /** @return additional details. */
+    @Transient
+	@Override
+    public Map&lt;String, Object&gt; getMapAdditionalDetails() {
+    	// TODO: Decide on which implementation to use for serialization of the additional details
+<span class="nc" id="L284">        return XmlSerializer.decode(getUnescapedRndValue());</span>
+    }
+
+    /** @param additionalDetails additional details. */
+    @Transient
+    public void setMapAdditionalDetails(final Map&lt;String, Object&gt; additionalDetails) {
+    	// TODO: Decide on which implementation to use for serialization of the additional details
+<span class="nc" id="L291">    	setAdditionalDetails(XmlSerializer.encode(additionalDetails));</span>
+    	//setAdditionalDetails(JsonSerializer.toJSON(additionalDetails));
+<span class="nc" id="L293">    }</span>
+
+	//
+	// Start Database integrity protection methods
+	//
+	
+	@Transient
+	@Override
+	protected String getProtectString(final int version) {
+<span class="nc" id="L302">		final ProtectionStringBuilder build = new ProtectionStringBuilder();</span>
+		// What is important to protect here is the data that we define
+		// rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
+<span class="nc" id="L305">		build.append(getPk()).append(getNodeId()).append(getSequenceNumber()).append(getTimeStamp());</span>
+<span class="nc" id="L306">		build.append(getEventType()).append(getEventStatus()).append(getAuthToken()).append(getService()).append(getModule());</span>
+<span class="nc" id="L307">		build.append(getCustomId()).append(getSearchDetail1()).append(getSearchDetail2()).append(getAdditionalDetails());</span>
+<span class="nc" id="L308">		return build.toString();</span>
+	}
+
+	@Transient
+	@Override
+	protected int getProtectVersion() {
+<span class="nc" id="L314">		return 1;</span>
+	}
+
+	@PrePersist
+	@PreUpdate
+	@Override
+	protected void protectData() {
+<span class="nc" id="L321">		super.protectData();</span>
+<span class="nc" id="L322">	}</span>
+	
+	@PostLoad
+	@Override
+	protected void verifyData() {
+<span class="nc" id="L327">		super.verifyData();</span>
+<span class="nc" id="L328">	}</span>
+
+	@Override 
+    @Transient
+	protected String getRowId() {
+<span class="nc" id="L333">		return getPk();</span>
+	}
+	//
+	// End Database integrity protection methods
+	//
+
+	@Override
+    @Transient
+	public EventType getEventTypeValue() {
+<span class="nc" id="L342">		return new EventTypeHolder(getEventType());</span>
+	}
+
+	@Override
+    @Transient
+	public ModuleType getModuleTypeValue() {
+<span class="nc" id="L348">		return new ModuleTypeHolder(getModule());</span>
+	}
+
+	@Override
+    @Transient
+	public ServiceType getServiceTypeValue() {
+<span class="nc" id="L354">		return new ServiceTypeHolder(getService());</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

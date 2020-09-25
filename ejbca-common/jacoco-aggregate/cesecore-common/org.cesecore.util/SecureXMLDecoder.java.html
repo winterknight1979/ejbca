@@ -1,0 +1,758 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>SecureXMLDecoder.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-common</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.util</a> &gt; <span class="el_source">SecureXMLDecoder.java</span></div><h1>SecureXMLDecoder.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.util;
+
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang.reflect.MethodUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.certificateprofile.CertificatePolicy;
+import org.cesecore.certificates.certificateprofile.PKIDisclosureStatement;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.keybind.InternalKeyBindingTrustEntry;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
+
+
+/**
+ * &lt;p&gt;Implements a subset of XMLDecoder in a secure way, without allowing arbitrary classes to be loaded or methods to be invoked.
+ * Only primitive types, Strings, Lists and Maps are allowed.&lt;/p&gt;
+ * 
+ * &lt;p&gt;Currently unimplemented parts of the XML format:&lt;/p&gt;
+ * &lt;ul&gt;
+ * &lt;li&gt;Non-Unicode characters in strings/chars&lt;/li&gt;
+ * &lt;li&gt;Uncommon or custom collection types&lt;/li&gt;
+ * &lt;/ul&gt;
+ * 
+ * &lt;p&gt;Differences from XMLDecoder:&lt;/p&gt;
+ * &lt;ul&gt;
+ * &lt;li&gt;The SecureXMLDecoder throws an IOException on error instead of using the ExceptionListener.&lt;/li&gt;
+ * &lt;li&gt;Throws EOFException instead of ArrayIndexOutOfBoundsException at end of file&lt;/li&gt;
+ * &lt;/ul&gt;
+ * 
+ * @version $Id: SecureXMLDecoder.java 34163 2020-01-02 15:00:17Z samuellb $
+ */
+public class SecureXMLDecoder implements AutoCloseable {
+    
+<span class="fc" id="L72">    private static final Logger log = Logger.getLogger(SecureXMLDecoder.class);</span>
+    
+    private final InputStream is;
+    private final boolean ignoreErrors;
+    private final XmlPullParser parser;
+<span class="fc" id="L77">    private boolean seenHeader = false;</span>
+<span class="fc" id="L78">    private boolean closed = false;</span>
+    /** Map of id-to-object. Used to handle id references (idref) in the XML */
+<span class="fc" id="L80">    private Map&lt;String,Object&gt; objectIdMap = new HashMap&lt;&gt;();</span>
+    
+<span class="nc" id="L82">    public static final class NoValueException extends IOException {</span>
+        private static final long serialVersionUID = 1L;
+    }
+
+    /**
+     * Creates a SecureXMLDecoder. Errors when calling readObject() will generate an IOException.
+     * @param is stream
+     */
+    public SecureXMLDecoder(final InputStream is) {
+<span class="fc" id="L91">        this(is, false);</span>
+<span class="fc" id="L92">    }</span>
+    
+    /**
+     * @param is Input stream
+     * @param ignoreErrors If recoverable errors should be ignored.
+     */
+<span class="fc" id="L98">    public SecureXMLDecoder(final InputStream is, final boolean ignoreErrors) {</span>
+<span class="fc" id="L99">        this.is = is;</span>
+<span class="fc" id="L100">        this.ignoreErrors = ignoreErrors;</span>
+        try {
+<span class="fc" id="L102">            final XmlPullParserFactory fact = XmlPullParserFactory.newInstance();</span>
+<span class="fc" id="L103">            fact.setFeature(XmlPullParser.FEATURE_PROCESS_DOCDECL, false); // can be abused to cause exponential memory usage</span>
+<span class="fc" id="L104">            fact.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);</span>
+<span class="fc" id="L105">            fact.setFeature(XmlPullParser.FEATURE_VALIDATION, false);</span>
+<span class="fc" id="L106">            parser = fact.newPullParser();</span>
+<span class="fc" id="L107">            parser.setInput(is, &quot;UTF-8&quot;);</span>
+<span class="nc" id="L108">        } catch (XmlPullParserException e) {</span>
+<span class="nc" id="L109">            throw new IllegalStateException(e);</span>
+<span class="fc" id="L110">        }</span>
+<span class="fc" id="L111">    }</span>
+
+    @Override
+    public void close() {
+<span class="fc" id="L115">        closed = true;</span>
+<span class="fc" id="L116">        objectIdMap = null;</span>
+        try {
+<span class="fc" id="L118">            is.close();</span>
+<span class="nc" id="L119">        } catch (IOException e) {</span>
+<span class="nc" id="L120">            throw new IllegalStateException(e);</span>
+<span class="fc" id="L121">        }</span>
+<span class="fc" id="L122">    }</span>
+    
+    /**
+     * Reads the next object from the stream, and returns it.
+     * 
+     * Note: This implementation does not throw ArrayIndexOutOfBoundsException on EOF, but returns null instead.
+     * 
+     * @return The deserialized object, or null when there are no more objects.
+     * @throws IOException On parse error or IO error.
+     */
+    public Object readObject() throws IOException {
+<span class="pc bpc" id="L133" title="1 of 2 branches missed.">        if (closed) {</span>
+<span class="nc" id="L134">            throw new IllegalStateException(&quot;Decoder object is closed&quot;);</span>
+        }
+        try {
+<span class="fc bfc" id="L137" title="All 2 branches covered.">            if (!seenHeader) {</span>
+<span class="fc" id="L138">                readHeader();</span>
+            }
+            
+            while (true) {
+<span class="pc bpc" id="L142" title="2 of 4 branches missed.">                switch (parser.getEventType()) {</span>
+                case XmlPullParser.START_TAG:
+<span class="fc" id="L144">                    return readValue();</span>
+                case XmlPullParser.END_TAG:
+<span class="pc bpc" id="L146" title="1 of 2 branches missed.">                    if (parser.next() != XmlPullParser.END_DOCUMENT) {</span>
+<span class="nc" id="L147">                        throw new IOException(&quot;Data after end of root element&quot;);</span>
+                    }
+                    // NOPMD: Fall through
+                case XmlPullParser.END_DOCUMENT:
+<span class="fc" id="L151">                    throw new EOFException(&quot;Reached end of XML document&quot;);</span>
+                default:
+<span class="nc" id="L153">                    throw new IllegalStateException(&quot;Got invalid/unsupported XML event type&quot;);</span>
+                }
+            }
+<span class="nc" id="L156">        } catch (XmlPullParserException e) {</span>
+<span class="nc" id="L157">            throw new IOException(e);</span>
+        }
+    }
+    
+    /** Reads the &amp;lt;java version=&quot;xx&quot; class=&quot;xx&quot;&amp;gt; header 
+     * @throws XmlPullParserException on xml parse fail
+     * @throws IOException on io error */
+    private void readHeader() throws XmlPullParserException, IOException {
+<span class="pc bpc" id="L165" title="1 of 2 branches missed.">        if (parser.getEventType() != XmlPullParser.START_DOCUMENT) {</span>
+<span class="nc" id="L166">            throw new IOException(&quot;Incorrect header of XML document&quot;);</span>
+        }
+<span class="pc bpc" id="L168" title="1 of 2 branches missed.">        if (parser.nextTag() != XmlPullParser.START_TAG) {</span>
+<span class="nc" id="L169">            throw new IOException(&quot;Expected a root element&quot;);</span>
+        }
+<span class="pc bpc" id="L171" title="1 of 2 branches missed.">        if (!&quot;java&quot;.equals(parser.getName())) {</span>
+<span class="nc" id="L172">            throw new IOException(&quot;Expected &lt;java&gt; root element&quot;);</span>
+        }
+        
+<span class="fc" id="L175">        final String className = parser.getAttributeValue(null, &quot;class&quot;);</span>
+<span class="pc bpc" id="L176" title="1 of 2 branches missed.">        if (!&quot;java.beans.XMLDecoder&quot;.equals(className)) {</span>
+<span class="nc" id="L177">            throw new IOException(&quot;Unsupported decoder class. Only \&quot;java.beans.XMLDecoder\&quot; is supported&quot;);</span>
+        }
+<span class="fc" id="L179">        parser.nextTag();</span>
+<span class="fc" id="L180">        seenHeader = true;</span>
+<span class="fc" id="L181">    }</span>
+    
+    /** Reads an object, array or (boxed) elementary type value. 
+     * @return object
+     * @throws XmlPullParserException on xml parse fail
+     * @throws IOException on io error */
+    private Object readValue() throws XmlPullParserException, IOException {
+<span class="fc" id="L188">        return readValue(true);</span>
+    }
+    
+    /**
+     * Reads an object, array or (boxed) elementary type value.
+     * @param disallowTextAfterElement bool
+     * @return object
+     * @throws XmlPullParserException On low level XML parse errors
+     * @throws IOException On not valid XMLEncoder XML
+     * @throws NoValueException If no value could be parsed
+     */
+    private Object readValue(boolean disallowTextAfterElement) throws XmlPullParserException, IOException {
+<span class="fc" id="L200">        final String tag = parser.getName();</span>
+<span class="fc" id="L201">        final String id = parser.getAttributeValue(null, &quot;id&quot;);</span>
+<span class="fc" id="L202">        final String idRef = parser.getAttributeValue(null, &quot;idref&quot;);</span>
+<span class="fc bfc" id="L203" title="All 2 branches covered.">        if (idRef != null) {</span>
+            // This is a reference to an existing object, so there is no value in the XML
+<span class="fc" id="L205">            parser.nextTag();</span>
+<span class="fc" id="L206">            expectEndTag(tag);</span>
+<span class="pc bpc" id="L207" title="1 of 2 branches missed.">            if (disallowTextAfterElement) {</span>
+<span class="fc" id="L208">                parser.nextTag();</span>
+            }
+<span class="pc bpc" id="L210" title="1 of 2 branches missed.">            if (!objectIdMap.containsKey(idRef)) {</span>
+<span class="nc" id="L211">                final String msg = errorMessage(&quot;Referenced object in 'idref' not found: '&quot; + idRef + &quot;'&quot;);</span>
+<span class="nc" id="L212">                throwOrLog(msg, null);</span>
+<span class="nc" id="L213">                throw new NoValueException();</span>
+            }
+<span class="fc" id="L215">            return objectIdMap.get(idRef);</span>
+        }
+        final Object value;
+        // Read the element contents depending on the type
+<span class="pc bpc" id="L219" title="2 of 15 branches missed.">        switch (tag) {</span>
+        case &quot;string&quot;:
+<span class="fc" id="L221">            value = readString();</span>
+<span class="fc" id="L222">            break;</span>
+        case &quot;boolean&quot;:
+<span class="fc" id="L224">            value = Boolean.valueOf(readText());</span>
+<span class="fc" id="L225">            break;</span>
+        case &quot;char&quot;:
+<span class="fc" id="L227">            final String charCode = parser.getAttributeValue(null, &quot;code&quot;);</span>
+<span class="fc" id="L228">            final String charValue = readText();</span>
+<span class="fc bfc" id="L229" title="All 2 branches covered.">            if (charCode != null) {</span>
+<span class="fc" id="L230">                value = (char) Integer.parseInt(charCode.substring(1));</span>
+<span class="pc bpc" id="L231" title="1 of 2 branches missed.">            } else if (charValue.length() == 1) {</span>
+<span class="fc" id="L232">                value = charValue.charAt(0);</span>
+            } else {
+<span class="nc" id="L234">                throw new IOException(errorMessage(&quot;Invalid length of &lt;char&gt; value, and no \&quot;code\&quot; attribute present.&quot;));</span>
+            }
+            break;
+        case &quot;byte&quot;:
+<span class="fc" id="L238">            value = Byte.valueOf(readText());</span>
+<span class="fc" id="L239">            break;</span>
+        case &quot;short&quot;:
+<span class="fc" id="L241">            value = Short.valueOf(readText());</span>
+<span class="fc" id="L242">            break;</span>
+        case &quot;int&quot;:
+<span class="fc" id="L244">            value = Integer.valueOf(readText());</span>
+<span class="fc" id="L245">            break;</span>
+        case &quot;long&quot;:
+<span class="fc" id="L247">            value = Long.valueOf(readText());</span>
+<span class="fc" id="L248">            break;</span>
+        case &quot;float&quot;:
+<span class="fc" id="L250">            value = Float.valueOf(readText());</span>
+<span class="fc" id="L251">            break;</span>
+        case &quot;double&quot;:
+<span class="fc" id="L253">            value = Double.valueOf(readText());</span>
+<span class="fc" id="L254">            break;</span>
+        case &quot;null&quot;:
+<span class="fc" id="L256">            value = null;</span>
+<span class="fc" id="L257">            parser.nextTag();</span>
+<span class="fc" id="L258">            break;</span>
+        case &quot;class&quot;:
+            try {
+                // Only allow classes from our own hierarchy
+<span class="fc" id="L262">                final String className = readText();</span>
+<span class="pc bpc" id="L263" title="2 of 6 branches missed.">                if (!(className.startsWith(&quot;org.ejbca.&quot;) || className.startsWith(&quot;org.cesecore.&quot;) || className.startsWith(&quot;org.signserver.&quot;))) {</span>
+<span class="fc" id="L264">                    throw new IOException(&quot;Unauthorized class was decoded from XML: &quot; + className);</span>
+                }
+<span class="fc" id="L266">                value = Class.forName(className);</span>
+<span class="nc" id="L267">            } catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L268">                throw new IOException(&quot;Unknown class was sent with import.&quot;, e);</span>
+<span class="fc" id="L269">            }</span>
+            break;
+        case &quot;object&quot;:
+<span class="fc" id="L272">            final String className = parser.getAttributeValue(null, &quot;class&quot;);</span>
+<span class="fc" id="L273">            String method = parser.getAttributeValue(null, &quot;method&quot;); // used from java.util.Collections</span>
+<span class="fc" id="L274">            parser.nextTag();</span>
+            
+            // If we need to support a lot of more classes here (or custom classes), we could instead load the
+            // classes dynamically with Class.forName (after checking the name whitelist). Then we could check
+            // which interface the class implements (Collection or Map) and use the appropriate parse method.
+<span class="pc bpc" id="L279" title="7 of 22 branches missed.">            switch (className) {</span>
+            case &quot;java.util.ArrayList&quot;: {
+                List&lt;Object&gt; list;
+<span class="pc bpc" id="L282" title="1 of 2 branches missed.">                if (isIntValue()) {</span>
+<span class="nc" id="L283">                    int capacity = Integer.valueOf(readText());</span>
+<span class="nc" id="L284">                    list = new ArrayList&lt;&gt;(capacity);</span>
+<span class="nc" id="L285">                    parser.nextTag();</span>
+<span class="nc" id="L286">                } else {</span>
+<span class="fc" id="L287">                    list = new ArrayList&lt;&gt;();</span>
+                }
+<span class="fc" id="L289">                value = parseCollection(list);</span>
+<span class="fc" id="L290">                break; }</span>
+            case &quot;java.util.LinkedList&quot;:
+<span class="nc" id="L292">                value = parseCollection(new LinkedList&lt;&gt;());</span>
+<span class="nc" id="L293">                break;</span>
+            case &quot;java.util.HashSet&quot;:
+<span class="fc" id="L295">                value = parseCollection(new HashSet&lt;&gt;());</span>
+<span class="fc" id="L296">                break;</span>
+            case &quot;java.util.LinkedHashSet&quot;:
+<span class="fc" id="L298">                value = parseCollection(new LinkedHashSet&lt;&gt;());</span>
+<span class="fc" id="L299">                break;</span>
+            case &quot;java.util.TreeSet&quot;:
+<span class="nc" id="L301">                value = parseCollection(new TreeSet&lt;&gt;());</span>
+<span class="nc" id="L302">                break;</span>
+            case &quot;java.util.HashMap&quot;:
+<span class="fc" id="L304">                value = parseMap(new HashMap&lt;&gt;());</span>
+<span class="fc" id="L305">                break;</span>
+            case &quot;java.util.LinkedHashMap&quot;:
+<span class="fc" id="L307">                value = parseMap(new LinkedHashMap&lt;&gt;());</span>
+<span class="fc" id="L308">                break;</span>
+            case &quot;java.util.TreeMap&quot;:
+<span class="fc" id="L310">                value = parseMap(new TreeMap&lt;&gt;());</span>
+<span class="fc" id="L311">                break;</span>
+            case &quot;java.util.concurrent.ConcurrentHashMap&quot;:
+<span class="nc" id="L313">                value = parseMap(new ConcurrentHashMap&lt;&gt;());</span>
+<span class="nc" id="L314">                break;</span>
+            case &quot;org.cesecore.util.Base64PutHashMap&quot;:
+            case &quot;org.ejbca.util.Base64PutHashMap&quot;: // old class name, lets upgrade to new one
+<span class="fc" id="L317">                value = parseMap(new Base64PutHashMap());</span>
+<span class="fc" id="L318">                break;</span>
+            case &quot;org.cesecore.util.Base64GetHashMap&quot;:
+            case &quot;org.ejbca.util.Base64GetHashMap&quot;: // old class name, lets upgrade to new one
+                @SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L322">                Map&lt;Object,Object&gt; b64getmap = new Base64GetHashMap();</span>
+<span class="fc" id="L323">                value = parseMap(b64getmap);</span>
+<span class="fc" id="L324">                break;</span>
+            case &quot;org.cesecore.certificates.certificateprofile.CertificatePolicy&quot;:
+            case &quot;org.ejbca.core.model.ca.certificateprofiles.CertificatePolicy&quot;:
+<span class="fc" id="L327">                value = parseObject(new CertificatePolicy());</span>
+<span class="fc" id="L328">                break;</span>
+            case &quot;org.cesecore.certificates.certificateprofile.PKIDisclosureStatement&quot;:
+<span class="fc" id="L330">                value = parseObject(new PKIDisclosureStatement());</span>
+<span class="fc" id="L331">                break;</span>
+            case &quot;org.cesecore.certificates.endentity.EndEntityInformation&quot;:
+                // End Entity Type is not exported correctly by XMLEncoder,
+                // so we can't recover that property
+<span class="nc" id="L335">                value = parseObject(new EndEntityInformation());</span>
+<span class="nc" id="L336">                break;</span>
+            case &quot;org.cesecore.certificates.endentity.ExtendedInformation&quot;:
+<span class="nc" id="L338">                value = parseObject(new ExtendedInformation());</span>
+<span class="nc" id="L339">                break;</span>
+            case &quot;org.cesecore.keybind.InternalKeyBindingTrustEntry&quot;:
+<span class="nc" id="L341">                value = parseObject(new InternalKeyBindingTrustEntry());</span>
+<span class="nc" id="L342">                break;</span>
+            case &quot;org.ejbca.core.model.ra.raadmin.UserNotification&quot;:
+            case &quot;org.ejbca.core.protocol.acme.logic.AcmeAuthorizationImpl&quot;:
+            case &quot;org.ejbca.core.protocol.acme.logic.AcmeChallengeImpl&quot;:
+            case &quot;org.ejbca.core.protocol.acme.logic.AcmeIdentifierImpl&quot;:
+            case &quot;org.ejbca.core.protocol.acme.logic.AcmeOrderImpl&quot;:
+            case &quot;org.ejbca.core.protocol.acme.storage.AcmeAccountImpl&quot;:
+            case &quot;org.signserver.common.CertificateMatchingRule&quot;:
+            case &quot;org.signserver.common.AuthorizedClient&quot;:
+            case &quot;org.cesecore.util.SecureXMLDecoderTest$MockEnum&quot;:
+            case &quot;org.cesecore.util.SecureXMLDecoderTest$MockObject&quot;:
+                try {
+                    // EJBCA, SignServer and test classes, so not available in CESeCore.
+                    // In the long run we should make the whitelisted class names configurable, e.g. by subclassing (ECA-4916)
+<span class="nc" id="L356">                    value = parseObject(Class.forName(className).getConstructor().newInstance());</span>
+<span class="nc" id="L357">                } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | InvocationTargetException | NoSuchMethodException e) {</span>
+<span class="nc" id="L358">                    throw new IOException(errorMessage(&quot;Deserialization of class '&quot; + className + &quot;' failed: &quot; + e.getMessage()), e);</span>
+<span class="nc" id="L359">                }</span>
+                break;
+            case &quot;java.util.Collections&quot;:
+<span class="fc" id="L362">                value = parseSpecialCollection(method);</span>
+<span class="fc" id="L363">                method = null; // value has been used, don't report error</span>
+<span class="fc" id="L364">                break;</span>
+            case &quot;java.util.Date&quot;:
+<span class="fc" id="L366">                long dateLongValue = (long)readValue();</span>
+<span class="fc" id="L367">                value = new Date(dateLongValue);</span>
+<span class="fc" id="L368">                break;</span>
+            case &quot;java.util.Properties&quot;:
+                // Default values (the argument to the constructor) aren't preserved during serialization by XMLEncoder
+<span class="fc" id="L371">                value = parseMap(new Properties());</span>
+<span class="fc" id="L372">                break;</span>
+            case &quot;java.lang.Enum&quot;:
+<span class="fc" id="L374">                parser.getName();</span>
+<span class="fc" id="L375">                String enumType = readString();</span>
+<span class="pc bpc" id="L376" title="5 of 6 branches missed.">                if (!enumType.startsWith(&quot;org.cesecore.&quot;) &amp;&amp; !enumType.startsWith(&quot;org.ejbca.&quot;) &amp;&amp; !enumType.startsWith(&quot;org.signserver.&quot;)) {</span>
+<span class="nc" id="L377">                    throw new IOException(errorMessage(&quot;Instantation of enum type \&quot;&quot; + enumType + &quot;\&quot; not allowed&quot;));</span>
+                }
+<span class="fc" id="L379">                parser.nextTag();</span>
+<span class="fc" id="L380">                parser.getName();</span>
+<span class="fc" id="L381">                String valueName = readString();</span>
+<span class="pc bpc" id="L382" title="1 of 2 branches missed.">                if (valueName.endsWith(&quot;INSTANCE&quot;)) {</span>
+<span class="nc" id="L383">                    throw new IOException(errorMessage(&quot;Not allowed to use singleton \&quot;&quot; + valueName + &quot;\&quot; from enum type \&quot;&quot; + enumType + &quot;\&quot;&quot;));</span>
+                }
+                try {
+<span class="fc" id="L386">                    Enum&lt;?&gt; enumValue = Enum.valueOf(Class.forName(enumType).asSubclass(Enum.class), valueName);</span>
+<span class="fc" id="L387">                    value = enumValue;</span>
+<span class="nc" id="L388">                } catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L389">                    throw new IOException(errorMessage(&quot;Enum class \&quot;&quot; + enumType + &quot;\&quot; was not found&quot;), e);</span>
+<span class="nc" id="L390">                } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L391">                    throw new IOException(errorMessage(&quot;Invalid enum value \&quot;&quot; + valueName + &quot;\&quot; for enum type \&quot;&quot; + enumType + &quot;\&quot;&quot;), e);</span>
+<span class="fc" id="L392">                }</span>
+<span class="fc" id="L393">                method = null;</span>
+<span class="fc" id="L394">                parser.nextTag();</span>
+<span class="fc" id="L395">                break;</span>
+            default:
+                /*
+                 * We need to add support for plain Java objects that don't need special treatment. In EJBCA we need at least
+                 * org.cesecore.certificates.certificateprofile.CertificatePolicy and org.cesecore.keybind.InternalKeyBindingTrustEntry.
+                 * For these classes we need to construct an instance and then call the getters and setters. See ECA-4916.
+                 */
+<span class="fc" id="L402">                throw new IOException(errorMessage(&quot;Deserialization of class \&quot;&quot; + className + &quot;\&quot; not supported or not allowed.&quot;));</span>
+            }
+<span class="pc bpc" id="L404" title="1 of 2 branches missed.">            if (method != null) {</span>
+<span class="nc" id="L405">                throw new IOException(errorMessage(&quot;Method attribute on object element of class \&quot;&quot; + className + &quot;\&quot; is not supported or not allowed.&quot;));</span>
+            }
+            
+            break;
+        case &quot;array&quot;:
+<span class="fc" id="L410">            value = readArray();</span>
+<span class="fc" id="L411">            break;</span>
+        case &quot;void&quot;:
+<span class="nc" id="L413">            throw new IOException(errorMessage(&quot;Unexpected &lt;void&gt; tag. Probably there was an earlier parse error.&quot;));</span>
+        default:
+<span class="nc" id="L415">            throw new IOException(errorMessage(&quot;Unsupported tag \&quot;&quot; + tag + &quot;\&quot;.&quot;));</span>
+        }
+<span class="fc" id="L417">        storeObjectById(id, value);</span>
+        
+<span class="fc" id="L419">        expectEndTag(tag);</span>
+<span class="fc bfc" id="L420" title="All 2 branches covered.">        if (disallowTextAfterElement) {</span>
+<span class="fc" id="L421">            parser.nextTag();</span>
+        }
+<span class="fc" id="L423">        return value;</span>
+    }
+    
+    private void storeObjectById(final String id, final Object value) {
+<span class="pc bpc" id="L427" title="1 of 4 branches missed.">        if (id != null &amp;&amp; value != null) {</span>
+            // The object (or getter) has an ID, so it can be referenced again later
+<span class="pc bpc" id="L429" title="1 of 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L430">                log.trace(&quot;Binding id '&quot; + id + &quot;' to &quot; + value);</span>
+            }
+<span class="fc" id="L432">            objectIdMap.put(id, value);</span>
+        }
+<span class="fc" id="L434">    }</span>
+
+    private void expectEndTag(final String tag) throws XmlPullParserException, IOException {
+<span class="pc bpc" id="L437" title="1 of 2 branches missed.">        if (parser.getEventType() != XmlPullParser.END_TAG ||</span>
+<span class="pc bpc" id="L438" title="1 of 2 branches missed.">                !tag.equals(parser.getName())) {</span>
+<span class="nc" id="L439">            final String msg = &quot;Cannot parse XML. Expected end tag of &quot; + tag;</span>
+<span class="nc" id="L440">            log.info(errorMessage(msg + &quot;, but got type &quot; + parser.getEventType() + &quot;, name &quot; + parser.getName()));</span>
+<span class="nc" id="L441">            throw new IOException(errorMessage(msg));</span>
+        }
+<span class="fc" id="L443">    }</span>
+    
+    /**
+     * Reads the text content between two tags. Stops if there are nested tags, e.g.
+     * &lt;code&gt;&amp;lt;text&amp;gt;blabla&amp;lt;nested/&amp;gt;blabla&amp;lt;/text&amp;gt;&lt;/code&gt;,
+     * so be careful if there could be nested tags.
+     * @return text
+     * @throws XmlPullParserException on xml parse fail
+     * @throws IOException on io error 
+     */
+    private String readText() throws XmlPullParserException, IOException {
+        final String text;
+<span class="fc bfc" id="L455" title="All 2 branches covered.">        if (parser.next() == XmlPullParser.TEXT) {</span>
+<span class="fc" id="L456">            text = parser.getText();</span>
+<span class="fc" id="L457">            parser.next();</span>
+        } else {
+<span class="fc" id="L459">            text = &quot;&quot;;</span>
+        }
+<span class="fc" id="L461">        return text;</span>
+    }
+    
+    /**
+     * Reads a string, possibly containing &amp;lt;char code=&quot;#xxx&quot;/&amp;gt; escapes.
+     *
+     * @return String, never null.
+     * @throws XmlPullParserException on xml parse fail
+     * @throws IOException on io error 
+     */
+    private String readString() throws XmlPullParserException, IOException {
+<span class="fc" id="L472">        final StringBuilder sb = new StringBuilder();</span>
+        while (true) {
+<span class="fc" id="L474">            int eventType = parser.next();</span>
+<span class="fc bfc" id="L475" title="All 2 branches covered.">            if (eventType == XmlPullParser.TEXT) {</span>
+<span class="fc" id="L476">                sb.append(parser.getText());</span>
+<span class="fc bfc" id="L477" title="All 2 branches covered.">            } else if (eventType == XmlPullParser.START_TAG) {</span>
+<span class="fc" id="L478">                Object charvalue = readValue(false);</span>
+<span class="pc bpc" id="L479" title="1 of 2 branches missed.">                if (!(charvalue instanceof Character)) {</span>
+<span class="nc" id="L480">                    throw new IOException(errorMessage(&quot;Unexpected object element inside java string element&quot;));</span>
+                }
+<span class="fc" id="L482">                sb.append((char)charvalue);</span>
+<span class="pc bpc" id="L483" title="1 of 2 branches missed.">            } else if (eventType == XmlPullParser.END_TAG) {</span>
+<span class="fc" id="L484">                break;</span>
+            } else {
+<span class="nc" id="L486">                throw new IOException(errorMessage(&quot;Unexpected XML token in Java string element&quot;));</span>
+            }
+<span class="fc" id="L488">        }</span>
+<span class="fc" id="L489">        return sb.toString();</span>
+    }
+    
+    /** Checks if the next item is an &lt;int&gt; start tag 
+     * @return bool
+     * @throws XmlPullParserException on xml parse fail
+     * */
+    private boolean isIntValue() throws XmlPullParserException {
+<span class="pc bpc" id="L497" title="1 of 4 branches missed.">        return parser.getEventType() == XmlPullParser.START_TAG &amp;&amp; &quot;int&quot;.equals(parser.getName());</span>
+    }
+    
+    /** Reads an &amp;lt;array class=&quot;xx&quot; length=&quot;xx&quot;&amp;gt; element
+     * @return object
+     * @throws XmlPullParserException on xml parse fail
+     * @throws IOException on io error  */
+    private Object readArray() throws XmlPullParserException, IOException {
+<span class="fc" id="L505">        final String className = parser.getAttributeValue(null, &quot;class&quot;);</span>
+<span class="fc" id="L506">        final String lengthStr = parser.getAttributeValue(null, &quot;length&quot;);</span>
+<span class="fc" id="L507">        parser.nextTag();</span>
+        try {
+<span class="pc bpc" id="L509" title="2 of 4 branches missed.">            if (className == null || lengthStr == null) {</span>
+<span class="nc" id="L510">                throw new IOException(errorMessage(&quot;Missing attributes on array&quot;));</span>
+            }
+            
+            final Class&lt;?&gt; elemClass;
+<span class="pc bpc" id="L514" title="6 of 9 branches missed.">            switch (className) {</span>
+<span class="nc" id="L515">            case &quot;char&quot;: elemClass = Character.TYPE; break;</span>
+<span class="fc" id="L516">            case &quot;byte&quot;: elemClass = Byte.TYPE; break;</span>
+<span class="nc" id="L517">            case &quot;short&quot;: elemClass = Short.TYPE; break;</span>
+<span class="nc" id="L518">            case &quot;int&quot;: elemClass = Integer.TYPE; break;</span>
+<span class="nc" id="L519">            case &quot;long&quot;: elemClass = Long.TYPE; break;</span>
+<span class="nc" id="L520">            case &quot;float&quot;: elemClass = Float.TYPE; break;</span>
+<span class="nc" id="L521">            case &quot;double&quot;: elemClass = Double.TYPE; break;</span>
+<span class="fc" id="L522">            case &quot;boolean&quot;: elemClass = Boolean.TYPE; break;</span>
+            default:
+                // Note that we do not instantiate or initialize the class, so this is OK security-wise
+<span class="fc" id="L525">                elemClass = Class.forName(className, false, getClass().getClassLoader());</span>
+            }
+            
+<span class="fc" id="L528">            final int length = Integer.parseInt(lengthStr);</span>
+<span class="fc" id="L529">            final Object arr = Array.newInstance(elemClass, length);</span>
+            
+            // Read the array elements
+            while (true) {
+                // Read &lt;void index=&quot;xx&quot;&gt;
+<span class="fc bfc" id="L534" title="All 2 branches covered.">                if (parser.getEventType() == XmlPullParser.END_TAG) { break; }</span>
+                
+<span class="pc bpc" id="L536" title="3 of 4 branches missed.">                if (parser.getEventType() != XmlPullParser.START_TAG &amp;&amp; !&quot;void&quot;.equals(parser.getName())) {</span>
+<span class="nc" id="L537">                    throw new IOException(errorMessage(&quot;Expected &lt;void&gt; tag, not \&quot;&quot; + parser.getName() + &quot;\&quot;.&quot;));</span>
+                }
+                
+<span class="fc" id="L540">                final String indexStr = parser.getAttributeValue(null, &quot;index&quot;);</span>
+<span class="pc bpc" id="L541" title="1 of 2 branches missed.">                if (indexStr == null) {</span>
+<span class="nc" id="L542">                    throw new IOException(errorMessage(&quot;Missing index attribute on &lt;void&gt; tag.&quot;));</span>
+                }
+<span class="fc" id="L544">                parser.nextTag();</span>
+                
+                // Read value
+<span class="fc" id="L547">                final int index = Integer.parseInt(indexStr);</span>
+<span class="fc" id="L548">                final Object value = readValue();</span>
+<span class="fc" id="L549">                Array.set(arr, index, value); // Must set using reflection since it could be an array of a primitive type</span>
+                
+<span class="fc" id="L551">                expectEndTag(&quot;void&quot;);</span>
+<span class="fc" id="L552">                parser.nextTag();</span>
+<span class="fc" id="L553">            }</span>
+            
+<span class="fc" id="L555">            return arr;</span>
+<span class="nc" id="L556">        } catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L557">            throw new IOException(errorMessage(&quot;Failed to load array class \&quot;&quot; + className + &quot;\&quot;. &quot;));</span>
+<span class="nc" id="L558">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L559">            throw new IOException(errorMessage(&quot;Bad length or index \&quot;&quot; + lengthStr + &quot;\&quot;.&quot;));</span>
+        }
+    }
+    
+    /**
+     * Reads a method call start tag, e.g. &amp;lt;void method=&quot;add&quot;&amp;gt;.
+     * The data inside the void element is the method arguments.
+     * @return String
+     * @throws XmlPullParserException on xml parse fail
+     * @throws IOException on io error 
+     */
+    private String readMethodCall() throws XmlPullParserException, IOException {
+<span class="pc bpc" id="L571" title="2 of 4 branches missed.">        if (parser.getEventType() != XmlPullParser.START_TAG || !&quot;void&quot;.equals(parser.getName())) {</span>
+<span class="nc" id="L572">            throw new IOException(errorMessage(&quot;Expected &lt;void&gt; start tag.&quot;));</span>
+        }
+        
+<span class="fc" id="L575">        final String method = parser.getAttributeValue(null, &quot;method&quot;);</span>
+<span class="pc bpc" id="L576" title="1 of 2 branches missed.">        if (method == null) {</span>
+<span class="nc" id="L577">            throw new IOException(errorMessage(&quot;Element &lt;void&gt; is missing a \&quot;method\&quot; attribute.&quot;));</span>
+        }
+<span class="fc" id="L579">        parser.nextTag();</span>
+<span class="fc" id="L580">        return method;</span>
+    }
+    
+    /** Parses data for Collection objects, such as ArrayList, but also HashSet etc. 
+     * @param col Collection
+     * @return object
+     * @throws XmlPullParserException on xml parse fail
+     * @throws IOException on io error */
+    private Object parseCollection(final Collection&lt;Object&gt; col) throws XmlPullParserException, IOException {
+        while (true) {
+<span class="fc bfc" id="L590" title="All 2 branches covered.">            if (parser.getEventType() == XmlPullParser.END_TAG) {</span>
+<span class="fc" id="L591">                break;</span>
+            }
+            
+<span class="fc" id="L594">            final String method = readMethodCall();</span>
+<span class="fc bfc" id="L595" title="All 2 branches covered.">            if (!method.equals(&quot;add&quot;)) {</span>
+<span class="fc" id="L596">                throw new IOException(errorMessage(&quot;Method \&quot;&quot; + method + &quot;\&quot; not supported or not allowed on Lists.&quot;));</span>
+            }
+            
+<span class="fc" id="L599">            final Object element = readValue();</span>
+<span class="fc" id="L600">            col.add(element);</span>
+            
+<span class="fc" id="L602">            expectEndTag(&quot;void&quot;);</span>
+<span class="fc" id="L603">            parser.nextTag();</span>
+<span class="fc" id="L604">        }</span>
+<span class="fc" id="L605">        return col;</span>
+    }
+
+    /** Parses data for Map objects
+     * @param map Map
+     * @return Object
+     * @throws XmlPullParserException on xml parse fail
+     * @throws IOException on io error  */
+    private Object parseMap(final Map&lt;Object,Object&gt; map) throws XmlPullParserException, IOException {
+        while (true) {
+<span class="fc bfc" id="L615" title="All 2 branches covered.">            if (parser.getEventType() == XmlPullParser.END_TAG) {</span>
+<span class="fc" id="L616">                break;</span>
+            }
+            
+<span class="fc" id="L619">            final String method = readMethodCall();</span>
+<span class="pc bpc" id="L620" title="1 of 2 branches missed.">            if (!method.equals(&quot;put&quot;)) {</span>
+<span class="nc" id="L621">                throw new IOException(errorMessage(&quot;Method \&quot;&quot; + method + &quot;\&quot; not supported or not allowed on Maps.&quot;));</span>
+            }
+            
+<span class="fc" id="L624">            final Object key = readValue();</span>
+<span class="fc" id="L625">            final Object value = readValue();</span>
+<span class="fc" id="L626">            map.put(key, value);</span>
+            
+<span class="fc" id="L628">            expectEndTag(&quot;void&quot;);</span>
+<span class="fc" id="L629">            parser.nextTag();</span>
+<span class="fc" id="L630">        }</span>
+<span class="fc" id="L631">        return map;</span>
+    }
+    
+    private Object parseSpecialCollection(final String method) throws XmlPullParserException, IOException {
+        // We do not allow unmodifiable collections to be deserialized (since that could be cause a Denial of Service if used in the wrong place),
+        // instead we deserialize them as their modifiable counterpart.
+<span class="pc bpc" id="L637" title="6 of 8 branches missed.">        switch (method) {</span>
+<span class="fc" id="L638">        case &quot;emptySet&quot;: return new HashSet&lt;&gt;();</span>
+<span class="nc" id="L639">        case &quot;emptyList&quot;: return new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L640">        case &quot;emptyMap&quot;: return new HashMap&lt;&gt;();</span>
+        case &quot;unmodifiableList&quot;:
+<span class="fc" id="L642">            final Object list = readValue();</span>
+<span class="pc bpc" id="L643" title="1 of 2 branches missed.">            if (!(list instanceof List)) {</span>
+<span class="nc" id="L644">                throw new IOException(errorMessage(&quot;Expected List argument to unmodifiableList&quot;));</span>
+            }
+<span class="fc" id="L646">            return list;</span>
+        case &quot;unmodifiableSet&quot;:
+<span class="nc" id="L648">            final Object set = readValue();</span>
+<span class="nc bnc" id="L649" title="All 2 branches missed.">            if (!(set instanceof Set)) {</span>
+<span class="nc" id="L650">                throw new IOException(errorMessage(&quot;Expected Set argument to unmodifiableSet&quot;));</span>
+            }
+<span class="nc" id="L652">            return set;</span>
+        case &quot;unmodifiableMap&quot;:
+<span class="nc" id="L654">            final Object map = readValue();</span>
+<span class="nc bnc" id="L655" title="All 2 branches missed.">            if (!(map instanceof Map)) {</span>
+<span class="nc" id="L656">                throw new IOException(errorMessage(&quot;Expected Map argument to unmodifiableMap&quot;));</span>
+            }
+<span class="nc" id="L658">            return map;</span>
+        case &quot;unmodifiableCollection&quot;:
+<span class="nc" id="L660">            final Object col = readValue();</span>
+<span class="nc bnc" id="L661" title="All 2 branches missed.">            if (!(col instanceof Collection)) {</span>
+<span class="nc" id="L662">                throw new IOException(errorMessage(&quot;Expected Collection argument to unmodifiableCollection&quot;));</span>
+            }
+<span class="nc" id="L664">            return col;</span>
+<span class="nc" id="L665">        default: throw new IOException(&quot;Method \&quot;&quot; + method + &quot;\&quot; not supported or not allowed on java.util.Collections.&quot;);</span>
+        }
+    }
+    
+    /** Parses an arbitrary object. Note that this method will allow any property to be set.
+     * @param obj Object
+     * @return Object
+     * @throws XmlPullParserException on xml parse fail
+     * @throws IOException on io error  */
+    private Object parseObject(final Object obj) throws XmlPullParserException, IOException {
+        while (true) {
+<span class="fc bfc" id="L676" title="All 2 branches covered.">            if (parser.getEventType() == XmlPullParser.END_TAG) {</span>
+<span class="fc" id="L677">                break;</span>
+            }
+            
+<span class="pc bpc" id="L680" title="2 of 4 branches missed.">            if (parser.getEventType() != XmlPullParser.START_TAG || !&quot;void&quot;.equals(parser.getName())) {</span>
+<span class="nc" id="L681">                throw new IOException(errorMessage(&quot;Expected &lt;void&gt; start tag.&quot;));</span>
+            }
+            
+<span class="fc" id="L684">            final String id = parser.getAttributeValue(null, &quot;id&quot;);</span>
+<span class="fc" id="L685">            final String property = parser.getAttributeValue(null, &quot;property&quot;);</span>
+<span class="pc bpc" id="L686" title="1 of 2 branches missed.">            if (property == null) {</span>
+<span class="nc" id="L687">                throw new IOException(errorMessage(&quot;Element &lt;void&gt; is missing a \&quot;property\&quot; attribute.&quot;));</span>
+            }
+<span class="fc" id="L689">            parser.nextTag();</span>
+            
+<span class="fc" id="L691">            final String methodBase = property.substring(0, 1).toUpperCase(Locale.ROOT) + property.substring(1);</span>
+<span class="fc" id="L692">            final String setterName = &quot;set&quot; + methodBase;</span>
+            
+<span class="pc bpc" id="L694" title="1 of 2 branches missed.">            if (parser.getEventType() != XmlPullParser.END_TAG) {</span>
+                try {
+<span class="fc" id="L696">                    final Object value = readValue(true);</span>
+                    try {
+                        // invokeMethod handles mapping to primitive types and superclasses also, if the parameters don't match exactly
+<span class="fc" id="L699">                        MethodUtils.invokeMethod(obj, setterName, value);</span>
+<span class="nc" id="L700">                    } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException e) {</span>
+<span class="nc" id="L701">                        throw new IOException(errorMessage(&quot;Method \&quot;&quot; + setterName + &quot;\&quot; could not be called.&quot;), e);</span>
+<span class="nc" id="L702">                    } catch (NoSuchMethodException e) {</span>
+<span class="nc" id="L703">                        throwOrLog(errorMessage(&quot;No setter method \&quot;&quot; + setterName + &quot;\&quot; was found with parameter type &quot; + ClassUtils.getShortClassName(value, &quot;null&quot;)), e);</span>
+<span class="fc" id="L704">                    }</span>
+<span class="nc" id="L705">                } catch (NoValueException e) {</span>
+                    // Ignore
+<span class="pc" id="L707">                }</span>
+            } else {
+                // Empty = call getter and store by ID
+                try {
+<span class="nc bnc" id="L711" title="All 2 branches missed.">                    if (!methodExists(obj.getClass(), setterName)) {</span>
+                        // Disallow getting non-properties as a safety measure
+<span class="nc" id="L713">                        throwOrLog(errorMessage(&quot;Property \&quot;&quot; + property + &quot;\&quot; has no setter and may not be used as a property&quot;), null);</span>
+                    } else {
+                        Object value;
+                        try {
+<span class="nc" id="L717">                            value = MethodUtils.invokeMethod(obj, &quot;get&quot; + methodBase, ArrayUtils.EMPTY_OBJECT_ARRAY);</span>
+<span class="nc" id="L718">                        } catch (NoSuchMethodException e) {</span>
+<span class="nc" id="L719">                            value = MethodUtils.invokeMethod(obj, &quot;is&quot; + methodBase, ArrayUtils.EMPTY_OBJECT_ARRAY);</span>
+<span class="nc" id="L720">                        }</span>
+<span class="nc" id="L721">                        storeObjectById(id, value);</span>
+                    }
+<span class="nc" id="L723">                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException e) {</span>
+<span class="nc" id="L724">                    throw new IOException(errorMessage(&quot;Getter for &quot; + property + &quot; could not be called.&quot;), e);</span>
+<span class="nc" id="L725">                } catch (NoSuchMethodException e) {</span>
+<span class="nc" id="L726">                    throwOrLog(errorMessage(&quot;Could not find a getter for &quot; + property), e);</span>
+<span class="nc" id="L727">                }</span>
+            }
+            
+<span class="fc" id="L730">            expectEndTag(&quot;void&quot;);</span>
+<span class="fc" id="L731">            parser.nextTag();</span>
+<span class="fc" id="L732">        }</span>
+<span class="fc" id="L733">        return obj;</span>
+    }
+    
+    private boolean methodExists(final Class&lt;?&gt; klass, final String methodName) {
+<span class="nc bnc" id="L737" title="All 2 branches missed.">        for (final Method method : klass.getMethods()) {</span>
+<span class="nc bnc" id="L738" title="All 2 branches missed.">            if (methodName.equals(method.getName())) {</span>
+<span class="nc" id="L739">                return true;</span>
+            }
+        }
+<span class="nc" id="L742">        return false;</span>
+    }
+
+    private void throwOrLog(final String message, final Throwable cause) throws IOException {
+<span class="nc bnc" id="L746" title="All 2 branches missed.">        if (ignoreErrors) {</span>
+            // When ignoreErrors is true, errors are expected, so just log a debug level
+<span class="nc" id="L748">            log.debug(message, cause);</span>
+        } else {
+<span class="nc" id="L750">            throw new IOException(message, cause);</span>
+        }
+<span class="nc" id="L752">    }</span>
+
+    private String errorMessage(final String msg) {
+<span class="fc" id="L755">        return msg + &quot; (line: &quot; + parser.getLineNumber() + &quot;, column: &quot; + parser.getColumnNumber() + &quot;)&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AcmeNonceData.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-entity</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.acme</a> &gt; <span class="el_source">AcmeNonceData.java</span></div><h1>AcmeNonceData.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.acme;
+
+import java.io.Serializable;
+
+import javax.persistence.Entity;
+import javax.persistence.PostLoad;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+import javax.persistence.Version;
+
+import org.cesecore.dbprotection.ProtectedData;
+import org.cesecore.dbprotection.ProtectionStringBuilder;
+
+/**
+ * Storage representation of a used up ACME protocol Replay-Nonce.
+ *
+ * @version $Id: AcmeNonceData.java 29587 2018-08-07 15:25:52Z mikekushner $
+ */
+@Entity
+@Table(name = &quot;AcmeNonceData&quot;)
+public class AcmeNonceData extends ProtectedData implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    private String nonce;
+    private long timeExpires;
+<span class="nc" id="L41">    private int rowVersion = 0;</span>
+    private String rowProtection;
+
+<span class="nc" id="L44">    public AcmeNonceData() {}</span>
+
+<span class="nc" id="L46">    public AcmeNonceData(final String nonce, final long timeExpires) {</span>
+<span class="nc" id="L47">        this.setNonce(nonce);</span>
+<span class="nc" id="L48">        this.setTimeExpires(timeExpires);</span>
+<span class="nc" id="L49">    }</span>
+
+    // @Column
+<span class="nc" id="L52">    public String getNonce() { return nonce; }</span>
+<span class="nc" id="L53">    public void setNonce(String nonce) { this.nonce = nonce; }</span>
+
+    // @Column
+<span class="nc" id="L56">    public long getTimeExpires() { return timeExpires; }</span>
+<span class="nc" id="L57">    public void setTimeExpires(long timeExpires) { this.timeExpires = timeExpires; }</span>
+
+    // @Column
+    @Version
+<span class="nc" id="L61">    public int getRowVersion() { return rowVersion; }</span>
+<span class="nc" id="L62">    public void setRowVersion(int rowVersion) { this.rowVersion = rowVersion; }</span>
+
+    // @Column
+    @Override
+<span class="nc" id="L66">    public String getRowProtection() { return rowProtection; }</span>
+    @Override
+<span class="nc" id="L68">    public void setRowProtection(String rowProtection) { this.rowProtection = rowProtection; }</span>
+
+    //
+    // Start Database integrity protection methods
+    //
+
+    @Transient
+    @Override
+    protected String getProtectString(final int version) {
+        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking so we will not include that in the database protection
+<span class="nc" id="L78">        return new ProtectionStringBuilder().append(getNonce()).append(getTimeExpires()).toString();</span>
+    }
+
+    @Transient
+    @Override
+    protected int getProtectVersion() {
+<span class="nc" id="L84">        return 1;</span>
+    }
+
+    @PrePersist
+    @PreUpdate
+    @Override
+    protected void protectData() {
+<span class="nc" id="L91">        super.protectData();</span>
+<span class="nc" id="L92">    }</span>
+
+    @PostLoad
+    @Override
+    protected void verifyData() {
+<span class="nc" id="L97">        super.verifyData();</span>
+<span class="nc" id="L98">    }</span>
+
+    @Override
+    @Transient
+    protected String getRowId() {
+<span class="nc" id="L103">        return getNonce();</span>
+    }
+
+    //
+    // End Database integrity protection methods
+    //
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

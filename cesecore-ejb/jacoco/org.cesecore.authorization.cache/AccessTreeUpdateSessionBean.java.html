@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AccessTreeUpdateSessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cesecore-ejb</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.authorization.cache</a> &gt; <span class="el_source">AccessTreeUpdateSessionBean.java</span></div><h1>AccessTreeUpdateSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.authorization.cache;
+
+import javax.ejb.EJBException;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.access.AuthorizationCacheReload;
+import org.cesecore.authorization.access.AuthorizationCacheReloadListener;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.internal.InternalResources;
+
+/**
+ * Bean to handle the AccessTreeUpdateData entity.
+ * 
+ * @version $Id: AccessTreeUpdateSessionBean.java 26158 2017-07-18 05:46:19Z mikekushner $
+ */
+@Stateless//(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;AccessTreeUpdateSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L35">public class AccessTreeUpdateSessionBean implements AccessTreeUpdateSessionLocal {</span>
+
+<span class="nc" id="L37">    private static final Logger LOG = Logger.getLogger(AccessTreeUpdateSessionBean.class);</span>
+
+    @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+    private EntityManager entityManager;
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)    // We don't modify the database in this call
+    public int getAccessTreeUpdateNumber() {
+<span class="nc" id="L45">        final AccessTreeUpdateData accessTreeUpdateData = entityManager.find(AccessTreeUpdateData.class, AccessTreeUpdateData.AUTHORIZATIONTREEUPDATEDATA);</span>
+<span class="nc bnc" id="L46" title="All 2 branches missed.">        if (accessTreeUpdateData==null) {</span>
+            // No update has yet been persisted, so we return the default value
+<span class="nc" id="L48">            return AccessTreeUpdateData.DEFAULTACCESSTREEUPDATENUMBER;</span>
+        }
+<span class="nc" id="L50">        return accessTreeUpdateData.getAccessTreeUpdateNumber();</span>
+    }
+
+    @Override
+    public void signalForAccessTreeUpdate() {
+<span class="nc" id="L55">        AccessTreeUpdateData accessTreeUpdateData = entityManager.find(AccessTreeUpdateData.class, AccessTreeUpdateData.AUTHORIZATIONTREEUPDATEDATA);</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">        if (accessTreeUpdateData==null) {</span>
+            // We need to create the database row and incremented the value directly since this is an call to update it
+            try {
+<span class="nc" id="L59">                accessTreeUpdateData = new AccessTreeUpdateData();</span>
+<span class="nc" id="L60">                accessTreeUpdateData.setAccessTreeUpdateNumber(AccessTreeUpdateData.DEFAULTACCESSTREEUPDATENUMBER+1);</span>
+<span class="nc" id="L61">                entityManager.persist(accessTreeUpdateData);</span>
+                // Additionally we set the marker that this (new) installation should use the new union access rule pattern
+<span class="nc" id="L63">                setNewAuthorizationPatternMarker();</span>
+<span class="nc" id="L64">            } catch (Exception e) {</span>
+<span class="nc" id="L65">                LOG.error(InternalResources.getInstance().getLocalizedMessage(&quot;authorization.errorcreateauthtree&quot;), e);</span>
+<span class="nc" id="L66">                throw new EJBException(e);</span>
+<span class="nc" id="L67">            }</span>
+        } else {
+<span class="nc" id="L69">            accessTreeUpdateData.setAccessTreeUpdateNumber(accessTreeUpdateData.getAccessTreeUpdateNumber() + 1);</span>
+        }
+<span class="nc" id="L71">        LOG.debug(&quot;Invoking event&quot;);</span>
+<span class="nc" id="L72">        final AuthorizationCacheReload event = new AuthorizationCacheReload(accessTreeUpdateData.getAccessTreeUpdateNumber());</span>
+<span class="nc" id="L73">        AuthorizationCacheReloadListeners.INSTANCE.onReload(event);</span>
+<span class="nc" id="L74">        LOG.debug(&quot;Done invoking event&quot;);</span>
+<span class="nc" id="L75">    }</span>
+    
+    @Override
+    public void addReloadEvent(final AuthorizationCacheReloadListener observer) {
+<span class="nc" id="L79">        AuthorizationCacheReloadListeners.INSTANCE.addListener(observer);</span>
+<span class="nc" id="L80">    }</span>
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public boolean isNewAuthorizationPatternMarkerPresent() {
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        return entityManager.find(AccessTreeUpdateData.class, AccessTreeUpdateData.NEW_AUTHORIZATION_PATTERN_MARKER)!=null;</span>
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void setNewAuthorizationPatternMarker() {
+        /*
+         * Use a row in this table as a marker, since it is already a dependency from AuthorizationSessionBean.
+         * (Otherwise we would have to depend on reading configuration which in turn depends back on authorization.)
+         */
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        if (!isNewAuthorizationPatternMarkerPresent()) {</span>
+<span class="nc" id="L96">            final AccessTreeUpdateData marker = new AccessTreeUpdateData();</span>
+<span class="nc" id="L97">            marker.setPrimaryKey(AccessTreeUpdateData.NEW_AUTHORIZATION_PATTERN_MARKER);</span>
+<span class="nc" id="L98">            entityManager.persist(marker);</span>
+        }
+<span class="nc" id="L100">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

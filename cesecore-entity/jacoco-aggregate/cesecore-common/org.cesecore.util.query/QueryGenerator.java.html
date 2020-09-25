@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>QueryGenerator.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-entity</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.util.query</a> &gt; <span class="el_source">QueryGenerator.java</span></div><h1>QueryGenerator.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.util.query;
+
+import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.PredicateUtils;
+import org.apache.commons.lang.StringUtils;
+import org.cesecore.util.QueryParameterException;
+import org.cesecore.util.query.clauses.Order;
+import org.cesecore.util.query.elems.LogicOperator;
+import org.cesecore.util.query.elems.Operation;
+import org.cesecore.util.query.elems.RelationalOperator;
+import org.cesecore.util.query.elems.Term;
+
+/**
+ * Class responsible for Query Generation.
+ * 
+ * Queries will be generated according to provided Criteria. 
+ * Each criteria (composing Terms) will be subdued to validation.
+ * 
+ * &lt;em&gt;For usage examples @see QueryCriteriaTest&lt;/em&gt;
+ * 
+ * @version $Id: QueryGenerator.java 27999 2018-01-18 09:17:13Z mikekushner $
+ */
+public final class QueryGenerator implements Serializable {
+
+    private static final long serialVersionUID = 1567027442267416376L;
+<span class="nc" id="L47">    private final Map&lt;String, Object&gt; parameters = new LinkedHashMap&lt;String, Object&gt;();</span>
+    private final Query query;
+<span class="nc" id="L49">    private final List&lt;String&gt; availableFields = new ArrayList&lt;String&gt;();</span>
+    private final QueryCriteria criteria;
+
+    /**
+     * Class holding query construction logic.
+     * 
+     */
+    private final class Query {
+<span class="nc" id="L57">        public final StringBuilder query = new StringBuilder();</span>
+        private final String attrAlias;
+        private final static String WHERE = &quot;WHERE&quot;;
+        private final static String SEPARATOR = &quot; &quot;;
+
+<span class="nc" id="L62">        public Query(final String attrAlias) {</span>
+<span class="nc" id="L63">            this.attrAlias = attrAlias;</span>
+<span class="nc" id="L64">        }</span>
+
+        public Query where() {
+<span class="nc" id="L67">            query.append(SEPARATOR).append(WHERE);</span>
+<span class="nc" id="L68">            return this;</span>
+        }
+
+        public Query attribute(final String name) {
+<span class="nc" id="L72">            query.append(SEPARATOR).append(attrAlias).append(&quot;.&quot;).append(name);</span>
+<span class="nc" id="L73">            return this;</span>
+        }
+
+        public Query parameter(final String name) {
+<span class="nc" id="L77">            query.append(SEPARATOR).append(&quot;:&quot; + name);</span>
+<span class="nc" id="L78">            return this;</span>
+        }
+
+        private Query operator(final RelationalOperator op) {
+<span class="nc bnc" id="L82" title="All 2 branches missed.">            final String operator = op == RelationalOperator.EQ ? &quot;=&quot;</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">                    : op == RelationalOperator.GE ? &quot;&gt;=&quot;</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">                    : op == RelationalOperator.GT ? &quot;&gt;&quot;</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">                    : op == RelationalOperator.LE ? &quot;&lt;=&quot;</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">                    : op == RelationalOperator.LT ? &quot;&lt;&quot;</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">                    : op == RelationalOperator.NEQ ? &quot;!=&quot;</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">                    : op == RelationalOperator.BETWEEN ? &quot;BETWEEN&quot;</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">                    : op == RelationalOperator.LIKE ? &quot;LIKE&quot;</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">                    : op == RelationalOperator.NULL ? &quot;IS NULL&quot;</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">                    : op == RelationalOperator.NOTNULL ? &quot;IS NOT NULL&quot; : &quot;&quot;;</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">            if (operator.isEmpty()) {</span>
+<span class="nc" id="L93">                throw new QueryParameterException(&quot;operator not recognized&quot;);</span>
+            }
+<span class="nc" id="L95">            query.append(SEPARATOR).append(operator);</span>
+<span class="nc" id="L96">            return this;</span>
+        }
+
+        private Query operator(final LogicOperator op) {
+<span class="nc" id="L100">            query.append(SEPARATOR).append(op.toString());</span>
+<span class="nc" id="L101">            return this;</span>
+        }
+
+        public Query order(final String name, final Order.Value order) {
+<span class="nc" id="L105">            query.append(SEPARATOR).append(&quot;ORDER BY&quot;).append(SEPARATOR)</span>
+<span class="nc" id="L106">                    .append(attrAlias).append(&quot;.&quot;).append(name)</span>
+<span class="nc" id="L107">                    .append(SEPARATOR).append(order.toString());</span>
+<span class="nc" id="L108">            return this;</span>
+        }
+
+        public boolean isEmpty() {
+<span class="nc bnc" id="L112" title="All 2 branches missed.">            return query.length() == 0;</span>
+        }
+
+        public String toString() {
+<span class="nc" id="L116">            return query.toString();</span>
+        }
+    }
+
+    private QueryGenerator(final Class&lt;?&gt; clazz, final QueryCriteria criteria,
+<span class="nc" id="L121">            final String alias) {</span>
+<span class="nc" id="L122">        query = new Query(alias);</span>
+<span class="nc" id="L123">        this.criteria = criteria;</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">        for (final Field f : clazz.getDeclaredFields()) {</span>
+<span class="nc" id="L125">            availableFields.add(f.getName());</span>
+        }
+<span class="nc" id="L127">    }</span>
+
+    /**
+     * Returns a new QueryGenerator or null if criteria is null
+     * @param clazz class
+     * @param criteria QueryCriteria
+     * @param attrAlias alias
+     * @return QueryGenerator or null if criteria is null
+     */
+    public static QueryGenerator generator(final Class&lt;?&gt; clazz,
+            final QueryCriteria criteria, final String attrAlias) {
+<span class="nc bnc" id="L138" title="All 2 branches missed.">        if (criteria == null) {</span>
+<span class="nc" id="L139">            return null;</span>
+        }
+<span class="nc" id="L141">        return new QueryGenerator(clazz, criteria, attrAlias);</span>
+    }
+
+    /**
+     * Generates the SQL query according to the criteria passed in generator.
+     * 
+     * @return generated Query.
+     */
+    public String generate() {
+<span class="nc bnc" id="L150" title="All 2 branches missed.">        if (query.isEmpty()) {</span>
+<span class="nc" id="L151">            final List&lt;Elem&gt; elements = criteria.getElements();</span>
+<span class="nc" id="L152">            final List&lt;Elem&gt; terms = new ArrayList&lt;Elem&gt;();</span>
+<span class="nc" id="L153">            final List&lt;Elem&gt; clauses = new ArrayList&lt;Elem&gt;();</span>
+            
+<span class="nc" id="L155">            CollectionUtils.selectRejected(elements, PredicateUtils.instanceofPredicate(Order.class), terms);</span>
+<span class="nc" id="L156">            CollectionUtils.select(elements, PredicateUtils.instanceofPredicate(Order.class), clauses);</span>
+            
+<span class="nc bnc" id="L158" title="All 2 branches missed.">            if (terms.size() &gt; 0) {</span>
+<span class="nc" id="L159">                query.where();</span>
+            }
+<span class="nc" id="L161">            termTraversal(terms);</span>
+<span class="nc" id="L162">            clauseTraversal(clauses);</span>
+        }
+<span class="nc" id="L164">        return query.toString();</span>
+    }
+    
+    /**
+     * Traverses the terms list that is constructed according to the elements list in the QueryCriteria.
+     * 
+     * @param elements elements
+     */
+    private void termTraversal(List&lt;Elem&gt; elements) {
+<span class="nc" id="L173">        boolean first = true;</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">        for (final Elem element : elements) {</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">            if (!first) {</span>
+<span class="nc" id="L176">                query.operator(LogicOperator.AND);</span>
+            } else {
+<span class="nc" id="L178">                first = false;</span>
+            }
+<span class="nc" id="L180">            generate(element);</span>
+<span class="nc" id="L181">        }</span>
+<span class="nc" id="L182">    }</span>
+    
+    /**
+     * Traverses the clauses list that is constructed according to the elements list in the QueryCriteria.
+     * 
+     * @param clauses clauses
+     */
+    private void clauseTraversal(List&lt;Elem&gt; clauses) {
+<span class="nc bnc" id="L190" title="All 2 branches missed.">        for (final Elem clause : clauses) {</span>
+<span class="nc" id="L191">            generate(clause);</span>
+<span class="nc" id="L192">        }</span>
+<span class="nc" id="L193">    }</span>
+
+    /** 
+     * Partial query generation according to the provided element.
+     * 
+     * @param elem Term or Operation or Order object
+     */
+    private void generate(final Elem elem) {
+<span class="nc bnc" id="L201" title="All 2 branches missed.">        if (elem instanceof Operation) {</span>
+<span class="nc" id="L202">            generateRestriction((Operation) elem);</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">        } else if (elem instanceof Term) {</span>
+<span class="nc" id="L204">            generateRestriction((Term) elem);</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">        } else if (elem instanceof Order) {</span>
+<span class="nc" id="L206">            generateRestriction((Order) elem);</span>
+        } else {
+<span class="nc" id="L208">            throw new QueryParameterException(&quot;No matched restriction&quot;);</span>
+        }
+<span class="nc" id="L210">    }</span>
+
+    
+    private void generateRestriction(final Operation op) {
+<span class="nc" id="L214">        generateRestriction(op.getTerm());</span>
+<span class="nc" id="L215">        query.operator(op.getOperator());</span>
+<span class="nc" id="L216">        final Elem elem = op.getElement();</span>
+<span class="nc bnc" id="L217" title="All 2 branches missed.">        if (elem != null) {</span>
+<span class="nc" id="L218">            generate(elem);</span>
+        }
+<span class="nc" id="L220">    }</span>
+
+    private void generateRestriction(final Term term) {
+<span class="nc" id="L223">        validate(term.getName());</span>
+<span class="nc" id="L224">        query.attribute(term.getName()).operator(term.getOperator());</span>
+<span class="nc bnc" id="L225" title="All 2 branches missed.">        if (term.getOperator() == RelationalOperator.BETWEEN) {</span>
+            @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L227">            final AbstractMap.SimpleEntry&lt;Object, Object&gt; values = (AbstractMap.SimpleEntry&lt;Object, Object&gt;) term</span>
+<span class="nc" id="L228">                    .getValue();</span>
+<span class="nc" id="L229">            query.parameter(</span>
+<span class="nc" id="L230">                    genAndStoreParameter(term.getName(),</span>
+<span class="nc" id="L231">                            values.getKey()))</span>
+<span class="nc" id="L232">                    .operator(LogicOperator.AND)</span>
+<span class="nc" id="L233">                    .parameter(</span>
+<span class="nc" id="L234">                            genAndStoreParameter(term.getName(),</span>
+<span class="nc" id="L235">                                    values.getValue()));</span>
+<span class="nc bnc" id="L236" title="All 2 branches missed.">        } else if (term.getOperator() != RelationalOperator.NULL</span>
+<span class="nc bnc" id="L237" title="All 2 branches missed.">                &amp;&amp; term.getOperator() != RelationalOperator.NOTNULL) {</span>
+<span class="nc" id="L238">            query.parameter(genAndStoreParameter(term.getName(),</span>
+<span class="nc" id="L239">                    term.getValue()));</span>
+        }
+<span class="nc" id="L241">    }</span>
+
+    private void generateRestriction(final Order order) {
+<span class="nc" id="L244">        validate(order.getName());</span>
+<span class="nc" id="L245">        query.order(order.getName(), order.getOrder());</span>
+<span class="nc" id="L246">    }</span>
+
+    /** @return all stored parameter names. */
+    public Set&lt;String&gt; getParameterKeys() {
+<span class="nc" id="L250">        return parameters.keySet();</span>
+    }
+
+    /** @param key key
+     * @return the value of a stored parameter */
+    public Object getParameterValue(final String key) {
+<span class="nc" id="L256">        return parameters.get(key);</span>
+    }
+
+    /**
+     * Validates the provided name against our naming strategy ... columns with alphanumeric chars only.
+     * 
+     * @param name to be validated
+     */
+    private void validate(final String name) {
+<span class="nc bnc" id="L265" title="All 2 branches missed.">        if (!StringUtils.isAlphanumeric(name)) {</span>
+<span class="nc" id="L266">            throw new QueryParameterException(&quot;parameter is not alphanumeric &quot;</span>
+                    + name);
+        }
+<span class="nc bnc" id="L269" title="All 2 branches missed.">        if (!availableFields.contains(name)) {</span>
+<span class="nc" id="L270">            throw new QueryParameterException(&quot;parameter is not valid field &quot;</span>
+                    + name);
+        }
+<span class="nc" id="L273">    }</span>
+
+    /**
+     * Generated a valid parameter name. Uses an internal store to associate the generated name (parameter) to a value.
+     * 
+     * @param name that will be used as a seed to the parameter name
+     * @param value to be associated with the parameter name
+     * @return parameter name
+     */
+    private String genAndStoreParameter(final String name, final Object value) {
+<span class="nc" id="L283">        int i = 0;</span>
+        while (true) {
+<span class="nc" id="L285">            final String parameter = name + i++;</span>
+<span class="nc bnc" id="L286" title="All 2 branches missed.">            if (!parameters.containsKey(parameter)) {</span>
+<span class="nc" id="L287">                parameters.put(parameter, value);</span>
+<span class="nc" id="L288">                return parameter;</span>
+            }
+
+<span class="nc" id="L291">        }</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

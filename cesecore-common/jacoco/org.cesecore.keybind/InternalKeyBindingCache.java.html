@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>InternalKeyBindingCache.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.keybind</a> &gt; <span class="el_source">InternalKeyBindingCache.java</span></div><h1>InternalKeyBindingCache.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.keybind;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.internal.CommonCache;
+import org.cesecore.internal.CommonCacheBase;
+
+/**
+ * Signer Object cache.
+ * 
+ * @version $Id: InternalKeyBindingCache.java 28332 2018-02-20 14:40:52Z anatom $
+ */
+<span class="nc" id="L28">public enum InternalKeyBindingCache implements CommonCache&lt;InternalKeyBinding&gt; {</span>
+<span class="nc" id="L29">    INSTANCE;</span>
+
+<span class="nc" id="L31">    final private CommonCacheBase&lt;InternalKeyBinding&gt; internalKeyBindingCache = new CommonCacheBase&lt;InternalKeyBinding&gt;() {</span>
+        @Override
+        protected long getCacheTime() {
+            // We never disable storage of InternalKeyBindings in the cache completely
+<span class="nc" id="L35">            return Math.max(CesecoreConfiguration.getCacheTimeInternalKeyBinding(), 0);</span>
+        }
+        @Override
+        protected long getMaxCacheLifeTime() {
+            // We never purge InternalKeyBindings unless a database select discovers a missing object.
+<span class="nc" id="L40">            return 0;</span>
+        };
+    };
+
+    @Override
+    public InternalKeyBinding getEntry(final Integer id) {
+<span class="nc bnc" id="L46" title="All 2 branches missed.">        if (id == null) {</span>
+<span class="nc" id="L47">            return null;</span>
+        }
+<span class="nc" id="L49">        return internalKeyBindingCache.getEntry(id);</span>
+    }
+
+    @Override
+    public InternalKeyBinding getEntry(final int signerId) {
+<span class="nc" id="L54">        return internalKeyBindingCache.getEntry(signerId);</span>
+    }
+
+    @Override
+    public boolean shouldCheckForUpdates(final int signerId) {
+<span class="nc" id="L59">        return internalKeyBindingCache.shouldCheckForUpdates(signerId);</span>
+    }
+    
+    @Override
+    public void updateWith(int signerId, int digest, String name, InternalKeyBinding object) {
+<span class="nc" id="L64">        internalKeyBindingCache.updateWith(signerId, digest, name, object);</span>
+<span class="nc" id="L65">    }</span>
+
+    @Override
+    public void removeEntry(int signerId) {
+<span class="nc" id="L69">        internalKeyBindingCache.removeEntry(signerId);</span>
+<span class="nc" id="L70">    }</span>
+    
+    @Override
+    public String getName(int id) {
+<span class="nc" id="L74">        return internalKeyBindingCache.getName(id);</span>
+    }
+
+    @Override
+    public Map&lt;String,Integer&gt; getNameToIdMap() {
+<span class="nc" id="L79">        return internalKeyBindingCache.getNameToIdMap();</span>
+    }
+    
+    @Override
+    public void flush() {
+<span class="nc" id="L84">        internalKeyBindingCache.flush();</span>
+<span class="nc" id="L85">    }</span>
+    
+    @Override
+    public void replaceCacheWith(List&lt;Integer&gt; keys) {
+<span class="nc" id="L89">        internalKeyBindingCache.replaceCacheWith(keys);</span>
+<span class="nc" id="L90">    }</span>
+
+    public Set&lt;InternalKeyBinding&gt; getAllValues() {
+<span class="nc" id="L93">       return internalKeyBindingCache.getAllEntries();</span>
+    }
+    @Override
+    public boolean willUpdate(int id, int digest) {
+<span class="nc" id="L97">        return internalKeyBindingCache.willUpdate(id, digest);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StoreServletBase.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.protocol</a> &gt; <span class="el_source">StoreServletBase.java</span></div><h1>StoreServletBase.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.protocol;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.security.cert.X509Certificate;
+
+import javax.ejb.EJB;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.ca.internal.CaCertificateCache;
+import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
+import org.cesecore.certificates.certificate.HashID;
+import org.ejbca.config.VAConfiguration;
+import org.ejbca.util.HTMLTools;
+
+/**
+ * Base class for servlets (CRL or Certificate) implementing rfc4378
+ * 
+ * @version  $Id: StoreServletBase.java 34234 2020-01-09 16:41:36Z andrey_s_helmes $
+ */
+<span class="nc" id="L42">public abstract class StoreServletBase extends HttpServlet {</span>
+
+<span class="nc" id="L44">    private static final String SPACE = &quot;|&quot; + StringUtils.repeat(&quot;&amp;nbsp;&quot;, 5);</span>
+    
+	private static final long serialVersionUID = 1L;
+
+<span class="nc" id="L48">	private static final Logger log = Logger.getLogger(StoreServletBase.class);</span>
+
+	protected CaCertificateCache certCache;
+	
+	@EJB
+	private CertificateStoreSessionLocal certificateStoreSession;
+
+	/**
+	 * Called when the servlet is initialized.
+	 * @param config see {@link HttpServlet#init(ServletConfig)}
+	 * @throws ServletException ServletException
+	 */
+	public void init(ServletConfig config) throws ServletException {
+<span class="nc" id="L61">		super.init(config);</span>
+<span class="nc" id="L62">		this.certCache = CaCertificateCache.INSTANCE;</span>
+<span class="nc" id="L63">	}</span>
+
+	/**
+	 * Return certificate or CRL for the RFC4387 sHash http parameter
+	 * @param sHash sHash http parameter
+	 * @param resp HttpServletResponse
+	 * @param req HttpServletRequest
+	 * @throws IOException IOException
+	 * @throws ServletException ServletException
+	 */
+	public abstract void sHash(String sHash, HttpServletResponse resp, HttpServletRequest req) throws IOException, ServletException;
+
+	/**
+	 * Return certificate or CRL for the RFC4387 iHash http parameter
+	 * @param iHash iHash http parameter
+	 * @param resp HttpServletResponse
+	 * @param req HttpServletRequest
+	 * @throws IOException IOException
+	 * @throws ServletException ServletException
+	 */
+	public abstract void iHash(String iHash, HttpServletResponse resp, HttpServletRequest req) throws IOException, ServletException;
+
+	/**
+	 * Return certificate or CRL for the RFC4387 sKIDHash http parameter
+	 * @param sKIDHash sKIDHash http parameter
+	 * @param resp HttpServletResponse
+	 * @param req HttpServletRequest
+	 * @throws IOException IOException
+	 * @throws ServletException ServletException
+	 */
+	public abstract void sKIDHash(String sKIDHash, HttpServletResponse resp, HttpServletRequest req) throws IOException, ServletException;
+	
+	/**
+	 * Return certificate or CRL for the RFC4387 sKIDHash http parameter. In this case the alias name has been used to get the parameter.
+	 * @param sKIDHash sKIDHash http parameter
+	 * @param resp HttpServletResponse
+	 * @param req HttpServletRequest
+	 * @param name alias name of the object
+	 * @throws IOException IOException
+	 * @throws ServletException ServletException
+	 */
+	public abstract void sKIDHash(String sKIDHash, HttpServletResponse resp, HttpServletRequest req, String name) throws IOException, ServletException;
+
+	@Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, java.io.IOException {
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L109">            log.trace(&quot;&gt;doGet()&quot;);</span>
+        }
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        if (!req.getRequestURI().substring(req.getContextPath().length()).contains(&quot;search.cgi&quot;)) {</span>
+<span class="nc" id="L112">            resp.sendRedirect(req.getRequestURI() + &quot;search.cgi&quot;);</span>
+<span class="nc" id="L113">            return;</span>
+        }
+        try {
+<span class="nc bnc" id="L116" title="All 2 branches missed.">            if (alias(req, resp)) {</span>
+<span class="nc" id="L117">                return;</span>
+            }
+<span class="nc bnc" id="L119" title="All 2 branches missed.">            if (performReload(req, resp)) {</span>
+<span class="nc" id="L120">                return;</span>
+            }
+<span class="nc bnc" id="L122" title="All 2 branches missed.">            if (fromName(req, resp)) {</span>
+<span class="nc" id="L123">                return;</span>
+            }
+<span class="nc" id="L125">            rfcRequest(req, resp);</span>
+        } finally {
+<span class="nc bnc" id="L127" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L128">                log.trace(&quot;&lt;doGet()&quot;);</span>
+            }
+        }
+<span class="nc" id="L131">    }</span>
+	
+	private void rfcRequest(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
+		// Do actual processing of the protocol
+		{
+<span class="nc" id="L136">			final String sHash = req.getParameter(RFC4387URL.sHash.toString());</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">			if ( sHash!=null ) {</span>
+<span class="nc" id="L138">				sHash( sHash, resp, req );</span>
+<span class="nc" id="L139">				return;</span>
+			}
+		}{
+<span class="nc" id="L142">			final String iHash = req.getParameter(RFC4387URL.iHash.toString());</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">			if ( iHash!=null ) {</span>
+<span class="nc" id="L144">				iHash( iHash, resp, req );</span>
+<span class="nc" id="L145">				return;</span>
+			}
+		}{
+<span class="nc" id="L148">			final String sKIDHash = req.getParameter(RFC4387URL.sKIDHash.toString());</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">			if ( sKIDHash!=null ) {</span>
+<span class="nc" id="L150">				sKIDHash(sKIDHash, resp, req );</span>
+<span class="nc" id="L151">				return;</span>
+			}
+		}
+<span class="nc" id="L154">		printInfo(req, resp);</span>
+<span class="nc" id="L155">	}</span>
+	private boolean alias(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+<span class="nc" id="L157">		final String alias = req.getParameter(&quot;setAlias&quot;);</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">		if ( alias==null ) {</span>
+<span class="nc" id="L159">			return false;</span>
+		}
+<span class="nc bnc" id="L161" title="All 2 branches missed.">		if ( !checkIfAutorizedIP(req, resp) ) {</span>
+<span class="nc" id="L162">			return true;</span>
+		}
+<span class="nc" id="L164">		final int ix = alias.indexOf('=');</span>
+<span class="nc bnc" id="L165" title="All 4 branches missed.">		if ( ix&lt;1 || alias.length()&lt;=ix+2 ) {</span>
+<span class="nc" id="L166">			log.debug(&quot;No valid alias definition string: &quot;+alias);</span>
+<span class="nc" id="L167">			return true;</span>
+		}
+<span class="nc" id="L169">		final String key = alias.substring(0, ix).trim();</span>
+<span class="nc" id="L170">		final String hash = alias.substring(ix+1).trim();</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">		if ( !VAConfiguration.sKIDHashSetAlias(key, hash) ) {</span>
+<span class="nc" id="L172">			log.error(&quot;Not possible to add: &quot;+alias);</span>
+<span class="nc" id="L173">			return true;</span>
+		}
+<span class="nc" id="L175">		log.debug(&quot;Alias '&quot;+key+&quot;' defined for hash '&quot;+hash+&quot;'.&quot;);</span>
+<span class="nc" id="L176">		return true;</span>
+	}
+	
+	private boolean fromName(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
+<span class="nc" id="L180">		final String alias = req.getParameter(&quot;alias&quot;);</span>
+<span class="nc bnc" id="L181" title="All 2 branches missed.">		if ( alias==null ) {</span>
+<span class="nc" id="L182">			return false;</span>
+		}
+<span class="nc" id="L184">		final String sKIDHash = VAConfiguration.sKIDHashFromName(alias);</span>
+<span class="nc bnc" id="L185" title="All 4 branches missed.">		if ( sKIDHash==null || sKIDHash.length()&lt;1 ) {</span>
+<span class="nc" id="L186">			final String m = &quot;No '&quot;+alias+&quot;' alias defined in va.properties .&quot;;</span>
+<span class="nc" id="L187">			resp.sendError(HttpServletResponse.SC_NOT_FOUND, m);</span>
+<span class="nc" id="L188">			log.debug(m);</span>
+<span class="nc" id="L189">			return true;</span>
+		}
+<span class="nc" id="L191">		sKIDHash( sKIDHash, resp, req, alias );</span>
+<span class="nc" id="L192">		return true;</span>
+	}
+	
+	/**
+	 * Reloads the certificate cache, if it was requested.
+	 * 
+	 * @param req the HttpServletRequest
+	 * @param resp the HttpServletResponse
+	 * @return false if reload wasn't requested, or true if it was requested (even if it turned out to be unauthorized)
+	 */
+	private boolean performReload(HttpServletRequest req, HttpServletResponse resp) {
+		// We have a command to force reloading of the certificate cache that can only be run from localhost
+		// http://localhost:8080/crls/search.cgi?reloadcache=true
+<span class="nc" id="L205">		final boolean doReload = StringUtils.equals(req.getParameter(&quot;reloadcache&quot;), &quot;true&quot;);</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">		if ( !doReload ) {</span>
+<span class="nc" id="L207">			return false;</span>
+		}
+		try {
+<span class="nc bnc" id="L210" title="All 2 branches missed.">            if ( !checkIfAutorizedIP(req, resp) ) {</span>
+<span class="nc" id="L211">            	return true;</span>
+            }
+<span class="nc" id="L213">        } catch (IOException e) {</span>
+<span class="nc" id="L214">            throw new IllegalStateException(&quot;Could not send error response&quot;, e);</span>
+<span class="nc" id="L215">        }</span>
+<span class="nc" id="L216">		log.info(&quot;Reloading certificate and CRL caches due to request from &quot;+req.getRemoteAddr());</span>
+		// Reload CA certificates
+<span class="nc" id="L218">		certificateStoreSession.reloadCaCertificateCache();</span>
+<span class="nc" id="L219">		return true;</span>
+	}
+	
+	/**
+	 * Checks if the request originates from localhost
+	 * 
+     * @param req the HttpServletRequest
+     * @param resp the HttpServletResponse
+	 * @return true if authorized, or false if not, and sends HttpServletResponse.SC_UNAUTHORIZED
+     * @throws IOException if the HttpServletResponse.SC_UNAUTHORIZED response couldn't be sent in case if a negative result
+	 */
+	private boolean checkIfAutorizedIP(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+<span class="nc" id="L231">		final String remote = req.getRemoteAddr();</span>
+		// localhost in either ipv4 and ipv6
+<span class="nc bnc" id="L233" title="All 4 branches missed.">		if ( StringUtils.equals(remote, &quot;127.0.0.1&quot;) || StringUtils.equals(remote, &quot;0:0:0:0:0:0:0:1&quot;) ) {</span>
+<span class="nc" id="L234">			return true;</span>
+		}
+<span class="nc" id="L236">		log.info(&quot;Got reloadcache command from unauthorized ip: &quot;+remote);</span>
+<span class="nc" id="L237">		resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);</span>
+<span class="nc" id="L238">		return false;</span>
+	}
+	
+	private void printInfo(X509Certificate certs[], String indent, PrintWriter pw, String url) {
+<span class="nc bnc" id="L242" title="All 2 branches missed.">		for (X509Certificate cert : certs) {</span>
+			// Escape the URL as it might be unsafe
+<span class="nc" id="L244">			printInfo(cert, indent, pw, HTMLTools.htmlescape(url));</span>
+<span class="nc" id="L245">			pw.println();</span>
+<span class="nc" id="L246">			final X509Certificate issuedCerts[] = this.certCache.findLatestByIssuerDN(HashID.getFromSubjectDN(cert));</span>
+<span class="nc bnc" id="L247" title="All 2 branches missed.">			if (ArrayUtils.isEmpty(issuedCerts)) {</span>
+<span class="nc" id="L248">				continue;</span>
+			}
+<span class="nc" id="L250">			printInfo(issuedCerts, SPACE + indent, pw, url);</span>
+		}
+<span class="nc" id="L252">	}</span>
+
+	/**
+	 * Print info and download URL of a certificate or CRL.
+	 * &lt;p&gt;
+	 *     The implementation has to escape characters of URL to be HTML safe.
+	 * &lt;/p&gt;
+	 *
+	 * @param cert certificate
+	 * @param indent indentation
+	 * @param pw PrintWriter
+	 * @param url The URL in the escaped form for HTML
+	 */
+	public abstract void printInfo(X509Certificate cert, String indent, PrintWriter pw, String url);
+
+	/**
+	 * @return the title of the page
+	 */
+	public abstract String getTitle();
+
+	private void returnInfoPage(HttpServletResponse response, String info) throws IOException {
+<span class="nc" id="L273">		response.setContentType(&quot;text/html&quot;);</span>
+<span class="nc" id="L274">		response.setCharacterEncoding(&quot;UTF-8&quot;);</span>
+<span class="nc" id="L275">		final PrintWriter writer = response.getWriter();</span>
+
+<span class="nc" id="L277">		writer.println(&quot;&lt;html&gt;&quot;);</span>
+<span class="nc" id="L278">		writer.println(&quot;&lt;head&gt;&quot;);</span>
+<span class="nc" id="L279">		writer.println(&quot;&lt;title&gt;&quot;+getTitle()+&quot;&lt;/title&gt;&quot;);</span>
+<span class="nc" id="L280">		writer.println(&quot;&lt;/head&gt;&quot;);</span>
+<span class="nc" id="L281">		writer.println(&quot;&lt;body&gt;&quot;);</span>
+
+<span class="nc" id="L283">		writer.println(&quot;&lt;table border=\&quot;0\&quot;&gt;&quot;);</span>
+<span class="nc" id="L284">		writer.println(&quot;&lt;tr&gt;&quot;);</span>
+<span class="nc" id="L285">		writer.println(&quot;&lt;td&gt;&quot;);</span>
+<span class="nc" id="L286">		writer.println(&quot;&lt;h1&gt;&quot;+getTitle()+&quot;&lt;/h1&gt;&quot;);</span>
+<span class="nc" id="L287">		writer.println(&quot;&lt;p&gt;When searching for certificates you can use iHash, sHash and sKIDHash. iHash is the ASN1 encoded DN of the issuer in a certificate, sHash of the subject and sKIDHash is the subjectKeyIdentifier. If you search with it you get all certificates that has the same issuer, except for the root certificate. You do not find a root certificate if you search with the iHash of the root. It has been assumed that sHash should be used when searching for a root.&lt;/p&gt;&quot;);</span>
+<span class="nc" id="L288">		writer.println(&quot;&lt;p&gt;When searching for CRLs you can use iHash and sKIDHash. iHash is the ASN1 encoded DN of the issuer in a certificate and sKIDHash is the subjectKeyIdentifier.&quot;);</span>
+<span class="nc" id="L289">        writer.println(&quot;&lt;br/&gt;To get the latest delta CRL you can append the parameter 'delta='.&quot;);</span>
+<span class="nc" id="L290">        writer.println(&quot;&lt;br/&gt;To get a CRL with a specific CRL number you can append the parameter 'crlnumber=&amp;lt;number&amp;gt;'.&lt;/p&gt;&quot;);</span>
+<span class="nc" id="L291">		writer.println(&quot;&lt;hr&gt;&quot;);</span>
+<span class="nc" id="L292">		writer.println(info);</span>
+<span class="nc" id="L293">		writer.println(&quot;&lt;/td&gt;&quot;);</span>
+<span class="nc" id="L294">		writer.println(&quot;&lt;/tr&gt;&quot;);</span>
+<span class="nc" id="L295">		writer.println(&quot;&lt;/table&gt;&quot;);</span>
+
+<span class="nc" id="L297">		writer.println(&quot;&lt;/body&gt;&quot;);</span>
+<span class="nc" id="L298">		writer.println(&quot;&lt;/html&gt;&quot;);</span>
+<span class="nc" id="L299">		writer.flush();</span>
+<span class="nc" id="L300">	}</span>
+	private void printInfo(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+<span class="nc" id="L302">		final StringWriter sw = new StringWriter();</span>
+<span class="nc" id="L303">		final PrintWriter pw = new HtmlPrintWriter(sw);</span>
+<span class="nc" id="L304">		printInfo(this.certCache.getRootCertificates(), &quot;&quot;, pw, req.getRequestURL().toString());</span>
+<span class="nc" id="L305">		pw.flush();</span>
+<span class="nc" id="L306">		pw.close();</span>
+<span class="nc" id="L307">		sw.flush();</span>
+<span class="nc" id="L308">		returnInfoPage(resp, sw.toString());</span>
+<span class="nc" id="L309">		sw.close();</span>
+<span class="nc" id="L310">	}</span>
+
+	private class HtmlPrintWriter extends PrintWriter {
+
+<span class="nc" id="L314">	    HtmlPrintWriter(Writer out) {</span>
+<span class="nc" id="L315">			super(out);</span>
+<span class="nc" id="L316">		}</span>
+		@Override
+		public void println() {
+<span class="nc" id="L319">			super.print(&quot;&lt;br/&gt;&quot;);</span>
+<span class="nc" id="L320">			super.println();</span>
+<span class="nc" id="L321">		}</span>
+		@Override
+		public void println(String s) {
+<span class="nc" id="L324">			super.print(s);</span>
+<span class="nc" id="L325">			println();</span>
+<span class="nc" id="L326">		}</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,1223 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>StringTools.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-common-entity-tests</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.util</a> &gt; <span class="el_source">StringTools.java</span></div><h1>StringTools.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.util;
+
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+
+import org.apache.commons.lang.CharUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.util.encoders.DecoderException;
+import org.bouncycastle.util.encoders.Hex;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.ConfigurationHolder;
+
+import com.google.common.net.InternetDomainName;
+
+/**
+ * This class implements some utility functions that are useful when handling Strings.
+ *
+ * @version $Id: StringTools.java 30973 2019-01-03 14:33:40Z samuellb $
+ */
+public final class StringTools {
+<span class="fc" id="L62">    private static final Logger log = Logger.getLogger(StringTools.class);</span>
+
+<span class="fc" id="L64">    private static Pattern VALID_IPV4_PATTERN = null;</span>
+<span class="fc" id="L65">    private static Pattern VALID_IPV6_PATTERN = null;</span>
+<span class="fc" id="L66">    private static Pattern windowsOrMacNewlines = Pattern.compile(&quot;\r\n?&quot;); // Matches Windows \r\n and Mac \r</span>
+    private static final String ipv4Pattern = &quot;(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])&quot;;
+    private static final String ipv6Pattern = &quot;([0-9a-f]{1,4}:){7}([0-9a-f]){1,4}&quot;;
+
+    static {
+      try {
+<span class="fc" id="L72">        VALID_IPV4_PATTERN = Pattern.compile(ipv4Pattern, Pattern.CASE_INSENSITIVE);</span>
+<span class="fc" id="L73">        VALID_IPV6_PATTERN = Pattern.compile(ipv6Pattern, Pattern.CASE_INSENSITIVE);</span>
+<span class="nc" id="L74">      } catch (PatternSyntaxException e) {</span>
+<span class="nc" id="L75">        log.error(&quot;Unable to compile IP address validation pattern&quot;, e);</span>
+<span class="fc" id="L76">      }</span>
+    }
+
+    private StringTools() {
+    } // Not for instantiation
+
+    /**
+     * Class that will be used to see if a character belong to a specific category.
+     * This is a singleton, with static initialization, meaning that it is thread safe. It also means that the
+     * CesecoreConfiguration.getForbiddenCharacters() can not be changed dynamically, but a re-start of EJBCA is needed
+     * if this calue is changed in the properties file
+     *
+     */
+    public static class CharSet {
+<span class="fc" id="L90">        public static CharSet INSTANCE = new CharSet(CesecoreConfiguration.getForbiddenCharacters());</span>
+
+<span class="fc" id="L92">        private Set&lt;Character&gt; charSet = null;</span>
+        /**
+         * Create a set of characters from a char array.
+         * @param array chars
+         */
+<span class="fc" id="L97">        private CharSet(char[] array) {</span>
+<span class="fc" id="L98">            final Set&lt;Character&gt; set = new HashSet&lt;Character&gt;();</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">            for (final char c : array) {</span>
+<span class="fc" id="L100">                set.add(Character.valueOf(c));</span>
+            }
+<span class="fc" id="L102">            this.charSet = set;</span>
+<span class="fc" id="L103">        }</span>
+        /**
+         * Check if a character is belonging to the set.
+         * @param c the character to test
+         * @return true if belonging
+         */
+        boolean contains(char c) {
+<span class="fc" id="L110">            return this.charSet.contains(Character.valueOf(c));</span>
+        }
+
+        /** Used to reset the value so we can JUnit test the class */
+        public static void reset() {
+<span class="fc" id="L115">            INSTANCE = new CharSet(CesecoreConfiguration.getForbiddenCharacters());</span>
+<span class="fc" id="L116">        }</span>
+    }
+
+    // Characters that are not allowed in XSS compatible strings
+<span class="fc" id="L120">    private static final CharSet stripXSS = new CharSet(new char[]{'&lt;', '&gt;'});</span>
+    // Characters that are not allowed in strings that may be used in db queries
+<span class="fc" id="L122">    private static final CharSet stripSqlChars = new CharSet(new char[]{ '\'', '\&quot;', '\n', '\r', '\\', ';', '&amp;', '|', '!', '\0', '%', '`', '&lt;', '&gt;', '?', '$', '~' });</span>
+    // Characters that are not allowed in strings that may be used in db queries, assuming single quote is escaped
+<span class="fc" id="L124">    private static final CharSet stripSqlCharsSingleQuoteEscaped = new CharSet(new char[]{ '\&quot;', '\n', '\r', '\\', ';', '&amp;', '|', '!', '\0', '%', '`', '&lt;', '&gt;', '?', '$', '~' });</span>
+    // Characters that are not allowed in filenames
+<span class="fc" id="L126">    private static final CharSet stripFilenameChars = new CharSet(new char[]{ '\0', '\n', '\r', '/', '\\', '?', '%', '$', '*', ':', ';', '|', '\&quot;', '\'', '`', '&lt;', '&gt;' });</span>
+    // Characters that are allowed to escape in strings.
+    // RFC 2253, section 2.4 lists ',' '&quot;' '\' '+' '&lt;' '&gt;' ';' as valid escaped chars.
+    // Also allow '=' to be escaped.
+<span class="fc" id="L130">    private static final CharSet allowedEscapeChars = new CharSet(new char[]{ ',', '\&quot;', '\\', '+', '&lt;', '&gt;', ';', '=', '#', ' ' });</span>
+
+<span class="fc" id="L132">    private static final Pattern WS = Pattern.compile(&quot;\\s+&quot;);</span>
+
+    public static final int KEY_SEQUENCE_FORMAT_NUMERIC = 1;
+    public static final int KEY_SEQUENCE_FORMAT_ALPHANUMERIC = 2;
+    public static final int KEY_SEQUENCE_FORMAT_COUNTRY_CODE_PLUS_NUMERIC = 4;
+    public static final int KEY_SEQUENCE_FORMAT_COUNTRY_CODE_PLUS_ALPHANUMERIC = 8;
+
+    /**
+     * Converts every string in a list to lower case.
+     * @param strings the strings to convert
+     * @return all strings converted to lower case
+     */
+    public static List&lt;String&gt; toLowerCase(final List&lt;String&gt; strings) {
+<span class="nc" id="L145">        final List&lt;String&gt; lowerCaseStrings = new ArrayList&lt;String&gt;();</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">        for (final String string : strings) {</span>
+<span class="nc" id="L147">            lowerCaseStrings.add(string.toLowerCase());</span>
+<span class="nc" id="L148">        }</span>
+<span class="nc" id="L149">        return lowerCaseStrings;</span>
+    }
+
+    /**
+     * Strips all special characters from a string by replacing them with a forward slash, '/'. This method is used for various Strings, like
+     * SubjectDNs.
+     *
+     * @param str the string whose contents will be stripped.
+     * @return the stripped version of the input string.
+     */
+    public static String strip(final String str) {
+<span class="fc" id="L160">    	return strip(str, CharSet.INSTANCE);</span>
+    }
+
+    /**
+     * Strips '&amp;lt;' and '&amp;gt;' as well as all special characters from a string by replacing them with a forward slash, '/'.
+     * @param str the string whose contents will be stripped.
+     * @return the stripped version of the input string.
+     */
+    public static String stripUsername(final String str) {
+<span class="fc" id="L169">        String xssStripped = strip(str, stripXSS);</span>
+<span class="fc" id="L170">        return strip(xssStripped);</span>
+    }
+
+    /**
+     * Strips characters that are not allowed in filenames
+     * @param str the string whose contents will be stripped.
+     * @return the stripped version of the input string.
+     */
+    public static String stripFilename(final String str) {
+        // The strip() method does not work here, because it replaces forbidden characters with /
+        // Also, there's no need to unescape anything here.
+<span class="nc" id="L181">        return stripWithEscapesDisallowed(str, stripFilenameChars);</span>
+    }
+
+    /**
+     * Strips characters that are not allowed in filenames, and replaces spaces with underscores
+     * @param str the string whose contents will be stripped.
+     * @return the stripped version of the input string.
+     */
+    public static String stripFilenameReplaceSpaces(final String str) {
+<span class="nc" id="L190">        return stripFilename(str.replace(' ', '_'));</span>
+    }
+
+    /**
+     * Removes all characters in stripThis from the given string
+     * @param str original string, to be stripped.
+     * @param stripThis set of characters that should be stripped.
+     * @return the stripped string
+     */
+    private static String stripWithEscapesDisallowed(final String str, final CharSet stripThis) {
+<span class="nc bnc" id="L200" title="All 2 branches missed.">        if (str == null) {</span>
+<span class="nc" id="L201">            return null;</span>
+        }
+<span class="nc" id="L203">        final StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">        for (int i = 0; i &lt; str.length(); i++) {</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">            if (!stripThis.contains(str.charAt(i))) {</span>
+<span class="nc" id="L206">                sb.append(str.charAt(i));</span>
+            }
+        }
+<span class="nc" id="L209">        return sb.toString();</span>
+    }
+
+    /**
+     * Characters from 'str' will be stripped like this:
+     * any character that is in the 'stripThis' set will be replaced with '/'.
+     * any character that is escaped (preceded with '\') and not in the {@value #allowedEscapeChars} set will be replaced with '/'.
+     * when a character is replaced with '/' and also escaped then the preceding escape character '\' will be removed.
+     *
+     * @param str the original string
+     * @param stripThis set of characters that should be stripped.
+     * @return the stripped string
+     */
+    private static String strip(final String str, final CharSet stripThis) {
+<span class="pc bpc" id="L223" title="1 of 2 branches missed.">        if (str == null) {</span>
+<span class="nc" id="L224">            return null;</span>
+        }
+<span class="fc" id="L226">        final StringBuilder buf = new StringBuilder(str);</span>
+<span class="fc" id="L227">        int index = 0;</span>
+<span class="fc" id="L228">        int end = buf.length();</span>
+<span class="fc bfc" id="L229" title="All 2 branches covered.">        while (index &lt; end) {</span>
+<span class="fc bfc" id="L230" title="All 2 branches covered.">            if (buf.charAt(index) == '\\') {</span>
+                // Found an escape character.
+<span class="pc bpc" id="L232" title="1 of 2 branches missed.">                if (index + 1 == end) {</span>
+                    // If this is the last character we should remove it.
+<span class="nc" id="L234">                    buf.setCharAt(index, '/');</span>
+<span class="fc bfc" id="L235" title="All 2 branches covered.">                } else if (!isAllowedEscape(buf.charAt(index + 1))) {</span>
+                    // We did not allow this character to be escaped. Replace both the \ and the character with a single '/'.
+<span class="fc" id="L237">                    buf.setCharAt(index, '/');</span>
+<span class="fc" id="L238">                    buf.deleteCharAt(index + 1);</span>
+<span class="fc" id="L239">                    end--;</span>
+                } else {
+<span class="fc" id="L241">                    index++;</span>
+                }
+<span class="fc bfc" id="L243" title="All 2 branches covered.">            } else if ( stripThis.contains( buf.charAt(index)) ) {</span>
+                // Illegal character. Replace it with a '/'.
+<span class="fc" id="L245">                buf.setCharAt(index, '/');</span>
+            }
+<span class="fc" id="L247">            index++;</span>
+        }
+<span class="fc" id="L249">        final String result = buf.toString();</span>
+<span class="pc bpc" id="L250" title="3 of 4 branches missed.">        if ( log.isDebugEnabled() &amp;&amp; !result.equals(str)) {</span>
+<span class="nc" id="L251">            log.debug(&quot;Some chars stripped. Was '&quot;+str+&quot;' is now '&quot;+result+&quot;'.&quot;);</span>
+        }
+<span class="fc" id="L253">        return result;</span>
+    }
+
+    /**
+     * Checks if a string contains characters that would be potentially dangerous to use in an SQL query.
+     *
+     * @param str the string whose contents would be stripped.
+     * @return the offending characters with descriptions, or an empty set otherwise.
+     * @see #strip
+     */
+    public static  Set&lt;String&gt; hasSqlStripChars(final String str) {
+<span class="fc" id="L264">    	return hasStripChars(str, stripSqlChars);</span>
+    }
+
+    /**
+     * Checks if a string contains characters that would be potentially dangerous to use in a non-parameterized SQL query,
+     * assuming the the '-char is properly handled (escaped).
+     *
+     * @param str the string whose contents would be stripped.
+     * @return the offending characters with descriptions, or an empty set otherwise.
+     * @see #strip
+     */
+    public static  Set&lt;String&gt; hasSqlStripCharsAssumingSingleQuoteEscape(final String str) {
+<span class="nc" id="L276">        return hasStripChars(str, stripSqlCharsSingleQuoteEscaped);</span>
+    }
+
+    /**
+     * Checks if a string contains characters that would be potentially dangerous to use as DN, username etc.
+     *
+     * @param str the string whose contents would be stripped.
+     * @return the offending characters with descriptions, or an empty set otherwise.
+     * @see #strip
+     */
+    public static  Set&lt;String&gt; hasStripChars(final String str) {
+<span class="fc" id="L287">    	return hasStripChars(str, CharSet.INSTANCE);</span>
+    }
+
+    /**
+     * Check if 'str' has any chars that should be stripped by a call to {@link #strip(String, CharSet)}.
+     * @param str the string to be tested.
+     * @param checkThese characters that must be stripped.
+     * @return the offending characters with descriptions, or an empty set otherwise.
+     */
+    private static Set&lt;String&gt; hasStripChars(final String str, final CharSet checkThese) {
+<span class="fc" id="L297">        Set&lt;String&gt; result = new HashSet&lt;&gt;();</span>
+<span class="pc bpc" id="L298" title="1 of 2 branches missed.">        if (str == null) {</span>
+<span class="nc" id="L299">            return result;</span>
+        }
+<span class="fc" id="L301">        int index = 0;</span>
+<span class="fc" id="L302">        final int end = str.length();</span>
+<span class="fc bfc" id="L303" title="All 2 branches covered.">        while (index &lt; end) {</span>
+<span class="fc bfc" id="L304" title="All 2 branches covered.">            if (str.charAt(index) == '\\') {</span>
+                // Found an escape character.
+<span class="fc bfc" id="L306" title="All 2 branches covered.">                if (index + 1 == end) {</span>
+                    // If this is the last character.
+<span class="fc" id="L308">                     result.add(&quot;A trailing escape charater ('\').&quot;);</span>
+<span class="fc" id="L309">                     break;</span>
+                }
+<span class="fc bfc" id="L311" title="All 2 branches covered.">                if (!isAllowedEscape(str.charAt(index + 1))) {</span>
+<span class="fc" id="L312">                    result.add(&quot;Character that may not be escaped: &quot; + str.charAt(index + 1));</span>
+<span class="fc" id="L313">                    break;</span>
+                }
+<span class="fc" id="L315">                index++; // Skip one extra..</span>
+<span class="fc bfc" id="L316" title="All 2 branches covered.">            } else if ( checkThese.contains(str.charAt(index)) ) {</span>
+                // Found an illegal character.
+<span class="fc" id="L318">                result.add(&quot;'&quot; + str.charAt(index) + &quot;'&quot;);</span>
+            }
+<span class="fc" id="L320">            index++;</span>
+        }
+<span class="fc" id="L322">        return result;</span>
+    }
+
+    /**
+     * Checks if a character is an allowed escape character according to allowedEscapeChars
+     *
+     * @param ch the char to check
+     * @return true if char is an allowed escape character, false if now
+     */
+    private static boolean isAllowedEscape(final char ch) {
+<span class="fc bfc" id="L332" title="All 4 branches covered.">        return allowedEscapeChars.contains(ch) &amp;&amp; !CharSet.INSTANCE.contains(ch);</span>
+    }
+
+    /**
+     * Strips all whitespace including space, tabs, newlines etc from the given string.
+     *
+     * @param str the string
+     * @return the string with all whitespace removed
+     * @since 2.1b1
+     */
+    public static String stripWhitespace(final String str) {
+<span class="pc bpc" id="L343" title="1 of 2 branches missed.">        if (str == null) {</span>
+<span class="nc" id="L344">            return null;</span>
+        }
+<span class="fc" id="L346">        return WS.matcher(str).replaceAll(&quot;&quot;);</span>
+    }
+
+    /**
+     * Converts ip-adress octets, according to ipStringToOctets to human readable string in form 10.1.1.1 for ipv4 adresses.
+     *
+     * @param octets bytes
+     * @return ip address string, null if input is invalid
+     * @see #ipStringToOctets(String)
+     */
+    public static String ipOctetsToString(final byte[] octets) {
+<span class="fc" id="L357">        String ret = null;</span>
+<span class="pc bpc" id="L358" title="1 of 2 branches missed.">        if (octets.length == 4) {</span>
+<span class="fc" id="L359">            String ip = &quot;&quot;;</span>
+            // IPv4 address
+<span class="fc bfc" id="L361" title="All 2 branches covered.">            for (int i = 0; i &lt; 4; i++) {</span>
+                // What is going on there is that we are promoting a (signed) byte to int,
+                // and then doing a bitwise AND operation on it to wipe out everything but
+                // the first 8 bits. Because Java treats the byte as signed, if its unsigned
+                // value is above &gt; 127, the sign bit will be set, and it will appear to java
+                // to be negative. When it gets promoted to int, bits 0 through 7 will be the
+                // same as the byte, and bits 8 through 31 will be set to 1. So the bitwise
+                // AND with 0x000000FF clears out all of those bits.
+<span class="fc" id="L369">                final int intByte = 0x000000FF &amp; octets[i];</span>
+<span class="fc" id="L370">                final short t = (short) intByte; // NOPMD, we need short</span>
+<span class="fc bfc" id="L371" title="All 2 branches covered.">                if (StringUtils.isNotEmpty(ip)) {</span>
+<span class="fc" id="L372">                    ip += &quot;.&quot;;</span>
+                }
+<span class="fc" id="L374">                ip += t;</span>
+            }
+<span class="fc" id="L376">            ret = ip;</span>
+        }
+        // TODO: IPv6
+<span class="fc" id="L379">        return ret;</span>
+    }
+
+    /**
+     * Converts an IP-address string to octets of binary ints. ipv4 is of form a.b.c.d, i.e. at least four octets for example 192.168.5.54 ipv6 is of
+     * form a:b:c:d:e:f:g:h, for example 2001:0db8:85a3:0000:0000:8a2e:0370:7334
+     *
+     * Result is tested with openssl, that it's subjectAltName displays as intended.
+     *
+     * @param str string form of ip-address
+     * @return octets, empty array if input format is invalid, never null
+     */
+    public static byte[] ipStringToOctets(final String str) {
+<span class="fc" id="L392">        byte[] ret = null;</span>
+<span class="fc bfc" id="L393" title="All 2 branches covered.">        if (StringTools.isIpAddress(str)) {</span>
+            try {
+<span class="fc" id="L395">                final InetAddress adr = InetAddress.getByName(str);</span>
+<span class="fc" id="L396">                ret = adr.getAddress();</span>
+<span class="nc" id="L397">            } catch (UnknownHostException e) {</span>
+<span class="nc" id="L398">                log.info(&quot;Error parsing ip address (ipv4 or ipv6): &quot;, e);</span>
+<span class="fc" id="L399">            }</span>
+        }
+<span class="fc bfc" id="L401" title="All 2 branches covered.">        if (ret == null) {</span>
+<span class="fc" id="L402">            log.info(&quot;Not a IPv4 or IPv6 address, returning empty array.&quot;);</span>
+<span class="fc" id="L403">            ret = new byte[0];</span>
+        }
+<span class="fc" id="L405">        return ret;</span>
+    }
+
+    /**
+     * Determine if the given string is a valid IPv4 or IPv6 address.  This method
+     * uses pattern matching to see if the given string could be a valid IP address.
+     * Snitched from http://www.java2s.com/Code/Java/Network-Protocol/DetermineifthegivenstringisavalidIPv4orIPv6address.htm
+     * Under LGPLv2 license.
+     *
+     * @param ipAddress A string that is to be examined to verify whether or not
+     *  it could be a valid IP address.
+     * @return &lt;code&gt;true&lt;/code&gt; if the string is a value that is a valid IP address,
+     *  &lt;code&gt;false&lt;/code&gt; otherwise.
+     */
+    public static boolean isIpAddress(String ipAddress) {
+<span class="fc" id="L420">      Matcher m1 = StringTools.VALID_IPV4_PATTERN.matcher(ipAddress);</span>
+<span class="fc bfc" id="L421" title="All 2 branches covered.">      if (m1.matches()) {</span>
+<span class="fc" id="L422">        return true;</span>
+      }
+<span class="fc" id="L424">      Matcher m2 = StringTools.VALID_IPV6_PATTERN.matcher(ipAddress);</span>
+<span class="fc" id="L425">      return m2.matches();</span>
+    }
+
+    /**
+     * Check if a string constitutes a valid hostname for the dNSName attribute of the Subject
+     * Alternative Name X.509 certificate extension. This method does NOT check if the hostname
+     * can be resolved to an IP address, is registered with ICANN ect. Instead, the following
+     * checks are performed:
+     * &lt;ul&gt;
+     * &lt;li&gt;Any leading wildcard is stripped.&lt;/li&gt;
+     * &lt;li&gt;The DNS name is not allowed to end with a dot.&lt;/li&gt;
+     * &lt;li&gt;The input most be a syntactically valid hostname as per RFC 2181 and RFC 3490.&lt;/li&gt;
+     * &lt;li&gt;T̶h̶e̶ ̶d̶o̶m̶a̶i̶n̶ ̶n̶a̶m̶e̶ ̶m̶u̶s̶t̶ ̶n̶o̶t̶ ̶b̶e̶ ̶a̶ ̶r̶e̶g̶i̶s̶t̶r̶y̶ ̶s̶u̶f̶f̶i̶x̶.&lt;/li&gt;
+     * &lt;li&gt;T̶h̶e̶ ̶d̶o̶m̶a̶i̶n̶ ̶n̶a̶m̶e̶ ̶m̶u̶s̶t̶ ̶n̶o̶t̶ ̶b̶e̶ ̶a̶ ̶t̶o̶p̶-̶l̶e̶v̶e̶l̶ ̶d̶o̶m̶a̶i̶n̶.&lt;/li&gt;
+     * &lt;/ul&gt;
+     * This implementation is null-safe and relies on Guava's &lt;code&gt;InternetDomainName&lt;/code&gt;
+     * implementation for hostname validation a̶n̶d̶ ̶i̶d̶e̶n̶t̶i̶f̶i̶c̶a̶t̶i̶o̶n̶ ̶o̶f̶ ̶r̶e̶g̶i̶s̶t̶r̶y̶ ̶s̶u̶f̶f̶i̶c̶e̶s̶ ̶a̶n̶d̶ ̶T̶L̶D̶s̶.
+     * &lt;p&gt;
+     * Identification of TLDs and registry suffices are currently not supported because this
+     * functionality requires a newer version of the Guava library.
+     * @param dnsName the DNS name to check
+     * @return true if the input is valid SAN dNSName attribute value
+     */
+    public static boolean isValidSanDnsName(String dnsName) {
+<span class="pc bpc" id="L449" title="1 of 2 branches missed.">        if (dnsName == null) {</span>
+<span class="nc" id="L450">            return false;</span>
+        }
+        // FQDN ending with a dot is accepted by Guava, so we need to check for that separately
+<span class="fc bfc" id="L453" title="All 2 branches covered.">        if (dnsName.endsWith(&quot;.&quot;)) {</span>
+<span class="fc" id="L454">            return false;</span>
+        }
+        // Strip any leading wildcard
+<span class="fc bfc" id="L457" title="All 2 branches covered.">        dnsName = dnsName.startsWith(&quot;*.&quot;) ? dnsName.substring(2) : dnsName;</span>
+<span class="fc" id="L458">        return InternetDomainName.isValid(dnsName);</span>
+        // TODO Once we get Guava &gt;=23.4 (requires Java 8)
+        //final InternetDomainName internetDomainName = InternetDomainName.from(dnsName);
+        //return !internetDomainName.isRegistrySuffix() &amp;&amp; !internetDomainName.isTopLevelDomain();
+    }
+
+    /**
+     * Takes input and converts to Base64 on the format &quot;B64:&amp;lt;base64 endoced string&amp;gt;&quot;, if the string is not null or empty.
+     *
+     * @param s String to base64 encode
+     * @return Base64 encoded string, or original string if it was null or empty
+     */
+    public static String putBase64String(final String s) {
+<span class="fc" id="L471">    	return putBase64String(s, false);</span>
+    }
+
+    /**
+     * Takes input and converts to Base64 on the format &quot;B64:&amp;lt;base64 endoced string&amp;gt;&quot;, if the string is not null or empty.
+     *
+     * @param s String to base64 encode
+     * @param dontEncodeAsciiPrintable if the String is made up of pure ASCII printable characters, we will not B64 encode it
+     * @return Base64 encoded string, or original string if it was null or empty
+     */
+    public static String putBase64String(final String s, boolean dontEncodeAsciiPrintable) {
+<span class="fc bfc" id="L482" title="All 2 branches covered.">        if (StringUtils.isEmpty(s)) {</span>
+<span class="fc" id="L483">            return s;</span>
+        }
+<span class="fc bfc" id="L485" title="All 2 branches covered.">        if (s.startsWith(&quot;B64:&quot;)) {</span>
+            // Only encode once
+<span class="fc" id="L487">            return s;</span>
+        }
+<span class="fc bfc" id="L489" title="All 4 branches covered.">        if (dontEncodeAsciiPrintable &amp;&amp; StringUtils.isAsciiPrintable(s)) {</span>
+<span class="fc" id="L490">        	return s;</span>
+        }
+        // Since we used getBytes(s, &quot;UTF-8&quot;) in this method, we must use UTF-8 when doing the reverse in another method
+<span class="fc" id="L493">        return &quot;B64:&quot; + new String(Base64.encode(s.getBytes(StandardCharsets.UTF_8), false));</span>
+    }
+
+    /**
+     * Takes a string given as input and converts it from Base64 if the string
+     * begins with the case-insensitive prefix b64, i.e. is on format &quot;b64:&amp;lt;base64 encoded string&amp;gt;&quot;.
+     *
+     * @param input String to Base64 decode
+     * @return Base64 decoded string, or original string if it was not base64 encoded
+     */
+    public static String getBase64String(final String input) {
+<span class="fc bfc" id="L504" title="All 2 branches covered.">        if (StringUtils.isEmpty(input)) {</span>
+<span class="fc" id="L505">            return input;</span>
+        }
+<span class="fc bfc" id="L507" title="All 2 branches covered.">        if (!input.toLowerCase().startsWith(&quot;b64:&quot;)) {</span>
+<span class="fc" id="L508">            return input;</span>
+        }
+<span class="fc" id="L510">        final String base64Data = input.substring(4);</span>
+<span class="fc bfc" id="L511" title="All 2 branches covered.">        if (base64Data.length() == 0) {</span>
+<span class="fc" id="L512">            return input;</span>
+        }
+        try {
+            // Since we used getBytes(s, &quot;UTF-8&quot;) in the method putBase64String, we must use UTF-8 when doing the reverse
+<span class="fc" id="L516">            return new String(Base64.decode(base64Data.getBytes(&quot;UTF-8&quot;)), &quot;UTF-8&quot;);</span>
+<span class="nc" id="L517">        } catch (UnsupportedEncodingException | DecoderException e) {</span>
+<span class="nc" id="L518">            return input;</span>
+        }
+    }
+
+    /**
+     * Converts hexadecimal string to BigInteger. Hex prefix (0x) is ignored
+     * @param hexString HEX value with or without '0x' prefix
+     * @return BigInteger value
+     */
+    public static BigInteger getBigIntegerFromHexString(String hexString) {
+<span class="nc bnc" id="L528" title="All 4 branches missed.">        if (hexString.startsWith(&quot;0x&quot;) || hexString.startsWith(&quot;0X&quot;)) {</span>
+<span class="nc" id="L529">            hexString = hexString.substring(2, hexString.length());</span>
+        }
+<span class="nc" id="L531">        return new BigInteger(hexString, 16);</span>
+    }
+
+    /** Obfuscates a String if it does not already start with &quot;OBF:&quot;
+     * @see #obfuscate(String)
+     * @param s string to obfuscate
+     * @return an obfuscated string, or the original if it started with OBF:
+     */
+    public static String obfuscateIfNot(final String s) {
+<span class="nc bnc" id="L540" title="All 2 branches missed.">        if (s.startsWith(&quot;OBF:&quot;)) {</span>
+<span class="nc" id="L541">            return s;</span>
+        }
+<span class="nc" id="L543">        return obfuscate(s);</span>
+    }
+    /**
+     * Makes a string &quot;hard&quot; to read. Does not provide any real security, but at least lets you hide passwords so that people with no malicious
+     * intent don't accidentally stumble upon information they should not have.
+     *
+     * @param s string to obfuscate
+     * @return an obfuscated string, or same as input if null or empty
+     */
+    public static String obfuscate(final String s) {
+        // Don't try to obfuscate null or empty strings
+<span class="fc bfc" id="L554" title="All 2 branches covered.">        if (StringUtils.isEmpty(s)) {</span>
+<span class="fc" id="L555">            return s;</span>
+        }
+<span class="fc" id="L557">        final StringBuilder buf = new StringBuilder(&quot;OBF:&quot;);</span>
+<span class="fc" id="L558">        final byte[] b = s.getBytes();</span>
+
+<span class="fc bfc" id="L560" title="All 2 branches covered.">        for (int i = 0; i &lt; b.length; i++) {</span>
+<span class="fc" id="L561">            final byte b1 = b[i];</span>
+<span class="fc" id="L562">            final byte b2 = b[s.length() - (i + 1)];</span>
+<span class="fc" id="L563">            final int i1 = b1 + b2 + 127;</span>
+<span class="fc" id="L564">            final int i2 = b1 - b2 + 127;</span>
+<span class="fc" id="L565">            final int i0 = i1 * 256 + i2;</span>
+<span class="fc" id="L566">            final String x = Integer.toString(i0, 36);</span>
+
+<span class="pc bpc" id="L568" title="1 of 2 branches missed.">            switch (x.length()) {</span>
+            case 1:
+            case 2:
+            case 3:
+<span class="nc" id="L572">                buf.append('0');</span>
+<span class="nc" id="L573">                break;</span>
+            default:
+<span class="fc" id="L575">                buf.append(x);</span>
+                break;
+            }
+        }
+<span class="fc" id="L579">        return buf.toString();</span>
+
+    }
+
+    /** Deobfuscates a String if it does start with &quot;OBF:&quot;
+     * @see #deobfuscate(String)
+     * @param s string to deobfuscate
+     * @return a deobfuscated string, or the original if it does not start with OBF:
+     */
+    public static String deobfuscateIf(final String s) {
+<span class="fc bfc" id="L589" title="All 4 branches covered.">        if (s != null &amp;&amp; s.startsWith(&quot;OBF:&quot;)) {</span>
+<span class="fc" id="L590">            return deobfuscate(s);</span>
+        }
+<span class="fc" id="L592">        return s;</span>
+    }
+    /**
+     * Retrieves the clear text from a string obfuscated with the obfuscate methods
+     *
+     * @param in obfuscated string, usually (but not necessarily) starts with OBF:
+     * @return plain text string, or original if it was empty
+     */
+    public static String deobfuscate(final String in) {
+<span class="fc" id="L601">        String s = in;</span>
+<span class="pc bpc" id="L602" title="1 of 4 branches missed.">        if (s != null &amp;&amp; s.startsWith(&quot;OBF:&quot;)) {</span>
+<span class="fc" id="L603">            s = s.substring(4);</span>
+        }
+<span class="fc bfc" id="L605" title="All 2 branches covered.">        if (StringUtils.isEmpty(s)) {</span>
+<span class="fc" id="L606">            return s;</span>
+        }
+<span class="fc" id="L608">        byte[] b = new byte[s.length() / 2];</span>
+<span class="fc" id="L609">        int l = 0;</span>
+<span class="fc bfc" id="L610" title="All 2 branches covered.">        for (int i = 0; i &lt; s.length(); i += 4) {</span>
+<span class="fc" id="L611">            final String x = s.substring(i, i + 4);</span>
+<span class="fc" id="L612">            final int i0 = Integer.parseInt(x, 36);</span>
+<span class="fc" id="L613">            final int i1 = (i0 / 256);</span>
+<span class="fc" id="L614">            final int i2 = (i0 % 256);</span>
+<span class="fc" id="L615">            b[l++] = (byte) ((i1 + i2 - 254) / 2);</span>
+        }
+
+<span class="fc" id="L618">        return new String(b, 0, l);</span>
+    }
+
+    private static String getEncryptionVersion() {
+<span class="fc" id="L622">        return &quot;encv1&quot;;</span>
+    }
+
+    /**
+     * Method takes an encrypted string (by using the methods in this class) and returns the method used to encrypt the string with
+     * @param in indata that is encrypted/obfuscated
+     * @return &quot;legacy&quot; for old data, &quot;encv1&quot; or later to describe a specific version
+     */
+    public static String getEncryptVersionFromString(final String in) {
+<span class="pc bpc" id="L631" title="1 of 4 branches missed.">        if (in != null &amp;&amp; in.contains(&quot;:&quot;)) {</span>
+            // this is a newer version that has encryption version and parameters in it
+<span class="fc" id="L633">            String[] strs = StringUtils.split(in, ':');</span>
+<span class="pc bpc" id="L634" title="2 of 4 branches missed.">            if (strs == null || strs.length != 4) {</span>
+<span class="nc" id="L635">                log.warn(&quot;Input contains : but is not an encryption string from EJBCA (with 4 fields).&quot;);</span>
+            } else {
+<span class="fc" id="L637">                return strs[0];</span>
+            }
+<span class="nc" id="L639">        } else {</span>
+            try {
+<span class="fc" id="L641">                Hex.decode(in);</span>
+<span class="fc" id="L642">            } catch (DecoderException e) {</span>
+                // it means it was not hex encoded
+<span class="fc" id="L644">                return &quot;none&quot;;</span>
+<span class="fc" id="L645">            }</span>
+
+        }
+<span class="fc" id="L648">        return &quot;legacy&quot;;</span>
+    }
+
+    private static byte[] getSalt() {
+<span class="fc" id="L652">        final boolean legacy = defaultP.equals(ConfigurationHolder.getString(&quot;password.encryption.key&quot;));</span>
+<span class="fc bfc" id="L653" title="All 2 branches covered.">        if (legacy) {</span>
+<span class="fc" id="L654">            log.debug(&quot;Using legacy password encryption/decryption&quot;);</span>
+<span class="fc" id="L655">            return getDefaultSalt();</span>
+        } else {
+            // Generate 32 random bytes
+<span class="fc" id="L658">            final SecureRandom random = new SecureRandom();</span>
+<span class="fc" id="L659">            byte[] bytes = new byte[32];</span>
+<span class="fc" id="L660">            random.nextBytes(bytes);</span>
+<span class="fc" id="L661">            return bytes;</span>
+        }
+    }
+
+    private static byte[] getDefaultSalt() {
+<span class="fc" id="L666">        return &quot;1958473059684739584hfurmaqiekcmq&quot;.getBytes(StandardCharsets.UTF_8);</span>
+    }
+
+<span class="fc" id="L669">    private static final String defaultP = deobfuscate(&quot;OBF:1m0r1kmo1ioe1ia01j8z17y41l0q1abo1abm1abg1abe1kyc17ya1j631i5y1ik01kjy1lxf&quot;);</span>
+
+    private static int getDefaultCount() {
+<span class="fc" id="L672">        return 100;</span>
+    }
+
+    /** number of rounds for password based encryption. FIXME 100 is not secure and can easily be broken.
+     * @return count
+     */
+    private static int getCount() {
+<span class="fc" id="L679">        final String str = ConfigurationHolder.getString(&quot;password.encryption.count&quot;);</span>
+<span class="fc" id="L680">        final boolean legacy = defaultP.equals(ConfigurationHolder.getString(&quot;password.encryption.key&quot;));</span>
+<span class="pc bpc" id="L681" title="1 of 4 branches missed.">        if (StringUtils.isNumeric(str) &amp;&amp; !legacy) {</span>
+<span class="fc" id="L682">            return Integer.valueOf(str);</span>
+        } else {
+<span class="fc" id="L684">            return getDefaultCount(); // Old default value before EJBCA 6.8.0</span>
+        }
+    }
+
+    /**
+     * Method used for encrypting a string.
+     *
+     * Note that this method does provide limited security (e.g. DBA's won't be able to access encrypted passwords in database)
+     * as long as the 'password.encryption.key' is set, otherwise, it won't provide any real encryption more than obfuscation.
+     * @param in string
+     * @return encrypted string
+     * @throws InvalidKeyException if key invalid
+     * @throws InvalidAlgorithmParameterException if algo invalid 
+     * @throws IllegalBlockSizeException if block size invalid
+     * @throws BadPaddingException if padding invalid
+     * @throws InvalidKeySpecException if spec invalis
+     */
+    public static String pbeEncryptStringWithSha256Aes192(final String in)
+            throws InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, InvalidKeySpecException {
+<span class="fc" id="L703">        char[] p = ConfigurationHolder.getString(&quot;password.encryption.key&quot;).toCharArray();</span>
+<span class="fc" id="L704">        return pbeEncryptStringWithSha256Aes192(in, p);</span>
+    }
+
+    /**
+     *
+     * @param in clear text string to encrypt
+     * @param p encryption passphrase
+     * @return hex encoded encrypted data in form &quot;encryption_version:salt:count:encrypted_data&quot; or clear text string if no strong crypto is available (Oracle JVM without unlimited strength crypto policy files)
+     * @throws InvalidKeyException if key invalid
+     * @throws IllegalBlockSizeException if block size invalid
+     * @throws BadPaddingException if padding invalid
+     * @throws InvalidKeySpecException if spec invalis
+     */
+    public static String pbeEncryptStringWithSha256Aes192(final String in, char[] p)
+            throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidKeySpecException {
+<span class="fc" id="L719">        CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+<span class="pc bpc" id="L720" title="1 of 2 branches missed.">        if (CryptoProviderTools.isUsingExportableCryptography()) {</span>
+<span class="nc" id="L721">            log.warn(&quot;Encryption not possible due to weak crypto policy.&quot;);</span>
+<span class="nc" id="L722">            return in;</span>
+        }
+<span class="fc" id="L724">        final byte[] salt = getSalt();</span>
+<span class="fc" id="L725">        final int count = getCount();</span>
+
+<span class="fc" id="L727">        final PBEKeySpec keySpec = new PBEKeySpec(p, salt, count);</span>
+        final Cipher c;
+<span class="fc" id="L729">        final String algorithm = &quot;PBEWithSHA256And192BitAES-CBC-BC&quot;;</span>
+        try {
+<span class="fc" id="L731">            c = Cipher.getInstance(algorithm, BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="fc" id="L732">            final SecretKeyFactory fact = SecretKeyFactory.getInstance(algorithm, BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="fc" id="L733">            c.init(Cipher.ENCRYPT_MODE, fact.generateSecret(keySpec));</span>
+<span class="nc" id="L734">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L735">            throw new IllegalStateException(&quot;Hard coded algorithm &quot; + algorithm + &quot; was not found.&quot;, e);</span>
+<span class="nc" id="L736">        } catch(NoSuchProviderException e) {</span>
+<span class="nc" id="L737">            throw new IllegalStateException(&quot;BouncyCastle provider was not installed.&quot;, e);</span>
+<span class="nc" id="L738">        } catch (NoSuchPaddingException e) {</span>
+<span class="nc" id="L739">            throw new IllegalStateException(&quot;Padding for hard coded algorithm &quot; + algorithm + &quot; was not found.&quot;, e);</span>
+<span class="fc" id="L740">        }</span>
+<span class="fc" id="L741">        final byte[] enc = c.doFinal(in.getBytes(StandardCharsets.UTF_8));</span>
+        // Create a return value which is &quot;encryption_version:salt:count:encrypted_data&quot;
+<span class="fc" id="L743">        StringBuilder ret = new StringBuilder(64);</span>
+<span class="fc" id="L744">        final boolean legacy = defaultP.equals(ConfigurationHolder.getString(&quot;password.encryption.key&quot;));</span>
+<span class="fc bfc" id="L745" title="All 2 branches covered.">        if (legacy) {</span>
+            // In the old legacy system we only return the encrypted data without extra info
+<span class="fc" id="L747">            ret.append(Hex.toHexString(enc));</span>
+        } else {
+<span class="fc" id="L749">            ret.append(getEncryptionVersion()).append(':').append(Hex.toHexString(salt)).append(':').append(count).append(':').append(Hex.toHexString(enc));</span>
+        }
+<span class="pc bpc" id="L751" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L752">            log.trace(&quot;Encrypted data: &quot;+ret.toString());</span>
+        }
+<span class="fc" id="L754">        return ret.toString();</span>
+    }
+
+    /**
+    *
+    * @param in hex encoded encrypted string in form &quot;encryption_version:salt:count:encrypted_data&quot;, or just &quot;encrypted_data&quot; for older versions
+    * @return decrypted clear text string
+     * @throws InvalidKeyException if key invalid
+     * @throws IllegalBlockSizeException if block size invalid
+     * @throws BadPaddingException if padding invalid
+     * @throws InvalidKeySpecException if spec invalis
+    */
+   public static String pbeDecryptStringWithSha256Aes192(final String in) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidKeySpecException {
+<span class="nc" id="L767">       char[] p = ConfigurationHolder.getString(&quot;password.encryption.key&quot;).toCharArray();</span>
+<span class="nc" id="L768">       return pbeDecryptStringWithSha256Aes192(in, p);</span>
+   }
+    
+    /**
+     *
+     * @param in hex encoded encrypted string in form &quot;encryption_version:salt:count:encrypted_data&quot;, or just &quot;encrypted_data&quot; for older versions
+     * @param p decryption passphrase
+     * @return decrypted clear text string
+     * @throws InvalidKeyException if key invalid
+     * @throws IllegalBlockSizeException if block size invalid
+     * @throws BadPaddingException if padding invalid
+     * @throws InvalidKeySpecException if spec invalis
+     */
+    public static String pbeDecryptStringWithSha256Aes192(final String in, char[] p) throws IllegalBlockSizeException, BadPaddingException,
+            InvalidKeyException, InvalidKeySpecException {
+<span class="fc" id="L783">        CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+<span class="pc bpc" id="L784" title="1 of 2 branches missed.">        if (CryptoProviderTools.isUsingExportableCryptography()) {</span>
+<span class="nc" id="L785">            log.warn(&quot;Decryption not possible due to weak crypto policy.&quot;);</span>
+<span class="nc" id="L786">            return in;</span>
+        }
+        final byte[] salt;
+<span class="fc" id="L789">        String data = in;</span>
+        int count;
+<span class="pc bpc" id="L791" title="1 of 4 branches missed.">        if (in != null &amp;&amp; in.contains(&quot;:&quot;)) {</span>
+            // this is a newer version that has encryption version and parameters in it
+<span class="fc" id="L793">            String[] strs = StringUtils.split(in, ':');</span>
+<span class="pc bpc" id="L794" title="2 of 4 branches missed.">            if (strs == null || strs.length != 4) {</span>
+<span class="nc" id="L795">                log.warn(&quot;Input contains : but is not an encryption string from EJBCA (with 4 fields).&quot;);</span>
+<span class="nc" id="L796">                return in;</span>
+            }
+<span class="fc" id="L798">            salt = Hex.decode(strs[1].getBytes(StandardCharsets.UTF_8));</span>
+<span class="fc" id="L799">            count = Integer.valueOf(strs[2]);</span>
+<span class="fc" id="L800">            data = strs[3];</span>
+<span class="fc" id="L801">        } else {</span>
+<span class="fc" id="L802">            salt = getDefaultSalt();</span>
+<span class="fc" id="L803">            count = getDefaultCount();</span>
+        }
+        // We can do different handling here depending on version, but currently we only have one so.
+<span class="fc" id="L806">        final String algorithm = &quot;PBEWithSHA256And192BitAES-CBC-BC&quot;;</span>
+        try {
+<span class="fc" id="L808">            final Cipher c = Cipher.getInstance(algorithm, BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="fc" id="L809">            final PBEKeySpec keySpec = new PBEKeySpec(p, salt, count);</span>
+<span class="fc" id="L810">            final SecretKeyFactory fact = SecretKeyFactory.getInstance(algorithm, BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="fc" id="L811">            c.init(Cipher.DECRYPT_MODE, fact.generateSecret(keySpec));</span>
+<span class="fc" id="L812">            final byte[] dec = c.doFinal(Hex.decode(data.getBytes(StandardCharsets.UTF_8)));</span>
+<span class="fc" id="L813">            return new String(dec);</span>
+<span class="nc" id="L814">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L815">            throw new IllegalStateException(&quot;Hard coded algorithm &quot; + algorithm + &quot; was not found.&quot;, e);</span>
+<span class="nc" id="L816">        } catch (NoSuchProviderException e) {</span>
+<span class="nc" id="L817">            throw new IllegalStateException(&quot;BouncyCastle provider was not installed.&quot;, e);</span>
+<span class="nc" id="L818">        } catch (NoSuchPaddingException e) {</span>
+<span class="nc" id="L819">            throw new IllegalStateException(&quot;Padding for hard coded algorithm &quot; + algorithm + &quot; was not found.&quot;, e);</span>
+        }
+
+    }
+
+    /** Method to handle different versions of password encryption transparently
+     * 
+     * @param in The encrypted or clear text password to try to decrypt
+     * @param sDebug A message to put in the debug log indicating where the password came from, for example 'autoactivation pin', do NOT put the password itself here
+     * @return The decrypted password, or same as input if it was not encrypted
+     */
+    public static String passwordDecryption(final String in, final String sDebug) {
+        try {
+<span class="fc" id="L832">            final String tmp = pbeDecryptStringWithSha256Aes192(in, ConfigurationHolder.getString(&quot;password.encryption.key&quot;).toCharArray());</span>
+<span class="pc bpc" id="L833" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L834">                log.debug(&quot;Using encrypted &quot; + sDebug);</span>
+            }
+<span class="fc" id="L836">            return tmp;</span>
+<span class="fc" id="L837">        } catch (Throwable t) { // NOPMD: we want to catch everything here</span>
+            try {
+<span class="nc" id="L839">                final String tmp = pbeDecryptStringWithSha256Aes192(in, ConfigurationHolder.getDefaultValue(&quot;password.encryption.key&quot;).toCharArray());</span>
+<span class="nc" id="L840">                log.warn(&quot;Using encrypted &quot; + sDebug + &quot; (falling back to default 'password.encryption.key')&quot;);</span>
+<span class="nc" id="L841">                return tmp;</span>
+<span class="fc" id="L842">            } catch (Throwable t2) { // NOPMD: we want to catch everything here</span>
+<span class="pc bpc" id="L843" title="3 of 4 branches missed.">                if (in.matches(&quot;[0-9a-fA-F]+&quot;) &amp;&amp; in.length() % 32 == 0) { // If input is hexadecimal and its length is multiple of 32 (i.e. 16 bytes, AES block size) we assume it is an encrypted password.</span>
+<span class="nc" id="L844">                    log.error(&quot;Password decryption failed. 'password.encryption.key' might have been modified more than once.&quot;);</span>
+                }
+<span class="pc bpc" id="L846" title="1 of 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L847">                    log.debug(&quot;Using cleartext &quot; + sDebug);</span>
+                }
+<span class="fc" id="L849">                return in;</span>
+            }
+        }
+    }
+
+    public static String incrementKeySequence(final int keySequenceFormat, final String oldSequence) {
+<span class="pc bpc" id="L855" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L856">            log.trace(&quot;&gt;incrementKeySequence: &quot; + keySequenceFormat + &quot;, &quot; + oldSequence);</span>
+        }
+        // If the sequence does not contain any number in it at all, we can only return the same
+<span class="fc" id="L859">        String ret = null;</span>
+        // If the sequence starts with a country code we will increment the remaining characters leaving
+        // the first two untouched. Per character 10 [0-9] or 36 [0-9A-Z] different values
+        // can be coded
+<span class="fc bfc" id="L863" title="All 2 branches covered.">        if (keySequenceFormat == KEY_SEQUENCE_FORMAT_NUMERIC) {</span>
+<span class="fc" id="L864">            ret = incrementNumeric(oldSequence);</span>
+<span class="fc bfc" id="L865" title="All 2 branches covered.">        } else if (keySequenceFormat == KEY_SEQUENCE_FORMAT_ALPHANUMERIC) {</span>
+<span class="fc" id="L866">            ret = incrementAlphaNumeric(oldSequence);</span>
+<span class="fc bfc" id="L867" title="All 2 branches covered.">        } else if (keySequenceFormat == KEY_SEQUENCE_FORMAT_COUNTRY_CODE_PLUS_NUMERIC) {</span>
+<span class="fc" id="L868">            final String countryCode = oldSequence.substring(0, Math.min(2, oldSequence.length()));</span>
+<span class="pc bpc" id="L869" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L870">                log.debug(&quot;countryCode: &quot; + countryCode);</span>
+            }
+<span class="fc" id="L872">            final String inc = incrementNumeric(oldSequence.substring(2));</span>
+            // Cut off the country code
+<span class="pc bpc" id="L874" title="2 of 4 branches missed.">            if (oldSequence.length() &gt; 2 &amp;&amp; inc != null) {</span>
+<span class="fc" id="L875">                ret = countryCode + inc;</span>
+            }
+<span class="pc bpc" id="L877" title="1 of 2 branches missed.">        } else if (keySequenceFormat == KEY_SEQUENCE_FORMAT_COUNTRY_CODE_PLUS_ALPHANUMERIC) {</span>
+<span class="fc" id="L878">            final String countryCode = oldSequence.substring(0, Math.min(2, oldSequence.length()));</span>
+<span class="pc bpc" id="L879" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L880">                log.debug(&quot;countryCode: &quot; + countryCode);</span>
+            }
+<span class="fc" id="L882">            final String inc = incrementAlphaNumeric(oldSequence.substring(2));</span>
+            // Cut off the country code
+<span class="pc bpc" id="L884" title="2 of 4 branches missed.">            if (oldSequence.length() &gt; 2 &amp;&amp; inc != null) {</span>
+<span class="fc" id="L885">                ret = countryCode + inc;</span>
+            }
+        }
+        // unknown, fall back to old implementation
+<span class="fc bfc" id="L889" title="All 2 branches covered.">        if (ret == null) {</span>
+<span class="fc" id="L890">            ret = oldSequence;</span>
+            // A sequence can be 00001, or SE001 for example
+            // Here we will strip any sequence number at the end of the key label and add the new sequence there
+            // We will only count decimal (0-9) to ensure that we will not accidentally update the first to
+            // characters to the provided country code
+<span class="fc" id="L895">            final StringBuilder buf = new StringBuilder();</span>
+<span class="pc bpc" id="L896" title="1 of 2 branches missed.">            for (int i = oldSequence.length() - 1; i &gt;= 0; i--) {</span>
+<span class="fc" id="L897">                final char c = oldSequence.charAt(i);</span>
+<span class="fc bfc" id="L898" title="All 2 branches covered.">                if (CharUtils.isAsciiNumeric(c)) {</span>
+<span class="fc" id="L899">                    buf.insert(0, c);</span>
+                } else {
+                    break; // at first non numeric character we break
+                }
+            }
+<span class="fc" id="L904">            final int restlen = oldSequence.length() - buf.length();</span>
+<span class="fc" id="L905">            final String rest = oldSequence.substring(0, restlen);</span>
+
+<span class="fc" id="L907">            final String intStr = buf.toString();</span>
+<span class="fc bfc" id="L908" title="All 2 branches covered.">            if (StringUtils.isNotEmpty(intStr)) {</span>
+<span class="fc" id="L909">                Integer seq = Integer.valueOf(intStr);</span>
+<span class="fc" id="L910">                seq = seq + 1;</span>
+                // We want this to be the same number of numbers as we converted and incremented
+<span class="fc" id="L912">                final DecimalFormat df = new DecimalFormat(&quot;0000000000&quot;.substring(0, intStr.length()));</span>
+<span class="fc" id="L913">                final String fseq = df.format(seq);</span>
+<span class="fc" id="L914">                ret = rest + fseq;</span>
+<span class="pc bpc" id="L915" title="1 of 2 branches missed.">                if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L916">                    log.trace(&quot;&lt;incrementKeySequence: &quot; + ret);</span>
+                }
+<span class="fc" id="L918">            } else {</span>
+<span class="fc" id="L919">                log.info(&quot;incrementKeySequence - Sequence does not contain any nummeric part: &quot; + ret);</span>
+            }
+        }
+<span class="fc" id="L922">        return ret;</span>
+    }
+
+    private static String incrementNumeric(final String s) {
+        // check if input is valid, if not return null
+<span class="fc bfc" id="L927" title="All 2 branches covered.">        if (!s.matches(&quot;[0-9]{1,5}&quot;)) {</span>
+<span class="fc" id="L928">            return null;</span>
+        }
+<span class="fc" id="L930">        final int len = s.length();</span>
+        // Parse to int and increment by 1
+<span class="fc" id="L932">        int incrSeq = Integer.parseInt(s, 10) + 1;</span>
+        // Reset if the maximum value is exceeded
+<span class="pc bpc" id="L934" title="1 of 2 branches missed.">        if (incrSeq == Math.pow(10, len)) {</span>
+<span class="nc" id="L935">            incrSeq = 0;</span>
+        }
+        // Make a nice String again
+<span class="fc" id="L938">        String newSeq = &quot;00000&quot; + Integer.toString(incrSeq, 10);</span>
+<span class="fc" id="L939">        newSeq = newSeq.substring(newSeq.length() - len);</span>
+<span class="fc" id="L940">        return newSeq.toUpperCase(Locale.ENGLISH);</span>
+    }
+
+    private static String incrementAlphaNumeric(final String s) {
+        // check if input is valid, if not return null
+<span class="pc bpc" id="L945" title="1 of 2 branches missed.">        if (!s.matches(&quot;[0-9A-Z]{1,5}&quot;)) {</span>
+<span class="nc" id="L946">            return null;</span>
+        }
+<span class="fc" id="L948">        final int len = s.length();</span>
+        // Parse to int and increment by 1
+<span class="fc" id="L950">        int incrSeq = Integer.parseInt(s, 36) + 1;</span>
+        // Reset if the maximum value is exceeded
+<span class="pc bpc" id="L952" title="1 of 2 branches missed.">        if (incrSeq == Math.pow(36, len)) {</span>
+<span class="nc" id="L953">            incrSeq = 0;</span>
+        }
+        // Make a nice String again
+<span class="fc" id="L956">        String newSeq = &quot;00000&quot; + Integer.toString(incrSeq, 36);</span>
+<span class="fc" id="L957">        newSeq = newSeq.substring(newSeq.length() - len);</span>
+<span class="fc" id="L958">        return newSeq.toUpperCase(Locale.ENGLISH);</span>
+    }
+
+    /**
+     * Splits a string with semicolon separated and optionally double-quoted strings into a collection of strings.
+     * &lt;p&gt;
+     * Strings that contains semicolon has to be quoted. Unbalanced quotes (the end quote is missing) is handled as if there was a quote at the end of
+     * the string.
+     *
+     * &lt;pre&gt;
+     * Examples:
+     * splitURIs(&quot;a;b;c&quot;) =&amp;gt; [a, b, c]
+     * splitURIs(&quot;a;\&quot;b;c\&quot;;d&quot;) =&amp;gt; [a, b;c, d]
+     * splitURIs(&quot;a;\&quot;b;c;d&quot;) =&amp;gt; [a, b;c;d]
+     * &lt;/pre&gt;
+     * &lt;p&gt;
+     * See org.ejbca.core.model.ca.certextensions.TestCertificateExtensionManager#test03TestSplitURIs() for more examples.
+     *
+     * @param dPoints The semicolon separated string and which optionally uses double-quotes
+     * @return A collection of strings
+     */
+    public static Collection&lt;String&gt; splitURIs(String dPoints) {
+
+<span class="fc" id="L981">        String dispPoints = dPoints.trim();</span>
+
+<span class="fc" id="L983">        final LinkedList&lt;String&gt; result = new LinkedList&lt;String&gt;();</span>
+<span class="fc bfc" id="L984" title="All 2 branches covered.">        for (int i = 0; i &lt; dispPoints.length(); i++) {</span>
+<span class="fc" id="L985">            int nextQ = dispPoints.indexOf('&quot;', i);</span>
+<span class="fc bfc" id="L986" title="All 2 branches covered.">            if (nextQ == i) {</span>
+<span class="fc" id="L987">                nextQ = dispPoints.indexOf('&quot;', i + 1);</span>
+<span class="fc bfc" id="L988" title="All 2 branches covered.">                if (nextQ == -1) {</span>
+<span class="fc" id="L989">                    nextQ = dispPoints.length(); // unbalanced so eat(the rest)</span>
+                }
+                // eat(to quote)
+<span class="fc" id="L992">                result.add(dispPoints.substring(i + 1, nextQ).trim());</span>
+<span class="fc" id="L993">                i = nextQ;</span>
+            } else {
+<span class="fc" id="L995">                final int nextSep = dispPoints.indexOf(';', i);</span>
+<span class="fc bfc" id="L996" title="All 2 branches covered.">                if (nextSep != i) {</span>
+<span class="fc bfc" id="L997" title="All 2 branches covered.">                    if (nextSep != -1) { // eat(to sep)</span>
+<span class="fc" id="L998">                        result.add(dispPoints.substring(i, nextSep).trim());</span>
+<span class="fc" id="L999">                        i = nextSep;</span>
+<span class="pc bpc" id="L1000" title="1 of 2 branches missed.">                    } else if (i &lt; dispPoints.length()) { // eat(the rest)</span>
+<span class="fc" id="L1001">                        result.add(dispPoints.substring(i).trim());</span>
+<span class="fc" id="L1002">                        break;</span>
+                    }
+                } // Else skip
+            }
+        }
+<span class="fc" id="L1007">        return result;</span>
+    }
+
+    /**
+     * Parses the given string according to a specific format based on the certificate-data stored in the LogEntryData table in the database.
+     *
+     * @param certdata the string containing the certificate details
+     * @return a String array with two elements, the first is the certificate serialnumber and the second one is the certificate issuerDN
+     */
+    public static String[] parseCertData(final String certdata) {
+<span class="pc bpc" id="L1017" title="1 of 2 branches missed.">        if (certdata == null) {</span>
+<span class="nc" id="L1018">            return null;</span>
+        }
+
+<span class="fc" id="L1021">        final String dnStrings = &quot;([a-zA-Z0-9]+|(([0-9]+\\.)*[0-9]+))&quot;;</span>
+<span class="fc" id="L1022">        final String formats[] = { &quot;(^[0-9A-Fa-f]+), ?((&quot; + dnStrings + &quot;=[^,]+,)*(&quot; + dnStrings + &quot;=[^,]+)*)&quot;,</span>
+                &quot;(^[0-9A-Fa-f]+) : DN : \&quot;([^\&quot;]*)\&quot;( ?: SubjectDN : \&quot;[^\&quot;]*\&quot;)?&quot;
+
+        };
+
+<span class="fc" id="L1027">        String ret[] = null;</span>
+
+<span class="pc bpc" id="L1029" title="1 of 2 branches missed.">        for (int i = 0; i &lt; formats.length; i++) {</span>
+<span class="fc" id="L1030">            final Pattern p = Pattern.compile(formats[i]);</span>
+<span class="fc" id="L1031">            final Matcher m = p.matcher(certdata);</span>
+<span class="fc bfc" id="L1032" title="All 2 branches covered.">            if (m.find()) {</span>
+<span class="fc" id="L1033">                ret = new String[2];</span>
+<span class="fc" id="L1034">                ret[0] = m.group(1);</span>
+<span class="fc" id="L1035">                ret[1] = m.group(2);</span>
+<span class="fc" id="L1036">                break;</span>
+            }
+        }
+<span class="fc" id="L1039">        return ret;</span>
+    }
+
+    /** @param rawHeaderValue value
+     * @return the IP address of the X-Forwarded-For HTTP header with illegal chars replaced with '?'. IPv6 address hex chars are converted to lower case. */
+    public static String getCleanXForwardedFor(final String rawHeaderValue) {
+<span class="fc bfc" id="L1045" title="All 2 branches covered.">        if (rawHeaderValue==null) {</span>
+<span class="fc" id="L1046">            return null;</span>
+        }
+        /*
+         * In EJBCA 6.3.2 and earlier we allowed &quot;[^a-zA-Z0-9.:-_]&quot;. There is however no source
+         * that non IP-addresses would be allowed.
+         *
+         * Closest thing to a standardized example is available in RFC 7239 where the example
+         *  &quot;X-Forwarded-For: 192.0.2.43, 2001:db8:cafe::17&quot;
+         * is used.
+         */
+<span class="fc" id="L1056">        return rawHeaderValue.trim().toLowerCase().replaceAll(&quot;[^0-9a-f.,: ]&quot;, &quot;?&quot;);</span>
+    }
+
+    /** @param separator sep
+     * @param values values
+     * @return the items as a String separated by the provided separator. */
+    public static String getAsStringWithSeparator(final String separator, final Collection&lt;?&gt; values) {
+<span class="nc" id="L1063">        final StringBuilder names = new StringBuilder();</span>
+<span class="nc bnc" id="L1064" title="All 2 branches missed.">        for (final Object value : values) {</span>
+<span class="nc bnc" id="L1065" title="All 2 branches missed.">            if (names.length()!=0) {</span>
+<span class="nc" id="L1066">                names.append(separator);</span>
+            }
+<span class="nc" id="L1068">            names.append(value);</span>
+<span class="nc" id="L1069">        }</span>
+<span class="nc" id="L1070">        return names.toString();</span>
+    }
+
+    /** Method that checks if an array contains a string, ignoring case
+     * @param l array that we hope contains the string s (ignoring case)
+     * @param s string that we hope is in the array l (ignoring case)
+     * @return true if the string (ignoring case) is contained in the array
+     */
+    public static boolean containsCaseInsensitive(String[] l, String s){
+<span class="fc bfc" id="L1079" title="All 2 branches covered.">        for (String string : l){</span>
+<span class="fc bfc" id="L1080" title="All 2 branches covered.">            if (string.equalsIgnoreCase(s)){</span>
+<span class="fc" id="L1081">                return true;</span>
+            }
+        }
+<span class="fc" id="L1084">        return false;</span>
+    }
+//    /** Method that parses a date by format strings.
+//     * @param dateString the date string.
+//     * @param formatStrings the format strings.
+//     * @return the date if it as possible to parse it, otherwise null. */
+//    public static final Date tryParseDate(final String dateString, final List &lt;String&gt; formatStrings) {
+//        Date result = null;
+//        for (String formatString : formatStrings) {
+//            try {
+//                return new SimpleDateFormat(formatString).parse( dateString);
+//            } catch(ParseException e) {
+//                // NOOP
+//                if (log.isTraceEnabled()) {
+//                    log.trace(&quot;Coild not parse date &quot; + dateString + &quot; with format &quot; + formatString);
+//                }
+//            }
+//        }
+//        return result;
+//    }
+
+    /**
+     * Transforms a string of ids into a list of integer.
+     * @param ids the id string
+     * @param listSeparator the list separator.
+     * @return a list of Integer.
+     */
+    public static final List&lt;Integer&gt; idStringToListOfInteger(final String ids, final String listSeparator) {
+<span class="nc" id="L1112">        final ArrayList&lt;Integer&gt; result = new ArrayList&lt;Integer&gt;();</span>
+<span class="nc bnc" id="L1113" title="All 2 branches missed.">        if (ids != null) {</span>
+<span class="nc bnc" id="L1114" title="All 2 branches missed.">            for (final String id : ids.split(listSeparator)) {</span>
+<span class="nc" id="L1115">                result.add(Integer.valueOf(id));</span>
+            }
+        }
+<span class="nc" id="L1118">        return result;</span>
+    }
+
+    /**
+     * Checks a string for legal chars (not containing &quot;/[^\\u0041-\\u005a\\u0061-\\u007a\\u00a1-\\ud7ff\\ue000-\\uffff_ 0-9@\\.\\*\\,\\-:\\/\\?\\'\\=\\(\\)\\|.]/g&quot;).
+     * @param value the string value
+     * @return true if the string only contains legal characters.
+     */
+    public static boolean checkFieldForLegalChars(final String value) {
+<span class="nc" id="L1127">        final String blackList = &quot;/[^\\u0041-\\u005a\\u0061-\\u007a\\u00a1-\\ud7ff\\ue000-\\uffff_ 0-9@\\.\\*\\,\\-:\\/\\?\\'\\=\\(\\)\\|.]/g&quot;;</span>
+<span class="nc" id="L1128">        return Pattern.matches(blackList, value);</span>
+    }
+
+    /** @param str string
+     * @return false of if the string contains any characters that are neither a letter (unicode) or an asciiPrintable character */
+    public static boolean isAlphaOrAsciiPrintable(String str) {
+<span class="pc bpc" id="L1134" title="1 of 2 branches missed.">        if (str == null) {</span>
+<span class="nc" id="L1135">            return false;</span>
+        }
+<span class="fc" id="L1137">        int sz = str.length();</span>
+<span class="fc bfc" id="L1138" title="All 2 branches covered.">        for (int i = 0; i &lt; sz; i++) {</span>
+<span class="fc bfc" id="L1139" title="All 4 branches covered.">            if ( !Character.isLetter(str.charAt(i)) &amp;&amp; !CharUtils.isAsciiPrintable(str.charAt(i)) ) {</span>
+<span class="fc" id="L1140">                return false;</span>
+            }
+        }
+<span class="fc" id="L1143">        return true;</span>
+    }
+
+    /** Takes two versions and compares the first and the second versions to each other
+     * Compares the max amount of numbers on both. So 6.1.2.3,6.1.2 will try to compare 4 numbers, adding a 0, i.e. 6.1.2.3,6.1.2.0
+     *
+     * @param first a version number
+     * @param second a version number
+     * @return true of the first version is lower (1.0 &amp;lt; 2.0) than the second, false otherwise.
+     **/
+    public static boolean isLesserThan(final String first, final String second) {
+<span class="pc bpc" id="L1154" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1155">            log.trace(&quot;isLesserThan(&quot;+first+&quot;, &quot;+second+&quot;)&quot;);</span>
+        }
+<span class="fc" id="L1157">        final String delimiter = &quot;\\.&quot;;</span>
+<span class="pc bpc" id="L1158" title="1 of 2 branches missed.">        if (first == null) {</span>
+<span class="nc bnc" id="L1159" title="All 2 branches missed.">            if (second != null) {</span>
+<span class="nc" id="L1160">                return true;    // No version is before a specified version</span>
+            }
+<span class="nc" id="L1162">            throw new IllegalArgumentException(&quot;First version argument may not be null&quot;);</span>
+        }
+<span class="pc bpc" id="L1164" title="1 of 2 branches missed.">        if (second == null) {</span>
+<span class="nc" id="L1165">            throw new IllegalArgumentException(&quot;Second version argument may not be null&quot;);</span>
+        }
+<span class="fc" id="L1167">        String[] firstSplit = first.split(delimiter);</span>
+<span class="fc" id="L1168">        String[] secondSplit = second.split(delimiter);</span>
+<span class="fc bfc" id="L1169" title="All 2 branches covered.">        for (int i = 0; i &lt; Math.max(firstSplit.length, secondSplit.length); i++) {</span>
+            String firstString;
+            String secondString;
+<span class="fc bfc" id="L1172" title="All 2 branches covered.">            if (i &gt;= firstSplit.length) {</span>
+                //We've gotten this far and passed the number of digits in first, so treat next first as a 0
+<span class="fc" id="L1174">                firstString = &quot;0&quot;;</span>
+<span class="fc" id="L1175">                secondString = secondSplit[i].replaceAll(&quot;[^0-9].*&quot;, &quot;&quot;);</span>
+<span class="fc bfc" id="L1176" title="All 2 branches covered.">            } else if (i &gt;= secondSplit.length) {</span>
+                //We've gotten this far and passed the number of digits in second, so treat next second as a 0
+<span class="fc" id="L1178">                firstString = firstSplit[i].replaceAll(&quot;[^0-9].*&quot;, &quot;&quot;);    // Remove trailing Beta2, _alpha1 etc</span>
+<span class="fc" id="L1179">                secondString = &quot;0&quot;;</span>
+            } else {
+<span class="fc" id="L1181">                firstString = firstSplit[i].replaceAll(&quot;[^0-9].*&quot;, &quot;&quot;);    // Remove trailing Beta2, _alpha1 etc</span>
+<span class="fc" id="L1182">                secondString = secondSplit[i].replaceAll(&quot;[^0-9].*&quot;, &quot;&quot;);</span>
+            }
+<span class="fc bfc" id="L1184" title="All 2 branches covered.">            if (firstString.isEmpty()) {</span>
+<span class="fc" id="L1185">                firstString = &quot;0&quot;;  // Treat &quot;.x&quot; as &quot;.0&quot;</span>
+            }
+<span class="fc bfc" id="L1187" title="All 2 branches covered.">            if (secondString.isEmpty()) {</span>
+<span class="fc" id="L1188">                secondString = &quot;0&quot;;</span>
+            }
+<span class="pc bpc" id="L1190" title="2 of 4 branches missed.">            if (StringUtils.isNumeric(firstString) &amp;&amp; StringUtils.isNumeric(secondString)) {</span>
+<span class="fc" id="L1191">                final int firstNumber = Integer.valueOf(firstString);</span>
+<span class="fc" id="L1192">                final int secondNumber = Integer.valueOf(secondString);</span>
+<span class="fc bfc" id="L1193" title="All 2 branches covered.">                if (firstNumber != secondNumber) {</span>
+<span class="fc bfc" id="L1194" title="All 2 branches covered.">                    return firstNumber &lt; secondNumber;</span>
+                }
+<span class="fc" id="L1196">            } else {</span>
+<span class="nc" id="L1197">                throw new IllegalArgumentException(&quot;Unable to parse version numbers.&quot;);</span>
+            }
+        }
+        //Versions must be the same then
+<span class="fc" id="L1201">        return false;</span>
+    }
+
+    /**
+     * Changes Windows (\r\n) and Mac (\r) line endings into \n line endings.
+     * @param s Input string. May be null
+     * @return Output string, or null if input string was null
+     */
+    public static String normalizeNewlines(final String s) {
+<span class="fc bfc" id="L1210" title="All 2 branches covered.">        return s != null ? windowsOrMacNewlines.matcher(s).replaceAll(&quot;\n&quot;) : null;</span>
+    }
+    
+    /**
+     * Splits a string by newlines (may be \n, \r\n or \r).
+     * @param s Input string. May &lt;b&gt;not&lt;/b&gt; be null.
+     * @return Array of lines, never null. May be an empty list and may contains empty strings.
+     */
+    public static String[] splitByNewlines(final String s) {
+<span class="fc" id="L1219">        return normalizeNewlines(s).split(&quot;\n&quot;);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

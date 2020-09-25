@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Role.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-ejb-interface</a> &gt; <a href="../index.html" class="el_bundle">cesecore-entity</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.roles</a> &gt; <span class="el_source">Role.java</span></div><h1>Role.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.roles;
+
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.cesecore.internal.UpgradeableDataHashMap;
+
+/**
+ * A Role contains access rules and meta data about the Role (roleId, nameSpace, roleName).
+ * 
+ * &quot;roleId&quot; is unique per installation and assigned when a role is persisted the first time (created on storage).
+ * &quot;nameSpace&quot; and &quot;roleName&quot; is unique per installation and is the human readable reference of a Role.
+ * 
+ * The empty nameSpace is persisted as NULL, but can also be denoted as empty String for database agnostic behavior.
+ * 
+ * The purpose of nameSpace is that multiple isolated user groups of the same EJBCA installation can use the same
+ * roleName without knowledge of each others roles.
+ * An administrator can only create new roles under a nameSpace that the administrator belong to, unless the admin
+ * belongs to the empty nameSpace. This ensures continued isolation of user groups when adminstrators create new roles.
+ * 
+ * @version $Id: Role.java 26865 2017-10-22 20:58:48Z bastianf $
+ */
+public class Role extends UpgradeableDataHashMap implements Comparable&lt;Role&gt; {
+    
+    private static final long serialVersionUID = 1L;
+
+    public static final float LATEST_VERSION = 1;
+    public static final int ROLE_ID_UNASSIGNED = 0;
+<span class="fc" id="L43">    public static final Boolean STATE_ALLOW = Boolean.TRUE;</span>
+<span class="fc" id="L44">    public static final Boolean STATE_DENY = Boolean.FALSE;</span>
+
+    private static final String KEY_ACCESS_RULES = &quot;accessRules&quot;;
+    private static final String KEY_ASSOCIATED_CSS = &quot;associatedCss&quot;;
+    
+    private int roleId;
+    private String roleName;
+    private String nameSpace;
+
+    /** Copy constructor 
+     * @param role orig */
+<span class="nc" id="L55">    public Role(final Role role) {</span>
+<span class="nc" id="L56">        this.roleId = role.roleId;</span>
+<span class="nc" id="L57">        this.nameSpace = role.nameSpace;</span>
+<span class="nc" id="L58">        this.roleName = role.roleName;</span>
+<span class="nc" id="L59">        getAccessRules().putAll(role.getAccessRules());</span>
+<span class="nc" id="L60">    }</span>
+
+<span class="fc" id="L62">    public Role(final String nameSpace, final String roleName) {</span>
+<span class="fc" id="L63">        this.roleId = ROLE_ID_UNASSIGNED;</span>
+<span class="fc" id="L64">        setNameSpace(nameSpace);</span>
+<span class="fc" id="L65">        this.roleName = roleName;</span>
+<span class="fc" id="L66">    }</span>
+
+<span class="nc" id="L68">    public Role(final String nameSpace, final String roleName, final HashMap&lt;String, Boolean&gt; accessRules) {</span>
+<span class="nc" id="L69">        this.roleId = ROLE_ID_UNASSIGNED;</span>
+<span class="nc" id="L70">        setNameSpace(nameSpace);</span>
+<span class="nc" id="L71">        this.roleName = roleName;</span>
+<span class="nc" id="L72">        getAccessRules().putAll(accessRules);</span>
+<span class="nc" id="L73">    }</span>
+
+<span class="nc" id="L75">    public Role(final String nameSpace, final String roleName, final List&lt;String&gt; resourcesAllowed, final List&lt;String&gt; resourcesDenied) {</span>
+<span class="nc" id="L76">        this.roleId = ROLE_ID_UNASSIGNED;</span>
+<span class="nc" id="L77">        setNameSpace(nameSpace);</span>
+<span class="nc" id="L78">        this.roleName = roleName;</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        if (resourcesAllowed!=null) {</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">            for (final String resource : resourcesAllowed) {</span>
+<span class="nc" id="L81">                getAccessRules().put(AccessRulesHelper.normalizeResource(resource), Role.STATE_ALLOW);</span>
+<span class="nc" id="L82">            }</span>
+        }
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        if (resourcesDenied!=null) {</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">            for (final String resource : resourcesDenied) {</span>
+<span class="nc" id="L86">                getAccessRules().put(AccessRulesHelper.normalizeResource(resource), Role.STATE_DENY);</span>
+<span class="nc" id="L87">            }</span>
+        }
+<span class="nc" id="L89">    }</span>
+
+    /** Constructor used during load from database 
+     * @param roleId ID
+     * @param nameSpace NS 
+     * @param roleName Name
+     * @param dataMap data */
+<span class="nc" id="L96">    public Role(final int roleId, final String nameSpace, final String roleName, final LinkedHashMap&lt;Object, Object&gt; dataMap) {</span>
+<span class="nc" id="L97">        this.roleId = roleId;</span>
+<span class="nc" id="L98">        setNameSpace(nameSpace);</span>
+<span class="nc" id="L99">        this.roleName = roleName;</span>
+<span class="nc" id="L100">        loadData(dataMap);</span>
+<span class="nc" id="L101">    }</span>
+
+<span class="nc" id="L103">    public int getRoleId() { return roleId; }</span>
+<span class="nc" id="L104">    public void setRoleId(final int roleId) { this.roleId = roleId; }</span>
+
+    public String getNameSpace() {
+<span class="nc" id="L107">        return nameSpace;</span>
+    }
+    public void setNameSpace(final String nameSpace) {
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">        this.nameSpace = StringUtils.isEmpty(nameSpace) ? &quot;&quot; : nameSpace.trim();</span>
+<span class="fc" id="L111">    }</span>
+
+    public String getRoleName() {
+<span class="nc" id="L114">        return roleName;</span>
+    }
+    public void setRoleName(final String roleName) {
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        this.roleName = StringUtils.isEmpty(roleName) ? &quot;&quot; : roleName.trim();</span>
+<span class="nc" id="L118">    }</span>
+
+    public String getRoleNameFull() {
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">        return (nameSpace.isEmpty() ? &quot;&quot; : nameSpace + &quot; &quot;) + roleName;</span>
+    }
+
+    public static String getRoleNameFullAsCacheName(final String nameSpace, final String roleName) {
+<span class="nc bnc" id="L125" title="All 4 branches missed.">        return (nameSpace==null || nameSpace.isEmpty() ? &quot;;&quot; : nameSpace + &quot;;&quot;) + roleName;</span>
+    }
+
+    @Override
+    public float getLatestVersion() {
+<span class="fc" id="L130">        return LATEST_VERSION;</span>
+    }
+
+    @Override
+    public void upgrade() {
+        // TODO
+<span class="nc" id="L136">    }</span>
+
+    /** @return the comparison of nameSpace and if equal the comparison of roleName */
+    @Override
+    public int compareTo(Role role) {
+<span class="nc" id="L141">        final int nameSpaceCompare = getNameSpace().compareTo(role.getNameSpace());</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">        if (nameSpaceCompare!=0) {</span>
+<span class="nc" id="L143">            return nameSpaceCompare;</span>
+        }
+<span class="nc" id="L145">        return getRoleName().compareTo(role.getRoleName());</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="nc" id="L150">        final int prime = 31;</span>
+<span class="nc" id="L151">        int result = 1;</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        result = prime * result + ((nameSpace == null) ? 0 : nameSpace.hashCode());</span>
+<span class="nc" id="L153">        result = prime * result + roleId;</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        result = prime * result + ((roleName == null) ? 0 : roleName.hashCode());</span>
+<span class="nc" id="L155">        final LinkedHashMap&lt;String, Boolean&gt; accessRules = getAccessRules();</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">        result = prime * result + ((accessRules == null) ? 0 : accessRules.hashCode());</span>
+<span class="nc" id="L157">        result = prime * result + getStyleId();</span>
+<span class="nc" id="L158">        return result;</span>
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+<span class="nc bnc" id="L163" title="All 2 branches missed.">        if (this == obj) {</span>
+<span class="nc" id="L164">            return true;</span>
+        }
+<span class="nc bnc" id="L166" title="All 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L167">            return false;</span>
+        }
+<span class="nc bnc" id="L169" title="All 2 branches missed.">        if (!(obj instanceof Role)) {</span>
+<span class="nc" id="L170">            return false;</span>
+        }
+<span class="nc" id="L172">        Role other = (Role) obj;</span>
+<span class="nc bnc" id="L173" title="All 2 branches missed.">        if (nameSpace == null) {</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">            if (other.nameSpace != null) {</span>
+<span class="nc" id="L175">                return false;</span>
+            }
+<span class="nc bnc" id="L177" title="All 2 branches missed.">        } else if (!nameSpace.equals(other.nameSpace)) {</span>
+<span class="nc" id="L178">            return false;</span>
+        }
+<span class="nc" id="L180">        final LinkedHashMap&lt;String, Boolean&gt; accessRules = getAccessRules();</span>
+<span class="nc" id="L181">        final LinkedHashMap&lt;String, Boolean&gt; accessRulesOther = other.getAccessRules();</span>
+<span class="nc bnc" id="L182" title="All 2 branches missed.">        if (accessRules == null) {</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">            if (accessRulesOther != null) {</span>
+<span class="nc" id="L184">                return false;</span>
+            }
+<span class="nc bnc" id="L186" title="All 2 branches missed.">        } else if (!accessRules.equals(accessRulesOther)) {</span>
+<span class="nc" id="L187">            return false;</span>
+        }
+<span class="nc bnc" id="L189" title="All 2 branches missed.">        if (roleId != other.roleId) {</span>
+<span class="nc" id="L190">            return false;</span>
+        }
+<span class="nc bnc" id="L192" title="All 2 branches missed.">        if (getStyleId() != other.getStyleId()) {</span>
+<span class="nc" id="L193">            return false;</span>
+        }
+<span class="nc bnc" id="L195" title="All 2 branches missed.">        if (roleName == null) {</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">            if (other.roleName != null) {</span>
+<span class="nc" id="L197">                return false;</span>
+            }
+<span class="nc bnc" id="L199" title="All 2 branches missed.">        } else if (!roleName.equals(other.roleName)) {</span>
+<span class="nc" id="L200">            return false;</span>
+        }
+<span class="nc" id="L202">        return true;</span>
+    }
+    
+    public void setStyleId(int Id) {
+<span class="nc" id="L206">        data.put(KEY_ASSOCIATED_CSS, Id);</span>
+<span class="nc" id="L207">    }</span>
+    
+    public int getStyleId() {
+<span class="nc" id="L210">        Integer ret =  (Integer) data.get(KEY_ASSOCIATED_CSS);</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">        if (ret == null) {</span>
+<span class="nc" id="L212">            ret = 0;</span>
+<span class="nc" id="L213">            data.put(KEY_ASSOCIATED_CSS, ret);</span>
+        }
+<span class="nc" id="L215">        return ret;</span>
+    }
+
+    /**
+     * Access rules are stored as map with pairs of &quot;/resource/subresource/subsubresource&quot; and STATE_ALLOW/STATE_DENY.
+     * 
+     * Resource definitions are always recursive (&quot;/resource/&quot; with STATE_ALLOW implies &quot;/resource/subresource/&quot; with STATE_ALLOW etc.)
+     * @return map
+     */
+    public LinkedHashMap&lt;String, Boolean&gt; getAccessRules() {
+        @SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L226">        LinkedHashMap&lt;String, Boolean&gt; ret = (LinkedHashMap&lt;String, Boolean&gt; ) data.get(KEY_ACCESS_RULES);</span>
+<span class="fc bfc" id="L227" title="All 2 branches covered.">        if (ret==null) {</span>
+<span class="fc" id="L228">            ret = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L229">            data.put(KEY_ACCESS_RULES, ret); // Make it &quot;managed&quot; in case caller want to modify it</span>
+        }
+<span class="fc" id="L231">        return ret;</span>
+    }
+
+    /** @param resource resource
+     * @return true if this Role has access to the given resource */
+    public boolean hasAccessToResource(final String resource) {
+<span class="fc" id="L237">        return AccessRulesHelper.hasAccessToResource(getAccessRules(), resource);</span>
+    }
+
+    /** Normalize access rules tree (make sure rules always end with a '/') */
+    public void normalizeAccessRules() {
+<span class="fc" id="L242">        AccessRulesHelper.normalizeResources(getAccessRules());</span>
+<span class="fc" id="L243">    }</span>
+    
+    /** Remove redundant rules. Assumes normalized form. */
+    public void minimizeAccessRules() {
+<span class="fc" id="L247">        AccessRulesHelper.minimizeAccessRules(getAccessRules());</span>
+<span class="fc" id="L248">    }</span>
+
+    /** Sort access rules by name. Assumes normalized form. */
+    public void sortAccessRules() {
+<span class="nc" id="L252">        AccessRulesHelper.sortAccessRules(getAccessRules());</span>
+<span class="nc" id="L253">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

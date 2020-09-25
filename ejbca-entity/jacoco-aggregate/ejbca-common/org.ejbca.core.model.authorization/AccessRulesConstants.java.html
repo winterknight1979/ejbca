@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AccessRulesConstants.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-entity</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.authorization</a> &gt; <span class="el_source">AccessRulesConstants.java</span></div><h1>AccessRulesConstants.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.model.authorization;
+
+import org.cesecore.authorization.control.StandardRules;
+
+/**
+ * @version $Id: AccessRulesConstants.java 29240 2018-06-15 14:51:31Z henriks $
+ */
+<span class="nc" id="L21">public abstract class AccessRulesConstants {</span>
+
+    // Available end entity authorization rules.
+    public static final String VIEW_END_ENTITY = &quot;/view_end_entity&quot;;
+    public static final String EDIT_END_ENTITY = &quot;/edit_end_entity&quot;;
+    public static final String CREATE_END_ENTITY = &quot;/create_end_entity&quot;;
+    public static final String DELETE_END_ENTITY = &quot;/delete_end_entity&quot;;
+    public static final String REVOKE_END_ENTITY = &quot;/revoke_end_entity&quot;;
+    public static final String VIEW_END_ENTITY_HISTORY = &quot;/view_end_entity_history&quot;;
+    public static final String APPROVE_END_ENTITY = &quot;/approve_end_entity&quot;;
+
+    public static final String HARDTOKEN_RIGHTS                           = &quot;/view_hardtoken&quot;;
+    public static final String HARDTOKEN_PUKDATA_RIGHTS                   = &quot;/view_hardtoken/puk_data&quot;;
+
+    public static final String  KEYRECOVERY_RIGHTS                        = &quot;/keyrecovery&quot;;    
+    
+    // Endings used in profile authorization.
+<span class="nc" id="L38">    public static final String[] ENDENTITYPROFILE_ENDINGS = {VIEW_END_ENTITY,EDIT_END_ENTITY,CREATE_END_ENTITY,DELETE_END_ENTITY,REVOKE_END_ENTITY,VIEW_END_ENTITY_HISTORY,APPROVE_END_ENTITY};</span>
+    
+    // Name of end entity profile prefix directory in authorization module.
+    public static final String ENDENTITYPROFILEBASE                       = &quot;/endentityprofilesrules&quot;;
+    public static final String ENDENTITYPROFILEPREFIX                     = &quot;/endentityprofilesrules/&quot;;
+    
+    // Name of end entity profile prefix directory in authorization module.
+    public static final String USERDATASOURCEBASE                         = &quot;/userdatasourcesrules&quot;;
+    public static final String USERDATASOURCEPREFIX                       = &quot;/userdatasourcesrules/&quot;;
+    
+    public static final String UDS_FETCH_RIGHTS                           = &quot;/fetch_userdata&quot;;
+    public static final String UDS_REMOVE_RIGHTS                          = &quot;/remove_userdata&quot;;
+    
+    // Endings used in profile authorization.
+<span class="nc" id="L52">    public static final String[]  USERDATASOURCE_ENDINGS = {UDS_FETCH_RIGHTS,UDS_REMOVE_RIGHTS};</span>
+
+    // CA access rules are managed in CESecore, see StandardRules
+
+    public static final String ROLE_ADMINISTRATOR                         = &quot;/administrator&quot;;
+<span class="nc" id="L57">    public static final String REGULAR_ACTIVATECA                         = StandardRules.CAFUNCTIONALITY.resource()+&quot;/activate_ca&quot;;</span>
+<span class="nc" id="L58">    public static final String REGULAR_VIEWCERTIFICATE                    = StandardRules.CAFUNCTIONALITY.resource()+&quot;/view_certificate&quot;;    </span>
+<span class="nc" id="L59">    public static final String REGULAR_APPROVECAACTION                    = StandardRules.CAFUNCTIONALITY.resource()+&quot;/approve_caaction&quot;;</span>
+<span class="nc" id="L60">    public static final String REGULAR_CREATECRL                          = StandardRules.CREATECRL.resource();    </span>
+<span class="nc" id="L61">    public static final String REGULAR_CREATECERTIFICATE                  = StandardRules.CREATECERT.resource();</span>
+<span class="nc" id="L62">    public static final String REGULAR_EDITPUBLISHER                      = StandardRules.CAFUNCTIONALITY.resource()+&quot;/edit_publisher&quot;;   </span>
+<span class="nc" id="L63">    public static final String REGULAR_VIEWPUBLISHER                      = StandardRules.CAFUNCTIONALITY.resource()+&quot;/view_publisher&quot;;    </span>
+<span class="nc" id="L64">    public static final String REGULAR_EDITVALIDATOR                   = StandardRules.VALIDATOREDIT.resource();</span>
+<span class="nc" id="L65">    public static final String REGULAR_VIEWVALIDATOR                   = StandardRules.VALIDATORVIEW.resource();</span>
+<span class="nc" id="L66">    public static final String REGULAR_EDITBLACKLIST                   = StandardRules.BLACKLISTEDIT.resource();</span>
+    public static final String REGULAR_RAFUNCTIONALITY                    = &quot;/ra_functionality&quot;;
+    public static final String REGULAR_EDITENDENTITYPROFILES              = REGULAR_RAFUNCTIONALITY+&quot;/edit_end_entity_profiles&quot;;
+    public static final String REGULAR_VIEWENDENTITYPROFILES              = REGULAR_RAFUNCTIONALITY+&quot;/view_end_entity_profiles&quot;;
+    public static final String REGULAR_EDITUSERDATASOURCES                = REGULAR_RAFUNCTIONALITY + &quot;/edit_user_data_sources&quot;;
+    public static final String REGULAR_APPROVEENDENTITY                   = REGULAR_RAFUNCTIONALITY + APPROVE_END_ENTITY;
+    // REGULAR_REVOKEENDENTITY is used when revoking the certificate of a user
+    public static final String REGULAR_REVOKEENDENTITY                    = REGULAR_RAFUNCTIONALITY+REVOKE_END_ENTITY;    
+    // The rules below seem to be for rights to certificates, and ae mostly used from WS for token certificates and CMP for token certificates
+    // You can question if these are valid and right?
+    public static final String REGULAR_VIEWENDENTITY                      = REGULAR_RAFUNCTIONALITY+VIEW_END_ENTITY;
+    public static final String REGULAR_CREATEENDENTITY                    = REGULAR_RAFUNCTIONALITY+CREATE_END_ENTITY;
+    public static final String REGULAR_EDITENDENTITY                      = REGULAR_RAFUNCTIONALITY+EDIT_END_ENTITY ;
+    public static final String REGULAR_DELETEENDENTITY                    = REGULAR_RAFUNCTIONALITY+DELETE_END_ENTITY; // Unused, but exists as &quot;raw&quot; string
+    public static final String REGULAR_VIEWENDENTITYHISTORY               = REGULAR_RAFUNCTIONALITY+VIEW_END_ENTITY_HISTORY; // Unused, but exists as &quot;raw&quot; string
+    
+    public static final String REGULAR_VIEWHARDTOKENS                     = REGULAR_RAFUNCTIONALITY + HARDTOKEN_RIGHTS;
+    public static final String REGULAR_VIEWPUKS                           = REGULAR_RAFUNCTIONALITY + HARDTOKEN_PUKDATA_RIGHTS;
+    public static final String REGULAR_KEYRECOVERY                        = REGULAR_RAFUNCTIONALITY + KEYRECOVERY_RIGHTS;
+    public static final String REGULAR_VIEWAPPROVALS                      = REGULAR_RAFUNCTIONALITY+&quot;/view_approvals&quot;;
+
+    /** EE version only, reference by String value */
+    public static final String REGULAR_PEERCONNECTOR_VIEW                 = &quot;/peer/view&quot;;   // org.ejbca.peerconnector.PeerAccessRules.VIEW
+    public static final String REGULAR_PEERCONNECTOR_MODIFY               = &quot;/peer/modify&quot;; // org.ejbca.peerconnector.PeerAccessRules.MODIFY
+    public static final String REGULAR_PEERCONNECTOR_MANAGE               = &quot;/peer/manage&quot;; // org.ejbca.peerconnector.PeerAccessRules.MANAGE
+    public static final String REGULAR_PEERCONNECTOR_INVOKEAPI            = &quot;/ra_master/invoke_api&quot;; // org.ejbca.peerconnector.PeerRaAccessRules.RA_MASTER_INVOKE_API
+    
+    /**
+     * EE version only. Intended for checks required when Peers 
+     * module might not be available. When possible, reference 
+     * PeerProtocolAccessRules instead.
+     **/
+    public static final String REGULAR_PEERPROTOCOL_ACME                  = &quot;/protocol/acme&quot;; // org.ejbca.peerconnector.PeerProtocolAccessRules.ACME
+    public static final String REGULAR_PEERPROTOCOL_CMP                   = &quot;/protocol/cmp&quot;;  // org.ejbca.peerconnector.PeerProtocolAccessRules.CMP
+    public static final String REGULAR_PEERPROTOCOL_EST                   = &quot;/protocol/est&quot;;  // org.ejbca.peerconnector.PeerProtocolAccessRules.EST
+    public static final String REGULAR_PEERPROTOCOL_REST                  = &quot;/protocol/rest&quot;; // org.ejbca.peerconnector.PeerProtocolAccessRules.REST
+    public static final String REGULAR_PEERPROTOCOL_SCEP                  = &quot;/protocol/scep&quot;; // org.ejbca.peerconnector.PeerProtocolAccessRules.SCEP
+    public static final String REGULAR_PEERPROTOCOL_WS                    = &quot;/protocol/web_services&quot;; // org.ejbca.peerconnector.PeerProtocolAccessRules.WS
+    
+    public static final String HARDTOKEN_HARDTOKENFUNCTIONALITY           = &quot;/hardtoken_functionality&quot;;
+    public static final String HARDTOKEN_EDITHARDTOKENISSUERS             = HARDTOKEN_HARDTOKENFUNCTIONALITY + &quot;/edit_hardtoken_issuers&quot;;
+    public static final String HARDTOKEN_EDITHARDTOKENPROFILES            = HARDTOKEN_HARDTOKENFUNCTIONALITY + &quot;/edit_hardtoken_profiles&quot;;
+    public static final String HARDTOKEN_ISSUEHARDTOKENS                  = HARDTOKEN_HARDTOKENFUNCTIONALITY + &quot;/issue_hardtokens&quot;;
+    public static final String HARDTOKEN_ISSUEHARDTOKENADMINISTRATORS     = HARDTOKEN_HARDTOKENFUNCTIONALITY + &quot;/issue_hardtoken_administrators&quot;;
+    
+    // Rules for editing/viewing Service workers
+    public static final String SERVICES_BASE                              = &quot;/services&quot;;
+    public static final String SERVICES_EDIT                              = SERVICES_BASE+&quot;/edit&quot;;
+    public static final String SERVICES_VIEW                              = SERVICES_BASE+&quot;/view&quot;;
+    
+    // Standard Regular Access Rules
+<span class="nc" id="L117">    public static final String[] STANDARDREGULARACCESSRULES = {StandardRules.CAFUNCTIONALITY.resource(), </span>
+                                                           REGULAR_ACTIVATECA,
+<span class="nc" id="L119">                                                           StandardRules.CAEDIT.resource(),</span>
+<span class="nc" id="L120">                                                           StandardRules.CARENEW.resource(),</span>
+<span class="nc" id="L121">                                                           StandardRules.CAVIEW.resource(),</span>
+                                                           REGULAR_VIEWCERTIFICATE, 
+                                                           REGULAR_CREATECRL,
+<span class="nc" id="L124">                                                           StandardRules.CERTIFICATEPROFILEEDIT.resource(),   </span>
+<span class="nc" id="L125">                                                           StandardRules.CERTIFICATEPROFILEVIEW.resource(),</span>
+<span class="nc" id="L126">                                                           StandardRules.APPROVALPROFILEEDIT.resource(),</span>
+<span class="nc" id="L127">                                                           StandardRules.APPROVALPROFILEVIEW.resource(),</span>
+                                                           REGULAR_CREATECERTIFICATE,
+                                                           REGULAR_EDITPUBLISHER,
+                                                           REGULAR_VIEWPUBLISHER,
+                                                           REGULAR_EDITVALIDATOR,
+                                                           REGULAR_VIEWVALIDATOR,
+                                                           REGULAR_EDITBLACKLIST,
+                                                           REGULAR_APPROVECAACTION,
+                                                           REGULAR_RAFUNCTIONALITY, 
+                                                           REGULAR_EDITENDENTITYPROFILES,
+                                                           REGULAR_VIEWENDENTITYPROFILES,
+                                                           REGULAR_EDITUSERDATASOURCES,                                                           
+                                                           REGULAR_VIEWENDENTITY,
+                                                           REGULAR_CREATEENDENTITY, 
+                                                           REGULAR_EDITENDENTITY, 
+                                                           REGULAR_DELETEENDENTITY,
+                                                           REGULAR_REVOKEENDENTITY,
+                                                           REGULAR_VIEWENDENTITYHISTORY,
+                                                           REGULAR_APPROVEENDENTITY,
+                                                           REGULAR_VIEWAPPROVALS,
+<span class="nc" id="L147">                                                           StandardRules.SYSTEMFUNCTIONALITY.resource(),</span>
+                                                           SERVICES_EDIT,
+                                                           SERVICES_VIEW,
+<span class="nc" id="L150">                                                           StandardRules.EDITROLES.resource(),</span>
+<span class="nc" id="L151">                                                           StandardRules.VIEWROLES.resource(),</span>
+<span class="nc" id="L152">                                                           StandardRules.SYSTEMCONFIGURATION_EDIT.resource(),</span>
+<span class="nc" id="L153">                                                           StandardRules.SYSTEMCONFIGURATION_VIEW.resource(),</span>
+<span class="nc" id="L154">                                                           StandardRules.EKUCONFIGURATION_EDIT.resource(),</span>
+<span class="nc" id="L155">                                                           StandardRules.EKUCONFIGURATION_VIEW.resource(),</span>
+<span class="nc" id="L156">                                                           StandardRules.CUSTOMCERTEXTENSIONCONFIGURATION_EDIT.resource(),</span>
+<span class="nc" id="L157">                                                           StandardRules.CUSTOMCERTEXTENSIONCONFIGURATION_VIEW.resource()</span>
+                                                           };
+                                                       
+    // Role Access Rules
+<span class="nc" id="L161">    public static final  String[] ROLEACCESSRULES = {ROLE_ADMINISTRATOR, StandardRules.ROLE_ROOT.resource()};</span>
+                                                        
+    // Hard Token specific accessrules used in authorization module.
+<span class="nc" id="L164">    public static final String[] HARDTOKENACCESSRULES = </span>
+       	  {HARDTOKEN_HARDTOKENFUNCTIONALITY,
+    		HARDTOKEN_EDITHARDTOKENISSUERS,
+			HARDTOKEN_EDITHARDTOKENPROFILES,     
+			HARDTOKEN_ISSUEHARDTOKENS,
+			HARDTOKEN_ISSUEHARDTOKENADMINISTRATORS};
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

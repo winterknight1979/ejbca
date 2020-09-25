@@ -1,0 +1,3 @@
+org.ejbca.core.protocol.ws
+org.ejbca.core.protocol.ws.common
+org.ejbca.core.protocol.ws.objects

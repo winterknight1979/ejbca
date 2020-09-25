@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ServiceConfiguration.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-entity</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.services</a> &gt; <span class="el_source">ServiceConfiguration.java</span></div><h1>ServiceConfiguration.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.services;
+
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Properties;
+
+import org.apache.log4j.Logger;
+import org.cesecore.internal.UpgradeableDataHashMap;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.services.workers.EmailSendingWorkerConstants;
+
+/**
+ * Value class used for persist the worker, interval and action configurations
+ * to database
+ * 
+ *
+ * @version $Id: ServiceConfiguration.java 24494 2016-10-10 12:33:55Z anatom $
+ */
+public class ServiceConfiguration extends UpgradeableDataHashMap implements Serializable, Cloneable {
+
+    private static final long serialVersionUID = -3094484762673017432L;
+<span class="nc" id="L36">    private static final Logger log = Logger.getLogger(ServiceConfiguration.class);</span>
+    /** Internal localization of logs and errors */
+<span class="nc" id="L38">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+    
+	private static final float LATEST_VERSION = 6;
+	
+	private static final String INTERVALCLASSPATH = &quot;INTERVALCLASSPATH&quot;;
+	private static final String INTERVALPROPERTIES = &quot;INTERVALPROPERTIES&quot;;
+	private static final String WORKERCLASSPATH = &quot;WORKERCLASSPATH&quot;;
+	private static final String WORKERPROPERTIES = &quot;WORKERPROPERTIES&quot;;
+	private static final String ACTIONCLASSPATH = &quot;ACTIONCLASSPATH&quot;;
+	private static final String ACTIONPROPERTIES = &quot;ACTIONPROPERTIES&quot;;
+	private static final String DESCRIPTION = &quot;DESCRIPTION&quot;;
+	private static final String ACTIVE = &quot;ACTIVE&quot;;
+	private static final String HIDDEN = &quot;HIDDEN&quot;;
+	private static final String PINTONODES = &quot;PINTONODES&quot;;
+	private static final String RUNONALLNODES = &quot;RUNONALLNODES&quot;;
+	
+	/**
+	 * Constructor used to create a new service configuration.
+	 */
+<span class="nc" id="L57">	public ServiceConfiguration(){</span>
+<span class="nc" id="L58">		setActive(false);</span>
+<span class="nc" id="L59">		setHidden(false);</span>
+<span class="nc" id="L60">		setDescription(&quot;&quot;);</span>
+<span class="nc" id="L61">		setActionClassPath(&quot;&quot;);</span>
+<span class="nc" id="L62">		setActionProperties(new Properties());</span>
+<span class="nc" id="L63">		setWorkerClassPath(&quot;&quot;);</span>
+<span class="nc" id="L64">		setWorkerProperties(new Properties());</span>
+<span class="nc" id="L65">		setIntervalClassPath(&quot;&quot;);</span>
+<span class="nc" id="L66">		setIntervalProperties(new Properties());</span>
+<span class="nc" id="L67">		setRunOnAllNodes(false);</span>
+<span class="nc" id="L68">	}</span>
+	
+	
+	/**
+	 * @return the Action Class Path
+	 */
+	public String getActionClassPath() {
+<span class="nc" id="L75">		return (String) data.get(ACTIONCLASSPATH);</span>
+	}
+
+	/**
+	 * @param actionClassPath the actionClassPath to set
+	 */
+	public void setActionClassPath(String actionClassPath) {
+<span class="nc" id="L82">		data.put(ACTIONCLASSPATH,actionClassPath);</span>
+<span class="nc" id="L83">	}</span>
+
+	/**
+	 * @return the actionProperties
+	 */
+	public Properties getActionProperties() {
+<span class="nc" id="L89">		return (Properties) data.get(ACTIONPROPERTIES);</span>
+	}
+
+	/**
+	 * @param actionProperties the actionProperties to set
+	 */
+	public void setActionProperties(Properties actionProperties) {
+<span class="nc" id="L96">		data.put(ACTIONPROPERTIES, actionProperties);</span>
+<span class="nc" id="L97">	}</span>
+
+	/**
+	 * @return the active
+	 */
+	public boolean isActive() {
+<span class="nc" id="L103">		return ((Boolean) data.get(ACTIVE)).booleanValue();</span>
+	}
+
+	/**
+	 * @param active the active to set
+	 */
+	public void setActive(boolean active) {
+<span class="nc" id="L110">		data.put(ACTIVE, Boolean.valueOf(active));</span>
+<span class="nc" id="L111">	}</span>
+	
+	public boolean isHidden() {
+<span class="nc" id="L114">		return ((Boolean) data.get(HIDDEN)).booleanValue();</span>
+	}
+	
+	public void setHidden(boolean b) {
+<span class="nc" id="L118">		data.put(HIDDEN, Boolean.valueOf(b));</span>
+<span class="nc" id="L119">	}</span>
+	
+	/**
+	 * @return the description
+	 */
+	public String getDescription() {
+<span class="nc" id="L125">		return (String) data.get(DESCRIPTION);</span>
+	}
+
+	/**
+	 * @param description the description to set
+	 */
+	public void setDescription(String description) {
+<span class="nc" id="L132">		data.put(DESCRIPTION, description);</span>
+<span class="nc" id="L133">	}</span>
+
+	/**
+	 * @return the intervalClassPath
+	 */
+	public String getIntervalClassPath() {
+<span class="nc" id="L139">		return (String) data.get(INTERVALCLASSPATH);</span>
+	}
+
+	/**
+	 * @param intervalClassPath the intervalClassPath to set
+	 */
+	public void setIntervalClassPath(String intervalClassPath) {
+<span class="nc" id="L146">		data.put(INTERVALCLASSPATH,intervalClassPath);</span>
+<span class="nc" id="L147">	}</span>
+
+	/**
+	 * @return the intervalProperties
+	 */
+	public Properties getIntervalProperties() {
+<span class="nc" id="L153">		return (Properties) data.get(INTERVALPROPERTIES);</span>
+	}
+
+	/**
+	 * @param intervalProperties the intervalProperties to set
+	 */
+	public void setIntervalProperties(Properties intervalProperties) {
+<span class="nc" id="L160">		data.put(INTERVALPROPERTIES, intervalProperties);</span>
+<span class="nc" id="L161">	}</span>
+
+	/**
+	 * @return the workerClassPath
+	 */
+	public String getWorkerClassPath() {
+<span class="nc" id="L167">		return (String) data.get(WORKERCLASSPATH);</span>
+	}
+
+	/**
+	 * @param workerClassPath the workerClassPath to set
+	 */
+	public void setWorkerClassPath(String workerClassPath) {
+<span class="nc" id="L174">		data.put(WORKERCLASSPATH,workerClassPath);</span>
+<span class="nc" id="L175">	}</span>
+
+	/**
+	 * @return the workerProperties
+	 */
+	public Properties getWorkerProperties() {
+<span class="nc" id="L181">		return (Properties) data.get(WORKERPROPERTIES);</span>
+	}
+
+	/**
+	 * @param workerProperties the workerProperties to set
+	 */
+	public void setWorkerProperties(Properties workerProperties) {
+<span class="nc" id="L188">		data.put(WORKERPROPERTIES, workerProperties);</span>
+<span class="nc" id="L189">	}</span>
+
+	/**
+	 * @return the list of nodes to pin this service to
+	 */
+	public String[] getPinToNodes() {
+<span class="nc" id="L195">		String[] ret = (String[]) data.get(PINTONODES);</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">		if (ret == null) {</span>
+<span class="nc" id="L197">			ret = new String[0];</span>
+		}
+<span class="nc" id="L199">		return ret;</span>
+	}
+
+	/**
+	 * @param nodes the list of nodes to pin this service (empty if no nodes)
+	 */
+	public void setPinToNodes(String[] nodes) {
+<span class="nc bnc" id="L206" title="All 2 branches missed.">	    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L207">	        log.debug(&quot;setPinToNodes: &quot; + Arrays.toString(nodes));</span>
+	    }
+<span class="nc bnc" id="L209" title="All 2 branches missed.">		if (nodes == null) {</span>
+<span class="nc" id="L210">			nodes = new String[0];</span>
+		}
+<span class="nc" id="L212">		data.put(PINTONODES, nodes);</span>
+<span class="nc" id="L213">	}</span>
+
+	public boolean isRunOnAllNodes() {
+<span class="nc" id="L216">	    Boolean ret = (Boolean) data.get(RUNONALLNODES);</span>
+<span class="nc bnc" id="L217" title="All 2 branches missed.">	    if (ret != null) {</span>
+<span class="nc" id="L218">	        return ret.booleanValue();</span>
+	    }
+<span class="nc" id="L220">	    return false;</span>
+	}
+
+	public void setRunOnAllNodes(boolean b) {
+<span class="nc" id="L224">	    data.put(RUNONALLNODES, Boolean.valueOf(b));</span>
+<span class="nc" id="L225">	}</span>
+
+	@Override
+	public float getLatestVersion() {
+<span class="nc" id="L229">		return LATEST_VERSION;</span>
+	}
+
+	@Override
+	public void upgrade() {
+<span class="nc bnc" id="L234" title="All 2 branches missed.">		if (Float.compare(LATEST_VERSION, getVersion()) &gt; 0) {</span>
+            // New version of the class, upgrade
+<span class="nc" id="L236">			String msg = intres.getLocalizedMessage(&quot;services.upgrade&quot;, Float.valueOf(getVersion()));</span>
+<span class="nc" id="L237">            log.info(msg);</span>
+
+<span class="nc" id="L239">            log.debug(LATEST_VERSION);</span>
+			// We changed the names of properties between v1 and v2, so we have to upgrade a few of them
+<span class="nc bnc" id="L241" title="All 2 branches missed.">            if (Float.compare(Float.valueOf(2), getVersion()) &gt; 0) { // v2</span>
+<span class="nc" id="L242">	            log.debug(&quot;Upgrading to version 2&quot;);</span>
+<span class="nc" id="L243">				Properties prop = getWorkerProperties();</span>
+<span class="nc bnc" id="L244" title="All 2 branches missed.">				if (prop != null) {</span>
+<span class="nc" id="L245">					String caids = prop.getProperty(&quot;worker.emailexpiration.caidstocheck&quot;);</span>
+<span class="nc" id="L246">					String timebeforexpire = prop.getProperty(&quot;worker.emailexpiration.timebeforeexpiring&quot;);</span>
+<span class="nc" id="L247">					String timeunit = prop.getProperty(&quot;worker.emailexpiration.timeunit&quot;);</span>
+<span class="nc" id="L248">					String sendtousers = prop.getProperty(&quot;worker.emailexpiration.sendtoendusers&quot;);</span>
+<span class="nc" id="L249">					String sendtoadmins = prop.getProperty(&quot;worker.emailexpiration.sendtoadmins&quot;);</span>
+<span class="nc" id="L250">					String usersubject = prop.getProperty(&quot;worker.emailexpiration.usersubject&quot;);</span>
+<span class="nc" id="L251">					String usermessage = prop.getProperty(&quot;worker.emailexpiration.usermessage&quot;);</span>
+<span class="nc" id="L252">					String adminsubject = prop.getProperty(&quot;worker.emailexpiration.adminsubject&quot;);</span>
+<span class="nc" id="L253">					String adminmessage = prop.getProperty(&quot;worker.emailexpiration.adminmessage&quot;);</span>
+					 
+<span class="nc bnc" id="L255" title="All 2 branches missed.">					if (caids != null) {</span>
+<span class="nc" id="L256">						prop.setProperty(IWorker.PROP_CAIDSTOCHECK, caids);</span>
+<span class="nc" id="L257">						prop.remove(&quot;worker.emailexpiration.caidstocheck&quot;);</span>
+					}
+<span class="nc bnc" id="L259" title="All 2 branches missed.">					if (timebeforexpire != null) {</span>
+<span class="nc" id="L260">						prop.setProperty(IWorker.PROP_TIMEBEFOREEXPIRING, timebeforexpire);</span>
+<span class="nc" id="L261">						prop.remove(&quot;worker.emailexpiration.timebeforeexpiring&quot;);</span>
+					}
+<span class="nc bnc" id="L263" title="All 2 branches missed.">					if (timeunit != null) {</span>
+<span class="nc" id="L264">						prop.setProperty(IWorker.PROP_TIMEUNIT, timeunit);</span>
+<span class="nc" id="L265">						prop.remove(&quot;worker.emailexpiration.timeunit&quot;);</span>
+					}
+<span class="nc bnc" id="L267" title="All 2 branches missed.">					if (sendtousers != null) {</span>
+<span class="nc" id="L268">						prop.setProperty(EmailSendingWorkerConstants.PROP_SENDTOENDUSERS, sendtousers);</span>
+<span class="nc" id="L269">						prop.remove(&quot;worker.emailexpiration.sendtoendusers&quot;);</span>
+					}
+<span class="nc bnc" id="L271" title="All 2 branches missed.">					if (sendtoadmins != null) {</span>
+<span class="nc" id="L272">						prop.setProperty(EmailSendingWorkerConstants.PROP_SENDTOADMINS, sendtoadmins);</span>
+<span class="nc" id="L273">						prop.remove(&quot;worker.emailexpiration.sendtoadmins&quot;);</span>
+					}
+<span class="nc bnc" id="L275" title="All 2 branches missed.">					if (usersubject != null) {</span>
+<span class="nc" id="L276">						prop.setProperty(EmailSendingWorkerConstants.PROP_USERSUBJECT, usersubject);</span>
+<span class="nc" id="L277">						prop.remove(&quot;worker.emailexpiration.usersubject&quot;);</span>
+					}
+<span class="nc bnc" id="L279" title="All 2 branches missed.">					if (usermessage != null) {</span>
+<span class="nc" id="L280">						prop.setProperty(EmailSendingWorkerConstants.PROP_USERMESSAGE, usermessage);</span>
+<span class="nc" id="L281">						prop.remove(&quot;worker.emailexpiration.usermessage&quot;);</span>
+					}
+<span class="nc bnc" id="L283" title="All 2 branches missed.">					if (adminsubject != null) {</span>
+<span class="nc" id="L284">						prop.setProperty(EmailSendingWorkerConstants.PROP_ADMINSUBJECT, adminsubject);</span>
+<span class="nc" id="L285">						prop.remove(&quot;worker.emailexpiration.adminsubject&quot;);</span>
+					}
+<span class="nc bnc" id="L287" title="All 2 branches missed.">					if (adminmessage != null) {</span>
+<span class="nc" id="L288">						prop.setProperty(EmailSendingWorkerConstants.PROP_ADMINMESSAGE, adminmessage);</span>
+<span class="nc" id="L289">						prop.remove(&quot;worker.emailexpiration.adminmessage&quot;);</span>
+					}
+<span class="nc" id="L291">					setWorkerProperties(prop);</span>
+				}
+				
+<span class="nc bnc" id="L294" title="All 2 branches missed.">	            if (Float.compare(Float.valueOf(3), getVersion()) &gt; 0) { // v3</span>
+<span class="nc" id="L295">		            log.debug(&quot;Upgrading to version 3&quot;);</span>
+		            // The hidden field was added
+<span class="nc" id="L297">		            setHidden(false);</span>
+				}
+	            
+<span class="nc bnc" id="L300" title="All 2 branches missed.">	            if (Float.compare(Float.valueOf(4), getVersion()) &gt; 0) { // v4</span>
+<span class="nc" id="L301">		            log.debug(&quot;Upgrading to version 4&quot;);</span>
+		            // The NEXTRUNTIMESTAMP and OLDRUNTIMESTAMP disappeared in version 4 but we don't do anything here. 
+		            // This is handled in ServiceData.getServiceConfiguration when we check if the service is upgraded
+				}
+			}
+
+<span class="nc bnc" id="L307" title="All 2 branches missed.">            if (Float.compare(Float.valueOf(5), getVersion()) &gt; 0) { // v5</span>
+<span class="nc" id="L308">	            log.debug(&quot;Upgrading to version 5&quot;);</span>
+	            // The PINTONODES field was added
+<span class="nc" id="L310">            	setPinToNodes(null);</span>
+            }
+<span class="nc bnc" id="L312" title="All 2 branches missed.">            if (Float.compare(Float.valueOf(6), getVersion()) &gt; 0) { // v6</span>
+<span class="nc" id="L313">                log.debug(&quot;Upgrading to version 6&quot;);</span>
+                // The RUNONALLNODES field was added
+<span class="nc" id="L315">                setRunOnAllNodes(false);</span>
+            }
+
+<span class="nc" id="L318">			data.put(VERSION, Float.valueOf(LATEST_VERSION));</span>
+		}		
+<span class="nc" id="L320">	}</span>
+	
+	@Override
+    @SuppressWarnings({ &quot;rawtypes&quot;, &quot;unchecked&quot; })
+    public Object clone() throws CloneNotSupportedException {
+<span class="nc" id="L325">        ServiceConfiguration clone = new ServiceConfiguration();</span>
+<span class="nc" id="L326">        HashMap clonedata = (HashMap) clone.saveData();</span>
+
+<span class="nc" id="L328">        Iterator&lt;Object&gt; i = (data.keySet()).iterator();</span>
+<span class="nc bnc" id="L329" title="All 2 branches missed.">        while(i.hasNext()){</span>
+<span class="nc" id="L330">          Object key = i.next();</span>
+<span class="nc" id="L331">          clonedata.put(key, data.get(key));</span>
+<span class="nc" id="L332">        }</span>
+
+<span class="nc" id="L334">        clone.loadData(clonedata);</span>
+<span class="nc" id="L335">        return clone;</span>
+      }
+
+
+	
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

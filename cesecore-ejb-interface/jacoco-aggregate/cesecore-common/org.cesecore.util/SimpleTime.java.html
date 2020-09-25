@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>SimpleTime.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-ejb-interface</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.util</a> &gt; <span class="el_source">SimpleTime.java</span></div><h1>SimpleTime.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.cesecore.util;
+
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
+/**
+ * Helper class for handling user friendly format of time intervals.
+ * 
+ * The format is in the form 'y* mo* *d *h *m *s *ms' where * is a decimal number and
+ * d=days, h=hours, m=minutes, s=seconds, ms=milliseconds. Spaces are optional.
+ *  
+ * @version $Id: SimpleTime.java 24744 2016-11-15 14:36:16Z anatom $
+ */
+public class SimpleTime {
+
+	public static final long MILLISECONDS_PER_YEAR = 31536000000L; // 365 days
+	public static final long MILLISECONDS_PER_MONTH = 2592000000L; // 30 days
+    public static final long MILLISECONDS_PER_DAY = 86400000L;
+	public static final long MILLISECONDS_PER_HOUR = 3600000L;
+	public static final long MILLISECONDS_PER_MINUTE = 60000L;
+	public static final long MILLISECONDS_PER_SECOND = 1000L;
+	
+	public static final String TYPE_YEARS = &quot;y&quot;;
+	public static final String TYPE_MONTHS = &quot;mo&quot;;
+	public static final String TYPE_DAYS = &quot;d&quot;;
+	public static final String TYPE_HOURS = &quot;h&quot;;
+	public static final String TYPE_MINUTES = &quot;m&quot;;
+	public static final String TYPE_SECONDS = &quot;s&quot;;
+	public static final String TYPE_MILLISECONDS = &quot;ms&quot;;
+	
+    public static final String PRECISION_MILLISECONDS = &quot;milliseconds&quot;;
+    public static final String PRECISION_SECONDS = &quot;seconds&quot;;
+    public static final String PRECISION_DAYS = &quot;days&quot;;
+    
+<span class="fc" id="L52">    public static final List&lt;String&gt; AVAILABLE_PRECISIONS = Arrays.asList( new String[] { </span>
+            PRECISION_MILLISECONDS, PRECISION_SECONDS, PRECISION_DAYS });
+	    
+<span class="fc" id="L55">	private static final Map&lt;String, Long&gt; MILLISECONDS_FACTOR = new LinkedHashMap&lt;String, Long&gt;();</span>
+	static {
+<span class="fc" id="L57">	    MILLISECONDS_FACTOR.put(TYPE_YEARS, MILLISECONDS_PER_YEAR);</span>
+<span class="fc" id="L58">	    MILLISECONDS_FACTOR.put(TYPE_MONTHS, MILLISECONDS_PER_MONTH);</span>
+<span class="fc" id="L59">	    MILLISECONDS_FACTOR.put(TYPE_DAYS, MILLISECONDS_PER_DAY);</span>
+<span class="fc" id="L60">	    MILLISECONDS_FACTOR.put(TYPE_HOURS, MILLISECONDS_PER_HOUR);</span>
+<span class="fc" id="L61">	    MILLISECONDS_FACTOR.put(TYPE_MINUTES, MILLISECONDS_PER_MINUTE);</span>
+<span class="fc" id="L62">	    MILLISECONDS_FACTOR.put(TYPE_SECONDS, MILLISECONDS_PER_SECOND);</span>
+<span class="fc" id="L63">	    MILLISECONDS_FACTOR.put(TYPE_MILLISECONDS, 1L);</span>
+	}
+	
+<span class="fc" id="L66">    private static final Logger log = Logger.getLogger(SimpleTime.class);</span>
+	
+<span class="fc" id="L68">    private static final TimeUnitFormat DAYS_FORMAT_INSTANCE = new TimeUnitFormat(</span>
+<span class="fc" id="L69">            Arrays.asList(new String[] { TYPE_YEARS, TYPE_MONTHS, TYPE_DAYS }), MILLISECONDS_FACTOR);</span>
+
+<span class="fc" id="L71">    private static final TimeUnitFormat SECONDS_FORMAT_INSTANCE = new TimeUnitFormat(</span>
+<span class="fc" id="L72">            Arrays.asList(new String[] { TYPE_YEARS, TYPE_MONTHS, TYPE_DAYS, TYPE_HOURS, TYPE_MINUTES, TYPE_SECONDS }), MILLISECONDS_FACTOR);</span>
+
+    // Limitation 'ms' (or 'mo') MUST NOT be configured after units containing one of their characters 'm', 's' or 'o'!
+<span class="fc" id="L75">    private static final TimeUnitFormat MILLISECONDS_FORMAT_INSTANCE = new TimeUnitFormat(</span>
+<span class="fc" id="L76">            Arrays.asList(new String[] { TYPE_MILLISECONDS, TYPE_YEARS, TYPE_MONTHS, TYPE_DAYS, TYPE_HOURS, TYPE_MINUTES, TYPE_SECONDS}), MILLISECONDS_FACTOR);</span>
+    
+<span class="fc" id="L78">    private long longTime = 0;</span>
+<span class="fc" id="L79">    private long years = 0;</span>
+<span class="fc" id="L80">    private long months = 0;</span>
+<span class="fc" id="L81">    private long days = 0;</span>
+<span class="fc" id="L82">    private long hours = 0;</span>
+<span class="fc" id="L83">    private long minutes = 0;</span>
+<span class="fc" id="L84">    private long seconds = 0;</span>
+<span class="fc" id="L85">    private long milliSeconds = 0;</span>
+
+	/**
+	 * @param time milliseconds
+	 */
+<span class="fc" id="L90">	private SimpleTime(long time) {</span>
+<span class="fc" id="L91">	    setTime(time);</span>
+<span class="fc" id="L92">	}</span>
+
+	/**
+	 * @param time AdBhCmDsEu meaning A days, B hours, C minutes, D seconds and E milliseconds
+	 * @throws Exception if unable to parse a String
+	 */
+<span class="fc" id="L98">	private SimpleTime(String time) throws Exception {</span>
+<span class="fc" id="L99">	    setTime(parseMillies(time));</span>
+<span class="fc" id="L100">	}</span>
+
+	/**
+	 * @param time AdBhCmDsEu meaning A days, B hours, C minutes, D seconds and E milliseconds
+	 * @param defaultTime AdBhCmDsEu meaning A days, B hours, C minutes, D seconds and E milliseconds
+	 * @throws Exception if unable to parse a String
+	 */
+<span class="fc" id="L107">	private SimpleTime(String time, String defaultTime) throws Exception {</span>
+<span class="fc bfc" id="L108" title="All 4 branches covered.">		if (time == null || time.trim().length()==0) {</span>
+<span class="fc" id="L109">			time = defaultTime;</span>
+		}
+<span class="fc" id="L111">		setTime(parseMillies(time));</span>
+<span class="fc" id="L112">	}</span>
+	
+	/**
+	 * Get new instance of class.
+	 * @param time milliseconds
+	 * @return new instance of class
+	 */
+	public static SimpleTime getInstance(long time) {
+<span class="fc" id="L120">		return new SimpleTime(time);</span>
+	}
+	
+	/**
+	 * Get new instance of class.
+	 * @param time AdBhCmDsEu meaning A days, B hours, C minutes, D seconds and E milliseconds
+	 * @return new instance of class or null if there were errors
+	 */
+	public static SimpleTime getInstance(String time) {
+<span class="fc" id="L129">		SimpleTime simpleTime = null;</span>
+		try {
+<span class="fc" id="L131">			simpleTime = new SimpleTime(time);</span>
+<span class="fc" id="L132">		} catch (Exception e) {</span>
+<span class="fc" id="L133">			log.info(&quot;Failed to parse time \&quot;&quot; + time + &quot;\&quot;. &quot; + e.getMessage());</span>
+<span class="fc" id="L134">		}</span>
+<span class="fc" id="L135">		return simpleTime;</span>
+	}
+	
+	/**
+	 * Get new instance of class.
+	 * @param time AdBhCmDsEu meaning A days, B hours, C minutes, D seconds and E milliseconds
+	 * @param defaultTime AdBhCmDsEu meaning A days, B hours, C minutes, D seconds and E milliseconds
+	 * @return new instance of class or null if there were errors
+	 */
+	public static SimpleTime getInstance(String time, String defaultTime) {
+<span class="fc" id="L145">		SimpleTime simpleTime = null;</span>
+		try {
+<span class="fc" id="L147">			simpleTime = new SimpleTime(time, defaultTime);</span>
+<span class="fc" id="L148">		} catch (Exception e) {</span>
+<span class="fc" id="L149">			log.info(&quot;Failed to parse time or defaultTime \&quot;&quot; + time + &quot;\&quot;, \&quot;&quot; + defaultTime + &quot;\&quot;. &quot; + e.getMessage());</span>
+<span class="fc" id="L150">		}</span>
+<span class="fc" id="L151">		return simpleTime;</span>
+	}
+	
+	/**
+     * Gets the time unit formatter with the default formatting style for days
+     * (with year(y), months (mo) and days (d)).
+     * 
+     * @return a time unit formatter.
+     */
+    public static final TimeUnitFormat getDaysFormat() {
+<span class="fc" id="L161">        return DAYS_FORMAT_INSTANCE;</span>
+    }
+
+    /**
+     * Gets the time unit formatter with the default formatting style for
+     * seconds (with year(y), months (mo), days (d), hours (h), minutes (m) and
+     * seconds (s)).
+     * 
+     * @return a time unit formatter.
+     */
+    public static final TimeUnitFormat getSecondsFormat() {
+<span class="fc" id="L172">        return SECONDS_FORMAT_INSTANCE;</span>
+    }
+
+    /**
+     * Gets the time unit formatter with the default formatting style for
+     * milliseconds (with year(y), months (mo), days (d), hours (h), minutes (m), 
+     * seconds (s) and milliseconds (ms)).
+     * 
+     * @return a time unit formatter.
+     */
+    public static final TimeUnitFormat getMilliSecondsFormat() {
+<span class="fc" id="L183">        return MILLISECONDS_FORMAT_INSTANCE;</span>
+    }
+    
+    /**
+     * Gets the TimeUnitFormat by precision.
+     * @param precision precision
+     * @return the TimeUnitFormat with the desired precision if existent.
+     * @throws IllegalArgumentException if invalid args
+     * @see SimpleTime#AVAILABLE_PRECISIONS
+     */
+    public static final TimeUnitFormat getTimeUnitFormatOrThrow(final String precision) throws IllegalArgumentException {
+<span class="nc" id="L194">        TimeUnitFormat result = null;</span>
+<span class="nc bnc" id="L195" title="All 2 branches missed.">        if (!AVAILABLE_PRECISIONS.contains(precision)) {</span>
+<span class="nc" id="L196">            throw new IllegalArgumentException(&quot;Could not get TimeUnitForm for precision: &quot; + precision);</span>
+        }
+<span class="nc bnc" id="L198" title="All 4 branches missed.">        switch (precision) {</span>
+            case SimpleTime.PRECISION_MILLISECONDS: 
+<span class="nc" id="L200">                result = SimpleTime.getMilliSecondsFormat();</span>
+<span class="nc" id="L201">                break;</span>
+            case SimpleTime.PRECISION_SECONDS: 
+<span class="nc" id="L203">                result = SimpleTime.getSecondsFormat();</span>
+<span class="nc" id="L204">                break;</span>
+            case SimpleTime.PRECISION_DAYS: 
+<span class="nc" id="L206">                result = SimpleTime.getDaysFormat();</span>
+<span class="nc" id="L207">                break;</span>
+            default:
+<span class="nc" id="L209">                result = SimpleTime.getSecondsFormat();</span>
+        }
+<span class="nc" id="L211">        return result;</span>
+    }
+    
+    public static final String toString(final long millis, final String zeroType) {
+<span class="fc" id="L215">        return SimpleTime.getMilliSecondsFormat().format(millis, MILLISECONDS_FACTOR, zeroType);</span>
+    }
+    
+    public static final long parseMillies(String time) throws NumberFormatException {
+<span class="fc" id="L219">        return SimpleTime.getMilliSecondsFormat().parseMillis(time);</span>
+    }
+	
+	private void setTime(long time) {
+<span class="fc" id="L223">	    longTime = time;</span>
+<span class="fc" id="L224">        years = time / MILLISECONDS_PER_YEAR;</span>
+<span class="fc" id="L225">        time %= MILLISECONDS_PER_YEAR;</span>
+<span class="fc" id="L226">        months = time / MILLISECONDS_PER_MONTH;</span>
+<span class="fc" id="L227">        time %= MILLISECONDS_PER_MONTH;</span>
+<span class="fc" id="L228">        days = time / MILLISECONDS_PER_DAY;</span>
+<span class="fc" id="L229">        time %= MILLISECONDS_PER_DAY;</span>
+<span class="fc" id="L230">        hours = time / MILLISECONDS_PER_HOUR;</span>
+<span class="fc" id="L231">        time %= MILLISECONDS_PER_HOUR;</span>
+<span class="fc" id="L232">        minutes = time / MILLISECONDS_PER_MINUTE;</span>
+<span class="fc" id="L233">        time %= MILLISECONDS_PER_MINUTE;</span>
+<span class="fc" id="L234">        seconds = time / MILLISECONDS_PER_SECOND;</span>
+<span class="fc" id="L235">        time %= MILLISECONDS_PER_SECOND;</span>
+<span class="fc" id="L236">        milliSeconds = time;</span>
+<span class="fc" id="L237">	}</span>
+
+	/** Get the total number of milliseconds for this time (including days, hours etc).
+	 * @return ms*/
+<span class="fc" id="L241">	public long getLong() { return longTime; }</span>
+<span class="fc" id="L242">	public long getYears() { return years; }</span>
+<span class="fc" id="L243">	public long getMonths() { return months; }</span>
+<span class="fc" id="L244">	public long getDays() { return days; }</span>
+<span class="fc" id="L245">	public long getHours() { return hours; }</span>
+<span class="fc" id="L246">	public long getMinutes() { return minutes; }</span>
+<span class="fc" id="L247">	public long getSeconds() { return seconds; }</span>
+<span class="fc" id="L248">	public long getMilliSeconds() { return milliSeconds; }</span>
+
+	/**
+     * Get nicely formatted form of this object using seconds as default type.
+     * @return time in the format AdBhCmDsEu meaning A days, B hours, C minutes, D seconds and E milliseconds or &quot;0s&quot; if time is 0.
+     */
+    public String toString() {
+<span class="fc" id="L255">        return toString(TYPE_SECONDS);</span>
+    }
+    
+    /**
+     * @param zeroType the type of the returned value if '0'. One of the SimpleType.TYPE_ constants.
+     * @return time in the format AdBhCmDsEu meaning A days, B hours, C minutes, D seconds and E milliseconds
+     */
+    public String toString(String zeroType) {
+<span class="fc" id="L263">        return SimpleTime.getMilliSecondsFormat().format(getLong(), MILLISECONDS_FACTOR, zeroType); </span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

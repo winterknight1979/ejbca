@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ValidityDate.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-ejb</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.util</a> &gt; <span class="el_source">ValidityDate.java</span></div><h1>ValidityDate.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.cesecore.util;
+
+import java.text.ParseException;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.DateUtils;
+import org.apache.commons.lang.time.FastDateFormat;
+import org.apache.log4j.Logger;
+
+/**
+ * Class for encoding and decoding certificate validity and end date.
+ * 
+ * @version $Id: ValidityDate.java 26461 2017-08-29 23:09:05Z anatom $
+ */
+public class ValidityDate {
+	/** The date and time format defined in ISO8601. The 'T' can be omitted (and we do to save some parsing cycles). */
+	public static final String ISO8601_DATE_FORMAT = &quot;yyyy-MM-dd HH:mm:ssZZ&quot;;
+<span class="fc" id="L35">	public static final TimeZone TIMEZONE_UTC = TimeZone.getTimeZone(&quot;UTC&quot;);</span>
+<span class="fc" id="L36">	public static final TimeZone TIMEZONE_SERVER = TimeZone.getDefault();</span>
+
+<span class="fc" id="L38">	private static final Logger log = Logger.getLogger(ValidityDate.class);</span>
+	// Time format for storage where implied timezone is UTC
+<span class="fc" id="L40">	private static final String[] IMPLIED_UTC_PATTERN = {&quot;yyyy-MM-dd HH:mm&quot;};</span>
+<span class="fc" id="L41">	private static final String[] IMPLIED_UTC_PATTERN_TZ = {&quot;yyyy-MM-dd HH:mmZZ&quot;};</span>
+	// Time format for human interactions
+<span class="fc" id="L43">	private static final String[] ISO8601_PATTERNS = {</span>
+	   // These must have timezone on date-only format also, since it has a time also (which is 00:00).
+	   // If the timezone is omitted then the string &quot;+00:00&quot; is appended to the date before parsing
+	   ISO8601_DATE_FORMAT, &quot;yyyy-MM-dd HH:mmZZ&quot;, &quot;yyyy-MM-ddZZ&quot;
+    };
+    
+    // Can't be instantiated
+    private ValidityDate() {
+    }
+	
+	/** Parse a String in the format &quot;yyyy-MM-dd HH:mm&quot; as a date with implied TimeZone UTC. 
+	 * @param dateString string
+	 * @return date
+	 * @throws ParseException if parse fails */
+	public static Date parseAsUTC(final String dateString) throws ParseException {
+<span class="fc" id="L58">		return DateUtils.parseDateStrictly(dateString+&quot;+00:00&quot;, IMPLIED_UTC_PATTERN_TZ);</span>
+	}
+
+	/** Parse a String in the format &quot;yyyy-MM-dd HH:mm:ssZZ&quot;. The hour/minutes, seconds and timezone are optional parts. 
+	 *  @param dateString string
+	 * @return date
+	 * @throws ParseException if parse fails*/
+	public static Date parseAsIso8601(final String dateString) throws ParseException {
+	    try {
+<span class="fc" id="L67">		    return DateUtils.parseDateStrictly(dateString, ISO8601_PATTERNS);</span>
+<span class="fc" id="L68">	    } catch (ParseException e) {</span>
+	        // Try again with timezone. In DateUtils, the default timezone seems to be the server
+	        // timezone and not UTC, so we can't have date formats without &quot;ZZ&quot;.
+<span class="fc" id="L71">	        return DateUtils.parseDateStrictly(dateString+&quot;+00:00&quot;, ISO8601_PATTERNS);</span>
+	    }
+	}
+	
+	/**
+	 * 
+	 * @param dateString a string describing a date
+	 * @return true if dateString is in the format &quot;yyyy-MM-dd HH:mm:ssZZ&quot;
+	 */
+	public static boolean isValidIso8601Date(final String dateString) {
+	    try {
+<span class="nc bnc" id="L82" title="All 2 branches missed.">	        if(StringUtils.isEmpty(dateString)) { </span>
+<span class="nc" id="L83">	            return false;</span>
+	        } else {
+<span class="nc" id="L85">	            parseAsIso8601(dateString);</span>
+	        }
+<span class="nc" id="L87">	        return true;</span>
+<span class="nc" id="L88">	    } catch(ParseException e) {</span>
+<span class="nc" id="L89">	        return false;</span>
+	    }
+	}
+
+	/** Convert a Date to the format &quot;yyyy-MM-dd HH:mm&quot; with implied TimeZone UTC. 
+	 * @param date Date
+	 * @return String */
+	public static String formatAsUTC(final Date date) {
+<span class="fc" id="L97">		return FastDateFormat.getInstance(IMPLIED_UTC_PATTERN[0], TIMEZONE_UTC).format(date);</span>
+	}
+	
+	/** Convert a absolute number of milliseconds to the format &quot;yyyy-MM-dd HH:mm&quot; with implied TimeZone UTC. 
+	 * @param millis ms
+	 * @return String */
+	public static String formatAsUTC(final long millis) {
+<span class="nc" id="L104">		return FastDateFormat.getInstance(IMPLIED_UTC_PATTERN[0], TIMEZONE_UTC).format(millis);</span>
+		
+	}
+	
+	/** Convert a Date to the format &quot;yyyy-MM-dd HH:mm:ssZZ&quot; (the T is not required). The server's time zone is used. 
+	 * @param date Date
+	 * @param timeZone TZ
+	 * @return String */
+	public static String formatAsISO8601(final Date date, final TimeZone timeZone) {
+<span class="fc" id="L113">		return FastDateFormat.getInstance(ISO8601_PATTERNS[0], timeZone).format(date);</span>
+	}
+
+	/** Convert a Date in milliseconds to the format &quot;yyyy-MM-dd HH:mm:ssZZ&quot;. The server's time zone is used. 
+	 * @param millis ms
+	 * @param timeZone TZ 
+	 * @return String */
+	public static String formatAsISO8601ServerTZ(final long millis, final TimeZone timeZone) {
+<span class="fc" id="L121">		return FastDateFormat.getInstance(ISO8601_PATTERNS[0], TIMEZONE_SERVER).format(millis);</span>
+	}
+
+	/** Convert a the format &quot;yyyy-MM-dd HH:mm:ssZZ&quot; to &quot;yyyy-MM-dd HH:mm&quot; with implied TimeZone UTC. 
+	 * @param dateString Date
+	 * @return String
+	 * @throws ParseException on parse fail */
+	public static String getImpliedUTCFromISO8601(final String dateString) throws ParseException {
+<span class="nc" id="L129">		return formatAsUTC(parseAsIso8601(dateString));</span>
+	}
+	
+	/** Convert a the format &quot;yyyy-MM-dd HH:mm&quot; with implied TimeZone UTC to &quot;yyyy-MM-dd HH:mm:ssZZ&quot;. 
+	 * @param dateString Date
+	 * @param timeZone TZ
+	 * @return String
+	 * @throws ParseException on parse fail */
+	public static String getISO8601FromImpliedUTC(final String dateString, final TimeZone timeZone) throws ParseException {
+<span class="nc" id="L138">		return formatAsISO8601(parseAsUTC(dateString), timeZone);</span>
+	}
+	
+	/**
+	 * Encoding of the validity for a CA or certificate profile. Either delta time or end date.
+	 * @param validity *y *mo *d or absolute date in the form &quot;yyyy-MM-dd HH:mm:ssZZ&quot;
+	 * @return delta time in days if h*m*d*; milliseconds since epoch if valid absolute date; -1 if neither
+	 * @throws IllegalArgumentException if the argument is null
+	 */
+	@Deprecated
+	public static long encodeBeforeVersion661(final String validity) {
+<span class="fc" id="L149">		long result = -1;</span>
+        try {
+            // parse ISO8601 time stamp, i.e 'yyyy-MM-dd HH:mm:ssZZ'.
+<span class="fc" id="L152">            result = parseAsIso8601(validity).getTime();</span>
+<span class="fc" id="L153">        } catch (ParseException e) {</span>
+            try {
+                // parse SimpleTime string with format '*y *mo *d ...'.
+<span class="fc" id="L156">                final long days = SimpleTime.getDaysFormat().parseMillis(validity) / (1000 * 60 * 60 *24);</span>
+<span class="fc bfc" id="L157" title="All 2 branches covered.">                if (days &gt; 0) {</span>
+<span class="pc bpc" id="L158" title="1 of 2 branches missed.">                    if (isDeltaTimeBeforeVersion661(days)) {</span>
+<span class="fc" id="L159">                        result = days;</span>
+                    } else {
+<span class="nc" id="L161">                        result = Long.valueOf(Integer.MAX_VALUE-1);</span>
+<span class="nc" id="L162">                        log.info(validity + &quot; is relative time format, but too far in the future. Limiting to &quot; + result + &quot; days.&quot;);</span>
+                    }
+                }
+<span class="fc" id="L165">            } catch(NumberFormatException nfe) {</span>
+<span class="pc bpc" id="L166" title="1 of 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L167">                    log.debug(&quot;Cannot decode '&quot; + validity + &quot;' as ISO8601 date or relative time format ('3y 6mo 10d').&quot;);</span>
+                }
+<span class="fc" id="L169">            }</span>
+<span class="fc" id="L170">        }</span>
+<span class="fc" id="L171">		return result;</span>
+	}
+
+	/**
+	 * Decodes encoded value to string in the form &quot;yyyy-MM-dd HH:mm:ssZZ&quot; or &quot;1234d&quot; (relative days).
+	 * @param lEncoded If this is below Integer.MAX_VALUE it is interpreted as a number of days to firstDate, otherwise an unix timestamp.
+	 * @return String
+	 */
+	@Deprecated
+	public static String getStringBeforeVersion661(final long lEncoded) {
+<span class="fc bfc" id="L181" title="All 2 branches covered.">		if (isDeltaTimeBeforeVersion661(lEncoded)) {</span>
+<span class="fc" id="L182">			return SimpleTime.toString(lEncoded * 24 * 60 * 60 * 1000, SimpleTime.TYPE_DAYS);</span>
+		}
+<span class="fc" id="L184">		return formatAsISO8601ServerTZ(lEncoded, TIMEZONE_SERVER);		</span>
+	}
+	
+	/**
+	 * Decodes encoded value to Date.
+	 * @param lEncoded encoded value. If this is below Integer.MAX_VALUE it is interpreted as a number of days to firstDate, otherwise an unix timestamp.
+	 * @param firstDate date to be used if encoded value is a delta time. Can never be null.
+	 * @return Date
+	 */
+	@Deprecated
+	public static Date getDateBeforeVersion661(final long lEncoded, final Date firstDate) {
+<span class="fc bfc" id="L195" title="All 2 branches covered.">		if (isDeltaTimeBeforeVersion661(lEncoded) ) {</span>
+<span class="fc" id="L196">			return new Date(firstDate.getTime() + (lEncoded * 24 * 60 * 60 * 1000));</span>
+		}
+<span class="fc" id="L198">		return new Date(lEncoded);</span>
+	}
+    
+	/**
+     * Decodes encoded value to Date.
+     * @param encodedValidity a relative time string (SimpleTime) or a date in ISO8601 format.
+     * @param firstDate date to be used if encoded validity is a relative time.
+     * @return the end date or null if a date or relative time could not be read.
+     * @see org.cesecore.util.SimpleTime
+     * @see org.cesecore.util.ValidityDate
+     */
+	public static Date getDate(final String encodedValidity, final Date firstDate) {
+	    try {
+	        // We think this is the most common, so try this first, it's fail-fast
+<span class="fc" id="L212">	        final long millis = SimpleTime.parseMillies(encodedValidity);</span>
+<span class="fc" id="L213">	        final Date endDate = new Date(firstDate.getTime() + millis);</span>
+<span class="fc" id="L214">	        return endDate;</span>
+<span class="fc" id="L215">	    } catch(NumberFormatException nfe) {</span>
+<span class="pc bpc" id="L216" title="1 of 2 branches missed.">	        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L217">	            log.debug(&quot;Could not read encoded validity as relative date: &quot; +encodedValidity+&quot;, &quot;+ nfe.getMessage());</span>
+	        }
+	        try {
+<span class="fc" id="L220">	            return parseAsIso8601(encodedValidity);</span>
+<span class="nc" id="L221">	        } catch(ParseException p) {</span>
+<span class="nc" id="L222">	            log.error(&quot;Could not read encoded validity: &quot; +encodedValidity+&quot;, &quot;+ p.getMessage());</span>
+<span class="nc" id="L223">	            return null;</span>
+	        }
+	    }
+	}
+
+	/** If below the integer capacity we have stored a relative date in days, otherwise it is an absolute time in milliseconds. 
+	 * @param lEncoded long
+	 * @return bool */
+	@Deprecated
+	public static boolean isDeltaTimeBeforeVersion661(final long lEncoded) {
+<span class="fc bfc" id="L233" title="All 2 branches covered.">		return lEncoded &lt; Integer.MAX_VALUE;	// This could probably be &lt;= instead??</span>
+	}
+	
+	/**
+	 * Parse a date as either &quot;yyyy-MM-dd HH:mm:ssZZ&quot; or a relative hex encoded UNIX time stamp (in seconds).
+	 * Use for parsing of the build time property &quot;ca.toolateexpiredate&quot; in ejbca.properties.
+	 * @param sDate Date
+	 * @return the date or the largest possible Date if unable to parse the argument.
+	 */
+	public static Date parseCaLatestValidDateTime(final String sDate) {
+<span class="fc" id="L243">		Date tooLateExpireDate = null;</span>
+<span class="fc bfc" id="L244" title="All 2 branches covered.">        if (sDate.length()&gt;0) {</span>
+        	//First, try to parse the date in ISO8601 date time format.
+    		try {
+<span class="fc" id="L247">    			return parseAsIso8601(sDate);</span>
+<span class="fc" id="L248">    		} catch (ParseException e) {</span>
+<span class="fc" id="L249">        		log.debug(&quot;tooLateExpireDate could not be parsed as an ISO8601 date: &quot; + e.getMessage());</span>
+    		}
+    		// Second, try to parse it as a hexadecimal value (without markers of any kind.. just a raw value).
+<span class="pc bpc" id="L252" title="1 of 2 branches missed.">            if (tooLateExpireDate == null) {</span>
+            	try {
+<span class="fc" id="L254">            		tooLateExpireDate = new Date(Long.parseLong(sDate, 16)*1000);</span>
+<span class="fc" id="L255">            	} catch (NumberFormatException e) {</span>
+<span class="fc" id="L256">            		log.debug(&quot;tooLateExpireDate could not be parsed as a hex value: &quot; + e.getMessage());</span>
+<span class="fc" id="L257">            	}</span>
+            }
+        }
+<span class="fc bfc" id="L260" title="All 2 branches covered.">        if (tooLateExpireDate == null) {</span>
+<span class="fc" id="L261">        	log.debug(&quot;Using default value for ca.toolateexpiredate.&quot;);</span>
+<span class="fc" id="L262">            tooLateExpireDate = new Date(Long.MAX_VALUE);</span>
+<span class="pc bpc" id="L263" title="1 of 2 branches missed.">        } else if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L264">        	log.debug(&quot;tooLateExpireData is set to: &quot;+tooLateExpireDate);</span>
+        }
+<span class="fc" id="L266">        return tooLateExpireDate;</span>
+	} 
+	
+	/**
+	 * Rolls the given date one day forward or backward, until a date with a day not included in the restrictions (list of weekdays) is reached.
+	 * @param date the date to change.
+	 * @param restrictionsForWeekdays an array, { Calendar.SUNDAY, Calendar.MONDAY, etc}
+	 * @param before roll back (or forward if false)
+	 * @return the new date instance applied to the restrictions
+	 * @throws IllegalArgumentException if given date or weekday restriction are null or all weekdays shall be excluded!
+	 */
+	public static Date applyExpirationRestrictionForWeekdays(final Date date, boolean[] restrictionsForWeekdays, boolean before) throws IllegalArgumentException {
+<span class="pc bpc" id="L278" title="1 of 2 branches missed.">	    if (null == date) {</span>
+<span class="nc" id="L279">	        throw new IllegalArgumentException(&quot;Date cannot be null!&quot;);</span>
+	    }
+<span class="pc bpc" id="L281" title="1 of 2 branches missed.">	    if (null == restrictionsForWeekdays) {</span>
+<span class="nc" id="L282">	        throw new IllegalArgumentException(&quot;Weekday restrictions cannot be null!&quot;);</span>
+	    }
+<span class="fc" id="L284">	    boolean allDaysExcluded = true;</span>
+<span class="fc bfc" id="L285" title="All 2 branches covered.">	    for (boolean enabled: restrictionsForWeekdays) {</span>
+<span class="fc bfc" id="L286" title="All 2 branches covered.">	        if (!enabled) {</span>
+<span class="fc" id="L287">	            allDaysExcluded = false;</span>
+	        }
+	    }
+<span class="pc bpc" id="L290" title="1 of 2 branches missed.">	    if (allDaysExcluded) {</span>
+<span class="nc" id="L291">	        throw new IllegalArgumentException(&quot;Weekday restrictions cannot be applied if all weekdays are excluded!&quot;);</span>
+	    }
+<span class="fc" id="L293">        final Calendar calendar = Calendar.getInstance(); </span>
+<span class="fc" id="L294">        calendar.setTime( date);</span>
+<span class="fc" id="L295">        final int endDay = calendar.get(Calendar.DAY_OF_WEEK);</span>
+<span class="pc bpc" id="L296" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L297">            log.debug(&quot;&gt;applyExpirationRestrictionForWeekdays for end date &quot; + ValidityDate.formatAsISO8601ServerTZ( date.getTime(), ValidityDate.TIMEZONE_SERVER) + &quot; with day &quot; + endDay + &quot; restrictions &quot; + Arrays.toString(restrictionsForWeekdays));</span>
+        }
+<span class="pc bpc" id="L299" title="1 of 2 branches missed.">        if (restrictionsForWeekdays[endDay-1]) {</span>
+<span class="fc bfc" id="L300" title="All 2 branches covered.">            final int translation = before ? -1 : 1;</span>
+<span class="fc bfc" id="L301" title="All 2 branches covered.">            while(restrictionsForWeekdays[calendar.get(Calendar.DAY_OF_WEEK)-1]) {</span>
+<span class="fc" id="L302">                calendar.add(Calendar.DAY_OF_MONTH, translation); </span>
+            }
+<span class="pc bpc" id="L304" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L305">                log.debug(&quot;Expiration restrictions for weekdays applied: Date changed from &quot; + formatAsISO8601(date, TIMEZONE_SERVER) + &quot; to &quot; + formatAsISO8601(calendar.getTime(), TIMEZONE_SERVER));</span>
+            }
+<span class="fc" id="L307">            return calendar.getTime();</span>
+        }
+<span class="nc" id="L309">        return date;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CustomCertificateExtension.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.certificate.certextensions</a> &gt; <span class="el_source">CustomCertificateExtension.java</span></div><h1>CustomCertificateExtension.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.certificate.certextensions;
+
+import java.security.PublicKey;
+import java.util.Map;
+import java.util.Properties;
+
+import org.cesecore.certificates.ca.CA;
+import org.cesecore.certificates.ca.internal.CertificateValidity;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+
+/**
+ * Interface for custom certificate extensions.
+ * 
+ * @version $Id: CustomCertificateExtension.java 29941 2018-10-01 14:44:59Z henriks $
+ *
+ */
+public interface CustomCertificateExtension {
+
+<span class="fc" id="L32">    String[] BOOLEAN = {&quot;true&quot;, &quot;false&quot;};</span>
+    
+    
+    /**
+     * @return the unique id of the extension
+     */
+    int getId();
+    
+    /**
+     * @return The unique OID of the extension
+     */
+    String getOID();
+    
+    /**
+     * 
+     * @return a map containing available extension properties as keys, along with possible values. 
+     */
+    Map&lt;String, String[]&gt; getAvailableProperties();
+    
+
+    /**
+     * @return This extension's readable name
+     */
+    String getDisplayName();
+    
+    /**
+     * @return flag indicating if the extension should be marked as critical or not.
+     */
+    boolean isCriticalFlag();
+    
+    /**
+     * @return flag indicating if the extension should be marked as required or not.
+     */
+    boolean isRequiredFlag();
+    
+    /**
+     * The propertes configured for this extension. The properties are stripped
+     * of the beginning &quot;idX.property.&quot;. So searching for the property
+     * &quot;id1.property.value&quot; only the key &quot;value&quot; should be used in the returned property.
+     * 
+     * @return the properties configured for this certificate extension.
+     */
+    Properties getProperties();
+    
+    /**
+     * Method that should return the byte[] value used in the extension. 
+     * 
+     * The default implementation of this method first calls the getValue() 
+     * method and then encodes the result as an byte array. 
+     * CertificateExtension implementors has the choice of overriding this 
+     * method if they want to include byte[] data in the certificate that
+     * is not necessarily an ASN.1 structure otherwise the getValue method 
+     * can be implemented as before.
+     * 
+     * @param userData the userdata of the issued certificate.
+     * @param ca the CA data with access to all the keys etc
+     * @param certProfile the certificate profile
+     * @param userPublicKey public key of the user, or null if not available
+     * @param caPublicKey public key of the CA, or null if not available
+     * @param val validity of certificate where the extension will be added
+     * @return a byte[] or null, if this extension should not be used, which was determined from the values somehow.
+     * @throws CertificateExtensionException if there was an error constructing the certificate extensio
+     *
+     */
+    byte[] getValueEncoded(EndEntityInformation userData, CA ca, CertificateProfile certProfile, PublicKey userPublicKey,
+            PublicKey caPublicKey, CertificateValidity val) throws CertificateExtensionException;
+    
+    /**
+     * Method that should return the byte[] value used in the extension. 
+     * 
+     * The default implementation of this method first calls the getValue() 
+     * method and then encodes the result as an byte array. 
+     * CertificateExtension implementors has the choice of overriding this 
+     * method if they want to include byte[] data in the certificate that
+     * is not necessarily an ASN.1 structure otherwise the getValue method 
+     * can be implemented as before.
+     * 
+     * @param userData the userdata of the issued certificate.
+     * @param ca the CA data with access to all the keys etc
+     * @param certProfile the certificate profile
+     * @param userPublicKey public key of the user, or null if not available
+     * @param caPublicKey public key of the CA, or null if not available
+     * @param val validity of certificate where the extension will be added
+     * @param oid OID used to fetch extension data value from the request, in case of dynamic extension.
+     * @return a byte[] or null, if this extension should not be used, which was determined from the values somehow.
+     * @throws CertificateExtensionException if there was an error constructing the certificate extension.
+     *
+     */
+    byte[] getValueEncoded(EndEntityInformation userData, CA ca, CertificateProfile certProfile, PublicKey userPublicKey,
+            PublicKey caPublicKey, CertificateValidity val, String oid) throws CertificateExtensionException;
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

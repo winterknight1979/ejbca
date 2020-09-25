@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApprovalStep.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.approval.profile</a> &gt; <span class="el_source">ApprovalStep.java</span></div><h1>ApprovalStep.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA: The OpenSource Certificate Authority                          *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.approval.profile;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+
+import org.cesecore.authorization.user.AccessMatchType;
+import org.cesecore.authorization.user.AccessUserAspectData;
+import org.cesecore.roles.RoleData;
+import org.cesecore.roles.RoleInformation;
+import org.cesecore.util.Base64;
+import org.cesecore.util.LookAheadObjectInputStream;
+import org.cesecore.util.ProfileID;
+import org.cesecore.util.ui.DynamicUiProperty;
+import org.cesecore.util.ui.DynamicUiPropertyCallback;
+import org.cesecore.util.ui.DynamicUiPropertyValidator;
+import org.cesecore.util.ui.MultiLineString;
+import org.cesecore.util.ui.RadioButton;
+
+/**
+ * This class represents an approval step, to sum of which is a collective series of events, in serial order, which must occur for an approval
+ * to pass. Once the final step passes, the approval automatically passes.
+ *
+ * Steps are stored in the ApprovalProfile without order, but instead track their own order in the form of a doubly linked list.
+ *
+ * @version $Id: ApprovalStep.java 34227 2020-01-09 14:20:59Z henriks $
+ *
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+public class ApprovalStep implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    private final int id;
+<span class="nc" id="L54">    private Integer nextStep = null;</span>
+<span class="nc" id="L55">    private Integer previousStep = null;</span>
+
+    private final LinkedHashMap&lt;Integer, ApprovalPartition&gt; partitions;
+
+<span class="nc" id="L59">    public ApprovalStep(int id) {</span>
+<span class="nc" id="L60">        this.id = id;</span>
+        //Use LinkedHashMap to keep insertion order.
+<span class="nc" id="L62">        partitions = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L63">    }</span>
+
+    /**
+     * Copy constructor for ApprovalStep objects
+     *
+     * @param original the step to copy
+     */
+<span class="nc" id="L70">    public ApprovalStep(ApprovalStep original) {</span>
+<span class="nc" id="L71">        this.id = original.getStepIdentifier();</span>
+<span class="nc" id="L72">        this.nextStep = original.getNextStep();</span>
+<span class="nc" id="L73">        this.previousStep = original.getPreviousStep();</span>
+        //Use LinkedHashMap to keep insertion order.
+<span class="nc" id="L75">        partitions = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        for(ApprovalPartition partition : original.getPartitions().values()) {</span>
+<span class="nc" id="L77">            partitions.put(partition.getPartitionIdentifier(), partition);</span>
+<span class="nc" id="L78">        }</span>
+
+<span class="nc" id="L80">    }</span>
+
+    /**
+     * Create an approval step from a base64 encoded string representing
+     * a serialized {@link ApprovalStep}.
+     *
+     * @param encodedStep a serialized approval step encoded as a string.
+     */
+<span class="nc" id="L88">    public ApprovalStep(final String encodedStep) {</span>
+<span class="nc" id="L89">        final byte[] bytes = Base64.decode(encodedStep.getBytes());</span>
+<span class="nc" id="L90">        try (final LookAheadObjectInputStream ois = new LookAheadObjectInputStream(new ByteArrayInputStream(bytes))) {</span>
+<span class="nc" id="L91">            ois.setEnabledMaxObjects(false);</span>
+<span class="nc" id="L92">            ois.setAcceptedClasses(Arrays.asList(ApprovalStep.class, ApprovalPartition.class, LinkedHashMap.class, HashMap.class,</span>
+                    DynamicUiProperty.class, DynamicUiPropertyCallback.class, Enum.class, ArrayList.class, DynamicUiPropertyValidator.class,
+                    RoleInformation.class, HashSet.class, AccessUserAspectData.class, AccessMatchType.class, RoleData.class, RadioButton.class, MultiLineString.class));
+<span class="nc" id="L95">            ois.setEnabledInterfaceImplementations(true, &quot;org.cesecore.util.ui&quot;);</span>
+<span class="nc" id="L96">            final ApprovalStep step = (ApprovalStep) ois.readObject();</span>
+<span class="nc" id="L97">            this.id = step.getStepIdentifier();</span>
+<span class="nc" id="L98">            this.nextStep = step.getNextStep();</span>
+<span class="nc" id="L99">            this.previousStep = step.getPreviousStep();</span>
+<span class="nc" id="L100">            this.partitions = step.getPartitions();</span>
+<span class="nc" id="L101">        } catch (IOException | ClassNotFoundException e) {</span>
+<span class="nc" id="L102">            throw new IllegalArgumentException(&quot;Could not decode encoded ApprovalStep&quot;, e);</span>
+<span class="nc" id="L103">        }</span>
+<span class="nc" id="L104">    }</span>
+
+    public String getEncoded() {
+<span class="nc" id="L107">        final ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+        try {
+<span class="nc" id="L109">        final ObjectOutputStream oos = new ObjectOutputStream(baos);</span>
+<span class="nc" id="L110">        oos.writeObject(this);</span>
+<span class="nc" id="L111">        oos.close();</span>
+<span class="nc" id="L112">        } catch(IOException e) {</span>
+<span class="nc" id="L113">            throw new IllegalStateException(&quot;Could not encode ApprovalStep&quot;, e);</span>
+<span class="nc" id="L114">        }</span>
+<span class="nc" id="L115">        byte[] byteArray = baos.toByteArray();</span>
+<span class="nc" id="L116">        return new String(Base64.encode(byteArray, false));</span>
+    }
+
+    /**
+     * @return the identifier of this step.
+     */
+    public int getStepIdentifier() {
+<span class="nc" id="L123">        return id;</span>
+    }
+
+    public LinkedHashMap&lt;Integer, ApprovalPartition&gt; getPartitions() {
+<span class="nc" id="L127">        return partitions;</span>
+    }
+
+    /**
+     *
+     * @param partitionIdentifier the identifier of the partition in question
+     * @return the sought partition, or null if no such partitions exists
+     */
+    public ApprovalPartition getPartition(int partitionIdentifier) {
+<span class="nc" id="L136">        return partitions.get(partitionIdentifier);</span>
+    }
+
+
+    /**
+     * @return the next step after this one. May be null if this is the last step.
+     */
+    public Integer getNextStep() {
+<span class="nc" id="L144">        return nextStep;</span>
+    }
+
+    public void setNextStep(Integer nextStep) {
+<span class="nc" id="L148">        this.nextStep = nextStep;</span>
+<span class="nc" id="L149">    }</span>
+
+    public Integer getPreviousStep() {
+<span class="nc" id="L152">        return previousStep;</span>
+    }
+
+    public void setPreviousStep(Integer previousStep) {
+<span class="nc" id="L156">        this.previousStep = previousStep;</span>
+<span class="nc" id="L157">    }</span>
+
+    /**
+     * Sets a property to a particular partition. If that partition does not exist, it's created.
+     *
+     * @param partitionId the id of the partition
+     * @param property the property to set
+     */
+    public void setPropertyToPartition(Integer partitionId, DynamicUiProperty&lt;? extends Serializable&gt; property) {
+<span class="nc bnc" id="L166" title="All 2 branches missed.">        if(!partitions.containsKey(partitionId)) {</span>
+<span class="nc" id="L167">            partitions.put(partitionId, new ApprovalPartition(partitionId));</span>
+        }
+<span class="nc" id="L169">        partitions.get(partitionId).addProperty(property);</span>
+<span class="nc" id="L170">    }</span>
+
+    /**
+     * Removes the property from the given partition.
+     *
+     * @param partitionId the identifier of the partition
+     * @param propertyName the name of the property
+     */
+    public void removePropertyFromPartition(final int partitionId, final String propertyName) {
+<span class="nc" id="L179">        ApprovalPartition approvalPartition = partitions.get(partitionId);</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">        if(approvalPartition != null) {</span>
+<span class="nc" id="L181">            approvalPartition.removeProperty(propertyName);</span>
+        }
+<span class="nc" id="L183">    }</span>
+
+    public ApprovalPartition addPartition() {
+        Integer identifier;
+        do {
+<span class="nc" id="L188">            identifier = ProfileID.getRandomIdNumber();</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">        } while(partitions.containsKey(identifier));</span>
+<span class="nc" id="L190">        ApprovalPartition newPartition = new ApprovalPartition(identifier);</span>
+<span class="nc" id="L191">        partitions.put(identifier, newPartition);</span>
+<span class="nc" id="L192">        return newPartition;</span>
+    }
+
+    /**
+     * Adds a partition. This method is package specific to avoid outside use. Using this method directly will not lead to values in this step being serialized.
+     *
+     * @param partition a partition
+     */
+    void addPartition(ApprovalPartition partition) {
+<span class="nc" id="L201">        partitions.put(partition.getPartitionIdentifier(), partition);</span>
+<span class="nc" id="L202">    }</span>
+
+    /**
+     * This method is package specific to avoid outside use. Using this method directly will not lead to values in this step being serialized.
+     *
+     * @param partitionIdentifier the ID of a partition
+     */
+    void removePartition(int partitionIdentifier) {
+<span class="nc" id="L210">       partitions.remove(partitionIdentifier);</span>
+<span class="nc" id="L211">    }</span>
+
+    @Override
+    public int hashCode() {
+<span class="nc" id="L215">        final int prime = 31;</span>
+<span class="nc" id="L216">        int result = 1;</span>
+<span class="nc" id="L217">        result = prime * result + id;</span>
+<span class="nc" id="L218">        return result;</span>
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+<span class="nc bnc" id="L223" title="All 2 branches missed.">        if (this == obj) {</span>
+<span class="nc" id="L224">            return true;</span>
+        }
+<span class="nc bnc" id="L226" title="All 2 branches missed.">        if (obj == null) {</span>
+<span class="nc" id="L227">            return false;</span>
+        }
+<span class="nc bnc" id="L229" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L230">            return false;</span>
+        }
+<span class="nc" id="L232">        ApprovalStep other = (ApprovalStep) obj;</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">        if (id != other.id) {</span>
+<span class="nc" id="L234">            return false;</span>
+        }
+<span class="nc" id="L236">        return true;</span>
+    }
+
+    /**
+     * Get a list of all partitions which must be approved before the step passes.
+     * @return a list of all partitions in this step
+     */
+    public List&lt;ApprovalPartition&gt; getPartitionList() {
+<span class="nc" id="L244">        return new ArrayList&lt;ApprovalPartition&gt;(partitions.values());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

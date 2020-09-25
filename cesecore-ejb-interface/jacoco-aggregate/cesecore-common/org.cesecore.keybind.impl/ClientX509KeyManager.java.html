@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ClientX509KeyManager.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-ejb-interface</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.keybind.impl</a> &gt; <span class="el_source">ClientX509KeyManager.java</span></div><h1>ClientX509KeyManager.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.keybind.impl;
+
+import java.net.Socket;
+import java.security.Principal;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.net.ssl.X509KeyManager;
+
+import org.apache.log4j.Logger;
+
+/**
+ * Simple implementation for providing a private key and a certificate chain in SSL/TLS negotiations from the client.
+ * 
+ * @version $Id: ClientX509KeyManager.java 19902 2014-09-30 14:32:24Z anatom $
+ */
+public class ClientX509KeyManager implements X509KeyManager {
+    
+<span class="nc" id="L33">    private static final Logger log = Logger.getLogger(ClientX509KeyManager.class);</span>
+    
+    private final String alias;
+    private final PrivateKey privateKey;
+    private final X509Certificate[] certificateChain;
+
+<span class="nc" id="L39">    public ClientX509KeyManager(final String alias, final PrivateKey privateKey, final List&lt;X509Certificate&gt; certificateChain) {</span>
+<span class="nc" id="L40">        this.alias = alias;</span>
+<span class="nc" id="L41">        this.privateKey = privateKey;</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">        if(certificateChain != null) {</span>
+<span class="nc" id="L43">            this.certificateChain = certificateChain.toArray(new X509Certificate[certificateChain.size()]);</span>
+        } else {
+<span class="nc" id="L45">            this.certificateChain = null;</span>
+        }
+<span class="nc" id="L47">    }</span>
+    
+    @Override
+    public String chooseClientAlias(final String[] keyTypes, final Principal[] issuers, final Socket socket) {
+<span class="nc" id="L51">        logDebugIfEnabled(null, keyTypes, issuers, socket);</span>
+<span class="nc" id="L52">        return alias;</span>
+    }
+    
+    @Override
+    public String chooseServerAlias(final String keyType, final Principal[] issuers, final Socket socket) {
+<span class="nc" id="L57">        logDebugIfEnabled(null, new String[] {keyType}, issuers, socket);</span>
+<span class="nc" id="L58">        log.warn(&quot;Got a request for server aliases, but implementation only supports client side of TLS negotiations.&quot;);</span>
+<span class="nc" id="L59">        return null;    // We are not the server side</span>
+    }
+
+    @Override
+    public X509Certificate[] getCertificateChain(final String alias) {
+<span class="nc" id="L64">        logDebugIfEnabled(alias, null, null, null);</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (this.alias.equals(alias)) {</span>
+<span class="nc" id="L66">            return certificateChain;</span>
+        }
+<span class="nc" id="L68">        return null;</span>
+    }
+
+    @Override
+    public String[] getClientAliases(final String keyType, final Principal[] issuers) {
+<span class="nc" id="L73">        logDebugIfEnabled(null, new String[] {keyType}, issuers, null);</span>
+<span class="nc" id="L74">        return new String[] { alias };</span>
+    }
+
+    @Override
+    public PrivateKey getPrivateKey(final String alias) {
+<span class="nc" id="L79">        logDebugIfEnabled(alias, null, null, null);</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (this.alias.equals(alias)) {</span>
+<span class="nc" id="L81">            return privateKey;</span>
+        }
+<span class="nc" id="L83">        return null;</span>
+    }
+
+    @Override
+    public String[] getServerAliases(final String keyType, final Principal[] issuers) {
+<span class="nc" id="L88">        logDebugIfEnabled(null, new String[] {keyType}, issuers, null);</span>
+<span class="nc" id="L89">        log.warn(&quot;Got a request for server aliases, but implementation only supports client side of TLS negotiations.&quot;);</span>
+<span class="nc" id="L90">        return null;    // We are not server side</span>
+    }  
+
+    /** Write debug log if enabled for any of the provided nullable arguments 
+     * @param alias Alias
+     * @param keyTypes Types
+     * @param issuers Issuers
+     * @param socket Socket */
+    private void logDebugIfEnabled(final String alias, final String[] keyTypes, final Principal[] issuers, final Socket socket) {
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L100">            log.debug(Thread.currentThread().getStackTrace()[2].getMethodName() + &quot;:&quot;);</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">            if (alias != null) {</span>
+<span class="nc" id="L102">                log.debug(&quot; Alias: &quot; + alias);</span>
+            }
+<span class="nc bnc" id="L104" title="All 2 branches missed.">            if (keyTypes != null) {</span>
+<span class="nc" id="L105">                log.debug(&quot; KeyTypes: &quot; + Arrays.toString(keyTypes));</span>
+            }
+<span class="nc bnc" id="L107" title="All 2 branches missed.">            if (issuers != null) {</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">                for (final Principal issuer : issuers) {</span>
+<span class="nc" id="L109">                    log.debug(&quot; Issuer: &quot; + issuer);</span>
+                }
+            }
+<span class="nc bnc" id="L112" title="All 2 branches missed.">            if (socket != null) {</span>
+<span class="nc" id="L113">                log.debug(&quot; RemoteSocketAddress: &quot; + socket.getRemoteSocketAddress());</span>
+            }
+        }
+<span class="nc" id="L116">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

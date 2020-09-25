@@ -1,0 +1,1021 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DynamicUiProperty.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.util.ui</a> &gt; <span class="el_source">DynamicUiProperty.java</span></div><h1>DynamicUiProperty.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.util.ui;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.SerializationUtils;
+import org.apache.commons.lang.StringUtils;
+import org.cesecore.authorization.user.AccessMatchType;
+import org.cesecore.util.Base64;
+import org.cesecore.util.LookAheadObjectInputStream;
+
+/**
+ * Allows creation of dynamic properties for display in the UI.
+ *
+ * @version $Id: DynamicUiProperty.java 34324 2020-01-17 12:22:39Z henriks $
+ * @param &lt;T&gt; Type
+ */
+public class DynamicUiProperty&lt;T extends Serializable&gt; implements Serializable, Cloneable {
+
+    private static final long serialVersionUID = 1L;
+
+    /** Literal for list separator. */
+    public static final String LIST_SEPARATOR = &quot;;&quot;;
+
+    /** Literal for no rendering. */
+    public static final String RENDER_NONE = &quot;none&quot;;
+
+    /** Literal for rendering hint for labels. */
+    public static final String RENDER_LABEL = &quot;label&quot;;
+
+    /** Literal for rendering hint for text fields. */
+    public static final String RENDER_TEXTFIELD = &quot;textfield&quot;;
+
+    /** Literal for rendering hint for text areas. */
+    public static final String RENDER_TEXTAREA = &quot;textarea&quot;;
+
+    /** Literal for rendering hint for check boxes. */
+    public static final String RENDER_CHECKBOX = &quot;checkbox&quot;;
+
+    /** Literal for rendering hint for buttons. */
+    public static final String RENDER_BUTTON = &quot;button&quot;;
+
+    /** Literal for rendering hint for text fields. */
+    public static final String RENDER_SELECT_ONE = &quot;selectone&quot;;
+
+    /** Literal for rendering hint for text fields. */
+    public static final String RENDER_SELECT_MANY = &quot;selectmany&quot;;
+
+    /** Literal for rendering hint for file chooser. */
+    public static final String RENDER_FILE_CHOOSER = &quot;filechooser&quot;;
+
+    /** The name (key) of the property. */
+    private String name;
+
+    /** Default value or null. */
+    private T defaultValue;
+
+    /** Property values (or value at index 0). */
+<span class="pc" id="L88">    private List&lt;T&gt; values = new ArrayList&lt;&gt;();</span>
+
+    /** Value range or null. */
+    private Collection&lt;T&gt; possibleValues;
+
+    /** If the UI widget is supposed to be filled with a value. */
+<span class="pc" id="L94">    private boolean required = false;</span>
+
+    /** If the UI widget is supposed to be disabled. */
+<span class="pc" id="L97">    private boolean disabled = false;</span>
+
+    /** If the value has to be stored in the domain object properties. */
+<span class="pc" id="L100">    private boolean transientValue = false;</span>
+
+    /** If a domain object property is stored as semi-colon separated string instead of {@link java.util.List}. */
+<span class="pc" id="L103">    private boolean saveListAsString = false;</span>
+
+    /** Hint for widget rendering. */;
+    private String renderingHint;
+
+    /** True if I18N labels has to be rendered. */
+<span class="pc" id="L109">    private boolean labeled = false;</span>
+
+    /** List of I18N keys / labels if available. */
+<span class="pc" id="L112">    private Map&lt;?,String&gt; labels = new LinkedHashMap&lt;Object,String&gt;();</span>
+
+    /** Flag to indicate that the property is displayed as label in the label column only (there will be no validation if available, etc.).*/
+<span class="pc" id="L115">    private boolean labelOnly = false;</span>
+
+    /** Action callback. */
+    private DynamicUiActionCallback actionCallback;
+
+    /** Property callback (default: NONE). */
+<span class="pc" id="L121">    private DynamicUiPropertyCallback propertyCallback = DynamicUiPropertyCallback.NONE;</span>
+
+    /** Property type. */
+    private Class&lt;? extends Serializable&gt; type;
+
+    /** Field validator (will be applied if not null). */
+<span class="pc" id="L127">    private DynamicUiPropertyValidator&lt;T&gt; validator = null;</span>
+
+    /** Reference to the holder object (implements coupling to components). */
+    private DynamicUiModel dynamicUiModel;
+
+    /** Denotes whether this property can have multiple values. */
+<span class="pc" id="L133">    private boolean hasMultipleValues = false;</span>
+
+    /**
+     * Constructor required by java.lang.Serializable.
+     * Type must be set if this constructor is used.
+     */
+<span class="nc" id="L139">    public DynamicUiProperty() {</span>
+<span class="nc" id="L140">    }</span>
+
+    /**
+     * Constructs a dynamic UI property rendered as a simple label in the UI.
+     *
+     * @param name the name of this property, for display in the UI
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L148">    public DynamicUiProperty(final String name) {</span>
+<span class="nc" id="L149">        this.name = name;</span>
+<span class="nc" id="L150">        this.type = String.class;</span>
+<span class="nc" id="L151">        this.defaultValue = (T) name;</span>
+<span class="nc" id="L152">        this.values.add((T) name);</span>
+<span class="nc" id="L153">        this.possibleValues = null;</span>
+<span class="nc" id="L154">        setLabelOnly(true);</span>
+<span class="nc" id="L155">        setTransientValue(true);</span>
+<span class="nc" id="L156">    }</span>
+
+    /**
+     * Constructor. Note the T must implement toString().
+     *
+     * @param name the name of this property, for display in the UI.
+     * @param defaultValue the default value, if any.
+     */
+<span class="fc" id="L164">    public DynamicUiProperty(final String name, final T defaultValue) {</span>
+<span class="fc" id="L165">        this.name = name;</span>
+<span class="fc" id="L166">        this.defaultValue = defaultValue;</span>
+<span class="fc" id="L167">        this.values.add(defaultValue);</span>
+<span class="fc" id="L168">        this.possibleValues = null;</span>
+<span class="pc bpc" id="L169" title="1 of 2 branches missed.">        if (defaultValue != null) {</span>
+<span class="fc" id="L170">            this.type = defaultValue.getClass();</span>
+        }
+<span class="fc" id="L172">    }</span>
+
+    /**
+     * Constructor. Note the T must implement toString().
+     *
+     * @param type Class type (as workaround for forgotten parameter type at runtime).
+     * @param name the name of this property, for display in the UI.
+     * @param defaultValue the default value, if any.
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L182">    public DynamicUiProperty(final Class&lt;T&gt; type, final String name, final T defaultValue) {</span>
+<span class="nc" id="L183">        this.name = name;</span>
+<span class="nc" id="L184">        this.defaultValue = defaultValue;</span>
+<span class="nc bnc" id="L185" title="All 6 branches missed.">        if (String.class.equals(type) &amp;&amp; defaultValue != null &amp;&amp; ((String) defaultValue).contains(LIST_SEPARATOR)) {</span>
+<span class="nc bnc" id="L186" title="All 2 branches missed.">            for (String value : StringUtils.split((String) defaultValue, LIST_SEPARATOR)) {</span>
+<span class="nc" id="L187">                this.values.add((T) value);</span>
+            }
+        } else {
+<span class="nc" id="L190">            this.values.add(defaultValue);</span>
+        }  
+<span class="nc" id="L192">        this.possibleValues = null;</span>
+<span class="nc" id="L193">        this.type = type;</span>
+<span class="nc bnc" id="L194" title="All 4 branches missed.">        if (File.class.getName().equals(getType().getName()) || byte[].class.getName().equals(getType().getName())) {</span>
+<span class="nc" id="L195">            setRenderingHint(RENDER_FILE_CHOOSER);</span>
+        }
+<span class="nc" id="L197">    }</span>
+
+    /**
+     * Constructor. Note the T must implement toString().
+     *
+     * @param name the name of this property, for display in the UI.
+     * @param defaultValue the default value, if any. May not be null.
+     * @param possibleValues a Collection of possible values. If set to null no validation will be performed, if set to an empty list then values
+     *        are presumed to be set at runtime.
+     */
+    public DynamicUiProperty(final String name, final T defaultValue, final Collection&lt;T&gt; possibleValues) {
+<span class="fc" id="L208">        this(name, defaultValue);</span>
+<span class="fc" id="L209">        this.possibleValues = possibleValues;</span>
+<span class="fc" id="L210">    }</span>
+
+    /**
+     * Constructor. Note the T must implement toString().
+     *
+     * @param type Class type (as workaround for forgotten parameter type at runtime).
+     * @param name The name of this property, for display in the UI
+     * @param defaultValue the default value, if any.
+     * @param possibleValues a Collection of possible values. If set to null no validation will be performed, if set to an empty list then values
+     *        are presumed to be set at runtime.
+     */
+    public DynamicUiProperty(final Class&lt;T&gt; type, final String name, final T defaultValue, final Collection&lt;T&gt; possibleValues) {
+<span class="nc" id="L222">        this(type, name, defaultValue);</span>
+<span class="nc" id="L223">        this.possibleValues = possibleValues;</span>
+<span class="nc" id="L224">    }</span>
+
+    /**
+     * Copy constructor for DynamicUiProperty objects
+     * @param original the original property
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L231">    public DynamicUiProperty(final DynamicUiProperty&lt;T&gt; original) {</span>
+<span class="fc" id="L232">        this.name = original.getName();</span>
+<span class="fc" id="L233">        this.type = original.getType();</span>
+<span class="fc" id="L234">        this.required = original.isRequired();</span>
+<span class="fc" id="L235">        this.renderingHint = original.getRenderingHint();</span>
+<span class="fc" id="L236">        this.labelOnly = original.isLabelOnly();</span>
+<span class="fc" id="L237">        this.labeled = original.isI18NLabeled();</span>
+<span class="fc" id="L238">        this.defaultValue = original.getDefaultValue();</span>
+<span class="fc" id="L239">        this.setHasMultipleValues(original.getHasMultipleValues());</span>
+        try {
+<span class="pc bpc" id="L241" title="1 of 2 branches missed.">            if (!original.getHasMultipleValues()) {</span>
+<span class="fc" id="L242">                setValue((T) SerializationUtils.clone(original.getValue()));</span>
+            } else {
+<span class="nc" id="L244">                final List&lt;T&gt; clonedValues = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L245" title="All 2 branches missed.">                for (T value : original.getValues()) {</span>
+<span class="nc" id="L246">                    clonedValues.add((T) SerializationUtils.clone(value));</span>
+<span class="nc" id="L247">                }</span>
+<span class="nc" id="L248">                setValues(clonedValues);</span>
+            }
+<span class="nc" id="L250">        } catch (PropertyValidationException e) {</span>
+<span class="nc" id="L251">            throw new IllegalArgumentException(&quot;Invalid value was intercepted in copy constructor, which should not happen.&quot;, e);</span>
+<span class="fc" id="L252">        }</span>
+<span class="fc" id="L253">        this.possibleValues = original.getPossibleValues();</span>
+<span class="fc" id="L254">        this.propertyCallback = original.getPropertyCallback();</span>
+<span class="fc" id="L255">        this.actionCallback = original.getActionCallback();</span>
+<span class="fc" id="L256">        this.validator = original.validator;</span>
+<span class="fc" id="L257">        this.disabled = original.isDisabled();</span>
+<span class="fc" id="L258">        this.dynamicUiModel = original.getDynamicUiModel();</span>
+<span class="fc" id="L259">        this.transientValue = original.isTransientValue();</span>
+<span class="fc" id="L260">    }</span>
+
+    /**
+     * Sets the dynamic UI model reference.
+     *
+     * @param dynamicUiModel the dynamic UI model reference.
+     */
+    public void setDynamicUiModel(final DynamicUiModel dynamicUiModel) {
+<span class="nc" id="L268">        this.dynamicUiModel = dynamicUiModel;</span>
+<span class="nc" id="L269">    }</span>
+
+    /**
+     * Gets the dynamic UI model reference.
+     *
+     * @return the dynamic UI model reference.
+     */
+    public DynamicUiModel getDynamicUiModel() {
+<span class="fc" id="L277">        return dynamicUiModel;</span>
+    }
+
+    /**
+     * Returns a value of type T from a string. Limited to the basic java types {@link Integer}, {@link String}, {@link Boolean}, {@link Float},
+     * {@link Long}
+     *
+     * @param value the value to translate
+     * @return and Object instantiated as T, or null if value was not of a usable class or was invalid for T
+     */
+    public Serializable valueOf(String value) {
+        // ECA-6320 Re-factor: New implementation uses constructor with type parameter (not only Generic Operator because this information is lost at runtime!).
+        // The defaultValue of the old implementation MUST NOT be null, the one of the new can be!
+<span class="nc bnc" id="L290" title="All 2 branches missed.">        if (defaultValue instanceof MultiLineString) {</span>
+<span class="nc" id="L291">            return new MultiLineString(value);</span>
+<span class="nc bnc" id="L292" title="All 2 branches missed.">        } else if (defaultValue instanceof String) {</span>
+<span class="nc" id="L293">            return value;</span>
+<span class="nc bnc" id="L294" title="All 2 branches missed.">        } else if (defaultValue instanceof Boolean) {</span>
+<span class="nc bnc" id="L295" title="All 4 branches missed.">            if (value.equals(Boolean.TRUE.toString()) || value.equals(Boolean.FALSE.toString())) {</span>
+<span class="nc" id="L296">                return Boolean.valueOf(value);</span>
+            }
+<span class="nc bnc" id="L298" title="All 2 branches missed.">        } else if (defaultValue instanceof Integer) {</span>
+            try {
+<span class="nc" id="L300">                return Integer.valueOf(value);</span>
+<span class="nc" id="L301">            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L302">                return null;</span>
+            }
+<span class="nc bnc" id="L304" title="All 2 branches missed.">        } else if (defaultValue instanceof Long) {</span>
+            try {
+<span class="nc" id="L306">                return Long.valueOf(value);</span>
+<span class="nc" id="L307">            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L308">                return null;</span>
+            }
+<span class="nc bnc" id="L310" title="All 2 branches missed.">        } else if (defaultValue instanceof BigInteger) {</span>
+            try {
+<span class="nc" id="L312">                return new BigInteger(value);</span>
+<span class="nc" id="L313">            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L314">                return null;</span>
+            }
+<span class="nc bnc" id="L316" title="All 2 branches missed.">        } else if (defaultValue instanceof Float) {</span>
+            try {
+<span class="nc" id="L318">                return Float.valueOf(value);</span>
+<span class="nc" id="L319">            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L320">                return null;</span>
+            }
+        }
+<span class="nc" id="L323">        return null;</span>
+    }
+
+    /**
+     * Gets a string representation of the value (for example the string '1' for the Integer with value 1. Value is retrieved inside as getValue()).
+     * @return string the string representation.
+     */
+    public String getValueAsString() {
+<span class="nc" id="L331">        Serializable value = getValue();</span>
+<span class="nc" id="L332">        String result = StringUtils.EMPTY;</span>
+<span class="nc bnc" id="L333" title="All 2 branches missed.">        if (value instanceof MultiLineString) {</span>
+<span class="nc" id="L334">            result = ((MultiLineString) value).getValue();</span>
+<span class="nc bnc" id="L335" title="All 2 branches missed.">        } else if (value instanceof String) {</span>
+<span class="nc" id="L336">            result = (String) value;</span>
+<span class="nc bnc" id="L337" title="All 2 branches missed.">        } else if (value instanceof RadioButton) {</span>
+<span class="nc" id="L338">            result = ((RadioButton)value).getLabel();</span>
+        } else {
+<span class="nc" id="L340">            result = ((Object) value).toString();</span>
+        }
+<span class="nc" id="L342">        return result;</span>
+    }
+
+    /**
+     * Gets the name (or key) of the property.
+     * @return the name.
+     */
+    public String getName() {
+<span class="fc" id="L350">        return name;</span>
+    }
+
+    /**
+     * Gets if the UI widget is supposed to be filled with a value.
+     * @return true if is required.
+     */
+    public boolean isRequired() {
+<span class="fc" id="L358">        return required;</span>
+    }
+
+    /**
+     * Sets if the UI widget is supposed to be filled with a value.
+     * @param required true if required.
+     */
+    public void setRequired(boolean required) {
+<span class="nc" id="L366">        this.required = required;</span>
+<span class="nc" id="L367">    }</span>
+
+    /**
+     * Gets if the UI widget is supposed to be disabled.
+     * @return true if disabled.
+     */
+    public boolean isDisabled() {
+<span class="fc" id="L374">        return disabled;</span>
+    }
+
+    /**
+     * Sets if the UI widget is supposed to be disabled.
+     * @param disabled true if disabled.
+     */
+    public void setDisabled(boolean disabled) {
+<span class="nc" id="L382">        this.disabled = disabled;</span>
+<span class="nc" id="L383">    }</span>
+
+    /**
+     * Gets weather the value has to be stored in the domain objects properties.
+     * @return true if transient.
+     */
+    public boolean isTransientValue() {
+<span class="fc" id="L390">        return transientValue;</span>
+    }
+
+    /**
+     * Sets weather the value has to be stored in the domain objects properties.
+     * @param transientValue true if transient.
+     */
+    public void setTransientValue(boolean transientValue) {
+<span class="nc" id="L398">        this.transientValue = transientValue;</span>
+<span class="nc" id="L399">    }</span>
+
+    /**
+     * Is set to true if I18N labels has to be rendered (mainly used in facelets).
+     * @return true if I18N labels has to be rendered.
+     */
+    public boolean isI18NLabeled() {
+<span class="fc" id="L406">        return labeled;</span>
+    }
+
+    /**
+     * Gets if only the label has to be rendered.
+     * @return if the entry has to be rendered as label only (first column only).
+     */
+    public boolean isLabelOnly() {
+<span class="fc" id="L414">        return labelOnly;</span>
+    }
+
+    /**
+     * Sets if only the label has to be rendered.
+     * @param labelOnly true if the entry has to be rendered as label only (first column only)
+     */
+    public void setLabelOnly(boolean labelOnly) {
+<span class="nc" id="L422">        this.labelOnly = labelOnly;</span>
+<span class="nc" id="L423">    }</span>
+
+    /**
+     *
+     * @return the type class of this property, based on the default value. If the default was null, then the type has to be set explicitly.
+     */
+    public Class&lt;? extends Serializable&gt; getType() {
+<span class="fc" id="L430">        return type;</span>
+    }
+
+    public void setType(final Class&lt;? extends Serializable&gt; type) {
+<span class="nc" id="L434">        this.type = type;</span>
+<span class="nc" id="L435">    }</span>
+
+    /**
+     * Gets the given value of type &amp;lt;T&amp;gt;.
+     * @return the value.
+     */
+    public T getDefaultValue() {
+<span class="fc" id="L442">        return defaultValue;</span>
+    }
+
+    /**
+     * Sets the given value of type &amp;lt;T&amp;gt;.
+     * @param defaultValue the value.
+     */
+    public void setDefaultValue(T defaultValue) {
+<span class="nc" id="L450">        this.defaultValue = defaultValue;</span>
+<span class="nc" id="L451">    }</span>
+
+    /**
+     * Gets the list of current values.
+     * @return the list.
+     */
+    public List&lt;T&gt; getValues() {
+<span class="nc bnc" id="L458" title="All 2 branches missed.">        if (!hasMultipleValues) {</span>
+<span class="nc" id="L459">            throw new IllegalStateException(&quot;Attempted to draw multiple values from a dynamic property with a single value for &quot; + getName());</span>
+        }
+<span class="nc" id="L461">        return values;</span>
+    }
+
+    /**
+     * Gets the current value.
+     * @return the value.
+     */
+    public T getValue() {
+<span class="pc bpc" id="L469" title="1 of 2 branches missed.">        if (hasMultipleValues) {</span>
+<span class="nc" id="L470">            throw new IllegalStateException(&quot;Attempted to draw single value from a dynamic property with multiple value for &quot; + getName());</span>
+        }
+<span class="fc" id="L472">        return values.get(0);</span>
+    }
+
+    public List&lt;String&gt; getPossibleValuesAsStrings() {
+<span class="nc" id="L476">        final List&lt;String&gt; strings = new ArrayList&lt;String&gt;();</span>
+<span class="nc bnc" id="L477" title="All 2 branches missed.">        for (final T possibleValue : getPossibleValues()) {</span>
+<span class="nc" id="L478">            strings.add(possibleValue.toString());</span>
+<span class="nc" id="L479">        }</span>
+<span class="nc" id="L480">        return strings;</span>
+    }
+
+    public List&lt;String&gt; getValuesAsStrings() {
+<span class="nc" id="L484">        final List&lt;String&gt; strings = new ArrayList&lt;String&gt;();</span>
+<span class="nc bnc" id="L485" title="All 2 branches missed.">        for (final T value : getValues()) {</span>
+<span class="nc" id="L486">            strings.add(value.toString());</span>
+<span class="nc" id="L487">        }</span>
+<span class="nc" id="L488">        return strings;</span>
+    }
+
+    /**
+     * Gets a list of all possible values.
+     * @return the list.
+     */
+    public Collection&lt;T&gt; getPossibleValues() {
+<span class="fc" id="L496">        return possibleValues;</span>
+    }
+
+    /**
+     * Sets the list of possible values.
+     * @param collection the collection of values.
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void setPossibleValues(Collection&lt;? extends Serializable&gt; collection) {
+<span class="nc" id="L505">        this.possibleValues = (Collection&lt;T&gt;) collection;</span>
+<span class="nc" id="L506">    }</span>
+
+    /**
+     * Sets the current value of type &amp;lt;T&amp;gt;.
+     * @param object a value for this property.
+     * @throws PropertyValidationException if the validation of the value failed.
+     */
+    public void setValue(T object) throws PropertyValidationException {
+<span class="pc bpc" id="L514" title="1 of 2 branches missed.">        if (hasMultipleValues) {</span>
+<span class="nc" id="L515">            throw new IllegalStateException(&quot;Attempted to set multiple values from a dynamic property with single value.&quot;);</span>
+        }
+<span class="fc" id="L517">        final List&lt;T&gt; newValues = new ArrayList&lt;&gt;();</span>
+<span class="pc bpc" id="L518" title="1 of 2 branches missed.">        if (object == null) {</span>
+<span class="nc" id="L519">            newValues.add(defaultValue);</span>
+        } else {
+<span class="pc bpc" id="L521" title="1 of 2 branches missed.">            if (validator != null) {</span>
+<span class="nc" id="L522">                validator.validate(object);</span>
+            }
+<span class="pc bpc" id="L524" title="3 of 4 branches missed.">            if (possibleValues != null &amp;&amp; !possibleValues.contains(object)) {</span>
+<span class="nc" id="L525">                throw new IllegalArgumentException(object + &quot; (class=&quot; + object.getClass().getSimpleName()</span>
+<span class="nc" id="L526">                        + &quot;) is not in the list of approved objects (class=&quot; + possibleValues.getClass().getSimpleName() + &quot;&lt;&quot;</span>
+<span class="nc" id="L527">                        + possibleValues.getClass().getSimpleName() + &quot;&gt;): &quot; + possibleValues);</span>
+            }
+<span class="fc" id="L529">            newValues.add(object);</span>
+        }
+<span class="pc bpc" id="L531" title="1 of 2 branches missed.">        if (dynamicUiModel != null) {</span>
+<span class="nc" id="L532">            dynamicUiModel.setProperty(name, newValues.get(0));</span>
+        }
+<span class="fc" id="L534">        this.values = newValues;</span>
+<span class="fc" id="L535">    }</span>
+
+    /**
+     * Sets the list of current values of type &amp;lt;T&amp;gt;.
+     * @param objects a list of values to set.
+     * @throws PropertyValidationException if any one of the values didn't pass validation.
+     */
+    public void setValues(List&lt;T&gt; objects) throws PropertyValidationException {
+<span class="nc bnc" id="L543" title="All 2 branches missed.">        if (!hasMultipleValues) {</span>
+<span class="nc" id="L544">            throw new IllegalStateException(&quot;Attempted to set single value from a dynamic property with multiple values.&quot;);</span>
+        }
+<span class="nc" id="L546">        final List&lt;T&gt; objectsCopy = new ArrayList&lt;&gt;(objects); // extra safety in case list is modified during function call</span>
+        final List&lt;T&gt; newValues;
+<span class="nc bnc" id="L548" title="All 2 branches missed.">        if (CollectionUtils.isEmpty(objectsCopy)) {</span>
+<span class="nc" id="L549">            newValues = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L550">            newValues.add(defaultValue);</span>
+        } else {
+<span class="nc bnc" id="L552" title="All 2 branches missed.">            if (!CollectionUtils.isEmpty(possibleValues)) {</span>
+<span class="nc" id="L553">                newValues = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L554" title="All 2 branches missed.">                for (final T object : objectsCopy) {</span>
+<span class="nc bnc" id="L555" title="All 2 branches missed.">                    if (validator != null) {</span>
+<span class="nc" id="L556">                        validator.validate(object);</span>
+                    }
+<span class="nc bnc" id="L558" title="All 2 branches missed.">                    if (possibleValues.contains(object)) {</span>
+<span class="nc" id="L559">                        newValues.add(object);</span>
+                    } else {
+<span class="nc" id="L561">                        throw new IllegalArgumentException(object + &quot; (class=&quot; + object.getClass().getSimpleName()</span>
+<span class="nc" id="L562">                                + &quot;) is not in the list of approved objects (class=&quot; + possibleValues.getClass().getSimpleName() + &quot;&lt;&quot;</span>
+<span class="nc" id="L563">                                + possibleValues.getClass().getSimpleName() + &quot;&gt;): &quot; + possibleValues);</span>
+                    }
+<span class="nc" id="L565">                }</span>
+            } else {
+<span class="nc" id="L567">                newValues = objectsCopy;</span>
+            }
+        }
+<span class="nc bnc" id="L570" title="All 2 branches missed.">        if (dynamicUiModel != null) {</span>
+<span class="nc" id="L571">            dynamicUiModel.setProperty(name, StringUtils.join(newValues, LIST_SEPARATOR));</span>
+        }
+<span class="nc" id="L573">        this.values = newValues;</span>
+<span class="nc" id="L574">    }</span>
+
+    /**
+     * Gets the current value of type &amp;lt;T&amp;gt; as base 64 encoded string.
+     * @return the base 64 encoded string.
+     */
+    public String getEncodedValue() {
+<span class="nc" id="L581">        return getAsEncodedValue(getValue());</span>
+    }
+
+    /**
+     * Gets the list of current values of type &amp;lt;T&amp;gt; as list of base 64 encoded strings.
+     * @return the list.
+     */
+    public List&lt;String&gt; getEncodedValues() {
+<span class="nc" id="L589">        return getAsEncodedValues(getValues());</span>
+    }
+
+    /**
+     * Gets the base 64 encoded string of the value.
+     * @param value the value.
+     * @return the base 64 encoded string.
+     */
+    public String getAsEncodedValue(final Serializable value) {
+<span class="nc" id="L598">        return new String(Base64.encode(getAsByteArray(value), false));</span>
+    }
+
+    /**
+     * Gets the list of base 64 encoded strings of the values.
+     * @param list the list of values.
+     * @return the list of base 64 encoded strings.
+     */
+    private List&lt;String&gt; getAsEncodedValues(final List&lt;T&gt; list) {
+<span class="nc" id="L607">        final List&lt;String&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L608" title="All 2 branches missed.">        for (final Serializable value : list) {</span>
+<span class="nc" id="L609">            result.add(new String(Base64.encode(getAsByteArray(value), false)));</span>
+<span class="nc" id="L610">        }</span>
+<span class="nc" id="L611">        return result;</span>
+    }
+
+    /**
+     * Sets the current value of type &amp;lt;T&amp;gt; by the given base 64 encoded string.
+     * @param encodedValue the base 64 encoded value.
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void setEncodedValue(final String encodedValue) {
+        try {
+<span class="nc" id="L621">            setValue((T) getAsObject(Base64.decode(encodedValue.getBytes()), getType()));</span>
+<span class="nc" id="L622">        } catch (PropertyValidationException e) {</span>
+<span class="nc" id="L623">            throw new IllegalArgumentException(&quot;Invalid value was intercepted from an encoded source, which should not happen.&quot;, e);</span>
+<span class="nc" id="L624">        }</span>
+<span class="nc" id="L625">    }</span>
+
+    /**
+     * Sets the list of values of type &amp;lt;T&amp;gt; by the given list of base 64 encoded strings.
+     * @param encodedValues a list of encoded values.
+     * @throws PropertyValidationException if any one of the values doesn't pass validation.
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void setEncodedValues(final List&lt;String&gt; encodedValues) throws PropertyValidationException {
+<span class="nc" id="L634">        List&lt;T&gt; decodedValues = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L635" title="All 2 branches missed.">        for (String encodedValue : encodedValues) {</span>
+<span class="nc" id="L636">            decodedValues.add((T) getAsObject(Base64.decode(encodedValue.getBytes()), getType()));</span>
+<span class="nc" id="L637">        }</span>
+<span class="nc" id="L638">        setValues(decodedValues);</span>
+<span class="nc" id="L639">    }</span>
+
+    /**
+     * Sets the current value of type &amp;lt;T&amp;gt;.
+     * @param object the value.
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void setValueGeneric(final Serializable object) {
+<span class="fc" id="L647">        final List&lt;T&gt; newValues = new ArrayList&lt;&gt;();</span>
+<span class="pc bpc" id="L648" title="1 of 2 branches missed.">        if (object == null) {</span>
+<span class="nc" id="L649">            newValues.add(defaultValue);</span>
+        } else {
+<span class="pc bpc" id="L651" title="1 of 2 branches missed.">            if (validator != null) {</span>
+                try {
+<span class="nc" id="L653">                    validator.validate((T) object);</span>
+<span class="nc" id="L654">                } catch (PropertyValidationException e) {</span>
+<span class="nc" id="L655">                    throw new IllegalStateException(</span>
+                            &quot;Generic setter is normally only used internally, so an incorrect value should not be passed.&quot;, e);
+<span class="nc" id="L657">                }</span>
+            }
+<span class="fc" id="L659">            newValues.add((T) object);</span>
+        }
+<span class="fc" id="L661">        this.values = newValues;</span>
+<span class="fc" id="L662">    }</span>
+
+    /**
+     * Sets the current value of type &amp;lt;T&amp;gt;.
+     * @param object the value.
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void setValueGenericIncludeNull(final Serializable object) {
+<span class="nc" id="L670">        final List&lt;T&gt; newValues = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L671" title="All 2 branches missed.">        if (object == null) {</span>
+<span class="nc" id="L672">            newValues.add((T) object);</span>
+        } else {
+<span class="nc bnc" id="L674" title="All 2 branches missed.">            if (validator != null) {</span>
+                try {
+<span class="nc" id="L676">                    validator.validate((T) object);</span>
+<span class="nc" id="L677">                } catch (PropertyValidationException e) {</span>
+<span class="nc" id="L678">                    throw new IllegalStateException(</span>
+                            &quot;Generic setter is normally only used internally, so an incorrect value should not be passed.&quot;, e);
+<span class="nc" id="L680">                }</span>
+            }
+<span class="nc" id="L682">            newValues.add((T) object);</span>
+        }
+<span class="nc" id="L684">        this.values = newValues;</span>
+<span class="nc" id="L685">    }</span>
+
+    /**
+     * Sets the list of current values of type &amp;lt;T&amp;gt;.
+     * @param list the list of values.
+     *
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void setValuesGeneric(final List&lt;? extends Serializable&gt; list) {
+<span class="nc" id="L694">        final List&lt;? extends Serializable&gt; listCopy = new ArrayList&lt;&gt;(list); // extra safety in case list is modified during the function call</span>
+<span class="nc" id="L695">        final List&lt;T&gt; newValues = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L696" title="All 2 branches missed.">        if (CollectionUtils.isEmpty(listCopy)) {</span>
+<span class="nc" id="L697">            newValues.add(defaultValue);</span>
+        } else {
+<span class="nc bnc" id="L699" title="All 2 branches missed.">            for (final Serializable object : listCopy) {</span>
+<span class="nc bnc" id="L700" title="All 2 branches missed.">                if (validator != null) {</span>
+                    try {
+<span class="nc" id="L702">                        validator.validate((T) object);</span>
+<span class="nc" id="L703">                    } catch (PropertyValidationException e) {</span>
+<span class="nc" id="L704">                        throw new IllegalStateException(</span>
+                                &quot;Generic setter is normally only used internally, so an incorrect value should not be passed.&quot;, e);
+<span class="nc" id="L706">                    }</span>
+                }
+<span class="nc" id="L708">                newValues.add((T) object);</span>
+<span class="nc" id="L709">            }</span>
+        }
+<span class="nc" id="L711">        this.values = newValues;</span>
+<span class="nc" id="L712">    }</span>
+
+    /**
+     * Creates a deep clone of this instance.
+     * @return the new instance.
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    @Override
+    public DynamicUiProperty&lt;T&gt; clone() {
+<span class="nc" id="L721">        return (DynamicUiProperty&lt;T&gt;) SerializationUtils.clone(this);</span>
+    }
+
+    /**
+     * Gets the object a byte array stream.
+     * @param o the object
+     * @return the byte array.
+     */
+    private byte[] getAsByteArray(final Serializable o) {
+<span class="nc" id="L730">        final ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+<span class="nc" id="L731">        try (final ObjectOutputStream oos = new ObjectOutputStream(baos);) {</span>
+<span class="nc" id="L732">            oos.writeObject(o);</span>
+<span class="nc" id="L733">        } catch (IOException e) {</span>
+<span class="nc" id="L734">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L735">        }</span>
+<span class="nc" id="L736">        return baos.toByteArray();</span>
+    }
+
+    public static &lt;T extends Serializable&gt; T  getAsObject(final String encodedValue, Class&lt;T&gt; type) {
+<span class="nc" id="L740">        return getAsObject(Base64.decode(encodedValue.getBytes()), type);</span>
+    }
+
+    private static &lt;T extends Serializable&gt; T getAsObject(final byte[] bytes, Class&lt;T&gt; type) {
+<span class="nc" id="L744">        try (final LookAheadObjectInputStream lookAheadObjectInputStream = new LookAheadObjectInputStream(new ByteArrayInputStream(bytes))) {</span>
+<span class="nc" id="L745">            lookAheadObjectInputStream.setAcceptedClasses(Arrays.asList(type, LinkedHashMap.class, HashMap.class, HashSet.class, DynamicUiPropertyCallback.class, </span>
+                  AccessMatchType.class, MultiLineString.class, String.class,
+                  PositiveIntegerValidator.class, RadioButton.class, ArrayList.class, Enum.class, 
+<span class="nc" id="L748">                  Collections.emptyList().getClass().asSubclass(Serializable.class), </span>
+<span class="nc" id="L749">                  Class.forName(&quot;org.cesecore.roles.RoleInformation&quot;).asSubclass(Serializable.class),</span>
+<span class="nc" id="L750">                  Class.forName(&quot;org.cesecore.roles.RoleData&quot;).asSubclass(Serializable.class),</span>
+<span class="nc" id="L751">                  Class.forName(&quot;org.cesecore.authorization.user.AccessUserAspectData&quot;).asSubclass(Serializable.class)));</span>
+<span class="nc" id="L752">            lookAheadObjectInputStream.setEnabledMaxObjects(false);</span>
+<span class="nc" id="L753">            lookAheadObjectInputStream.setEnabledSubclassing(false);</span>
+<span class="nc" id="L754">            lookAheadObjectInputStream.setEnabledInterfaceImplementations(false);</span>
+<span class="nc" id="L755">            return type.cast(lookAheadObjectInputStream.readObject());</span>
+<span class="nc" id="L756">        } catch (IOException | ClassNotFoundException e) {</span>
+<span class="nc" id="L757">            throw new IllegalStateException(e);</span>
+        }
+    }
+    
+    /**
+     * Gets the action callback.
+     * @return the callback.
+     */
+    public DynamicUiActionCallback getActionCallback() {
+<span class="fc" id="L766">        return actionCallback;</span>
+    }
+
+    /**
+     * Sets the action callback.
+     * @param actionCallback the callback.
+     */
+    public void setActionCallback(final DynamicUiActionCallback actionCallback) {
+<span class="nc" id="L774">        this.actionCallback = actionCallback;</span>
+<span class="nc" id="L775">    }</span>
+
+    /**
+     * Gets the property call back.
+     * @return the call back.
+     */
+    public DynamicUiPropertyCallback getPropertyCallback() {
+<span class="fc" id="L782">        return propertyCallback;</span>
+    }
+
+    /**
+     * Sets the property call back.
+     * @param propertyCallback the call back.
+     */
+    public void setPropertyCallback(final DynamicUiPropertyCallback propertyCallback) {
+<span class="nc" id="L790">        this.propertyCallback = propertyCallback;</span>
+<span class="nc" id="L791">    }</span>
+
+    /**
+     * Gets if the property is allowed to consist of multiple values
+     * @return true if this property can have multiple values.
+     */
+    public boolean getHasMultipleValues() {
+<span class="fc" id="L798">        return hasMultipleValues;</span>
+    }
+
+    /**
+     * Sets if the property is allowed to consist of multiple values (i.e. list, or LIST_SEPARATOR separated string).
+     * @param hasMultipleValues true if the property may have multiple values.
+     */
+    public void setHasMultipleValues(final boolean hasMultipleValues) {
+<span class="fc" id="L806">        this.hasMultipleValues = hasMultipleValues;</span>
+<span class="fc" id="L807">    }</span>
+
+    public boolean isMultiValued() {
+<span class="nc bnc" id="L810" title="All 2 branches missed.">        return possibleValues != null;</span>
+    }
+
+    /** Returns the current value, like getValue, but has a workaround for JSF bug with ui:repeat and rendered. See ECA-5342 
+     * @return value*/
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public T getJsfBooleanValue() {
+<span class="nc bnc" id="L817" title="All 4 branches missed.">        if (hasMultipleValues || type != Boolean.class) {</span>
+            // In this case, JSF made a spurious call and will throw away the return value, but it must be of expected type (boolean)
+<span class="nc" id="L819">            return (T)Boolean.FALSE;</span>
+        } else {
+<span class="nc" id="L821">            return getValue();</span>
+        }
+    }
+
+    /**
+     * Sets the value, by calling setValue. Needed for the getJsfBooleanValue workaround.
+     * @param newValue the new value of type &amp;lt;T&amp;gt;.
+     * @throws PropertyValidationException if the value failed validation.
+     */
+    public void setJsfBooleanValue(final T newValue) throws PropertyValidationException {
+<span class="nc" id="L831">        setValue(newValue);</span>
+<span class="nc" id="L832">    }</span>
+
+    /**
+     * Sets the validator instance.
+     * @param validator the validator.
+     */
+    public void setValidator(final DynamicUiPropertyValidator&lt;T&gt; validator) {
+<span class="nc" id="L839">        this.validator = validator;</span>
+<span class="nc" id="L840">    }</span>
+
+    /**
+     * Gets the validator type.
+     * @return the validator type or &quot;dummyValidator&quot; if the validator is null.
+     */
+    public String getValidatorType() {
+<span class="nc bnc" id="L847" title="All 2 branches missed.">        if (validator != null) {</span>
+<span class="nc" id="L848">            return validator.getValidatorType();</span>
+        } else {
+<span class="nc" id="L850">            return &quot;dummyValidator&quot;;</span>
+        }
+    }
+
+    /**
+     * Gets the map of I18N key / value pairs.
+     * @return the list.
+     */
+    public Map&lt;?,String&gt; getLabels() {
+<span class="nc" id="L859">        return labels;</span>
+    }
+
+    /**
+     * Sets the map of I18N key / value pairs.
+     * @param labels the map.
+     */
+    public void setLabels(final Map&lt;?,String&gt; labels) {
+<span class="nc" id="L867">        labeled = MapUtils.isNotEmpty(labels);</span>
+<span class="nc" id="L868">        this.labels = labels;</span>
+<span class="nc" id="L869">    }</span>
+
+    /**
+     * Returns true if the property type is java.lang.Boolean (this method is used because of the lack of 'instanceof' operator in JSF EL).
+     * @return true if the property type is java.lang.Boolean.
+     */
+    public boolean isBooleanType() {
+<span class="nc" id="L876">        return Boolean.class.getName().equals(getType().getName());</span>
+    }
+
+    /**
+     * Returns true if the property type is java.lang.Integer (this method is used because of the lack of 'instanceof' operator in JSF EL).
+     * @return true if the property type is java.lang.Integer.
+     */
+    public boolean isIntegerType() {
+<span class="nc" id="L884">        return Integer.class.getName().equals(getType().getName());</span>
+    }
+
+    /**
+     * Returns true if the property type is java.lang.BigInteger (this method is used because of the lack of 'instanceof' operator in JSF EL).
+     * @return true if the property type is java.lang.BigInteger.
+     */
+    public boolean isBigIntegerType() {
+<span class="nc" id="L892">        return BigInteger.class.getName().equals(getType().getName());</span>
+    }
+
+    /**
+     * Returns true if the property type is java.lang.Long (this method is used because of the lack of 'instanceof' operator in JSF EL).
+     * @return true if the property type is java.lang.Long.
+     */
+    public boolean isLongType() {
+<span class="nc" id="L900">        return Long.class.getName().equals(getType().getName());</span>
+    }
+
+    /**
+     * Returns true if the property type is java.lang.FLoat (this method is used because of the lack of 'instanceof' operator in JSF EL).
+     * @return true if the property type is java.lang.Float.
+     */
+    public boolean isFloatType() {
+<span class="nc" id="L908">        return Float.class.getName().equals(getType().getName());</span>
+    }
+
+    /**
+     * Returns true if the property type is java.lang.String(this method is used because of the lack of 'instanceof' operator in JSF EL).
+     * @return true if the property type is java.lang.String.
+     */
+    public boolean isStringType() {
+<span class="nc" id="L916">        return String.class.getName().equals(getType().getName());</span>
+    }
+
+    /**
+     * Returns true if the property type is java.util.HashMap (this method is used because of the lack of 'instanceof' operator in JSF EL).
+     * @return true if the property type is java.util.HashMap.
+     */
+    public boolean isMapType() {
+<span class="nc" id="L924">        return TreeMap.class.getName().equals(getType().getName());</span>
+    }
+
+    /**
+     * Returns true if the property type is java.io.File (this method is used because of the lack of 'instanceof' operator in JSF EL).
+     * @return true if the property type is java.io.File.
+     */
+    public boolean isFileType() {
+<span class="nc" id="L932">        return File.class.getName().equals(getType().getName());</span>
+    }
+
+    public boolean isByteArrayType() {
+<span class="nc" id="L936">        return byte[].class.getName().equals(getType().getName());</span>
+    }
+    
+    /**
+     * Returns true if a check box should be rendered.
+     * @return true or false.
+     */
+    public boolean isRenderCheckBox() {
+<span class="nc" id="L944">        return isBooleanType();</span>
+    }
+
+    /**
+     * Temp. method to store java.util.List as LIST_SEPARATOR separated List of Strings (use for PublicKeyBlacklistKeyValidator only at the time).
+     * @return true if the list of Strings has to be stored as string.
+     */
+    public boolean isSaveListAsString() {
+<span class="nc" id="L952">        return saveListAsString;</span>
+    }
+
+    /**
+     * Temp. method to store java.util.List as LIST_SEPARATOR separated List of Strings (use for PublicKeyBlacklistKeyValidator only at the time).
+     * @param saveListAsString true if the list of Strings has to be stored as string.
+     */
+    public void setSaveListAsString(boolean saveListAsString) {
+<span class="nc" id="L960">        this.saveListAsString = saveListAsString;</span>
+<span class="nc" id="L961">    }</span>
+
+    /**
+     * Sets the rendering hint ((see {@link #RENDER_NONE}, {@link #RENDER_LABEL}, {@link #RENDER_CHECKBOX}, {@link #RENDER_TEXTFIELD},
+     * {@link #RENDER_SELECT_ONE} or {@link #RENDER_SELECT_MANY})).
+     * @param renderingHint the rendering hint.
+     */
+    public void setRenderingHint(final String renderingHint) {
+<span class="nc" id="L969">        this.renderingHint = renderingHint;</span>
+<span class="nc" id="L970">    }</span>
+
+    /**
+     * Gets the rendering hint ((see {@link #RENDER_NONE}, {@link #RENDER_LABEL}, {@link #RENDER_CHECKBOX}, {@link #RENDER_TEXTFIELD},
+     * {@link #RENDER_SELECT_ONE} or {@link #RENDER_SELECT_MANY})).
+     * @return the rendering hint.
+     */
+    public String getRenderingHint() {
+        // User explicit set rendering hint.
+<span class="pc bpc" id="L979" title="1 of 2 branches missed.">        if (renderingHint != null) {</span>
+<span class="nc" id="L980">            return renderingHint;</span>
+        }
+<span class="pc bpc" id="L982" title="1 of 2 branches missed.">        if (isLabelOnly()) {</span>
+<span class="nc" id="L983">            return RENDER_NONE;</span>
+        }
+<span class="fc" id="L985">        String result = RENDER_TEXTFIELD;</span>
+        // Multiple values always use drop-down boxes.
+<span class="pc bpc" id="L987" title="1 of 2 branches missed.">        if (getHasMultipleValues()) {</span>
+<span class="nc" id="L988">            result =  RENDER_SELECT_MANY;</span>
+        } else {
+<span class="fc bfc" id="L990" title="All 2 branches covered.">            if (!Boolean.class.equals(getType())) {</span>
+                // NOOP
+            } else {
+<span class="fc" id="L993">                result = RENDER_CHECKBOX;</span>
+            }
+        }
+<span class="fc" id="L996">        return result;</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L1001">        return &quot;DynamicUiProperty [name=&quot; + name + &quot;, required=&quot; + required + &quot;, defaultValue=&quot; + defaultValue + &quot;, values=&quot; + values</span>
+                + &quot;, possibleValues=&quot; + possibleValues + &quot;, renderingHint=&quot; + renderingHint + &quot;, labeled=&quot; + labeled + &quot;, labels=&quot; + labels
+                + &quot;, labelOnly=&quot; + labelOnly + &quot;, type=&quot; + type + &quot;, hasMultipleValues=&quot; + hasMultipleValues + &quot;]&quot;;
+    }
+
+    /** Delegation method for {@link DynamicUiModel#addDynamicUiComponent}. 
+     * @param component component */
+    public void addDynamicUiComponent(final DynamicUiComponent component) {
+<span class="nc" id="L1009">        getDynamicUiModel().addDynamicUiComponent(name, component);</span>
+<span class="nc" id="L1010">    }</span>
+
+    /**
+     * Update the view components attributes here!
+     */
+    public void updateViewComponents() {
+<span class="nc bnc" id="L1016" title="All 2 branches missed.">        for (DynamicUiComponent component : getDynamicUiModel().getViewComponents(name)) {</span>
+<span class="nc bnc" id="L1017" title="All 4 branches missed.">            component.setDisabled(getDynamicUiModel().isDisabled() || isDisabled());</span>
+<span class="nc" id="L1018">        }</span>
+<span class="nc" id="L1019">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

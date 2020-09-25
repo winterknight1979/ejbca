@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>KeyRecoveryCAServiceRequest.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-entity</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.ca.caadmin.extendedcaservices</a> &gt; <span class="el_source">KeyRecoveryCAServiceRequest.java</span></div><h1>KeyRecoveryCAServiceRequest.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.model.ca.caadmin.extendedcaservices;
+
+import java.io.Serializable;
+import java.security.KeyPair;
+
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceRequest;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypes;
+
+
+/**
+ * Class used when requesting key recovery related services from a CA.  
+ *
+ * @version $Id: KeyRecoveryCAServiceRequest.java 19901 2014-09-30 14:29:38Z anatom $
+ */
+public class KeyRecoveryCAServiceRequest extends ExtendedCAServiceRequest implements Serializable {    
+ 
+	private static final long serialVersionUID = -5686267640542389771L;
+    public static final int COMMAND_ENCRYPTKEYS = 1;
+	public static final int COMMAND_DECRYPTKEYS = 2;
+	
+    private int command;
+    private byte[] keydata;
+    private KeyPair keypair;
+    private int cryptoTokenId;
+    private String keyAlias;
+    
+    /** Constructor for KeyRecoveryCAServiceRequest used to decrypt data
+     * @param command Command
+     * @param keydata Data
+     * @param cryptoTokenId ID 
+     * @param keyAlias key
+     */                   
+<span class="nc" id="L46">    public KeyRecoveryCAServiceRequest(int command, byte[] keydata, int cryptoTokenId, String keyAlias) {</span>
+<span class="nc" id="L47">        this.command = command;</span>
+<span class="nc" id="L48">        this.keydata = keydata;</span>
+<span class="nc" id="L49">        this.cryptoTokenId = cryptoTokenId;</span>
+<span class="nc" id="L50">        this.keyAlias = keyAlias;</span>
+<span class="nc" id="L51">    }</span>
+
+    /** Constructor for KeyRecoveryCAServiceRequest used to encrypt data
+     * @param command Command
+     * @param keypair Key
+     */                   
+<span class="nc" id="L57">    public KeyRecoveryCAServiceRequest(int command, KeyPair keypair) {</span>
+<span class="nc" id="L58">    	this.command = command;</span>
+<span class="nc" id="L59">    	this.keypair = keypair;</span>
+<span class="nc" id="L60">    }</span>
+    
+    public int getCommand(){
+<span class="nc" id="L63">    	return command;    	</span>
+    }
+    
+    /**
+     *  @return data belonging to the decrypt keys request, returns null otherwise.
+     */
+    
+    public  byte[] getKeyData(){
+<span class="nc" id="L71">    	byte[] ret = null;</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">    	if(command == COMMAND_DECRYPTKEYS) {</span>
+<span class="nc" id="L73">        	ret = keydata;</span>
+    	}
+<span class="nc" id="L75">    	return ret;</span>
+    }
+
+    /**
+     *  @return data belonging to the encrypt keys request, returns null otherwise.
+     */
+    public  KeyPair getKeyPair(){
+<span class="nc" id="L82">    	KeyPair ret = null;</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">    	if(command == COMMAND_ENCRYPTKEYS) {</span>
+<span class="nc" id="L84">        	ret = keypair;</span>
+    	}
+<span class="nc" id="L86">    	return ret;</span>
+    }
+    
+    
+	public int getCryptoTokenId() {
+<span class="nc" id="L91">        return cryptoTokenId;</span>
+    }
+
+    public String getKeyAlias() {
+<span class="nc" id="L95">        return keyAlias;</span>
+    }
+
+    @Override
+	public int getServiceType() {
+<span class="nc" id="L100">		return ExtendedCAServiceTypes.TYPE_KEYRECOVERYEXTENDEDSERVICE;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>UserDataVOWS.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-ejb-interface</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ws-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.objects</a> &gt; <span class="el_source">UserDataVOWS.java</span></div><h1>UserDataVOWS.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.protocol.ws.objects;
+
+import java.io.Serializable;
+import java.math.BigInteger;
+import java.util.List;
+
+import org.cesecore.certificates.endentity.EndEntityType;
+import org.cesecore.certificates.endentity.EndEntityTypes;
+
+/**
+ * Class used to represent userdata in the WebService API.
+ * Is used instead of EndEntityInformation because of profilenames is used instead of id's.&lt;br&gt;
+ * Example code:&lt;pre&gt;
+ *   UserDataVOWS user = new UserDataVOWS ();
+ *   user.setUsername (&quot;tester&quot;);
+ *   user.setPassword (&quot;foo123&quot;);
+ *   user.setClearPwd (false);
+ *   user.setSubjectDN (&quot;CN=Tester,C=SE&quot;);
+ *   user.setCaName (&quot;ManagementCA&quot;);
+ *   user.setEmail (null);
+ *   user.setSubjectAltName (null);
+ *   user.setStatus (EndEntityConstants.STATUS_NEW);
+ *   user.setTokenType (UserDataVOWS.TOKEN_TYPE_USERGENERATED);
+ *   user.setEndEntityProfileName (&quot;EMPTY&quot;);
+ *   user.setCertificateProfileName (&quot;ENDUSER&quot;);
+ *   
+ *   List&amp;lt;ExtendedInformationWS&amp;gt; ei = new ArrayList&amp;lt;ExtendedInformationWS&amp;gt; ();
+ *   ei.add(new ExtendedInformationWS (ExtendedInformation.CUSTOMDATA+ExtendedInformation.CUSTOM_REVOCATIONREASON,
+ *                                     Integer.toString(RevokeStatus.REVOKATION_REASON_CERTIFICATEHOLD)));
+ *   ei.add(new ExtendedInformationWS (ExtendedInformation.SUBJECTDIRATTRIBUTES, &quot;DATEOFBIRTH=19761123&quot;));
+ *   user.setExtendedInformation(ei);
+ *&lt;/pre&gt;
+ * 
+ * @version $Id: UserDataVOWS.java 26145 2017-07-10 10:45:12Z mikekushner $
+ */
+public class UserDataVOWS implements Serializable{
+	
+	private static final long serialVersionUID = 7557071186257332026L;
+    public static final String TOKEN_TYPE_USERGENERATED = &quot;USERGENERATED&quot;; 
+	public static final String TOKEN_TYPE_JKS           = &quot;JKS&quot;;
+	public static final String TOKEN_TYPE_PEM           = &quot;PEM&quot;;
+	public static final String TOKEN_TYPE_P12           = &quot;P12&quot;;
+		
+<span class="nc" id="L56">    private String username = null;</span>
+<span class="nc" id="L57">    private String password = null;</span>
+<span class="nc" id="L58">    private boolean clearPwd = false;</span>
+<span class="nc" id="L59">    private String subjectDN = null;</span>
+<span class="nc" id="L60">    private String caName = null;</span>
+<span class="nc" id="L61">    private String subjectAltName = null;</span>
+<span class="nc" id="L62">    private String email = null;</span>
+<span class="nc" id="L63">    private int status = 0;</span>
+<span class="nc" id="L64">    private String tokenType = null;</span>
+<span class="nc" id="L65">    private boolean sendNotification = false;</span>
+<span class="nc" id="L66">    private boolean keyRecoverable = false;</span>
+<span class="nc" id="L67">    private String endEntityProfileName = null;</span>
+<span class="nc" id="L68">    private String certificateProfileName = null;</span>
+<span class="nc" id="L69">    private String hardTokenIssuerName = null;</span>
+<span class="nc" id="L70">    private String startTime = null;</span>
+<span class="nc" id="L71">    private String endTime = null;</span>
+    private BigInteger certificateSerialNumber;
+<span class="nc" id="L73">    private List&lt;ExtendedInformationWS&gt; extendedInformation = null;</span>
+    private String cardNumber;
+
+    /**
+     * Emtpy constructor used by internally by web services
+     */
+<span class="nc" id="L79">    public UserDataVOWS(){}</span>
+    
+	/**
+	 * Constructor used when creating a new UserDataVOWS.
+	 * 
+	 * @param username the unique username if the user, used internally in EJBCA
+	 * @param password password u sed to lock the keystore
+	 * @param clearPwd true if password should be in clear
+	 * @param subjectDN of 
+	 * @param caName the name of the CA used in the EJBCA web gui.
+	 * @param subjectAltName Name
+	 * @param email Email
+	 * @param status one of the STATUS_ constants
+	 * @param tokenType type of token, one of TOKEN_TYPE constants for soft tokens, for hard ones  use hardtokenprofilename
+	 * @param endEntityProfileName Profile
+	 * @param certificateProfileName Profile
+	 * @param hardTokenIssuerName if no hardTokenIssuer should be used then use null.
+	 */
+	public UserDataVOWS(String username, String password, boolean clearPwd, String subjectDN, String caName, String subjectAltName, String email, int status, String tokenType, String endEntityProfileName, String certificateProfileName, String hardTokenIssuerName) {
+<span class="nc" id="L98">		super();</span>
+<span class="nc" id="L99">		this.username = username;</span>
+<span class="nc" id="L100">		this.password = password;</span>
+<span class="nc" id="L101">		this.clearPwd = clearPwd;</span>
+<span class="nc" id="L102">		this.subjectDN = subjectDN;</span>
+<span class="nc" id="L103">		this.caName = caName;</span>
+<span class="nc" id="L104">		this.subjectAltName = subjectAltName;</span>
+<span class="nc" id="L105">		this.email = email;</span>
+<span class="nc" id="L106">		this.status = status;</span>
+<span class="nc" id="L107">		this.tokenType = tokenType;</span>
+<span class="nc" id="L108">		this.endEntityProfileName = endEntityProfileName;</span>
+<span class="nc" id="L109">		this.certificateProfileName = certificateProfileName;</span>
+<span class="nc" id="L110">		this.hardTokenIssuerName = hardTokenIssuerName;</span>
+<span class="nc" id="L111">	}</span>
+
+    
+    /**
+     * 
+     * @return true if the user is keyrecoverable
+     */
+    public boolean isKeyRecoverable(){
+<span class="nc" id="L119">    	return this.keyRecoverable;</span>
+    }
+    
+    /**
+     * indicates if the users keys should be keyrecoverable
+     * @param keyrecoverable bool
+     */
+    public void setKeyRecoverable(boolean keyrecoverable){
+<span class="nc" id="L127">      this.keyRecoverable = keyrecoverable;</span>
+<span class="nc" id="L128">    }</span>
+    
+    /**
+     * If true notifications will be sent to the user
+     * @return bool
+     */
+	public boolean isSendNotification(){ 
+<span class="nc" id="L135">    	return sendNotification;</span>
+    }
+    
+	/**
+	 * set to true if notifications should be sent to the user.
+	 * @param sendnotification bool
+	 */
+    public void setSendNotification(boolean sendnotification){
+<span class="nc" id="L143">    	this.sendNotification = sendnotification;</span>
+<span class="nc" id="L144">    }</span>
+    
+    /**
+	 * @return Returns the cAName.
+	 */
+	public String getCaName() {
+<span class="nc" id="L150">		return caName;</span>
+	}
+
+
+	/**
+	 * @return Returns the certificateProfileName.
+	 */
+	public String getCertificateProfileName() {
+<span class="nc" id="L158">		return certificateProfileName;</span>
+	}
+
+
+	/**
+	 * @return Returns the email.
+	 */
+	public String getEmail() {
+<span class="nc" id="L166">		return email;</span>
+	}
+
+
+	/**
+	 * @return Returns the endEntityProfileName.
+	 */
+	public String getEndEntityProfileName() {
+<span class="nc" id="L174">		return endEntityProfileName;</span>
+	}
+
+
+	/**
+	 * @return Returns the hardTokenIssuerName.
+	 */
+	public String getHardTokenIssuerName() {
+<span class="nc" id="L182">		return hardTokenIssuerName;</span>
+	}
+
+
+	/**
+	 * Observe when sending userdata to clients outside EJBCA will the password
+	 * always be null.
+	 * 
+	 * @return Returns the password.
+	 */
+	public String getPassword() {
+<span class="nc" id="L193">		return password;</span>
+	}
+
+	/**
+	 * Observe sending usedata to clients outside EJBCA will always return false
+	 * @return Returns the clearpwd.
+	 */
+	public boolean isClearPwd() {
+<span class="nc" id="L201">		return clearPwd;</span>
+	}
+
+	/**
+	 * @return Returns the status.
+	 */
+	public int getStatus() {
+<span class="nc" id="L208">		return status;</span>
+	}
+
+
+	/**
+	 * @return Returns the subjecDN.
+	 */
+	public String getSubjectDN() {
+<span class="nc" id="L216">		return subjectDN;</span>
+	}
+
+
+	/**
+	 * @return Returns the subjectAltName.
+	 */
+	public String getSubjectAltName() {
+<span class="nc" id="L224">		return subjectAltName;</span>
+	}
+
+
+	/**
+	 * @return Returns the tokenType. One of TOKEN_TYPE constants for soft tokens, for hard ones  use hardtokenprofilename
+	 */
+	public String getTokenType() {
+<span class="nc" id="L232">		return tokenType;</span>
+	}
+
+
+	/**
+	 * @return Returns the type.
+	 */
+	public EndEntityType getType() {
+<span class="nc" id="L240">		EndEntityType type = new EndEntityType(EndEntityTypes.ENDUSER);</span>
+		
+<span class="nc bnc" id="L242" title="All 2 branches missed.">    	if(sendNotification) {</span>
+<span class="nc" id="L243">    		type.addType(EndEntityTypes.SENDNOTIFICATION);</span>
+    	} else {
+<span class="nc" id="L245">    		type.removeType(EndEntityTypes.SENDNOTIFICATION); </span>
+    	}
+<span class="nc bnc" id="L247" title="All 2 branches missed.">    	if(keyRecoverable) {</span>
+<span class="nc" id="L248">    		type.addType(EndEntityTypes.KEYRECOVERABLE); </span>
+    	} else {
+<span class="nc" id="L250">    	    type.removeType(EndEntityTypes.KEYRECOVERABLE); </span>
+    	}
+<span class="nc" id="L252">		return type;</span>
+	}
+
+
+	/**
+	 * @return Returns the username.
+	 */
+	public String getUsername() {
+<span class="nc" id="L260">		return username;</span>
+	}
+
+	/**
+	 * @param name The caName to set.
+	 */
+	public void setCaName(String name) {
+<span class="nc" id="L267">		caName = name;</span>
+<span class="nc" id="L268">	}</span>
+
+	/**
+	 * @param certificateProfileName The certificateProfileName to set.
+	 */
+	public void setCertificateProfileName(String certificateProfileName) {
+<span class="nc" id="L274">		this.certificateProfileName = certificateProfileName;</span>
+<span class="nc" id="L275">	}</span>
+
+	/**
+	 * @param clearPwd The clearpwd to set.
+	 */
+	public void setClearPwd(boolean clearPwd) {
+<span class="nc" id="L281">		this.clearPwd = clearPwd;</span>
+<span class="nc" id="L282">	}</span>
+
+	/**
+	 * @param email The email to set.
+	 */
+	public void setEmail(String email) {
+<span class="nc" id="L288">		this.email = email;</span>
+<span class="nc" id="L289">	}</span>
+
+	/**
+	 * @param endEntityProfileName The endEntityProfileName to set.
+	 */
+	public void setEndEntityProfileName(String endEntityProfileName) {
+<span class="nc" id="L295">		this.endEntityProfileName = endEntityProfileName;</span>
+<span class="nc" id="L296">	}</span>
+
+	/**
+	 * @param hardTokenIssuerName The hardTokenIssuerName to set.
+	 */
+	public void setHardTokenIssuerName(String hardTokenIssuerName) {
+<span class="nc" id="L302">		this.hardTokenIssuerName = hardTokenIssuerName;</span>
+<span class="nc" id="L303">	}</span>
+
+	/**
+	 * @param password The password to set.
+	 */
+	public void setPassword(String password) {
+<span class="nc" id="L309">		this.password = password;</span>
+<span class="nc" id="L310">	}</span>
+
+	/**
+	 * @param status The status to set.
+	 */
+	public void setStatus(int status) {
+<span class="nc" id="L316">		this.status = status;</span>
+<span class="nc" id="L317">	}</span>
+
+	/**
+	 * @param subjectAltName The subjectAltName to set.
+	 */
+	public void setSubjectAltName(String subjectAltName) {
+<span class="nc" id="L323">		this.subjectAltName = subjectAltName;</span>
+<span class="nc" id="L324">	}</span>
+
+	/**
+	 * @param subjectDN The subjectDN to set.
+	 */
+	public void setSubjectDN(String subjectDN) {
+<span class="nc" id="L330">		this.subjectDN = subjectDN;</span>
+<span class="nc" id="L331">	}</span>
+
+	/**
+	 * @param tokenType The tokenType to set.
+	 */
+	public void setTokenType(String tokenType) {
+<span class="nc" id="L337">		this.tokenType = tokenType;</span>
+<span class="nc" id="L338">	}</span>
+
+
+
+	/**
+	 * @param username The username to set.
+	 */
+	public void setUsername(String username) {
+<span class="nc" id="L346">		this.username = username;</span>
+<span class="nc" id="L347">	}</span>
+
+    /**
+     * @return the startTime
+     */
+    public String getStartTime() {
+<span class="nc" id="L353">        return this.startTime;</span>
+    }
+
+    /**
+     * @param startTime the startTime to set
+     */
+    public void setStartTime(String startTime) {
+<span class="nc" id="L360">        this.startTime = startTime;</span>
+<span class="nc" id="L361">    }</span>
+
+    /**
+     * @return the endTime
+     */
+    public String getEndTime() {
+<span class="nc" id="L367">        return this.endTime;</span>
+    }
+
+    /**
+     * @param endTime the endTime to set
+     */
+    public void setEndTime(String endTime) {
+<span class="nc" id="L374">        this.endTime = endTime;</span>
+<span class="nc" id="L375">    }</span>
+
+	/**
+	 * @return certificate serial number.
+	 */
+	public BigInteger getCertificateSerialNumber() {
+<span class="nc" id="L381">		return this.certificateSerialNumber;</span>
+	}
+
+	/**
+	 * @param sn Serial number of the certificate to be generated. Only used if 'Allow certificate serial number override' in used certificate profile is enabled.
+	 */
+	public void setCertificateSerialNumber(BigInteger sn) {
+<span class="nc" id="L388">		this.certificateSerialNumber = sn;</span>
+<span class="nc" id="L389">	}</span>
+
+	/**
+	 * @return optional extended information list
+	 */
+    public List&lt;ExtendedInformationWS&gt; getExtendedInformation() {
+<span class="nc" id="L395">		return extendedInformation;</span>
+	}
+
+    /**
+     * Generic setter for extendedInformation. Set with values from ExtendedInformation such as:
+     * ExtendedInformation.CUSTOM_REVOCATIONREASON, Integer.toString(RevokeStatus.REVOCATION_REASON_CERTIFICATEHOLD)
+     * @param extendedInformation info
+     */
+	public void setExtendedInformation(List&lt;ExtendedInformationWS&gt; extendedInformation) {
+<span class="nc" id="L404">		this.extendedInformation = extendedInformation;</span>
+<span class="nc" id="L405">	}</span>
+	
+    /**
+     * @return card number
+     */
+    public String getCardNumber() {
+<span class="nc" id="L411">        return cardNumber;</span>
+    }
+
+    /**
+     * Sets the card number for the cardnumber extension. 
+     * Only used if 'Card Number Extension' in used certificate profile is enabled.
+     * @param cardNumber The card number to set
+     */
+    public void setCardNumber(String cardNumber) {
+<span class="nc" id="L420">        this.cardNumber = cardNumber;</span>
+<span class="nc" id="L421">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

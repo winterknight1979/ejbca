@@ -1,0 +1,770 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ScepRequestMessage.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-entity</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.scep</a> &gt; <span class="el_source">ScepRequestMessage.java</span></div><h1>ScepRequestMessage.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.scep;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.GeneralSecurityException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.Iterator;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1OctetString;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.ASN1Set;
+import org.bouncycastle.asn1.DEROutputStream;
+import org.bouncycastle.asn1.DERPrintableString;
+import org.bouncycastle.asn1.cms.Attribute;
+import org.bouncycastle.asn1.cms.CMSObjectIdentifiers;
+import org.bouncycastle.asn1.cms.ContentInfo;
+import org.bouncycastle.asn1.cms.EnvelopedData;
+import org.bouncycastle.asn1.cms.IssuerAndSerialNumber;
+import org.bouncycastle.asn1.cms.KeyTransRecipientInfo;
+import org.bouncycastle.asn1.cms.RecipientIdentifier;
+import org.bouncycastle.asn1.cms.RecipientInfo;
+import org.bouncycastle.asn1.cms.SignedData;
+import org.bouncycastle.asn1.cms.SignerInfo;
+import org.bouncycastle.cms.CMSEnvelopedData;
+import org.bouncycastle.cms.CMSException;
+import org.bouncycastle.cms.CMSSignedData;
+import org.bouncycastle.cms.CMSSignedGenerator;
+import org.bouncycastle.cms.RecipientInformation;
+import org.bouncycastle.cms.RecipientInformationStore;
+import org.bouncycastle.cms.SignerId;
+import org.bouncycastle.cms.SignerInformation;
+import org.bouncycastle.cms.SignerInformationStore;
+import org.bouncycastle.cms.SignerInformationVerifier;
+import org.bouncycastle.cms.SignerInformationVerifierProvider;
+import org.bouncycastle.cms.jcajce.JcaSignerInfoVerifierBuilder;
+import org.bouncycastle.cms.jcajce.JceKeyTransEnvelopedRecipient;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
+import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
+import org.cesecore.certificates.certificate.request.PKCS10RequestMessage;
+import org.cesecore.certificates.certificate.request.RequestMessage;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+
+
+/**
+ * Class to handle SCEP request messages sent to the CA. 
+ *
+ * @version $Id: ScepRequestMessage.java 22561 2016-01-12 14:35:29Z mikekushner $
+ */
+public class ScepRequestMessage extends PKCS10RequestMessage implements RequestMessage {
+    /**
+     * Determines if a de-serialized file is compatible with this class.
+     *
+     * Maintainers must change this value if and only if the new version
+     * of this class is not compatible with old versions. See Sun docs
+     * for &lt;a href=http://java.sun.com/products/jdk/1.1/docs/guide
+     * /serialization/spec/version.doc.html&gt; details. &lt;/a&gt;
+     *
+     */
+	static final long serialVersionUID = -235623330828902051L;
+
+<span class="fc" id="L89">    private static Logger log = Logger.getLogger(ScepRequestMessage.class);</span>
+
+    public static final String id_Verisign = &quot;2.16.840.1.113733&quot;;
+    public static final String id_pki = id_Verisign + &quot;.1&quot;;
+    public static final String id_attributes = id_pki + &quot;.9&quot;;
+    public static final String id_messageType = id_attributes + &quot;.2&quot;;
+    public static final String id_pkiStatus = id_attributes + &quot;.3&quot;;
+    public static final String id_failInfo = id_attributes + &quot;.4&quot;;
+    public static final String id_senderNonce = id_attributes + &quot;.5&quot;;
+    public static final String id_recipientNonce = id_attributes + &quot;.6&quot;;
+    public static final String id_transId = id_attributes + &quot;.7&quot;;
+    public static final String id_extensionReq = id_attributes + &quot;.8&quot;;
+
+    /** Raw form of the Scep message */
+    private byte[] scepmsg;
+
+    /**
+     * The messageType attribute specify the type of operation performed by the transaction. This
+     * attribute is required in all PKI messages. Currently, the following message types are
+     * defined: 
+     * PKCSReq (19)  -- Permits use of PKCS#10 certificate request 
+     * CertRep (3)   -- Response to certificate or CRL request 
+     * GetCertInitial (20)  -- Certificate polling in manual enrollment 
+     * GetCert (21)  -- Retrieve a certificate 
+     * GetCRL  (22)  -- Retrieve a CRL
+     */
+<span class="fc" id="L115">    private int messageType = 0;</span>
+<span class="fc" id="L116">    public static int SCEP_TYPE_PKCSREQ = 19;</span>
+<span class="fc" id="L117">    public static int SCEP_TYPE_GETCERTINITIAL = 20; // Used when request is in pending state.</span>
+<span class="fc" id="L118">    public static int SCEP_TYPE_GETCRL = 22;</span>
+<span class="fc" id="L119">    public static int SCEP_TYPE_GETCERT = 21;</span>
+
+    /**
+     * SenderNonce in a request is used as recipientNonce when the server sends back a reply to the
+     * client. This is base64 encoded bytes
+     */
+<span class="fc" id="L125">    private String senderNonce = null;</span>
+
+    /** transaction id */
+<span class="fc" id="L128">    private String transactionId = null;</span>
+
+    /** request key info, this is the requester's self-signed certificate used to identify the senders public key */
+<span class="fc" id="L131">    private byte[] requestKeyInfo = null;</span>
+
+    /** Type of error */
+<span class="fc" id="L134">    private int error = 0;</span>
+
+    /** Error text */
+<span class="fc" id="L137">    private String errorText = null;</span>
+    
+    /** Issuer DN the message is sent to (CAs Issuer DN), contained in the 
+     * request as recipientInfo.issuerAndSerialNumber in EnvelopeData part */
+<span class="fc" id="L141">    private transient String issuerDN = null;</span>
+    
+    /** SerialNumber of the CA cert of the CA the message is sent to, contained in the 
+     * request as recipientInfo.issuerAndSerialNumber in EnvelopeData part */
+<span class="fc" id="L145">    private transient BigInteger serialNo = null;</span>
+
+    /** Signed data, the whole enchilada to to speak... */
+<span class="fc" id="L148">    private transient SignedData sd = null;</span>
+
+    /** Enveloped data, carrying the 'beef' of the request */
+<span class="fc" id="L151">    private transient EnvelopedData envData = null;</span>
+
+    /** Enveloped data, carrying the 'beef' of the request */
+<span class="fc" id="L154">    private transient ContentInfo envEncData = null;</span>
+
+    /** Private key used for decryption. */
+<span class="fc" id="L157">    private transient PrivateKey privateKey = null;</span>
+    /** JCE Provider used when decrypting with private key. Default provider is BC. */
+<span class="fc" id="L159">    private transient String jceProvider = BouncyCastleProvider.PROVIDER_NAME;</span>
+
+    /** IssuerAndSerialNUmber for CRL request */
+<span class="fc" id="L162">    private transient IssuerAndSerialNumber issuerAndSerno = null;</span>
+
+    /** preferred digest algorithm to use in replies, if applicable.
+     *  Defaults to CMSSignedGenerator.DIGEST_MD5 for SCEP messages. If SCEP request is 
+     * digested with SHA1 it is set to SHA1 though. This is only for backwards compatibility issues, as specified in a SCEP draft.
+     * Modern request/responses will use SHA-1.
+     */
+<span class="fc" id="L169">    private transient String preferredDigestAlg = CMSSignedGenerator.DIGEST_MD5;</span>
+
+	private transient Certificate signercert;
+
+    /**
+     * Constructs a new SCEP/PKCS7 message handler object.
+     *
+     * @param msg The DER encoded PKCS7 request.
+     * @param incCACert if the CA certificate should be included in the response or not
+     *
+     * @throws IOException if the request can not be parsed.
+     */
+<span class="fc" id="L181">    public ScepRequestMessage(byte[] msg, boolean incCACert) throws IOException {</span>
+<span class="pc bpc" id="L182" title="1 of 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L183">    		log.trace(&quot;&gt;ScepRequestMessage&quot;);</span>
+    	}
+<span class="fc" id="L185">        this.scepmsg = msg;</span>
+<span class="fc" id="L186">        this.includeCACert = incCACert;</span>
+<span class="fc" id="L187">        init();</span>
+<span class="pc bpc" id="L188" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L189">        	log.trace(&quot;&lt;ScepRequestMessage&quot;);</span>
+        }
+<span class="fc" id="L191">    }</span>
+    
+    /**
+     * This method verifies the signature of the PKCS#7 wrapper of this message. 
+     * 
+     * @param publicKey the public key of the keypair that signed this message
+     * @return true if signature verifies. 
+     * @throws CMSException if the underlying byte array of this SCEP message couldn't be read
+     * @throws OperatorCreationException if a signature verifier couldn't be constructed from the given public key
+     */
+    public boolean verifySignature(PublicKey publicKey) throws CMSException, OperatorCreationException {
+<span class="nc" id="L202">        CMSSignedData cmsSignedData = new CMSSignedData(scepmsg);</span>
+<span class="nc" id="L203">        return cmsSignedData.verifySignatures(new ScepVerifierProvider(publicKey));</span>
+    }
+    
+    private void init() throws IOException {
+<span class="pc bpc" id="L207" title="1 of 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L208">    		log.trace(&quot;&gt;init&quot;);</span>
+    	}
+        try {
+<span class="fc" id="L211">            CMSSignedData csd = new CMSSignedData(scepmsg);</span>
+<span class="fc" id="L212">            SignerInformationStore infoStore = csd.getSignerInfos();</span>
+<span class="fc" id="L213">            Collection&lt;SignerInformation&gt; signers = infoStore.getSigners();</span>
+<span class="fc" id="L214">            Iterator&lt;SignerInformation&gt; iter = signers.iterator();</span>
+<span class="pc bpc" id="L215" title="1 of 2 branches missed.">            if (iter.hasNext()) {</span>
+<span class="fc" id="L216">            	SignerInformation si = (SignerInformation)iter.next();</span>
+<span class="fc" id="L217">            	preferredDigestAlg = si.getDigestAlgOID();</span>
+<span class="fc" id="L218">            	log.debug(&quot;Set &quot;+ preferredDigestAlg+&quot; as preferred digest algorithm for SCEP&quot;);</span>
+            }        	
+<span class="nc" id="L220">        } catch (CMSException e) {</span>
+        	// ignore, use default digest algo
+<span class="nc" id="L222">        	log.error(&quot;CMSException trying to get preferred digest algorithm: &quot;, e);</span>
+<span class="fc" id="L223">        }</span>
+        // Parse and verify the integrity of the PKIOperation message PKCS#7
+        /* If this would have been done using the newer CMS it would have made me so much happier... */
+<span class="fc" id="L226">        ASN1InputStream seqAsn1InputStream = new ASN1InputStream(new ByteArrayInputStream(scepmsg));</span>
+<span class="fc" id="L227">        ASN1Sequence seq = null;</span>
+        try {
+<span class="fc" id="L229">            seq = (ASN1Sequence) seqAsn1InputStream.readObject();</span>
+        } finally {
+<span class="fc" id="L231">            seqAsn1InputStream.close();</span>
+        }
+<span class="fc" id="L233">        ContentInfo ci = ContentInfo.getInstance(seq);</span>
+<span class="fc" id="L234">        String ctoid = ci.getContentType().getId();</span>
+
+<span class="pc bpc" id="L236" title="1 of 2 branches missed.">        if (ctoid.equals(CMSObjectIdentifiers.signedData.getId())) {</span>
+            // This is SignedData so it is a pkcsCertReqSigned, pkcsGetCertInitialSigned, pkcsGetCertSigned, pkcsGetCRLSigned
+            // (could also be pkcsRepSigned or certOnly, but we don't receive them on the server side
+            // Try to find out what kind of message this is
+<span class="fc" id="L240">            sd = SignedData.getInstance((ASN1Sequence) ci.getContent());	</span>
+            // Get self signed cert to identify the senders public key
+<span class="fc" id="L242">            ASN1Set certs = sd.getCertificates();</span>
+<span class="pc bpc" id="L243" title="1 of 2 branches missed.">            if (certs.size() &gt; 0) {</span>
+                // There should be only one...
+<span class="fc" id="L245">                ASN1Encodable dercert = certs.getObjectAt(0);</span>
+<span class="pc bpc" id="L246" title="1 of 2 branches missed.">                if (dercert != null) {</span>
+                    // Requester's self-signed certificate is requestKeyInfo
+<span class="fc" id="L248">                    ByteArrayOutputStream bOut = new ByteArrayOutputStream();</span>
+<span class="fc" id="L249">                    DEROutputStream dOut = new DEROutputStream(bOut);</span>
+<span class="fc" id="L250">                    dOut.writeObject(dercert);</span>
+<span class="pc bpc" id="L251" title="1 of 2 branches missed.">                    if (bOut.size() &gt; 0) {</span>
+<span class="fc" id="L252">                        requestKeyInfo = bOut.toByteArray();</span>
+                        //Create Certificate used for debugging
+                        try {
+<span class="fc" id="L255">							signercert = CertTools.getCertfromByteArray(requestKeyInfo, Certificate.class);</span>
+<span class="pc bpc" id="L256" title="1 of 2 branches missed.">							if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L257">								log.debug(&quot;requestKeyInfo is SubjectDN: &quot; + CertTools.getSubjectDN(signercert) +</span>
+<span class="nc" id="L258">										&quot;, Serial=&quot; + CertTools.getSerialNumberAsString(signercert) +</span>
+<span class="nc" id="L259">										&quot;; IssuerDN: &quot;+ CertTools.getIssuerDN(signercert).toString());								</span>
+							}
+<span class="fc" id="L261">						} catch (CertificateException e) {</span>
+<span class="fc" id="L262">							log.error(&quot;Error parsing requestKeyInfo : &quot;, e);</span>
+<span class="fc" id="L263">						}</span>
+                        
+                    }
+                }
+            }
+
+<span class="fc" id="L269">            Enumeration&lt;?&gt; sis = sd.getSignerInfos().getObjects();</span>
+
+<span class="pc bpc" id="L271" title="1 of 2 branches missed.">            if (sis.hasMoreElements()) {</span>
+<span class="fc" id="L272">                SignerInfo si = SignerInfo.getInstance((ASN1Sequence) sis.nextElement());</span>
+<span class="fc" id="L273">                Enumeration&lt;?&gt; attr = si.getAuthenticatedAttributes().getObjects();</span>
+
+<span class="fc bfc" id="L275" title="All 2 branches covered.">                while (attr.hasMoreElements()) {</span>
+<span class="fc" id="L276">                    Attribute a = Attribute.getInstance((ASN1Sequence) attr.nextElement());</span>
+<span class="pc bpc" id="L277" title="1 of 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L278">                    	log.debug(&quot;Found attribute: &quot; + a.getAttrType().getId());</span>
+                    }
+<span class="fc bfc" id="L280" title="All 2 branches covered.">                    if (a.getAttrType().getId().equals(id_senderNonce)) {</span>
+<span class="fc" id="L281">                        Enumeration&lt;?&gt; values = a.getAttrValues().getObjects();</span>
+<span class="fc" id="L282">                        ASN1OctetString str = ASN1OctetString.getInstance(values.nextElement());</span>
+<span class="fc" id="L283">                        senderNonce = new String(Base64.encode(str.getOctets(), false));</span>
+<span class="pc bpc" id="L284" title="1 of 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L285">                        	log.debug(&quot;senderNonce = &quot; + senderNonce);</span>
+                        }
+                    }
+<span class="fc bfc" id="L288" title="All 2 branches covered.">                    if (a.getAttrType().getId().equals(id_transId)) {</span>
+<span class="fc" id="L289">                        Enumeration&lt;?&gt; values = a.getAttrValues().getObjects();</span>
+<span class="fc" id="L290">                        DERPrintableString str = DERPrintableString.getInstance(values.nextElement());</span>
+<span class="fc" id="L291">                        transactionId = str.getString();</span>
+<span class="pc bpc" id="L292" title="1 of 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L293">                        	log.debug(&quot;transactionId = &quot; + transactionId);</span>
+                        }
+                    }
+<span class="fc bfc" id="L296" title="All 2 branches covered.">                    if (a.getAttrType().getId().equals(id_messageType)) {</span>
+<span class="fc" id="L297">                        Enumeration&lt;?&gt; values = a.getAttrValues().getObjects();</span>
+<span class="fc" id="L298">                        DERPrintableString str = DERPrintableString.getInstance(values.nextElement());</span>
+<span class="fc" id="L299">                        messageType = Integer.parseInt(str.getString());</span>
+<span class="pc bpc" id="L300" title="1 of 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L301">                        	log.debug(&quot;messagetype = &quot; + messageType);</span>
+                        }
+                    }
+<span class="fc" id="L304">                }</span>
+            }
+
+            // If this is a PKCSReq
+<span class="pc bpc" id="L308" title="5 of 6 branches missed.">            if ((messageType == ScepRequestMessage.SCEP_TYPE_PKCSREQ) || (messageType == ScepRequestMessage.SCEP_TYPE_GETCRL) || (messageType == ScepRequestMessage.SCEP_TYPE_GETCERTINITIAL)) {</span>
+                // Extract the contents, which is an encrypted PKCS10 if messageType == 19
+                // , and an encrypted issuer and subject if messageType == 20 (not extracted)
+                // and an encrypted IssuerAndSerialNumber if messageType == 22
+<span class="fc" id="L312">                ci = sd.getEncapContentInfo();</span>
+<span class="fc" id="L313">                ctoid = ci.getContentType().getId();</span>
+
+<span class="pc bpc" id="L315" title="1 of 2 branches missed.">                if (ctoid.equals(CMSObjectIdentifiers.data.getId())) {</span>
+<span class="fc" id="L316">                    ASN1OctetString content = (ASN1OctetString) ci.getContent();</span>
+<span class="pc bpc" id="L317" title="1 of 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L318">                    	log.debug(&quot;envelopedData is &quot; + content.getOctets().length + &quot; bytes.&quot;);</span>
+                    }
+<span class="fc" id="L320">                    ASN1InputStream seq1Asn1InputStream = new ASN1InputStream(new ByteArrayInputStream(content.getOctets()));</span>
+<span class="fc" id="L321">                    ASN1Sequence seq1 = null;</span>
+                    try {
+<span class="fc" id="L323">                        seq1 = (ASN1Sequence) seq1Asn1InputStream.readObject();</span>
+                    } finally {
+<span class="fc" id="L325">                        seq1Asn1InputStream.close();</span>
+                    }
+<span class="fc" id="L327">                    envEncData = ContentInfo.getInstance(seq1);</span>
+<span class="fc" id="L328">                    ctoid = envEncData.getContentType().getId();</span>
+
+<span class="pc bpc" id="L330" title="1 of 2 branches missed.">                    if (ctoid.equals(CMSObjectIdentifiers.envelopedData.getId())) {</span>
+<span class="fc" id="L331">                        envData = EnvelopedData.getInstance((ASN1Sequence) envEncData.getContent());</span>
+<span class="fc" id="L332">                        ASN1Set recipientInfos = envData.getRecipientInfos();</span>
+<span class="fc" id="L333">                        Enumeration&lt;?&gt; e = recipientInfos.getObjects();</span>
+<span class="fc bfc" id="L334" title="All 2 branches covered.">                        while (e.hasMoreElements()) {</span>
+<span class="fc" id="L335">                            RecipientInfo ri = RecipientInfo.getInstance(e.nextElement());</span>
+<span class="fc" id="L336">                            KeyTransRecipientInfo recipientInfo = KeyTransRecipientInfo.getInstance(ri.getInfo());</span>
+<span class="fc" id="L337">                            RecipientIdentifier rid = recipientInfo.getRecipientIdentifier();</span>
+<span class="fc" id="L338">                            IssuerAndSerialNumber iasn = IssuerAndSerialNumber.getInstance(rid.getId());</span>
+<span class="fc" id="L339">                            issuerDN = iasn.getName().toString();</span>
+<span class="fc" id="L340">                            serialNo = iasn.getSerialNumber().getValue();</span>
+<span class="pc bpc" id="L341" title="1 of 2 branches missed.">                            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L342">                            	log.debug(&quot;IssuerDN: &quot; + issuerDN);</span>
+<span class="nc" id="L343">                            	log.debug(&quot;SerialNumber: &quot; + iasn.getSerialNumber().getValue().toString(16));</span>
+                            }
+<span class="fc" id="L345">                        }</span>
+<span class="fc" id="L346">                    } else {</span>
+<span class="nc" id="L347">                        errorText = &quot;EncapsulatedContentInfo does not contain PKCS7 envelopedData: &quot;;</span>
+<span class="nc" id="L348">                        log.error(errorText + ctoid);</span>
+<span class="nc" id="L349">                        error = 2;</span>
+                    }
+<span class="fc" id="L351">                } else {</span>
+<span class="nc" id="L352">                    errorText = &quot;EncapsulatedContentInfo is not of type 'data': &quot;;</span>
+<span class="nc" id="L353">                    log.error(errorText + ctoid);</span>
+<span class="nc" id="L354">                    error = 3;</span>
+                }
+            } else {
+<span class="nc" id="L357">                errorText = &quot;This is not a certification request!&quot;;</span>
+<span class="nc" id="L358">                log.error(errorText);</span>
+<span class="nc" id="L359">                error = 4;</span>
+            }
+<span class="fc" id="L361">        } else {</span>
+<span class="nc" id="L362">            errorText = &quot;PKCSReq does not contain 'signedData': &quot;;</span>
+<span class="nc" id="L363">            log.error(errorText + ctoid);</span>
+<span class="nc" id="L364">            error = 1;</span>
+        }
+
+<span class="fc" id="L367">        log.trace(&quot;&lt;init&quot;);</span>
+<span class="fc" id="L368">    } // init</span>
+
+    private void decrypt() throws CMSException, NoSuchProviderException, GeneralSecurityException, IOException {
+<span class="pc bpc" id="L371" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L372">        	log.trace(&quot;&gt;decrypt&quot;);</span>
+        }
+        // Now we are getting somewhere (pheew),
+        // Now we just have to get the damn key...to decrypt the PKCS10
+<span class="pc bpc" id="L376" title="1 of 2 branches missed.">        if (privateKey == null) {</span>
+<span class="nc" id="L377">            errorText = &quot;Need private key to decrypt!&quot;;</span>
+<span class="nc" id="L378">            error = 5;</span>
+<span class="nc" id="L379">            log.error(errorText);</span>
+<span class="nc" id="L380">            return;</span>
+        }
+
+<span class="pc bpc" id="L383" title="1 of 2 branches missed.">        if (envEncData == null) {</span>
+<span class="nc" id="L384">            errorText = &quot;No enveloped data to decrypt!&quot;;</span>
+<span class="nc" id="L385">            error = 6;</span>
+<span class="nc" id="L386">            log.error(errorText);</span>
+<span class="nc" id="L387">            return;</span>
+        }
+
+<span class="fc" id="L390">        CMSEnvelopedData ed = new CMSEnvelopedData(envEncData);</span>
+<span class="fc" id="L391">        RecipientInformationStore recipients = ed.getRecipientInfos();</span>
+<span class="fc" id="L392">        Collection&lt;RecipientInformation&gt; c = recipients.getRecipients();</span>
+<span class="fc" id="L393">        Iterator&lt;RecipientInformation&gt; it = c.iterator();</span>
+<span class="fc" id="L394">        byte[] decBytes = null;</span>
+
+<span class="pc bpc" id="L396" title="1 of 2 branches missed.">        while (it.hasNext()) {</span>
+<span class="fc" id="L397">            RecipientInformation recipient = (RecipientInformation) it.next();</span>
+<span class="pc bpc" id="L398" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L399">            	log.debug(&quot;Privatekey : &quot; + privateKey.getAlgorithm());</span>
+            }
+<span class="fc" id="L401">            JceKeyTransEnvelopedRecipient rec = new JceKeyTransEnvelopedRecipient(privateKey);</span>
+<span class="fc" id="L402">            rec.setProvider(jceProvider); // Use the crypto token provides for asymmetric key operations</span>
+<span class="fc" id="L403">            rec.setContentProvider(BouncyCastleProvider.PROVIDER_NAME); // Use BC for the symmetric key operations</span>
+            // Option we must set to prevent Java PKCS#11 provider to try to make the symmetric decryption in the HSM, 
+            // even though we set content provider to BC. Symm decryption in HSM varies between different HSMs and at least for this case is known 
+            // to not work in SafeNet Luna (JDK behavior changed in JDK 7_75 where they introduced imho a buggy behavior)
+<span class="fc" id="L407">            rec.setMustProduceEncodableUnwrappedKey(true);                              </span>
+<span class="fc" id="L408">            decBytes = recipient.getContent(rec);</span>
+<span class="fc" id="L409">            break;</span>
+        }
+
+<span class="pc bpc" id="L412" title="1 of 2 branches missed.">        if (messageType == ScepRequestMessage.SCEP_TYPE_PKCSREQ) {</span>
+<span class="fc" id="L413">            pkcs10 = new JcaPKCS10CertificationRequest(decBytes);</span>
+<span class="pc bpc" id="L414" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L415">            	log.debug(&quot;Successfully extracted PKCS10:&quot;+new String(Base64.encode(pkcs10.getEncoded())));</span>
+            }
+        }
+<span class="pc bpc" id="L418" title="1 of 2 branches missed.">        if (messageType == ScepRequestMessage.SCEP_TYPE_GETCRL) {</span>
+<span class="nc" id="L419">            ASN1InputStream derAsn1InputStream = new ASN1InputStream(new ByteArrayInputStream(decBytes));</span>
+<span class="nc" id="L420">            ASN1Primitive derobj = null;</span>
+            try {
+<span class="nc" id="L422">                derobj = derAsn1InputStream.readObject();</span>
+            } finally {
+<span class="nc" id="L424">                derAsn1InputStream.close();</span>
+            }
+<span class="nc" id="L426">            issuerAndSerno = IssuerAndSerialNumber.getInstance(derobj);</span>
+<span class="nc" id="L427">            log.debug(&quot;Successfully extracted IssuerAndSerialNumber.&quot;);</span>
+        }
+<span class="pc bpc" id="L429" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L430">        	log.trace(&quot;&lt;decrypt&quot;);</span>
+        }
+<span class="fc" id="L432">    } // decrypt</span>
+
+    @Override
+    public PublicKey getRequestPublicKey() {
+<span class="nc bnc" id="L436" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L437">        	log.trace(&quot;&gt;getRequestPublicKey()&quot;);</span>
+        }
+<span class="nc" id="L439">        PublicKey ret = null;</span>
+        try {
+<span class="nc bnc" id="L441" title="All 2 branches missed.">            if (envData == null) {</span>
+<span class="nc" id="L442">                init();</span>
+<span class="nc" id="L443">                decrypt();</span>
+            }
+<span class="nc" id="L445">            ret = super.getRequestPublicKey();</span>
+<span class="nc" id="L446">        } catch (IOException e) {</span>
+<span class="nc" id="L447">            log.error(&quot;PKCS7 not inited!&quot;);</span>
+<span class="nc" id="L448">        } catch (GeneralSecurityException e) {</span>
+<span class="nc" id="L449">            log.error(&quot;Error in PKCS7:&quot;, e);</span>
+<span class="nc" id="L450">        } catch (CMSException e) {</span>
+<span class="nc" id="L451">            log.error(&quot;Error in PKCS7:&quot;, e);</span>
+<span class="nc" id="L452">        }</span>
+<span class="nc bnc" id="L453" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L454">        	log.trace(&quot;&lt;getRequestPublicKey()&quot;);</span>
+        }
+<span class="nc" id="L456">        return ret;</span>
+    }
+
+    @Override
+    public String getRequestAltNames() {
+<span class="nc bnc" id="L461" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L462">        	log.trace(&quot;&gt;getRequestAltNames()&quot;);</span>
+        }
+<span class="nc" id="L464">        String ret = null;</span>
+        try {
+<span class="nc bnc" id="L466" title="All 2 branches missed.">            if (envData == null) {</span>
+<span class="nc" id="L467">                init();</span>
+<span class="nc" id="L468">                decrypt();</span>
+            }
+<span class="nc" id="L470">            ret = super.getRequestAltNames();</span>
+<span class="nc" id="L471">        } catch (IOException e) {</span>
+<span class="nc" id="L472">            log.error(&quot;PKCS7 not inited!&quot;);</span>
+<span class="nc" id="L473">        } catch (GeneralSecurityException e) {</span>
+<span class="nc" id="L474">            log.error(&quot;Error in PKCS7:&quot;, e);</span>
+<span class="nc" id="L475">        } catch (CMSException e) {</span>
+<span class="nc" id="L476">            log.error(&quot;Error in PKCS7:&quot;, e);</span>
+<span class="nc" id="L477">        }</span>
+<span class="nc bnc" id="L478" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L479">        	log.trace(&quot;&lt;getRequestAltNames()&quot;);</span>
+        }
+<span class="nc" id="L481">        return ret;</span>
+    }
+   
+    @Override
+    public boolean verify() {
+<span class="pc bpc" id="L486" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L487">        	log.trace(&quot;&gt;verify()&quot;);</span>
+        }
+<span class="fc" id="L489">        boolean ret = false;</span>
+        try {
+<span class="pc bpc" id="L491" title="1 of 2 branches missed.">            if (pkcs10 == null) {</span>
+<span class="fc" id="L492">                init();</span>
+<span class="fc" id="L493">                decrypt();</span>
+            }
+<span class="fc" id="L495">            ret = super.verify();</span>
+<span class="nc" id="L496">        } catch (IOException e) {</span>
+<span class="nc" id="L497">            log.error(&quot;PKCS7 not initialized!&quot;);</span>
+<span class="nc" id="L498">        } catch (GeneralSecurityException e) {</span>
+<span class="nc" id="L499">            log.error(&quot;Error in PKCS7:&quot;, e);</span>
+<span class="nc" id="L500">        } catch (CMSException e) {</span>
+<span class="nc" id="L501">            log.error(&quot;Error in PKCS7:&quot;, e);</span>
+<span class="pc" id="L502">        }</span>
+<span class="pc bpc" id="L503" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L504">        	log.trace(&quot;&lt;verify()&quot;);</span>
+        }
+<span class="fc" id="L506">        return ret;</span>
+    }
+
+    @Override
+    public String getPassword() {
+<span class="pc bpc" id="L511" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L512">        	log.trace(&quot;&gt;getPassword()&quot;);</span>
+        }
+<span class="fc" id="L514">        String ret = null;</span>
+        try {
+<span class="pc bpc" id="L516" title="1 of 2 branches missed.">            if (pkcs10 == null) {</span>
+<span class="nc" id="L517">                init();</span>
+<span class="nc" id="L518">                decrypt();</span>
+            }
+<span class="fc" id="L520">            ret = super.getPassword();</span>
+<span class="nc" id="L521">        } catch (IOException e) {</span>
+<span class="nc" id="L522">            log.error(&quot;PKCS7 not inited!&quot;);</span>
+<span class="nc" id="L523">        } catch (GeneralSecurityException e) {</span>
+<span class="nc" id="L524">            log.error(&quot;Error in PKCS7:&quot;, e);</span>
+<span class="nc" id="L525">        } catch (CMSException e) {</span>
+<span class="nc" id="L526">            log.error(&quot;Error in PKCS7:&quot;, e);</span>
+<span class="pc" id="L527">        }</span>
+<span class="pc bpc" id="L528" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L529">        	log.trace(&quot;&lt;getPassword()&quot;);</span>
+        }
+<span class="fc" id="L531">        return ret;</span>
+    }
+
+    @Override
+    public String getUsername() {
+<span class="pc bpc" id="L536" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L537">        	log.trace(&quot;&gt;getUsername()&quot;);</span>
+        }
+<span class="fc" id="L539">        String ret = null;</span>
+        try {
+<span class="pc bpc" id="L541" title="1 of 2 branches missed.">            if (pkcs10 == null) {</span>
+<span class="nc" id="L542">                init();</span>
+<span class="nc" id="L543">                decrypt();</span>
+            }
+<span class="fc" id="L545">            ret = super.getUsername();</span>
+<span class="pc bpc" id="L546" title="1 of 2 branches missed.">            if (ret == null) {</span>
+                // For Cisco boxes they can sometimes send DN as SN instead of CN
+<span class="nc" id="L548">                String name = CertTools.getPartFromDN(getRequestDN(), &quot;SN&quot;);</span>
+<span class="nc bnc" id="L549" title="All 2 branches missed.">                if (name == null) {</span>
+<span class="nc" id="L550">                    log.error(&quot;No SN in DN: &quot;+getRequestDN());</span>
+<span class="nc" id="L551">                    return null;</span>
+                }
+                // Special if the DN contains unstructuredAddress where it becomes: 
+                // SN=1728668 + 1.2.840.113549.1.9.2=pix.primekey.se
+                // We only want the SN and not the oid-part.
+<span class="nc" id="L556">                int index = name.indexOf(' ');</span>
+<span class="nc" id="L557">                ret = name; </span>
+<span class="nc bnc" id="L558" title="All 2 branches missed.">                if (index &gt; 0) {</span>
+<span class="nc" id="L559">                    ret = name.substring(0,index);        </span>
+                } else {
+                    // Perhaps there is no space, only +
+<span class="nc" id="L562">                    index = name.indexOf('+');</span>
+<span class="nc bnc" id="L563" title="All 2 branches missed.">                    if (index &gt; 0) {</span>
+<span class="nc" id="L564">                        ret = name.substring(0, index);</span>
+                    }            	
+                }
+            }
+<span class="nc" id="L568">        } catch (IOException e) {</span>
+<span class="nc" id="L569">            log.error(&quot;PKCS7 not inited!&quot;);</span>
+<span class="nc" id="L570">        } catch (GeneralSecurityException e) {</span>
+<span class="nc" id="L571">            log.error(&quot;Error in PKCS7:&quot;, e);</span>
+<span class="nc" id="L572">        } catch (CMSException e) {</span>
+<span class="nc" id="L573">            log.error(&quot;Error in PKCS7:&quot;, e);</span>
+<span class="pc" id="L574">        }</span>
+<span class="pc bpc" id="L575" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L576">        	log.trace(&quot;&lt;getUsername(): &quot; + ret);</span>
+        }
+<span class="fc" id="L578">        return ret;</span>
+    }
+
+    @Override
+    public String getIssuerDN() {
+<span class="pc bpc" id="L583" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L584">        	log.trace(&quot;&gt;getIssuerDN()&quot;);</span>
+        }
+<span class="fc" id="L586">        String ret = null;</span>
+        try {
+<span class="pc bpc" id="L588" title="1 of 2 branches missed.">            if (envData == null) {</span>
+<span class="nc" id="L589">                init();</span>
+            }
+<span class="fc" id="L591">            ret = issuerDN;</span>
+<span class="nc" id="L592">        } catch (IOException e) {</span>
+<span class="nc" id="L593">            log.error(&quot;PKCS7 not inited!&quot;);</span>
+<span class="fc" id="L594">        }</span>
+<span class="pc bpc" id="L595" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L596">        	log.trace(&quot;&lt;getIssuerDN(): &quot; + ret);</span>
+        }
+<span class="fc" id="L598">        return ret;</span>
+    }
+
+    @Override
+    public BigInteger getSerialNo() {
+<span class="nc bnc" id="L603" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L604">        	log.trace(&quot;&gt;getSerialNo()&quot;);</span>
+        }
+        // Use another method to do the decryption etc...
+<span class="nc" id="L607">        getIssuerDN();</span>
+<span class="nc" id="L608">        return serialNo;</span>
+    }
+    
+    @Override
+    public String getCRLIssuerDN() {
+<span class="nc bnc" id="L613" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L614">        	log.trace(&quot;&gt;getCRLIssuerDN()&quot;);</span>
+        }
+<span class="nc" id="L616">        String ret = null;</span>
+        try {
+<span class="nc bnc" id="L618" title="All 2 branches missed.">            if (issuerAndSerno == null) {</span>
+<span class="nc" id="L619">                init();</span>
+<span class="nc" id="L620">                decrypt();</span>
+            }
+<span class="nc" id="L622">            ret = CertTools.stringToBCDNString(issuerAndSerno.getName().toString());</span>
+<span class="nc" id="L623">        } catch (IOException e) {</span>
+<span class="nc" id="L624">            log.error(&quot;PKCS7 not inited!&quot;);</span>
+<span class="nc" id="L625">        } catch (GeneralSecurityException e) {</span>
+<span class="nc" id="L626">            log.error(&quot;Error in PKCS7:&quot;, e);</span>
+<span class="nc" id="L627">        } catch (CMSException e) {</span>
+<span class="nc" id="L628">            log.error(&quot;Error in PKCS7:&quot;, e);</span>
+<span class="nc" id="L629">        }</span>
+<span class="nc bnc" id="L630" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L631">        	log.trace(&quot;&lt;getCRLIssuerDN(): &quot; + ret);</span>
+        }
+<span class="nc" id="L633">        return ret;</span>
+    }
+
+    @Override
+    public BigInteger getCRLSerialNo() {
+<span class="nc bnc" id="L638" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L639">        	log.trace(&quot;&gt;getCRLSerialNo()&quot;);</span>
+        }
+<span class="nc" id="L641">        BigInteger ret = null;</span>
+        try {
+<span class="nc bnc" id="L643" title="All 2 branches missed.">            if (issuerAndSerno == null) {</span>
+<span class="nc" id="L644">                init();</span>
+<span class="nc" id="L645">                decrypt();</span>
+            }
+<span class="nc" id="L647">            ret = issuerAndSerno.getSerialNumber().getValue();</span>
+<span class="nc" id="L648">        } catch (IOException e) {</span>
+<span class="nc" id="L649">            log.error(&quot;PKCS7 not inited!&quot;);</span>
+<span class="nc" id="L650">        } catch (GeneralSecurityException e) {</span>
+<span class="nc" id="L651">            log.error(&quot;Error in PKCS7:&quot;, e);</span>
+<span class="nc" id="L652">        } catch (CMSException e) {</span>
+<span class="nc" id="L653">            log.error(&quot;Error in PKCS7:&quot;, e);</span>
+<span class="nc" id="L654">        }</span>
+<span class="nc bnc" id="L655" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L656">        	log.trace(&quot;&lt;getCRLSerialNo(): &quot; + ret);</span>
+        }
+<span class="nc" id="L658">        return ret;</span>
+    }
+
+    @Override
+    public String getRequestDN() {
+<span class="pc bpc" id="L663" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L664">        	log.trace(&quot;&gt;getRequestDN()&quot;);</span>
+        }
+<span class="fc" id="L666">        String ret = null;</span>
+        try {
+<span class="pc bpc" id="L668" title="1 of 2 branches missed.">            if (pkcs10 == null) {</span>
+<span class="nc" id="L669">                init();</span>
+<span class="nc" id="L670">                decrypt();</span>
+            }
+<span class="fc" id="L672">            ret = super.getRequestDN();</span>
+<span class="nc" id="L673">        } catch (IOException e) {</span>
+<span class="nc" id="L674">            log.error(&quot;PKCS7 not inited!&quot;);</span>
+<span class="nc" id="L675">        } catch (GeneralSecurityException e) {</span>
+<span class="nc" id="L676">            log.error(&quot;Error in PKCS7:&quot;, e);</span>
+<span class="nc" id="L677">        } catch (CMSException e) {</span>
+<span class="nc" id="L678">            log.error(&quot;Error in PKCS7:&quot;, e);</span>
+<span class="pc" id="L679">        }</span>
+<span class="pc bpc" id="L680" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L681">        	log.trace(&quot;&lt;getRequestDN(): &quot; + ret);</span>
+        }
+<span class="fc" id="L683">        return ret;</span>
+    }
+
+    @Override
+    public boolean requireKeyInfo() {
+<span class="fc" id="L688">        return true;</span>
+    }
+
+    @Override
+    public void setKeyInfo(Certificate cert, PrivateKey key, String provider) {
+        // We don't need the public key 
+        // this.cert = cert;
+<span class="fc" id="L695">        this.privateKey = key;</span>
+<span class="pc bpc" id="L696" title="1 of 2 branches missed.">        if (provider == null) {</span>
+<span class="fc" id="L697">        	this.jceProvider = BouncyCastleProvider.PROVIDER_NAME;</span>
+        } else {
+<span class="nc" id="L699">            this.jceProvider = provider;        	</span>
+        }
+<span class="fc" id="L701">    }</span>
+
+    @Override
+    public int getErrorNo() {
+<span class="nc" id="L705">        return error;</span>
+    }
+
+    @Override
+    public String getErrorText() {
+<span class="nc" id="L710">        return errorText;</span>
+    }
+
+    @Override
+    public String getSenderNonce() {
+<span class="nc" id="L715">        return senderNonce;</span>
+    }
+
+    @Override
+    public String getTransactionId() {
+<span class="nc" id="L720">        return transactionId;</span>
+    }
+
+    @Override
+    public byte[] getRequestKeyInfo() {
+<span class="nc" id="L725">        return requestKeyInfo;</span>
+    }
+
+    @Override
+    public String getPreferredDigestAlg() {
+<span class="nc" id="L730">    	return preferredDigestAlg;</span>
+    }
+    
+    /** Returns the type of SCEP message it is
+     * 
+     * @return value as defined by SCEP_TYPE_PKCSREQ, SCEP_TYPE_GETCRL, SCEP_TYPE_GETCERT  
+     */
+    public int getMessageType() {
+<span class="nc" id="L738">        return messageType;</span>
+
+    }
+
+    /**
+     * Method returning the certificate used to sign the SCEP_TYPE_PKCSREQ pkcs7 request.
+     * 
+     * @return The certificate used for signing or null if it doesn't exist or not been initialized.
+     */
+    public Certificate getSignerCert(){
+<span class="nc" id="L748">    	return signercert;</span>
+    }
+    
+    private static class ScepVerifierProvider implements SignerInformationVerifierProvider {
+        
+        private final SignerInformationVerifier signerInformationVerifier;
+        
+<span class="nc" id="L755">        public ScepVerifierProvider(PublicKey publicKey) throws OperatorCreationException {</span>
+<span class="nc" id="L756">            JcaDigestCalculatorProviderBuilder calculatorProviderBuilder = new JcaDigestCalculatorProviderBuilder().setProvider(BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="nc" id="L757">            JcaSignerInfoVerifierBuilder signerInfoVerifierBuilder = new JcaSignerInfoVerifierBuilder(calculatorProviderBuilder.build())</span>
+<span class="nc" id="L758">            .setProvider(BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="nc" id="L759">            signerInformationVerifier = signerInfoVerifierBuilder.build(publicKey);</span>
+<span class="nc" id="L760">        }</span>
+                
+        @Override
+        public SignerInformationVerifier get(SignerId signerId) throws OperatorCreationException {
+<span class="nc" id="L764">            return signerInformationVerifier;</span>
+        }
+        
+    }
+        
+} 
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

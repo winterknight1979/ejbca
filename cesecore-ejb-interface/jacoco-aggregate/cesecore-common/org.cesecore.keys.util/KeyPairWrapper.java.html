@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>KeyPairWrapper.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-ejb-interface</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.keys.util</a> &gt; <span class="el_source">KeyPairWrapper.java</span></div><h1>KeyPairWrapper.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.keys.util;
+
+import java.io.Serializable;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
+/**
+ * Wrapper class for serializing KeyPair objects. 
+ * 
+ * @see org.cesecore.util.EJBTools
+ * 
+ * @version $Id: KeyPairWrapper.java 26210 2017-08-03 10:12:32Z samuellb $
+ *
+ */
+public class KeyPairWrapper implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    
+    final byte[] encodedPublicKey;
+    final byte[] encodedPrivateKey;
+    final String algorithm;
+<span class="fc" id="L43">    transient KeyPair cachedKeyPair = null;</span>
+    
+<span class="fc" id="L45">    public KeyPairWrapper(final KeyPair keyPair) {</span>
+<span class="fc" id="L46">        this.encodedPublicKey = keyPair.getPublic().getEncoded();</span>
+<span class="fc" id="L47">        this.encodedPrivateKey = keyPair.getPrivate().getEncoded();</span>
+<span class="fc" id="L48">        this.algorithm = keyPair.getPublic().getAlgorithm();</span>
+<span class="fc" id="L49">    }</span>
+    
+    /**
+     * 
+     * @return the decoded PublicKey object wrapped in this class.
+     * 
+     */
+    private PublicKey getPublicKey() {
+        try {
+<span class="fc" id="L58">            KeyFactory keyFactory = KeyFactory.getInstance(algorithm, BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="fc" id="L59">            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encodedPublicKey);</span>
+<span class="fc" id="L60">            return keyFactory.generatePublic(keySpec);</span>
+<span class="nc" id="L61">        } catch (NoSuchProviderException e) {</span>
+<span class="nc" id="L62">            throw new IllegalStateException(&quot;BouncyCastle was not a known provider.&quot;, e);</span>
+<span class="nc" id="L63">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L64">            throw new IllegalStateException(&quot;Algorithm &quot;  + algorithm + &quot; was not known at deserialisation&quot;, e);</span>
+<span class="nc" id="L65">        } catch (InvalidKeySpecException e) {</span>
+<span class="nc" id="L66">            throw new IllegalStateException(&quot;The incorrect key specification was implemented.&quot;, e);</span>
+        } 
+    }
+    
+    /**
+     * 
+     * @return the decoded PublicKey object wrapped in this class.
+     * 
+     */
+    private PrivateKey getPrivateKey() {
+        try {
+<span class="fc" id="L77">            KeyFactory keyFactory = KeyFactory.getInstance(algorithm, BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="fc" id="L78">            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encodedPrivateKey);</span>
+<span class="fc" id="L79">            return keyFactory.generatePrivate(keySpec);</span>
+<span class="nc" id="L80">        } catch (NoSuchProviderException e) {</span>
+<span class="nc" id="L81">            throw new IllegalStateException(&quot;BouncyCastle was not a known provider.&quot;, e);</span>
+<span class="nc" id="L82">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L83">            throw new IllegalStateException(&quot;Algorithm &quot;  + algorithm + &quot; was not known at deserialisation&quot;, e);</span>
+<span class="nc" id="L84">        } catch (InvalidKeySpecException e) {</span>
+<span class="nc" id="L85">            throw new IllegalStateException(&quot;The incorrect key specification was implemented.&quot;, e);</span>
+        } 
+    }
+    
+    
+    public KeyPair getKeyPair() {
+<span class="fc bfc" id="L91" title="All 2 branches covered.">        if(cachedKeyPair == null) {</span>
+<span class="fc" id="L92">            cachedKeyPair = new KeyPair(getPublicKey(), getPrivateKey());</span>
+        } 
+<span class="fc" id="L94">        return cachedKeyPair;</span>
+    }
+   
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>QcStatement.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-ejb-interface</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.certificate.certextensions.standard</a> &gt; <span class="el_source">QcStatement.java</span></div><h1>QcStatement.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/ 
+package org.cesecore.certificates.certificate.certextensions.standard;
+
+import java.security.PublicKey;
+import java.util.ArrayList;
+import java.util.Iterator;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1EncodableVector;
+import org.bouncycastle.asn1.ASN1Integer;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.DERIA5String;
+import org.bouncycastle.asn1.DERPrintableString;
+import org.bouncycastle.asn1.DERSequence;
+import org.bouncycastle.asn1.DERUTF8String;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.GeneralNames;
+import org.bouncycastle.asn1.x509.qualified.ETSIQCObjectIdentifiers;
+import org.bouncycastle.asn1.x509.qualified.Iso4217CurrencyCode;
+import org.bouncycastle.asn1.x509.qualified.MonetaryValue;
+import org.bouncycastle.asn1.x509.qualified.QCStatement;
+import org.bouncycastle.asn1.x509.qualified.RFC3739QCObjectIdentifiers;
+import org.bouncycastle.asn1.x509.qualified.SemanticsInformation;
+import org.cesecore.certificates.ca.CA;
+import org.cesecore.certificates.ca.internal.CertificateValidity;
+import org.cesecore.certificates.certificate.certextensions.CertificateExtensionException;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.PKIDisclosureStatement;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.util.CertTools;
+
+/** QCStatement (rfc3739)
+ * 
+ * Class for standard X509 certificate extension. 
+ * This extension have some basics defined in RFC 3739, but the majority of fields are used in EU purposes 
+ * and specified in EU standards.
+ * ETSI EN 319 412-5 (v2.1.1, 2016-02 or later)
+ * https://www.etsi.org/deliver/etsi_en/319400_319499/31941205/02.01.01_60/en_31941205v020101p.pdf
+ * ETSI TS 101 862 (v1.3.3, 2006-01 or later)
+ * https://www.etsi.org/deliver/etsi_ts/101800_101899/101862/01.03.03_60/ts_101862v010303p.pdf
+ * ETSI TS 119 495 (v1.1.2, 2018-07 or later)
+ * https://www.etsi.org/deliver/etsi_ts/119400_119499/119495/01.01.02_60/ts_119495v010102p.pdf
+ * 
+ * qcStatements  EXTENSION ::= {
+ *        SYNTAX             QCStatements
+ *        IDENTIFIED BY      id-pe-qcStatements }
+ * id-pe-qcStatements     OBJECT IDENTIFIER ::= { id-pe 3 }
+ *
+ *    QCStatements ::= SEQUENCE OF QCStatement
+ *    QCStatement ::= SEQUENCE {
+ *        statementId   QC-STATEMENT.&amp;amp;Id({SupportedStatements}),
+ *        statementInfo QC-STATEMENT.&amp;amp;Type
+ *        ({SupportedStatements}{@literal @}statementId}) OPTIONAL }
+ *
+ *    SupportedStatements QC-STATEMENT ::= { qcStatement-1,...}
+ * 
+ * @version $Id: QcStatement.java 29674 2018-08-17 10:26:59Z anatom $
+ */
+<span class="fc" id="L73">public class QcStatement extends StandardCertificateExtension {</span>
+    private static final long serialVersionUID = 1L;
+<span class="fc" id="L75">    private static final Logger log = Logger.getLogger(QcStatement.class);</span>
+	
+    @Override
+	public void init(final CertificateProfile certProf) {
+<span class="fc" id="L79">		super.setOID(Extension.qCStatements.getId());</span>
+<span class="fc" id="L80">		super.setCriticalFlag(certProf.getQCStatementCritical());</span>
+<span class="fc" id="L81">	}</span>
+    
+    @Override
+    public ASN1Encodable getValue(final EndEntityInformation subject, final CA ca, final CertificateProfile certProfile,
+            final PublicKey userPublicKey, final PublicKey caPublicKey, CertificateValidity val) throws CertificateExtensionException {
+<span class="fc" id="L86">		DERSequence ret = null;</span>
+<span class="fc" id="L87">		final String names = certProfile.getQCStatementRAName();</span>
+<span class="fc" id="L88">		final GeneralNames san = CertTools.getGeneralNamesFromAltName(names);</span>
+<span class="fc" id="L89">		SemanticsInformation si = null;</span>
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">		if (san != null) {</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">			if (StringUtils.isNotEmpty(certProfile.getQCSemanticsId())) {</span>
+<span class="nc" id="L92">				si = new SemanticsInformation(new ASN1ObjectIdentifier(certProfile.getQCSemanticsId()), san.getNames());</span>
+			} else {
+<span class="nc" id="L94">				si = new SemanticsInformation(san.getNames());                     </span>
+			}
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">		} else if (StringUtils.isNotEmpty(certProfile.getQCSemanticsId())) {</span>
+<span class="fc" id="L97">			si = new SemanticsInformation(new ASN1ObjectIdentifier(certProfile.getQCSemanticsId()));                 </span>
+		}
+<span class="fc" id="L99">		final ArrayList&lt;QCStatement&gt; qcs = new ArrayList&lt;QCStatement&gt;();</span>
+<span class="fc" id="L100">		QCStatement qc = null;</span>
+		// First the standard rfc3739 QCStatement with an optional SematicsInformation
+		// We never add RFC3739QCObjectIdentifiers.id_qcs_pkixQCSyntax_v1. This is so old so we think it has never been used in the wild basically.
+		// That means no need to have code we have to maintain for that.
+<span class="pc bpc" id="L104" title="1 of 2 branches missed.">		if (certProfile.getUsePkixQCSyntaxV2()) {</span>
+<span class="fc" id="L105">		    ASN1ObjectIdentifier pkixQcSyntax = RFC3739QCObjectIdentifiers.id_qcs_pkixQCSyntax_v2;</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">	        if ( (si != null)  ) {</span>
+<span class="fc" id="L107">	            qc = new QCStatement(pkixQcSyntax, si);</span>
+<span class="fc" id="L108">	            qcs.add(qc);</span>
+	        } else {
+<span class="nc" id="L110">	            qc = new QCStatement(pkixQcSyntax);</span>
+<span class="nc" id="L111">	            qcs.add(qc);</span>
+	        }
+		}
+		// ETSI Statement that the certificate is a Qualified Certificate
+<span class="pc bpc" id="L115" title="1 of 2 branches missed.">		if (certProfile.getUseQCEtsiQCCompliance()) {</span>
+<span class="fc" id="L116">			qc = new QCStatement(ETSIQCObjectIdentifiers.id_etsi_qcs_QcCompliance);</span>
+<span class="fc" id="L117">			qcs.add(qc);</span>
+		}
+		// ETSI Statement regarding limit on the value of transactions
+		// Both value and currency must be available for this extension
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">		if (certProfile.getUseQCEtsiValueLimit() &amp;&amp;</span>
+<span class="nc bnc" id="L122" title="All 4 branches missed.">				(certProfile.getQCEtsiValueLimit() &gt;= 0) &amp;&amp; (certProfile.getQCEtsiValueLimitCurrency() != null) ) {</span>
+<span class="nc" id="L123">			final int limit = certProfile.getQCEtsiValueLimit();</span>
+			// The exponent should be default 0
+<span class="nc" id="L125">			final int exponent = certProfile.getQCEtsiValueLimitExp();</span>
+<span class="nc" id="L126">			final MonetaryValue value = new MonetaryValue(new Iso4217CurrencyCode(certProfile.getQCEtsiValueLimitCurrency()), limit, exponent);</span>
+<span class="nc" id="L127">			qc = new QCStatement(ETSIQCObjectIdentifiers.id_etsi_qcs_LimiteValue, value);</span>
+<span class="nc" id="L128">			qcs.add(qc);</span>
+		}
+
+<span class="pc bpc" id="L131" title="1 of 2 branches missed.">		if (certProfile.getUseQCEtsiRetentionPeriod()) {</span>
+<span class="nc" id="L132">			final ASN1Integer years = new ASN1Integer( ((Integer) certProfile.getQCEtsiRetentionPeriod()) );</span>
+<span class="nc" id="L133">			qc = new QCStatement(ETSIQCObjectIdentifiers.id_etsi_qcs_RetentionPeriod, years);</span>
+<span class="nc" id="L134">			qcs.add(qc);</span>
+		}
+        
+		// ETSI Statement claiming that the private key resides in a Signature Creation Device
+<span class="pc bpc" id="L138" title="1 of 2 branches missed.">		if (certProfile.getUseQCEtsiSignatureDevice()) {</span>
+<span class="fc" id="L139">			qc = new QCStatement(ETSIQCObjectIdentifiers.id_etsi_qcs_QcSSCD);</span>
+<span class="fc" id="L140">			qcs.add(qc);</span>
+		}
+		// ETSI QC Type and PDS is new fields in EN 319 412-05 (2016)
+<span class="pc bpc" id="L143" title="1 of 2 branches missed.">		if  (StringUtils.isNotEmpty(certProfile.getQCEtsiType())) {</span>
+<span class="fc" id="L144">            final ASN1EncodableVector vec = new ASN1EncodableVector();</span>
+<span class="fc" id="L145">            vec.add(new ASN1ObjectIdentifier(certProfile.getQCEtsiType()));</span>
+<span class="fc" id="L146">            ASN1Sequence seq = new DERSequence(vec);</span>
+<span class="fc" id="L147">            qc = new QCStatement(new ASN1ObjectIdentifier(&quot;0.4.0.1862.1.6&quot;), seq); // ETSIQCObjectIdentifiers.id_etsi_qcs_QcType in BC &gt; 1.54</span>
+<span class="fc" id="L148">            qcs.add(qc);</span>
+        }
+<span class="pc bpc" id="L150" title="1 of 2 branches missed.">        if (certProfile.getQCEtsiPds() != null) {</span>
+<span class="fc" id="L151">            final ASN1EncodableVector locations = new ASN1EncodableVector();</span>
+<span class="fc bfc" id="L152" title="All 2 branches covered.">            for (PKIDisclosureStatement pds : certProfile.getQCEtsiPds()) {</span>
+<span class="fc" id="L153">                final ASN1EncodableVector location = new ASN1EncodableVector();</span>
+<span class="fc" id="L154">                location.add(new DERIA5String(pds.getUrl()));</span>
+<span class="fc" id="L155">                location.add(new DERPrintableString(pds.getLanguage()));</span>
+<span class="fc" id="L156">                locations.add(new DERSequence(location));</span>
+<span class="fc" id="L157">            }</span>
+<span class="fc" id="L158">            qc = new QCStatement(new ASN1ObjectIdentifier(&quot;0.4.0.1862.1.5&quot;), new DERSequence(locations)); // ETSIQCObjectIdentifiers.id_etsi_qcs_QcPds in BC &gt; 1.54</span>
+<span class="fc" id="L159">            qcs.add(qc);</span>
+        }
+		// Custom UTF8String QC-statement:
+		// qcStatement-YourCustom QC-STATEMENT ::= { SYNTAX YourCustomUTF8String
+		//   IDENTIFIED BY youroid }
+		//   -- This statement gives you the possibility to define your own QC-statement
+		//   -- using an OID and a simple UTF8String, with describing text. A sample text could for example be:
+		//   -- This certificate, according to Act. No. xxxx Electronic Signature Law is a qualified electronic certificate
+		//
+		// YourCustomUTF8String ::= UTF8String
+<span class="pc bpc" id="L169" title="1 of 2 branches missed.">		if (certProfile.getUseQCCustomString() &amp;&amp; </span>
+<span class="nc bnc" id="L170" title="All 4 branches missed.">				!StringUtils.isEmpty(certProfile.getQCCustomStringOid()) &amp;&amp; !StringUtils.isEmpty(certProfile.getQCCustomStringText())) {</span>
+<span class="nc" id="L171">			final DERUTF8String str = new DERUTF8String(certProfile.getQCCustomStringText());</span>
+<span class="nc" id="L172">			final ASN1ObjectIdentifier oid = new ASN1ObjectIdentifier(certProfile.getQCCustomStringOid());</span>
+<span class="nc" id="L173">			qc = new QCStatement(oid, str);</span>
+<span class="nc" id="L174">			qcs.add(qc);            		 </span>
+		}
+<span class="pc bpc" id="L176" title="1 of 2 branches missed.">		if (!qcs.isEmpty()) {</span>
+<span class="fc" id="L177">			final ASN1EncodableVector vec = new ASN1EncodableVector();</span>
+<span class="fc" id="L178">			final Iterator&lt;QCStatement&gt; iter = qcs.iterator();</span>
+<span class="fc bfc" id="L179" title="All 2 branches covered.">			while (iter.hasNext()) {</span>
+<span class="fc" id="L180">				final QCStatement q = (QCStatement)iter.next();</span>
+<span class="fc" id="L181">				vec.add(q);</span>
+<span class="fc" id="L182">			}</span>
+<span class="fc" id="L183">			ret = new DERSequence(vec);</span>
+		}
+<span class="pc bpc" id="L185" title="1 of 2 branches missed.">		if (ret == null) {</span>
+<span class="nc" id="L186">		    log.error(&quot;Qualified certificate statements extension has been enabled, but no statements were included!&quot;);</span>
+<span class="nc" id="L187">		    throw new CertificateExtensionException(&quot;If qualified certificate statements extension has been enabled, at least one statement must be included!&quot;);</span>
+		}
+<span class="fc" id="L189">		return ret;</span>
+    }	
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

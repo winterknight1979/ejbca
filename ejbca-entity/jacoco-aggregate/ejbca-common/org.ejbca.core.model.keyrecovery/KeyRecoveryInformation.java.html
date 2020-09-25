@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>KeyRecoveryInformation.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-entity</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.keyrecovery</a> &gt; <span class="el_source">KeyRecoveryInformation.java</span></div><h1>KeyRecoveryInformation.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.model.keyrecovery;
+
+
+import java.io.Serializable;
+import java.math.BigInteger;
+import java.security.KeyPair;
+import java.security.cert.Certificate;
+
+import org.cesecore.keys.util.KeyPairWrapper;
+import org.cesecore.util.StringTools;
+
+
+/**
+ * This is a value class containing the data relating to key saved for recovery for a user, sent
+ * between server and clients.
+ *
+ * @version $Id: KeyRecoveryInformation.java 20728 2015-02-20 14:55:55Z mikekushner $
+ */
+public class KeyRecoveryInformation implements Serializable {
+
+    private static final long serialVersionUID = -7473386427889757839L;
+
+    // Private fields
+    private BigInteger certificatesn;
+    private String issuerdn;
+    private String username;
+    private boolean markedasrecoverable;
+    private KeyPairWrapper keypair;
+    private Certificate certificate;
+    
+    
+    // Public Constructors
+    public KeyRecoveryInformation(BigInteger certificatesn, String issuerdn, String username,
+<span class="nc" id="L47">                           boolean markedasrecoverable, KeyPair keypair, Certificate certificate) {</span>
+<span class="nc" id="L48">        this.certificatesn = certificatesn;</span>
+<span class="nc" id="L49">        this.issuerdn = issuerdn;</span>
+<span class="nc" id="L50">        this.username = StringTools.stripUsername(username);</span>
+<span class="nc" id="L51">        this.markedasrecoverable = markedasrecoverable;</span>
+<span class="nc" id="L52">        this.keypair = new KeyPairWrapper(keypair);</span>
+<span class="nc" id="L53">        this.certificate = certificate;</span>
+<span class="nc" id="L54">    }</span>
+
+    /**
+     * Creates a new KeyRecoveryData object.
+     */
+<span class="nc" id="L59">    public KeyRecoveryInformation() {</span>
+<span class="nc" id="L60">    }</span>
+
+    // Public Methods
+    public BigInteger getCertificateSN() {
+<span class="nc" id="L64">        return this.certificatesn;</span>
+    }
+
+    public void setCertificateSN(BigInteger certificatesn) {
+<span class="nc" id="L68">        this.certificatesn = certificatesn;</span>
+<span class="nc" id="L69">    }</span>
+
+    public String getIssuerDN() {
+<span class="nc" id="L72">        return this.issuerdn;</span>
+    }
+
+    public void setIssuerDN(String issuerdn) {
+<span class="nc" id="L76">        this.issuerdn = issuerdn;</span>
+<span class="nc" id="L77">    }</span>
+
+    public String getUsername() {
+<span class="nc" id="L80">        return this.username;</span>
+    }
+
+    public void setUsername(String username) {
+<span class="nc" id="L84">        this.username = StringTools.stripUsername(username);</span>
+<span class="nc" id="L85">    }</span>
+
+    public boolean getMarkedAsRecoverable() {
+<span class="nc" id="L88">        return this.markedasrecoverable;</span>
+    }
+
+    public void setMarkedAsRecoverable(boolean markedasrecoverable) {
+<span class="nc" id="L92">        this.markedasrecoverable = markedasrecoverable;</span>
+<span class="nc" id="L93">    }</span>
+
+    public KeyPair getKeyPair() {
+<span class="nc" id="L96">        return keypair.getKeyPair();</span>
+    }
+
+    public void setKeyPair(KeyPair keypair) {
+<span class="nc" id="L100">        this.keypair = new KeyPairWrapper(keypair);</span>
+<span class="nc" id="L101">    }</span>
+
+	/**
+	 * @return Returns the certificate.
+	 */
+	public Certificate getCertificate() {
+<span class="nc" id="L107">		return certificate;</span>
+	}
+	/**
+	 * @param certificate The certificate to set.
+	 */
+	public void setCertificate(Certificate certificate) {
+<span class="nc" id="L113">		this.certificate = certificate;</span>
+<span class="nc" id="L114">	}</span>
+   
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

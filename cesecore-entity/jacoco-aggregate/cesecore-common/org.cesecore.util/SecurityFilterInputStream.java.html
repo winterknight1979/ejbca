@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>SecurityFilterInputStream.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-entity</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.util</a> &gt; <span class="el_source">SecurityFilterInputStream.java</span></div><h1>SecurityFilterInputStream.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.util;
+
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+/** Can be used as Filter InputStream to prevent StringBuilder heap overflow during deserialization. 
+ * 
+ * Simple usage:
+ * ObjectInputStream objectInputStream = new ObjectInputStream(new SecurityFilterInputStream(new ByteArrayInputStream(someByteArray), 256));
+ * objectInputStream.readObject(); //If serialized object have more than 256 bytes, SecurityException will be thrown
+ * 
+ *  see &quot;SecurityFilterInputStreamTest&quot; in the test code for more examples
+ * 
+ * @version $Id: SecurityFilterInputStream.java 26057 2017-06-22 08:08:34Z anatom $
+ */
+public class SecurityFilterInputStream extends FilterInputStream{
+
+<span class="fc" id="L31">    private long len = 0;</span>
+<span class="fc" id="L32">    private long maxBytes = DEFAULT_MAX_BYTES;</span>
+    
+    public static final long DEFAULT_MAX_BYTES = 0xFFFFF;
+    
+    public SecurityFilterInputStream(InputStream inputStream){
+<span class="fc" id="L37">        super(inputStream);</span>
+<span class="fc" id="L38">    }</span>
+    
+    public SecurityFilterInputStream(InputStream inputStream, long maxBytes){
+<span class="fc" id="L41">        super(inputStream);</span>
+<span class="fc" id="L42">        this.maxBytes = maxBytes;</span>
+<span class="fc" id="L43">    }</span>
+    
+    @Override
+    public int read() throws IOException {
+<span class="fc" id="L47">        int val = super.read();</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">        if (val != -1) {</span>
+<span class="fc" id="L49">            len++;</span>
+<span class="fc" id="L50">            checkLength();</span>
+        }
+<span class="fc" id="L52">        return val;</span>
+    }
+    
+    @Override
+    public int read(byte[] b, int off, int len) throws IOException {
+<span class="fc" id="L57">        int val = super.read(b, off, len);</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">        if (val &gt; 0) {</span>
+<span class="fc" id="L59">            this.len += val;</span>
+<span class="fc" id="L60">            checkLength();</span>
+        }
+<span class="fc" id="L62">        return val;</span>
+    }
+    
+    
+    private void checkLength() throws IOException {
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        if (len &gt; maxBytes) {</span>
+<span class="fc" id="L68">            throw new SecurityException(&quot;Security violation: attempt to deserialize too many bytes from stream. Limit is &quot; + maxBytes);</span>
+        }
+<span class="fc" id="L70">    }</span>
+
+   
+    /**
+     * Set max bytes that can be read from serialized object
+     * @return 
+     *      max bytes that can be read from serialized object.
+     */
+    public long getMaxBytes() {
+<span class="nc" id="L79">        return maxBytes;</span>
+    }
+
+    /**
+     * Returns max bytes that can be read from serialized object.
+     * @param 
+     *      maxBytes bytes that can be read from serialized object. Default: 0xFFFFF 
+     */
+    public void setMaxBytes(long maxBytes) {
+<span class="nc" id="L88">        this.maxBytes = maxBytes;</span>
+<span class="nc" id="L89">    }</span>
+    
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

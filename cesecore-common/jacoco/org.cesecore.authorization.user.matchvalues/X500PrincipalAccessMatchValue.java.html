@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>X500PrincipalAccessMatchValue.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.authorization.user.matchvalues</a> &gt; <span class="el_source">X500PrincipalAccessMatchValue.java</span></div><h1>X500PrincipalAccessMatchValue.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.authorization.user.matchvalues;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+
+import org.cesecore.authentication.tokens.X509CertificateAuthenticationTokenMetaData;
+import org.cesecore.authorization.user.AccessMatchType;
+
+/**
+ * Match with constants. Observe that these constants are also used as a priority indicator for access rules. The higher values the higher priority.
+ * 
+ * @version $Id: X500PrincipalAccessMatchValue.java 25615 2017-03-24 18:44:19Z samuellb $
+ * 
+ */
+<span class="fc" id="L28">public enum X500PrincipalAccessMatchValue implements AccessMatchValue {</span>
+<span class="fc" id="L29">    @Deprecated // Will never match anything which makes it rather useless keep around long term. (Deprecated in 6.8.0.) </span>
+    NONE(0),
+<span class="fc" id="L31">    WITH_COUNTRY(1),</span>
+<span class="fc" id="L32">    WITH_DOMAINCOMPONENT(2),</span>
+<span class="fc" id="L33">    WITH_STATEORPROVINCE(3),</span>
+<span class="fc" id="L34">    WITH_LOCALITY(4),</span>
+<span class="fc" id="L35">    WITH_ORGANIZATION(5),</span>
+<span class="fc" id="L36">    WITH_ORGANIZATIONALUNIT(6),</span>
+<span class="fc" id="L37">    WITH_TITLE(7),</span>
+<span class="fc" id="L38">    WITH_COMMONNAME(8),</span>
+<span class="fc" id="L39">    WITH_UID(9),</span>
+<span class="fc" id="L40">    WITH_DNSERIALNUMBER(10),</span>
+<span class="fc" id="L41">    WITH_SERIALNUMBER(11),</span>
+<span class="fc" id="L42">    WITH_DNEMAILADDRESS(12),</span>
+<span class="fc" id="L43">    WITH_RFC822NAME(13),</span>
+<span class="fc" id="L44">    WITH_UPN(14),</span>
+<span class="fc" id="L45">    WITH_FULLDN(15);</span>
+    
+    private final int numericValue;
+    
+<span class="fc" id="L49">    private X500PrincipalAccessMatchValue(int numericValue) {</span>
+<span class="fc" id="L50">        this.numericValue = numericValue;</span>
+<span class="fc" id="L51">    }</span>
+
+    @Override
+    public int getNumericValue() {
+<span class="fc" id="L55">        return numericValue;</span>
+    }
+
+    @Override
+    public boolean isDefaultValue() {
+<span class="fc bfc" id="L60" title="All 2 branches covered.">        return numericValue == WITH_SERIALNUMBER.numericValue;</span>
+    }
+
+    @Override
+    public String getTokenType() {
+<span class="nc" id="L65">        return X509CertificateAuthenticationTokenMetaData.TOKEN_TYPE;</span>
+    }
+
+    @Override
+    public boolean isIssuedByCa() {
+<span class="nc" id="L70">        return true;</span>
+    }
+
+    @Override
+    public List&lt;AccessMatchType&gt; getAvailableAccessMatchTypes() {
+<span class="nc" id="L75">        return Arrays.asList(AccessMatchType.TYPE_EQUALCASE);</span>
+    }
+    
+    @Override
+    public String normalizeMatchValue(final String value) {
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (value == null) {</span>
+<span class="nc" id="L81">            return null;</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">        } else if (this == WITH_SERIALNUMBER) {</span>
+<span class="nc" id="L83">            return value.trim().toUpperCase(Locale.ROOT).replaceAll(&quot;^0+([0-9A-F]+)$&quot;, &quot;$1&quot;);</span>
+        } else {
+<span class="nc" id="L85">            return value; // no normalization</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>P12toPEM.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-ws-common</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util.keystore</a> &gt; <span class="el_source">P12toPEM.java</span></div><h1>P12toPEM.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.util.keystore;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Enumeration;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.cesecore.keys.util.KeyTools;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+
+/**
+ * P12toPEM is used to export PEM files from a single p12 file. The class exports the user
+ * certificate, user private key in seperated files and the chain of sub ca and ca certifikate in
+ * a third file. The PEM files will have the names &lt;i&gt;common name&lt;/i&gt;.pem, &lt;i&gt;common
+ * name&lt;/i&gt;Key.pem and &lt;i&gt;common name&lt;/i&gt;CA.pem derived from the DN in user certificate.
+ *
+ * @version $Id: P12toPEM.java 22117 2015-10-29 10:53:42Z mikekushner $
+ */
+public class P12toPEM {
+<span class="nc" id="L50">    private static Logger log = Logger.getLogger(P12toPEM.class);</span>
+<span class="nc" id="L51">    String exportpath = &quot;./p12/pem/&quot;;</span>
+    String p12File;
+    String password;
+<span class="nc" id="L54">    KeyStore ks = null;</span>
+    
+<span class="nc" id="L56">    byte[] beginCertificate = &quot;-----BEGIN CERTIFICATE-----&quot;.getBytes();</span>
+<span class="nc" id="L57">    byte[] endCertificate = &quot;-----END CERTIFICATE-----&quot;.getBytes();</span>
+<span class="nc" id="L58">    byte[] beginPrivateKey = &quot;-----BEGIN PRIVATE KEY-----&quot;.getBytes();</span>
+<span class="nc" id="L59">    byte[] endPrivateKey = &quot;-----END PRIVATE KEY-----&quot;.getBytes();</span>
+<span class="nc" id="L60">    byte[] NL = &quot;\n&quot;.getBytes();</span>
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param args DOCUMENT ME!
+     */
+    public static void main(String[] args) {
+        // Bouncy Castle security provider
+<span class="nc" id="L69">    	CryptoProviderTools.installBCProvider();</span>
+
+<span class="nc" id="L71">        P12toPEM p12 = null;</span>
+
+        try {
+<span class="nc bnc" id="L74" title="All 2 branches missed.">            if (args.length &gt; 1) {</span>
+<span class="nc" id="L75">                p12 = new P12toPEM(args[0], args[1]);</span>
+            } else {
+<span class="nc" id="L77">                System.out.println(</span>
+                    &quot;Usage: P12toPEM &lt;p12file&gt; &lt;p12password&gt;&quot;);
+<span class="nc" id="L79">                System.exit(0); // NOPMD this is a cli command</span>
+            }
+
+<span class="nc" id="L82">            p12.createPEM();</span>
+<span class="nc" id="L83">        } catch (Exception e) {</span>
+<span class="nc" id="L84">            e.printStackTrace();</span>
+<span class="nc" id="L85">        }</span>
+<span class="nc" id="L86">    }</span>
+
+    /**
+     * Basic construtor for the P12toPEM class, set variables for the class.
+     *
+     * @param p12File p12File The (path +) name of the input p12 file.
+     * @param password password The password for the p12 file.
+     * 
+     */
+<span class="nc" id="L95">    public P12toPEM(String p12File, String password) {</span>
+<span class="nc" id="L96">        this.p12File = p12File;</span>
+<span class="nc" id="L97">        this.password = password;</span>
+<span class="nc" id="L98">    }</span>
+
+	/**
+	 * Basic constructor using a in memory KeyStore instead for a file.
+	 *
+	 * @param keystore the KeyStore to use.
+	 * @param password password The password for the p12 file.
+	 */
+<span class="nc" id="L106">	public P12toPEM(KeyStore keystore, String password) {		</span>
+<span class="nc" id="L107">		this.password = password;</span>
+<span class="nc" id="L108">		this.ks = keystore;</span>
+<span class="nc" id="L109">	}</span>
+
+
+    /**
+     * Sets the directory where PEM-files wil be stores
+     *
+     * @param path path where PEM-files will be stores
+     */
+    public void setExportPath(String path) {
+<span class="nc" id="L118">        exportpath = path;</span>
+<span class="nc" id="L119">    }</span>
+
+    /**
+     * Converts a P12 into a PEM
+     *
+     * @return the created PEM file, null if file wasn't found and no other exception was thrown. 
+     *
+     * @throws FileNotFoundException if the P12 file supplied to this class in its constructor was not found.
+     * @throws CertificateException if the p12 couldn't be loaded
+     * @throws NoSuchAlgorithmException if the algorithm used to build the P12 couldn't be found
+     * @throws KeyStoreException if the keystore has not been initialised. 
+     * @throws UnrecoverableKeyException if the password was incorrect 
+     */
+    public File createPEM() throws FileNotFoundException, NoSuchAlgorithmException, CertificateException, KeyStoreException, UnrecoverableKeyException {
+<span class="nc bnc" id="L133" title="All 2 branches missed.">         if(this.ks == null){    	</span>
+            try {
+<span class="nc" id="L135">                ks = KeyStore.getInstance(&quot;PKCS12&quot;, BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="nc" id="L136">            } catch (NoSuchProviderException e) {</span>
+<span class="nc" id="L137">              throw new IllegalStateException(&quot;BouncyCastle provider not found.&quot;, e);</span>
+<span class="nc" id="L138">            }</span>
+<span class="nc" id="L139">            InputStream in = new FileInputStream(p12File);</span>
+            try {
+                try {
+<span class="nc" id="L142">                    ks.load(in, password.toCharArray());</span>
+                } finally {
+<span class="nc" id="L144">                    in.close();</span>
+                }
+<span class="nc" id="L146">            } catch(IOException e) {</span>
+<span class="nc" id="L147">                throw new IllegalStateException(&quot;Unexpected IOException was thrown&quot;, e);</span>
+<span class="nc" id="L148">            }</span>
+        }
+        // Fid the key private key entry in the keystore
+<span class="nc" id="L151">        Enumeration&lt;String&gt; e = ks.aliases();</span>
+<span class="nc" id="L152">        Object o = null;</span>
+<span class="nc" id="L153">        PrivateKey serverPrivKey = null;</span>
+
+<span class="nc bnc" id="L155" title="All 2 branches missed.">        while (e.hasMoreElements()) {</span>
+<span class="nc" id="L156">            o = e.nextElement();</span>
+
+<span class="nc bnc" id="L158" title="All 2 branches missed.">            if (o instanceof String) {</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">                if ((ks.isKeyEntry((String) o)) &amp;&amp;</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">                        ((serverPrivKey = (PrivateKey) ks.getKey((String) o, password.toCharArray())) != null)) {</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L162">                        log.debug(&quot;Aliases &quot; + o + &quot; is KeyEntry.&quot;);</span>
+                    }
+                    break;
+                }
+            }
+        }
+<span class="nc bnc" id="L168" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">            log.debug(((&quot;Private key encode: &quot; + serverPrivKey) == null) ? null : serverPrivKey.getFormat());</span>
+        }
+<span class="nc" id="L171">        byte[] privKeyEncoded = &quot;&quot;.getBytes();</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">        if (serverPrivKey != null) {</span>
+<span class="nc" id="L173">            privKeyEncoded = serverPrivKey.getEncoded();</span>
+        }
+<span class="nc" id="L175">        Certificate[] chain = KeyTools.getCertChain(ks, (String) o);</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L177">            log.debug(&quot;Loaded certificate chain with length &quot; + chain.length + &quot; from keystore.&quot;);</span>
+        }
+<span class="nc" id="L179">        X509Certificate userX509Certificate = (X509Certificate) chain[0];</span>
+
+<span class="nc" id="L181">        byte[] output = userX509Certificate.getEncoded();</span>
+<span class="nc" id="L182">        String sn = CertTools.getSubjectDN(userX509Certificate);</span>
+<span class="nc" id="L183">        String userFile = CertTools.getPartFromDN(sn, &quot;CN&quot;);</span>
+<span class="nc" id="L184">        String filetype = &quot;.pem&quot;;</span>
+
+<span class="nc" id="L186">        File path = new File(exportpath);</span>
+<span class="nc" id="L187">        path.mkdir();</span>
+
+<span class="nc" id="L189">        File tmpFile = new File(path, userFile + filetype);</span>
+
+<span class="nc" id="L191">        OutputStream out = new FileOutputStream(tmpFile);</span>
+        try {
+            try {
+<span class="nc" id="L194">                out.write(beginCertificate);</span>
+<span class="nc" id="L195">                out.write(NL);</span>
+<span class="nc" id="L196">                byte[] userCertB64 = Base64.encode(output);</span>
+<span class="nc" id="L197">                out.write(userCertB64);</span>
+<span class="nc" id="L198">                out.write(NL);</span>
+<span class="nc" id="L199">                out.write(endCertificate);</span>
+            } finally {
+<span class="nc" id="L201">                out.close();</span>
+            }
+<span class="nc" id="L203">        } catch (IOException e1) {</span>
+<span class="nc" id="L204">            throw new IllegalStateException(&quot;Unexpected IOException was thrown&quot;, e1);</span>
+<span class="nc" id="L205">        }</span>
+     
+<span class="nc" id="L207">        tmpFile = new File(path, userFile + &quot;-Key&quot; + filetype);</span>
+
+<span class="nc" id="L209">        out = new FileOutputStream(tmpFile);</span>
+        try {
+            try {
+<span class="nc" id="L212">                out.write(beginPrivateKey);</span>
+<span class="nc" id="L213">                out.write(NL);</span>
+<span class="nc" id="L214">                byte[] privKey = Base64.encode(privKeyEncoded);</span>
+<span class="nc" id="L215">                out.write(privKey);</span>
+<span class="nc" id="L216">                out.write(NL);</span>
+<span class="nc" id="L217">                out.write(endPrivateKey);</span>
+            } finally {
+<span class="nc" id="L219">                out.close();</span>
+            }
+<span class="nc" id="L221">        } catch (IOException e1) {</span>
+<span class="nc" id="L222">            throw new IllegalStateException(&quot;Unexpected IOException was thrown&quot;, e1);</span>
+<span class="nc" id="L223">        }</span>
+        
+
+<span class="nc" id="L226">        tmpFile = new File(path, userFile + &quot;-CA&quot; + filetype);</span>
+
+<span class="nc bnc" id="L228" title="All 2 branches missed.">        if (CertTools.isSelfSigned(userX509Certificate)) {</span>
+<span class="nc" id="L229">            log.info(</span>
+                &quot;User certificate is selfsigned, this is a RootCA, no CA certificates written.&quot;);
+        } else {
+<span class="nc" id="L232">            out = new FileOutputStream(tmpFile);</span>
+            try {
+<span class="nc bnc" id="L234" title="All 2 branches missed.">                for (int num = 1; num &lt; chain.length; num++) {</span>
+<span class="nc" id="L235">                    X509Certificate tmpX509Cert = (X509Certificate) chain[num];</span>
+<span class="nc" id="L236">                    byte[] tmpOutput = tmpX509Cert.getEncoded();</span>
+                    try {
+<span class="nc" id="L238">                        out.write(beginCertificate);</span>
+<span class="nc" id="L239">                        out.write(NL);</span>
+
+<span class="nc" id="L241">                        byte[] tmpCACertB64 = Base64.encode(tmpOutput);</span>
+
+<span class="nc" id="L243">                        out.write(tmpCACertB64);</span>
+<span class="nc" id="L244">                        out.write(NL);</span>
+<span class="nc" id="L245">                        out.write(endCertificate);</span>
+<span class="nc" id="L246">                        out.write(NL);</span>
+<span class="nc" id="L247">                    } catch (IOException e1) {</span>
+<span class="nc" id="L248">                        throw new IllegalStateException(&quot;Unexpected IOException was thrown&quot;, e1);</span>
+<span class="nc" id="L249">                    }</span>
+                }
+
+            } finally {
+                try {
+<span class="nc" id="L254">                    out.close();</span>
+<span class="nc" id="L255">                } catch (IOException e1) {</span>
+<span class="nc" id="L256">                    throw new IllegalStateException(&quot;Unexpected IOException was thrown&quot;, e1);</span>
+<span class="nc" id="L257">                }</span>
+            }
+        }
+<span class="nc" id="L260">        return tmpFile;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

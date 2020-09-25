@@ -1,0 +1,12 @@
+org.ejbca.core
+org.ejbca.core.ejb.authentication.cli
+org.ejbca.core.model
+org.ejbca.core.model.approval
+org.ejbca.core.model.ca.publisher
+org.ejbca.core.model.ca.publisher.custpubl1
+org.ejbca.core.model.ra.raadmin
+org.ejbca.core.protocol.scep
+org.ejbca.ui.web
+org.ejbca.util
+org.ejbca.util.crypto
+org.ejbca.util.query

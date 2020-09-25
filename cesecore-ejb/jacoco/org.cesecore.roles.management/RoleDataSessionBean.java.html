@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RoleDataSessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cesecore-ejb</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.roles.management</a> &gt; <span class="el_source">RoleDataSessionBean.java</span></div><h1>RoleDataSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.roles.management;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.cache.AccessTreeUpdateSessionLocal;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.roles.Role;
+import org.cesecore.roles.RoleData;
+import org.cesecore.roles.member.RoleMemberDataSessionLocal;
+import org.cesecore.util.ProfileID;
+import org.cesecore.util.QueryResultWrapper;
+
+/**
+ * Implementation of the RoleDataSession local interface.
+ * 
+ * @version $Id: RoleDataSessionBean.java 26493 2017-09-05 13:31:40Z anatom $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;RoleDataSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L45">public class RoleDataSessionBean implements RoleDataSessionLocal, RoleDataSessionRemote {</span>
+
+<span class="nc" id="L47">    private static final Logger log = Logger.getLogger(RoleDataSessionBean.class);</span>
+
+    @EJB
+    private AccessTreeUpdateSessionLocal accessTreeUpdateSession;
+    @EJB
+    private RoleMemberDataSessionLocal roleMemberDataSession;
+
+    @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+    private EntityManager entityManager;
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public List&lt;Role&gt; getAllRoles() {
+<span class="nc" id="L60">        final TypedQuery&lt;RoleData&gt; query = entityManager.createQuery(&quot;SELECT a FROM RoleData a&quot;, RoleData.class);</span>
+<span class="nc" id="L61">        final List&lt;Role&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        for (final RoleData roleData : query.getResultList()) {</span>
+<span class="nc" id="L63">            ret.add(roleData.getRole());</span>
+<span class="nc" id="L64">        }</span>
+<span class="nc" id="L65">        return ret;</span>
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public Role getRole(final String nameSpace, final String roleName) {
+<span class="nc" id="L71">        final Integer roleId = RoleCache.INSTANCE.getNameToIdMap().get(Role.getRoleNameFullAsCacheName(nameSpace, roleName));</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">        if (roleId != null) {</span>
+<span class="nc" id="L73">            return getRole(roleId.intValue());</span>
+        }
+<span class="nc" id="L75">        final RoleData result = getRoleData(nameSpace, roleName);</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        final Role role = result==null ? null : result.getRole();</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">        if (role!=null) {</span>
+<span class="nc" id="L78">            RoleCache.INSTANCE.updateWith(role.getRoleId(), role.hashCode(), Role.getRoleNameFullAsCacheName(role.getNameSpace(), role.getRoleName()), role);</span>
+        }
+<span class="nc" id="L80">        return role;</span>
+    }
+
+    private RoleData getRoleData(final String nameSpace, final String roleName) {
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        if (StringUtils.isEmpty(nameSpace)) {</span>
+<span class="nc" id="L85">            final Query query = entityManager.createQuery(&quot;SELECT a FROM RoleData a WHERE a.roleName=:roleName AND a.nameSpaceColumn IS NULL&quot;);</span>
+<span class="nc" id="L86">            query.setParameter(&quot;roleName&quot;, roleName);</span>
+<span class="nc" id="L87">            return QueryResultWrapper.getSingleResult(query);</span>
+        } else {
+<span class="nc" id="L89">            final Query query = entityManager.createQuery(&quot;SELECT a FROM RoleData a WHERE a.roleName=:roleName AND a.nameSpaceColumn=:nameSpace&quot;);</span>
+<span class="nc" id="L90">            query.setParameter(&quot;roleName&quot;, roleName);</span>
+<span class="nc" id="L91">            query.setParameter(&quot;nameSpace&quot;, nameSpace);</span>
+<span class="nc" id="L92">            return QueryResultWrapper.getSingleResult(query);</span>
+        }
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public Role getRole(final int roleId) {
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (roleId==Role.ROLE_ID_UNASSIGNED) {</span>
+            // The reserved ID will never have a database entry, so return quickly with what we know will be the result
+<span class="nc" id="L101">            return null;</span>
+        }
+        // 1. Check cache if it is time to sync-up with database
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        if (RoleCache.INSTANCE.shouldCheckForUpdates(roleId)) {</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L106">                log.debug(&quot;Object with ID &quot; + roleId + &quot; will be checked for updates.&quot;);</span>
+            }
+            // 2. If cache is expired or missing, first thread to discover this reloads item from database and sends it to the cache
+<span class="nc" id="L109">            final RoleData roleData = getRoleData(roleId);</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">            if (roleData==null) {</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L112">                    log.debug(&quot;Requested object did not exist in database and will be purged from cache if present: &quot; + roleId);</span>
+                }
+                // Ensure that it is removed from cache when the object is no longer present in the database
+<span class="nc" id="L115">                RoleCache.INSTANCE.removeEntry(roleId);</span>
+            } else {
+<span class="nc" id="L117">                final Role role = roleData.getRole();</span>
+<span class="nc" id="L118">                final int digest = role.hashCode();</span>
+                // 3. The cache compares the database data with what is in the cache
+                // 4. If database is different from cache, replace it in the cache
+<span class="nc" id="L121">                RoleCache.INSTANCE.updateWith(roleId, digest, Role.getRoleNameFullAsCacheName(role.getNameSpace(), role.getRoleName()), role);</span>
+                // Return role, working even if the cache is disabled
+<span class="nc" id="L123">                return role;</span>
+            }
+        }
+        // 5. Get object from cache now (or null) and be merry
+<span class="nc" id="L127">        return RoleCache.INSTANCE.getEntry(roleId);</span>
+    }
+
+    private RoleData getRoleData(final int roleId) {
+<span class="nc" id="L131">        final TypedQuery&lt;RoleData&gt; query = entityManager.createQuery(&quot;SELECT a FROM RoleData a WHERE a.id=:id&quot;, RoleData.class);</span>
+<span class="nc" id="L132">        query.setParameter(&quot;id&quot;, roleId);</span>
+<span class="nc" id="L133">        return QueryResultWrapper.getSingleResult(query);</span>
+    }
+
+    @Override
+    public Role persistRole(final Role role) {
+<span class="nc bnc" id="L138" title="All 2 branches missed.">        if (role==null) {</span>
+            // Successfully did nothing
+<span class="nc" id="L140">            return null;</span>
+        }
+<span class="nc" id="L142">        boolean authorizationMightHaveChanged = true;</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">        if (role.getRoleId()==Role.ROLE_ID_UNASSIGNED) {</span>
+<span class="nc" id="L144">            role.setRoleId(findFreeRoleId());</span>
+<span class="nc" id="L145">            entityManager.persist(new RoleData(role));</span>
+        } else {
+<span class="nc" id="L147">            final RoleData roleData = getRoleData(role.getRoleId());</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">            if (roleData==null) {</span>
+                // Must have been removed by another process, but caller wants to persist it, so we proceed (keeping the requested Role ID)
+<span class="nc" id="L150">                entityManager.persist(new RoleData(role));</span>
+            } else {
+<span class="nc" id="L152">                final Role oldRole = roleData.getRole();</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">                if (role.getAccessRules().equals(oldRole.getAccessRules())) {</span>
+                    // We will not care if the role has any members, since there is no change to the access rules
+<span class="nc" id="L155">                    authorizationMightHaveChanged = false;</span>
+                }
+                // Since the entity is managed, we just update its values
+<span class="nc" id="L158">                roleData.setRole(role);</span>
+            }
+        }
+<span class="nc" id="L161">        RoleCache.INSTANCE.updateWith(role.getRoleId(), role.hashCode(), Role.getRoleNameFullAsCacheName(role.getNameSpace(), role.getRoleName()), role);</span>
+        // If we only created a new Role that has no members yet or the access rules did no change, the authorization would not have changed
+<span class="nc" id="L163">        authorizationMightHaveChanged &amp;= isRoleMembersPresent(role.getRoleId());</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">        if (authorizationMightHaveChanged) {</span>
+<span class="nc" id="L165">            accessTreeUpdateSession.signalForAccessTreeUpdate();</span>
+        }
+<span class="nc" id="L167">        return role;</span>
+    }
+
+    /** @return a integer Id that is currently unused in the database */
+    private int findFreeRoleId() {
+<span class="nc" id="L172">        final ProfileID.DB db = new ProfileID.DB() {</span>
+            @Override
+            public boolean isFree(final int candidate) {
+<span class="nc bnc" id="L175" title="All 4 branches missed.">                return candidate!=Role.ROLE_ID_UNASSIGNED &amp;&amp; getRole(candidate) == null;</span>
+            }
+        };
+<span class="nc" id="L178">        return ProfileID.getNotUsedID(db);</span>
+    }
+
+    @Override
+    public boolean deleteRoleNoAuthorizationCheck(final int roleId) {
+        // Use an DELETE query instead of entityManager.remove to tolerate concurrent deletion better
+<span class="nc" id="L184">        final Query query = entityManager.createQuery(&quot;DELETE FROM RoleData a WHERE a.id=:id&quot;);</span>
+<span class="nc" id="L185">        query.setParameter(&quot;id&quot;, roleId);</span>
+<span class="nc bnc" id="L186" title="All 2 branches missed.">        final boolean ret = query.executeUpdate()==1;</span>
+<span class="nc bnc" id="L187" title="All 4 branches missed.">        if (ret &amp;&amp; isRoleMembersPresent(roleId)) {</span>
+<span class="nc" id="L188">            accessTreeUpdateSession.signalForAccessTreeUpdate();</span>
+        }
+<span class="nc" id="L190">        return ret;</span>
+    }
+    
+    private boolean isRoleMembersPresent(final int roleId) {
+<span class="nc bnc" id="L194" title="All 2 branches missed.">        return !roleMemberDataSession.findByRoleId(roleId).isEmpty();</span>
+    }
+
+    @Override
+    public void forceCacheExpire() {
+<span class="nc" id="L199">        RoleCache.INSTANCE.flush();</span>
+<span class="nc" id="L200">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

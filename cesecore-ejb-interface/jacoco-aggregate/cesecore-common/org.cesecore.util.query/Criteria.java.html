@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Criteria.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">cesecore-ejb-interface</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.util.query</a> &gt; <span class="el_source">Criteria.java</span></div><h1>Criteria.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.util.query;
+
+import java.io.Serializable;
+import java.util.AbstractMap;
+
+import org.cesecore.util.query.clauses.Order;
+import org.cesecore.util.query.elems.LogicOperator;
+import org.cesecore.util.query.elems.Operation;
+import org.cesecore.util.query.elems.RelationalOperator;
+import org.cesecore.util.query.elems.Term;
+
+/**
+ * This class is a DSL sugar to all possible Criterias.
+ * 
+ * @version $Id: Criteria.java 17625 2013-09-20 07:12:06Z netmackan $
+ */
+<span class="nc" id="L29">public class Criteria implements Serializable {</span>
+
+    private static final long serialVersionUID = 3186042047323993627L;
+
+    public static Elem eq(final String name, final Object value) {
+<span class="nc" id="L34">        return new Term(RelationalOperator.EQ, name, value);</span>
+    }
+
+    /** @param name name
+     * @param value value
+     * @return the query with an appended &quot;not equal to&quot; condition */
+    public static Elem neq(final String name, final Object value) {
+<span class="nc" id="L41">        return new Term(RelationalOperator.NEQ, name, value);</span>
+    }
+
+    /** @param name name
+     * @param value value
+     * @return the query with an appended &quot;greater than or equal to&quot; condition */
+    public static Elem geq(final String name, final Object value) {
+<span class="nc" id="L48">        return new Term(RelationalOperator.GE, name, value);</span>
+
+    }
+
+    /** @param name name
+     * @param value value
+     * @return the query with an appended &quot;greater than&quot; condition */
+    public static Elem grt(final String name, final Object value) {
+<span class="nc" id="L56">        return new Term(RelationalOperator.GT, name, value);</span>
+
+    }
+
+    /** @param name name
+     * @param value value
+     * @return the query with an appended &quot;less than or equal to&quot; condition */
+    public static Elem leq(final String name, final Object value) {
+<span class="nc" id="L64">        return new Term(RelationalOperator.LE, name, value);</span>
+
+    }
+
+    /** @param name name
+     * @param value value
+     * @return the query with an appended &quot;less than to&quot; condition */
+    public static Elem lsr(final String name, final Object value) {
+<span class="nc" id="L72">        return new Term(RelationalOperator.LT, name, value);</span>
+
+    }
+
+    /**@param name name
+     * @param after after
+     * @param before before
+     *  @return the query with an appended &quot;between&quot; condition */
+    public static Elem between(final String name, final Object after,
+            final Object before) {
+<span class="nc" id="L82">        return new Term(RelationalOperator.BETWEEN, name,</span>
+                new  AbstractMap.SimpleEntry&lt;Object, Object&gt;(after, before));
+
+    }
+    
+    public static Elem like(final String name, final Object value) {
+<span class="nc" id="L88">        return new Term(RelationalOperator.LIKE, name, value);</span>
+    }
+    
+    public static Elem isNull(final String name) {
+<span class="nc" id="L92">        return new Term(RelationalOperator.NULL, name, null);</span>
+    }
+    
+    public static Elem isNotNull(final String name) {
+<span class="nc" id="L96">        return new Term(RelationalOperator.NOTNULL, name, null);</span>
+    }
+    
+    public static Elem and(final Elem first, final Elem second) {
+<span class="nc" id="L100">        return new Operation(LogicOperator.AND, (Term)first, second);</span>
+    }
+    
+    public static Elem or(final Elem first, final Elem second) {
+<span class="nc" id="L104">        return new Operation(LogicOperator.OR, (Term)first, second);</span>
+    }
+    
+    public static Elem orderAsc(final String name) {
+<span class="nc" id="L108">        return new Order(name, Order.Value.ASC);</span>
+    }
+        
+    public static Elem orderDesc(final String name) {
+<span class="nc" id="L112">        return new Order(name, Order.Value.DESC);</span>
+    }
+
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

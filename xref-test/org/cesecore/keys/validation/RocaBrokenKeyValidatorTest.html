@@ -1,0 +1,94 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>RocaBrokenKeyValidatorTest xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../testapidocs/org/cesecore/keys/validation/RocaBrokenKeyValidatorTest.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <em class="jxr_javadoccomment">/*************************************************************************</em>
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <em class="jxr_javadoccomment"> *  CESeCore: CE Security Core                                           *</em>
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <em class="jxr_javadoccomment"> *  This software is free software; you can redistribute it and/or       *</em>
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <em class="jxr_javadoccomment"> *  modify it under the terms of the GNU Lesser General                  *</em>
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <em class="jxr_javadoccomment"> *  License as published by the Free Software Foundation; either         *</em>
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <em class="jxr_javadoccomment"> *  version 2.1 of the License, or any later version.                    *</em>
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_javadoccomment"> *  See terms of license at gnu.org.                                     *</em>
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <em class="jxr_javadoccomment"> *************************************************************************/</em>
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">package</strong> org.cesecore.keys.validation;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.junit.Assert.assertFalse;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.junit.Assert.assertTrue;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> java.security.KeyFactory;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> java.security.NoSuchAlgorithmException;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> java.security.interfaces.RSAPublicKey;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> java.security.spec.InvalidKeySpecException;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> java.security.spec.X509EncodedKeySpec;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.cesecore.keys.util.KeyTools;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.cesecore.util.CertTools;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.junit.Test;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_javadoccomment"> * @version $Id: RocaBrokenKeyValidatorTest.java 29513 2018-07-19 19:37:00Z mikekushner $</em>
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="RocaBrokenKeyValidatorTest" href="../../../../org/cesecore/keys/validation/RocaBrokenKeyValidatorTest.html#RocaBrokenKeyValidatorTest">RocaBrokenKeyValidatorTest</a> {
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> String KNOWN_VULNERABLE_KEY = <span class="jxr_string">"-----BEGIN PUBLIC KEY-----\n"</span> 
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>              + <span class="jxr_string">"MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEBqcWmh9uPsqMPgt/43aFU\n"</span>
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>              + <span class="jxr_string">"wpHvJ7BLJeGFuKsgxMal9gSFn+We3lSgr3wOcoiACtcZO7cxpb8eEXDXocZpMNQe\n"</span>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>              + <span class="jxr_string">"o+sh3t97ivXUKpHDT3IEW5bv1XyxgjAd3MJpZ+VQjpq4iZhtV+g33+cPmfw3xJj0\n"</span>
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>              + <span class="jxr_string">"PBfDubBkz3BEQ9egM+A6ghaXqr8w+ynufTOzdnllqJBY47OXVL06HAB9KKI7DPp5\n"</span>
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>              + <span class="jxr_string">"+dcRrG5MS093sGNLHs1oWRrwPH1TtipfLZEWPU70+PJoMa5GHthexfeIxRI//BLI\n"</span>
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>              + <span class="jxr_string">"dCD9z+odG0pSw1IYJPs5mDSHObYqmG2OdrIom8Lri8BtE4FHhRuDoHGD0hBVn5Bj\n"</span> 
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>              + <span class="jxr_string">"IQIDAQAB\n"</span> 
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>              + <span class="jxr_string">"-----END PUBLIC KEY-----\n"</span>;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> String KNOWN_GOOD_KEY = <span class="jxr_string">"-----BEGIN PUBLIC KEY-----\n"</span> 
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>              + <span class="jxr_string">"MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArHNuuo2dva/7s3wNTJ8O\n"</span>
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>              + <span class="jxr_string">"jFcogDTlekhMBaJFcLYZMoDTgBKWZO2NcNX5GBBos4h8B4eahdG/BRGedPhFzcg/\n"</span>
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>              + <span class="jxr_string">"G9bDJ2DltoXQ69fVjTdPohqgdDKJoDYXr5IuFKJbEzj9glVGje2UhyE2Y7XbgL5u\n"</span>
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>              + <span class="jxr_string">"KZCRcnTVgXQPdbxnRSSUPweZhzz6CnoseRe3XqkSRfAFstkbTcAKmeMKIJ0PCL5e\n"</span>
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>              + <span class="jxr_string">"TOVpWL79jLc9nDo6wmMMdyWU8G9K2tXlbRcNpDcaPebOgKbkVF43KgPDFTuGcP9t\n"</span>
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>              + <span class="jxr_string">"c7TbRjMmaYqB9rOOwFNXRhOr2vkuCn/qGyucx2Oc26fk6Y+suNrPB7/w3pIaro6Z\n"</span> 
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>              + <span class="jxr_string">"EQIDAQAB\n"</span> 
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>              + <span class="jxr_string">"-----END PUBLIC KEY-----"</span>;
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>  <em class="jxr_javadoccomment">     * Run a test on a known bad key (from <a href="https://github.com/crocs-muni/roca/blob/master/roca/tests/data/csr05.pem)" target="alexandria_uri">https://github.com/crocs-muni/roca/blob/master/roca/tests/data/csr05.pem)</a></em>
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  <em class="jxr_javadoccomment">     * @throws NoSuchAlgorithmException fail</em>
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  <em class="jxr_javadoccomment">     * @throws InvalidKeySpecException fail</em>
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      @Test
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testKnownBadKey() <strong class="jxr_keyword">throws</strong> NoSuchAlgorithmException, InvalidKeySpecException {        
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>          X509EncodedKeySpec spec = <strong class="jxr_keyword">new</strong> X509EncodedKeySpec(
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>                  KeyTools.getBytesFromPEM(KNOWN_VULNERABLE_KEY, CertTools.BEGIN_PUBLIC_KEY, CertTools.END_PUBLIC_KEY));
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>          KeyFactory kf = KeyFactory.getInstance(<span class="jxr_string">"RSA"</span>);
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>          RSAPublicKey knownBadPublicKey = (RSAPublicKey) kf.generatePublic(spec);
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>          assertTrue(<span class="jxr_string">"Known vulnerable public key was not caught"</span>, RocaBrokenKey.isAffected(knownBadPublicKey.getModulus()));
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      }
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  <em class="jxr_javadoccomment">     * Run a test on a known good key </em>
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  <em class="jxr_javadoccomment">     * @throws NoSuchAlgorithmException fail</em>
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  <em class="jxr_javadoccomment">     * @throws InvalidKeySpecException fail</em>
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>      @Test
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testKnownGoodKey() <strong class="jxr_keyword">throws</strong> NoSuchAlgorithmException, InvalidKeySpecException {        
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>          X509EncodedKeySpec spec = <strong class="jxr_keyword">new</strong> X509EncodedKeySpec(
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>                  KeyTools.getBytesFromPEM(KNOWN_GOOD_KEY, CertTools.BEGIN_PUBLIC_KEY, CertTools.END_PUBLIC_KEY));
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>          KeyFactory kf = KeyFactory.getInstance(<span class="jxr_string">"RSA"</span>);
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>          RSAPublicKey knownBadPublicKey = (RSAPublicKey) kf.generatePublic(spec);
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>          assertFalse(<span class="jxr_string">"Known good public key was falsely caught"</span>, RocaBrokenKey.isAffected(knownBadPublicKey.getModulus()));
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>      }
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2020. All rights reserved.</div>
+</body>
+</html>
