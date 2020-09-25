@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RevocationApprovalRequest.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.approval.approvalrequests</a> &gt; <span class="el_source">RevocationApprovalRequest.java</span></div><h1>RevocationApprovalRequest.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.model.approval.approvalrequests;
+
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ejb.EJBException;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.crl.RevokedCertInfo;
+import org.ejbca.core.ejb.ra.CouldNotRemoveEndEntityException;
+import org.ejbca.core.ejb.ra.EndEntityManagementSession;
+import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.approval.ApprovalDataText;
+import org.ejbca.core.model.approval.ApprovalDataVO;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.ApprovalRequest;
+import org.ejbca.core.model.approval.ApprovalRequestExecutionException;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.core.model.approval.profile.ApprovalProfile;
+import org.ejbca.core.model.ra.AlreadyRevokedException;
+
+/**
+ * 
+ * @version $Id: RevocationApprovalRequest.java 29136 2018-06-07 11:11:07Z andresjakobs $
+ *
+ */
+
+public class RevocationApprovalRequest extends ApprovalRequest {
+
+	private static final long serialVersionUID = -1L;
+<span class="nc" id="L51">	private static final Logger log = Logger.getLogger(RevocationApprovalRequest.class);</span>
+	private static final int LATEST_VERSION = 1;	
+
+<span class="nc" id="L54">	private int approvalType = -1;</span>
+<span class="nc" id="L55">	private String username = null;</span>
+<span class="nc" id="L56">	private BigInteger certificateSerialNumber = null;</span>
+<span class="nc" id="L57">	private String issuerDN = null;</span>
+<span class="nc" id="L58">	private int reason = -2;</span>
+	
+	/** Constructor used in externalization only */
+<span class="nc" id="L61">	public RevocationApprovalRequest() {}</span>
+
+	/**
+	 * Construct an ApprovalRequest for the revocation of a certificate.
+	 * @param certificateSerialNumber SN
+	 * @param issuerDN DN
+	 * @param username Name
+	 * @param reason reason
+	 * @param requestAdmin Admin
+	 * @param cAId CA
+	 * @param endEntityProfileId Entity
+	 * @param approvalProfile Approval
+	 */
+    public RevocationApprovalRequest(BigInteger certificateSerialNumber, String issuerDN, String username, int reason,
+            AuthenticationToken requestAdmin, int cAId, int endEntityProfileId, ApprovalProfile approvalProfile) {
+<span class="nc" id="L76">		super(requestAdmin, null, REQUESTTYPE_SIMPLE, cAId, endEntityProfileId, approvalProfile);</span>
+<span class="nc" id="L77">		this.approvalType = ApprovalDataVO.APPROVALTYPE_REVOKECERTIFICATE;</span>
+<span class="nc" id="L78">		this.username = username;</span>
+<span class="nc" id="L79">		this.reason = reason;</span>
+<span class="nc" id="L80">		this.certificateSerialNumber = certificateSerialNumber;</span>
+<span class="nc" id="L81">		this.issuerDN = issuerDN; </span>
+<span class="nc" id="L82">	}</span>
+
+	/**
+	 * Constructs an ApprovalRequest for the revocation and optional removal of an end entity.
+	 * @param deleteAfterRevoke bool
+	 * @param username Name
+	 * @param reason reason
+	 * @param requestAdmin Admin
+	 * @param cAId CA
+	 * @param endEntityProfileId Entity
+	 * @param approvalProfile Approval
+	 */
+    public RevocationApprovalRequest(boolean deleteAfterRevoke, String username, int reason, AuthenticationToken requestAdmin, int cAId,
+            int endEntityProfileId, ApprovalProfile approvalProfile) {
+<span class="nc" id="L96">		super(requestAdmin, null, REQUESTTYPE_SIMPLE, cAId, endEntityProfileId, approvalProfile);</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">		if (deleteAfterRevoke) {</span>
+<span class="nc" id="L98">			this.approvalType = ApprovalDataVO.APPROVALTYPE_REVOKEANDDELETEENDENTITY;</span>
+		} else {
+<span class="nc" id="L100">			this.approvalType = ApprovalDataVO.APPROVALTYPE_REVOKEENDENTITY;</span>
+		}
+<span class="nc" id="L102">		this.username = username;</span>
+<span class="nc" id="L103">		this.reason = reason;</span>
+<span class="nc" id="L104">		this.certificateSerialNumber = null;</span>
+<span class="nc" id="L105">		this.issuerDN = null;</span>
+<span class="nc" id="L106">	}</span>
+	
+	/**
+	 * A main function of the ApprovalRequest, the execute() method
+	 * is run when all required approvals have been made.
+	 * 
+	 * execute should perform the action or nothing if the requesting admin
+	 * is supposed to try this action again.
+	 */
+	@Override
+	public void execute() throws ApprovalRequestExecutionException {
+<span class="nc" id="L117">		throw new RuntimeException(&quot;This execution requires additional bean references.&quot;);</span>
+	}
+	
+	public void execute(EndEntityManagementSession endEntityManagementSession, final int approvalRequestID, final AuthenticationToken lastApprovalAdmin) 
+	        throws ApprovalRequestExecutionException {
+<span class="nc" id="L122">		log.debug(&quot;Executing &quot; + ApprovalDataVO.APPROVALTYPENAMES[approvalType] + &quot; (&quot; + approvalType + &quot;).&quot;);</span>
+		try {
+<span class="nc bnc" id="L124" title="All 4 branches missed.">			switch (approvalType) {</span>
+				case ApprovalDataVO.APPROVALTYPE_REVOKEENDENTITY:
+<span class="nc" id="L126">				    endEntityManagementSession.revokeUserAfterApproval(getRequestAdmin(), username, reason, approvalRequestID, lastApprovalAdmin);</span>
+<span class="nc" id="L127">					break;</span>
+				case ApprovalDataVO.APPROVALTYPE_REVOKEANDDELETEENDENTITY:
+				    // Since the end entity will be deleted from the database, there is no point to store the approval request ID in its extendedInformation
+<span class="nc" id="L130">					endEntityManagementSession.revokeAndDeleteUser(getRequestAdmin(), username, reason);</span>
+<span class="nc" id="L131">					break;</span>
+				case ApprovalDataVO.APPROVALTYPE_REVOKECERTIFICATE:
+<span class="nc" id="L133">					endEntityManagementSession.revokeCertAfterApproval(getRequestAdmin(), certificateSerialNumber, issuerDN, reason, approvalRequestID, </span>
+					        lastApprovalAdmin);
+<span class="nc" id="L135">					break;</span>
+				default:
+<span class="nc" id="L137">					log.error(&quot;Unknown approval type &quot; + approvalType);</span>
+					break;
+			}
+<span class="nc" id="L140">		} catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L141">			throw new ApprovalRequestExecutionException(&quot;Authorization Denied :&quot; + e.getMessage(), e);</span>
+<span class="nc" id="L142">		} catch (ApprovalException e) {</span>
+<span class="nc" id="L143">			throw new EJBException(&quot;This should never happen&quot;,e);</span>
+<span class="nc" id="L144">		} catch (WaitingForApprovalException e) {</span>
+<span class="nc" id="L145">			throw new EJBException(&quot;This should never happen&quot;,e);</span>
+<span class="nc" id="L146">		} catch (AlreadyRevokedException e) {</span>
+<span class="nc" id="L147">			throw new ApprovalRequestExecutionException(&quot;End entity &quot; + username + &quot; was already revoked at execution time.&quot;);</span>
+<span class="nc" id="L148">		} catch (NoSuchEndEntityException e) {</span>
+<span class="nc" id="L149">			throw new ApprovalRequestExecutionException(&quot;Could not find object.&quot;,e);</span>
+<span class="nc" id="L150">		} catch (CouldNotRemoveEndEntityException e) {</span>
+<span class="nc" id="L151">			throw new ApprovalRequestExecutionException(&quot;Could not remove object.&quot;,e);</span>
+<span class="nc" id="L152">		}</span>
+<span class="nc" id="L153">	}</span>
+
+	/**
+	 * Method that should generate an approval id for this type of
+	 * approval, the same request i.e the same admin want's to do the
+	 * same thing twice should result in the same approvalId.
+	 */
+	public int generateApprovalId() {
+<span class="nc" id="L161">		return generateApprovalId(getApprovalType(), username, reason, certificateSerialNumber, issuerDN, getApprovalProfile().getProfileName());</span>
+	}
+
+	static public int generateApprovalId(int approvalType, String username, int reason, BigInteger certificateSerialNumber, String issuerDN, 
+	        String approvalProfileName) {
+<span class="nc" id="L166">		String idString = approvalType + &quot;;&quot; + username + &quot;;&quot; + reason +&quot;;&quot;;</span>
+<span class="nc bnc" id="L167" title="All 4 branches missed.">		if ( certificateSerialNumber != null &amp;&amp; issuerDN != null ) {</span>
+<span class="nc" id="L168">			idString += certificateSerialNumber + &quot;;&quot; + issuerDN + &quot;;&quot;;</span>
+		}
+<span class="nc" id="L170">		idString += &quot;;&quot; + approvalProfileName;</span>
+<span class="nc" id="L171">		return idString.hashCode();</span>
+	}
+
+	public int getApprovalType() {		
+<span class="nc" id="L175">		return approvalType;</span>
+	}
+
+	/**
+	 * This method should return the request data in text representation.
+	 * This text is presented for the approving administrator in order
+	 * for him to make a decision about the request.
+	 * 
+	 * Should return a List of ApprovalDataText, one for each row
+	 */
+	@Override
+	public List&lt;ApprovalDataText&gt; getNewRequestDataAsText(AuthenticationToken admin) {
+<span class="nc" id="L187">		ArrayList&lt;ApprovalDataText&gt; retval = new ArrayList&lt;ApprovalDataText&gt;();</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">		if ( username != null ) {</span>
+<span class="nc" id="L189">			retval.add(new ApprovalDataText(&quot;USERNAME&quot;,username,true,false));</span>
+		}
+<span class="nc bnc" id="L191" title="All 2 branches missed.">		if ( reason == RevokedCertInfo.NOT_REVOKED) {</span>
+<span class="nc" id="L192">			retval.add(new ApprovalDataText(&quot;REASON&quot;,&quot;UNREVOKE&quot;,true,true));</span>
+		} else {
+<span class="nc" id="L194">			retval.add(new ApprovalDataText(&quot;REASON&quot;,SecConst.reasontexts[reason],true,true));</span>
+		}
+<span class="nc bnc" id="L196" title="All 4 branches missed.">		if ( certificateSerialNumber != null &amp;&amp; issuerDN != null ) {</span>
+<span class="nc" id="L197">			retval.add(new ApprovalDataText(&quot;CERTSERIALNUMBER&quot;,certificateSerialNumber.toString(16),true,false));</span>
+<span class="nc" id="L198">			retval.add(new ApprovalDataText(&quot;ISSUERDN&quot;,issuerDN,true,false));</span>
+		}
+<span class="nc" id="L200">		return retval;</span>
+	}
+	
+	/**
+	 * This method should return the original request data in text representation.
+	 * Should only be implemented by TYPE_COMPARING ApprovalRequests.
+	 * TYPE_SIMPLE requests should return null;
+	 * 
+	 * This text is presented for the approving administrator for him to
+	 * compare of what will be done.
+	 * 
+	 * Should return a Collection of ApprovalDataText, one for each row
+	 */
+	@Override
+	public List&lt;ApprovalDataText&gt; getOldRequestDataAsText(AuthenticationToken admin) {
+<span class="nc" id="L215">		return null;</span>
+	}
+
+	/**
+	 * Should return true if the request if of the type that should be executed
+	 * by the last approver.
+	 * 
+	 * False if the request admin should do a polling action to try again.
+	 */
+	public boolean isExecutable() {		
+<span class="nc" id="L225">		return true;</span>
+	}
+	
+	public void writeExternal(ObjectOutput out) throws IOException {
+<span class="nc" id="L229">		super.writeExternal(out);</span>
+<span class="nc" id="L230">		out.writeInt(LATEST_VERSION);</span>
+<span class="nc" id="L231">		out.writeObject(username);</span>
+<span class="nc" id="L232">		out.writeInt(reason);</span>
+<span class="nc" id="L233">		out.writeInt(approvalType);</span>
+<span class="nc" id="L234">		out.writeObject(certificateSerialNumber);</span>
+<span class="nc" id="L235">		out.writeObject(issuerDN);</span>
+<span class="nc" id="L236">	}</span>
+
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {        
+<span class="nc" id="L239">		super.readExternal(in);</span>
+<span class="nc" id="L240">        int version = in.readInt();</span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">        if(version == 1){</span>
+<span class="nc" id="L242">    		username = (String) in.readObject();</span>
+<span class="nc" id="L243">    		reason = in.readInt();</span>
+<span class="nc" id="L244">    		approvalType = in.readInt();</span>
+<span class="nc" id="L245">    		certificateSerialNumber = (BigInteger) in.readObject();</span>
+<span class="nc" id="L246">    		issuerDN = (String) in.readObject();</span>
+        }
+<span class="nc" id="L248">	}</span>
+	
+	public String getUsername() {
+<span class="nc" id="L251">	    return username;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>IntegrityProtectedAuditorSessionBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">cesecore-ejb</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.audit.impl.integrityprotected</a> &gt; <span class="el_source">IntegrityProtectedAuditorSessionBean.java</span></div><h1>IntegrityProtectedAuditorSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.audit.impl.integrityprotected;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.TimeZone;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import javax.ejb.EJB;
+import javax.ejb.SessionContext;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+
+import org.apache.commons.lang.time.FastDateFormat;
+import org.apache.log4j.Logger;
+import org.cesecore.audit.AuditDevicesConfig;
+import org.cesecore.audit.AuditLogEntry;
+import org.cesecore.audit.audit.AuditExporter;
+import org.cesecore.audit.audit.AuditLogExportReport;
+import org.cesecore.audit.audit.AuditLogExporterException;
+import org.cesecore.audit.audit.AuditLogReportElem;
+import org.cesecore.audit.audit.AuditLogValidationReport;
+import org.cesecore.audit.audit.AuditLogValidatorException;
+import org.cesecore.audit.audit.SigningFileOutputStream;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.enums.EventTypes;
+import org.cesecore.audit.enums.ModuleTypes;
+import org.cesecore.audit.enums.ServiceTypes;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.dbprotection.DatabaseProtectionException;
+import org.cesecore.keys.token.CryptoToken;
+import org.cesecore.util.ValidityDate;
+import org.cesecore.util.query.Criteria;
+import org.cesecore.util.query.QueryCriteria;
+import org.cesecore.util.query.QueryGenerator;
+
+/**
+ * This class handles secure logs auditing.
+ * 
+ * This was created to evaluate the performance of using database integrity protection
+ * instead of custom code for log singing.
+ * 
+ * The index
+ *  &quot;CREATE UNIQUE INDEX auditrecorddata_idx1 ON AuditRecordData (nodeId,timeStamp,sequenceNumber);&quot;
+ * should be present for proper validation and export performance.
+ * 
+ * @version $Id: IntegrityProtectedAuditorSessionBean.java 31134 2019-01-11 11:08:16Z jeklund $
+ */
+@Stateless
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L74">public class IntegrityProtectedAuditorSessionBean implements IntegrityProtectedAuditorSessionLocal {</span>
+
+<span class="nc" id="L76">	private static final Logger log = Logger.getLogger(IntegrityProtectedAuditorSessionBean.class);</span>
+	
+    @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+    private EntityManager entityManager;
+    @Resource
+    private SessionContext sessionContext;
+    @EJB
+    private SecurityEventsLoggerSessionLocal securityEventsLogger;
+    // Myself needs to be injected in postConstruct
+    private IntegrityProtectedAuditorSessionLocal integrityProtectedAuditorSession;
+
+    @PostConstruct
+    public void postConstruct() {
+<span class="nc" id="L89">    	integrityProtectedAuditorSession = sessionContext.getBusinessObject(IntegrityProtectedAuditorSessionLocal.class);</span>
+<span class="nc" id="L90">    }</span>
+
+	@Override
+	@TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+	public AuditLogExportReport exportAuditLogs(AuthenticationToken token, CryptoToken cryptoToken, Date timestamp, boolean deleteAfterExport,
+			Map&lt;String, Object&gt; signatureDetails, final Properties properties, final Class&lt;? extends AuditExporter&gt; c) throws AuditLogExporterException {
+<span class="nc" id="L96">        final AuditLogExportReport report = new AuditLogExportReport();</span>
+        try {
+<span class="nc" id="L98">            final File exportFile = AuditDevicesConfig.getExportFile(properties, timestamp);</span>
+<span class="nc" id="L99">            try (final SigningFileOutputStream signingFileOutputStream = new SigningFileOutputStream(exportFile, cryptoToken, signatureDetails)) {</span>
+<span class="nc" id="L100">                final AuditExporter auditExporter = c.getConstructor().newInstance();</span>
+<span class="nc" id="L101">                auditExporter.setOutputStream(signingFileOutputStream);</span>
+<span class="nc" id="L102">                verifyAndOptionalExport(auditExporter, report, timestamp, AuditDevicesConfig.getAuditLogExportFetchSize(properties));</span>
+<span class="nc" id="L103">                report.setExportedFile(exportFile.getCanonicalPath());</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L105">                    log.debug(&quot;Exported &quot; + report.getExportCount() + &quot; rows.&quot;);</span>
+                }
+<span class="nc" id="L107">                logVerificationResult(report.errors().size(), timestamp, token);</span>
+                // Sign the exported file ... it will write the signature on the side
+<span class="nc" id="L109">                final String signatureFilename = signingFileOutputStream.writeSignature();</span>
+<span class="nc" id="L110">                report.setSignatureFile(signatureFilename);</span>
+                // Log export success
+<span class="nc" id="L112">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L113">                details.put(&quot;deleteAfterExport&quot;, deleteAfterExport);</span>
+<span class="nc" id="L114">                details.put(&quot;timestamp&quot;, ValidityDate.formatAsISO8601(new Date(), ValidityDate.TIMEZONE_UTC));</span>
+<span class="nc" id="L115">                securityEventsLogger.log(EventTypes.LOG_EXPORT, EventStatus.SUCCESS, ModuleTypes.SECURITY_AUDIT, ServiceTypes.CORE, token.toString(), null, null, null, details);</span>
+                // Delete the exported log entries if requested
+<span class="nc bnc" id="L117" title="All 2 branches missed.">                if (deleteAfterExport) {</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L119">                        log.debug(&quot;deleting exported logs&quot;);</span>
+                    }
+<span class="nc" id="L121">                    final int deletedRowCount = integrityProtectedAuditorSession.deleteRows(token, timestamp, properties);</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L123">                        log.debug(&quot;Deleted &quot; + deletedRowCount + &quot; rows from audit log after export.&quot;);</span>
+                    }
+                }
+<span class="nc" id="L126">                auditExporter.close();</span>
+            }
+<span class="nc" id="L128">        } catch (final Exception e) {</span>
+<span class="nc" id="L129">            throw new AuditLogExporterException(e.getMessage(), e);</span>
+<span class="nc" id="L130">        }</span>
+<span class="nc" id="L131">        return report;</span>
+	}
+	
+	/* Since we modify the database we need to run this in a transaction. */
+	@Override
+	@TransactionAttribute(TransactionAttributeType.REQUIRED)
+	public int deleteRows(final AuthenticationToken token, final Date timestamp, final Properties properties) {
+<span class="nc" id="L138">        final Map&lt;String, Object&gt; detailsDelete = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L139">        detailsDelete.put(&quot;timestamp&quot;, FastDateFormat.getInstance(ValidityDate.ISO8601_DATE_FORMAT, TimeZone.getTimeZone(&quot;GMT&quot;)).format(timestamp));</span>
+<span class="nc" id="L140">        securityEventsLogger.log(EventTypes.LOG_DELETE, EventStatus.VOID, ModuleTypes.SECURITY_AUDIT, ServiceTypes.CORE, token.toString(), null, null, null, detailsDelete);</span>
+        // Delete all the exported logs (from all nodes)
+<span class="nc" id="L142">		final QueryCriteria queryCriteria = QueryCriteria.create().add(Criteria.leq(AuditLogEntry.FIELD_TIMESTAMP, timestamp.getTime()));</span>
+<span class="nc" id="L143">		return buildConditionalQuery(entityManager, &quot;DELETE FROM AuditRecordData a&quot;, queryCriteria, 0, 0).executeUpdate();</span>
+	}
+
+	@Override
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	public List&lt;? extends AuditLogEntry&gt; selectAuditLogs(final AuthenticationToken token, final int startIndex, final int max, final QueryCriteria criteria, final Properties properties) {
+<span class="nc" id="L149">        return internalSelectAuditLogs(startIndex, max, criteria);</span>
+	}
+	
+	@Override
+	@TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+	public AuditLogValidationReport verifyLogsIntegrity(final AuthenticationToken token, final Date timestamp, final Properties properties) throws AuditLogValidatorException {
+<span class="nc" id="L155">        final AuditLogValidationReport report = new AuditLogValidationReport();</span>
+        try {
+<span class="nc" id="L157">            verifyAndOptionalExport(null, report, timestamp, AuditDevicesConfig.getAuditLogExportFetchSize(properties));</span>
+        	// Log the success or failure depending on if verification returns error or not
+<span class="nc" id="L159">        	logVerificationResult(report.errors().size(), timestamp, token);</span>
+<span class="nc" id="L160">        } catch (final Exception e) {</span>
+<span class="nc" id="L161">        	throw new AuditLogValidatorException(e.getMessage(), e);</span>
+<span class="nc" id="L162">        }</span>
+<span class="nc" id="L163">        return report;</span>
+	}
+
+	/**
+	 * Read batches of logs from the database. If the database integrity check fails, the batch will be processed row by row.
+	 * Results are added to the report.
+	 * @param auditExporter can be null if no export should take place
+	 * @param report is a AuditLogValidationReport or AuditLogExportReport
+	 * @param timestamp process all entries up until this time (should be epoch GMT)
+	 * @param fetchSize size
+	 * @throws IOException if io fails
+	 */
+	private void verifyAndOptionalExport(AuditExporter auditExporter, AuditLogValidationReport report, Date timestamp, final int fetchSize) throws IOException {
+    	// Get a list of the nodes that have data in the database
+<span class="nc bnc" id="L177" title="All 2 branches missed.">    	for (final String nodeId : getNodeIds()) {</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">    		if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L179">    			log.debug(&quot;exportAuditLogs for nodeId &quot; + nodeId);</span>
+    		}
+    		// Assuming timeStamp is in UTC
+<span class="nc" id="L182">    		final QueryCriteria queryCriteria = QueryCriteria.create().add((Criteria.and(Criteria.eq(AuditLogEntry.FIELD_NODEID, nodeId), Criteria.leq(AuditLogEntry.FIELD_TIMESTAMP, timestamp.getTime())))).add(Criteria.orderAsc(AuditLogEntry.FIELD_SEQUENCENUMBER));</span>
+<span class="nc" id="L183">    		int startIndex = 1;</span>
+<span class="nc" id="L184">    		final Holder&lt;Long&gt; lastSeqNumber = new Holder&lt;Long&gt;(Long.valueOf(-1L));</span>
+    		while (true) {
+    			try {
+<span class="nc" id="L187">        			final List&lt;AuditRecordData&gt; queryResult = verifyLogsIntegritySubset(startIndex, fetchSize, queryCriteria, report, lastSeqNumber, nodeId);</span>
+<span class="nc" id="L188">    				final int results = queryResult.size();</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">    				if (results == 0) {</span>
+<span class="nc" id="L190">    					break;	// No more data for this node</span>
+    				}
+<span class="nc" id="L192">    				startIndex += results;</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">					if (auditExporter!=null) {</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">						for (final AuditRecordData auditRecordData : queryResult) {</span>
+<span class="nc" id="L195">							writeToExport(auditExporter, auditRecordData);</span>
+<span class="nc" id="L196">        					((AuditLogExportReport) report).incExportCount();</span>
+<span class="nc" id="L197">						}</span>
+					}
+<span class="nc" id="L199">    			} catch (DatabaseProtectionException e) {</span>
+    				// One of the FETCH_SIZE entries failed.. we have to go through line by line to find out witch one..
+<span class="nc bnc" id="L201" title="All 2 branches missed.">    				for (int i=0; i&lt;fetchSize; i++) {</span>
+        				try {
+<span class="nc" id="L203">                			final List&lt;AuditRecordData&gt; queryResult = verifyLogsIntegritySubset(startIndex, 1, queryCriteria, report, lastSeqNumber, nodeId);</span>
+<span class="nc" id="L204">            				final int results = queryResult.size();</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">            				if (results != 1) {</span>
+<span class="nc" id="L206">            					break;	// No more data for this node</span>
+            				}
+<span class="nc bnc" id="L208" title="All 2 branches missed.">        					if (auditExporter!=null) {</span>
+<span class="nc" id="L209">        						writeToExport(auditExporter, queryResult.get(0));</span>
+<span class="nc" id="L210">            					((AuditLogExportReport) report).incExportCount();</span>
+        					}
+<span class="nc" id="L212">        				} catch (DatabaseProtectionException e2) {</span>
+<span class="nc" id="L213">        					final AuditRecordData auditRecordData = (AuditRecordData) e2.getEntity();</span>
+        					// Add to report
+<span class="nc" id="L215">        					report.warn(new AuditLogReportElem(lastSeqNumber.get().longValue(), auditRecordData.getSequenceNumber(), &quot;log with sequence number after &quot; + lastSeqNumber + &quot; on nodeId &quot; + nodeId + &quot; could not be verified&quot;));</span>
+<span class="nc" id="L216">        					lastSeqNumber.set(auditRecordData.getSequenceNumber());</span>
+        					// We still export it
+        					// TODO: It might make sense to make it configurable to export when verification fails..
+<span class="nc bnc" id="L219" title="All 2 branches missed.">        					if (auditExporter!=null) {</span>
+<span class="nc" id="L220">            					writeToExport(auditExporter, auditRecordData);</span>
+<span class="nc" id="L221">            					((AuditLogExportReport) report).incExportCount();</span>
+        					}
+<span class="nc" id="L223">        				}</span>
+<span class="nc" id="L224">        				startIndex += 1;</span>
+    				}
+<span class="nc" id="L226">    			}</span>
+    		}
+<span class="nc" id="L228">    	}</span>
+<span class="nc" id="L229">	}</span>
+
+	/** We want to export exactly like it was stored in the database, to comply with requirements on logging systems where no altering of the original log data is allowed. 
+	 * @param auditExporter Exporter
+	 * @param auditRecordData Data to export
+	 * @throws IOException if write fails */
+    private void writeToExport(final AuditExporter auditExporter, final AuditRecordData auditRecordData) throws IOException {
+<span class="nc" id="L236">        auditExporter.writeStartObject();</span>
+<span class="nc" id="L237">        auditExporter.writeField(&quot;pk&quot;, auditRecordData.getPk());</span>
+<span class="nc" id="L238">        auditExporter.writeField(&quot;nodeId&quot;, auditRecordData.getNodeId());</span>
+<span class="nc" id="L239">        auditExporter.writeField(&quot;sequenceNumber&quot;, auditRecordData.getSequenceNumber());</span>
+<span class="nc" id="L240">        auditExporter.writeField(&quot;timestamp&quot;, auditRecordData.getTimeStamp());</span>
+<span class="nc" id="L241">        auditExporter.writeField(&quot;eventType&quot;, auditRecordData.getEventTypeValue().toString());</span>
+<span class="nc" id="L242">        auditExporter.writeField(&quot;eventStatus&quot;, auditRecordData.getEventStatusValue().toString());</span>
+<span class="nc" id="L243">        auditExporter.writeField(&quot;authToken&quot;, auditRecordData.getAuthToken());</span>
+<span class="nc" id="L244">        auditExporter.writeField(&quot;service&quot;, auditRecordData.getServiceTypeValue().toString());</span>
+<span class="nc" id="L245">        auditExporter.writeField(&quot;module&quot;, auditRecordData.getModuleTypeValue().toString());</span>
+<span class="nc" id="L246">        auditExporter.writeField(&quot;customId&quot;, auditRecordData.getCustomId());</span>
+<span class="nc" id="L247">        auditExporter.writeField(&quot;searchDetail1&quot;, auditRecordData.getSearchDetail1());</span>
+<span class="nc" id="L248">        auditExporter.writeField(&quot;searchDetail2&quot;, auditRecordData.getSearchDetail2());</span>
+<span class="nc" id="L249">        auditExporter.writeField(&quot;additionalDetails&quot;, auditRecordData.getAdditionalDetails());</span>
+<span class="nc" id="L250">        auditExporter.writeField(&quot;rowProtection&quot;, auditRecordData.getRowProtection());</span>
+<span class="nc" id="L251">        auditExporter.writeEndObject();</span>
+<span class="nc" id="L252">    }</span>
+    
+    /**
+     * Fetch a batch of log rows from the database (implying database integrity check) and verifies
+     * that all sequence numbers are present.
+     * @param startIndex start batch from this position 
+     * @param max entries per batch
+     * @param queryCriteria where clause
+     * @param report will be updated when a problem is found
+     * @param lastSeqNumber will be updated to the last sequence number processed in this subset
+     * @param nodeId identifier of which node that claims to have written this data
+     * @return the log entries we fetched from the database so the caller may export these
+     * @throws DatabaseProtectionException if the intregrity verification fails for one of the entries in the batch during fetch
+     */
+	private List&lt;AuditRecordData&gt; verifyLogsIntegritySubset(final int startIndex, final int max, final QueryCriteria queryCriteria, final AuditLogValidationReport report, final Holder&lt;Long&gt; lastSeqNumber, final String nodeId) throws DatabaseProtectionException {
+<span class="nc" id="L267">		final List&lt;AuditRecordData&gt; queryResult = internalSelectAuditLogs(startIndex, max, queryCriteria);	// Might throw DatabaseProtectionException</span>
+		// Loop through results and verify that the sequence order is correct
+<span class="nc bnc" id="L269" title="All 2 branches missed.">		for (int i=0; i&lt;queryResult.size(); i++) {</span>
+<span class="nc" id="L270">			final long currentSeqNumber = queryResult.get(i).getSequenceNumber().longValue();</span>
+<span class="nc bnc" id="L271" title="All 2 branches missed.">			if (currentSeqNumber != lastSeqNumber.get().longValue() + 1) {</span>
+<span class="nc bnc" id="L272" title="All 2 branches missed.">				if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L273">					log.debug(&quot;Log verification failure for log on node &quot; + nodeId + &quot;. Missing entry. Last sequenceNumber was &quot; + lastSeqNumber + &quot; and current is &quot; + currentSeqNumber);</span>
+				}
+				// Add to report
+<span class="nc" id="L276">				report.warn(new AuditLogReportElem(lastSeqNumber.get(), Long.valueOf(currentSeqNumber), &quot;missing log with sequence number &quot; + (lastSeqNumber.get().longValue() + 1) + &quot; on nodeId &quot; + nodeId));</span>
+			}
+<span class="nc" id="L278">			lastSeqNumber.set(Long.valueOf(currentSeqNumber));</span>
+		}
+<span class="nc" id="L280">		return queryResult;</span>
+	}
+	
+	/** Log the outcome of the verification to the secure audit log based on the supplied number of errors. 
+	 * @param errors Errors
+	 * @param timestamp  time
+	 * @param token Authorization */
+	private void logVerificationResult(final int errors, final Date timestamp, final AuthenticationToken token) {
+<span class="nc" id="L288">    	final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L289">    	details.put(&quot;timestamp&quot;, FastDateFormat.getInstance(ValidityDate.ISO8601_DATE_FORMAT, TimeZone.getTimeZone(&quot;GMT&quot;)).format(timestamp));</span>
+<span class="nc" id="L290">    	EventStatus status = EventStatus.SUCCESS;</span>
+<span class="nc bnc" id="L291" title="All 2 branches missed.">    	if (errors &gt; 0) {</span>
+<span class="nc" id="L292">    		status = EventStatus.FAILURE;</span>
+<span class="nc" id="L293">    		details.put(&quot;errors&quot;, errors);</span>
+    	}
+<span class="nc" id="L295">    	securityEventsLogger.log(EventTypes.LOG_VERIFY, status, ModuleTypes.SECURITY_AUDIT, ServiceTypes.CORE, token.toString(), null, null, null, details);</span>
+<span class="nc" id="L296">	}</span>
+
+	/**
+	 * Select log entries using the supplied criteria.
+	 * Optionally using startIndex and resultLimit (used if &gt;0).
+	 * @param startIndex Index
+	 * @param max no. of records
+	 * @param criteria search criteria
+	 * @return log entries
+	 */
+	@SuppressWarnings(&quot;unchecked&quot;)
+	private List&lt;AuditRecordData&gt; internalSelectAuditLogs(final int startIndex, final int max, final QueryCriteria criteria) {
+<span class="nc" id="L308">        return buildConditionalQuery(entityManager, &quot;SELECT a FROM AuditRecordData a&quot;, criteria, startIndex, max).getResultList();</span>
+	}
+	
+	/** @return a unique list of node identifiers that have been writing audit log to the database. */
+	@SuppressWarnings(&quot;unchecked&quot;)
+	private List&lt;String&gt; getNodeIds() {
+<span class="nc" id="L314">		return entityManager.createQuery(&quot;SELECT DISTINCT a.nodeId FROM AuditRecordData a&quot;).getResultList();</span>
+	}
+
+	/**
+	 * Build a JPA Query from the supplied queryStr and criteria.
+	 * Optionally using startIndex and resultLimit (used if &gt;0).
+	 * @param entityManager EM
+	 * @param queryStr Query
+	 * @param criteria Criteria
+	 * @param startIndex Index
+	 * @param resultLimit Max results
+	 * @return JPA query
+	 */
+    private Query buildConditionalQuery(final EntityManager entityManager, final String queryStr, final QueryCriteria criteria, final int startIndex, final int resultLimit) {
+<span class="nc" id="L328">        Query query = null;</span>
+<span class="nc bnc" id="L329" title="All 2 branches missed.">        if (criteria == null) {</span>
+<span class="nc" id="L330">            query = entityManager.createQuery(queryStr);</span>
+        } else {
+<span class="nc" id="L332">            QueryGenerator generator = QueryGenerator.generator(AuditRecordData.class, criteria, &quot;a&quot;);</span>
+<span class="nc" id="L333">            final String conditions = generator.generate();</span>
+<span class="nc" id="L334">            query = entityManager.createQuery(queryStr + conditions);</span>
+<span class="nc bnc" id="L335" title="All 2 branches missed.">            for (final String key : generator.getParameterKeys()) {</span>
+<span class="nc" id="L336">                final Object param = generator.getParameterValue(key);</span>
+<span class="nc" id="L337">                query.setParameter(key, param);</span>
+<span class="nc" id="L338">            }</span>
+        }
+<span class="nc bnc" id="L340" title="All 2 branches missed.">        if (resultLimit &gt; 0) {</span>
+<span class="nc" id="L341">            query.setMaxResults(resultLimit);</span>
+        }
+<span class="nc bnc" id="L343" title="All 2 branches missed.">        if (startIndex &gt; 0) {</span>
+<span class="nc" id="L344">        	query.setFirstResult(startIndex-1);</span>
+        }
+<span class="nc" id="L346">        return query;</span>
+    }
+    
+    /** Class used internally for holding an object that can updated by a method. 
+     * @param &lt;T&gt; Type*/
+    private class Holder&lt;T&gt; {
+    	private T object;
+<span class="nc" id="L353">    	Holder(final T object) { set(object); }</span>
+<span class="nc" id="L354">		public void set(final T object) { this.object = object; }</span>
+<span class="nc" id="L355">		public T get() { return object; }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

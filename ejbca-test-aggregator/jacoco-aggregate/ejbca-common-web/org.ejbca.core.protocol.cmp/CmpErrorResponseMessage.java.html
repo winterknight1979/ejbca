@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CmpErrorResponseMessage.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.cmp</a> &gt; <span class="el_source">CmpErrorResponseMessage.java</span></div><h1>CmpErrorResponseMessage.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.protocol.cmp;
+
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.cert.CRL;
+import java.security.cert.Certificate;
+import java.util.Collection;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.DERUTF8String;
+import org.bouncycastle.asn1.cmp.CMPObjectIdentifiers;
+import org.bouncycastle.asn1.cmp.ErrorMsgContent;
+import org.bouncycastle.asn1.cmp.PKIBody;
+import org.bouncycastle.asn1.cmp.PKIFreeText;
+import org.bouncycastle.asn1.cmp.PKIHeader;
+import org.bouncycastle.asn1.cmp.PKIHeaderBuilder;
+import org.bouncycastle.asn1.cmp.PKIMessage;
+import org.bouncycastle.asn1.cmp.PKIStatus;
+import org.bouncycastle.asn1.cmp.PKIStatusInfo;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.cesecore.certificates.certificate.request.FailInfo;
+import org.cesecore.certificates.certificate.request.RequestMessage;
+import org.cesecore.certificates.certificate.request.ResponseMessage;
+import org.cesecore.certificates.certificate.request.ResponseStatus;
+
+/**
+ * A very simple error message, no protection, or PBE protection
+ *
+ * @version $Id: CmpErrorResponseMessage.java 22139 2015-11-03 10:41:56Z mikekushner $
+ */
+<span class="fc" id="L45">public class CmpErrorResponseMessage extends BaseCmpMessage implements ResponseMessage {</span>
+
+<span class="fc" id="L47">	private static Logger log = Logger.getLogger(CmpErrorResponseMessage.class);</span>
+	/**
+	 * Determines if a de-serialized file is compatible with this class.
+	 *
+	 * Maintainers must change this value if and only if the new version
+	 * of this class is not compatible with old versions. See Sun docs
+	 * for &lt;a href=http://java.sun.com/products/jdk/1.1/docs/guide
+	 * /serialization/spec/version.doc.html&gt; details. &lt;/a&gt;
+	 *
+	 */
+	static final long serialVersionUID = 10003L;
+
+	/** The encoded response message */
+<span class="fc" id="L60">    private byte[] responseMessage = null;</span>
+<span class="fc" id="L61">    private String failText = null;</span>
+<span class="fc" id="L62">    private FailInfo failInfo = null;</span>
+<span class="fc" id="L63">    private int requestId = 0;</span>
+<span class="fc" id="L64">	private int requestType = 23; // 23 is general error message</span>
+
+
+	@Override
+	public void setCrl(CRL crl) {
+<span class="nc" id="L69">	}</span>
+
+	@Override
+	public void setIncludeCACert(boolean incCACert) {
+<span class="nc" id="L73">	}</span>
+	
+	@Override
+	public void setCACert(Certificate cACert) {
+<span class="nc" id="L77">	}</span>
+
+	@Override
+	public byte[] getResponseMessage() {
+<span class="fc" id="L81">        return responseMessage;</span>
+	}
+
+	@Override
+	public void setStatus(ResponseStatus status) {
+<span class="nc" id="L86">	}</span>
+
+	@Override
+	public ResponseStatus getStatus() {
+	    // Not used by CMP (create method of this class), but this message is definitely a failure...
+<span class="nc" id="L91">		return ResponseStatus.FAILURE;</span>
+	}
+
+	@Override
+	public void setFailInfo(FailInfo failInfo) {
+<span class="fc" id="L96">		this.failInfo = failInfo;</span>
+<span class="fc" id="L97">	}</span>
+
+	@Override
+	public FailInfo getFailInfo() {
+<span class="nc" id="L101">		return failInfo;</span>
+	}
+
+	@Override
+	public void setFailText(String failText) {
+<span class="fc" id="L106">		this.failText = failText;</span>
+<span class="fc" id="L107">	}</span>
+
+	@Override
+	public String getFailText() {
+<span class="nc" id="L111">		return failText;</span>
+	}
+
+	@Override
+    public boolean create() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException {
+<span class="fc" id="L116">		final PKIHeaderBuilder myPKIHeaderBuilder = CmpMessageHelper.createPKIHeaderBuilder(getSender(), getRecipient(), getSenderNonce(), getRecipientNonce(), getTransactionId());</span>
+<span class="pc bpc" id="L117" title="7 of 8 branches missed.">		boolean pbeProtected = (getPbeDigestAlg() != null) &amp;&amp; (getPbeMacAlg() != null) &amp;&amp; (getPbeKeyId() != null) &amp;&amp; (getPbeKey() != null) ;</span>
+<span class="pc bpc" id="L118" title="1 of 2 branches missed.">		if(pbeProtected) {</span>
+<span class="nc" id="L119">		    myPKIHeaderBuilder.setProtectionAlg(new AlgorithmIdentifier(CMPObjectIdentifiers.passwordBasedMac));</span>
+		}
+<span class="fc" id="L121">		final PKIHeader myPKIHeader = myPKIHeaderBuilder.build();</span>
+		
+<span class="fc" id="L123">		PKIStatusInfo myPKIStatusInfo = new PKIStatusInfo(PKIStatus.rejection);</span>
+<span class="pc bpc" id="L124" title="2 of 4 branches missed.">		if(failInfo != null &amp;&amp; failText != null) {</span>
+<span class="fc" id="L125">		    myPKIStatusInfo = new PKIStatusInfo(PKIStatus.rejection, new PKIFreeText(new DERUTF8String(failText)), CmpMessageHelper.getPKIFailureInfo(failInfo.intValue()));</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">		} else if(failText != null) {</span>
+<span class="nc" id="L127">		    myPKIStatusInfo = new PKIStatusInfo(PKIStatus.rejection, new PKIFreeText(new DERUTF8String(failText)));</span>
+		}
+		
+<span class="fc" id="L130">		PKIBody myPKIBody = null;</span>
+<span class="fc" id="L131">		log.debug(&quot;Create error message from requestType: &quot;+requestType);</span>
+<span class="pc bpc" id="L132" title="1 of 4 branches missed.">		if (requestType==0 || requestType==2) {</span>
+<span class="fc" id="L133">			myPKIBody = CmpMessageHelper.createCertRequestRejectBody(myPKIStatusInfo, requestId, requestType);</span>
+		} else {
+<span class="fc" id="L135">			ErrorMsgContent myErrorContent = new ErrorMsgContent(myPKIStatusInfo);</span>
+<span class="fc" id="L136">			myPKIBody = new PKIBody(23, myErrorContent); // 23 = error						</span>
+		}
+<span class="fc" id="L138">		PKIMessage myPKIMessage = new PKIMessage(myPKIHeader, myPKIBody);</span>
+<span class="pc bpc" id="L139" title="1 of 2 branches missed.">		if ( pbeProtected ) {</span>
+<span class="nc" id="L140">			responseMessage = CmpMessageHelper.protectPKIMessageWithPBE(myPKIMessage, getPbeKeyId(), getPbeKey(), getPbeDigestAlg(), getPbeMacAlg(), getPbeIterationCount());</span>
+		} else {
+<span class="fc" id="L142">			responseMessage = CmpMessageHelper.pkiMessageToByteArray(myPKIMessage);			</span>
+		}
+<span class="fc" id="L144">		return true;		</span>
+	}
+
+	@Override
+	public boolean requireSignKeyInfo() {
+<span class="nc" id="L149">		return false;</span>
+	}
+
+	@Override
+	public void setSignKeyInfo(Collection&lt;Certificate&gt; certs, PrivateKey key,
+			String provider) {
+<span class="nc" id="L155">	}</span>
+
+	@Override
+	public void setRecipientKeyInfo(byte[] recipientKeyInfo) {
+<span class="nc" id="L159">	}</span>
+
+	@Override
+	public void setPreferredDigestAlg(String digest) {
+<span class="nc" id="L163">	}</span>
+
+	@Override
+	public void setRequestType(int reqtype) {
+<span class="fc" id="L167">		this.requestType = reqtype;</span>
+<span class="fc" id="L168">	}</span>
+
+	@Override
+	public void setRequestId(int reqid) {
+<span class="fc" id="L172">		this.requestId = reqid;</span>
+<span class="fc" id="L173">	}</span>
+
+	@Override
+    public void setProtectionParamsFromRequest(RequestMessage reqMsg) {
+<span class="nc" id="L177">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

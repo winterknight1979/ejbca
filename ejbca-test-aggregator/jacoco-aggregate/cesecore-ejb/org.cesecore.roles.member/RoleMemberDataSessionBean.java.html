@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RoleMemberDataSessionBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">cesecore-ejb</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.roles.member</a> &gt; <span class="el_source">RoleMemberDataSessionBean.java</span></div><h1>RoleMemberDataSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.roles.member;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.AuthenticationFailedException;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.cache.AccessTreeUpdateSessionLocal;
+import org.cesecore.authorization.user.AccessMatchType;
+import org.cesecore.authorization.user.AccessUserAspect;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.util.ProfileID;
+
+/**
+ * @see RoleMemberDataSessionLocal
+ * 
+ * @version $Id: RoleMemberDataSessionBean.java 27283 2017-11-22 10:46:23Z anatom $
+ *
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;RoleMemberDataSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L48">public class RoleMemberDataSessionBean implements RoleMemberDataSessionLocal, RoleMemberDataSessionRemote {</span>
+
+<span class="nc" id="L50">    private static final Logger log = Logger.getLogger(RoleMemberDataSessionBean.class);</span>
+
+    @EJB
+    private AccessTreeUpdateSessionLocal accessTreeUpdateSession;
+
+    @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+    private EntityManager entityManager;
+
+    @Override
+    public RoleMember persistRoleMember(final RoleMember roleMember) {
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        if (roleMember==null) {</span>
+            // Successfully did nothing
+<span class="nc" id="L62">            return null;</span>
+        }
+<span class="nc bnc" id="L64" title="All 2 branches missed.">        if (roleMember.getId() == RoleMember.ROLE_MEMBER_ID_UNASSIGNED) {</span>
+<span class="nc" id="L65">            roleMember.setId(findFreePrimaryKey());</span>
+<span class="nc" id="L66">            entityManager.persist(new RoleMemberData(roleMember));</span>
+        } else {
+<span class="nc" id="L68">            final RoleMemberData roleMemberData = find(roleMember.getId());</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">            if (roleMemberData==null) {</span>
+                // Must have been removed by another process, but caller wants to persist it, so we proceed
+<span class="nc" id="L71">                entityManager.persist(new RoleMemberData(roleMember));</span>
+            } else {
+                // Since the entity is managed, we just update its values
+<span class="nc" id="L74">                roleMemberData.updateValuesFromValueObject(roleMember);</span>
+            }
+        }
+<span class="nc" id="L77">        accessTreeUpdateSession.signalForAccessTreeUpdate();</span>
+<span class="nc" id="L78">        RoleMemberCache.INSTANCE.updateWith(roleMember.getId(), roleMember.hashCode(), null, roleMember);</span>
+<span class="nc" id="L79">        AuthenticationTokenCache.INSTANCE.flush();</span>
+<span class="nc" id="L80">        return roleMember;</span>
+    }
+
+    private int findFreePrimaryKey() {
+<span class="nc" id="L84">        final ProfileID.DB db = new ProfileID.DB() {</span>
+            @Override
+            public boolean isFree(int i) {
+                //0 is a protected ID for RoleMemberData. Use only positive values, since negatives are seen as &quot;erronous&quot; by some customers.
+<span class="nc bnc" id="L88" title="All 4 branches missed.">                return find(i) == null &amp;&amp; i &gt; 0;</span>
+            }
+        };
+<span class="nc" id="L91">        return ProfileID.getNotUsedID(db);</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public RoleMemberData find(final int primaryKey) {
+<span class="nc" id="L97">        return entityManager.find(RoleMemberData.class, primaryKey);</span>
+    }
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public RoleMember findRoleMember(int primaryKey) {
+        // 1. Check cache if it is time to sync-up with database
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        if (RoleMemberCache.INSTANCE.shouldCheckForUpdates(primaryKey)) {</span>
+            // 2. If cache is expired or missing, first thread to discover this reloads item from database and sends it to the cache
+<span class="nc" id="L106">            final RoleMemberData roleMemberData = find(primaryKey);</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">            if (roleMemberData == null) {</span>
+                // Ensure that it is removed from cache when the object is no longer present in the database
+<span class="nc" id="L109">                RoleMemberCache.INSTANCE.removeEntry(primaryKey);</span>
+            } else {
+<span class="nc bnc" id="L111" title="All 2 branches missed.">                final RoleMember roleMember = roleMemberData == null ? null : roleMemberData.asValueObject();</span>
+                // 3. The cache compares the database data with what is in the cache
+                // 4. If database is different from cache, replace it in the cache
+<span class="nc" id="L114">                RoleMemberCache.INSTANCE.updateWith(primaryKey, roleMember.hashCode(), null, roleMember);</span>
+                // Return role member, working even if the cache is disabled
+<span class="nc" id="L116">                return roleMember;</span>
+            }
+        }
+        // 5. Get object from cache now (or null) and be merry
+<span class="nc" id="L120">        return RoleMemberCache.INSTANCE.getEntry(primaryKey);</span>
+    }
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public List&lt;RoleMemberData&gt; findByRoleId(int roleId) {
+<span class="nc" id="L126">        final TypedQuery&lt;RoleMemberData&gt; query = entityManager.createQuery(&quot;SELECT a FROM RoleMemberData a WHERE a.roleId=:roleId&quot;, RoleMemberData.class);</span>
+<span class="nc" id="L127">        query.setParameter(&quot;roleId&quot;, roleId);</span>
+<span class="nc" id="L128">        return query.getResultList();</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public List&lt;RoleMember&gt; findRoleMemberByRoleId(int roleId) {
+<span class="nc" id="L134">        List&lt;RoleMemberData&gt; entityBeans = findByRoleId(roleId);</span>
+<span class="nc" id="L135">        List&lt;RoleMember&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        for (RoleMemberData roleMemberData : entityBeans) {</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">            if (roleMemberData != null) {</span>
+<span class="nc" id="L138">                result.add(roleMemberData.asValueObject());</span>
+            }
+<span class="nc" id="L140">        }</span>
+<span class="nc" id="L141">        return result;</span>
+    }
+
+    @Override
+    public boolean remove(final int primaryKey) {
+<span class="nc" id="L146">        RoleMemberData roleMember = find(primaryKey);</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">        if (roleMember != null) {</span>
+<span class="nc" id="L148">            entityManager.remove(roleMember);</span>
+<span class="nc" id="L149">            accessTreeUpdateSession.signalForAccessTreeUpdate();</span>
+<span class="nc" id="L150">            AuthenticationTokenCache.INSTANCE.flush();</span>
+<span class="nc" id="L151">            RoleMemberCache.INSTANCE.removeEntry(primaryKey);</span>
+<span class="nc" id="L152">            return true;</span>
+        } else {
+<span class="nc" id="L154">            return false;</span>
+        }
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public Set&lt;Integer&gt; getRoleIdsMatchingAuthenticationToken(final AuthenticationToken authenticationToken) {
+        try {
+<span class="nc" id="L162">            return getRoleIdsMatchingAuthenticationTokenOrFail(authenticationToken);</span>
+<span class="nc" id="L163">        } catch (AuthenticationFailedException e) {</span>
+<span class="nc" id="L164">            log.debug(e.getMessage(), e);</span>
+<span class="nc" id="L165">            return new HashSet&lt;&gt;();</span>
+        }
+    }
+    
+    /**
+     * This method will retrieves all role members that match a certain authentication token. It utilizes the AuthenticationTokenCache to do so, 
+     * a cache which saves previous authorization token searches. If the cache entry hasn't expired the cache will return a list of role 
+     * member IDs, which will be further pruned if any of the listed role members are missing (due to having been removed by another node in the 
+     * cluster).
+     * 
+     * @param authenticationToken an authentication token
+     * @return a list of role members that the authentication token matches
+     */
+    private List&lt;RoleMember&gt; getRoleMembersForAuthenticationToken(final AuthenticationToken authenticationToken) {
+<span class="nc" id="L179">        final String tokenType = authenticationToken.getMetaData().getTokenType();</span>
+        final TypedQuery&lt;RoleMemberData&gt; query;
+<span class="nc" id="L181">        final int preferredMatchKey = authenticationToken.getPreferredMatchKey();</span>
+<span class="nc" id="L182">        List&lt;RoleMember&gt; result = new ArrayList&lt;&gt;();</span>
+        //First check the cache if this authentication token has been checked recently
+<span class="nc" id="L184">        List&lt;Integer&gt; cachedRoleMemberIds = AuthenticationTokenCache.INSTANCE.getCachedRoleMembersForAuthenticationToken(authenticationToken);            </span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">        if (cachedRoleMemberIds != null) {</span>
+            //We found a cached (and valid) entry
+<span class="nc bnc" id="L187" title="All 2 branches missed.">            for(Integer roleMemberId : cachedRoleMemberIds) {</span>
+                //Role Members may have been removed in the background, so be prepared for this as well. If that happens, we should update 
+                //the cache entry as well.
+<span class="nc" id="L190">                RoleMember roleMember = findRoleMember(roleMemberId);</span>
+<span class="nc bnc" id="L191" title="All 2 branches missed.">                if(roleMember != null) {</span>
+<span class="nc" id="L192">                    result.add(roleMember);</span>
+                }
+<span class="nc" id="L194">            }</span>
+            //If the number of found members differs from the number of ID's in the cache, there must be members missing, and we should update 
+            //the authorization cache
+<span class="nc bnc" id="L197" title="All 2 branches missed.">            if(result.size() != cachedRoleMemberIds.size()) {</span>
+<span class="nc" id="L198">                AuthenticationTokenCache.INSTANCE.cacheRoleMembersForAuthenticationToken(authenticationToken, result);</span>
+            }    
+        } else {
+            //We found nothing...
+<span class="nc bnc" id="L202" title="All 2 branches missed.">            if (preferredMatchKey != AuthenticationToken.NO_PREFERRED_MATCH_KEY) {</span>
+<span class="nc" id="L203">                final List&lt;AccessMatchType&gt; accessMatchType = authenticationToken.getMetaData().getAccessMatchValueIdMap().get(preferredMatchKey)</span>
+<span class="nc" id="L204">                        .getAvailableAccessMatchTypes();</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">                final int preferredOperator = accessMatchType.isEmpty() ? AccessMatchType.TYPE_UNUSED.getNumericValue()</span>
+<span class="nc" id="L206">                        : accessMatchType.get(0).getNumericValue();</span>
+                // Optimized search for preferred match values (e.g. serial number match key) amongst members with that match key.
+                // For members with other match keys, we include everything in the search
+<span class="nc" id="L209">                query = entityManager</span>
+<span class="nc" id="L210">                        .createQuery(&quot;SELECT a FROM RoleMemberData a WHERE a.tokenType=:tokenType AND a.roleId&lt;&gt;0 AND &quot;</span>
+                                + &quot;((a.tokenMatchKey=:preferredTokenMatchKey AND a.tokenMatchOperator=:operator AND a.tokenMatchValueColumn=:preferredTokenMatchValue) OR &quot;
+                                + &quot;NOT (a.tokenMatchKey=:preferredTokenMatchKey AND a.tokenMatchOperator=:operator))&quot;, RoleMemberData.class)
+<span class="nc" id="L213">                        .setParameter(&quot;tokenType&quot;, tokenType).setParameter(&quot;preferredTokenMatchKey&quot;, preferredMatchKey)</span>
+<span class="nc" id="L214">                        .setParameter(&quot;operator&quot;, preferredOperator)</span>
+<span class="nc" id="L215">                        .setParameter(&quot;preferredTokenMatchValue&quot;, authenticationToken.getPreferredMatchValue());</span>
+<span class="nc" id="L216">            } else {</span>
+            // Search for all members with the same token type
+<span class="nc" id="L218">            query = entityManager.createQuery(&quot;SELECT a FROM RoleMemberData a WHERE a.tokenType=:tokenType AND a.roleId&lt;&gt;0&quot;, RoleMemberData.class)</span>
+<span class="nc" id="L219">                    .setParameter(&quot;tokenType&quot;, tokenType);</span>
+            }
+<span class="nc bnc" id="L221" title="All 2 branches missed.">            for (RoleMemberData roleMemberData : query.getResultList()) {</span>
+<span class="nc" id="L222">                result.add(roleMemberData.asValueObject());</span>
+<span class="nc" id="L223">            }</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">            if (!result.isEmpty()) {</span>
+<span class="nc" id="L225">                AuthenticationTokenCache.INSTANCE.cacheRoleMembersForAuthenticationToken(authenticationToken, result);</span>
+            }
+        }
+
+<span class="nc" id="L229">        return result;</span>
+
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public Set&lt;Integer&gt; getRoleIdsMatchingAuthenticationTokenOrFail(final AuthenticationToken authenticationToken) throws AuthenticationFailedException {
+<span class="nc" id="L236">        final Set&lt;Integer&gt; ret = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L237" title="All 2 branches missed.">        if (authenticationToken!=null) {</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">            for (final RoleMember roleMemberData : getRoleMembersForAuthenticationToken(authenticationToken)) {</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">                if (authenticationToken.matches(convertToAccessUserAspect(roleMemberData))) {</span>
+<span class="nc" id="L240">                    ret.add(roleMemberData.getRoleId());</span>
+                }
+<span class="nc" id="L242">            }</span>
+        }
+<span class="nc" id="L244">        return ret;</span>
+    }
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public Set&lt;RoleMember&gt; getRoleMembersMatchingAuthenticationToken(final AuthenticationToken authenticationToken) {
+<span class="nc" id="L250">        final Set&lt;RoleMember&gt; ret = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L251" title="All 2 branches missed.">        if (authenticationToken!=null) {</span>
+<span class="nc bnc" id="L252" title="All 2 branches missed.">            for (final RoleMember roleMember : getRoleMembersForAuthenticationToken(authenticationToken)) {</span>
+                try {
+<span class="nc bnc" id="L254" title="All 2 branches missed.">                    if (authenticationToken.matches(convertToAccessUserAspect(roleMember))) {</span>
+<span class="nc" id="L255">                        ret.add(roleMember);</span>
+                    }
+<span class="nc" id="L257">                } catch (AuthenticationFailedException e) {</span>
+<span class="nc" id="L258">                    log.debug(e.getMessage(), e);</span>
+<span class="nc" id="L259">                }</span>
+<span class="nc" id="L260">            }</span>
+        }
+<span class="nc" id="L262">        return ret;</span>
+    }
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    @Deprecated
+    public Map&lt;Integer,Integer&gt; getRoleIdsAndTokenMatchKeysMatchingAuthenticationToken(final AuthenticationToken authenticationToken) throws AuthenticationFailedException {
+<span class="nc" id="L269">        final Map&lt;Integer,Integer&gt; ret = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L270" title="All 2 branches missed.">        for (final RoleMember roleMember : getRoleMembersForAuthenticationToken(authenticationToken)) {</span>
+<span class="nc bnc" id="L271" title="All 2 branches missed.">            if (authenticationToken.matches(convertToAccessUserAspect(roleMember))) {</span>
+<span class="nc" id="L272">                ret.put(roleMember.getRoleId(), roleMember.getTokenMatchKey());</span>
+            }
+<span class="nc" id="L274">        }</span>
+<span class="nc" id="L275">        return ret;</span>
+    }
+    
+    // TODO: Remove this once there is a better way to match tokens
+    private AccessUserAspect convertToAccessUserAspect(final RoleMember roleMember) {
+<span class="nc" id="L280">        return new AccessUserAspect() {</span>
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public int getMatchWith() {
+<span class="nc" id="L285">                return roleMember.getTokenMatchKey();</span>
+            }
+
+            @Override
+<span class="nc" id="L289">            public void setMatchWith(Integer matchWith) { }</span>
+
+            @Override
+            public int getMatchType() {
+<span class="nc" id="L293">                return roleMember.getTokenMatchOperator();</span>
+            }
+
+            @Override
+<span class="nc" id="L297">            public void setMatchType(Integer matchType) { }</span>
+
+            @Override
+            public AccessMatchType getMatchTypeAsType() {
+<span class="nc" id="L301">                return AccessMatchType.matchFromDatabase(roleMember.getTokenMatchOperator());</span>
+            }
+
+            @Override
+<span class="nc" id="L305">            public void setMatchTypeAsValue(AccessMatchType matchType) { }</span>
+
+            @Override
+            public String getMatchValue() {
+<span class="nc" id="L309">                return roleMember.getTokenMatchValue();</span>
+            }
+
+            @Override
+<span class="nc" id="L313">            public void setMatchValue(String matchValue) { }</span>
+
+            @Override
+            public Integer getCaId() {
+<span class="nc" id="L317">                return roleMember.getTokenIssuerId();</span>
+            }
+
+            @Override
+<span class="nc" id="L321">            public void setCaId(Integer caId) { }</span>
+
+            @Override
+            public String getTokenType() {
+<span class="nc bnc" id="L325" title="All 2 branches missed.">                return (roleMember == null ? null : roleMember.getTokenType());</span>
+            }
+
+            @Override
+<span class="nc" id="L329">            public void setTokenType(String tokenType) { }</span>
+        };
+    }
+    
+    @Override
+    public void forceCacheExpire() {
+<span class="nc" id="L335">        RoleMemberCache.INSTANCE.flush();</span>
+<span class="nc" id="L336">        AuthenticationTokenCache.INSTANCE.flush();</span>
+<span class="nc" id="L337">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

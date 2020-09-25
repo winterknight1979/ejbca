@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>LegacyValidationAuthorityPublisher.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.ca.publisher</a> &gt; <span class="el_source">LegacyValidationAuthorityPublisher.java</span></div><h1>LegacyValidationAuthorityPublisher.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA: The OpenSource Certificate Authority                          *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.ca.publisher;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Properties;
+
+import org.apache.commons.lang.StringUtils;
+
+/**
+ * Holder class for preserving the data remaining from the old community VA Publisher
+ * 
+ * @version $Id: LegacyValidationAuthorityPublisher.java 34192 2020-01-07 15:10:21Z aminkh $
+ *
+ */
+public class LegacyValidationAuthorityPublisher extends CustomPublisherUiBase implements CustomPublisherUiSupport {
+
+    public static final String OLD_VA_PUBLISHER_QUALIFIED_NAME = &quot;org.ejbca.core.model.ca.publisher.ValidationAuthorityPublisher&quot;;
+    
+    private static final long serialVersionUID = 9013538677462519302L;
+
+    private static final String DATASOURCE = &quot;dataSource&quot;;
+    private static final String PROTECT = &quot;protect&quot;;
+    private static final String STORECERT = &quot;storeCert&quot;;
+    private static final String STORECRL = &quot;storeCRL&quot;;
+    private static final String ONLYPUBLISHREVOKED = &quot;onlyPublishRevoked&quot;;
+    
+    private static final String DEFAULT_DATASOURCE = &quot;java:/OcspDS&quot;;
+    
+    public LegacyValidationAuthorityPublisher() {
+<span class="nc" id="L42">        super();</span>
+<span class="nc" id="L43">        setClassPath(this.getClass().getName());</span>
+<span class="nc" id="L44">    }</span>
+    
+    /**
+     * A copy constructor, in order to create a {@link LegacyValidationAuthorityPublisher} from the data payload from another publisher. 
+     * 
+     * @param newData a map containing publisher data.
+     */
+    public LegacyValidationAuthorityPublisher(Map&lt;Object, Object&gt; newData) {
+<span class="nc" id="L52">        super();</span>
+<span class="nc" id="L53">        this.data = new LinkedHashMap&lt;Object, Object&gt;(newData);</span>
+<span class="nc" id="L54">        setClassPath(this.getClass().getName());</span>
+<span class="nc" id="L55">        this.data.put(TYPE, Integer.valueOf(PublisherConst.TYPE_CUSTOMPUBLISHERCONTAINER));</span>
+<span class="nc" id="L56">    }</span>
+    
+    @Override
+    public void init(Properties properties) {
+        //Set all existing props 
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        for(Object key : properties.keySet()) {</span>
+<span class="nc" id="L62">            this.data.put(key, properties.get(key));</span>
+<span class="nc" id="L63">        }</span>
+        //Overwrite these props whatever the case may be:
+<span class="nc" id="L65">        setClassPath(this.getClass().getName());</span>
+<span class="nc" id="L66">        this.data.put(TYPE, Integer.valueOf(PublisherConst.TYPE_CUSTOMPUBLISHERCONTAINER));</span>
+        //Then set defaults if any were missing.        
+<span class="nc bnc" id="L68" title="All 2 branches missed.">        if (StringUtils.isEmpty(properties.getProperty(DATASOURCE))) {</span>
+            try {
+<span class="nc" id="L70">                setDataSource(DEFAULT_DATASOURCE);</span>
+<span class="nc" id="L71">            } catch (PublisherException e) {</span>
+<span class="nc" id="L72">                throw new IllegalStateException();</span>
+<span class="nc" id="L73">            }</span>
+        }
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        if (StringUtils.isEmpty(properties.getProperty(PROTECT))) {</span>
+<span class="nc" id="L76">            setProtect(false);</span>
+
+        }
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        if (StringUtils.isEmpty(properties.getProperty(STORECERT))) {</span>
+<span class="nc" id="L80">            setStoreCert(true);</span>
+        }
+<span class="nc bnc" id="L82" title="All 2 branches missed.">        if (StringUtils.isEmpty(properties.getProperty(ONLYPUBLISHREVOKED))) {</span>
+<span class="nc" id="L83">            setOnlyPublishRevoked(false);</span>
+        }        
+<span class="nc" id="L85">        addProperty(new CustomPublisherProperty(DESCRIPTION, CustomPublisherProperty.UI_TEXTINPUT, getDescription()));</span>
+<span class="nc" id="L86">        addProperty(new CustomPublisherProperty(DATASOURCE, CustomPublisherProperty.UI_TEXTINPUT, getDataSource()));</span>
+<span class="nc" id="L87">        addProperty(new CustomPublisherProperty(STORECERT, CustomPublisherProperty.UI_BOOLEAN, Boolean.toString(getStoreCert())));</span>
+<span class="nc" id="L88">        addProperty(new CustomPublisherProperty(ONLYPUBLISHREVOKED, CustomPublisherProperty.UI_BOOLEAN, Boolean.toString(getOnlyPublishRevoked())));</span>
+<span class="nc" id="L89">        addProperty(new CustomPublisherProperty(STORECRL, CustomPublisherProperty.UI_BOOLEAN, Boolean.toString(getStoreCRL())));</span>
+<span class="nc" id="L90">    }</span>
+    
+    /**
+     * @return The value of the property data source
+     */
+    public String getDataSource() {
+<span class="nc" id="L96">        return (String) this.data.get(DATASOURCE);</span>
+    }
+    
+    /**
+     *  Sets the data source property for the publisher.
+     * @param dataSource Source
+     * @throws PublisherException Fail 
+     */
+    public void setDataSource(String dataSource) throws PublisherException {
+<span class="nc" id="L105">        validateDataSource(dataSource);</span>
+<span class="nc" id="L106">        this.data.put(DATASOURCE, dataSource);</span>
+<span class="nc" id="L107">    }</span>
+    
+    /**
+     * @return The value of the property protect
+     */
+    public boolean getProtect() {
+<span class="nc" id="L113">        return ((Boolean) this.data.get(PROTECT)).booleanValue();</span>
+    }
+    
+    /**
+     * @param protect  Sets the property protect for the publisher.
+     */
+    public void setProtect(boolean protect) {
+<span class="nc" id="L120">        this.data.put(PROTECT, Boolean.valueOf(protect));</span>
+<span class="nc" id="L121">    }</span>
+    
+    /**
+     * @param storecert Set to false if the certificate should not be published.
+     */
+    public void setStoreCert(boolean storecert) {
+<span class="nc" id="L127">        this.data.put(STORECERT, Boolean.valueOf(storecert));</span>
+<span class="nc" id="L128">    }</span>
+    
+    /**
+     * @return Should the certificate be published
+     */
+    public boolean getStoreCert() {
+<span class="nc" id="L134">        final Object o = this.data.get(STORECERT);</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">        if (o == null) {</span>
+<span class="nc" id="L136">            return true; // default value is true</span>
+        }
+<span class="nc bnc" id="L138" title="All 2 branches missed.">        if(o instanceof String) {</span>
+<span class="nc" id="L139">            return Boolean.valueOf((String) o);</span>
+        }
+<span class="nc" id="L141">        return ((Boolean) o).booleanValue();</span>
+    }
+    
+    /**
+     * @return Should the CRL be published.
+     */
+    public boolean getStoreCRL() {
+<span class="nc" id="L148">        final Object o = this.data.get(STORECRL);</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">        if (o == null) {</span>
+<span class="nc" id="L150">            return false; // default value is false</span>
+        }
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        if(o instanceof String) {</span>
+<span class="nc" id="L153">            return Boolean.valueOf((String) o);</span>
+        }
+<span class="nc" id="L155">        return ((Boolean) o).booleanValue();</span>
+    }
+    
+    /**
+     * @param storecert Set to true if the CRL should be published.
+     */
+    public void setStoreCRL(boolean storecert) {
+<span class="nc" id="L162">        this.data.put(STORECRL, Boolean.valueOf(storecert));</span>
+<span class="nc" id="L163">    }</span>
+    
+    /**
+     * @return Should only revoked certificates be published?
+     */
+    public boolean getOnlyPublishRevoked() {
+<span class="nc" id="L169">        final Object o = this.data.get(ONLYPUBLISHREVOKED);</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">        if (o == null) {</span>
+<span class="nc" id="L171">            return false; // default value is false</span>
+        }
+<span class="nc bnc" id="L173" title="All 2 branches missed.">        if(o instanceof String) {</span>
+<span class="nc" id="L174">            return Boolean.valueOf((String) o);</span>
+        }
+<span class="nc" id="L176">        return ((Boolean) o).booleanValue();</span>
+    }
+    
+    /**
+     * @param publishRevoked Set to true if only revoked certificates should be published.
+     */
+    public void setOnlyPublishRevoked(boolean publishRevoked) {
+<span class="nc" id="L183">        this.data.put(ONLYPUBLISHREVOKED, Boolean.valueOf(publishRevoked));</span>
+<span class="nc" id="L184">    }</span>
+    
+    @Override
+    public boolean isReadOnly() {
+<span class="nc" id="L188">        return true;</span>
+    }
+
+    @Override
+    public void validateDataSource(String dataSource) throws PublisherException {
+<span class="nc" id="L193">        super.validateDataSource(dataSource);</span>
+<span class="nc" id="L194">    }</span>
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

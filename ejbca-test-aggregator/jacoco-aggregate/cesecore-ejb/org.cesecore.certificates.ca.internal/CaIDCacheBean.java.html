@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CaIDCacheBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">cesecore-ejb</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.ca.internal</a> &gt; <span class="el_source">CaIDCacheBean.java</span></div><h1>CaIDCacheBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.ca.internal;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.ConcurrencyManagement;
+import javax.ejb.ConcurrencyManagementType;
+import javax.ejb.Singleton;
+import javax.ejb.Startup;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+
+import org.apache.log4j.Logger;
+import org.cesecore.config.CesecoreConfiguration;
+
+/**
+ * Class Holding cache variable.
+ * 
+ * This cache is designed so only one thread at the time will update the cache if it is too old. Other
+ * threads will happily return a bit too old object. If a cache update is forced, for example when
+ * a profile is edited, it will always update the cache even if the commit of the transaction fails.
+ * 
+ * Another known issue during forced updates is the race condition exists, so an update in progress
+ * might overwrite the result from forced update's database query.
+ * 
+ * The intention of this design is better throughput than fully ordered sequential updates.
+ * 
+ * @version $Id: CaIDCacheBean.java 27090 2017-11-08 12:18:08Z anatom $
+ */
+@Singleton
+@Startup
+@ConcurrencyManagement(ConcurrencyManagementType.BEAN)
+<span class="nc" id="L50">public class CaIDCacheBean {</span>
+
+<span class="nc" id="L52">    private final Logger LOG = Logger.getLogger(CaIDCacheBean.class);</span>
+
+    @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+    private EntityManager entityManager;
+
+    /*
+     * Cache of CA IDs. This cache may be
+     * unsynchronized between multiple instances of EJBCA, but is common to all
+     * threads in the same VM. Set volatile to make it thread friendly.
+     */
+
+    /** Cache of CA IDs */
+<span class="nc" id="L64">    private volatile List&lt;Integer&gt; idCache = null;</span>
+
+<span class="nc" id="L66">    private volatile long lastUpdate = 0;</span>
+
+    private ReentrantLock lock;
+    
+    @PostConstruct
+    public void initialize() {
+<span class="nc" id="L72">        idCache = new ArrayList&lt;Integer&gt;();</span>
+<span class="nc" id="L73">        lock = new ReentrantLock(false);</span>
+
+        try {
+<span class="nc" id="L76">            updateCache(true);</span>
+<span class="nc" id="L77">        } catch (RuntimeException e) {</span>
+            //We don't want to murder the entire deployment if the database happens to be unresponsive during startup, it's something we might 
+            //recover from
+<span class="nc" id="L80">            LOG.error(e);</span>
+<span class="nc" id="L81">        }</span>
+<span class="nc" id="L82">    }</span>
+
+    /**
+     * This method sets the update time back down to zero, effectively forcing the cache to be reloaded on next read. Required due to the fact that 
+     * the cache can't reload until whatever transaction performing CRUD ops finishes.
+     */
+    public void forceCacheExpiration() {
+<span class="nc" id="L89">        LOG.debug(&quot;Flushing CA ID cache by forceCacheExpiration&quot;);</span>
+<span class="nc" id="L90">        lastUpdate = 0;</span>
+<span class="nc" id="L91">    }</span>
+    
+    /**
+     * Fetch all CA IDs from the database, unless cache is enabled, valid and we do not force an update.
+     * 
+     * @param force if true, this will force an update even if the cache is not yet invalid
+     */
+    private void updateCache(final boolean force) {
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L100">            LOG.trace(&quot;&gt;updateCache&quot;);</span>
+        }
+<span class="nc" id="L102">        final long cacheTime = CesecoreConfiguration.getCacheCaTimeInCaSession();</span>
+<span class="nc" id="L103">        final long now = System.currentTimeMillis();</span>
+        // Check before acquiring lock. Update cache if we force cache update or cache is disabled in config (cacheTime = 0) or cache expired
+<span class="nc bnc" id="L105" title="All 6 branches missed.">        if (!force &amp;&amp; cacheTime != 0 &amp;&amp; lastUpdate + cacheTime &gt; now) {</span>
+<span class="nc" id="L106">            return; // We don't need to update cache</span>
+        }
+        try {
+<span class="nc" id="L109">            lock.lock();</span>
+<span class="nc bnc" id="L110" title="All 6 branches missed.">            if (!force &amp;&amp; cacheTime != 0 &amp;&amp; lastUpdate + cacheTime &gt; now) {</span>
+<span class="nc" id="L111">                return; // We don't need to update cache</span>
+            }
+<span class="nc" id="L113">            lastUpdate = now; // make sure next thread does not also pass the update test</span>
+        } finally {
+<span class="nc" id="L115">            lock.unlock();</span>
+        }
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L118">        	LOG.debug(&quot;Loading CA ID cache from database&quot;);</span>
+        }
+<span class="nc" id="L120">        final List&lt;Integer&gt; idCacheTemp = findAllCaIds();</span>
+<span class="nc" id="L121">        idCache = idCacheTemp;</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L123">            LOG.trace(&quot;&lt;updateCache&quot;);</span>
+        }
+<span class="nc" id="L125">    }</span>
+
+    /** @return return the query results as a List&lt;Integer&gt;. */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    private List&lt;Integer&gt; findAllCaIds() {
+<span class="nc" id="L130">        final Query query = entityManager.createQuery(&quot;SELECT a.caId FROM CAData a&quot;);</span>
+<span class="nc" id="L131">        return query.getResultList();</span>
+    }
+    
+
+    /** @return the latest List from the cache, which will be refreshed if needed. */
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public List&lt;Integer&gt; getCacheContent() {
+<span class="nc" id="L138">        updateCache(false);</span>
+<span class="nc" id="L139">        return idCache;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

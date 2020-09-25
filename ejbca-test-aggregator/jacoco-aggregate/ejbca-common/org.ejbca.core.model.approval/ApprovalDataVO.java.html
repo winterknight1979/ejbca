@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ApprovalDataVO.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.approval</a> &gt; <span class="el_source">ApprovalDataVO.java</span></div><h1>ApprovalDataVO.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.approval;
+
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Date;
+
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.approval.profile.ApprovalProfile;
+
+/**
+ * Value Object containing all the information about an approval such as approvalid, approvaltype, endentityprofileid, caid, reqadmincertissuerdn,
+ * reqadmincertsn, status, approvals (Collection), requestdata, requestdate, expiredate, remainingapprovals
+ *
+ * @version $Id: ApprovalDataVO.java 27422 2017-12-05 14:05:42Z bastianf $
+ */
+public class ApprovalDataVO implements Serializable {
+
+	private static final long serialVersionUID = -2L;
+
+	// Status constants
+	public static final int STATUS_WAITINGFORAPPROVAL = -1;
+	public static final int STATUS_APPROVED           = 0;
+	public static final int STATUS_REJECTED           = -2;
+	public static final int STATUS_EXPIRED            = -3;
+	public static final int STATUS_EXPIREDANDNOTIFIED = -4; // Used to mark that the requester has been notified that the request has expired.
+	public static final int STATUS_EXECUTED           = -5;
+	public static final int STATUS_EXECUTIONFAILED    = -6;
+	public static final int STATUS_EXECUTIONDENIED    = -7;
+
+	// Approval types
+	public static final int APPROVALTYPE_DUMMY                       = 0;
+	public static final int APPROVALTYPE_VIEWHARDTOKENDATA           = 1;
+	public static final int APPROVALTYPE_ADDENDENTITY                = 2;
+	public static final int APPROVALTYPE_EDITENDENTITY               = 3;
+	public static final int APPROVALTYPE_CHANGESTATUSENDENTITY       = 4;
+	public static final int APPROVALTYPE_KEYRECOVERY                 = 5;
+	public static final int APPROVALTYPE_GENERATETOKEN               = 6;
+	public static final int APPROVALTYPE_REVOKEENDENTITY             = 7;
+	public static final int APPROVALTYPE_REVOKEANDDELETEENDENTITY    = 8;
+	public static final int APPROVALTYPE_REVOKECERTIFICATE           = 9;
+	public static final int APPROVALTYPE_ACTIVATECATOKEN             = 10;
+
+	//IMPORTANT REMEMBER TO SET THE RESOURCES IN BOTH INTERNAL AND ADMINWEB LANGUAGE FILES
+<span class="fc" id="L57">	public static final String[] APPROVALTYPENAMES = {&quot;APDUMMY&quot;,&quot;APVIEWHARDTOKENDATA&quot;,&quot;APADDENDENTITY&quot;,&quot;APEDITENDENTITY&quot;,</span>
+		                                              &quot;APCHANGESTATUSENDENTITY&quot;, &quot;APKEYRECOVERY&quot;, &quot;APGENERATETOKEN&quot;,
+		                                              &quot;APREVOKEENDENTITY&quot;, &quot;APREVOKEDELETEENDENTITY&quot;, &quot;APREVOKECERTIFICATE&quot;,
+                                                      &quot;APPROVEACTIVATECA&quot;};
+
+	/** Used to indicate that the approval is applicable to any ca. */
+	public static final int ANY_CA = SecConst.ALLCAS;
+
+	/** Used to indicate that the approval is applicable to any end entity profile. */
+    public static final int ANY_ENDENTITYPROFILE = EndEntityConstants.NO_END_ENTITY_PROFILE;
+
+<span class="nc" id="L68">    private int id = 0;</span>
+<span class="nc" id="L69">    private int approvalId = 0;</span>
+<span class="nc" id="L70">    private int approvalType = 0;</span>
+    /**
+     * Note:    It's known that this field has a typo in it, but renaming it would break serialization and thus compromise EJBCA's 100% uptime
+     *          requirements. For that reason, leave it be.
+     */
+<span class="nc" id="L75">    private int endEntityProfileiId = 0;</span>
+<span class="nc" id="L76">    private int cAId = 0;</span>
+<span class="nc" id="L77">    private String reqadmincertissuerdn = null;</span>
+<span class="nc" id="L78">    private String reqadmincertsn = null;</span>
+<span class="nc" id="L79">    private int status = 0;</span>
+<span class="nc" id="L80">    private Collection&lt;Approval&gt; approvals = null;</span>
+<span class="nc" id="L81">    private ApprovalRequest approvalRequest = null;</span>
+<span class="nc" id="L82">    private Date requestDate = null;</span>
+<span class="nc" id="L83">    private Date expireDate = null;</span>
+
+	/**
+	 * @param id unique row id
+	 * @param approvalId    Constructed from action data as actiontype, admin, username etc. It should
+     *                      result in the same approvalid if the admin tries to request the same action twice.
+	 * @param approvalType  Type of action that should be approved, should be one of ApprovalDataVO.APPROVALTYPE_
+     *                      constants ex: ApprovalDataVO.APPROVALTYPE_VIEWHARDTOKENDATA
+	 * @param endEntityProfileiId For RA specific approval requests should the related end entity profile id be specified
+    *                       for non ra request should this field be set to ApprovalDataVO.ANY_ENDENTITYPROFILE
+	 * @param cAId          For CA specific approval requests should the related ca id be specified
+    *                       for non ca request should this field be set to ApprovalDataVO.ANY_CA
+	 * @param reqadmincertissuerdn The issuerdn of the administrator certificate that generated the request.
+	 * @param reqadmincertsn The serialnumber of the administrator certificate that generated the request. String in Hex
+	 * @param status        Should be one of ApprovalDataVO.STATUS_ constants
+	 * @param approvals     Collection of created Approvals (never null)
+	 * @param approvalRequest The ApprovalRequest
+	 * @param requestDate   Date the request for approval were added
+	 * @param expireDate    Date the request for action or the approval action will expire, Long.MAX_VALUE
+     *                      means that the request/approval never expires
+	 */
+	public ApprovalDataVO(int id, int approvalId, int approvalType, int endEntityProfileiId, int cAId, String reqadmincertissuerdn,
+	        String reqadmincertsn, int status, Collection&lt;Approval&gt; approvals, ApprovalRequest approvalRequest, Date requestDate,
+	        Date expireDate) {
+<span class="nc" id="L107">		super();</span>
+<span class="nc" id="L108">		this.id = id;</span>
+<span class="nc" id="L109">		this.approvalId = approvalId;</span>
+<span class="nc" id="L110">		this.approvalType = approvalType;</span>
+<span class="nc" id="L111">		this.endEntityProfileiId = endEntityProfileiId;</span>
+<span class="nc" id="L112">		this.cAId = cAId;</span>
+<span class="nc" id="L113">		this.reqadmincertissuerdn = reqadmincertissuerdn;</span>
+<span class="nc" id="L114">		this.reqadmincertsn = reqadmincertsn;</span>
+<span class="nc" id="L115">		this.status = status;</span>
+<span class="nc" id="L116">		this.approvals = approvals;</span>
+<span class="nc" id="L117">		this.approvalRequest = approvalRequest;</span>
+<span class="nc" id="L118">		this.requestDate = requestDate;</span>
+<span class="nc" id="L119">		this.expireDate = expireDate;</span>
+<span class="nc" id="L120">	}</span>
+	/**
+	 *  Constructed from action data as actiontype, admin, username etc. It should
+     *  result in the same approvalid if the admin tries to request the same action twice.
+	 *
+	 * @return Returns the approvalId.
+	 */
+	public int getApprovalId() {
+<span class="nc" id="L128">		return approvalId;</span>
+	}
+	/**
+	 * The ApprovalRequest
+	 *
+	 * @return Returns the approvalRequest.
+	 */
+	public ApprovalRequest getApprovalRequest() {
+<span class="nc" id="L136">		return approvalRequest;</span>
+	}
+
+	public void setApprovalRequest(ApprovalRequest approvalRequest) {
+<span class="nc" id="L140">	    this.approvalRequest = approvalRequest;</span>
+<span class="nc" id="L141">	}</span>
+
+	/**
+	 * Collection of created Approvals (never null)
+	 *
+	 * @return Returns the approvals.
+	 */
+	public Collection&lt;Approval&gt; getApprovals() {
+<span class="nc" id="L149">		return approvals;</span>
+	}
+
+	/**
+	 * Type of action that should be approved, should be one of ApprovalDataVO.APPROVALTYPE_
+     * constants ex: ApprovalDataVO.APPROVALTYPE_VIEWHARDTOKENDATA
+	 *
+	 * @return Returns the approvalType.
+	 */
+	public int getApprovalType() {
+<span class="nc" id="L159">		return approvalType;</span>
+	}
+
+	/**
+	 * For CA specific approval requests should the related ca id be specified
+     * for non ca request should this field be set to ApprovalDataVO.ANY_CA
+     *
+	 * @return Returns the cAId.
+	 */
+	public int getCAId() {
+<span class="nc" id="L169">		return cAId;</span>
+	}
+
+	/**
+	 *  For RA specific approval requests should the related end entity profile id be specified
+     *  for non ra request should this field be set to ApprovalDataVO.ANY_ENDENTITYPROFILE
+     *
+	 * @return Returns the endEntityProfileId.
+	 */
+	public int getEndEntityProfileId() {
+<span class="nc" id="L179">		return endEntityProfileiId;</span>
+	}
+
+	/**
+	 * Date the request for action or the approvel action will expire, Long.MAX_VALUE
+     * means that the request/approval never expires
+     *
+	 * @return Returns the expireDate.
+	 */
+	public Date getExpireDate() {
+<span class="nc" id="L189">		return expireDate;</span>
+	}
+
+	/**
+	 * @return Returns the id.
+	 */
+	public int getId() {
+<span class="nc" id="L196">		return id;</span>
+	}
+
+	public ApprovalProfile getApprovalProfile() {
+<span class="nc" id="L200">	    return approvalRequest.getApprovalProfile();</span>
+	}
+
+    public int getRemainingApprovals() {
+<span class="nc bnc" id="L204" title="All 2 branches missed.">        if (status == STATUS_REJECTED) {</span>
+<span class="nc" id="L205">            return 0;</span>
+        } else {
+<span class="nc bnc" id="L207" title="All 2 branches missed.">            if(getApprovalProfile() != null) {</span>
+<span class="nc" id="L208">                return getApprovalProfile().getRemainingApprovals(getApprovals());</span>
+            } else {
+<span class="nc" id="L210">                return -1;</span>
+            }
+        }
+    }
+
+	/**
+	 * The issuerdn of the administrator certificate that generated the request.
+	 *
+	 * @return Returns the reqadmincertissuerdn.
+	 */
+	public String getReqadmincertissuerdn() {
+<span class="nc" id="L221">		return reqadmincertissuerdn;</span>
+	}
+
+	/**
+	 * The serialnumber of the administrator certificate that generated the request. String in Hex
+	 *
+	 * @return Returns the reqadmincertsn.
+	 */
+	public String getReqadmincertsn() {
+<span class="nc" id="L230">		return reqadmincertsn;</span>
+	}
+
+	/**
+	 * Date the request for approval were added
+	 *
+	 * @return Returns the requestDate.
+	 */
+	public Date getRequestDate() {
+<span class="nc" id="L239">		return requestDate;</span>
+	}
+
+	/**
+	 * Should be one of ApprovalDataVO.STATUS_ constants
+	 *
+	 * @return Returns the status.
+	 */
+	public int getStatus() {
+<span class="nc" id="L248">		return status;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

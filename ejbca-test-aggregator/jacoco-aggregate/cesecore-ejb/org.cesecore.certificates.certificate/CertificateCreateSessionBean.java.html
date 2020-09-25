@@ -1,0 +1,803 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CertificateCreateSessionBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">cesecore-ejb</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.certificate</a> &gt; <span class="el_source">CertificateCreateSessionBean.java</span></div><h1>CertificateCreateSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.certificate;
+
+import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PublicKey;
+import java.security.SignatureException;
+import java.security.cert.CRLException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.DERBitString;
+import org.bouncycastle.asn1.x509.Extensions;
+import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.cesecore.ErrorCode;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.enums.EventTypes;
+import org.cesecore.audit.enums.ModuleTypes;
+import org.cesecore.audit.enums.ServiceTypes;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.ca.CA;
+import org.cesecore.certificates.ca.CAConstants;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CAOfflineException;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.ca.CertificateGenerationParams;
+import org.cesecore.certificates.ca.IllegalNameException;
+import org.cesecore.certificates.ca.IllegalValidityException;
+import org.cesecore.certificates.ca.InvalidAlgorithmException;
+import org.cesecore.certificates.ca.SignRequestSignatureException;
+import org.cesecore.certificates.ca.X509CA;
+import org.cesecore.certificates.ca.catoken.CAToken;
+import org.cesecore.certificates.ca.catoken.CATokenConstants;
+import org.cesecore.certificates.ca.internal.RequestAndPublicKeySelector;
+import org.cesecore.certificates.certificate.certextensions.AvailableCustomCertificateExtensionsConfiguration;
+import org.cesecore.certificates.certificate.certextensions.CertificateExtensionException;
+import org.cesecore.certificates.certificate.exception.CertificateSerialNumberException;
+import org.cesecore.certificates.certificate.exception.CustomCertificateSerialNumberException;
+import org.cesecore.certificates.certificate.request.CertificateResponseMessage;
+import org.cesecore.certificates.certificate.request.FailInfo;
+import org.cesecore.certificates.certificate.request.RequestMessage;
+import org.cesecore.certificates.certificate.request.ResponseMessage;
+import org.cesecore.certificates.certificate.request.ResponseMessageUtils;
+import org.cesecore.certificates.certificate.request.ResponseStatus;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.certificates.certificatetransparency.CTAuditLogCallback;
+import org.cesecore.certificates.crl.RevokedCertInfo;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.EndEntityTypes;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.internal.InternalResources;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.keys.token.CryptoToken;
+import org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.keys.util.KeyTools;
+import org.cesecore.keys.validation.IssuancePhase;
+import org.cesecore.keys.validation.KeyValidatorSessionLocal;
+import org.cesecore.keys.validation.ValidationException;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+
+/**
+ * Session bean for creating certificates.
+ * 
+ * @version $Id: CertificateCreateSessionBean.java 29808 2018-09-05 07:52:38Z henriks $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;CertificateCreateSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L109">public class CertificateCreateSessionBean implements CertificateCreateSessionLocal, CertificateCreateSessionRemote {</span>
+
+<span class="nc" id="L111">    private static final Logger log = Logger.getLogger(CertificateCreateSessionBean.class);</span>
+
+    /** Internal localization of logs and errors */
+<span class="nc" id="L114">    private static final InternalResources intres = InternalResources.getInstance();</span>
+
+    @EJB
+    private CaSessionLocal caSession;
+    @EJB
+    private CertificateStoreSessionLocal certificateStoreSession;
+    @EJB
+    private CertificateProfileSessionLocal certificateProfileSession;
+    @EJB
+    private KeyValidatorSessionLocal keyValidatorSession;
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private SecurityEventsLoggerSessionLocal logSession;
+    @EJB
+    private CryptoTokenManagementSessionLocal cryptoTokenManagementSession;
+    @EJB
+    private GlobalConfigurationSessionLocal globalConfigurationSession;
+
+    /** Default create for SessionBean without any creation Arguments. */
+    @PostConstruct
+    public void postConstruct() {
+        // Install BouncyCastle provider
+<span class="nc" id="L137">        CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+<span class="nc" id="L138">    }</span>
+
+    @Override
+    public CertificateResponseMessage createCertificate(final AuthenticationToken admin, final EndEntityInformation endEntityInformation, final CA ca,
+            final RequestMessage requestMessage, final Class&lt;? extends ResponseMessage&gt; responseClass, CertificateGenerationParams certGenParams,
+            final long updateTime) throws CryptoTokenOfflineException, SignRequestSignatureException, IllegalKeyException, IllegalNameException,
+            CustomCertificateSerialNumberException, CertificateCreateException, CertificateRevokeException, CertificateSerialNumberException,
+            AuthorizationDeniedException, IllegalValidityException, CAOfflineException, InvalidAlgorithmException, CertificateExtensionException {
+<span class="nc bnc" id="L146" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L147">            log.trace(&quot;&gt;createCertificate(IRequestMessage, CA)&quot;);</span>
+        }
+<span class="nc" id="L149">        CertificateResponseMessage ret = null;</span>
+        try {
+<span class="nc" id="L151">            final CAToken catoken = ca.getCAToken();</span>
+<span class="nc" id="L152">            final CryptoToken cryptoToken = cryptoTokenManagementSession.getCryptoToken(catoken.getCryptoTokenId());</span>
+            final String alias;
+            final Collection&lt;Certificate&gt; cachain;
+            final Certificate cacert;
+<span class="nc bnc" id="L156" title="All 2 branches missed.">            if (ca.getUseNextCACert(requestMessage)) {</span>
+<span class="nc" id="L157">                alias = catoken.getAliasFromPurpose(CATokenConstants.CAKEYPURPOSE_CERTSIGN_NEXT);</span>
+<span class="nc" id="L158">                cachain = ca.getRolloverCertificateChain();</span>
+<span class="nc" id="L159">                cacert = cachain.iterator().next();</span>
+            } else {
+<span class="nc" id="L161">                alias = catoken.getAliasFromPurpose(CATokenConstants.CAKEYPURPOSE_CERTSIGN);</span>
+<span class="nc" id="L162">                cachain = ca.getCertificateChain();</span>
+<span class="nc" id="L163">                cacert = ca.getCACertificate();</span>
+            }
+            // See if we need some key material to decrypt request
+<span class="nc bnc" id="L166" title="All 2 branches missed.">            if (requestMessage.requireKeyInfo()) {</span>
+                // You go figure...scep encrypts message with the public CA-cert
+<span class="nc" id="L168">                requestMessage.setKeyInfo(cacert, cryptoToken.getPrivateKey(alias), cryptoToken.getEncProviderName());</span>
+            }
+            // Verify the request
+            final PublicKey reqpk;
+            try {
+<span class="nc bnc" id="L173" title="All 2 branches missed.">                if (!requestMessage.verify()) {</span>
+<span class="nc" id="L174">                    throw new SignRequestSignatureException(intres.getLocalizedMessage(&quot;createcert.popverificationfailed&quot;));</span>
+                }
+<span class="nc" id="L176">                reqpk = requestMessage.getRequestPublicKey();</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">                if (reqpk == null) {</span>
+<span class="nc" id="L178">                    final String msg = intres.getLocalizedMessage(&quot;createcert.nokeyinrequest&quot;);</span>
+<span class="nc" id="L179">                    throw new InvalidKeyException(msg);</span>
+                }
+<span class="nc" id="L181">            } catch (InvalidKeyException e) {</span>
+                // If we get an invalid key exception here, we should throw an IllegalKeyException to the caller
+                // The catch of InvalidKeyException in the end of this method, catches error from the CA crypto token
+<span class="nc" id="L184">                throw new IllegalKeyException(e);</span>
+<span class="nc" id="L185">            }</span>
+
+<span class="nc" id="L187">            final Date notBefore = requestMessage.getRequestValidityNotBefore(); // Optionally requested validity</span>
+<span class="nc" id="L188">            final Date notAfter = requestMessage.getRequestValidityNotAfter(); // Optionally requested validity</span>
+<span class="nc" id="L189">            final Extensions exts = requestMessage.getRequestExtensions(); // Optionally requested extensions</span>
+<span class="nc" id="L190">            int keyusage = -1;</span>
+<span class="nc bnc" id="L191" title="All 2 branches missed.">            if (exts != null) {</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L193">                    log.debug(&quot;we have extensions, see if we can override KeyUsage by looking for a KeyUsage extension in request&quot;);</span>
+                }
+<span class="nc" id="L195">                final KeyUsage keyUsage = KeyUsage.fromExtensions(exts);</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">                if (keyUsage!=null) {</span>
+<span class="nc" id="L197">                    final DERBitString bitString = (DERBitString) keyUsage.toASN1Primitive();</span>
+<span class="nc" id="L198">                    keyusage = bitString.intValue();</span>
+<span class="nc bnc" id="L199" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L200">                        log.debug(&quot;We have a key usage request extension: &quot; + keyusage);</span>
+                    }
+                }
+            }
+<span class="nc" id="L204">            String sequence = null;</span>
+<span class="nc" id="L205">            byte[] ki = requestMessage.getRequestKeyInfo();</span>
+            // CVC sequence is only 5 characters, don't fill with a lot of garbage here, it must be a readable string
+<span class="nc bnc" id="L207" title="All 6 branches missed.">            if ((ki != null) &amp;&amp; (ki.length &gt; 0) &amp;&amp; (ki.length &lt; 10) ) {</span>
+<span class="nc" id="L208">                final String str = new String(ki);</span>
+                // A cvc sequence must be ascii printable, otherwise it's some binary data
+<span class="nc bnc" id="L210" title="All 2 branches missed.">                if (StringUtils.isAsciiPrintable(str)) {</span>
+<span class="nc" id="L211">                    sequence = new String(ki);                  </span>
+                }
+            }
+            
+<span class="nc" id="L215">            CertificateDataWrapper certWrapper = createCertificate(admin, endEntityInformation, ca, requestMessage, reqpk, keyusage, notBefore, notAfter, exts, sequence, certGenParams, updateTime);</span>
+            // Create the response message with all nonces and checks etc            
+<span class="nc" id="L217">            ret = ResponseMessageUtils.createResponseMessage(responseClass, requestMessage, cachain, cryptoToken.getPrivateKey(alias), cryptoToken.getEncProviderName());</span>
+<span class="nc" id="L218">            ResponseStatus status = ResponseStatus.SUCCESS;</span>
+<span class="nc" id="L219">            FailInfo failInfo = null;</span>
+<span class="nc" id="L220">            String failText = null;</span>
+<span class="nc bnc" id="L221" title="All 4 branches missed.">            if ((certWrapper == null) &amp;&amp; (status == ResponseStatus.SUCCESS)) {</span>
+<span class="nc" id="L222">                status = ResponseStatus.FAILURE;</span>
+<span class="nc" id="L223">                failInfo = FailInfo.BAD_REQUEST;</span>
+            } else {
+<span class="nc" id="L225">                ret.setCertificate(certWrapper.getCertificate());</span>
+<span class="nc" id="L226">                ret.setCACert(cacert);</span>
+                // Add in case of success after CMP message -&gt; CmpResponseMessage.
+<span class="nc" id="L228">                ret.addAdditionalCaCertificates(requestMessage.getAdditionalCaCertificates());</span>
+<span class="nc" id="L229">                ret.setBase64CertData(certWrapper.getBase64CertData());</span>
+<span class="nc" id="L230">                ret.setCertificateData(certWrapper.getCertificateData());</span>
+            }
+            // Add in all cases -&gt; PKI message.
+<span class="nc" id="L233">            ret.addAdditionalResponseExtraCertsCertificates(requestMessage.getAdditionalExtraCertsCertificates());</span>
+<span class="nc" id="L234">            ret.setStatus(status);</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">            if (failInfo != null) {</span>
+<span class="nc" id="L236">                ret.setFailInfo(failInfo);</span>
+<span class="nc" id="L237">                ret.setFailText(failText);</span>
+            }
+<span class="nc" id="L239">            ret.create();          </span>
+<span class="nc" id="L240">        } catch (InvalidKeyException e) {</span>
+<span class="nc" id="L241">            throw new CertificateCreateException(ErrorCode.INVALID_KEY, e);</span>
+<span class="nc" id="L242">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L243">            throw new CertificateCreateException(ErrorCode.BAD_REQUEST_SIGNATURE, e);</span>
+<span class="nc" id="L244">        } catch (NoSuchProviderException e) {</span>
+<span class="nc" id="L245">            throw new CertificateCreateException(ErrorCode.INTERNAL_ERROR, e);</span>
+<span class="nc" id="L246">        } catch(CertificateEncodingException e) {</span>
+<span class="nc" id="L247">            throw new CertificateCreateException(ErrorCode.CERT_COULD_NOT_BE_PARSED, e);</span>
+<span class="nc" id="L248">        } catch (CRLException e) {</span>
+<span class="nc" id="L249">            throw new CertificateCreateException(ErrorCode.CERT_COULD_NOT_BE_PARSED, e);</span>
+<span class="nc" id="L250">        } </span>
+
+<span class="nc bnc" id="L252" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L253">            log.trace(&quot;&lt;createCertificate(IRequestMessage, CA)&quot;);</span>
+        }
+<span class="nc" id="L255">        return ret;</span>
+    }
+
+    @Override
+    public CertificateResponseMessage createCertificate(final AuthenticationToken admin, final EndEntityInformation userData,
+            final RequestMessage req, final Class&lt;? extends ResponseMessage&gt; responseClass, CertificateGenerationParams certGenParams) throws CADoesntExistsException,
+            AuthorizationDeniedException, CryptoTokenOfflineException, SignRequestSignatureException, IllegalKeyException, IllegalNameException,
+            CustomCertificateSerialNumberException, CertificateCreateException, CertificateRevokeException, CertificateSerialNumberException, IllegalValidityException, CAOfflineException, InvalidAlgorithmException, CertificateExtensionException {
+<span class="nc" id="L263">        final long updateTime = System.currentTimeMillis();</span>
+<span class="nc" id="L264">        return createCertificate(admin, userData, req, responseClass, certGenParams, updateTime);</span>
+    }
+
+
+    @Override
+    public CertificateResponseMessage createCertificate(final AuthenticationToken admin, final EndEntityInformation userData,
+            final RequestMessage req, final Class&lt;? extends ResponseMessage&gt; responseClass, CertificateGenerationParams certGenParams, final long updateTime) throws CADoesntExistsException,
+            AuthorizationDeniedException, CryptoTokenOfflineException, SignRequestSignatureException, IllegalKeyException, IllegalNameException,
+            CustomCertificateSerialNumberException, CertificateCreateException, CertificateRevokeException, CertificateSerialNumberException, IllegalValidityException, CAOfflineException, InvalidAlgorithmException, CertificateExtensionException {
+<span class="nc bnc" id="L273" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L274">            log.trace(&quot;&gt;createCertificate(IRequestMessage)&quot;);</span>
+        }
+        final CA ca;
+        // First find the CA, this checks authorization and that the CA exists
+<span class="nc bnc" id="L278" title="All 4 branches missed.">        if ((userData == null) || (userData.getCAId() == 0)) {</span>
+            // If no CAid in the supplied userdata
+<span class="nc" id="L280">            ca = getCAFromRequest(admin, req);</span>
+        } else {
+<span class="nc" id="L282">            ca = caSession.getCA(admin, userData.getCAId());</span>
+        }
+
+<span class="nc bnc" id="L285" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L286">            log.trace(&quot;&lt;createCertificate(IRequestMessage)&quot;);</span>
+        }
+<span class="nc" id="L288">        return createCertificate(admin, userData, ca, req, responseClass, certGenParams, updateTime);</span>
+    }
+
+    /**
+     * Help Method that extracts the CA specified in the request.
+     * @param admin Auth token
+     * @param req Request
+     * @return CA
+     * 
+     * @throws AuthorizationDeniedException If access denied
+     * @throws CADoesntExistsException On fail
+     */
+    private CA getCAFromRequest(final AuthenticationToken admin, final RequestMessage req) throws CADoesntExistsException,
+            AuthorizationDeniedException {
+<span class="nc" id="L302">        CA ca = null;</span>
+        // See if we can get issuerDN directly from request
+<span class="nc bnc" id="L304" title="All 2 branches missed.">        if (req.getIssuerDN() != null) {</span>
+<span class="nc" id="L305">            String dn = certificateStoreSession.getCADnFromRequest(req);</span>
+<span class="nc" id="L306">            ca = caSession.getCA(admin, dn.hashCode());</span>
+<span class="nc bnc" id="L307" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L308">                log.debug(&quot;Using CA (from issuerDN) with id: &quot; + ca.getCAId() + &quot; and DN: &quot; + ca.getSubjectDN());</span>
+            }
+<span class="nc" id="L310">        } else {</span>
+<span class="nc" id="L311">            throw new CADoesntExistsException(intres.getLocalizedMessage(&quot;createcert.canotfoundissuerusername&quot;, req.getIssuerDN(), req.getUsername()));</span>
+        }
+
+<span class="nc bnc" id="L314" title="All 2 branches missed.">        if (ca.getStatus() != CAConstants.CA_ACTIVE) {</span>
+<span class="nc" id="L315">            final String msg = intres.getLocalizedMessage(&quot;createcert.canotactive&quot;, ca.getSubjectDN());</span>
+<span class="nc" id="L316">            throw new EJBException(msg);</span>
+        }
+<span class="nc" id="L318">        return ca;</span>
+    }
+    
+    @Override
+    public CertificateDataWrapper createCertificate(final AuthenticationToken admin, final EndEntityInformation endEntityInformation, final CA ca,
+            final RequestMessage request, final PublicKey pk, final int keyusage, final Date notBefore, final Date notAfter,
+            final Extensions extensions, final String sequence, CertificateGenerationParams certGenParams, final long updateTime)
+            throws AuthorizationDeniedException, IllegalNameException, CustomCertificateSerialNumberException, CertificateCreateException,
+            CertificateRevokeException, CertificateSerialNumberException, CryptoTokenOfflineException, IllegalKeyException,
+            CertificateExtensionException, IllegalValidityException, CAOfflineException, InvalidAlgorithmException {
+<span class="nc bnc" id="L328" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L329">            log.trace(&quot;&gt;createCertificate(EndEntityInformation, CA, X500Name, pk, ku, notBefore, notAfter, extesions, sequence)&quot;);</span>
+        }
+        
+        // Even though CA is passed as an argument to this method, we do check authorization on that.
+        // To make sure we properly log authorization checks needed to issue a cert.
+        // We need to check that admin have rights to create certificates, and have access to the CA
+<span class="nc bnc" id="L335" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(admin, StandardRules.CREATECERT.resource(), StandardRules.CAACCESS.resource() + ca.getCAId())) {</span>
+<span class="nc" id="L336">            final String msg = intres.getLocalizedMessage(&quot;createcert.notauthorized&quot;, admin.toString(), ca.getCAId());</span>
+<span class="nc" id="L337">            throw new AuthorizationDeniedException(msg);</span>
+        }
+
+        // Audit log that we received the request
+<span class="nc" id="L341">        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L342">        details.put(&quot;subjectdn&quot;, endEntityInformation.getDN());</span>
+<span class="nc bnc" id="L343" title="All 4 branches missed.">        details.put(&quot;requestX500name&quot;, (request == null || request.getRequestX500Name() == null) ? &quot;null&quot; : request.getRequestX500Name().toString());</span>
+<span class="nc" id="L344">        details.put(&quot;subjectaltname&quot;, endEntityInformation.getSubjectAltName());</span>
+<span class="nc bnc" id="L345" title="All 2 branches missed.">        if (null != request) {</span>
+<span class="nc" id="L346">            details.put(&quot;requestaltname&quot;, request.getRequestAltNames());</span>
+        }
+<span class="nc" id="L348">        details.put(&quot;certprofile&quot;, endEntityInformation.getCertificateProfileId());</span>
+<span class="nc" id="L349">        details.put(&quot;keyusage&quot;, keyusage);</span>
+<span class="nc" id="L350">        details.put(&quot;notbefore&quot;, notBefore);</span>
+<span class="nc" id="L351">        details.put(&quot;notafter&quot;, notAfter);</span>
+<span class="nc" id="L352">        details.put(&quot;sequence&quot;, sequence);</span>
+<span class="nc" id="L353">        details.put(&quot;publickey&quot;, new String(Base64.encode(pk.getEncoded(), false)));</span>
+<span class="nc" id="L354">        logSession.log(EventTypes.CERT_REQUEST, EventStatus.SUCCESS, ModuleTypes.CERTIFICATE, ServiceTypes.CORE, admin.toString(),</span>
+<span class="nc" id="L355">                String.valueOf(ca.getCAId()), null, endEntityInformation.getUsername(), details);</span>
+        
+        // Retrieve the certificate profile this user should have, checking for authorization to the profile
+<span class="nc" id="L358">        final int certProfileId = endEntityInformation.getCertificateProfileId();</span>
+<span class="nc" id="L359">        final CertificateProfile certProfile = getCertificateProfile(certProfileId, ca.getCAId());</span>
+        
+        // Validate ValidatorPhase.DATA_VALIDATION
+        try {
+            // Which public key to validate follows the criteria established in RequestAndPublicKeySelector, which is the same as used in the CA.
+<span class="nc" id="L364">            final ExtendedInformation ei = endEntityInformation.getExtendedInformation();</span>
+<span class="nc" id="L365">            final RequestAndPublicKeySelector pkSelector = new RequestAndPublicKeySelector(request, pk, ei);</span>
+<span class="nc" id="L366">            keyValidatorSession.validatePublicKey(admin, ca, endEntityInformation, certProfile, notBefore, notAfter,</span>
+<span class="nc" id="L367">                    pkSelector.getPublicKey());</span>
+<span class="nc" id="L368">        } catch(ValidationException e) {</span>
+<span class="nc" id="L369">            throw new CertificateCreateException(ErrorCode.ILLEGAL_KEY, e);</span>
+<span class="nc" id="L370">        }</span>
+        try {
+<span class="nc" id="L372">            keyValidatorSession.validateDnsNames(admin, ca, endEntityInformation, request);</span>
+<span class="nc" id="L373">        } catch (ValidationException e) {</span>
+            // Re-factor: ErrorCode could be specified more precisely.
+<span class="nc" id="L375">            throw new CertificateCreateException(ErrorCode.NOT_AUTHORIZED, e.getLocalizedMessage());</span>
+<span class="nc" id="L376">        }</span>
+        
+        // Set up audit logging of CT pre-certificate
+<span class="nc" id="L379">        addCTLoggingCallback(certGenParams, admin.toString());</span>
+
+        try {
+<span class="nc" id="L382">            CertificateDataWrapper result = null;</span>
+            // If the user is of type USER_INVALID, it cannot have any other type (in the mask)
+<span class="nc bnc" id="L384" title="All 2 branches missed.">            if (endEntityInformation.getType().isType(EndEntityTypes.INVALID)) {</span>
+<span class="nc" id="L385">                final String msg = intres.getLocalizedMessage(&quot;createcert.usertypeinvalid&quot;, endEntityInformation.getUsername());</span>
+<span class="nc" id="L386">                throw new CertificateCreateException(ErrorCode.INTERNAL_ERROR, msg);</span>
+            }
+            
+<span class="nc" id="L389">            assertSubjectEnforcements(ca.getCAInfo(), endEntityInformation);</span>
+<span class="nc" id="L390">            assertSubjectKeyIdEnforcements(ca.getCAInfo(), endEntityInformation, pk);</span>
+    
+            //certProfile.verifyKey(pk); Verifying the public key against certificate profile is going to be executed in *CA.generateCertificate
+
+            // Below we have a small loop if it would happen that we generate the same serial number twice
+            // If using only 4 byte serial numbers this do happen once in a while
+<span class="nc" id="L396">            Certificate cert = null;</span>
+<span class="nc" id="L397">            String cafingerprint = null;</span>
+            final boolean useCustomSN;
+            {
+<span class="nc" id="L400">                final ExtendedInformation ei = endEntityInformation.getExtendedInformation();</span>
+<span class="nc bnc" id="L401" title="All 4 branches missed.">                useCustomSN = ei != null &amp;&amp; ei.certificateSerialNumber() != null;</span>
+            }
+            final int maxRetrys;
+<span class="nc bnc" id="L404" title="All 2 branches missed.">            if (useCustomSN) {</span>
+<span class="nc bnc" id="L405" title="All 4 branches missed.">                if (ca.isUseCertificateStorage() &amp;&amp; !isUniqueCertificateSerialNumberIndex()) {</span>
+<span class="nc" id="L406">                    final String msg = intres.getLocalizedMessage(&quot;createcert.not_unique_certserialnumberindex&quot;);</span>
+<span class="nc" id="L407">                    log.error(msg);</span>
+<span class="nc" id="L408">                    throw new CustomCertificateSerialNumberException(msg);</span>
+                }
+<span class="nc bnc" id="L410" title="All 2 branches missed.">                if (!certProfile.getAllowCertSerialNumberOverride()) {</span>
+<span class="nc" id="L411">                    final String msg = intres</span>
+<span class="nc" id="L412">                            .getLocalizedMessage(&quot;createcert.certprof_not_allowing_cert_sn_override&quot;, Integer.valueOf(certProfileId));</span>
+<span class="nc" id="L413">                    log.info(msg);</span>
+<span class="nc" id="L414">                    throw new CustomCertificateSerialNumberException(msg);</span>
+                }
+<span class="nc" id="L416">                maxRetrys = 1;</span>
+            } else {
+<span class="nc" id="L418">                maxRetrys = 5;</span>
+            }
+            
+            // Before storing the new certificate, check if single active certificate constraint is active, and if so let's revoke all active and unexpired certificates
+<span class="nc bnc" id="L422" title="All 2 branches missed.">            if (certProfile.isSingleActiveCertificateConstraint()) {</span>
+                // Only get not yet expired certificates with status CERT_ACTIVE, CERT_NOTIFIEDABOUTEXPIRATION, CERT_REVOKED
+<span class="nc" id="L424">                final List&lt;CertificateDataWrapper&gt; cdws = certificateStoreSession.getCertificateDataByUsername(endEntityInformation.getUsername(),</span>
+<span class="nc" id="L425">                        true, Arrays.asList(CertificateConstants.CERT_ARCHIVED, CertificateConstants.CERT_INACTIVE,</span>
+<span class="nc" id="L426">                                CertificateConstants.CERT_ROLLOVERPENDING, CertificateConstants.CERT_UNASSIGNED));</span>
+<span class="nc bnc" id="L427" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L428">                    log.debug(&quot;SingleActiveCertificateConstraint, found &quot;+cdws.size()+&quot; old (non expired, active) certificates.&quot;);</span>
+                }
+<span class="nc bnc" id="L430" title="All 2 branches missed.">                for (final CertificateDataWrapper cdw : cdws) {</span>
+<span class="nc" id="L431">                    final CertificateData certificateData = cdw.getCertificateData();</span>
+<span class="nc bnc" id="L432" title="All 4 branches missed.">                    if (certificateData.getStatus() == CertificateConstants.CERT_REVOKED &amp;&amp; certificateData.getRevocationReason() != RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD) {</span>
+                        // It's possible that revocation may have been already called from a higher level bean (such as SignSession) which had to 
+                        // perform operations (such as publishing) which are out of scope of this method. This check is performed twice in order 
+                        // to ensure that operations entirely contained within CESeCore follow this constraint as well. 
+<span class="nc" id="L436">                        continue;</span>
+                    }                  
+                    // Authorization to the CA was already checked at the head of this method, so no need to do so now
+<span class="nc" id="L439">                    certificateStoreSession.setRevokeStatusNoAuth(admin, certificateData, new Date(), RevokedCertInfo.REVOCATION_REASON_SUPERSEDED);</span>
+<span class="nc" id="L440">                }</span>
+            }
+            
+<span class="nc" id="L443">            CertificateSerialNumberException storeEx = null; // this will not be null if stored == false after the below passage</span>
+<span class="nc" id="L444">            String serialNo = &quot;unknown&quot;;</span>
+<span class="nc bnc" id="L445" title="All 2 branches missed.">            for (int retrycounter = 0; retrycounter &lt; maxRetrys; retrycounter++) {</span>
+<span class="nc" id="L446">                final CryptoToken cryptoToken = cryptoTokenManagementSession.getCryptoToken(ca.getCAToken().getCryptoTokenId());</span>
+<span class="nc bnc" id="L447" title="All 2 branches missed.">                if (cryptoToken==null) {</span>
+<span class="nc" id="L448">                    final String msg = intres.getLocalizedMessage(&quot;error.catokenoffline&quot;, ca.getCAId());</span>
+<span class="nc" id="L449">                    log.info(msg);</span>
+<span class="nc" id="L450">                    CryptoTokenOfflineException exception = new CryptoTokenOfflineException(&quot;CA's CryptoToken not found.&quot;);</span>
+<span class="nc" id="L451">                    auditFailure(admin, exception, exception.getMessage(), &quot;&lt;createCertificate(EndEntityInformation, CA, X500Name, pk, ku, notBefore, notAfter, extesions, sequence)&quot;, ca.getCAId(), endEntityInformation.getUsername());</span>
+<span class="nc" id="L452">                    throw exception;</span>
+                }
+<span class="nc" id="L454">                final AvailableCustomCertificateExtensionsConfiguration cceConfig = (AvailableCustomCertificateExtensionsConfiguration) </span>
+<span class="nc" id="L455">                        globalConfigurationSession.getCachedConfiguration(AvailableCustomCertificateExtensionsConfiguration.CONFIGURATION_ID);</span>
+<span class="nc" id="L456">                certGenParams.setAuthenticationToken(admin);</span>
+<span class="nc" id="L457">                certGenParams.setCertificateValidationDomainService(keyValidatorSession);</span>
+
+                // Validate ValidatorPhase.PRE_CERTIFICATE_VALIDATION (X.509 CA only)
+<span class="nc" id="L460">                cert = ca.generateCertificate(cryptoToken, endEntityInformation, request, pk, keyusage, notBefore, notAfter, certProfile, extensions, sequence, certGenParams, cceConfig);</span>
+                // Set null required here?
+<span class="nc" id="L462">                certGenParams.setCertificateValidationDomainService(null);</span>
+                
+                // Validate ValidatorPhase.CERTIFICATE_VALIDATION (X.509 CA only)
+<span class="nc bnc" id="L465" title="All 2 branches missed.">                if (CAInfo.CATYPE_X509 == ca.getCAType()) {</span>
+                    try {
+<span class="nc" id="L467">                        keyValidatorSession.validateCertificate(admin, IssuancePhase.CERTIFICATE_VALIDATION, ca, endEntityInformation, (X509Certificate) cert);</span>
+<span class="nc" id="L468">                    } catch (ValidationException e) {</span>
+<span class="nc" id="L469">                        throw new CertificateCreateException(ErrorCode.INVALID_CERTIFICATE, e);</span>
+<span class="nc" id="L470">                    }</span>
+                }
+                
+<span class="nc" id="L473">                cafingerprint = CertTools.getFingerprintAsString(ca.getCACertificate());</span>
+<span class="nc" id="L474">                serialNo = CertTools.getSerialNumberAsString(cert);</span>
+                // Store certificate in the database, if this CA is configured to do so.
+<span class="nc bnc" id="L476" title="All 4 branches missed.">                if (!ca.isUseCertificateStorage() || !certProfile.getUseCertificateStorage()) {</span>
+                    // We still need to return a CertificateData object for publishers
+<span class="nc" id="L478">                    final CertificateData throwAwayCertData = new CertificateData(cert, cert.getPublicKey(), endEntityInformation.getUsername(),</span>
+<span class="nc" id="L479">                            cafingerprint, CertificateConstants.CERT_ACTIVE, certProfile.getType(), certProfileId,</span>
+<span class="nc" id="L480">                            endEntityInformation.getEndEntityProfileId(), null, updateTime, false, certProfile.getStoreSubjectAlternativeName());</span>
+<span class="nc" id="L481">                    result = new CertificateDataWrapper(cert, throwAwayCertData, null);</span>
+                    // Always Store full certificate for OCSP signing certificates.
+<span class="nc" id="L483">                    boolean isOcspSigner = certProfile.getExtendedKeyUsageOids().contains(&quot;1.3.6.1.5.5.7.3.9&quot;);</span>
+<span class="nc bnc" id="L484" title="All 2 branches missed.">                    if (!isOcspSigner) {</span>
+<span class="nc" id="L485">                        break; // We have our cert and we don't need to store it.. Move on..</span>
+                    }
+<span class="nc" id="L487">                    log.debug(&quot;Storing certificate even though storage is disabled since OCSP signer EKU is used.&quot;);</span>
+                }
+                try {
+                    // Remember for CVC serialNo can be alphanumeric, so we can't just try to decode that using normal Java means (BigInteger.valueOf)...
+<span class="nc" id="L491">                    assertSerialNumberForIssuerOk(ca, CertTools.getSerialNumber(cert));</span>
+                    // Tag is reserved for future use, currently only null
+<span class="nc" id="L493">                    final String tag = null;</span>
+                    // Authorization was already checked by since this is a private method, the CA parameter should
+                    // not be possible to get without authorization
+<span class="nc" id="L496">                    result = certificateStoreSession.storeCertificateNoAuth(admin, cert, endEntityInformation.getUsername(), cafingerprint, CertificateConstants.CERT_ACTIVE,</span>
+<span class="nc" id="L497">                            certProfile.getType(), certProfileId, endEntityInformation.getEndEntityProfileId(), tag, updateTime);</span>
+<span class="nc" id="L498">                    storeEx = null;</span>
+<span class="nc" id="L499">                    break;</span>
+<span class="nc" id="L500">                } catch (CertificateSerialNumberException e) {</span>
+                    // If we have created a unique index on (issuerDN,serialNumber) on table CertificateData we can
+                    // get a CreateException here if we would happen to generate a certificate with the same serialNumber
+                    // as one already existing certificate.
+<span class="nc bnc" id="L504" title="All 2 branches missed.">                    if (retrycounter + 1 &lt; maxRetrys) {</span>
+<span class="nc" id="L505">                        log.info(&quot;Can not store certificate with serNo (&quot; + serialNo + &quot;), will retry (retrycounter=&quot; + retrycounter</span>
+<span class="nc" id="L506">                                + &quot;) with a new certificate with new serialNo: &quot; + e.getMessage());</span>
+                    }
+<span class="nc" id="L508">                    storeEx = e;</span>
+                }
+            }
+<span class="nc bnc" id="L511" title="All 2 branches missed.">            if (storeEx != null) {</span>
+<span class="nc bnc" id="L512" title="All 2 branches missed.">                if (useCustomSN) {</span>
+<span class="nc" id="L513">                    final String msg = intres.getLocalizedMessage(&quot;createcert.cert_serial_number_already_in_database&quot;, serialNo);</span>
+<span class="nc" id="L514">                    log.info(msg);</span>
+<span class="nc" id="L515">                    throw new CustomCertificateSerialNumberException(msg);</span>
+                }
+<span class="nc" id="L517">                log.error(&quot;Can not store certificate in database in 5 tries, aborting: &quot;, storeEx);</span>
+<span class="nc" id="L518">                throw storeEx;</span>
+            }
+
+            // Finally we check if this certificate should not be issued as active, but revoked directly upon issuance
+<span class="nc" id="L522">            int revreason = RevokedCertInfo.NOT_REVOKED;</span>
+<span class="nc" id="L523">            final ExtendedInformation ei = endEntityInformation.getExtendedInformation();</span>
+<span class="nc bnc" id="L524" title="All 2 branches missed.">            if (ei != null) {</span>
+<span class="nc" id="L525">                revreason = ei.getIssuanceRevocationReason();</span>
+<span class="nc bnc" id="L526" title="All 2 branches missed.">                if (revreason != RevokedCertInfo.NOT_REVOKED) {</span>
+                    // If we don't store the certificate in the database, we wont support revocation/reactivation so issuing revoked certificates would be
+                    // really strange.
+<span class="nc bnc" id="L529" title="All 4 branches missed.">                    if (ca.isUseCertificateStorage() &amp;&amp; certProfile.getUseCertificateStorage()) {</span>
+<span class="nc" id="L530">                        certificateStoreSession.setRevokeStatus(admin, result, new Date(), revreason);</span>
+                    } else {
+<span class="nc" id="L532">                        log.warn(&quot;CA configured to revoke issued certificates directly, but not to store issued the certificates. Revocation will be ignored. Please verify your configuration.&quot;);</span>
+                    }
+                }
+            }
+<span class="nc bnc" id="L536" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L537">                log.debug(&quot;Generated certificate with SerialNumber '&quot; + serialNo + &quot;' for user '&quot; + endEntityInformation.getUsername() + &quot;', with revocation reason=&quot;</span>
+                        + revreason);
+<span class="nc" id="L539">                log.debug(cert.toString());</span>
+            }
+            
+            // Audit log that we issued the certificate
+<span class="nc" id="L543">            final Map&lt;String, Object&gt; issuedetails = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L544">            issuedetails.put(&quot;subjectdn&quot;, endEntityInformation.getDN());</span>
+<span class="nc" id="L545">            issuedetails.put(&quot;certprofile&quot;, endEntityInformation.getCertificateProfileId());</span>
+<span class="nc" id="L546">            issuedetails.put(&quot;issuancerevocationreason&quot;, revreason);</span>
+            try {
+<span class="nc" id="L548">                issuedetails.put(&quot;cert&quot;, new String(Base64.encode(cert.getEncoded(), false)));</span>
+<span class="nc" id="L549">            } catch (CertificateEncodingException e) {</span>
+                //Should not be able to happen at this point
+<span class="nc" id="L551">                throw new IllegalStateException();</span>
+<span class="nc" id="L552">            }</span>
+<span class="nc" id="L553">            logSession.log(EventTypes.CERT_CREATION, EventStatus.SUCCESS, ModuleTypes.CERTIFICATE, ServiceTypes.CORE, admin.toString(), String.valueOf(ca.getCAId()), serialNo, endEntityInformation.getUsername(),</span>
+            		issuedetails);
+
+<span class="nc bnc" id="L556" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L557">                log.trace(&quot;&lt;createCertificate(EndEntityInformation, CA, X500Name, pk, ku, notBefore, notAfter, extesions, sequence)&quot;);</span>
+            }
+<span class="nc" id="L559">            return result;</span>
+            // We need to catch and re-throw all of these exception just because we need to audit log all failures
+<span class="nc" id="L561">        } catch (CustomCertificateSerialNumberException e) {</span>
+<span class="nc" id="L562">            log.info(e.getMessage());</span>
+<span class="nc" id="L563">            auditFailure(admin, e, null, &quot;&lt;createCertificate(EndEntityInformation, CA, X500Name, pk, ku, notBefore, notAfter, extesions, sequence)&quot;, ca.getCAId(), endEntityInformation.getUsername());</span>
+<span class="nc" id="L564">            throw e;</span>
+<span class="nc" id="L565">        }  catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L566">            log.info(e.getMessage());</span>
+<span class="nc" id="L567">            auditFailure(admin, e, null, &quot;&lt;createCertificate(EndEntityInformation, CA, X500Name, pk, ku, notBefore, notAfter, extesions, sequence)&quot;, ca.getCAId(), endEntityInformation.getUsername());</span>
+<span class="nc" id="L568">            throw e;</span>
+<span class="nc" id="L569">        } catch (CertificateCreateException e) {</span>
+<span class="nc" id="L570">            log.info(e.getMessage());</span>
+<span class="nc" id="L571">            auditFailure(admin, e, null, &quot;&lt;createCertificate(EndEntityInformation, CA, X500Name, pk, ku, notBefore, notAfter, extesions, sequence)&quot;, ca.getCAId(), endEntityInformation.getUsername());</span>
+            // Rollback
+<span class="nc" id="L573">            throw e;</span>
+<span class="nc" id="L574">        } catch(CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L575">            final String msg = intres.getLocalizedMessage(&quot;error.catokenoffline&quot;, ca.getCAId());</span>
+<span class="nc" id="L576">            log.info(msg);</span>
+<span class="nc" id="L577">            auditFailure(admin, e, e.getMessage(), &quot;&lt;createCertificate(EndEntityInformation, CA, X500Name, pk, ku, notBefore, notAfter, extesions, sequence)&quot;, ca.getCAId(), endEntityInformation.getUsername());</span>
+<span class="nc" id="L578">            throw e;</span>
+<span class="nc" id="L579">        } catch (CAOfflineException e) {</span>
+<span class="nc" id="L580">            log.error(&quot;Error creating certificate&quot;, e);</span>
+<span class="nc" id="L581">            auditFailure(admin, e, null, &quot;&lt;createCertificate(EndEntityInformation, CA, X500Name, pk, ku, notBefore, notAfter, extesions, sequence)&quot;, ca.getCAId(), endEntityInformation.getUsername());</span>
+<span class="nc" id="L582">            throw e;</span>
+<span class="nc" id="L583">        } catch (InvalidAlgorithmException e) {</span>
+<span class="nc" id="L584">            log.error(&quot;Error creating certificate&quot;, e);</span>
+<span class="nc" id="L585">            auditFailure(admin, e, null, &quot;&lt;createCertificate(EndEntityInformation, CA, X500Name, pk, ku, notBefore, notAfter, extesions, sequence)&quot;, ca.getCAId(), endEntityInformation.getUsername());</span>
+<span class="nc" id="L586">            throw e;</span>
+<span class="nc" id="L587">        } catch (IllegalValidityException e) {</span>
+<span class="nc" id="L588">            log.error(&quot;Error creating certificate&quot;, e);</span>
+<span class="nc" id="L589">            auditFailure(admin, e, null, &quot;&lt;createCertificate(EndEntityInformation, CA, X500Name, pk, ku, notBefore, notAfter, extesions, sequence)&quot;, ca.getCAId(), endEntityInformation.getUsername());</span>
+<span class="nc" id="L590">            throw e;</span>
+<span class="nc" id="L591">        } catch (OperatorCreationException e) {</span>
+<span class="nc" id="L592">            log.error(&quot;Error creating certificate&quot;, e);</span>
+<span class="nc" id="L593">            auditFailure(admin, e, null, &quot;&lt;createCertificate(EndEntityInformation, CA, X500Name, pk, ku, notBefore, notAfter, extesions, sequence)&quot;, ca.getCAId(), endEntityInformation.getUsername());</span>
+            // Rollback
+<span class="nc" id="L595">            throw new CertificateCreateException(e);</span>
+<span class="nc" id="L596">        } catch (SignatureException e) {</span>
+<span class="nc" id="L597">            log.error(&quot;Error creating certificate&quot;, e);</span>
+<span class="nc" id="L598">            auditFailure(admin, e, null, &quot;&lt;createCertificate(EndEntityInformation, CA, X500Name, pk, ku, notBefore, notAfter, extesions, sequence)&quot;, ca.getCAId(), endEntityInformation.getUsername());</span>
+            // Rollback
+<span class="nc" id="L600">            throw new CertificateCreateException(e);</span>
+<span class="nc" id="L601">        } catch (CertificateExtensionException e) {</span>
+<span class="nc" id="L602">            log.error(&quot;Error creating certificate&quot;, e);</span>
+<span class="nc" id="L603">            auditFailure(admin, e, null, &quot;&lt;createCertificate(EndEntityInformation, CA, X500Name, pk, ku, notBefore, notAfter, extesions, sequence)&quot;, ca.getCAId(), endEntityInformation.getUsername());</span>
+<span class="nc" id="L604">            throw e;</span>
+        }
+    }
+
+    private void addCTLoggingCallback(CertificateGenerationParams certGenParams, final String authTokenName) {
+<span class="nc bnc" id="L609" title="All 2 branches missed.">        if (certGenParams != null) {</span>
+<span class="nc" id="L610">            certGenParams.setCTAuditLogCallback(new CTAuditLogCallback() {</span>
+                @Override
+                public void logPreCertSubmission(X509CA issuer, EndEntityInformation subject, X509Certificate precert, boolean success) {
+                    // Mostly the same info is logged as in CertificateCreateSessionBean.createCertificate
+<span class="nc" id="L614">                    final Map&lt;String, Object&gt; issuedetails = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L615">                    issuedetails.put(&quot;ctprecert&quot;, true);</span>
+<span class="nc bnc" id="L616" title="All 2 branches missed.">                    issuedetails.put(&quot;msg&quot;, intres.getLocalizedMessage(success ? &quot;createcert.ctlogsubmissionsuccessful&quot; : &quot;createcert.ctlogsubmissionfailed&quot;));</span>
+<span class="nc" id="L617">                    issuedetails.put(&quot;subjectdn&quot;, CertTools.getSubjectDN(precert));</span>
+<span class="nc" id="L618">                    issuedetails.put(&quot;certprofile&quot;, subject.getCertificateProfileId());</span>
+                    try {
+<span class="nc" id="L620">                        issuedetails.put(&quot;cert&quot;, new String(Base64.encode(precert.getEncoded(), false)));</span>
+<span class="nc" id="L621">                    } catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L622">                        log.warn(&quot;Could not encode cert&quot;, e);</span>
+<span class="nc" id="L623">                    }</span>
+<span class="nc bnc" id="L624" title="All 2 branches missed.">                    logSession.log(EventTypes.CERT_CTPRECERT_SUBMISSION, success ? EventStatus.SUCCESS : EventStatus.FAILURE,</span>
+<span class="nc" id="L625">                            ModuleTypes.CERTIFICATE, ServiceTypes.CORE, authTokenName, String.valueOf(issuer.getCAId()),</span>
+<span class="nc" id="L626">                            CertTools.getSerialNumberAsString(precert), subject.getUsername(), issuedetails);</span>
+<span class="nc" id="L627">                }</span>
+            });
+        }
+<span class="nc" id="L630">    }</span>
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public void assertSubjectEnforcements(final CAInfo ca, final EndEntityInformation endEntityInformation) throws CertificateCreateException {
+<span class="nc" id="L635">        boolean enforceUniqueDistinguishedName = false;</span>
+<span class="nc bnc" id="L636" title="All 2 branches missed.">        if (ca.isDoEnforceUniqueDistinguishedName()) {</span>
+<span class="nc bnc" id="L637" title="All 2 branches missed.">            if (ca.isUseCertificateStorage()) {</span>
+<span class="nc" id="L638">                enforceUniqueDistinguishedName = true;</span>
+            } else {
+<span class="nc" id="L640">                log.warn(&quot;CA configured to enforce unique SubjectDN, but not to store issued certificates. Check will be ignored. Please verify your configuration.&quot;);</span>
+            }
+        }
+<span class="nc" id="L643">        final String username = endEntityInformation.getUsername();</span>
+<span class="nc" id="L644">        String subjectDN = null;</span>
+<span class="nc bnc" id="L645" title="All 2 branches missed.">        if (enforceUniqueDistinguishedName) {</span>
+<span class="nc" id="L646">            subjectDN = endEntityInformation.getCertificateDN();</span>
+        }
+        //boolean multipleCheckOk = false;
+        
+        // The below combined query is commented out because there is a bug in MySQL 5.5 that causes it to 
+        // select bad indexes making the query slow. In MariaDB 5.5 and MySQL 5.6 it works well, so it is MySQL 5.5 specific.
+        // See ECA-3309
+        //
+        // Some time in the future, when we want to use multiple checks on the database, a separate method should be added to execute this commented out code.
+//        if (enforceUniqueDistinguishedName &amp;&amp; enforceUniquePublicKeys) {
+//            multipleCheckOk = certificateStoreSession.isOnlyUsernameForSubjectKeyIdOrDnAndIssuerDN(issuerDN, subjectKeyId, subjectDN, username);
+//        }
+        
+        // If one of the checks failed, we need to investigate further what went wrong
+<span class="nc bnc" id="L660" title="All 2 branches missed.">        if (/*!multipleCheckOk &amp;&amp; */enforceUniqueDistinguishedName) {</span>
+<span class="nc" id="L661">            final Set&lt;String&gt; users = certificateStoreSession.findUsernamesByIssuerDNAndSubjectDN(ca.getSubjectDN(), subjectDN);</span>
+<span class="nc bnc" id="L662" title="All 4 branches missed.">            if (users.size() &gt; 0 &amp;&amp; !users.contains(username)) {</span>
+<span class="nc" id="L663">                final String msg = intres.getLocalizedMessage(&quot;createcert.subjectdn_exists_for_another_user&quot;, username,</span>
+<span class="nc" id="L664">                        listUsers(users));</span>
+<span class="nc" id="L665">                throw new CertificateCreateException(ErrorCode.CERTIFICATE_WITH_THIS_SUBJECTDN_ALREADY_EXISTS_FOR_ANOTHER_USER, msg);</span>
+            }
+        }
+<span class="nc" id="L668">    }</span>
+    
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public void assertSubjectKeyIdEnforcements(final CAInfo ca, final EndEntityInformation endEntityInformation, final PublicKey publicKey) throws CertificateCreateException {
+<span class="nc" id="L673">        boolean enforceUniquePublicKeys = false;</span>
+<span class="nc bnc" id="L674" title="All 2 branches missed.">        if (ca.isDoEnforceUniquePublicKeys()) {</span>
+<span class="nc bnc" id="L675" title="All 2 branches missed.">            if (ca.isUseCertificateStorage()) {</span>
+<span class="nc" id="L676">                enforceUniquePublicKeys = true;</span>
+            } else {
+<span class="nc" id="L678">                log.warn(&quot;CA configured to enforce unique entity keys, but not to store issued certificates. Check will be ignored. Please verify your configuration.&quot;);</span>
+            }
+        }
+<span class="nc" id="L681">        final String username = endEntityInformation.getUsername();</span>
+<span class="nc" id="L682">        byte[] subjectKeyId = null;</span>
+<span class="nc bnc" id="L683" title="All 2 branches missed.">        if (enforceUniquePublicKeys) {</span>
+<span class="nc" id="L684">            subjectKeyId = KeyTools.createSubjectKeyId(publicKey).getKeyIdentifier();</span>
+        }
+        //boolean multipleCheckOk = false;
+        
+        // The below combined query is commented out because there is a bug in MySQL 5.5 that causes it to 
+        // select bad indexes making the query slow. In MariaDB 5.5 and MySQL 5.6 it works well, so it is MySQL 5.5 specific.
+        // See ECA-3309
+//        if (enforceUniqueDistinguishedName &amp;&amp; enforceUniquePublicKeys) {
+//            multipleCheckOk = certificateStoreSession.isOnlyUsernameForSubjectKeyIdOrDnAndIssuerDN(issuerDN, subjectKeyId, subjectDN, username);
+//        }
+        
+<span class="nc bnc" id="L695" title="All 2 branches missed.">        if (/*!multipleCheckOk &amp;&amp; */enforceUniquePublicKeys) {</span>
+<span class="nc" id="L696">            final Set&lt;String&gt; users = certificateStoreSession.findUsernamesByIssuerDNAndSubjectKeyId(ca.getSubjectDN(), subjectKeyId);</span>
+<span class="nc bnc" id="L697" title="All 4 branches missed.">            if (users.size() &gt; 0 &amp;&amp; !users.contains(username)) {</span>
+<span class="nc" id="L698">                final String msg = intres.getLocalizedMessage(&quot;createcert.key_exists_for_another_user&quot;, username);</span>
+<span class="nc" id="L699">                log.info(msg+listUsers(users));</span>
+<span class="nc" id="L700">                throw new CertificateCreateException(ErrorCode.CERTIFICATE_FOR_THIS_KEY_ALLREADY_EXISTS_FOR_ANOTHER_USER, msg);</span>
+            }
+        }
+<span class="nc" id="L703">    }</span>
+
+    /** When no unique index is present in the database, we still try to enforce X.509 serial number per CA uniqueness. 
+     * @param ca CA
+     * @param serialNumber SN 
+     * @throws CertificateSerialNumberException if serial number already exists in database
+     */
+    private void assertSerialNumberForIssuerOk(final CA ca, final BigInteger serialNumber) throws CertificateSerialNumberException {
+<span class="nc bnc" id="L711" title="All 4 branches missed.">        if (ca.getCAType()==CAInfo.CATYPE_X509 &amp;&amp; !isUniqueCertificateSerialNumberIndex()) {</span>
+<span class="nc" id="L712">            final String caSubjectDN = CertTools.getSubjectDN(ca.getCACertificate());       </span>
+<span class="nc bnc" id="L713" title="All 2 branches missed.">            if (certificateStoreSession.existsByIssuerAndSerno(caSubjectDN, serialNumber)) {</span>
+<span class="nc" id="L714">                final String msg = intres.getLocalizedMessage(&quot;createcert.cert_serial_number_already_in_database&quot;, serialNumber.toString());</span>
+<span class="nc" id="L715">                log.info(msg);</span>
+<span class="nc" id="L716">                throw new CertificateSerialNumberException(msg);</span>
+            }
+        }
+<span class="nc" id="L719">    }</span>
+
+    private CertificateProfile getCertificateProfile(final int certProfileId, final int caid) throws AuthorizationDeniedException {
+<span class="nc" id="L722">        final CertificateProfile certProfile = certificateProfileSession.getCertificateProfile(certProfileId);</span>
+        // What if certProfile == null?
+<span class="nc bnc" id="L724" title="All 2 branches missed.">        if (certProfile == null) {</span>
+<span class="nc" id="L725">            final String msg = intres.getLocalizedMessage(&quot;createcert.errorcertprofilenotfound&quot;, Integer.valueOf(certProfileId));</span>
+<span class="nc" id="L726">            throw new AuthorizationDeniedException(msg);</span>
+        }
+<span class="nc bnc" id="L728" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L729">            log.debug(&quot;Using certificate profile with id &quot; + certProfileId);</span>
+        }
+
+        // Check that CAid is among available CAs
+<span class="nc" id="L733">        boolean caauthorized = false;</span>
+<span class="nc bnc" id="L734" title="All 2 branches missed.">        for (final Integer nextInt : certProfile.getAvailableCAs()) {</span>
+<span class="nc" id="L735">            final int next = nextInt.intValue();</span>
+<span class="nc bnc" id="L736" title="All 4 branches missed.">            if (next == caid || next == CertificateProfile.ANYCA) {</span>
+<span class="nc" id="L737">                caauthorized = true;</span>
+<span class="nc" id="L738">                break;</span>
+            }
+<span class="nc" id="L740">        }</span>
+<span class="nc bnc" id="L741" title="All 2 branches missed.">        if (!caauthorized) {</span>
+<span class="nc" id="L742">            final String msg = intres.getLocalizedMessage(&quot;createcert.errorcertprofilenotauthorized&quot;, Integer.valueOf(caid),</span>
+<span class="nc" id="L743">                    Integer.valueOf(certProfileId));</span>
+<span class="nc" id="L744">            throw new AuthorizationDeniedException(msg);</span>
+        }
+<span class="nc" id="L746">        return certProfile;</span>
+    }
+
+    /**
+     * FIXME: Documentation
+     * 
+     * @param admin Auth token
+     * @param e Excption
+     * @param extraDetails Detaild 
+     * @param tracelog Log
+     * @param caid CA
+     * @param username User 
+     */
+    private void auditFailure(final AuthenticationToken admin, final Exception e, final String extraDetails, final String tracelog, final int caid, final String username) {
+<span class="nc" id="L760">        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L761">        details.put(&quot;msg&quot;, e.getMessage());</span>
+<span class="nc bnc" id="L762" title="All 2 branches missed.">        if (extraDetails != null) {</span>
+<span class="nc" id="L763">            details.put(&quot;details&quot;, extraDetails);</span>
+        }
+<span class="nc" id="L765">        logSession.log(EventTypes.CERT_CREATION, EventStatus.FAILURE, ModuleTypes.CERTIFICATE, ServiceTypes.CORE, admin.toString(), String.valueOf(caid), null, username, details);</span>
+<span class="nc bnc" id="L766" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc bnc" id="L767" title="All 2 branches missed.">            if (tracelog != null) {</span>
+<span class="nc" id="L768">                log.trace(tracelog);</span>
+            }
+        }
+<span class="nc" id="L771">    }</span>
+
+    /**
+     * Small function that makes a list of users, space separated. Used for logging. Only actually displays the first 10 records, then a notice how
+     * many records were not displayed
+     * 
+     * @param users a set of usernames to create a string of
+     * @return space separated list of usernames, i.e. &quot;'user1' 'user2' 'user3'&quot;, max 10 users
+     */
+    private String listUsers(final Set&lt;String&gt; users) {
+<span class="nc" id="L781">        final StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L782">        int bar = 0; // limit number of displayed users</span>
+<span class="nc bnc" id="L783" title="All 2 branches missed.">        for (final String user : users) {</span>
+<span class="nc bnc" id="L784" title="All 2 branches missed.">            if (sb.length() &gt; 0) {</span>
+<span class="nc" id="L785">                sb.append(' ');</span>
+            }
+<span class="nc bnc" id="L787" title="All 2 branches missed.">            if (bar++ &gt; 9) {</span>
+<span class="nc" id="L788">                sb.append(&quot;and &quot;).append(users.size() - bar + 1).append(&quot; users not displayed&quot;);</span>
+<span class="nc" id="L789">                break;</span>
+            }
+<span class="nc" id="L791">            sb.append('\'');</span>
+<span class="nc" id="L792">            sb.append(user);</span>
+<span class="nc" id="L793">            sb.append('\'');</span>
+<span class="nc" id="L794">        }</span>
+<span class="nc" id="L795">        return sb.toString();</span>
+    }
+
+    @Override
+    public boolean isUniqueCertificateSerialNumberIndex() {
+<span class="nc" id="L800">        return certificateStoreSession.isUniqueCertificateSerialNumberIndex();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

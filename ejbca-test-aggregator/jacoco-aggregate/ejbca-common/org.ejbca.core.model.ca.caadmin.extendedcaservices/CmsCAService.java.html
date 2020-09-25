@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CmsCAService.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.ca.caadmin.extendedcaservices</a> &gt; <span class="el_source">CmsCAService.java</span></div><h1>CmsCAService.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.model.ca.caadmin.extendedcaservices;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.KeyPair;
+import java.security.KeyStore;
+import java.security.PrivateKey;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.cms.CMSEnvelopedData;
+import org.bouncycastle.cms.CMSEnvelopedDataGenerator;
+import org.bouncycastle.cms.CMSException;
+import org.bouncycastle.cms.CMSProcessableByteArray;
+import org.bouncycastle.cms.CMSSignedData;
+import org.bouncycastle.cms.CMSSignedDataGenerator;
+import org.bouncycastle.cms.CMSSignedGenerator;
+import org.bouncycastle.cms.CMSTypedData;
+import org.bouncycastle.cms.KeyTransRecipientId;
+import org.bouncycastle.cms.RecipientInformation;
+import org.bouncycastle.cms.RecipientInformationStore;
+import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder;
+import org.bouncycastle.cms.jcajce.JceCMSContentEncryptorBuilder;
+import org.bouncycastle.cms.jcajce.JceKeyTransEnvelopedRecipient;
+import org.bouncycastle.cms.jcajce.JceKeyTransRecipientInfoGenerator;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
+import org.bouncycastle.util.CollectionStore;
+import org.bouncycastle.util.encoders.DecoderException;
+import org.cesecore.certificates.ca.CA;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAService;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceInfo;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceNotActiveException;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceRequest;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceRequestException;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceResponse;
+import org.cesecore.certificates.ca.extendedservices.ExtendedCAServiceTypes;
+import org.cesecore.certificates.ca.extendedservices.IllegalExtendedCAServiceRequestException;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificate.certextensions.AvailableCustomCertificateExtensionsConfiguration;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.EndEntityType;
+import org.cesecore.certificates.util.AlgorithmTools;
+import org.cesecore.keys.token.CryptoToken;
+import org.cesecore.keys.util.KeyTools;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.StringTools;
+import org.ejbca.config.EjbcaConfiguration;
+import org.ejbca.core.model.InternalEjbcaResources;
+
+/** Handles and maintains the CA-part of the CMS message functionality.
+ *  The service has its own certificate used for signing and encryption 
+ * 
+ * @version $Id: CmsCAService.java 26780 2017-10-10 09:37:56Z mikekushner $
+ */
+public class CmsCAService extends ExtendedCAService implements java.io.Serializable{
+
+    /** Determines if a de-serialized file is compatible with this class.
+    *
+    * Maintainers must change this value if and only if the new version
+    * of this class is not compatible with old versions. See Sun docs
+    * for &lt;a href=http://java.sun.com/products/jdk/1.1/docs/guide
+    * /serialization/spec/version.doc.html&gt; details. &lt;/a&gt;
+    */
+	private static final long serialVersionUID = 5273836489592921586L;
+	
+<span class="nc" id="L99">	private static final Logger log = Logger.getLogger(CmsCAService.class);</span>
+	/** Internal localization of logs and errors */
+<span class="nc" id="L101">	private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+
+	public static final float LATEST_VERSION = 2; 
+
+	public static final String SERVICENAME = &quot;CMSCASERVICE&quot;;          
+
+<span class="nc" id="L107">	private PrivateKey privKey = null;</span>
+<span class="nc" id="L108">	private List&lt;Certificate&gt; certificatechain = null;</span>
+<span class="nc" id="L109">    private X509Certificate cmsCertificate = null;</span>
+
+<span class="nc" id="L111">	private CmsCAServiceInfo info = null;</span>
+
+	private static final String KEYSTORE       = &quot;keystore&quot;; 
+	private static final String KEYSPEC        = &quot;keyspec&quot;;
+	private static final String KEYALGORITHM   = &quot;keyalgorithm&quot;;
+	private static final String SUBJECTDN      = &quot;subjectdn&quot;;
+	private static final String SUBJECTALTNAME = &quot;subjectaltname&quot;;
+
+	private static final String PRIVATESIGNKEYALIAS = &quot;signKey&quot;;   
+    /** This alias was changed in EJBCA 6.4.1 */
+    private static final String OLDPRIVATESIGNKEYALIAS = &quot;privatesignkeyalias&quot;;   
+
+	public CmsCAService(final ExtendedCAServiceInfo serviceinfo)  {
+<span class="nc" id="L124">		super(serviceinfo);</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">		if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L126">	        log.debug(&quot;CmsCAService : constructor &quot; + serviceinfo.getStatus()); </span>
+		}
+<span class="nc" id="L128">		CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+		// Currently only RSA keys are supported
+<span class="nc" id="L130">		final CmsCAServiceInfo info = (CmsCAServiceInfo) serviceinfo;	</span>
+<span class="nc" id="L131">		data = new LinkedHashMap&lt;Object, Object&gt;();   </span>
+<span class="nc" id="L132">		data.put(ExtendedCAServiceInfo.IMPLEMENTATIONCLASS, this.getClass().getName());	// For integration with CESeCore</span>
+<span class="nc" id="L133">		data.put(EXTENDEDCASERVICETYPE, Integer.valueOf(ExtendedCAServiceTypes.TYPE_CMSEXTENDEDSERVICE));	// For current version of EJBCA</span>
+<span class="nc" id="L134">		data.put(KEYSPEC, info.getKeySpec());</span>
+<span class="nc" id="L135">		data.put(KEYALGORITHM, info.getKeyAlgorithm());</span>
+<span class="nc" id="L136">		setSubjectDN(info.getSubjectDN());</span>
+<span class="nc" id="L137">		setSubjectAltName(info.getSubjectAltName());                       </span>
+<span class="nc" id="L138">		setStatus(serviceinfo.getStatus());</span>
+<span class="nc" id="L139">		data.put(VERSION, Float.valueOf(LATEST_VERSION));</span>
+<span class="nc" id="L140">	}</span>
+
+	public CmsCAService(final HashMap&lt;Object, Object&gt; data) throws IllegalArgumentException {
+<span class="nc" id="L143">		super(data);</span>
+<span class="nc" id="L144">		CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+<span class="nc" id="L145">		loadData(data);</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">		if (this.data.get(KEYSTORE) != null) {    </span>
+			// lookup keystore passwords      
+<span class="nc" id="L148">			final String keystorepass = StringTools.passwordDecryption(EjbcaConfiguration.getCaCmsKeyStorePass(), &quot;ca.cmskeystorepass&quot;);</span>
+<span class="nc" id="L149">			int status = ExtendedCAServiceInfo.STATUS_INACTIVE;</span>
+			try {
+<span class="nc bnc" id="L151" title="All 2 branches missed.">		        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L152">	                log.debug(&quot;Loading CMS keystore&quot;);</span>
+		        }
+<span class="nc" id="L154">				final KeyStore keystore = KeyStore.getInstance(&quot;PKCS12&quot;, &quot;BC&quot;);</span>
+<span class="nc" id="L155">				keystore.load(new ByteArrayInputStream(Base64.decode(((String) this.data.get(KEYSTORE)).getBytes())),keystorepass.toCharArray());</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L157">                    log.debug(&quot;Finished loading CMS keystore&quot;);</span>
+                }
+<span class="nc" id="L159">                String alias = PRIVATESIGNKEYALIAS;</span>
+<span class="nc" id="L160">				privKey = (PrivateKey) keystore.getKey(alias, null);</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">				if (privKey == null) {</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L163">                        log.debug(&quot;privKey was null for alias &quot;+alias+&quot;, trying with &quot;+OLDPRIVATESIGNKEYALIAS);</span>
+                    }
+<span class="nc" id="L165">	                alias = OLDPRIVATESIGNKEYALIAS;</span>
+<span class="nc" id="L166">	                privKey = (PrivateKey) keystore.getKey(alias, null);</span>
+				}
+				// Due to a bug in Glassfish v1 (fixed in v2), we used to have to make sure all certificates in this 
+				// Array were of SUNs own provider, using CertTools.SYSTEM_SECURITY_PROVIDER.
+				// As of EJBCA 3.9.3 we decided that we don't have to support Glassfish v1 anymore.
+<span class="nc" id="L171">				Collection&lt;Certificate&gt; coll = CertTools.getCertCollectionFromArray(keystore.getCertificateChain(alias), null);</span>
+<span class="nc" id="L172">				this.certificatechain = new ArrayList&lt;Certificate&gt;(coll);  </span>
+<span class="nc" id="L173">				status = getStatus();</span>
+<span class="nc" id="L174">			} catch (Exception e) {</span>
+<span class="nc" id="L175">				log.error(&quot;Could not load keystore or certificate for CA CMS service. Perhaps the password was changed? &quot; + e.getMessage(), e);</span>
+			} finally {
+<span class="nc" id="L177">				info = new CmsCAServiceInfo(status, getSubjectDN(), getSubjectAltName(), (String)this.data.get(KEYSPEC), </span>
+<span class="nc" id="L178">						(String) this.data.get(KEYALGORITHM), this.certificatechain);</span>
+			}
+<span class="nc" id="L180">			data.put(EXTENDEDCASERVICETYPE, Integer.valueOf(ExtendedCAServiceTypes.TYPE_CMSEXTENDEDSERVICE));        </span>
+<span class="nc" id="L181">		} else {</span>
+<span class="nc bnc" id="L182" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L183">                log.debug(&quot;KEYSTORE is null when creating CmsCAService&quot;);</span>
+            }
+		}
+<span class="nc" id="L186">	}</span>
+
+	@Override
+	public void init(final CryptoToken cryptoToken, final CA ca, final AvailableCustomCertificateExtensionsConfiguration cceConfig) throws Exception {
+<span class="nc bnc" id="L190" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L191">            log.trace(&quot;&gt;init&quot;);</span>
+        }
+<span class="nc bnc" id="L193" title="All 2 branches missed.">        if (info.getStatus() != ExtendedCAServiceInfo.STATUS_ACTIVE) {</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L195">                log.debug(&quot;Not generating certificates for inactive service&quot;);</span>
+            }
+        } else {
+    		// lookup keystore passwords      
+<span class="nc" id="L199">    	    final String keystorepass = StringTools.passwordDecryption(EjbcaConfiguration.getCaCmsKeyStorePass(), &quot;ca.cmskeystorepass&quot;);</span>
+    		// Currently only RSA keys are supported
+<span class="nc" id="L201">    	    final CmsCAServiceInfo info = (CmsCAServiceInfo) getExtendedCAServiceInfo();</span>
+    		// Create KeyStore	    
+<span class="nc" id="L203">    	    final KeyStore keystore = KeyStore.getInstance(&quot;PKCS12&quot;, &quot;BC&quot;);</span>
+<span class="nc" id="L204">    		keystore.load(null, null);                              </span>
+<span class="nc" id="L205">    		final KeyPair cmskeys = KeyTools.genKeys(info.getKeySpec(), info.getKeyAlgorithm());</span>
+    		// A simple hard coded certificate profile that works for the CMS CA service
+<span class="nc" id="L207">    		final CertificateProfile certProfile = new CertificateProfile(CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER);</span>
+<span class="nc" id="L208">    		certProfile.setUseKeyUsage(true);</span>
+<span class="nc" id="L209">    		certProfile.setKeyUsage(new boolean[9]);</span>
+<span class="nc" id="L210">    		certProfile.setKeyUsage(CertificateConstants.DIGITALSIGNATURE,true);</span>
+<span class="nc" id="L211">    		certProfile.setKeyUsage(CertificateConstants.KEYENCIPHERMENT,true);</span>
+<span class="nc" id="L212">    		certProfile.setKeyUsage(CertificateConstants.DATAENCIPHERMENT,true);</span>
+<span class="nc" id="L213">    		certProfile.setKeyUsageCritical(true);</span>
+<span class="nc" id="L214">            final EndEntityInformation eeInformation = new EndEntityInformation(&quot;NOUSERNAME&quot;, info.getSubjectDN(), 0, info.getSubjectAltName(), &quot;NOEMAIL&quot;, 0,new EndEntityType(),0,0, null,null,0,0,null);</span>
+<span class="nc" id="L215">            final Certificate certificate = ca.generateCertificate(cryptoToken, eeInformation,</span>
+<span class="nc" id="L216">            		cmskeys.getPublic(), -1, null, ca.getEncodedValidity(), certProfile, null, cceConfig);</span>
+<span class="nc" id="L217">    		certificatechain = new ArrayList&lt;Certificate&gt;();</span>
+<span class="nc" id="L218">    		certificatechain.add(certificate);</span>
+<span class="nc" id="L219">    		certificatechain.addAll(ca.getCertificateChain());</span>
+<span class="nc" id="L220">    		privKey = cmskeys.getPrivate(); </span>
+<span class="nc" id="L221">    		keystore.setKeyEntry(PRIVATESIGNKEYALIAS,cmskeys.getPrivate(),null,(Certificate[]) certificatechain.toArray(new Certificate[certificatechain.size()]));              </span>
+<span class="nc" id="L222">    		final ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+<span class="nc" id="L223">    		keystore.store(baos, keystorepass.toCharArray());</span>
+<span class="nc" id="L224">    		data.put(KEYSTORE, new String(Base64.encode(baos.toByteArray())));      </span>
+	    }
+<span class="nc" id="L226">		setStatus(info.getStatus());</span>
+<span class="nc" id="L227">		this.info = new CmsCAServiceInfo(info.getStatus(), getSubjectDN(), getSubjectAltName(), (String)data.get(KEYSPEC), (String) data.get(KEYALGORITHM), certificatechain);</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L229">            log.trace(&quot;&lt;init&quot;);</span>
+        }
+<span class="nc" id="L231">	}</span>
+
+	@Override
+	public void update(final CryptoToken cryptoToken, final ExtendedCAServiceInfo serviceinfo, final CA ca, final AvailableCustomCertificateExtensionsConfiguration cceConfig) {
+<span class="nc bnc" id="L235" title="All 4 branches missed.">	    final boolean missingCert = (!data.containsKey(KEYSTORE) &amp;&amp; serviceinfo.getStatus() == ExtendedCAServiceInfo.STATUS_ACTIVE);</span>
+<span class="nc" id="L236">		final CmsCAServiceInfo info = (CmsCAServiceInfo) serviceinfo; </span>
+<span class="nc bnc" id="L237" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L238">            log.debug(&quot;CmsCAService : update &quot; + serviceinfo.getStatus());</span>
+        }
+<span class="nc" id="L240">		setStatus(serviceinfo.getStatus());</span>
+<span class="nc" id="L241">		data.put(KEYSPEC, info.getKeySpec());</span>
+<span class="nc" id="L242">		data.put(KEYALGORITHM, info.getKeyAlgorithm());</span>
+		// We only updated the status, and keyspec/keyalg which can be edited in uninitialized CAs
+<span class="nc" id="L244">		this.info = new CmsCAServiceInfo(serviceinfo.getStatus(), getSubjectDN(), getSubjectAltName(), info.getKeySpec(), info.getKeyAlgorithm(), certificatechain);</span>
+<span class="nc bnc" id="L245" title="All 4 branches missed.">		if (info.getRenewFlag() || missingCert) {</span>
+			// Renew The Signers certificate.
+			try {
+<span class="nc" id="L248">				this.init(cryptoToken, ca, cceConfig);</span>
+<span class="nc" id="L249">			} catch (Exception e) {</span>
+<span class="nc" id="L250">				log.error(&quot;Error initilizing Extended CA service during upgrade: &quot;, e);</span>
+<span class="nc" id="L251">			}</span>
+		}
+<span class="nc" id="L253">	}</span>
+
+    @Override
+    public ExtendedCAServiceResponse extendedService(final CryptoToken cryptoToken, final ExtendedCAServiceRequest request)
+            throws ExtendedCAServiceRequestException, IllegalExtendedCAServiceRequestException, ExtendedCAServiceNotActiveException {
+<span class="nc bnc" id="L258" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L259">            log.trace(&quot;&gt;extendedService&quot;);</span>
+        }
+<span class="nc bnc" id="L261" title="All 2 branches missed.">		if (!(request instanceof CmsCAServiceRequest)) {</span>
+<span class="nc" id="L262">			throw new IllegalExtendedCAServiceRequestException();            </span>
+		}
+<span class="nc bnc" id="L264" title="All 2 branches missed.">		if (getStatus() != ExtendedCAServiceInfo.STATUS_ACTIVE) {</span>
+<span class="nc" id="L265">			final String msg = intres.getLocalizedMessage(&quot;caservice.notactive&quot;, &quot;CMS&quot;);</span>
+<span class="nc" id="L266">			log.error(msg);</span>
+<span class="nc" id="L267">			throw new ExtendedCAServiceNotActiveException(msg);                            </span>
+		}
+<span class="nc" id="L269">		ExtendedCAServiceResponse returnval = null;</span>
+<span class="nc" id="L270">		final X509Certificate signerCert = (X509Certificate) certificatechain.get(0);</span>
+<span class="nc" id="L271">		final CmsCAServiceRequest serviceReq = (CmsCAServiceRequest)request;</span>
+		// Create the signed data
+<span class="nc" id="L273">		final CMSSignedDataGenerator gen1 = new CMSSignedDataGenerator();</span>
+        try {
+<span class="nc" id="L275">            byte[] resp = serviceReq.getDoc();</span>
+            // Add our signer info and sign the message
+<span class="nc bnc" id="L277" title="All 2 branches missed.">            if ((serviceReq.getMode() &amp; CmsCAServiceRequest.MODE_SIGN) != 0) {</span>
+<span class="nc" id="L278">                final List&lt;X509Certificate&gt; x509CertChain = new ArrayList&lt;X509Certificate&gt;();</span>
+<span class="nc bnc" id="L279" title="All 2 branches missed.">                for (Certificate certificate : certificatechain) {</span>
+<span class="nc" id="L280">                    x509CertChain.add((X509Certificate) certificate);</span>
+<span class="nc" id="L281">                }</span>
+<span class="nc" id="L282">                gen1.addCertificates(new CollectionStore&lt;&gt;(CertTools.convertToX509CertificateHolder(x509CertChain)));</span>
+<span class="nc" id="L283">                JcaDigestCalculatorProviderBuilder calculatorProviderBuilder = new JcaDigestCalculatorProviderBuilder().setProvider(BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="nc" id="L284">                JcaSignerInfoGeneratorBuilder builder = new JcaSignerInfoGeneratorBuilder(calculatorProviderBuilder.build());</span>
+<span class="nc" id="L285">                ASN1ObjectIdentifier oid = AlgorithmTools.getSignAlgOidFromDigestAndKey(CMSSignedGenerator.DIGEST_SHA1, privKey.getAlgorithm());</span>
+<span class="nc" id="L286">                String signatureAlgorithmName = AlgorithmTools.getAlgorithmNameFromOID(oid);</span>
+<span class="nc" id="L287">                JcaContentSignerBuilder signerBuilder = new JcaContentSignerBuilder(signatureAlgorithmName).setProvider(BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="nc" id="L288">                ContentSigner contentSigner = signerBuilder.build(privKey);</span>
+<span class="nc" id="L289">                gen1.addSignerInfoGenerator(builder.build(contentSigner, signerCert));</span>
+<span class="nc" id="L290">                final CMSTypedData msg = new CMSProcessableByteArray(resp);</span>
+<span class="nc" id="L291">                final CMSSignedData s = gen1.generate(msg, true);</span>
+<span class="nc" id="L292">                resp = s.getEncoded();</span>
+            }
+<span class="nc bnc" id="L294" title="All 2 branches missed.">            if ((serviceReq.getMode() &amp; CmsCAServiceRequest.MODE_ENCRYPT) != 0) {</span>
+<span class="nc" id="L295">                CMSEnvelopedDataGenerator edGen = new CMSEnvelopedDataGenerator();</span>
+<span class="nc" id="L296">                edGen.addRecipientInfoGenerator(new JceKeyTransRecipientInfoGenerator(getCMSCertificate()).setProvider(BouncyCastleProvider.PROVIDER_NAME));</span>
+<span class="nc" id="L297">                JceCMSContentEncryptorBuilder jceCMSContentEncryptorBuilder = new JceCMSContentEncryptorBuilder(PKCSObjectIdentifiers.des_EDE3_CBC).setProvider(BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="nc" id="L298">                CMSEnvelopedData ed = edGen.generate(new CMSProcessableByteArray(resp), jceCMSContentEncryptorBuilder.build());</span>
+<span class="nc" id="L299">                resp = ed.getEncoded();</span>
+			}
+<span class="nc bnc" id="L301" title="All 2 branches missed.">			if ((serviceReq.getMode() &amp; CmsCAServiceRequest.MODE_DECRYPT) != 0) {</span>
+<span class="nc" id="L302">				final CMSEnvelopedData ed = new CMSEnvelopedData(resp);</span>
+<span class="nc" id="L303">				final RecipientInformationStore  recipients = ed.getRecipientInfos();</span>
+<span class="nc" id="L304">				final X500Name issuer = X500Name.getInstance(getCMSCertificate().getIssuerX500Principal().getEncoded());</span>
+<span class="nc" id="L305">				final KeyTransRecipientId id = new KeyTransRecipientId(issuer, getCMSCertificate().getSerialNumber());</span>
+<span class="nc" id="L306">				final RecipientInformation recipient = recipients.get(id);</span>
+<span class="nc bnc" id="L307" title="All 2 branches missed.">				if (recipient != null) {</span>
+<span class="nc" id="L308">	                JceKeyTransEnvelopedRecipient rec = new JceKeyTransEnvelopedRecipient(this.privKey);</span>
+	                // Provider for decrypting the symmetric key 
+                    // We can use a different provider for decrypting the content, for example of we used a PKCS#11 provider above we could use the BC provider below
+<span class="nc" id="L311">	                rec.setContentProvider(BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="nc" id="L312">	                rec.setProvider(cryptoToken.getSignProviderName());</span>
+	                // Option we must set to prevent Java PKCS#11 provider to try to make the symmetric decryption in the HSM, 
+	                // even though we set content provider to BC. Symm decryption in HSM varies between different HSMs and at least for this case is known 
+	                // to not work in SafeNet Luna (JDK behavior changed in JDK 7_75 where they introduced imho a buggy behavior)
+<span class="nc" id="L316">	                rec.setMustProduceEncodableUnwrappedKey(true);	                </span>
+<span class="nc" id="L317">	                resp = recipient.getContent(rec);</span>
+				}
+			}
+<span class="nc" id="L320">			returnval = new CmsCAServiceResponse(resp);</span>
+<span class="nc" id="L321">        } catch (CMSException e) {</span>
+<span class="nc" id="L322">        	log.error(&quot;Error in CmsCAService&quot;, e);</span>
+<span class="nc" id="L323">        	throw new ExtendedCAServiceRequestException(e);</span>
+<span class="nc" id="L324">		} catch (IOException e) {</span>
+<span class="nc" id="L325">        	log.error(&quot;Error in CmsCAService&quot;, e);</span>
+<span class="nc" id="L326">        	throw new ExtendedCAServiceRequestException(e);</span>
+<span class="nc" id="L327">		} catch (OperatorCreationException e) {</span>
+<span class="nc" id="L328">		    log.error(&quot;Error in CmsCAService&quot;, e);</span>
+<span class="nc" id="L329">            throw new ExtendedCAServiceRequestException(e);</span>
+<span class="nc" id="L330">		} catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L331">		    log.error(&quot;Error in CmsCAService&quot;, e);</span>
+<span class="nc" id="L332">            throw new ExtendedCAServiceRequestException(e);</span>
+<span class="nc" id="L333">        }</span>
+<span class="nc bnc" id="L334" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L335">            log.trace(&quot;&lt;extendedService&quot;);              </span>
+        }
+<span class="nc" id="L337">		return returnval;</span>
+	}
+
+	private X509Certificate getCMSCertificate() {
+<span class="nc bnc" id="L341" title="All 2 branches missed.">		if (cmsCertificate == null) {</span>
+<span class="nc bnc" id="L342" title="All 2 branches missed.">		    for (final Certificate current : certificatechain) {</span>
+<span class="nc" id="L343">				final X509Certificate cert = (X509Certificate) current;</span>
+<span class="nc bnc" id="L344" title="All 2 branches missed.">				if (cert.getBasicConstraints() == -1) {</span>
+<span class="nc" id="L345">					cmsCertificate = cert;</span>
+<span class="nc" id="L346">					break;</span>
+				}
+<span class="nc" id="L348">			}</span>
+		}
+<span class="nc" id="L350">		return cmsCertificate;</span>
+	}
+
+	@Override
+	public float getLatestVersion() {		
+<span class="nc" id="L355">		return LATEST_VERSION;</span>
+	}
+
+	@Override
+	public void upgrade() {
+<span class="nc bnc" id="L360" title="All 2 branches missed.">		if (Float.compare(LATEST_VERSION, getVersion()) != 0) {</span>
+			// New version of the class, upgrade
+<span class="nc" id="L362">			data.put(ExtendedCAServiceInfo.IMPLEMENTATIONCLASS, this.getClass().getName());	// For integration with CESeCore</span>
+<span class="nc" id="L363">			data.put(VERSION, Float.valueOf(LATEST_VERSION));</span>
+		}
+<span class="nc" id="L365">	}</span>
+
+	@Override
+	public ExtendedCAServiceInfo getExtendedCAServiceInfo() {			
+<span class="nc bnc" id="L369" title="All 2 branches missed.">		if (info == null) {</span>
+<span class="nc" id="L370">			info = new CmsCAServiceInfo(getStatus(), getSubjectDN(), getSubjectAltName(), (String) data.get(KEYSPEC), (String) data.get(KEYALGORITHM), certificatechain);</span>
+		}
+<span class="nc" id="L372">		return info;</span>
+	}
+
+	private String getSubjectDN() {
+<span class="nc" id="L376">        return getSubjectXName(SUBJECTDN);</span>
+	}
+
+	private void setSubjectDN(final String dn) {
+<span class="nc" id="L380">        setSubjectXName(SUBJECTDN, dn);</span>
+<span class="nc" id="L381">	}</span>
+
+	private String getSubjectAltName() {
+<span class="nc" id="L384">	    return getSubjectXName(SUBJECTALTNAME);</span>
+	}
+
+	private void setSubjectAltName(final String an) {
+<span class="nc" id="L388">	    setSubjectXName(SUBJECTALTNAME, an);</span>
+<span class="nc" id="L389">	}</span>
+
+    private String getSubjectXName(final String key) {
+<span class="nc" id="L392">        String ret = null;</span>
+<span class="nc" id="L393">        final String value = (String) data.get(key);</span>
+        try {
+<span class="nc" id="L395">            ret = new String(Base64.decode((value).getBytes(&quot;UTF-8&quot;)));</span>
+<span class="nc" id="L396">        } catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L397">            log.error(&quot;Could not decode data from Base64&quot;, e);</span>
+<span class="nc" id="L398">        } catch (DecoderException e) {</span>
+            // This is an old CA, where it's not Base64encoded
+<span class="nc bnc" id="L400" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L401">                log.debug(&quot;Old non base64 encoded &quot; + key + &quot;: &quot; + value);</span>
+            }
+<span class="nc" id="L403">            ret = value; </span>
+<span class="nc" id="L404">        }</span>
+<span class="nc" id="L405">        return ret;       </span>
+    }
+
+    private void setSubjectXName(final String key, final String value) {
+        try {
+<span class="nc" id="L410">            data.put(key, new String(Base64.encode(value.getBytes(&quot;UTF-8&quot;), false)));</span>
+<span class="nc" id="L411">        } catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L412">            log.error(&quot;Could not encode data to Base64&quot;, e);</span>
+<span class="nc" id="L413">        }</span>
+<span class="nc" id="L414">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

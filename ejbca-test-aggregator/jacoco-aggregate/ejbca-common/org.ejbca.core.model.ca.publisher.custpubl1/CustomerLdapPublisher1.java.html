@@ -1,0 +1,924 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CustomerLdapPublisher1.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.ca.publisher.custpubl1</a> &gt; <span class="el_source">CustomerLdapPublisher1.java</span></div><h1>CustomerLdapPublisher1.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.ca.publisher.custpubl1;
+
+import java.io.UnsupportedEncodingException;
+import java.security.cert.CRLException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509CRL;
+import java.security.cert.X509Certificate;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Properties;
+import java.util.SimpleTimeZone;
+
+import javax.security.auth.x500.X500Principal;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.util.CertTools;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.ca.publisher.ICustomPublisher;
+import org.ejbca.core.model.ca.publisher.PublisherConnectionException;
+import org.ejbca.core.model.ca.publisher.PublisherException;
+import org.ejbca.util.TCPTool;
+
+import com.novell.ldap.LDAPAttribute;
+import com.novell.ldap.LDAPAttributeSet;
+import com.novell.ldap.LDAPConnection;
+import com.novell.ldap.LDAPConstraints;
+import com.novell.ldap.LDAPDN;
+import com.novell.ldap.LDAPEntry;
+import com.novell.ldap.LDAPException;
+import com.novell.ldap.LDAPJSSESecureSocketFactory;
+import com.novell.ldap.LDAPSearchConstraints;
+
+/**
+ * This publisher publishes end entity certificates and CRLs according to the
+ * customer specific schema based on the schema defined by ICAO for uploading to
+ * PKD but with customer-specific extensions added.
+ * 
+ * Certificates:
+ * DN: CN=[issuerDN of the certificate]+sn=[hex encoded cert serial no], ou=staging, [base DN]
+ * Objectclass: inetOrgPerson; icaoExtendedInfo 
+ * Attributes:
+ *   cn: the issuer DN of the certificate
+ *   sn: the certificate serial number in hex encoding
+ *   userCertificate:binary: DER encoded certificate (standard LDAP)
+ *   checksum (customer specific): SHA1 checksum in hex encoding of the data field (certificate)
+ * 
+ * CRLs:
+ * DN: CN=[issuerDN of the CRL], ou=staging, [base DN]
+ * Objectclass (standard LDAP): cRLDistributionPoint; icaoExtendedInfo
+ * Attributes:
+ *   cn: the issuer DN of the CRL
+ *   certificateRevocationList; binary: DER encoded CRL (standard LDAP)
+ *   checksum (customer specific): SHA1 checksum in hex encoding of the data field (crl)
+ * 
+ * The DN is a bit special, since the &quot;CN&quot; of the LDAP DN is the whole DN from the certificate. The commas needs to be escaped.
+ * 
+ * Logs:
+ * DN: logTime=[YYYYMMDDHHMM.nnnZ],cn=log, [base DN]
+ * Objectclass: top; logObject
+ * Attributes:
+ *   logTime: Generalized Time with milliseconds and UTC time.
+ *   objectCreator: EJBCA
+ *   logInfo: [Log line 1]
+ *   logInfo: [Log line 2]
+ *   logInfo: [Log line 3]
+ *   logInfo: [Log line n]
+ * 
+ * Each log line is formatted as follows:
+ * time:[Generalized Time] sqn:[number] stage:objectimport level:[Level] msgid: [nnn] msg: [message] pid: msgext: [extended extra info]
+ *
+ * 
+ * Example cert entry:
+ * &lt;pre&gt;
+ * dn: CN=CN\=MyCSCA\,O\=My Gov\,C\=SE+sn=74F9C50AC1514A9,ou=staging,dc=example,dc=com
+ * checksum: f7f7cf62726678837f4e05c83499379e26ff9c58
+ * cn: CN=MyCSCA,O=My Gov,C=SE
+ * objectClass: person
+ * objectClass: organizationalPerson
+ * objectClass: inetOrgPerson
+ * objectClass: top
+ * objectClass: Icaoextendedinfo
+ * sn: 74F9C50AC1514A9
+ * userCertificate;binary:: MIIEnTCCAlGgAwIBAgIIB0+cUKwVFKkwQQYJKoZIhvcNAQEKM...
+ * &lt;/pre&gt;
+ * 
+ * Example CRL entry:
+ * &lt;pre&gt;
+ * dn: CN=CN\=MyCSCA\,O\=My Gov\,C\=SE,ou=staging,dc=example,dc=com
+ * certificateRevocationList;binary:: MIIDETCBxgIBATBBBgkqhkiG9w0BAQowNKAPMA0...
+ * checksum: cbc0b8a00899edc3da3344eeb2a8075f7960970f
+ * cn: CN=MyCSCA,O=My Gov,C=SE
+ * objectClass: cRLDistributionPoint
+ * objectClass: top
+ * objectClass: Icaoextendedinfo
+ * &lt;/pre&gt;
+ * 
+ * Example log entry:
+ * &lt;pre&gt;
+ * dn: logTime=20130415121356.184Z,cn=log,dc=example,dc=com
+ * description: test
+ * logInfo:  time:20130415121356.184Z sqn:1 stage:objectupload level:info msgid: msg:Successfully published CRL 26 msgext:
+ * logTime: 20130415121356.184Z
+ * objectClass: logObject
+ * objectClass: top
+ * objectCreator: EJBCA
+ * &lt;/pre&gt;
+ * 
+ * If an log entry with the same name already exists it is retried one time with time +1 ms in DN.
+ * 
+ * Note the escaping of commas in the DN, this is needed since the &quot;CN&quot; of the LDAP DN contains commas (CN=C=SE\,O=foo\,CN=cscav1).
+ * OpenLDAP implement very old escaping rules and will replace = with \3D and things like that. Better to use OpenDJ, easy to install and run, and works correctly.
+ * 
+ * Version: 0.9.2
+ *
+ * @version $Id: CustomerLdapPublisher1.java 28092 2018-01-24 15:37:37Z anatom $
+ */
+<span class="fc" id="L137">public class CustomerLdapPublisher1 implements ICustomPublisher {</span>
+
+<span class="fc" id="L139">    private static final Logger log = Logger.getLogger(CustomerLdapPublisher1.class);</span>
+<span class="fc" id="L140">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+    
+    // Object classes
+    public static final String INETORGPERSON = &quot;inetOrgPerson&quot;;
+    public static final String CRLDISTRIBUTIONPOINT = &quot;cRLDistributionPoint&quot;;
+    public static final String ICAOEXTENDEDINFO = &quot;icaoExtendedInfo&quot;;
+    public static final String TOP = &quot;top&quot;;
+    private static final String LOGOBJECT = &quot;logObject&quot;;
+<span class="fc" id="L148">    private static final String[] LOG_OBJECTCLASSES = new String[] {TOP, LOGOBJECT};</span>
+ 
+    // Groups
+    private static final String PUBLISH_GROUP = &quot;ou=staging&quot;;
+    private static final String LOG_GROUP = &quot;cn=log&quot;;
+    
+    // Attributes
+    private static final String CHECKSUM_ATTRIBUTE = &quot;checksum&quot;;
+    private static final String CERTIFICATE_ATTRIBUTE = &quot;userCertificate;binary&quot;;
+    private static final String CRL_ATTRIBUTE = &quot;certificateRevocationList;binary&quot;;
+    
+    // Properties
+    private static final String PROPERTY_HOSTNAMES = &quot;hostnames&quot;;
+    private static final String PROPERTY_USESSL = &quot;usessl&quot;;
+    private static final String PROPERTY_PORT = &quot;port&quot;;
+    private static final String PROPERTY_BASEDN = &quot;basedn&quot;;
+    private static final String PROPERTY_LOGINDN = &quot;logindn&quot;;
+    private static final String PROPERTY_LOGINPASSWORD = &quot;loginpassword&quot;;
+    private static final String PROPERTY_CONNECTIONTIMEOUT = &quot;connectiontimeout&quot;;
+    private static final String PROPERTY_READTIMEOUT = &quot;readtimeout&quot;;
+    private static final String PROPERTY_STORETIMEOUT = &quot;storetimeout&quot;;
+    private static final String PROPERTY_LOGCONNECTIONTESTS = &quot;logconnectiontests&quot;;
+    private static final String PROPERTY_EXTENDEDINFOOBJECTCLASS = &quot;extendedinfoobjectclass&quot;;
+    
+    // Default values
+    public static final String DEFAULT_PORT = &quot;389&quot;;
+    public static final String DEFAULT_SSLPORT = &quot;636&quot;;
+    public static final String DEFAULT_TIMEOUT = &quot;5000&quot;; // 5 seconds
+    public static final String DEFAULT_READTIMEOUT = &quot;30000&quot;; // 30 seconds
+    public static final String DEFAULT_STORETIMEOUT = &quot;60000&quot;; // 1 minute
+    
+    /** Flag indicating if the publisher has been initialized. */
+    private boolean inited;
+    
+    // Fields
+    private List&lt;String&gt; hostnames;
+    private boolean useSSL;
+    private String port;
+    private String baseDN;
+    private String loginDN;
+    private String loginPassword;
+    private boolean logConnectionTests;
+    private String extendedInfoObjectClass;
+    private int timeout;
+
+
+<span class="fc" id="L194">    private LDAPConstraints ldapConnectionConstraints = new LDAPConstraints();</span>
+<span class="fc" id="L195">    private LDAPConstraints ldapBindConstraints = new LDAPConstraints();</span>
+<span class="fc" id="L196">    private LDAPConstraints ldapStoreConstraints = new LDAPConstraints();</span>
+<span class="fc" id="L197">    private LDAPConstraints ldapDisconnectConstraints = new LDAPConstraints();</span>
+<span class="fc" id="L198">    private LDAPSearchConstraints ldapSearchConstraints = new LDAPSearchConstraints();</span>
+
+    //DSC and CRL object classes that may contain icaoextendedinfo or spocextendedinfo object classes
+    private String[] dscObjectClasses;
+    private String[] crlObjectClasses;
+
+    /**
+     * Called by CustomPublisherContainer to initialize a newly created instance
+     * of this custom publisher with its properties.
+     *
+     * @param properties The properties entered in the GUI
+     */
+    @Override
+    public void init(Properties properties) {
+<span class="fc" id="L212">        this.hostnames = Arrays.asList(properties.getProperty(PROPERTY_HOSTNAMES, &quot;&quot;).split(&quot;;&quot;));</span>
+<span class="fc" id="L213">        this.useSSL = Boolean.parseBoolean(properties.getProperty(PROPERTY_USESSL, Boolean.TRUE.toString()));</span>
+<span class="fc" id="L214">        this.port = properties.getProperty(PROPERTY_PORT, DEFAULT_SSLPORT);</span>
+<span class="fc" id="L215">        this.baseDN = properties.getProperty(PROPERTY_BASEDN, &quot;&quot;);</span>
+<span class="fc" id="L216">        this.loginDN = properties.getProperty(PROPERTY_LOGINDN, &quot;&quot;);</span>
+<span class="fc" id="L217">        this.loginPassword = properties.getProperty(PROPERTY_LOGINPASSWORD, &quot;&quot;);</span>
+<span class="fc" id="L218">        this.logConnectionTests = Boolean.parseBoolean(properties.getProperty(PROPERTY_LOGCONNECTIONTESTS, Boolean.FALSE.toString()));</span>
+<span class="fc" id="L219">        this.timeout = Integer.parseInt(properties.getProperty(PROPERTY_CONNECTIONTIMEOUT, String.valueOf(DEFAULT_TIMEOUT)));</span>
+<span class="fc" id="L220">        int readTimeout = Integer.parseInt(properties.getProperty(PROPERTY_READTIMEOUT, String.valueOf(DEFAULT_TIMEOUT)));</span>
+<span class="fc" id="L221">        int storeTimeout = Integer.parseInt(properties.getProperty(PROPERTY_STORETIMEOUT, String.valueOf(DEFAULT_TIMEOUT)));</span>
+<span class="fc" id="L222">        this.extendedInfoObjectClass = properties.getProperty(PROPERTY_EXTENDEDINFOOBJECTCLASS, ICAOEXTENDEDINFO);</span>
+<span class="fc" id="L223">        this.dscObjectClasses = new String[]{ INETORGPERSON, extendedInfoObjectClass};</span>
+<span class="fc" id="L224">        this.crlObjectClasses = new String[] { CRLDISTRIBUTIONPOINT, extendedInfoObjectClass};</span>
+
+<span class="fc" id="L226">        ldapBindConstraints.setTimeLimit(timeout);</span>
+<span class="fc" id="L227">        ldapConnectionConstraints.setTimeLimit(timeout);</span>
+<span class="fc" id="L228">        ldapDisconnectConstraints.setTimeLimit(timeout);</span>
+<span class="fc" id="L229">        ldapSearchConstraints.setTimeLimit(readTimeout);</span>
+<span class="fc" id="L230">        ldapStoreConstraints.setTimeLimit(storeTimeout);</span>
+        
+<span class="pc bpc" id="L232" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L233">            log.debug(new StringBuilder()</span>
+<span class="nc" id="L234">                    .append(&quot;Initialized publisher with config:&quot;).append(&quot;\n&quot;)</span>
+<span class="nc" id="L235">                    .append(PROPERTY_HOSTNAMES).append(&quot;: \&quot;&quot;).append(hostnames).append(&quot;\&quot;\n&quot;)</span>
+<span class="nc" id="L236">                    .append(PROPERTY_USESSL).append(&quot;: \&quot;&quot;).append(useSSL).append(&quot;\&quot;\n&quot;)</span>
+<span class="nc" id="L237">                    .append(PROPERTY_PORT).append(&quot;: \&quot;&quot;).append(port).append(&quot;\&quot;\n&quot;)</span>
+<span class="nc" id="L238">                    .append(PROPERTY_BASEDN).append(&quot;: \&quot;&quot;).append(baseDN).append(&quot;\&quot;\n&quot;)</span>
+<span class="nc" id="L239">                    .append(PROPERTY_LOGINDN).append(&quot;: \&quot;&quot;).append(loginDN).append(&quot;\&quot;\n&quot;)</span>
+<span class="nc" id="L240">                    .append(PROPERTY_LOGINPASSWORD).append(&quot;: &quot;).append(&quot;*&quot;).append(&quot;\n&quot;)</span>
+<span class="nc" id="L241">                    .append(PROPERTY_LOGCONNECTIONTESTS).append(&quot;: \&quot;&quot;).append(logConnectionTests).append(&quot;\&quot;\n&quot;)</span>
+<span class="nc" id="L242">                    .append(PROPERTY_CONNECTIONTIMEOUT).append(&quot;: \&quot;&quot;).append(timeout).append(&quot;\&quot;\n&quot;)</span>
+<span class="nc" id="L243">                    .append(PROPERTY_READTIMEOUT).append(&quot;: \&quot;&quot;).append(readTimeout).append(&quot;\&quot;\n&quot;)</span>
+<span class="nc" id="L244">                    .append(PROPERTY_STORETIMEOUT).append(&quot;: \&quot;&quot;).append(storeTimeout).append(&quot;\&quot;\n&quot;)</span>
+<span class="nc" id="L245">                    .append(PROPERTY_EXTENDEDINFOOBJECTCLASS).append(&quot;: \&quot;&quot;).append(extendedInfoObjectClass).append(&quot;\&quot;\n&quot;)</span>
+<span class="nc" id="L246">                    .toString());</span>
+        }
+
+<span class="fc" id="L249">        inited = true;</span>
+<span class="fc" id="L250">    }</span>
+
+    @Override
+    public boolean storeCertificate(final AuthenticationToken admin, final Certificate incert, final String username, final String password, final String userDN, final String cafp, final int status, final int type, final long revocationDate, final int revocationReason, final String tag, final int certificateProfileId, final long lastUpdate, final ExtendedInformation extendedinformation) throws PublisherException {
+<span class="pc bpc" id="L254" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L255">            log.trace(&quot;&gt;storeCertificate(username=&quot; + username + &quot;)&quot;);</span>
+        }
+<span class="fc bfc" id="L257" title="All 2 branches covered.">        if (!inited) {</span>
+<span class="fc" id="L258">            throw new IllegalStateException(&quot;Publisher not initialized&quot;);</span>
+        }
+
+        // Only bother with active end entity certificates
+<span class="fc bfc" id="L262" title="All 4 branches covered.">        if (status == CertificateConstants.CERT_ACTIVE &amp;&amp; type == CertificateConstants.CERTTYPE_ENDENTITY) {</span>
+<span class="fc" id="L263">            final String serial = CertTools.getSerialNumberAsString(incert);</span>
+            try {
+<span class="fc" id="L265">                doStoreCertificate(incert, username, password, userDN, extendedinformation);</span>
+                try {
+<span class="fc" id="L267">                    storeLog(LogInfo.LEVEL_INFO, true, &quot;Successfully published certificate &quot; + serial, null);</span>
+<span class="fc" id="L268">                } catch (PublisherException ex) {</span>
+                    // Catching the log failure as we don't want the entry to be republished just because we could not log the success
+<span class="fc" id="L270">                    log.error(&quot;Failed to log the successful publishing for certiciate &quot; + serial, ex);</span>
+<span class="fc" id="L271">                }</span>
+<span class="fc" id="L272">            } catch (PublisherException pex) {</span>
+<span class="fc" id="L273">                PublisherException pex2 = new PublisherException(pex.getMessage());</span>
+<span class="fc" id="L274">                pex2.initCause(pex);</span>
+
+                // Try to log the exception to LDAP
+                try {
+<span class="fc" id="L278">                    storeLog(LogInfo.LEVEL_ERROR, false, &quot;Publishing of certificate &quot; + serial + &quot; failed&quot;, pex);</span>
+<span class="fc" id="L279">                } catch (PublisherException ex) {</span>
+<span class="fc" id="L280">                    log.error(&quot;Failed to log the failed publishing for certificate &quot; + serial, ex);</span>
+<span class="fc" id="L281">                }</span>
+
+                // Pass through the exception so that the failed publising can be put in the publishing queue
+<span class="fc" id="L284">                throw pex2;</span>
+<span class="fc" id="L285">            }</span>
+<span class="fc" id="L286">        } else {</span>
+<span class="pc bpc" id="L287" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L288">                log.debug(&quot;This publisher only stores active end entity certificates.&quot;);</span>
+            }
+        }
+<span class="pc bpc" id="L291" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L292">            log.trace(&quot;&lt;storeCertificate()&quot;);</span>
+        }
+<span class="fc" id="L294">        return true;</span>
+    }
+
+    @Override
+    public boolean storeCRL(final AuthenticationToken admin, final byte[] incrl, final String cafp, final int number, final String userDN) throws PublisherException {
+<span class="pc bpc" id="L299" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L300">            log.trace(&quot;&gt;storeCRL&quot;);</span>
+        }
+<span class="fc bfc" id="L302" title="All 2 branches covered.">        if (!inited) {</span>
+<span class="fc" id="L303">            throw new IllegalStateException(&quot;Publisher not initialized&quot;);</span>
+        }
+
+        try {
+<span class="fc" id="L307">            doStoreCRL(incrl);</span>
+            try {
+<span class="fc" id="L309">                storeLog(LogInfo.LEVEL_INFO, true, &quot;Successfully published CRL &quot; + number, null);</span>
+<span class="fc" id="L310">            } catch (PublisherException ex) {</span>
+                // Catching the log failure as we don't want the entry to be republished just because we could not log the success
+<span class="fc" id="L312">                log.error(&quot;Failed to log the successful publishing for CRL&quot; + number, ex);</span>
+<span class="fc" id="L313">            }</span>
+<span class="fc" id="L314">            return true;</span>
+<span class="fc" id="L315">        } catch (PublisherException pex) {</span>
+<span class="fc" id="L316">            PublisherException pex2 = new PublisherException(pex.getMessage());</span>
+<span class="fc" id="L317">            pex2.initCause(pex);</span>
+
+            // Try to log the exception to LDAP
+            try {
+<span class="fc" id="L321">                storeLog(LogInfo.LEVEL_ERROR, false, &quot;Publishing of CRL &quot; + number + &quot; failed&quot;, pex);</span>
+<span class="fc" id="L322">            } catch (PublisherException ex) {</span>
+<span class="fc" id="L323">                log.error(&quot;Failed to log the failed publishing for CRL &quot; + number, ex);</span>
+<span class="fc" id="L324">            }</span>
+
+            // Pass through the exception so that the failed publishing can be put in the publishing queue
+<span class="fc" id="L327">            throw pex2;</span>
+        }
+    }
+
+    @Override
+    public void testConnection() throws PublisherConnectionException {
+<span class="fc bfc" id="L333" title="All 2 branches covered.">        if (!inited) {</span>
+<span class="fc" id="L334">            throw new IllegalStateException(&quot;Publisher not initialized&quot;);</span>
+        }
+        try {
+<span class="fc" id="L337">            doTestConnection();</span>
+<span class="fc bfc" id="L338" title="All 2 branches covered.">            if (logConnectionTests) {</span>
+                try {
+<span class="fc" id="L340">                    storeLog(LogInfo.LEVEL_DEBUG, true, &quot;Successfully tested connection to LDAP&quot;, null);</span>
+<span class="fc" id="L341">                } catch (PublisherException ex) {</span>
+<span class="fc" id="L342">                    log.error(&quot;Failed to log the successful connection test&quot;, ex);</span>
+<span class="fc" id="L343">                }</span>
+            }
+<span class="fc" id="L345">        } catch (PublisherConnectionException pex) {</span>
+<span class="fc" id="L346">            PublisherConnectionException pex2 = new PublisherConnectionException(pex.getMessage());</span>
+<span class="fc" id="L347">            pex2.initCause(pex);</span>
+
+<span class="fc bfc" id="L349" title="All 2 branches covered.">            if (logConnectionTests) {</span>
+                // Try to log the exception to LDAP
+                try {
+<span class="fc" id="L352">                    storeLog(LogInfo.LEVEL_ERROR, false, &quot;Failed testing of connection to LDAP &quot;, pex);</span>
+<span class="fc" id="L353">                } catch (PublisherException ex) {</span>
+<span class="fc" id="L354">                    log.error(&quot;Failed to log the failed connection test &quot;, ex);</span>
+<span class="fc" id="L355">                }</span>
+            }
+<span class="fc" id="L357">            throw pex2;</span>
+<span class="fc" id="L358">        }</span>
+<span class="fc" id="L359">    }</span>
+
+    protected boolean doStoreCertificate(final Certificate incert, String username, String password, String userDN, ExtendedInformation extendedinformation) throws PublisherException {
+<span class="pc bpc" id="L362" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L363">            log.trace(&quot;&gt;doStoreCertificate(username=&quot; + username + &quot;)&quot;);</span>
+        }
+<span class="fc" id="L365">        final LDAPConnection lc = createLdapConnection();</span>
+
+        final String ldapDN;
+        try {
+            // Extract the CAs DN from the cert, the DN should be in reversed order (RFC2253)
+            // In ICAO PKD certs are stored with issuerDN+serialNo in the LDAP
+<span class="fc" id="L371">            final String dn = ((X509Certificate) incert).getIssuerX500Principal().getName(X500Principal.RFC2253);</span>
+<span class="pc bpc" id="L372" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L373">                log.debug(&quot;DN in certificate '&quot; + dn + &quot;'.&quot;);</span>
+            }
+            
+            // Publishing of certificate, we must append the cert serial number to the DN
+<span class="fc" id="L377">            ldapDN = new StringBuilder()</span>
+<span class="fc" id="L378">                    .append(&quot;CN=&quot;).append(LDAPDN.escapeRDN(dn))</span>
+<span class="fc" id="L379">                    .append(&quot;+sn=&quot;).append(CertTools.getSerialNumberAsString(incert))</span>
+<span class="fc" id="L380">                    .append(&quot;,&quot;).append(PUBLISH_GROUP)</span>
+<span class="fc" id="L381">                    .append(&quot;,&quot;).append(baseDN)</span>
+<span class="fc" id="L382">                    .toString();</span>
+            
+<span class="pc bpc" id="L384" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L385">                log.debug(&quot;LDAP DN for user &quot; + username + &quot; is '&quot; + ldapDN + &quot;'&quot;);</span>
+            }
+<span class="nc" id="L387">        } catch (Exception e) {</span>
+<span class="nc" id="L388">            String msg = intres.getLocalizedMessage(&quot;publisher.errorldapdecode&quot;, &quot;certificate&quot;);</span>
+<span class="nc" id="L389">            log.error(msg, e);</span>
+<span class="nc" id="L390">            throw new PublisherException(msg);</span>
+<span class="fc" id="L391">        }</span>
+
+        // Check for old entry
+<span class="fc" id="L394">        final LDAPEntry oldEntry = searchOldEntity(lc, ldapDN);</span>
+<span class="pc bpc" id="L395" title="1 of 2 branches missed.">        if (oldEntry != null) {</span>
+<span class="nc" id="L396">            log.debug(&quot;Old entry exists and will be delete first&quot;);</span>
+        }
+
+        // Attributs
+<span class="fc" id="L400">        final LDAPAttributeSet attributeSet = new LDAPAttributeSet();</span>
+<span class="fc" id="L401">        attributeSet.add(new LDAPAttribute(&quot;objectclass&quot;, dscObjectClasses));</span>
+<span class="fc" id="L402">        attributeSet.add(new LDAPAttribute(&quot;sn&quot;, CertTools.getSerialNumberAsString(incert)));</span>
+<span class="fc" id="L403">        final String checksum = CertTools.getFingerprintAsString(incert);</span>
+<span class="pc bpc" id="L404" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L405">            log.debug(&quot;Adding checksum: &quot; + checksum);</span>
+        }
+<span class="fc" id="L407">        attributeSet.add(new LDAPAttribute(CHECKSUM_ATTRIBUTE, checksum));</span>
+        try {
+<span class="fc" id="L409">            attributeSet.add(new LDAPAttribute(CERTIFICATE_ATTRIBUTE, incert.getEncoded()));</span>
+<span class="nc" id="L410">        } catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L411">            String msg = intres.getLocalizedMessage(&quot;publisher.errorldapencodestore&quot;, &quot;certificate&quot;);</span>
+<span class="nc" id="L412">            log.error(msg, e);</span>
+<span class="nc" id="L413">            throw new PublisherException(msg);</span>
+<span class="fc" id="L414">        }</span>
+        
+        // Finally write the object
+<span class="pc bpc" id="L417" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L418">            log.debug(&quot;Adding certificate to user entry: &quot; + username + &quot;: &quot; + ldapDN);</span>
+        }
+<span class="fc" id="L420">        final LDAPEntry newEntry = new LDAPEntry(ldapDN, attributeSet);</span>
+<span class="fc" id="L421">        writeCertEntryToLDAP(lc, oldEntry, newEntry, checksum);</span>
+
+<span class="pc bpc" id="L423" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L424">            log.trace(&quot;&lt;doStoreCertificate()&quot;);</span>
+        }
+<span class="fc" id="L426">        return true;</span>
+    }
+
+    protected void doStoreCRL(final byte[] incrl) throws PublisherException {
+<span class="pc bpc" id="L430" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L431">            log.trace(&quot;&gt;doStoreCRL&quot;);</span>
+        }
+
+<span class="fc" id="L434">        final LDAPConnection lc = createLdapConnection();</span>
+        
+        final String ldapDN;
+        try {
+            // Extract the users DN from the crl. The DN should be in reversed order (RFC2253)
+<span class="fc" id="L439">            final X509CRL crl = CertTools.getCRLfromByteArray(incrl);</span>
+<span class="fc" id="L440">            final String crlDN = crl.getIssuerX500Principal().getName(X500Principal.RFC2253);</span>
+<span class="fc" id="L441">            ldapDN = new StringBuilder()</span>
+<span class="fc" id="L442">                    .append(&quot;CN=&quot;).append(LDAPDN.escapeRDN(crlDN))</span>
+<span class="fc" id="L443">                    .append(&quot;,&quot;).append(PUBLISH_GROUP)</span>
+<span class="fc" id="L444">                    .append(&quot;,&quot;).append(baseDN)</span>
+<span class="fc" id="L445">                    .toString();</span>
+<span class="nc" id="L446">        } catch (CRLException e) {</span>
+<span class="nc" id="L447">            String msg = intres.getLocalizedMessage(&quot;publisher.errorldapdecode&quot;, &quot;CRL&quot;);</span>
+<span class="nc" id="L448">            log.error(msg, e);</span>
+<span class="nc" id="L449">            throw new PublisherException(msg);</span>
+<span class="fc" id="L450">        }</span>
+
+        // Check if the entry is already present, we will update it with the new CRL.
+<span class="fc" id="L453">        final LDAPEntry oldEntry = searchOldEntity(lc, ldapDN);</span>
+
+        // Attributes
+<span class="fc" id="L456">        final LDAPAttributeSet attributeSet = new LDAPAttributeSet();</span>
+<span class="fc" id="L457">        attributeSet.add(new LDAPAttribute(&quot;objectclass&quot;, crlObjectClasses));</span>
+<span class="fc" id="L458">        final String checksum = CertTools.getFingerprintAsString(incrl);</span>
+<span class="pc bpc" id="L459" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L460">            log.debug(&quot;Adding checksum: &quot; + checksum);</span>
+        }
+<span class="fc" id="L462">        attributeSet.add(new LDAPAttribute(CHECKSUM_ATTRIBUTE, checksum));</span>
+<span class="fc" id="L463">        attributeSet.add(new LDAPAttribute(CRL_ATTRIBUTE, incrl));</span>
+
+        // Finally write the object
+<span class="fc" id="L466">        final LDAPEntry newEntry = new LDAPEntry(ldapDN, attributeSet);</span>
+<span class="fc" id="L467">        writeCrlEntryToLDAP(lc, oldEntry, newEntry);</span>
+<span class="pc bpc" id="L468" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L469">            log.trace(&quot;&lt;doStoreCRL&quot;);</span>
+        }
+<span class="fc" id="L471">    }</span>
+
+    protected void doTestConnection() throws PublisherConnectionException {
+<span class="nc" id="L474">        final LDAPConnection lc = createLdapConnection();</span>
+<span class="nc" id="L475">        final LDAPEntry entry = executeLDAPAction(lc, new LDAPConnectionAction&lt;LDAPEntry, PublisherConnectionException&gt;() {</span>
+            @Override
+            public LDAPEntry performAction(final LDAPConnection lc) throws LDAPException {
+                // try to read the base object
+<span class="nc bnc" id="L479" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L480">                    log.debug(&quot;Trying to read top node '&quot; + baseDN + &quot;'&quot;);</span>
+                }
+<span class="nc" id="L482">                final LDAPEntry entry = lc.read(baseDN, ldapSearchConstraints);</span>
+<span class="nc" id="L483">                return entry;</span>
+            }
+            @Override
+            public void failed(final LDAPException ex) throws PublisherConnectionException {
+<span class="nc" id="L487">                String msg = intres.getLocalizedMessage(&quot;publisher.errorldapbind&quot;, ex.getMessage());</span>
+<span class="nc" id="L488">                log.error(msg, ex);</span>
+<span class="nc" id="L489">                throw new PublisherConnectionException(msg);</span>
+            }
+        });
+        
+<span class="nc bnc" id="L493" title="All 2 branches missed.">        if (entry == null) {</span>
+<span class="nc" id="L494">            String msg = intres.getLocalizedMessage(&quot;publisher.errornobinddn&quot;);</span>
+<span class="nc" id="L495">            throw new PublisherConnectionException(msg);</span>
+        }
+<span class="nc bnc" id="L497" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L498">            log.debug(&quot;Entry&quot; + entry.toString());</span>
+        }
+<span class="nc" id="L500">    }</span>
+
+    protected void storeLog(final String level, final boolean success, final String message, Exception exception) throws PublisherException {
+<span class="pc bpc" id="L503" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L504">            log.trace(&quot;&gt;storeLog&quot;);</span>
+        }
+<span class="pc bpc" id="L506" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L507">            log.debug(&quot;Publishing was successful: &quot; + success);</span>
+        }
+
+        // Construct LogInfo lines
+<span class="fc" id="L511">        final Date now = getCurrentTime();</span>
+        try {
+<span class="fc" id="L513">            doStoreLog(level, success, message, exception, now, now);</span>
+<span class="fc" id="L514">        } catch (PublisherException ex) {</span>
+<span class="pc bpc" id="L515" title="1 of 2 branches missed.">            if (ex.getCause() instanceof LDAPException) {</span>
+<span class="fc" id="L516">                final LDAPException le = (LDAPException) ex.getCause();</span>
+                // If entry already exists, retry one time with time +1 ms
+<span class="pc bpc" id="L518" title="1 of 2 branches missed.">                if (le.getResultCode() == LDAPException.ENTRY_ALREADY_EXISTS) {</span>
+<span class="fc" id="L519">                    log.info(&quot;Log entry already exists, retrying with time +1 ms&quot;);</span>
+<span class="fc" id="L520">                    doStoreLog(level, success, message, exception, new Date(now.getTime() + 1), now);</span>
+                }
+<span class="fc" id="L522">            } else {</span>
+<span class="nc" id="L523">                throw ex;</span>
+            }
+<span class="fc" id="L525">        }</span>
+
+<span class="pc bpc" id="L527" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L528">            log.trace(&quot;&lt;storeLog&quot;);</span>
+        }
+<span class="fc" id="L530">    }</span>
+    
+    protected void doStoreLog(final String level, final boolean success, final String message, Exception exception, final Date dnTime, final Date logTime) throws PublisherException {
+<span class="fc" id="L533">        final String generalizedTimeDN = LogInfo.toGeneralizedTime(dnTime);</span>
+<span class="fc" id="L534">        final String generalizedTimeLog = LogInfo.toGeneralizedTime(logTime);</span>
+<span class="fc" id="L535">        final LinkedList&lt;String&gt; logEntries = new LinkedList&lt;String&gt;();</span>
+<span class="fc" id="L536">        final StringBuilder buff = new StringBuilder();</span>
+<span class="fc" id="L537">        buff.append(message);</span>
+<span class="pc bpc" id="L538" title="1 of 2 branches missed.">        if (!success) {</span>
+<span class="nc" id="L539">            buff.append(&quot;: &quot;).append(exception.getLocalizedMessage());</span>
+        }
+<span class="fc" id="L541">        logEntries.add(new LogInfo(logTime, 1, &quot;objectupload&quot;, level, null, buff.toString(), null, null).getEncoded());</span>
+
+        // Connect
+<span class="fc" id="L544">        final LDAPConnection lc = createLdapConnection();</span>
+
+        // Attributes
+<span class="fc" id="L547">        final LDAPAttributeSet attributeSet = new LDAPAttributeSet();</span>
+<span class="fc" id="L548">        attributeSet.add(new LDAPAttribute(&quot;objectclass&quot;, LOG_OBJECTCLASSES));</span>
+<span class="fc" id="L549">        attributeSet.add(new LDAPAttribute(&quot;objectCreator&quot;, &quot;EJBCA&quot;));</span>
+<span class="fc" id="L550">        attributeSet.add(new LDAPAttribute(&quot;logTime&quot;, generalizedTimeLog));</span>
+<span class="fc" id="L551">        attributeSet.add(new LDAPAttribute(&quot;logInfo&quot;, logEntries.toArray(new String[logEntries.size()])));</span>
+<span class="fc" id="L552">        final String dn = &quot;logTime=&quot; + generalizedTimeDN + &quot;,&quot; + LOG_GROUP + &quot;,&quot; + baseDN;</span>
+
+        // Finally write the object
+<span class="fc" id="L555">        final LDAPEntry newEntry = new LDAPEntry(dn, attributeSet);</span>
+<span class="fc" id="L556">        writeLogEntryToLDAP(lc, newEntry);</span>
+<span class="fc" id="L557">    }</span>
+
+    protected Date getCurrentTime() {
+<span class="nc" id="L560">        return new Date();</span>
+    }
+    
+    interface LDAPConnectionAction&lt;T, E extends Throwable&gt; {
+        T performAction(LDAPConnection lc) throws LDAPException;
+        void failed(LDAPException ex) throws E;
+    }
+    
+    private&lt;T extends Object, E extends Throwable&gt; T executeLDAPAction(final LDAPConnection lc, final LDAPConnectionAction&lt;T,E&gt; action) throws E {
+<span class="nc" id="L569">        T result = null;</span>
+        // Try all the listed servers
+<span class="nc" id="L571">        final Iterator&lt;String&gt; servers = hostnames.iterator();</span>
+        boolean connectionFailed;
+        do {
+<span class="nc" id="L574">            connectionFailed = false;</span>
+<span class="nc" id="L575">            final String currentServer = servers.next();</span>
+<span class="nc bnc" id="L576" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L577">                log.debug(&quot;Current server is: &quot; + currentServer);</span>
+            }
+            
+            try {
+<span class="nc" id="L581">                TCPTool.probeConnectionLDAP(currentServer, Integer.parseInt(port), timeout);    // Avoid waiting for halfdead-servers</span>
+                // connect to the server
+<span class="nc" id="L583">                lc.connect(currentServer, Integer.parseInt(port));</span>
+                // authenticate to the server
+<span class="nc" id="L585">                lc.bind(LDAPConnection.LDAP_V3, loginDN, loginPassword.getBytes(&quot;UTF8&quot;), ldapBindConstraints);</span>
+                
+                // Perform the action
+<span class="nc" id="L588">                result = action.performAction(lc);</span>
+<span class="nc" id="L589">            } catch (LDAPException e) {</span>
+<span class="nc" id="L590">                connectionFailed = true;</span>
+<span class="nc bnc" id="L591" title="All 2 branches missed.">                if (servers.hasNext()) {</span>
+<span class="nc" id="L592">                    log.warn(&quot;Failed to publish to &quot; + currentServer + &quot;. Trying next in list.&quot;);</span>
+                } else {
+<span class="nc" id="L594">                    action.failed(e);</span>
+                }
+<span class="nc" id="L596">            } catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L597">                String msg = intres.getLocalizedMessage(&quot;publisher.errorpassword&quot;, loginPassword);</span>
+<span class="nc" id="L598">                throw new RuntimeException(msg);</span>
+            } finally {
+                // disconnect with the server
+                try {
+<span class="nc" id="L602">                    lc.disconnect(ldapDisconnectConstraints);</span>
+<span class="nc" id="L603">                } catch (LDAPException e) {</span>
+<span class="nc" id="L604">                    String msg = intres.getLocalizedMessage(&quot;publisher.errordisconnect&quot;);</span>
+<span class="nc" id="L605">                    log.error(msg, e);</span>
+<span class="nc" id="L606">                }</span>
+            }
+<span class="nc bnc" id="L608" title="All 4 branches missed.">        } while (connectionFailed &amp;&amp; servers.hasNext());</span>
+<span class="nc" id="L609">        return result;</span>
+    }
+
+    protected LDAPEntry searchOldEntity(final LDAPConnection lc, final String ldapDN) throws PublisherException {
+<span class="nc" id="L613">        return executeLDAPAction(lc, new LDAPConnectionAction&lt;LDAPEntry,PublisherException&gt;() {</span>
+            @Override
+            public LDAPEntry performAction(final LDAPConnection lc) throws LDAPException {
+<span class="nc" id="L616">                LDAPEntry result = null;</span>
+                try {
+                    // try to read the old object
+<span class="nc bnc" id="L619" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L620">                        log.debug(&quot;Searching for old entry with DN '&quot; + ldapDN + &quot;'&quot;);</span>
+                    }
+<span class="nc" id="L622">                    result = lc.read(ldapDN, ldapSearchConstraints);</span>
+<span class="nc bnc" id="L623" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc bnc" id="L624" title="All 2 branches missed.">                        if (result != null) {</span>
+<span class="nc" id="L625">                            log.debug(&quot;Found an old entry with DN '&quot; + ldapDN + &quot;'&quot;);</span>
+                        } else {
+<span class="nc" id="L627">                            log.debug(&quot;Did not find an old entry with DN '&quot; + ldapDN + &quot;'&quot;);</span>
+                        }
+                    }
+<span class="nc" id="L630">                } catch (LDAPException ex) {</span>
+<span class="nc bnc" id="L631" title="All 2 branches missed.">                    if (ex.getResultCode() == LDAPException.NO_SUCH_OBJECT) {</span>
+<span class="nc bnc" id="L632" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L633">                            log.debug(&quot;No old entry exist for '&quot; + ldapDN + &quot;'.&quot;);</span>
+                        }
+                    } else {
+<span class="nc" id="L636">                        throw ex;</span>
+                    }
+<span class="nc" id="L638">                }</span>
+<span class="nc" id="L639">                return result;</span>
+            }
+            @Override
+            public void failed(final LDAPException ex) throws PublisherException {
+<span class="nc" id="L643">                final String msg = intres.getLocalizedMessage(&quot;publisher.errorldapbind&quot;, ex.getMessage());</span>
+<span class="nc" id="L644">                log.error(msg, ex);</span>
+<span class="nc" id="L645">                throw new PublisherException(msg);</span>
+            }
+        });
+    }
+    
+    private LDAPConnection createLdapConnection() {
+        final LDAPConnection result;
+<span class="pc bpc" id="L652" title="1 of 2 branches missed.">        if (useSSL) {</span>
+<span class="fc" id="L653">            result = new LDAPConnection(new LDAPJSSESecureSocketFactory());</span>
+        } else {
+<span class="nc" id="L655">            result = new LDAPConnection();</span>
+        }
+<span class="fc" id="L657">        result.setConstraints(ldapConnectionConstraints);</span>
+<span class="fc" id="L658">        return result;</span>
+    }
+
+    protected void writeCertEntryToLDAP(final LDAPConnection lc, final LDAPEntry oldEntry, final LDAPEntry newEntry, final String certFingerprint) throws PublisherException {
+<span class="nc" id="L662">        executeLDAPAction(lc, new LDAPConnectionAction&lt;Void,PublisherException&gt;() {</span>
+            @Override
+            public Void performAction(final LDAPConnection lc) throws LDAPException {
+                try {
+                    // Delete old entry if existing
+<span class="nc bnc" id="L667" title="All 2 branches missed.">                    if (oldEntry != null) {</span>
+<span class="nc" id="L668">                        lc.delete(oldEntry.getDN(), ldapStoreConstraints);</span>
+<span class="nc" id="L669">                        String msg = intres.getLocalizedMessage(&quot;publisher.ldapremove&quot;, oldEntry.getDN());</span>
+<span class="nc" id="L670">                        log.info(msg);</span>
+                    }
+                    
+                    // Add the entry
+<span class="nc bnc" id="L674" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L675">                        log.debug(&quot;Adding DN: &quot; + newEntry.getDN());</span>
+                    }
+<span class="nc" id="L677">                    lc.add(newEntry, ldapStoreConstraints);</span>
+<span class="nc" id="L678">                    String msg = intres.getLocalizedMessage(&quot;publisher.ldapadd&quot;, &quot;CERT&quot;, newEntry.getDN());</span>
+<span class="nc" id="L679">                    log.info(msg);</span>
+<span class="nc" id="L680">                } catch (LDAPException ex) {</span>
+<span class="nc bnc" id="L681" title="All 2 branches missed.">                    if (ex.getResultCode() == LDAPException.ATTRIBUTE_OR_VALUE_EXISTS) {</span>
+<span class="nc" id="L682">                        final String msg = intres.getLocalizedMessage(&quot;publisher.certalreadyexists&quot;, certFingerprint, newEntry.getDN(), ex.getMessage());</span>
+<span class="nc" id="L683">                        log.info(msg);</span>
+<span class="nc" id="L684">                    } else {</span>
+<span class="nc" id="L685">                        throw ex;</span>
+                    }
+<span class="nc" id="L687">                }</span>
+<span class="nc" id="L688">                return null;</span>
+            }
+            @Override
+            public void failed(final LDAPException ex) throws PublisherException {
+<span class="nc" id="L692">                String msg = intres.getLocalizedMessage(&quot;publisher.errorldapstore&quot;, &quot;certificate&quot;, CERTIFICATE_ATTRIBUTE, Arrays.toString(dscObjectClasses), newEntry.getDN(), ex.getMessage());</span>
+<span class="nc" id="L693">                log.error(msg, ex);</span>
+<span class="nc" id="L694">                throw new PublisherException(msg);</span>
+            }
+        });
+<span class="nc" id="L697">    }</span>
+
+    protected void writeCrlEntryToLDAP(final LDAPConnection lc, final LDAPEntry oldEntry, final LDAPEntry newEntry) throws PublisherException {
+<span class="nc" id="L700">        executeLDAPAction(lc, new LDAPConnectionAction&lt;Void,PublisherException&gt;() {</span>
+            @Override
+            public Void performAction(final LDAPConnection lc) throws LDAPException {
+                // Delete old entry if existing
+<span class="nc bnc" id="L704" title="All 2 branches missed.">                if (oldEntry != null) {</span>
+<span class="nc" id="L705">                    lc.delete(oldEntry.getDN(), ldapStoreConstraints);</span>
+<span class="nc" id="L706">                    String msg = intres.getLocalizedMessage(&quot;publisher.ldapremove&quot;, oldEntry.getDN());</span>
+<span class="nc" id="L707">                    log.info(msg);</span>
+                }
+
+                // Add new entry
+<span class="nc" id="L711">                lc.add(newEntry, ldapStoreConstraints);</span>
+<span class="nc" id="L712">                String msg = intres.getLocalizedMessage(&quot;publisher.ldapadd&quot;, &quot;CRL&quot;, newEntry.getDN());</span>
+<span class="nc" id="L713">                log.info(msg);</span>
+<span class="nc" id="L714">                return null;</span>
+            }
+            @Override
+            public void failed(final LDAPException ex) throws PublisherException {
+<span class="nc" id="L718">                String msg = intres.getLocalizedMessage(&quot;publisher.errorldapstore&quot;, &quot;CRL&quot;, CRL_ATTRIBUTE, Arrays.toString(crlObjectClasses), newEntry.getDN(), ex.getMessage());</span>
+<span class="nc" id="L719">                log.error(msg, ex);</span>
+<span class="nc" id="L720">                throw new PublisherException(msg);</span>
+            }
+        });
+<span class="nc" id="L723">    }</span>
+    
+    protected void writeLogEntryToLDAP(final LDAPConnection lc, final LDAPEntry newEntry) throws PublisherException {
+<span class="nc" id="L726">        executeLDAPAction(lc, new LDAPConnectionAction&lt;Void,PublisherException&gt;() {</span>
+            @Override
+            public Void performAction(final LDAPConnection lc) throws LDAPException {
+                // Add the entry
+<span class="nc" id="L730">                lc.add(newEntry, ldapStoreConstraints);</span>
+<span class="nc" id="L731">                String msg = intres.getLocalizedMessage(&quot;publisher.ldapadd&quot;, &quot;log&quot;, newEntry.getDN());</span>
+<span class="nc" id="L732">                log.info(msg);</span>
+<span class="nc" id="L733">                return null;</span>
+            }
+            @Override
+            public void failed(final LDAPException ex) throws PublisherException {
+<span class="nc" id="L737">                String msg = intres.getLocalizedMessage(&quot;publisher.errorldapstore&quot;, &quot;log&quot;, newEntry.getAttributeSet(), newEntry.getAttribute(&quot;objectclass&quot;), newEntry.getDN(), ex.getMessage());</span>
+<span class="nc" id="L738">                log.error(msg, ex);</span>
+<span class="nc" id="L739">                final PublisherException pe = new PublisherException();</span>
+<span class="nc" id="L740">                pe.initCause(ex);</span>
+<span class="nc" id="L741">                throw pe;</span>
+            }
+        });
+<span class="nc" id="L744">    }</span>
+
+    protected boolean isInited() {
+<span class="fc" id="L747">        return inited;</span>
+    }
+
+    protected List&lt;String&gt; getHostnames() {
+<span class="fc" id="L751">        return hostnames;</span>
+    }
+
+    protected boolean isUseSSL() {
+<span class="fc" id="L755">        return useSSL;</span>
+    }
+
+    protected String getPort() {
+<span class="fc" id="L759">        return port;</span>
+    }
+
+    protected String getBaseDN() {
+<span class="fc" id="L763">        return baseDN;</span>
+    }
+
+    protected String getLoginDN() {
+<span class="fc" id="L767">        return loginDN;</span>
+    }
+
+    protected String getLoginPassword() {
+<span class="fc" id="L771">        return loginPassword;</span>
+    }
+
+    protected boolean isLogConnectionTests() {
+<span class="fc" id="L775">        return logConnectionTests;</span>
+    }
+
+    protected int getTimeout() {
+<span class="fc" id="L779">        return timeout;</span>
+    }
+
+    protected LDAPConstraints getLdapConnectionConstraints() {
+<span class="fc" id="L783">        return ldapConnectionConstraints;</span>
+    }
+
+    protected LDAPConstraints getLdapBindConstraints() {
+<span class="fc" id="L787">        return ldapBindConstraints;</span>
+    }
+
+    protected LDAPConstraints getLdapStoreConstraints() {
+<span class="fc" id="L791">        return ldapStoreConstraints;</span>
+    }
+
+    protected LDAPConstraints getLdapDisconnectConstraints() {
+<span class="fc" id="L795">        return ldapDisconnectConstraints;</span>
+    }
+
+    protected LDAPSearchConstraints getLdapSearchConstraints() {
+<span class="fc" id="L799">        return ldapSearchConstraints;</span>
+    }
+    
+    static class LogInfo {
+
+        public static final String LEVEL_INFO = &quot;info&quot;;
+        public static final String LEVEL_ERROR = &quot;err&quot;;
+        public static final String LEVEL_DEBUG = &quot;debug&quot;;
+<span class="fc" id="L807">        private static final SimpleDateFormat SDF = new SimpleDateFormat(&quot;yyyyMMddHHmmss.SSS'Z'&quot;);</span>
+
+        static {
+<span class="fc" id="L810">            SDF.setTimeZone(new SimpleTimeZone(0, &quot;Z&quot;));</span>
+<span class="fc" id="L811">        }</span>
+
+        public static String toGeneralizedTime(final Date date) {
+<span class="fc" id="L814">            return SDF.format(date);</span>
+        }
+        private final Date time;
+        private final Integer sqn;
+        private final String stage;
+        private final String level;
+        private final String msgid;
+        private final String msg;
+        private final String pid;
+        private final String msgext;
+
+<span class="fc" id="L825">        public LogInfo(Date time, String level, String msg) {</span>
+<span class="fc" id="L826">            this.time = time;</span>
+<span class="fc" id="L827">            this.sqn = null;</span>
+<span class="fc" id="L828">            this.stage = null;</span>
+<span class="fc" id="L829">            this.level = level;</span>
+<span class="fc" id="L830">            this.msgid = null;</span>
+<span class="fc" id="L831">            this.msg = msg;</span>
+<span class="fc" id="L832">            this.pid = null;</span>
+<span class="fc" id="L833">            this.msgext = null;</span>
+<span class="fc" id="L834">        }</span>
+
+        public LogInfo(Date time, Integer sqn, String stage, String level,
+                String msgid, String msg, String pid, String msgext) {
+<span class="fc" id="L838">            super();</span>
+<span class="fc" id="L839">            this.time = time;</span>
+<span class="fc" id="L840">            this.sqn = sqn;</span>
+<span class="fc" id="L841">            this.stage = stage;</span>
+<span class="fc" id="L842">            this.level = level;</span>
+<span class="fc" id="L843">            this.msgid = msgid;</span>
+<span class="fc" id="L844">            this.msg = msg;</span>
+<span class="fc" id="L845">            this.pid = pid;</span>
+<span class="fc" id="L846">            this.msgext = msgext;</span>
+
+<span class="fc bfc" id="L848" title="All 4 branches covered.">            if (msgid != null &amp;&amp; msgid.length() != 3) {</span>
+<span class="fc" id="L849">                throw new IllegalArgumentException(&quot;If specified msgid must be 3 characters in length&quot;);</span>
+            }
+<span class="fc" id="L851">        }</span>
+
+        /*&lt;time:[Generalized Time]&gt; &lt;sqn:[\d+]&gt; &lt;stage:[Named stage]&gt; &lt;level:[Level]&gt; &lt;msgid:
+         [nnn]&gt; &lt;msg: [message]&gt; &lt;msgext: [extended extra info]&gt;*/
+        public String getEncoded() {
+<span class="fc" id="L856">            return new StringBuilder()</span>
+<span class="fc" id="L857">                    .append(&quot; &quot;).append(&quot;time:&quot;).append(toGeneralizedTime(time))</span>
+<span class="fc" id="L858">                    .append(&quot; &quot;).append(&quot;sqn:&quot;).append(unlessNull(sqn))</span>
+<span class="fc" id="L859">                    .append(&quot; &quot;).append(&quot;stage:&quot;).append(unlessNull(stage))</span>
+<span class="fc" id="L860">                    .append(&quot; &quot;).append(&quot;level:&quot;).append(level)</span>
+<span class="fc" id="L861">                    .append(&quot; &quot;).append(&quot;msgid:&quot;).append(unlessNull(msgid))</span>
+<span class="fc" id="L862">                    .append(&quot; &quot;).append(&quot;msg:&quot;).append(msg)</span>
+<span class="fc" id="L863">                    .append(&quot; &quot;).append(&quot;pid:&quot;).append(unlessNull(pid))</span>
+<span class="fc" id="L864">                    .append(&quot; &quot;).append(&quot;msgext:&quot;).append(unlessNull(msgext))</span>
+<span class="fc" id="L865">                    .toString();</span>
+        }
+
+        private String unlessNull(final Integer s) {
+<span class="fc bfc" id="L869" title="All 2 branches covered.">            return s == null ? &quot;&quot; : String.valueOf(s);</span>
+        }
+
+        private String unlessNull(final String s) {
+<span class="fc bfc" id="L873" title="All 2 branches covered.">            return s == null ? &quot;&quot; : s;</span>
+        }
+
+        public Date getTime() {
+<span class="fc" id="L877">            return time;</span>
+        }
+
+        public Integer getSqn() {
+<span class="fc" id="L881">            return sqn;</span>
+        }
+
+        public String getStage() {
+<span class="fc" id="L885">            return stage;</span>
+        }
+
+        public String getLevel() {
+<span class="fc" id="L889">            return level;</span>
+        }
+
+        public String getMsgid() {
+<span class="fc" id="L893">            return msgid;</span>
+        }
+
+        public String getMsg() {
+<span class="fc" id="L897">            return msg;</span>
+        }
+
+        public String getPid() {
+<span class="fc" id="L901">            return pid;</span>
+        }
+
+        public String getMsgext() {
+<span class="fc" id="L905">            return msgext;</span>
+        }
+
+        @Override
+        public String toString() {
+<span class="fc" id="L910">            return getEncoded();</span>
+        }
+    }
+
+    @Override
+    public boolean willPublishCertificate(int status, int revocationReason) {
+<span class="nc" id="L916">        return true;</span>
+    }
+    
+    @Override
+    public boolean isReadOnly() {
+<span class="nc" id="L921">        return false;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

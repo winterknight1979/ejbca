@@ -41,4 +41,4 @@ ejbca-ejb-interface/ejbca-entity,org.ejbca.core.ejb.ca.store,CertReqHistoryData,
 ejbca-ejb-interface/ejbca-entity,org.ejbca.core.ejb.ra.raadmin,AdminPreferencesData,85,41,2,0,24,13,12,11,11,11
 ejbca-ejb-interface/ejbca-entity,org.ejbca.core.ejb.ra.raadmin,EndEntityProfileData,142,48,6,0,38,15,17,13,14,13
 ejbca-ejb-interface/ejbca-entity,org.ejbca.util,FixEndOfBrokenXML,20,166,6,16,6,37,6,9,0,4
-ejbca-ejb-interface/shared-resources,com.primekey.anttools,ServiceManifestBuilder,457,0,66,0,97,0,41,0,8,0
+ejbca-ejb-interface/shared-resources,com.primekey.anttools,ServiceManifestBuilder,539,0,66,0,98,0,41,0,8,0

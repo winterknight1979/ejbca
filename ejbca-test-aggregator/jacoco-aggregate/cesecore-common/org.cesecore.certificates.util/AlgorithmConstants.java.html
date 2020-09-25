@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AlgorithmConstants.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.util</a> &gt; <span class="el_source">AlgorithmConstants.java</span></div><h1>AlgorithmConstants.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.util;
+
+import java.util.Arrays;
+import java.util.List;
+
+/** Constants for digital signature algorithms.
+ *
+ * @version $Id: AlgorithmConstants.java 27720 2018-01-03 11:42:32Z bastianf $
+ */
+public final class AlgorithmConstants {
+
+    public static final String SIGALG_MD5_WITH_RSA             = &quot;MD5WithRSA&quot;;
+    public static final String SIGALG_SHA1_WITH_RSA            = &quot;SHA1WithRSA&quot;;
+    public static final String SIGALG_SHA256_WITH_RSA          = &quot;SHA256WithRSA&quot;;
+    public static final String SIGALG_SHA384_WITH_RSA          = &quot;SHA384WithRSA&quot;;
+    public static final String SIGALG_SHA512_WITH_RSA          = &quot;SHA512WithRSA&quot;;
+    public static final String SIGALG_SHA3_256_WITH_RSA        = &quot;SHA3-256withRSA&quot;;
+    public static final String SIGALG_SHA3_384_WITH_RSA        = &quot;SHA3-384withRSA&quot;;
+    public static final String SIGALG_SHA3_512_WITH_RSA        = &quot;SHA3-512withRSA&quot;;
+    public static final String SIGALG_SHA1_WITH_ECDSA          = &quot;SHA1withECDSA&quot;;
+    public static final String SIGALG_SHA224_WITH_ECDSA        = &quot;SHA224withECDSA&quot;;
+    public static final String SIGALG_SHA256_WITH_ECDSA        = &quot;SHA256withECDSA&quot;;
+    public static final String SIGALG_SHA384_WITH_ECDSA        = &quot;SHA384withECDSA&quot;;
+    public static final String SIGALG_SHA512_WITH_ECDSA        = &quot;SHA512withECDSA&quot;;
+    public static final String SIGALG_SHA3_256_WITH_ECDSA      = &quot;SHA3-256withECDSA&quot;;
+    public static final String SIGALG_SHA3_384_WITH_ECDSA      = &quot;SHA3-384withECDSA&quot;;
+    public static final String SIGALG_SHA3_512_WITH_ECDSA      = &quot;SHA3-512withECDSA&quot;;
+    public static final String SIGALG_SHA256_WITH_RSA_AND_MGF1 = &quot;SHA256withRSAandMGF1&quot;;
+    public static final String SIGALG_SHA1_WITH_RSA_AND_MGF1   = &quot;SHA1withRSAandMGF1&quot;; // Not possible to select in Admin-GUI
+    public static final String SIGALG_SHA1_WITH_DSA            = &quot;SHA1WithDSA&quot;;
+    public static final String SIGALG_GOST3411_WITH_ECGOST3410 = &quot;GOST3411withECGOST3410&quot;;
+    public static final String SIGALG_GOST3411_WITH_DSTU4145   = &quot;GOST3411withDSTU4145&quot;;
+
+    /**
+     * Signature algorithms available to choose from.
+     * Call AlgorithmTools.isSigAlgEnabled() to determine if a given sigalg is enabled and should be shown in the UI.
+     */
+<span class="fc" id="L50">    public static final String[] AVAILABLE_SIGALGS = {</span>
+        SIGALG_SHA1_WITH_RSA,
+        SIGALG_SHA256_WITH_RSA,
+        SIGALG_SHA384_WITH_RSA,
+        SIGALG_SHA512_WITH_RSA,
+        SIGALG_SHA3_256_WITH_RSA,
+        SIGALG_SHA3_384_WITH_RSA,
+        SIGALG_SHA3_512_WITH_RSA,
+        SIGALG_SHA256_WITH_RSA_AND_MGF1,
+        SIGALG_SHA1_WITH_ECDSA,
+        SIGALG_SHA224_WITH_ECDSA,
+        SIGALG_SHA256_WITH_ECDSA,
+        SIGALG_SHA384_WITH_ECDSA,
+        SIGALG_SHA512_WITH_ECDSA,
+        SIGALG_SHA3_256_WITH_ECDSA,
+        SIGALG_SHA3_384_WITH_ECDSA,
+        SIGALG_SHA3_512_WITH_ECDSA,
+        SIGALG_SHA1_WITH_DSA,
+        SIGALG_GOST3411_WITH_ECGOST3410,
+        SIGALG_GOST3411_WITH_DSTU4145,
+    };
+
+    public static final String KEYALGORITHM_RSA         = &quot;RSA&quot;;
+    public static final String KEYALGORITHM_EC          = &quot;EC&quot;;
+    public static final String KEYALGORITHM_ECDSA       = &quot;ECDSA&quot;; //The same as &quot;EC&quot;, just named differently sometimes. &quot;EC&quot; and &quot;ECDSA&quot; should be handled in the same way
+    public static final String KEYALGORITHM_DSA         = &quot;DSA&quot;;
+    public static final String KEYALGORITHM_ECGOST3410  = &quot;ECGOST3410&quot;;
+    public static final String KEYALGORITHM_DSTU4145    = &quot;DSTU4145&quot;;
+
+    public static final String KEYSPECPREFIX_ECGOST3410 = &quot;GostR3410-&quot;;
+
+<span class="fc" id="L81">    public static final List&lt;String&gt; BLACKLISTED_EC_CURVES = Arrays.asList(new String[]{</span>
+            // No blacklisted EC curves at the moment
+    });
+
+    // Extra EC curves that we want to include that are not part of the &quot;standard&quot; curves in BC (ECNamedCurveTable.getNames)
+<span class="fc" id="L86">    public static final List&lt;String&gt; EXTRA_EC_CURVES = Arrays.asList(new String[]{</span>
+            // Part of CustomNamedCurves in BouncyCastle 1.54
+            // Commented out due to experimental nature 2017-04 as the signatures using this currently probably is not correct
+            // Should probably wait for edDSA, See ECA-5796 and linked issues.
+            //&quot;curve25519&quot;,
+    });
+
+    private AlgorithmConstants () {} // Not for instantiation
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

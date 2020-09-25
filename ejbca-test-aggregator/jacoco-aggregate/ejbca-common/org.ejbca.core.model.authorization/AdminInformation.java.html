@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AdminInformation.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.authorization</a> &gt; <span class="el_source">AdminInformation.java</span></div><h1>AdminInformation.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+/*
+ * AdminInformation.java
+ *
+ * Created on den 19 juli 2002, 11:53
+ */
+
+package org.ejbca.core.model.authorization;
+
+import java.io.Serializable;
+import java.security.SecureRandom;
+import java.security.cert.Certificate;
+import java.util.Random;
+
+/**
+ * A class used to send user information to the authorization tree. It can contain types of information, a X509Certificate or a
+ * special user type when certificates cannot be retrieved. Special usertype constants is specified in AdminEntity class.
+ *
+ * @version $Id: AdminInformation.java 22117 2015-10-29 10:53:42Z mikekushner $
+ */
+public class AdminInformation implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+	
+	// Special in JVM random token to authenticate specialuser. 
+	// The token will work _if_ we are running within the same jvm as the service we call (i.e. EJBCA/JBoss server)
+<span class="nc" id="L39">	protected static final byte[] randomToken = createRandomToken();</span>
+	
+	// Public Methods
+     /** Creates a new instance of AdminInformation 
+     * @param certificate Cert
+     * @param authToken Token */
+<span class="nc" id="L45">    public AdminInformation(Certificate certificate, byte[] authToken) {</span>
+<span class="nc" id="L46">      this.certificate=certificate;</span>
+<span class="nc" id="L47">      this.specialuser=0;      </span>
+<span class="nc" id="L48">      this.localAuthToken = authToken;</span>
+<span class="nc" id="L49">    }</span>
+    
+<span class="nc" id="L51">    public AdminInformation(int specialuser, byte[] authToken) {</span>
+<span class="nc" id="L52">      this.specialuser=specialuser;</span>
+<span class="nc" id="L53">      this.localAuthToken = authToken;</span>
+<span class="nc" id="L54">    }</span>
+    
+<span class="nc" id="L56">    private AdminInformation(byte[] authToken) { </span>
+<span class="nc" id="L57">  	  this.specialuser = 0;      </span>
+<span class="nc" id="L58">  	  this.localAuthToken = authToken;</span>
+<span class="nc" id="L59">  	}</span>
+
+    public static AdminInformation getAdminInformationByRoleId(int roleId) {
+<span class="nc" id="L62">    	AdminInformation adminInformation = new AdminInformation(getRandomToken()); </span>
+<span class="nc" id="L63">    	adminInformation.adminGroupId = roleId;</span>
+<span class="nc" id="L64">    	return adminInformation;</span>
+    }
+    
+	public static final byte[] createRandomToken() {
+<span class="nc" id="L68">    	byte[] token = new byte[32];</span>
+        Random randomSource;
+<span class="nc" id="L70">        randomSource = new SecureRandom();</span>
+<span class="nc" id="L71">        randomSource.nextBytes(token);</span>
+<span class="nc" id="L72">    	return token;</span>
+	}
+
+    public boolean isSpecialUser() {
+<span class="nc bnc" id="L76" title="All 2 branches missed.">      return this.specialuser!=0;</span>
+    }
+    
+    public boolean isGroupUser() {
+<span class="nc bnc" id="L80" title="All 2 branches missed.">      return this.adminGroupId != null;	</span>
+    }
+
+    public Certificate getX509Certificate() {
+<span class="nc" id="L84">      return this.certificate;</span>
+    }
+
+    public int getSpecialUser() {
+<span class="nc" id="L88">      return this.specialuser;</span>
+    }
+    
+    public int getGroupId(){
+<span class="nc" id="L92">      return this.adminGroupId;	</span>
+    }
+
+	public byte[] getLocalAuthToken() {
+<span class="nc" id="L96">		return localAuthToken;</span>
+	}
+
+	public static final byte[] getRandomToken() {
+<span class="nc" id="L100">		return randomToken;</span>
+	}
+
+    // Private fields
+    private Certificate certificate;
+<span class="nc" id="L105">    private int specialuser = 0;</span>
+<span class="nc" id="L106">    private Integer adminGroupId = null;</span>
+    
+    /** transient as authToken should _not_ be serialized. **/
+    private transient byte[] localAuthToken;
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

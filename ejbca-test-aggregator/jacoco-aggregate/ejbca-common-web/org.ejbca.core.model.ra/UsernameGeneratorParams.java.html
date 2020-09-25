@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>UsernameGeneratorParams.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.ra</a> &gt; <span class="el_source">UsernameGeneratorParams.java</span></div><h1>UsernameGeneratorParams.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.model.ra;
+
+import java.util.Arrays;
+import java.util.List;
+
+import org.ejbca.util.passgen.PasswordGeneratorFactory;
+
+/** Parameters used in UsernameGenerator
+ * 
+ * @version $Id: UsernameGeneratorParams.java 22139 2015-11-03 10:41:56Z mikekushner $
+ * @see UsernameGenerator
+ */
+public class UsernameGeneratorParams {
+
+	/** Create a completely random username */
+	protected static final int MODE_RANDOM = 0;
+	/** Use the input as the base username */
+	protected static final int MODE_USERNAME = 1;
+	/** Use a part of the DN as pase username */
+	protected static final int MODE_DN = 2;
+	/** use a fixed (set as dNGeneratorComponent) username */
+	protected static final int MODE_FIXED = 3;
+
+	public static final String RANDOM = &quot;RANDOM&quot;;
+	public static final String USERNAME = &quot;USERNAME&quot;;
+	public static final String DN = &quot;DN&quot;;
+	public static final String FIXED = &quot;FIXED&quot;;
+	
+<span class="fc" id="L42">	private String[] modes = {&quot;RANDOM&quot;, &quot;USERNAME&quot;, &quot;DN&quot;, &quot;FIXED&quot;};</span>
+
+	// Generator configuration parameters, with good default values
+<span class="fc" id="L45">	private int mode = MODE_RANDOM;</span>
+<span class="fc" id="L46">	private int randomNameLength = 12;</span>
+<span class="fc" id="L47">	private String randomGeneratorType = PasswordGeneratorFactory.PASSWORDTYPE_LETTERSANDDIGITS;</span>
+<span class="fc" id="L48">	private String dNGeneratorComponent = &quot;CN&quot;; // Can be CN, UID, SN etc, or CN;UID;SN</span>
+<span class="fc" id="L49">	private String prefix = null;</span>
+<span class="fc" id="L50">	private String postfix = null;</span>
+<span class="fc" id="L51">	private int randomPrefixLength = 12;</span>
+	
+<span class="fc" id="L53">	public UsernameGeneratorParams() {</span>
+		// all default values
+<span class="fc" id="L55">	}</span>
+	
+	public String getDNGeneratorComponent() {
+<span class="fc" id="L58">		return dNGeneratorComponent;</span>
+	}
+	public void setDNGeneratorComponent(String generatorComponent) {
+<span class="fc" id="L61">		dNGeneratorComponent = generatorComponent;</span>
+<span class="fc" id="L62">	}</span>
+	public String getPostfix() {
+<span class="fc" id="L64">		return postfix;</span>
+	}
+	public void setPostfix(String postfix) {
+<span class="fc" id="L67">		this.postfix = postfix;</span>
+<span class="fc" id="L68">	}</span>
+	public String getPrefix() {
+<span class="fc" id="L70">		return prefix;</span>
+	}
+	public void setPrefix(String prefix) {
+<span class="fc" id="L73">		this.prefix = prefix;</span>
+<span class="fc" id="L74">	}</span>
+	public String getRandomGeneratorType() {
+<span class="fc" id="L76">		return randomGeneratorType;</span>
+	}
+	public void setRandomGeneratorType(String randomGeneratorType) {
+<span class="nc" id="L79">		this.randomGeneratorType = randomGeneratorType;</span>
+<span class="nc" id="L80">	}</span>
+	public int getRandomNameLength() {
+<span class="fc" id="L82">		return randomNameLength;</span>
+	}
+	public void setRandomNameLength(int randomNameLength) {
+<span class="fc" id="L85">		this.randomNameLength = randomNameLength;</span>
+<span class="fc" id="L86">	}</span>
+	public int getRandomPrefixLength() {
+<span class="fc" id="L88">		return randomPrefixLength;</span>
+	}
+	public void setRandomPrefixLength(int randomPrefixLength) {
+<span class="fc" id="L91">		this.randomPrefixLength = randomPrefixLength;</span>
+<span class="fc" id="L92">	}</span>
+
+	public int getMode() {
+<span class="fc" id="L95">		return mode;</span>
+	}
+
+	public void setMode(int mode) {
+<span class="nc" id="L99">		this.mode = mode;</span>
+<span class="nc" id="L100">	}</span>
+
+	public void setMode(String mode) {
+<span class="fc" id="L103">	    final List&lt;String&gt; modeList = Arrays.asList(modes);</span>
+<span class="pc bpc" id="L104" title="1 of 2 branches missed.">		if (!modeList.contains(mode)) {</span>
+<span class="nc" id="L105">			throw new IllegalArgumentException(&quot;Mode &quot; + mode + &quot; is not supported&quot;);</span>
+		}
+<span class="fc" id="L107">		this.mode = modeList.indexOf(mode);</span>
+<span class="fc" id="L108">	}</span>
+	
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

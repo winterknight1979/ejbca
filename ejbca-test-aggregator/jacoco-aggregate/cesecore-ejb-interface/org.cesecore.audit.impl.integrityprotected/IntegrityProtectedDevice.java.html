@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>IntegrityProtectedDevice.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">cesecore-ejb-interface</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.audit.impl.integrityprotected</a> &gt; <span class="el_source">IntegrityProtectedDevice.java</span></div><h1>IntegrityProtectedDevice.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.audit.impl.integrityprotected;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import org.cesecore.audit.AuditLogDevice;
+import org.cesecore.audit.AuditLogEntry;
+import org.cesecore.audit.audit.AuditExporter;
+import org.cesecore.audit.audit.AuditLogExportReport;
+import org.cesecore.audit.audit.AuditLogExporterException;
+import org.cesecore.audit.audit.AuditLogValidationReport;
+import org.cesecore.audit.audit.AuditLogValidatorException;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.enums.EventType;
+import org.cesecore.audit.enums.ModuleType;
+import org.cesecore.audit.enums.ServiceType;
+import org.cesecore.audit.log.AuditLogResetException;
+import org.cesecore.audit.log.AuditRecordStorageException;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.keys.token.CryptoToken;
+import org.cesecore.time.TrustedTime;
+import org.cesecore.util.query.QueryCriteria;
+
+/**
+ * Log device using database configured integrity protection.
+ * 
+ * This implementation does not comply with all the CESeCore.FPT_CIMC_TSP.1.*:
+ * FPT_CIMC_TSP.1.1:
+ * &quot;The TSF shall periodically create an audit log signing event in which it computes a digital signature, keyed hash,
+ * or authentication code over the entries in the audit log.&quot;
+ * This implementation complies if database integrity protection is enabled.
+ * 
+ * FPT_CIMC_TSP.1.2:
+ * &quot;The digital signature, keyed hash, or authentication code shall be computed over, at least, every entry that has
+ * been added to the audit log since the previous audit log signing event and the digital signature, keyed hash, or
+ * authentication code from the previous log signing event.&quot;
+ * This implementation protects every single entry. A unique sequence number per cluster node and node identifier is
+ * used as a part of the protected (e.g. signed) data. Given the private key or secret used to protect the data and
+ * full database access, it is slightly computationally easier to falsify the audit trail than if the previous row's
+ * signature or hash was included in the protected data. If the private key or secret used to protect the data is
+ * compromised there is no real difference in how well (poorly) you can trust the audit trail. The solution implemented
+ * here has significantly better performance, since we don't have to wait for the previous log event to complete before
+ * we can start with the next one.
+ * With a transactional database, the worst catastrophic fail would still never loose of the audit log for things that
+ * have happened.
+ * 
+ * FTP_CIMC_TSP.1.3:
+ * &quot;The specified frequency at which the audit log singing event occurs shall be configurable.&quot;
+ * This implementation supports every row or none.
+ * 
+ * FTP_CIMC_TSP.1.4:
+ * &quot;The digital signature, keyed hash, or authentication code from the audit log signing event shall be included in
+ * the audit log.&quot;
+ * This implementation makes this information available via AuditRecordData.getRowProtection() and this is also
+ * included in exported log files.
+ * 
+ * @version $Id: IntegrityProtectedDevice.java 18194 2013-11-21 18:09:12Z jeklund $
+ */
+<span class="nc" id="L73">public class IntegrityProtectedDevice implements AuditLogDevice {</span>
+
+	private Map&lt;Class&lt;?&gt;, ?&gt; ejbs;
+
+	@Override
+	public void setEjbs(Map&lt;Class&lt;?&gt;, ?&gt; ejbs) {
+<span class="nc" id="L79">		this.ejbs = ejbs;</span>
+<span class="nc" id="L80">	}</span>
+	
+	@SuppressWarnings(&quot;unchecked&quot;)
+	private &lt;T&gt; T getEjb(Class&lt;T&gt; c) {
+<span class="nc" id="L84">		return (T) ejbs.get(c);</span>
+	}
+
+	@Override
+	public AuditLogExportReport exportAuditLogs(AuthenticationToken token, CryptoToken cryptoToken, Date timestamp, boolean deleteAfterExport, Map&lt;String, Object&gt; signatureDetails, Properties properties, Class&lt;? extends AuditExporter&gt; c) throws AuditLogExporterException {
+<span class="nc" id="L89">		return getEjb(IntegrityProtectedAuditorSessionLocal.class).exportAuditLogs(token, cryptoToken, timestamp, deleteAfterExport, signatureDetails, properties, c);</span>
+	}
+
+	@Override
+	public List&lt;? extends AuditLogEntry&gt; selectAuditLogs(AuthenticationToken token, int startIndex, int max, QueryCriteria criteria, Properties properties) {
+<span class="nc" id="L94">		return getEjb(IntegrityProtectedAuditorSessionLocal.class).selectAuditLogs(token, startIndex, max, criteria, properties);</span>
+	}
+
+	@Override
+	public AuditLogValidationReport verifyLogsIntegrity(AuthenticationToken token, Date date, Properties properties) throws AuditLogValidatorException {
+<span class="nc" id="L99">		return getEjb(IntegrityProtectedAuditorSessionLocal.class).verifyLogsIntegrity(token, date, properties);</span>
+	}
+
+	@Override
+	public void log(TrustedTime trustedTime, EventType eventType, EventStatus eventStatus, ModuleType module, ServiceType service, String authToken, String customId,
+			String searchDetail1, String searchDetail2, Map&lt;String, Object&gt; additionalDetails, Properties properties) throws AuditRecordStorageException {
+<span class="nc" id="L105">		getEjb(IntegrityProtectedLoggerSessionLocal.class).log(trustedTime, eventType, eventStatus, module, service, authToken, customId, searchDetail1, searchDetail2, additionalDetails, properties);</span>
+<span class="nc" id="L106">	}</span>
+
+	@Override
+	public boolean isSupportingQueries() {
+<span class="nc" id="L110">		return true;</span>
+	}
+
+	@Override
+	public void prepareReset() throws AuditLogResetException {
+		// Do nothing.. we keep logging here, since there is no reasonable way to disable logging on all nodes
+<span class="nc" id="L116">	}</span>
+
+	@Override
+	public void reset() throws AuditLogResetException {
+		/*
+		 * This will not work in a clustered deployment! The only way to get this working would
+		 * be to go outside the shared database model. (Reading last available sequenceNumber from
+		 * db for each log write would kill performance and make it easier to remove the last log
+		 * entries without it being noticed.)
+		 */
+<span class="nc" id="L126">		NodeSequenceHolder.INSTANCE.reset();</span>
+<span class="nc" id="L127">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

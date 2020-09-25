@@ -1,0 +1,1804 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>LdapPublisher.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.ca.publisher</a> &gt; <span class="el_source">LdapPublisher.java</span></div><h1>LdapPublisher.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.model.ca.publisher;
+
+import java.io.UnsupportedEncodingException;
+import java.security.cert.CRLException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509CRL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.StringTokenizer;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.x500.RDN;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.X500NameBuilder;
+import org.bouncycastle.asn1.x509.Extension;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.certificates.util.DNFieldExtractor;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.StringTools;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.util.LdapNameStyle;
+import org.ejbca.util.LdapTools;
+import org.ejbca.util.TCPTool;
+
+import com.novell.ldap.LDAPAttribute;
+import com.novell.ldap.LDAPAttributeSet;
+import com.novell.ldap.LDAPConnection;
+import com.novell.ldap.LDAPConstraints;
+import com.novell.ldap.LDAPEntry;
+import com.novell.ldap.LDAPException;
+import com.novell.ldap.LDAPJSSESecureSocketFactory;
+import com.novell.ldap.LDAPJSSEStartTLSFactory;
+import com.novell.ldap.LDAPModification;
+import com.novell.ldap.LDAPSearchConstraints;
+
+/**
+ * LdapPublisher is a class handling a publishing to various v3 LDAP catalogs.  
+ *
+ * @version $Id: LdapPublisher.java 34192 2020-01-07 15:10:21Z aminkh $
+ */
+public class LdapPublisher extends BasePublisher {
+
+
+    private static final long serialVersionUID = -584431431033065114L;
+<span class="nc" id="L68">    private static final Logger log = Logger.getLogger(LdapPublisher.class);</span>
+	/** Internal localization of logs and errors */
+<span class="nc" id="L70">	private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+
+	public static final float LATEST_VERSION = 12;
+	
+	// Create some constraints used when connecting, disconnecting, reading and storing in LDAP servers
+	/** Use a time limit for generic (non overridden) LDAP operations */
+<span class="nc" id="L76">	protected LDAPConstraints ldapConnectionConstraints = new LDAPConstraints();</span>
+	/** Use a time limit for LDAP bind operations */
+<span class="nc" id="L78">	protected LDAPConstraints ldapBindConstraints = new LDAPConstraints();</span>
+	/** Use a time limit for LDAP store operations */
+<span class="nc" id="L80">	protected LDAPConstraints ldapStoreConstraints = new LDAPConstraints();</span>
+	/** Use a time limit for LDAP disconnect operations */
+<span class="nc" id="L82">	protected LDAPConstraints ldapDisconnectConstraints = new LDAPConstraints();</span>
+	/** Use a time limit when reading from LDAP */
+<span class="nc" id="L84">	protected LDAPSearchConstraints ldapSearchConstraints = new LDAPSearchConstraints();</span>
+
+	/** The normal ldap publisher will modify attributes in LDAP.
+	 * If you don't want attributes modified, use the LdapSearchPublisher to 
+	 * store certificates in already existing entries. Can be overridden in constructor
+	 * of subclasses.
+	 */
+<span class="nc" id="L91">	protected boolean ADD_MODIFICATION_ATTRIBUTES = true;</span>
+
+<span class="nc" id="L93">	public enum ConnectionSecurity {</span>
+<span class="nc" id="L94">		PLAIN, STARTTLS, SSL</span>
+	}
+
+	public static final String DEFAULT_USEROBJECTCLASS     = &quot;top;person;organizationalPerson;inetOrgPerson&quot;;
+	public static final String DEFAULT_CAOBJECTCLASS       = &quot;top;applicationProcess;certificationAuthority-V2&quot;;
+	public static final String DEFAULT_CACERTATTRIBUTE     = &quot;cACertificate;binary&quot;;
+	public static final String DEFAULT_USERCERTATTRIBUTE   = &quot;userCertificate;binary&quot;;
+	public static final String DEFAULT_CRLATTRIBUTE        = &quot;certificateRevocationList;binary&quot;;
+	public static final String DEFAULT_DELTACRLATTRIBUTE   = &quot;deltaRevocationList;binary&quot;;
+	public static final String DEFAULT_ARLATTRIBUTE        = &quot;authorityRevocationList;binary&quot;;
+	public static final String DEFAULT_PORT                = &quot;389&quot;;
+	public static final String DEFAULT_SSLPORT             = &quot;636&quot;;
+	public static final String DEFAULT_TIMEOUT             = &quot;5000&quot;; // 5 seconds
+	public static final String DEFAULT_READTIMEOUT         = &quot;30000&quot;; // 30 seconds
+	public static final String DEFAULT_STORETIMEOUT        = &quot;60000&quot;; // 1 minute
+
+
+	// Default Values
+
+	protected static final String HOSTNAMES                = &quot;hostname&quot;;
+	protected static final String CONNECTIONSECURITY       = &quot;connectionsecurity&quot;;
+	// USESSL was removed in v12, but is kept for backwards compatibility
+	protected static final String USESSL                   = &quot;usessl&quot;;
+	protected static final String PORT                     = &quot;port&quot;;
+	protected static final String BASEDN                   = &quot;baswdn&quot;;
+	protected static final String LOGINDN                  = &quot;logindn&quot;;
+	public static final String LOGINPASSWORD            = &quot;loginpassword&quot;;
+	protected static final String TIMEOUT                  = &quot;timeout&quot;;
+	protected static final String READTIMEOUT              = &quot;readtimeout&quot;;
+	protected static final String STORETIMEOUT             = &quot;storetimeout&quot;;
+	protected static final String CREATENONEXISTING        = &quot;createnonexisting&quot;;
+	protected static final String MODIFYEXISTING           = &quot;modifyexisting&quot;; 
+	protected static final String ADDNONEXISTINGATTR       = &quot;addnonexistingattr&quot;; 
+	protected static final String MODIFYEXISTINGATTR       = &quot;modifyexistingattr&quot;; 
+	protected static final String USEROBJECTCLASS          = &quot;userobjectclass&quot;;
+	protected static final String CAOBJECTCLASS            = &quot;caobjectclass&quot;;
+	protected static final String USERCERTATTRIBUTE        = &quot;usercertattribute&quot;;
+	protected static final String CACERTATTRIBUTE          = &quot;cacertattribute&quot;;
+	protected static final String CRLATTRIBUTE             = &quot;crlattribute&quot;;
+	protected static final String DELTACRLATTRIBUTE        = &quot;deltacrlattribute&quot;;
+	protected static final String ARLATTRIBUTE             = &quot;arlattribute&quot;;
+	protected static final String USEFIELDINLDAPDN         = &quot;usefieldsinldapdn&quot;;
+	protected static final String ADDMULTIPLECERTIFICATES  = &quot;addmultiplecertificates&quot;;
+	protected static final String REMOVEREVOKED            = &quot;removerevoked&quot;;    
+	protected static final String REMOVEUSERONCERTREVOKE   = &quot;removeusersoncertrevoke&quot;;    
+	protected static final String CREATEINTERMEDIATENODES  = &quot;createintermediatenodes&quot;;
+	protected static final String SETUSERPASSWORD          = &quot;setuserpasssword&quot;;
+	
+	/** Arrays used to extract attributes to store in LDAP */
+<span class="nc" id="L143">	protected static final String[] MATCHINGEXTRAATTRIBUTES    = {&quot;CN&quot;,&quot;L&quot;,&quot;OU&quot;};</span>
+<span class="nc" id="L144">	protected static final String[] MATCHINGPERSONALATTRIBUTES = {&quot;ST&quot;,&quot;O&quot;,&quot;uid&quot;,&quot;initials&quot;,&quot;title&quot;,&quot;postalCode&quot;,&quot;businessCategory&quot;,&quot;postalAddress&quot;,&quot;telephoneNumber&quot;};</span>
+
+
+	public LdapPublisher(){
+<span class="nc" id="L148">		super();</span>
+<span class="nc" id="L149">		data.put(TYPE, Integer.valueOf(PublisherConst.TYPE_LDAPPUBLISHER));</span>
+
+<span class="nc" id="L151">		setHostnames(&quot;&quot;);</span>
+<span class="nc" id="L152">		setConnectionSecurity(ConnectionSecurity.STARTTLS);</span>
+<span class="nc" id="L153">		setPort(DEFAULT_PORT);</span>
+<span class="nc" id="L154">		setBaseDN(&quot;&quot;);</span>
+<span class="nc" id="L155">		setLoginDN(&quot;&quot;);</span>
+<span class="nc" id="L156">		setLoginPassword(&quot;&quot;);</span>
+<span class="nc" id="L157">		int connectiontimeout = getConnectionTimeOut();</span>
+<span class="nc" id="L158">		setConnectionTimeOut(connectiontimeout);</span>
+<span class="nc" id="L159">		setCreateNonExistingUsers(true);</span>
+<span class="nc" id="L160">		setModifyExistingUsers(true);     </span>
+<span class="nc" id="L161">		setModifyExistingAttributes(false);</span>
+<span class="nc" id="L162">		setAddNonExistingAttributes(true);</span>
+<span class="nc" id="L163">		setUserObjectClass(DEFAULT_USEROBJECTCLASS);</span>
+<span class="nc" id="L164">		setCAObjectClass(DEFAULT_CAOBJECTCLASS);</span>
+<span class="nc" id="L165">		setUserCertAttribute(DEFAULT_USERCERTATTRIBUTE);</span>
+<span class="nc" id="L166">		setCACertAttribute(DEFAULT_CACERTATTRIBUTE);</span>
+<span class="nc" id="L167">		setCRLAttribute(DEFAULT_CRLATTRIBUTE);</span>
+<span class="nc" id="L168">		setDeltaCRLAttribute(DEFAULT_DELTACRLATTRIBUTE);</span>
+<span class="nc" id="L169">		setARLAttribute(DEFAULT_ARLATTRIBUTE);     </span>
+<span class="nc" id="L170">		setUseFieldInLdapDN(new ArrayList&lt;Integer&gt;());</span>
+		// By default use only one certificate for each user
+<span class="nc" id="L172">		setAddMultipleCertificates(false);</span>
+<span class="nc" id="L173">		setRemoveRevokedCertificates(true);</span>
+<span class="nc" id="L174">		setRemoveUsersWhenCertRevoked(false);</span>
+<span class="nc" id="L175">	}</span>
+
+	// Public Methods
+
+
+	/**
+	 * Publishes certificate in LDAP, if the certificate is not revoked. If the certificate is revoked, nothing is done
+	 * and the publishing is counted as successful (i.e. returns true).
+	 * 
+	 * @see org.ejbca.core.model.ca.publisher.BasePublisher#storeCertificate
+	 */    
+	public boolean storeCertificate(AuthenticationToken admin, Certificate incert, String username, String password, String userDN, String cafp, int status, int type, long revocationDate, int revocationReason, String tag, int certificateProfileId, long lastUpdate, ExtendedInformation extendedinformation) throws PublisherException{
+<span class="nc bnc" id="L187" title="All 2 branches missed.">		if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L188">			log.trace(&quot;&gt;storeCertificate(username=&quot;+username+&quot;)&quot;);</span>
+		}
+
+<span class="nc bnc" id="L191" title="All 2 branches missed.">		if (status == CertificateConstants.CERT_REVOKED) {</span>
+        	// Call separate script for revocation
+<span class="nc" id="L193">        	revokeCertificate(admin, incert, username, revocationReason, userDN);</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">        } else if (status == CertificateConstants.CERT_ACTIVE) {</span>
+            // Don't publish non-active certificates
+<span class="nc" id="L196">    		int ldapVersion = LDAPConnection.LDAP_V3;</span>
+<span class="nc" id="L197">    		LDAPConnection lc = createLdapConnection();</span>
+
+    		final String dn;
+    		final String certdn;
+    		try {
+    			// Extract the users DN from the cert.
+<span class="nc" id="L203">    			certdn = CertTools.getSubjectDN(incert);</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">    			if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L205">    				log.debug( &quot;Constructing DN for: &quot; + username);</span>
+    			}
+<span class="nc" id="L207">    			dn = constructLDAPDN(certdn, userDN);</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">    			if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L209">    				log.debug(&quot;LDAP DN for user &quot; +username +&quot; is '&quot; + dn+&quot;'&quot;);</span>
+    			}
+<span class="nc" id="L211">    		} catch (Exception e) {</span>
+<span class="nc" id="L212">    			String msg = intres.getLocalizedMessage(&quot;publisher.errorldapdecode&quot;, &quot;certificate&quot;);</span>
+<span class="nc" id="L213">    			log.error(msg, e);            </span>
+<span class="nc" id="L214">    			throw new PublisherException(msg);            </span>
+<span class="nc" id="L215">    		}</span>
+
+    		// Extract the users email from the cert.
+<span class="nc" id="L218">    		String email = CertTools.getEMailAddress(incert);</span>
+
+    		// Check if the entry is already present, we will update it with the new certificate.
+    		// To work well with the LdapSearchPublisher we need to pass the full certificate DN to the 
+    		// search function, and not only the LDAP DN. The regular publisher should only use the LDAP DN though, 
+    		// but the searchOldEntity function will take care of that.
+<span class="nc" id="L224">    		LDAPEntry oldEntry = searchOldEntity(username, ldapVersion, lc, certdn, userDN, email);</span>
+
+    		// PART 2: Create LDAP entry
+<span class="nc" id="L227">    		LDAPEntry newEntry = null;</span>
+<span class="nc" id="L228">    		ArrayList&lt;LDAPModification&gt; modSet = new ArrayList&lt;LDAPModification&gt;();</span>
+<span class="nc" id="L229">    		LDAPAttributeSet attributeSet = null;</span>
+<span class="nc" id="L230">    		String attribute = null;</span>
+<span class="nc" id="L231">    		String objectclass = null;</span>
+
+<span class="nc bnc" id="L233" title="All 2 branches missed.">    		if (type == CertificateConstants.CERTTYPE_ENDENTITY) {</span>
+<span class="nc bnc" id="L234" title="All 2 branches missed.">    			if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L235">    				log.debug(&quot;Publishing end user certificate to first available server of &quot; + getHostnames());</span>
+    			}
+<span class="nc bnc" id="L237" title="All 2 branches missed.">    			if (oldEntry != null) {</span>
+<span class="nc" id="L238">    				modSet = getModificationSet(oldEntry, certdn, email, ADD_MODIFICATION_ATTRIBUTES, true, password, incert);</span>
+    			} else {
+<span class="nc" id="L240">    				objectclass = getUserObjectClass(); // just used for logging</span>
+<span class="nc" id="L241">    				attributeSet = getAttributeSet(incert, getUserObjectClass(), certdn, email, true, true, password, extendedinformation);</span>
+    			}
+
+    			try {
+<span class="nc" id="L245">    				attribute = getUserCertAttribute();</span>
+<span class="nc" id="L246">    				LDAPAttribute certAttr = new LDAPAttribute(getUserCertAttribute(), incert.getEncoded());</span>
+<span class="nc bnc" id="L247" title="All 2 branches missed.">    				if (oldEntry != null) {</span>
+<span class="nc" id="L248">    					String oldDn = oldEntry.getDN();</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">    					if (getAddMultipleCertificates()) {</span>
+<span class="nc" id="L250">    						modSet.add(new LDAPModification(LDAPModification.ADD, certAttr));                        </span>
+<span class="nc bnc" id="L251" title="All 2 branches missed.">    						if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L252">    							log.debug(&quot;Appended new certificate in user entry; &quot; + username+&quot;: &quot;+oldDn);</span>
+    						}
+    					} else {
+<span class="nc" id="L255">    						modSet.add(new LDAPModification(LDAPModification.REPLACE, certAttr));                                            </span>
+<span class="nc bnc" id="L256" title="All 2 branches missed.">    						if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L257">    							log.debug(&quot;Replaced certificate in user entry; &quot; + username+&quot;: &quot;+oldDn);</span>
+    						}
+    					}
+<span class="nc" id="L260">    				} else {</span>
+<span class="nc" id="L261">    					attributeSet.add(certAttr);</span>
+<span class="nc bnc" id="L262" title="All 2 branches missed.">    					if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L263">    						log.debug(&quot;Added new certificate to user entry; &quot; + username+&quot;: &quot;+dn);</span>
+    					}
+    				}
+<span class="nc" id="L266">    			} catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L267">    				String msg = intres.getLocalizedMessage(&quot;publisher.errorldapencodestore&quot;, &quot;certificate&quot;);</span>
+<span class="nc" id="L268">    				log.error(msg, e);</span>
+<span class="nc" id="L269">    				throw new PublisherException(msg);                </span>
+<span class="nc" id="L270">    			}</span>
+<span class="nc bnc" id="L271" title="All 4 branches missed.">    		} else if (type == CertificateConstants.CERTTYPE_SUBCA ||</span>
+    		           type == CertificateConstants.CERTTYPE_ROOTCA) {
+<span class="nc bnc" id="L273" title="All 2 branches missed.">    			if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L274">    				log.debug(&quot;Publishing CA certificate to first available server of &quot; + getHostnames());</span>
+    			}
+<span class="nc bnc" id="L276" title="All 2 branches missed.">    			if (oldEntry != null) {</span>
+<span class="nc" id="L277">    				modSet = getModificationSet(oldEntry, certdn, null, false, false, password, incert);</span>
+    			} else {
+<span class="nc" id="L279">    				objectclass = getCAObjectClass(); // just used for logging</span>
+<span class="nc" id="L280">    				attributeSet = getAttributeSet(incert, getCAObjectClass(), certdn, null, true, false, password, extendedinformation);</span>
+    			}
+    			try {
+<span class="nc" id="L283">    				attribute = getCACertAttribute();</span>
+<span class="nc" id="L284">    				LDAPAttribute certAttr = new LDAPAttribute(getCACertAttribute(), incert.getEncoded());</span>
+<span class="nc bnc" id="L285" title="All 2 branches missed.">    				if (oldEntry != null) {</span>
+<span class="nc" id="L286">    					modSet.add(new LDAPModification(LDAPModification.REPLACE, certAttr));</span>
+    				} else {
+<span class="nc" id="L288">    					attributeSet.add(certAttr);</span>
+    					// Also create using the crlattribute, it may be required
+<span class="nc" id="L290">    					LDAPAttribute crlAttr = new LDAPAttribute(getCRLAttribute(), getFakeCRL());</span>
+<span class="nc" id="L291">    					attributeSet.add(crlAttr);</span>
+    					// Also create using the arlattribute, it may be required
+<span class="nc" id="L293">    					LDAPAttribute arlAttr = new LDAPAttribute(getARLAttribute(), getFakeCRL());</span>
+<span class="nc" id="L294">    					attributeSet.add(arlAttr);</span>
+<span class="nc bnc" id="L295" title="All 2 branches missed.">    					if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L296">    						log.debug(&quot;Added (fake) attribute for CRL and ARL.&quot;);</span>
+    					}
+    				}
+<span class="nc" id="L299">    			} catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L300">    				String msg = intres.getLocalizedMessage(&quot;publisher.errorldapencodestore&quot;, &quot;certificate&quot;);</span>
+<span class="nc" id="L301">    				log.error(msg, e);</span>
+<span class="nc" id="L302">    				throw new PublisherException(msg);            </span>
+<span class="nc" id="L303">    			}</span>
+    		} else {
+<span class="nc" id="L305">    			String msg = intres.getLocalizedMessage(&quot;publisher.notpubltype&quot;, Integer.valueOf(type));</span>
+<span class="nc" id="L306">    			log.info(msg);</span>
+<span class="nc" id="L307">    			throw new PublisherException(msg);                      </span>
+    		}
+
+    		// PART 3: MODIFICATION AND ADDITION OF NEW USERS
+    		// Try all the listed servers
+<span class="nc" id="L312">    		Iterator&lt;String&gt; servers = getHostnameList().iterator();</span>
+    		boolean connectionFailed;
+    		do {
+<span class="nc" id="L315">    			connectionFailed = false;</span>
+<span class="nc" id="L316">    			String currentServer = servers.next();</span>
+    			try {
+<span class="nc" id="L318">    				TCPTool.probeConnectionLDAP(currentServer, Integer.parseInt(getPort()), getConnectionTimeOut());	// Avoid waiting for halfdead-servers</span>
+<span class="nc" id="L319">    				lc.connect(currentServer, Integer.parseInt(getPort()));</span>
+    				// Execute a STARTTLS handshake if it was requested.
+<span class="nc bnc" id="L321" title="All 2 branches missed.">    				if (getConnectionSecurity() == ConnectionSecurity.STARTTLS) {</span>
+<span class="nc bnc" id="L322" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L323">                            log.debug(&quot;STARTTLS to LDAP server &quot;+currentServer);</span>
+                        }
+<span class="nc" id="L325">    				    lc.startTLS();</span>
+    				}
+    				// authenticate to the server
+<span class="nc" id="L328">    				lc.bind(ldapVersion, getLoginDN(), getLoginPassword().getBytes(&quot;UTF8&quot;), ldapBindConstraints);            </span>
+    				// Add or modify the entry
+<span class="nc bnc" id="L330" title="All 4 branches missed.">    				if (oldEntry != null &amp;&amp; getModifyExistingUsers()) {</span>
+<span class="nc" id="L331">    					LDAPModification[] mods = new LDAPModification[modSet.size()]; </span>
+<span class="nc" id="L332">    					mods = (LDAPModification[])modSet.toArray(mods);</span>
+<span class="nc" id="L333">    					String oldDn = oldEntry.getDN();</span>
+<span class="nc bnc" id="L334" title="All 2 branches missed.">    					if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L335">    						log.debug(&quot;Writing modification to DN: &quot;+oldDn);</span>
+    					}
+<span class="nc" id="L337">    					lc.modify(oldDn, mods, ldapStoreConstraints);</span>
+<span class="nc" id="L338">    					String msg = intres.getLocalizedMessage(&quot;publisher.ldapmodify&quot;, &quot;CERT&quot;, oldDn);</span>
+<span class="nc" id="L339">    					log.info(msg);  </span>
+<span class="nc" id="L340">    				} else {</span>
+<span class="nc bnc" id="L341" title="All 2 branches missed.">    					if(this.getCreateNonExistingUsers()){     </span>
+<span class="nc bnc" id="L342" title="All 2 branches missed.">    						if (oldEntry == null) {           </span>
+    							// Check if the intermediate parent node is present, and if it is not
+    							// we can create it, of allowed to do so by the publisher configuration
+<span class="nc bnc" id="L345" title="All 2 branches missed.">    							if(getCreateIntermediateNodes()) {</span>
+<span class="nc" id="L346">    								final String parentDN = CertTools.getParentDN(dn);</span>
+    								try {
+<span class="nc" id="L348">    									lc.read(parentDN, ldapSearchConstraints);</span>
+<span class="nc" id="L349">    								} catch(LDAPException e) {</span>
+<span class="nc bnc" id="L350" title="All 2 branches missed.">    									if(e.getResultCode() == LDAPException.NO_SUCH_OBJECT) {</span>
+<span class="nc" id="L351">    										this.createIntermediateNodes(lc, dn);</span>
+<span class="nc" id="L352">    										String msg = intres.getLocalizedMessage(&quot;publisher.ldapaddedintermediate&quot;, &quot;CERT&quot;, parentDN);</span>
+<span class="nc" id="L353">    										log.info(msg);</span>
+    									}
+<span class="nc" id="L355">    								}</span>
+    							}
+<span class="nc" id="L357">    							newEntry = new LDAPEntry(dn, attributeSet);</span>
+<span class="nc bnc" id="L358" title="All 2 branches missed.">    							if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L359">    								log.debug(&quot;Adding DN: &quot;+dn);</span>
+    							}
+<span class="nc" id="L361">    							lc.add(newEntry, ldapStoreConstraints);</span>
+<span class="nc" id="L362">    							String msg = intres.getLocalizedMessage(&quot;publisher.ldapadd&quot;, &quot;CERT&quot;, dn);</span>
+<span class="nc" id="L363">    							log.info(msg);</span>
+    						}
+    					}  
+    				}
+<span class="nc" id="L367">    			} catch (LDAPException e) {</span>
+<span class="nc" id="L368">    				connectionFailed = true;</span>
+    				// If multiple certificates are allowed per entity, and the certificate is already published, 
+    				// an exception will be thrown. Catch this type of exception and just log an informational message.
+<span class="nc bnc" id="L371" title="All 2 branches missed.">    				if (e.getResultCode() == LDAPException.ATTRIBUTE_OR_VALUE_EXISTS) {</span>
+<span class="nc" id="L372">                        final String msg = intres.getLocalizedMessage(&quot;publisher.certalreadyexists&quot;, CertTools.getFingerprintAsString(incert), dn, e.getMessage());</span>
+<span class="nc" id="L373">    				    log.info(msg);</span>
+<span class="nc bnc" id="L374" title="All 2 branches missed.">    				} else if (servers.hasNext()) {</span>
+<span class="nc" id="L375">    					log.warn(&quot;Failed to publish to &quot; + currentServer + &quot;. Trying next in list.&quot;);</span>
+    				} else {
+<span class="nc" id="L377">    					String msg = intres.getLocalizedMessage(&quot;publisher.errorldapstore&quot;, &quot;certificate&quot;, attribute, objectclass, dn, e.getMessage());</span>
+<span class="nc" id="L378">    					log.error(msg, e);  </span>
+<span class="nc" id="L379">    					throw new PublisherException(msg);            </span>
+    				}
+<span class="nc" id="L381">    			} catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L382">    				String msg = intres.getLocalizedMessage(&quot;publisher.errorpassword&quot;, getLoginPassword());</span>
+<span class="nc" id="L383">    				log.error(msg, e);</span>
+<span class="nc" id="L384">    				throw new PublisherException(msg);            </span>
+    			} finally {
+    				// disconnect with the server
+    				try {
+<span class="nc" id="L388">    					lc.disconnect(ldapDisconnectConstraints);</span>
+<span class="nc" id="L389">    				} catch (LDAPException e) {</span>
+<span class="nc" id="L390">    					String msg = intres.getLocalizedMessage(&quot;publisher.errordisconnect&quot;, getLoginPassword());</span>
+<span class="nc" id="L391">    					log.error(msg, e);</span>
+<span class="nc" id="L392">    				}</span>
+    			}
+<span class="nc bnc" id="L394" title="All 4 branches missed.">    		} while (connectionFailed &amp;&amp; servers.hasNext()) ;</span>
+<span class="nc" id="L395">        } else {</span>
+<span class="nc" id="L396">			String msg = intres.getLocalizedMessage(&quot;publisher.notpublwithstatus&quot;, Integer.valueOf(status));</span>
+<span class="nc" id="L397">			log.info(msg);        	</span>
+        }
+<span class="nc bnc" id="L399" title="All 2 branches missed.">		if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L400">			log.trace(&quot;&lt;storeCertificate()&quot;);</span>
+		}
+<span class="nc" id="L402">		return true;</span>
+	}
+
+	/**
+	 * Creates intermediate nodes to host an LDAP entry at &lt;code&gt;dn&lt;/code&gt;.
+	 * @param lc Active LDAP connection
+	 * @param dn Distinguished name
+	 * @throws PublisherException on fail
+	 */
+	private void createIntermediateNodes(LDAPConnection lc, String dn) throws PublisherException {
+		LDAPAttributeSet attrSet;
+		LDAPEntry entry;
+<span class="nc bnc" id="L414" title="All 2 branches missed.">	    for (String dnFragment : LdapTools.getIntermediateDNs(dn, getBaseDN())) {</span>
+			try {
+<span class="nc" id="L416">				lc.read(dnFragment, ldapSearchConstraints);</span>
+<span class="nc" id="L417">			} catch(LDAPException e) {</span>
+<span class="nc bnc" id="L418" title="All 2 branches missed.">				if(e.getResultCode() == LDAPException.NO_SUCH_OBJECT) {</span>
+<span class="nc" id="L419">				    final String rdn = LdapTools.getFirstDNComponent(dnFragment);</span>
+<span class="nc" id="L420">				    final String field = new String(rdn.substring(0, rdn.indexOf('=')));</span>
+<span class="nc" id="L421">				    final String value = new String(rdn.substring(rdn.indexOf('=') + 1));</span>
+				    
+<span class="nc" id="L423">					attrSet = new LDAPAttributeSet();</span>
+<span class="nc" id="L424">					attrSet.add(getObjectClassAttribute(field));</span>
+<span class="nc" id="L425">					attrSet.add(new LDAPAttribute(field.toLowerCase(), value));</span>
+<span class="nc" id="L426">					entry = new LDAPEntry(dnFragment, attrSet);</span>
+
+					try {
+<span class="nc" id="L429">						lc.add(entry, ldapStoreConstraints);</span>
+<span class="nc bnc" id="L430" title="All 2 branches missed.">						if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L431">							log.debug(&quot;Created node &quot; + dnFragment);</span>
+						}
+<span class="nc" id="L433">					} catch(LDAPException e1) {</span>
+<span class="nc" id="L434">						String msg = intres.getLocalizedMessage(&quot;publisher.ldapaddedintermediate&quot;, dnFragment);</span>
+<span class="nc" id="L435">						log.error(msg, e1);</span>
+<span class="nc" id="L436">						throw new PublisherException(msg);            </span>
+<span class="nc" id="L437">					}</span>
+				}
+<span class="nc" id="L439">			}</span>
+<span class="nc" id="L440">		}</span>
+<span class="nc" id="L441">	}</span>
+
+	/**
+	 * Returns an LDAPAttribute initialized with the LDAP object class
+	 * definition that corresponds to a DN &lt;code&gt;field&lt;/code&gt;.
+	 * &lt;p&gt;The only allowed fields are &lt;/code&gt;O&lt;/code&gt; (organization) and
+	 * &lt;code&gt;OU&lt;/code&gt; (organizationalUnit).&lt;/p&gt;
+	 *
+	 * @param field A DN field (case-insensitive). Only &lt;code&gt;O&lt;/code&gt; and
+	 * &lt;code&gt;OU&lt;/code&gt; are allowed. 
+	 * @return LDAPAttribute initialized with the LDAP object class definition
+	 * that corresponds to a DN &lt;code&gt;field&lt;/code&gt;.
+	 */
+	private LDAPAttribute getObjectClassAttribute(String field) {
+<span class="nc" id="L455">		final String lowCaseField = field.toLowerCase();</span>
+<span class="nc bnc" id="L456" title="All 2 branches missed.">		if(lowCaseField.equals(&quot;o&quot;)) {</span>
+<span class="nc" id="L457">			return new LDAPAttribute(&quot;objectclass&quot;, new String[] { &quot;top&quot;, &quot;organization&quot; });</span>
+<span class="nc bnc" id="L458" title="All 2 branches missed.">		} else if(lowCaseField.equals(&quot;ou&quot;)) {</span>
+<span class="nc" id="L459">			return new LDAPAttribute(&quot;objectclass&quot;, new String[] { &quot;top&quot;, &quot;organizationalUnit&quot; });</span>
+		} else {
+<span class="nc" id="L461">			String msg = intres.getLocalizedMessage(&quot;publisher.ldapintermediatenotappropriate&quot;, field);</span>
+<span class="nc" id="L462">			log.warn(msg);</span>
+<span class="nc" id="L463">			return new LDAPAttribute(&quot;objectclass&quot;);</span>
+		}
+	}
+
+	/**
+	 * @see org.ejbca.core.model.ca.publisher.BasePublisher#storeCRL
+	 */    
+	public boolean storeCRL(AuthenticationToken admin, byte[] incrl, String cafp, int number, String userDN) throws PublisherException{
+<span class="nc bnc" id="L471" title="All 2 branches missed.">		if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L472">			log.trace(&quot;&gt;storeCRL&quot;);</span>
+		}
+<span class="nc" id="L474">		int ldapVersion = LDAPConnection.LDAP_V3;</span>
+
+		final String dn;
+		final String crldn;
+		final boolean isDeltaCRL;
+		try {
+			// Extract the users DN from the crl. Use the least number of encodings...
+<span class="nc" id="L481">			final X509CRL crl = CertTools.getCRLfromByteArray(incrl);</span>
+<span class="nc" id="L482">			crldn = CertTools.stringToBCDNString(crl.getIssuerDN().toString());</span>
+			// Is it a delta CRL?
+<span class="nc bnc" id="L484" title="All 2 branches missed.">			if (crl.getExtensionValue(Extension.deltaCRLIndicator.getId()) != null) {</span>
+<span class="nc" id="L485">				isDeltaCRL = true;</span>
+			} else {
+<span class="nc" id="L487">				isDeltaCRL = false;</span>
+			}
+			// Construct the DN used for the LDAP object entry
+<span class="nc" id="L490">			dn = constructLDAPDN(crldn, userDN);</span>
+<span class="nc" id="L491">		} catch (Exception e) {</span>
+<span class="nc" id="L492">			String msg = intres.getLocalizedMessage(&quot;publisher.errorldapdecode&quot;, &quot;CRL&quot;);</span>
+<span class="nc" id="L493">			log.error(msg, e);        	</span>
+<span class="nc" id="L494">			throw new PublisherException(msg);            </span>
+<span class="nc" id="L495">		}</span>
+
+<span class="nc" id="L497">		LDAPConnection lc = createLdapConnection();</span>
+
+		// Check if the entry is already present, we will update it with the new CRL.
+<span class="nc" id="L500">		LDAPEntry oldEntry = searchOldEntity(null, ldapVersion, lc, crldn, userDN, null);</span>
+
+<span class="nc" id="L502">		LDAPEntry newEntry = null;</span>
+<span class="nc" id="L503">		ArrayList&lt;LDAPModification&gt; modSet = new ArrayList&lt;LDAPModification&gt;();</span>
+<span class="nc" id="L504">		LDAPAttributeSet attributeSet = null;</span>
+
+<span class="nc bnc" id="L506" title="All 2 branches missed.">		if (oldEntry != null) {</span>
+<span class="nc" id="L507">			modSet = getModificationSet(oldEntry, crldn, null, false, false, null, null);</span>
+		} else {
+<span class="nc" id="L509">			attributeSet = getAttributeSet(null, this.getCAObjectClass(), crldn, null, true, false, null,null);</span>
+		}
+
+<span class="nc bnc" id="L512" title="All 2 branches missed.">		if(isDeltaCRL) {</span>
+			// It's a delta CRL.
+<span class="nc" id="L514">			LDAPAttribute attr = new LDAPAttribute(getDeltaCRLAttribute(), incrl);</span>
+<span class="nc bnc" id="L515" title="All 2 branches missed.">			if (oldEntry != null) {</span>
+<span class="nc" id="L516">				modSet.add(new LDAPModification(LDAPModification.REPLACE, attr));</span>
+			} else {
+<span class="nc" id="L518">				attributeSet.add(attr);</span>
+			}
+<span class="nc" id="L520">		} else {</span>
+			// It's a CRL
+<span class="nc" id="L522">			LDAPAttribute crlAttr = new LDAPAttribute(getCRLAttribute(), incrl);</span>
+<span class="nc" id="L523">			LDAPAttribute arlAttr = new LDAPAttribute(getARLAttribute(), incrl);</span>
+<span class="nc bnc" id="L524" title="All 2 branches missed.">			if (oldEntry != null) {</span>
+<span class="nc" id="L525">				modSet.add(new LDAPModification(LDAPModification.REPLACE, crlAttr));</span>
+<span class="nc" id="L526">				modSet.add(new LDAPModification(LDAPModification.REPLACE, arlAttr));</span>
+			} else {
+<span class="nc" id="L528">				attributeSet.add(crlAttr);</span>
+<span class="nc" id="L529">				attributeSet.add(arlAttr);</span>
+			}
+		}
+<span class="nc bnc" id="L532" title="All 2 branches missed.">		if (oldEntry == null) {</span>
+<span class="nc" id="L533">			newEntry = new LDAPEntry(dn, attributeSet);</span>
+		}
+		// Try all the listed servers
+<span class="nc" id="L536">		Iterator&lt;String&gt; servers = getHostnameList().iterator();</span>
+		boolean connectionFailed;
+		do {
+<span class="nc" id="L539">			connectionFailed = false;</span>
+<span class="nc" id="L540">			String currentServer = servers.next();</span>
+			try {
+<span class="nc" id="L542">				TCPTool.probeConnectionLDAP(currentServer, Integer.parseInt(getPort()), getConnectionTimeOut());	// Avoid waiting for halfdead-servers</span>
+				// connect to the server
+<span class="nc" id="L544">				lc.connect(currentServer, Integer.parseInt(getPort()));</span>
+				// Execute a STARTTLS handshake if it was requested.
+<span class="nc bnc" id="L546" title="All 2 branches missed.">				if (getConnectionSecurity() == ConnectionSecurity.STARTTLS) {</span>
+<span class="nc bnc" id="L547" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L548">                        log.debug(&quot;STARTTLS to LDAP server &quot;+currentServer);</span>
+                    }
+<span class="nc" id="L550">					lc.startTLS();</span>
+				}
+				// authenticate to the server
+<span class="nc" id="L553">				lc.bind(ldapVersion, getLoginDN(), getLoginPassword().getBytes(&quot;UTF8&quot;), ldapBindConstraints);</span>
+				// Add or modify the entry
+<span class="nc bnc" id="L555" title="All 2 branches missed.">				if (oldEntry != null) {</span>
+<span class="nc" id="L556">					LDAPModification[] mods = new LDAPModification[modSet.size()]; </span>
+<span class="nc" id="L557">					mods = (LDAPModification[])modSet.toArray(mods);</span>
+<span class="nc" id="L558">					lc.modify(dn, mods, ldapStoreConstraints);</span>
+<span class="nc" id="L559">					String msg = intres.getLocalizedMessage(&quot;publisher.ldapmodify&quot;, &quot;CRL&quot;, dn);</span>
+<span class="nc" id="L560">					log.info(msg);  </span>
+<span class="nc" id="L561">				} else {</span>
+<span class="nc" id="L562">					lc.add(newEntry, ldapStoreConstraints);</span>
+<span class="nc" id="L563">					String msg = intres.getLocalizedMessage(&quot;publisher.ldapadd&quot;, &quot;CRL&quot;, dn);</span>
+<span class="nc" id="L564">					log.info(msg);  </span>
+				}
+<span class="nc" id="L566">			} catch (LDAPException e) {</span>
+<span class="nc" id="L567">				connectionFailed = true;</span>
+<span class="nc bnc" id="L568" title="All 2 branches missed.">				if (servers.hasNext()) {</span>
+<span class="nc" id="L569">					log.warn(&quot;Failed to publish to &quot; + currentServer + &quot;. Trying next in list.&quot;);</span>
+				} else {
+<span class="nc" id="L571">					String msg = intres.getLocalizedMessage(&quot;publisher.errorldapstore&quot;, &quot;CRL&quot;, getCRLAttribute(), getCAObjectClass(), dn, e.getMessage());</span>
+<span class="nc" id="L572">					log.error(msg, e);  </span>
+<span class="nc" id="L573">					throw new PublisherException(msg);            </span>
+				}
+<span class="nc" id="L575">			} catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L576">				String msg = intres.getLocalizedMessage(&quot;publisher.errorpassword&quot;, getLoginPassword());</span>
+<span class="nc" id="L577">				log.error(msg, e);</span>
+<span class="nc" id="L578">				throw new PublisherException(msg);            </span>
+			} finally {
+				// disconnect with the server
+				try {
+<span class="nc" id="L582">					lc.disconnect(ldapDisconnectConstraints);</span>
+<span class="nc" id="L583">				} catch (LDAPException e) {</span>
+<span class="nc" id="L584">					String msg = intres.getLocalizedMessage(&quot;publisher.errordisconnect&quot;);</span>
+<span class="nc" id="L585">					log.error(msg, e);</span>
+<span class="nc" id="L586">				}</span>
+			}
+<span class="nc bnc" id="L588" title="All 4 branches missed.">		} while (connectionFailed &amp;&amp; servers.hasNext()) ;</span>
+<span class="nc bnc" id="L589" title="All 2 branches missed.">		if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L590">			log.trace(&quot;&lt;storeCRL&quot;);</span>
+		}
+<span class="nc" id="L592">		return true;</span>
+	}
+
+	/**
+	 * Revokes a certificate, which means for LDAP that we may remove the certificate or the whole user entry.
+	 * @param admin Token
+	 * 
+     * @param cert The certificate to be revoked.
+     * @param username Username of end entity owning the certificate.
+     * @param reason reason for revocation from RevokedCertInfo, RevokedCertInfo.NOT_REVOKED if not revoked.
+     * @param userDN if an DN object is not found in the certificate use object from user data instead.
+	 * @throws PublisherException On fail
+	 */    
+	public void revokeCertificate(AuthenticationToken admin, Certificate cert, String username, int reason, String userDN) throws PublisherException {
+<span class="nc bnc" id="L606" title="All 2 branches missed.">		if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L607">			log.trace(&quot;&gt;revokeCertificate()&quot;);</span>
+		}
+		// Check first if we should do anything then revoking
+<span class="nc" id="L610">		boolean removecert = getRemoveRevokedCertificates();</span>
+<span class="nc" id="L611">		boolean removeuser = getRemoveUsersWhenCertRevoked();</span>
+<span class="nc bnc" id="L612" title="All 4 branches missed.">		if ( (!removecert) &amp;&amp; (!removeuser) ) {</span>
+<span class="nc bnc" id="L613" title="All 2 branches missed.">			if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L614">				log.debug(&quot;The configuration for the publisher '&quot; + getDescription() + &quot;' does not allow removing of certificates or users.&quot;);</span>
+			}
+<span class="nc" id="L616">			return;</span>
+		}
+<span class="nc bnc" id="L618" title="All 2 branches missed.">		if (removecert) {</span>
+<span class="nc bnc" id="L619" title="All 2 branches missed.">			if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L620">				log.debug(&quot;Removing user certificate from ldap&quot;);</span>
+			}
+		}
+<span class="nc bnc" id="L623" title="All 2 branches missed.">		if (removeuser) {</span>
+<span class="nc bnc" id="L624" title="All 2 branches missed.">			if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L625">				log.debug(&quot;Removing user entry from ldap&quot;);</span>
+			}
+		}
+
+<span class="nc" id="L629">		int ldapVersion = LDAPConnection.LDAP_V3;</span>
+<span class="nc" id="L630">		LDAPConnection lc = createLdapConnection();</span>
+
+		final String dn;
+		final String certdn;
+		try {
+			// Extract the users DN from the cert.
+<span class="nc" id="L636">			certdn = CertTools.getSubjectDN(cert);</span>
+<span class="nc" id="L637">			dn = constructLDAPDN(certdn, userDN);</span>
+<span class="nc" id="L638">		} catch (Exception e) {</span>
+<span class="nc" id="L639">			String msg = intres.getLocalizedMessage(&quot;publisher.errorldapdecode&quot;, &quot;certificate&quot;);</span>
+<span class="nc" id="L640">			log.error(msg, e);            </span>
+<span class="nc" id="L641">			throw new PublisherException(msg);            </span>
+<span class="nc" id="L642">		}</span>
+
+		// Extract the users email from the cert.
+<span class="nc" id="L645">		String email = CertTools.getEMailAddress(cert);</span>
+
+		// Check if the entry is already present, we will update it with the new certificate.
+		final LDAPEntry oldEntry;
+
+<span class="nc" id="L650">		ArrayList&lt;LDAPModification&gt; modSet = null;</span>
+
+<span class="nc bnc" id="L652" title="All 2 branches missed.">		if (!CertTools.isCA(cert)) {</span>
+<span class="nc" id="L653">			oldEntry = searchOldEntity(username, ldapVersion, lc, certdn, userDN, email);</span>
+<span class="nc bnc" id="L654" title="All 2 branches missed.">			if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L655">				log.debug(&quot;Removing end user certificate from first available server of &quot; + getHostnames());</span>
+			}
+<span class="nc bnc" id="L657" title="All 2 branches missed.">			if (oldEntry != null) {          </span>
+<span class="nc bnc" id="L658" title="All 2 branches missed.">				if (removecert) {</span>
+					// Don't try to remove the cert if there does not exist any
+<span class="nc" id="L660">					LDAPAttribute oldAttr = oldEntry.getAttribute(getUserCertAttribute());</span>
+<span class="nc bnc" id="L661" title="All 2 branches missed.">					if (oldAttr != null) {</span>
+<span class="nc" id="L662">						modSet = getModificationSet(oldEntry, certdn, null, false, true, null, cert);</span>
+<span class="nc" id="L663">						LDAPAttribute attr = new LDAPAttribute(getUserCertAttribute());</span>
+<span class="nc" id="L664">						modSet.add(new LDAPModification(LDAPModification.DELETE, attr));                    </span>
+<span class="nc" id="L665">					} else {</span>
+<span class="nc" id="L666">						String msg = intres.getLocalizedMessage(&quot;publisher.inforevokenocert&quot;);</span>
+<span class="nc" id="L667">						log.info(msg);</span>
+					}            		
+<span class="nc" id="L669">				}</span>
+			} else {
+<span class="nc" id="L671">				String msg = intres.getLocalizedMessage(&quot;publisher.errorrevokenoentry&quot;);</span>
+<span class="nc" id="L672">				log.warn(msg);</span>
+<span class="nc" id="L673">			}</span>
+		} else  {
+<span class="nc" id="L675">			oldEntry = null;</span>
+			// Removal of CA certificate isn't support because of object class restrictions
+<span class="nc bnc" id="L677" title="All 2 branches missed.">			if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L678">				log.debug(&quot;Not removing CA certificate from first available server of &quot; + getHostnames() + &quot;, because of object class restrictions.&quot;);</span>
+			}
+		}
+
+		// Try all the listed servers
+<span class="nc" id="L683">		final Iterator&lt;String&gt; servers = getHostnameList().iterator();</span>
+<span class="nc" id="L684">		boolean isConnectionNotDone = true;</span>
+<span class="nc bnc" id="L685" title="All 4 branches missed.">        if (log.isDebugEnabled() &amp;&amp; (oldEntry == null)) {</span>
+<span class="nc" id="L686">            log.debug(&quot;Not modifying LDAP entry because there is no existing entry.&quot;);                      </span>
+        }
+<span class="nc bnc" id="L688" title="All 6 branches missed.">		while ( oldEntry!=null &amp;&amp; isConnectionNotDone &amp;&amp; servers.hasNext()) {</span>
+<span class="nc" id="L689">			isConnectionNotDone = false;</span>
+<span class="nc" id="L690">			String currentServer = servers.next(); </span>
+<span class="nc bnc" id="L691" title="All 2 branches missed.">			if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L692">				log.debug(&quot;currentServer: &quot;+currentServer);</span>
+			}
+			try {
+<span class="nc" id="L695">				TCPTool.probeConnectionLDAP(currentServer, Integer.parseInt(getPort()), getConnectionTimeOut());	// Avoid waiting for halfdead-servers</span>
+<span class="nc" id="L696">				lc.connect(currentServer, Integer.parseInt(getPort()));</span>
+				// Execute a STARTTLS handshake if it was requested.
+<span class="nc bnc" id="L698" title="All 2 branches missed.">				if (getConnectionSecurity() == ConnectionSecurity.STARTTLS) {</span>
+<span class="nc bnc" id="L699" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L700">                        log.debug(&quot;STARTTLS to LDAP server &quot;+currentServer);</span>
+                    }
+<span class="nc" id="L702">					lc.startTLS();</span>
+				}
+				// authenticate to the server
+<span class="nc" id="L705">				lc.bind(ldapVersion, getLoginDN(), getLoginPassword().getBytes(&quot;UTF8&quot;), ldapBindConstraints);            </span>
+				// Add or modify the entry
+<span class="nc bnc" id="L707" title="All 4 branches missed.">				if (modSet != null &amp;&amp; getModifyExistingUsers()) {</span>
+<span class="nc bnc" id="L708" title="All 2 branches missed.">					if (removecert) {</span>
+<span class="nc" id="L709">						LDAPModification[] mods = new LDAPModification[modSet.size()]; </span>
+<span class="nc" id="L710">						mods = (LDAPModification[])modSet.toArray(mods);</span>
+<span class="nc" id="L711">						lc.modify(oldEntry.getDN(), mods, ldapStoreConstraints);            		</span>
+					}
+<span class="nc bnc" id="L713" title="All 2 branches missed.">					if (removeuser) {</span>
+<span class="nc" id="L714">						lc.delete(oldEntry.getDN(), ldapStoreConstraints);            		</span>
+					}
+<span class="nc" id="L716">					String msg = intres.getLocalizedMessage(&quot;publisher.ldapremove&quot;, dn);</span>
+<span class="nc" id="L717">					log.info(msg);  </span>
+<span class="nc" id="L718">				} else {</span>
+<span class="nc bnc" id="L719" title="All 2 branches missed.">					if (log.isDebugEnabled()) {</span>
+<span class="nc bnc" id="L720" title="All 2 branches missed.">						if (modSet == null) {</span>
+<span class="nc" id="L721">							log.debug(&quot;Not modifying LDAP entry because we don't have anything to modify.&quot;);						</span>
+						}
+<span class="nc bnc" id="L723" title="All 2 branches missed.">						if (!getModifyExistingUsers()) {</span>
+<span class="nc" id="L724">							log.debug(&quot;Not modifying LDAP entry because we're not configured to do so.&quot;);						</span>
+						}
+					}
+				}
+<span class="nc" id="L728">			} catch (LDAPException e) {</span>
+<span class="nc" id="L729">				isConnectionNotDone = true;</span>
+<span class="nc bnc" id="L730" title="All 2 branches missed.">				if (servers.hasNext()) {</span>
+<span class="nc" id="L731">					log.warn(&quot;Failed to publish to &quot; + currentServer + &quot;. Trying next in list.&quot;);</span>
+				} else {
+<span class="nc" id="L733">					String msg = intres.getLocalizedMessage(&quot;publisher.errorldapremove&quot;, dn);</span>
+<span class="nc" id="L734">					log.error(msg, e);  </span>
+<span class="nc" id="L735">					throw new PublisherException(msg);            </span>
+				}
+<span class="nc" id="L737">			} catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L738">				String msg = intres.getLocalizedMessage(&quot;publisher.errorpassword&quot;, getLoginPassword());</span>
+<span class="nc" id="L739">				log.error(msg, e);</span>
+<span class="nc" id="L740">				throw new PublisherException(msg);            </span>
+			} finally {
+				// disconnect with the server
+				try {
+<span class="nc" id="L744">					lc.disconnect(ldapDisconnectConstraints);</span>
+<span class="nc" id="L745">				} catch (LDAPException e) {</span>
+<span class="nc" id="L746">					String msg = intres.getLocalizedMessage(&quot;publisher.errordisconnect&quot;);</span>
+<span class="nc" id="L747">					log.error(msg, e);</span>
+<span class="nc" id="L748">				}</span>
+			}
+<span class="nc" id="L750">		}</span>
+<span class="nc bnc" id="L751" title="All 2 branches missed.">		if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L752">			log.trace(&quot;&lt;revokeCertificate()&quot;);</span>
+		}
+<span class="nc" id="L754">	}</span>
+
+	/** SearchOldEntity is the only method differing between regular ldap and ldap search publishers.
+	 *  Apart from how they find existing users, the publishing works the same.
+	 * @param username Name
+	 * @param ldapVersion Version
+	 * @param lc LC
+	 * @param certDN Certificate DN
+	 * @param userDN User DN
+	 * @param email Email
+	 *  
+	 * @return LDAP entry 
+	 * @throws PublisherException On fail
+	 */
+	protected LDAPEntry searchOldEntity(String username, int ldapVersion, LDAPConnection lc, String certDN, String userDN, String email) throws PublisherException {
+<span class="nc" id="L769">		LDAPEntry oldEntry = null; // return value</span>
+		// Try all the listed servers
+<span class="nc" id="L771">		final Iterator&lt;String&gt; servers = getHostnameList().iterator();</span>
+		boolean connectionFailed;
+		do {
+<span class="nc" id="L774">			connectionFailed = false;</span>
+<span class="nc" id="L775">			final String currentServer = servers.next();</span>
+<span class="nc bnc" id="L776" title="All 2 branches missed.">			if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L777">				log.debug(&quot;Current server is: &quot;+currentServer);</span>
+			}
+<span class="nc" id="L779">			final String ldapdn = constructLDAPDN(certDN, userDN);</span>
+			try {
+<span class="nc" id="L781">				TCPTool.probeConnectionLDAP(currentServer, Integer.parseInt(getPort()), getConnectionTimeOut());	// Avoid waiting for halfdead-servers</span>
+				// connect to the server
+<span class="nc" id="L783">				lc.connect(currentServer, Integer.parseInt(getPort()));</span>
+				// Execute a STARTTLS handshake if it was requested.
+<span class="nc bnc" id="L785" title="All 2 branches missed.">				if (getConnectionSecurity() == ConnectionSecurity.STARTTLS) {</span>
+<span class="nc bnc" id="L786" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L787">                        log.debug(&quot;STARTTLS to LDAP server &quot;+currentServer);</span>
+                    }
+<span class="nc" id="L789">					lc.startTLS();</span>
+				}
+				// authenticate to the server
+<span class="nc" id="L792">				lc.bind(ldapVersion, getLoginDN(), getLoginPassword().getBytes(&quot;UTF8&quot;), ldapBindConstraints);</span>
+				// try to read the old object
+<span class="nc bnc" id="L794" title="All 2 branches missed.">				if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L795">					log.debug(&quot;Searching for old entry with DN '&quot; + ldapdn+&quot;'&quot;);</span>
+				}
+<span class="nc" id="L797">				oldEntry = lc.read(ldapdn, ldapSearchConstraints);</span>
+<span class="nc bnc" id="L798" title="All 2 branches missed.">				if (log.isDebugEnabled()) {</span>
+<span class="nc bnc" id="L799" title="All 2 branches missed.">					if (oldEntry != null) {</span>
+<span class="nc" id="L800">						log.debug(&quot;Found an old entry with DN '&quot; + ldapdn+&quot;'&quot;);</span>
+					} else {
+<span class="nc" id="L802">						log.debug(&quot;Did not find an old entry with DN '&quot; + ldapdn+&quot;'&quot;);</span>
+					}					
+				}
+<span class="nc" id="L805">			} catch (LDAPException e) {</span>
+<span class="nc bnc" id="L806" title="All 2 branches missed.">				if (e.getResultCode() == LDAPException.NO_SUCH_OBJECT) {</span>
+<span class="nc bnc" id="L807" title="All 2 branches missed.">					if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L808">						log.debug(&quot;No old entry exist for '&quot; + ldapdn + &quot;'.&quot;);</span>
+					}
+				} else {
+<span class="nc" id="L811">					connectionFailed = true;</span>
+<span class="nc bnc" id="L812" title="All 2 branches missed.">					if (servers.hasNext()) {</span>
+<span class="nc" id="L813">						log.warn(&quot;Failed to publish to &quot; + currentServer + &quot;. Trying next in list.&quot;);</span>
+					} else {
+<span class="nc" id="L815">						String msg = intres.getLocalizedMessage(&quot;publisher.errorldapbind&quot;, e.getMessage());</span>
+<span class="nc" id="L816">						log.error(msg, e);</span>
+<span class="nc" id="L817">						throw new PublisherException(msg);                                </span>
+					}
+				}
+<span class="nc" id="L820">			} catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L821">				String msg = intres.getLocalizedMessage(&quot;publisher.errorpassword&quot;, getLoginPassword());</span>
+<span class="nc" id="L822">				throw new PublisherException(msg);            </span>
+			} finally {
+				// disconnect with the server
+				try {
+<span class="nc" id="L826">					lc.disconnect(ldapDisconnectConstraints);</span>
+<span class="nc" id="L827">				} catch (LDAPException e) {</span>
+<span class="nc" id="L828">					String msg = intres.getLocalizedMessage(&quot;publisher.errordisconnect&quot;);</span>
+<span class="nc" id="L829">					log.error(msg, e);</span>
+<span class="nc" id="L830">				}</span>
+			}
+<span class="nc bnc" id="L832" title="All 4 branches missed.">		} while (connectionFailed &amp;&amp; servers.hasNext()) ;</span>
+<span class="nc" id="L833">		return oldEntry;</span>
+	}
+
+	/**
+	 * @see org.ejbca.core.model.ca.publisher.BasePublisher#testConnection()
+	 */    
+	public void testConnection() throws PublisherConnectionException {
+<span class="nc" id="L840">		int ldapVersion = LDAPConnection.LDAP_V3;</span>
+<span class="nc" id="L841">		LDAPConnection lc = createLdapConnection();</span>
+		// Try all the listed servers
+<span class="nc" id="L843">		Iterator&lt;String&gt; servers = getHostnameList().iterator();</span>
+		boolean connectionFailed;
+		do {
+<span class="nc" id="L846">			connectionFailed = false;</span>
+<span class="nc" id="L847">			String currentServer = servers.next();</span>
+<span class="nc" id="L848">			LDAPEntry entry = null;</span>
+			try {
+<span class="nc" id="L850">				TCPTool.probeConnectionLDAP(currentServer, Integer.parseInt(getPort()), getConnectionTimeOut());	// Avoid waiting for halfdead-servers</span>
+				// connect to the server
+<span class="nc" id="L852">				lc.connect(currentServer, Integer.parseInt(getPort()));</span>
+				// Execute a STARTTLS handshake if it was requested.
+<span class="nc bnc" id="L854" title="All 2 branches missed.">				if (getConnectionSecurity() == ConnectionSecurity.STARTTLS) {</span>
+<span class="nc bnc" id="L855" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L856">                        log.debug(&quot;STARTTLS to LDAP server &quot;+currentServer);</span>
+                    }
+<span class="nc" id="L858">					lc.startTLS();</span>
+				}
+				// authenticate to the server
+<span class="nc" id="L861">				lc.bind(ldapVersion, getLoginDN(), getLoginPassword().getBytes(&quot;UTF8&quot;), ldapBindConstraints);</span>
+				// try to read the base object
+<span class="nc" id="L863">				String baseDN = getBaseDN();</span>
+<span class="nc bnc" id="L864" title="All 2 branches missed.">				if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L865">					log.debug(&quot;Trying to read top node '&quot;+baseDN+&quot;'&quot;);</span>
+				}
+<span class="nc" id="L867">				entry = lc.read(baseDN, ldapSearchConstraints);			</span>
+<span class="nc bnc" id="L868" title="All 2 branches missed.">				if(entry == null) {</span>
+<span class="nc" id="L869">					String msg = intres.getLocalizedMessage(&quot;publisher.errornobinddn&quot;);</span>
+<span class="nc" id="L870">					throw new PublisherConnectionException(msg);</span>
+				}
+<span class="nc bnc" id="L872" title="All 2 branches missed.">				if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L873">					log.debug(&quot;Entry&quot; + entry.toString());</span>
+				}
+<span class="nc" id="L875">			} catch (LDAPException e) {</span>
+<span class="nc" id="L876">				connectionFailed = true;</span>
+<span class="nc bnc" id="L877" title="All 2 branches missed.">				if (servers.hasNext()) {</span>
+<span class="nc" id="L878">					log.warn(&quot;Failed to connect to &quot; + currentServer + &quot;. Trying next in list.&quot;, e);</span>
+				} else {
+<span class="nc" id="L880">					String msg = intres.getLocalizedMessage(&quot;publisher.errorldapbind&quot;, e.getMessage());</span>
+<span class="nc" id="L881">					log.error(msg, e);</span>
+<span class="nc" id="L882">					throw new PublisherConnectionException(msg);                            </span>
+				}
+<span class="nc" id="L884">			} catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L885">				String msg = intres.getLocalizedMessage(&quot;publisher.errorpassword&quot;, getLoginPassword());</span>
+<span class="nc" id="L886">				log.error(msg, e);</span>
+<span class="nc" id="L887">				throw new PublisherConnectionException(msg);            </span>
+			} finally {
+				// disconnect with the server
+				try {
+<span class="nc" id="L891">					lc.disconnect(ldapDisconnectConstraints);</span>
+<span class="nc" id="L892">				} catch (LDAPException e) {</span>
+<span class="nc" id="L893">					String msg = intres.getLocalizedMessage(&quot;publisher.errordisconnect&quot;);</span>
+<span class="nc" id="L894">					log.error(msg, e);</span>
+<span class="nc" id="L895">				}</span>
+			}
+<span class="nc bnc" id="L897" title="All 4 branches missed.">		} while (connectionFailed &amp;&amp; servers.hasNext()) ;</span>
+<span class="nc" id="L898">	} </span>
+
+	protected LDAPConnection createLdapConnection() {
+		// Set timeouts
+<span class="nc" id="L902">		int connectiontimeout = getConnectionTimeOut();</span>
+<span class="nc" id="L903">		ldapBindConstraints.setTimeLimit(connectiontimeout); </span>
+<span class="nc" id="L904">		ldapDisconnectConstraints.setTimeLimit(connectiontimeout);</span>
+<span class="nc" id="L905">		ldapConnectionConstraints.setTimeLimit(connectiontimeout);</span>
+<span class="nc" id="L906">		ldapSearchConstraints.setTimeLimit(getReadTimeOut());</span>
+<span class="nc" id="L907">		ldapStoreConstraints.setTimeLimit(getStoreTimeOut());</span>
+<span class="nc bnc" id="L908" title="All 2 branches missed.">		if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L909">			log.debug(&quot;connecttimeout: &quot;+ldapConnectionConstraints.getTimeLimit());</span>
+<span class="nc" id="L910">			log.debug(&quot;bindtimeout: &quot;+ldapBindConstraints.getTimeLimit());</span>
+<span class="nc" id="L911">			log.debug(&quot;disconnecttimeout: &quot;+ldapDisconnectConstraints.getTimeLimit());</span>
+<span class="nc" id="L912">			log.debug(&quot;readtimeout: &quot;+ldapSearchConstraints.getTimeLimit());</span>
+<span class="nc" id="L913">			log.debug(&quot;storetimeout: &quot;+ldapStoreConstraints.getTimeLimit());</span>
+<span class="nc" id="L914">            log.debug(&quot;connectionsecurity: &quot;+getConnectionSecurity());</span>
+		}
+		LDAPConnection lc;
+
+<span class="nc bnc" id="L918" title="All 3 branches missed.">		switch (getConnectionSecurity()) {</span>
+		case STARTTLS:
+<span class="nc" id="L920">			lc = new LDAPConnection(new LDAPJSSEStartTLSFactory());</span>
+<span class="nc" id="L921">			break;</span>
+		case SSL:
+<span class="nc" id="L923">			lc = new LDAPConnection(new LDAPJSSESecureSocketFactory());</span>
+<span class="nc" id="L924">			break;</span>
+		default:
+<span class="nc" id="L926">			lc = new LDAPConnection();</span>
+		}
+
+<span class="nc" id="L929">		lc.setConstraints(ldapConnectionConstraints);</span>
+<span class="nc" id="L930">		return lc;</span>
+	}
+
+	/**
+	 *  @return the hostnames of ldap server.
+	 */    
+	public List&lt;String&gt; getHostnameList(){
+<span class="nc" id="L937">		List&lt;String&gt; ret = new ArrayList&lt;String&gt;();	</span>
+<span class="nc" id="L938">		String[] hostnames = getHostnames().split(&quot;;&quot;);</span>
+<span class="nc bnc" id="L939" title="All 2 branches missed.">		for (int i=0; i&lt;hostnames.length; i++) {</span>
+<span class="nc" id="L940">			ret.add(hostnames[i]);</span>
+		}
+<span class="nc" id="L942">		return ret;</span>
+	}
+
+	/**
+	 *  @return the hostnames of ldap server.
+	 */    
+	public String getHostnames(){
+<span class="nc" id="L949">		return (String) data.get(HOSTNAMES);</span>
+	}
+
+	/**
+	 *  @param hostnames the hostname of ldap server.
+	 */        
+	public void setHostnames(String hostnames){
+<span class="nc" id="L956">		data.put(HOSTNAMES, hostnames);	</span>
+<span class="nc" id="L957">	}</span>
+
+
+	/**
+	 * @param connectionsecurity the type of security to use for LDAP connection.
+	 */
+	public void setConnectionSecurity (ConnectionSecurity connectionsecurity){
+<span class="nc" id="L964">		data.put(CONNECTIONSECURITY, connectionsecurity);</span>
+<span class="nc" id="L965">	}</span>
+
+	/**
+	 *  @return the type of security for the LDAP connection.
+	 */
+	public ConnectionSecurity getConnectionSecurity (){
+<span class="nc" id="L971">		Object o = data.get(CONNECTIONSECURITY);</span>
+<span class="nc" id="L972">		ConnectionSecurity ret = ConnectionSecurity.PLAIN;</span>
+<span class="nc bnc" id="L973" title="All 2 branches missed.">		if (o == null) {</span>
+			// If o is null this might be an older (pre v12) version that
+			// has not gotten upgraded correctly. In that case we see if there is a
+			// setting for USESSL, if there is and it is set we return to use SSL.
+<span class="nc" id="L977">			Object usessl = data.get(USESSL);</span>
+<span class="nc bnc" id="L978" title="All 2 branches missed.">			if (usessl != null) {</span>
+<span class="nc bnc" id="L979" title="All 2 branches missed.">				if (((Boolean)usessl).booleanValue()) {</span>
+<span class="nc" id="L980">					ret = ConnectionSecurity.SSL;</span>
+				}
+			}
+<span class="nc" id="L983">		} else {</span>
+<span class="nc" id="L984">	        ret = (ConnectionSecurity)o;			</span>
+		}
+<span class="nc" id="L986">		return ret;</span>
+	}
+	
+	/**
+	 *  @return the port of ldap server.
+	 */    
+	public String getPort (){
+<span class="nc" id="L993">		return (String) data.get(PORT);</span>
+	}
+
+	/**
+	 *  @param port the port of ldap server.
+	 */        
+	public void setPort(String port){
+<span class="nc" id="L1000">		data.put(PORT, port);	</span>
+<span class="nc" id="L1001">	}</span>
+
+	/**
+	 *  @return the basedn of ldap server.
+	 */    
+	public String getBaseDN(){
+<span class="nc" id="L1007">		return (String) data.get(BASEDN);</span>
+	}
+
+	/**
+	 *  @param basedn the basedn of ldap server.
+	 */        
+	public void setBaseDN(String basedn){
+<span class="nc" id="L1014">		data.put(BASEDN, basedn);	</span>
+<span class="nc" id="L1015">	}</span>
+
+	/**
+	 *  @return the logindn to the ldap server.
+	 */    
+	public String getLoginDN(){
+<span class="nc" id="L1021">		return (String) data.get(LOGINDN);</span>
+	}
+
+	/**
+	 *  @param logindn the logindn to the ldap server.
+	 */        
+	public void setLoginDN(String logindn){
+<span class="nc" id="L1028">		data.put(LOGINDN, logindn);	</span>
+<span class="nc" id="L1029">	}</span>
+
+	/**
+	 *  @return the loginpwd to the ldap server.
+	 */    
+	public String getLoginPassword(){
+<span class="nc" id="L1035">		String pwd = (String) data.get(LOGINPASSWORD);</span>
+		// It may be obfuscated in the database, in that case de-obfuscate
+		// &quot;if&quot; because older installations may not be obfuscated
+<span class="nc" id="L1038">		pwd = StringTools.deobfuscateIf(pwd);</span>
+<span class="nc" id="L1039">		return pwd;</span>
+	}
+
+	/**
+	 *  @param loginpwd the loginpwd to the ldap server.
+	 */        
+	public void setLoginPassword(String loginpwd){
+	    // Obfuscate password before we store it in the database
+<span class="nc" id="L1047">	    final String pwd = StringTools.obfuscate(loginpwd);</span>
+<span class="nc" id="L1048">		data.put(LOGINPASSWORD, pwd);	</span>
+<span class="nc" id="L1049">	}</span>
+
+	/**
+	 *  @return true if nonexisting users should be created
+	 */    
+	public boolean getCreateNonExistingUsers (){
+<span class="nc" id="L1055">		return ((Boolean) data.get(CREATENONEXISTING)).booleanValue();</span>
+	}
+
+	/**
+	 *  @param createnonexistingusers if nonexisting users should be created.
+	 */        
+	public void setCreateNonExistingUsers (boolean createnonexistingusers){
+<span class="nc" id="L1062">		data.put(CREATENONEXISTING, Boolean.valueOf(createnonexistingusers));	</span>
+<span class="nc" id="L1063">	}</span>
+
+	/**
+	 *  @return true if existing users should be modified.
+	 */    
+	public boolean getModifyExistingUsers (){
+<span class="nc" id="L1069">		return ((Boolean) data.get(MODIFYEXISTING)).booleanValue();</span>
+	}
+
+	/**
+	 *  @param modifyexistingusers if existing users should be modified.
+	 */        
+	public void setModifyExistingUsers (boolean modifyexistingusers){
+<span class="nc" id="L1076">		data.put(MODIFYEXISTING, Boolean.valueOf(modifyexistingusers));	</span>
+<span class="nc" id="L1077">	}</span>
+
+	/**
+	 *  @return true if existing user attributes should be modified.
+	 */    
+	public boolean getModifyExistingAttributes (){
+<span class="nc" id="L1083">		return ((Boolean) data.get(MODIFYEXISTINGATTR)).booleanValue();</span>
+		
+	}
+
+	/**
+	 *  @param modifyexistingattributes if existing user attributes should be modified.
+	 */        
+	public void setModifyExistingAttributes (boolean modifyexistingattributes){
+<span class="nc" id="L1091">		data.put(MODIFYEXISTINGATTR, Boolean.valueOf(modifyexistingattributes));	</span>
+<span class="nc" id="L1092">	}</span>
+
+	/**
+	 *  @return true if existing user attributes should be added.
+	 */    
+	public boolean getAddNonExistingAttributes (){
+<span class="nc" id="L1098">		return ((Boolean) data.get(ADDNONEXISTINGATTR)).booleanValue();</span>
+	}
+
+	/**
+	 *  @param modifyexistingusers if existing user attributes should be added.
+	 */        
+	public void setAddNonExistingAttributes (boolean modifyexistingusers){
+<span class="nc" id="L1105">		data.put(ADDNONEXISTINGATTR, Boolean.valueOf(modifyexistingusers));	</span>
+<span class="nc" id="L1106">	}</span>
+
+
+	/**
+	 *  @return the user object class in the ldap instance
+	 */    
+	public String getUserObjectClass(){
+<span class="nc" id="L1113">		return (String) data.get(USEROBJECTCLASS);</span>
+	}
+
+	/**
+	 * @param userobjectclass the user object class in the ldap instance
+	 */        
+	public void setUserObjectClass(String userobjectclass){
+<span class="nc" id="L1120">		data.put(USEROBJECTCLASS, userobjectclass);	</span>
+<span class="nc" id="L1121">	}</span>
+
+	/**
+	 *  @return the CA object class in the ldap instance
+	 */    
+	public String getCAObjectClass(){
+<span class="nc" id="L1127">		return (String) data.get(CAOBJECTCLASS);</span>
+	}
+
+	/**
+	 *  @param caobjectclass the CA object class in the ldap instance
+	 */        
+	public void setCAObjectClass(String caobjectclass){
+<span class="nc" id="L1134">		data.put(CAOBJECTCLASS, caobjectclass);	</span>
+<span class="nc" id="L1135">	}</span>
+
+	/**
+	 *  @return the user cert attribute in the ldap instance
+	 */    
+	public String getUserCertAttribute(){
+<span class="nc" id="L1141">		return (String) data.get(USERCERTATTRIBUTE);</span>
+	}
+
+	/**
+	 *  @param usercertattribute the user cert attribute in the ldap instance
+	 */        
+	public void setUserCertAttribute(String usercertattribute){
+<span class="nc" id="L1148">		data.put(USERCERTATTRIBUTE, usercertattribute);	</span>
+<span class="nc" id="L1149">	}</span>
+
+	/**
+	 *  @return the ca cert attribute in the ldap instance
+	 */    
+	public String getCACertAttribute(){
+<span class="nc" id="L1155">		return (String) data.get(CACERTATTRIBUTE);</span>
+	}
+
+	/**
+	 *  @param cacertattribute the ca cert attribute in the ldap instance
+	 */        
+	public void setCACertAttribute(String cacertattribute){
+<span class="nc" id="L1162">		data.put(CACERTATTRIBUTE, cacertattribute);	</span>
+<span class="nc" id="L1163">	}</span>
+
+	/**
+	 *  @return the CRL attribute in the ldap instance
+	 */    
+	public String getCRLAttribute(){
+<span class="nc" id="L1169">		return (String) data.get(CRLATTRIBUTE);</span>
+	}
+
+	/**
+	 *  @param crlattribute the CRL attribute in the ldap instance
+	 */        
+	public void setCRLAttribute(String crlattribute){
+<span class="nc" id="L1176">		data.put(CRLATTRIBUTE, crlattribute);	</span>
+<span class="nc" id="L1177">	}</span>
+
+	/**  @return the delta CRL attribute in the ldap instance
+	 */
+	public String getDeltaCRLAttribute(){
+<span class="nc bnc" id="L1182" title="All 2 branches missed.">		if(data.get(DELTACRLATTRIBUTE) == null) {</span>
+<span class="nc" id="L1183">			this.setDeltaCRLAttribute(DEFAULT_DELTACRLATTRIBUTE);</span>
+<span class="nc" id="L1184">			return DEFAULT_DELTACRLATTRIBUTE;</span>
+		} else {
+<span class="nc" id="L1186">			return (String) data.get(DELTACRLATTRIBUTE);</span>
+		}
+	}
+
+	/**
+	 *  @param deltacrlattribute the delta CRL attribute in the ldap instance
+	 */
+	public void setDeltaCRLAttribute(String deltacrlattribute){
+<span class="nc" id="L1194">		data.put(DELTACRLATTRIBUTE, deltacrlattribute);   </span>
+<span class="nc" id="L1195">	}</span>
+
+	/**
+	 *  @return the ARL attribute in the ldap instance
+	 */    
+	public String getARLAttribute(){
+<span class="nc" id="L1201">		return (String) data.get(ARLATTRIBUTE);</span>
+	}
+
+	/**
+	 *  @param arlattribute the ARL attribute in the ldap instance
+	 */        
+	public void setARLAttribute(String arlattribute){
+<span class="nc" id="L1208">		data.put(ARLATTRIBUTE, arlattribute);	</span>
+<span class="nc" id="L1209">	}</span>
+
+	/**
+	 * Method getting a collection of DNFieldExtractor constants indicating which
+	 * fields of the x509 certificate DN that should be used in the LDAP DN.
+	 * 
+	 * Valid values are  DNFieldExtractor.E, .UID, .CN, .SN, .GIVENNAME, .SURNAME, .T, .OU, .L 
+	 * Other values should be defined in baseDN instead.
+	 * If there exists multiple fields of the same type, then will all fields be mappen to LDAP dn.
+	 * 
+	 * @return Collection of (Integer) containing DNFieldExtractor constants.
+	 */
+	@SuppressWarnings(&quot;unchecked&quot;)
+    public Collection&lt;Integer&gt; getUseFieldInLdapDN(){
+<span class="nc" id="L1223">		return (Collection&lt;Integer&gt;) data.get(USEFIELDINLDAPDN);</span>
+	}
+
+	/**
+	 * Method setting a collection of DNFieldExtractor constants indicating which
+	 * fields of the x509 certificate DN that should be used in the LDAP DN.
+	 * 
+	 * Valid values are  DNFieldExtractor.E, .UID, .CN, .SN, .GIVENNAME, .SURNAME, .T, .OU, .L 
+	 * Other values should be defined in baseDN instead.
+	 * If there exists multiple fields of the same type, then will all fields be mappen to LDAP dn.
+	 * @param usefieldinldapdn values
+	 */
+	public void setUseFieldInLdapDN(Collection&lt;Integer&gt; usefieldinldapdn){
+<span class="nc" id="L1236">		data.put(USEFIELDINLDAPDN, usefieldinldapdn);</span>
+<span class="nc" id="L1237">	}    </span>
+
+	/**
+	 *  @return true if multiple certificates should be appended to existing user entries, instead of replacing.
+	 */    
+	public boolean getAddMultipleCertificates (){
+<span class="nc" id="L1243">		return ((Boolean) data.get(ADDMULTIPLECERTIFICATES)).booleanValue();</span>
+	}
+	/**
+	 *  @param appendcerts if multiple certificates should be appended to existing user entries, instead of replacing.
+	 */        
+	public void setAddMultipleCertificates (boolean appendcerts){
+<span class="nc" id="L1249">		data.put(ADDMULTIPLECERTIFICATES, Boolean.valueOf(appendcerts)); </span>
+<span class="nc" id="L1250">	}</span>
+
+	public void setRemoveRevokedCertificates( boolean removerevoked ){
+<span class="nc" id="L1253">		data.put(REMOVEREVOKED, Boolean.valueOf(removerevoked));  </span>
+<span class="nc" id="L1254">	}</span>
+
+	public boolean getRemoveRevokedCertificates(){
+<span class="nc" id="L1257">		boolean removerevoked = true; //-- default value</span>
+<span class="nc bnc" id="L1258" title="All 2 branches missed.">		if ( data.get(REMOVEREVOKED) != null ) {</span>
+<span class="nc" id="L1259">			removerevoked = ((Boolean)data.get(REMOVEREVOKED)).booleanValue();</span>
+		}
+<span class="nc" id="L1261">		return removerevoked;</span>
+	}
+
+	public void setRemoveUsersWhenCertRevoked( boolean removeuser ){
+<span class="nc" id="L1265">		data.put(REMOVEUSERONCERTREVOKE, Boolean.valueOf(removeuser));  </span>
+<span class="nc" id="L1266">	}</span>
+
+	public boolean getRemoveUsersWhenCertRevoked(){
+<span class="nc" id="L1269">		boolean removeuser = false; //-- default value</span>
+<span class="nc bnc" id="L1270" title="All 2 branches missed.">		if ( data.get(REMOVEUSERONCERTREVOKE) != null ) {</span>
+<span class="nc" id="L1271">			removeuser = ((Boolean)data.get(REMOVEUSERONCERTREVOKE)).booleanValue();</span>
+		}
+<span class="nc" id="L1273">		return removeuser;</span>
+	}
+
+	public void setCreateIntermediateNodes( boolean createnodes ){
+<span class="nc" id="L1277">		data.put(CREATEINTERMEDIATENODES, Boolean.valueOf(createnodes));  </span>
+<span class="nc" id="L1278">	}</span>
+
+	public boolean getCreateIntermediateNodes(){
+<span class="nc" id="L1281">		boolean createnodes = false; //-- default value</span>
+<span class="nc bnc" id="L1282" title="All 2 branches missed.">		if ( data.get(CREATEINTERMEDIATENODES) != null ) {</span>
+<span class="nc" id="L1283">			createnodes = ((Boolean)data.get(CREATEINTERMEDIATENODES)).booleanValue();</span>
+		}
+<span class="nc" id="L1285">		return createnodes;</span>
+	}
+
+	public void setUserPassword( boolean userpassword ){
+<span class="nc" id="L1289">		data.put(SETUSERPASSWORD, Boolean.valueOf(userpassword));  </span>
+<span class="nc" id="L1290">	}</span>
+
+	public boolean getSetUserPassword(){
+<span class="nc" id="L1293">		boolean userpassword = false; //-- default value</span>
+<span class="nc bnc" id="L1294" title="All 2 branches missed.">		if ( data.get(SETUSERPASSWORD) != null ) {</span>
+<span class="nc" id="L1295">			userpassword = ((Boolean)data.get(SETUSERPASSWORD)).booleanValue();</span>
+		}
+<span class="nc" id="L1297">		return userpassword;</span>
+	}
+
+	/** @return timout in milliseconds */
+	public int getConnectionTimeOut() {
+<span class="nc" id="L1302">		int timeout = Integer.parseInt(DEFAULT_TIMEOUT);</span>
+<span class="nc bnc" id="L1303" title="All 2 branches missed.">		if ( data.get(TIMEOUT) != null ) {</span>
+<span class="nc" id="L1304">			timeout = Integer.parseInt((String) data.get(TIMEOUT));</span>
+		}
+<span class="nc" id="L1306">		return timeout;</span>
+	}
+	/** @return timout in milliseconds */
+	public int getReadTimeOut() {
+<span class="nc" id="L1310">		int timeout = Integer.parseInt(DEFAULT_READTIMEOUT);</span>
+<span class="nc bnc" id="L1311" title="All 2 branches missed.">		if ( data.get(READTIMEOUT) != null ) {</span>
+<span class="nc" id="L1312">			timeout = Integer.parseInt((String) data.get(READTIMEOUT));</span>
+		}
+<span class="nc" id="L1314">		return timeout;</span>
+	}
+	/** @return timout in milliseconds */
+	public int getStoreTimeOut() {
+<span class="nc" id="L1318">		int timeout = Integer.parseInt(DEFAULT_STORETIMEOUT);</span>
+<span class="nc bnc" id="L1319" title="All 2 branches missed.">		if ( data.get(STORETIMEOUT) != null ) {</span>
+<span class="nc" id="L1320">			timeout = Integer.parseInt((String) data.get(STORETIMEOUT));</span>
+		}
+<span class="nc" id="L1322">		return timeout;</span>
+	}
+	
+	/** @param timeout timout in milliseconds */
+	public void setConnectionTimeOut(int timeout) {
+<span class="nc" id="L1327">		data.put(TIMEOUT, Integer.toString(timeout));  </span>
+<span class="nc" id="L1328">		ldapBindConstraints.setTimeLimit(timeout);</span>
+<span class="nc" id="L1329">		ldapConnectionConstraints.setTimeLimit(timeout);</span>
+<span class="nc" id="L1330">		ldapDisconnectConstraints.setTimeLimit(timeout);</span>
+<span class="nc" id="L1331">	}</span>
+	/** @param timeout timout in milliseconds */
+	public void setReadTimeOut(int timeout) {
+<span class="nc" id="L1334">		data.put(READTIMEOUT, Integer.toString(timeout));  </span>
+<span class="nc" id="L1335">		ldapSearchConstraints.setTimeLimit(timeout);</span>
+<span class="nc" id="L1336">	}</span>
+	/** @param timeout timout in milliseconds */
+	public void setStoreTimeOut(int timeout) {
+<span class="nc" id="L1339">		data.put(STORETIMEOUT, Integer.toString(timeout)); </span>
+<span class="nc" id="L1340">		ldapStoreConstraints.setTimeLimit(timeout);</span>
+<span class="nc" id="L1341">	}</span>
+
+	// Private methods   
+	/**
+	 * Returns a list of attributes found in DN
+	 * Can only be used when the same attribute string is used in EJBCA and LDAP
+	 *  
+	 * @param dn The DN to search
+	 * @param attributes Strings to search for in the DN
+	 * @return An LDAPAttributeSet containing all attributes found int the DN
+	 */
+	protected Collection&lt;LDAPAttribute&gt; getAttributesFromDN(String dn, String[] attributes) {
+<span class="nc" id="L1353">		Collection&lt;LDAPAttribute&gt; attributeList= new LinkedList&lt;LDAPAttribute&gt;();</span>
+<span class="nc bnc" id="L1354" title="All 2 branches missed.">		for (int i =0; i&lt;attributes.length;i++){</span>
+<span class="nc" id="L1355">			String attribute = CertTools.getPartFromDN(dn, attributes[i]);</span>
+<span class="nc bnc" id="L1356" title="All 2 branches missed.">			if (attribute != null) {</span>
+<span class="nc" id="L1357">				attributeList.add(new LDAPAttribute(attributes[i], attribute));</span>
+			}
+		}
+<span class="nc" id="L1360">		return attributeList;</span>
+	}
+
+	/**
+	 * Returns a list containing LDAPModification's
+	 * Can only be used when the same attribute string is used in EJBCA and LDAP
+	 * 
+	 * @param dn The DN to search
+	 * @param oldEntry the old DN
+	 * @param attributes Strings to search for in the DN
+	 * @return An ArrayList containing LDAPModification for DN
+	 */
+	protected ArrayList&lt;LDAPModification&gt; getModificationSetFromDN(String dn, LDAPEntry oldEntry, String[] attributes){
+<span class="nc" id="L1373">		ArrayList&lt;LDAPModification&gt; modset = new ArrayList&lt;LDAPModification&gt;();</span>
+<span class="nc" id="L1374">		boolean modifyExisting = getModifyExistingAttributes();</span>
+<span class="nc" id="L1375">		boolean addNonExisting = getAddNonExistingAttributes();</span>
+<span class="nc bnc" id="L1376" title="All 2 branches missed.">		for (int i =0; i&lt;attributes.length;i++){</span>
+<span class="nc" id="L1377">			String attribute = CertTools.getPartFromDN(dn, attributes[i]);</span>
+<span class="nc" id="L1378">			LDAPAttribute oldattribute = oldEntry.getAttribute(attributes[i]);</span>
+<span class="nc bnc" id="L1379" title="All 2 branches missed.">			if (log.isDebugEnabled()) {</span>
+<span class="nc bnc" id="L1380" title="All 2 branches missed.">				if (oldattribute!=null) {</span>
+<span class="nc" id="L1381">					log.debug(&quot;removeme, oldattribute=&quot;+oldattribute.toString());</span>
+				}
+<span class="nc bnc" id="L1383" title="All 2 branches missed.">				if (dn!=null) {</span>
+<span class="nc" id="L1384">					log.debug(&quot;removeme, dn=&quot;+dn);</span>
+				}
+			}
+<span class="nc bnc" id="L1387" title="All 12 branches missed.">			if ( ((attribute != null) &amp;&amp; (oldattribute == null) &amp;&amp; addNonExisting) || ( ((attribute != null) &amp;&amp; (oldattribute != null )) &amp;&amp; modifyExisting) ) {</span>
+<span class="nc" id="L1388">				LDAPAttribute attr = new LDAPAttribute(attributes[i], attribute);</span>
+<span class="nc" id="L1389">				modset.add(new LDAPModification(LDAPModification.REPLACE, attr));</span>
+			}
+		}
+<span class="nc" id="L1392">		return modset;</span>
+	}
+
+	/**
+	 * Creates an LDAPAttributeSet.
+	 *
+	 * @param cert the certificate to use or null if no cert involved.
+	 * @param objectclass the objectclass the attribute set should be of.
+	 * @param dn dn of the LDAP entry.
+	 * @param email email address for entry, or null
+	 * @param extra if we should add extra attributes except the objectclass to the attributeset.
+	 * @param person true if this is a person-entry, false if it is a CA.
+	 * @param password users password, to be added into SecurityObjects, and AD
+	 * @param extendedinformation for future use...
+	 *
+	 * @return LDAPAtributeSet created...
+	 */
+	protected LDAPAttributeSet getAttributeSet(Certificate cert, String objectclass, String dn, String email, boolean extra, boolean person,
+			String password, ExtendedInformation extendedinformation) {
+<span class="nc bnc" id="L1411" title="All 2 branches missed.">		if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1412">			log.trace(&quot;&gt;getAttributeSet(dn=&quot;+dn+&quot;, email=&quot;+email+&quot;)&quot;);			</span>
+		}
+<span class="nc" id="L1414">		LDAPAttributeSet attributeSet = new LDAPAttributeSet();</span>
+<span class="nc" id="L1415">		LDAPAttribute attr = new LDAPAttribute(&quot;objectclass&quot;);</span>
+		// The full LDAP object tree is divided with ; in the objectclass
+<span class="nc" id="L1417">		StringTokenizer token = new StringTokenizer(objectclass,&quot;;&quot;);</span>
+<span class="nc bnc" id="L1418" title="All 2 branches missed.">		while (token.hasMoreTokens()) {</span>
+<span class="nc" id="L1419">			String value = token.nextToken();</span>
+<span class="nc bnc" id="L1420" title="All 2 branches missed.">			if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1421">				log.debug(&quot;Adding objectclass value: &quot;+value);</span>
+			}
+<span class="nc" id="L1423">			attr.addValue(value);</span>
+<span class="nc" id="L1424">		}</span>
+<span class="nc" id="L1425">		attributeSet.add(attr);</span>
+
+		/* To Add an entry to the directory,
+		 *   -- Create the attributes of the entry and add them to an attribute set
+		 *   -- Specify the DN of the entry to be created
+		 *   -- Create an LDAPEntry object with the DN and the attribute set
+		 *   -- Call the LDAPConnection add method to add it to the directory
+		 */
+<span class="nc bnc" id="L1433" title="All 2 branches missed.">		if (extra) {</span>
+<span class="nc" id="L1434">			attributeSet.addAll(getAttributesFromDN(dn, MATCHINGEXTRAATTRIBUTES));</span>
+
+			// Only persons have (normally) all these extra attributes. 
+			// A CA might have them if you don't use the default objectClass, but we don't
+			// handle that case.
+<span class="nc bnc" id="L1439" title="All 2 branches missed.">			if (person) {</span>
+				// First get the easy ones where LDAP and EJBCA spelling is the same
+<span class="nc" id="L1441">				attributeSet.addAll(getAttributesFromDN(dn, MATCHINGPERSONALATTRIBUTES));</span>
+				// sn means surname in LDAP, and is required for persons
+<span class="nc" id="L1443">				String cn = CertTools.getPartFromDN(dn, &quot;CN&quot;);</span>
+<span class="nc" id="L1444">				String sn = CertTools.getPartFromDN(dn, &quot;SURNAME&quot;);</span>
+<span class="nc bnc" id="L1445" title="All 4 branches missed.">				if ( (sn == null) &amp;&amp; (cn != null) ) {</span>
+					// Only construct this if we are the standard object class
+<span class="nc bnc" id="L1447" title="All 2 branches missed.">					if (objectclass.contains(&quot;inetOrgPerson&quot;)) {</span>
+						// Take surname to be the last part of the cn
+<span class="nc" id="L1449">						int index = cn.lastIndexOf(' ');</span>
+<span class="nc bnc" id="L1450" title="All 2 branches missed.">						if (index &lt;=0) {</span>
+							// If there is no natural sn, use cn since sn is required
+<span class="nc" id="L1452">							sn = cn;</span>
+						} else {
+<span class="nc bnc" id="L1454" title="All 2 branches missed.">							if (index &lt; cn.length()) {</span>
+<span class="nc" id="L1455">								sn = new String(cn.substring(index+1));</span>
+							}
+						}
+					}
+				}
+<span class="nc bnc" id="L1460" title="All 2 branches missed.">				if (sn != null) {</span>
+<span class="nc" id="L1461">					attributeSet.add(new LDAPAttribute(&quot;sn&quot;, sn));</span>
+				}
+				// gn means givenname in LDAP, and is required for persons
+<span class="nc" id="L1464">				String gn = CertTools.getPartFromDN(dn, &quot;GIVENNAME&quot;);</span>
+<span class="nc bnc" id="L1465" title="All 4 branches missed.">				if ( (gn == null) &amp;&amp; (cn != null) ) {</span>
+					// Only construct this if we are the standard object class
+<span class="nc bnc" id="L1467" title="All 2 branches missed.">					if (objectclass.contains(&quot;inetOrgPerson&quot;)) {</span>
+						// Take givenname to be the first part of the cn
+<span class="nc" id="L1469">						int index = cn.indexOf(' ');</span>
+<span class="nc bnc" id="L1470" title="All 2 branches missed.">						if (index &lt;=0) {</span>
+							// If there is no natural gn/sn, ignore gn if we are using sn
+<span class="nc bnc" id="L1472" title="All 2 branches missed.">							if (sn == null) {</span>
+<span class="nc" id="L1473">								gn = cn;</span>
+							}
+						} else {
+<span class="nc" id="L1476">							gn = new String(cn.substring(0, index));</span>
+						}
+					}
+				}
+<span class="nc bnc" id="L1480" title="All 2 branches missed.">				if (gn != null) {</span>
+<span class="nc" id="L1481">					attributeSet.add(new LDAPAttribute(&quot;givenName&quot;, gn));</span>
+				}
+<span class="nc" id="L1483">				String title = CertTools.getPartFromDN(dn, &quot;T&quot;);</span>
+<span class="nc bnc" id="L1484" title="All 2 branches missed.">				if (title != null) {</span>
+<span class="nc" id="L1485">					attributeSet.add(new LDAPAttribute(&quot;title&quot;, title));</span>
+				}
+<span class="nc bnc" id="L1487" title="All 2 branches missed.">				if (email != null) {</span>
+<span class="nc" id="L1488">					attributeSet.add(new LDAPAttribute(&quot;mail&quot;, email));											</span>
+				}
+				
+				// If we have selected to use the SN (serialNUmber DN field, we will also add it as an attribute
+				// This is not present in the normal objectClass (inetOrgPerson)
+				// Modifying the schema is as simple as adding serialNumber as MAY in the inetOrgPerson object class in inetorgperson.schema.
+<span class="nc" id="L1494">				Collection&lt;Integer&gt; usefields = getUseFieldInLdapDN();</span>
+<span class="nc bnc" id="L1495" title="All 2 branches missed.">				if (usefields.contains(Integer.valueOf(DNFieldExtractor.SN))) {</span>
+<span class="nc" id="L1496">					String serno = CertTools.getPartFromDN(dn, &quot;SN&quot;);</span>
+<span class="nc bnc" id="L1497" title="All 2 branches missed.">					if (serno != null) {</span>
+<span class="nc" id="L1498">						attributeSet.add(new LDAPAttribute(&quot;serialNumber&quot;, serno));</span>
+					}            		
+				}
+				// If we are using the custom schema inetOrgPersonWithCertSerno, we will add the custom attribute certificateSerialNumber
+				// This is, as the name implies, the X509V3 certificate serial number, hex encoded into a printable string.
+<span class="nc bnc" id="L1503" title="All 4 branches missed.">                if (objectclass.contains(&quot;inetOrgPersonWithCertSerno&quot;) &amp;&amp; (cert != null)) {</span>
+<span class="nc" id="L1504">                    final String certSerno = CertTools.getSerialNumberAsString(cert);</span>
+<span class="nc bnc" id="L1505" title="All 2 branches missed.">                    if (certSerno != null) {</span>
+<span class="nc" id="L1506">                        attributeSet.add(new LDAPAttribute(&quot;certificateSerialNumber&quot;, certSerno));</span>
+                    }
+                }
+                
+				// If this is an objectClass which is a SecurityObject, such as simpleSecurityObject, we will add the password as well, if not null.
+<span class="nc bnc" id="L1511" title="All 4 branches missed.">				if (getSetUserPassword() &amp;&amp; (password != null)) {</span>
+<span class="nc bnc" id="L1512" title="All 2 branches missed.">					if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1513">						log.debug(&quot;Adding userPassword attribute&quot;);</span>
+					}
+<span class="nc" id="L1515">					attributeSet.add(new LDAPAttribute(&quot;userPassword&quot;, password));</span>
+				}
+				
+			}
+		}
+<span class="nc bnc" id="L1520" title="All 2 branches missed.">		if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1521">			log.trace(&quot;&lt;getAttributeSet()&quot;);</span>
+		}
+<span class="nc" id="L1523">		return attributeSet;</span>
+	} // getAttributeSet
+
+
+	/**
+	 * Creates an LDAPModificationSet.
+	 *
+	 * @param oldEntry the objectclass the attribute set should be of.
+	 * @param dn dn of the LDAP entry.
+	 * @param email email address for entry, or null
+	 * @param extra if we should add extra attributes except the objectclass to the
+	 *        modificationset.
+	 * @param person true if this is a person-entry, false if it is a CA.
+	 * @param password users password, to be added into SecurityObjects, and AD
+	 * @param cert the Certificate we are publishing, or null
+	 *
+	 * @return List of LDAPModification created...
+	 */
+	protected ArrayList&lt;LDAPModification&gt; getModificationSet(LDAPEntry oldEntry, String dn, String email, boolean extra, boolean person, String password, Certificate cert) {
+<span class="nc bnc" id="L1542" title="All 2 branches missed.">		if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1543">			log.trace(&quot;&gt;getModificationSet(dn=&quot;+dn+&quot;, email=&quot;+email+&quot;)&quot;);			</span>
+		}
+<span class="nc" id="L1545">		boolean modifyExisting = getModifyExistingAttributes();</span>
+<span class="nc" id="L1546">		boolean addNonExisting = getAddNonExistingAttributes();</span>
+<span class="nc" id="L1547">		final String objectclass = getUserObjectClass();</span>
+<span class="nc" id="L1548">		ArrayList&lt;LDAPModification&gt; modSet = new ArrayList&lt;LDAPModification&gt;();</span>
+		// We get this, because we can not modify attributes that are present in the original DN
+		// i.e. if the ldap entry have a DN, we are not allowed to modify that
+<span class="nc bnc" id="L1551" title="All 2 branches missed.">		if (extra) {</span>
+<span class="nc bnc" id="L1552" title="All 2 branches missed.">			if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1553">				log.debug(&quot;Adding extra attributes to modificationSet&quot;);</span>
+			}
+<span class="nc" id="L1555">			modSet.addAll(getModificationSetFromDN(dn, oldEntry, MATCHINGEXTRAATTRIBUTES));</span>
+			// Only persons have (normally) all these extra attributes. 
+			// A CA might have them if you don't use the default objectClass, but we don't
+			// handle that case.
+<span class="nc bnc" id="L1559" title="All 2 branches missed.">			if (person) {</span>
+				// sn means surname in LDAP, and is required for inetOrgPerson
+<span class="nc" id="L1561">				String cn = CertTools.getPartFromDN(dn, &quot;CN&quot;);</span>
+<span class="nc" id="L1562">				String sn = CertTools.getPartFromDN(dn, &quot;SURNAME&quot;);</span>
+<span class="nc bnc" id="L1563" title="All 4 branches missed.">				if ( (sn == null) &amp;&amp; (cn != null) ) {</span>
+					// Only construct this if we are the standard object class
+<span class="nc bnc" id="L1565" title="All 2 branches missed.">                    if (objectclass.contains(&quot;inetOrgPerson&quot;)) {</span>
+						// Take surname to be the last part of the cn
+<span class="nc" id="L1567">						int index = cn.lastIndexOf(' ');</span>
+<span class="nc bnc" id="L1568" title="All 2 branches missed.">						if (index &lt;=0) {</span>
+							// If there is no natural sn, use cn since sn is required
+<span class="nc" id="L1570">							sn = cn;</span>
+						} else {
+<span class="nc bnc" id="L1572" title="All 2 branches missed.">							if (index &lt; cn.length()) {</span>
+<span class="nc" id="L1573">								sn = new String(cn.substring(index+1));</span>
+							}
+						}
+					}
+				}
+<span class="nc" id="L1578">				LDAPAttribute oldsn = oldEntry.getAttribute(&quot;sn&quot;);</span>
+<span class="nc bnc" id="L1579" title="All 12 branches missed.">				if (((sn != null) &amp;&amp; (oldsn == null) &amp;&amp; addNonExisting) || ( (sn != null) &amp;&amp; (oldsn != null ) &amp;&amp; modifyExisting)) {</span>
+<span class="nc" id="L1580">					LDAPAttribute attr = new LDAPAttribute(&quot;sn&quot;, sn);</span>
+<span class="nc" id="L1581">					modSet.add(new LDAPModification(LDAPModification.REPLACE, attr));</span>
+				}
+				// gn means givenname in LDAP, and is required for inetOrgPerson
+<span class="nc" id="L1584">				String gn = CertTools.getPartFromDN(dn, &quot;GIVENNAME&quot;);</span>
+<span class="nc" id="L1585">				LDAPAttribute oldgn = oldEntry.getAttribute(&quot;GIVENNAME&quot;);</span>
+<span class="nc bnc" id="L1586" title="All 4 branches missed.">				if ( (gn == null) &amp;&amp; (cn != null) ) {</span>
+					// Only construct this if we are the standard object class
+<span class="nc bnc" id="L1588" title="All 2 branches missed.">					if (objectclass.contains(&quot;inetOrgPerson&quot;)) {</span>
+						// Take givenname to be the first part of the cn
+<span class="nc" id="L1590">						int index = cn.indexOf(' ');</span>
+<span class="nc bnc" id="L1591" title="All 2 branches missed.">						if (index &lt;=0) {</span>
+							// If there is no natural gn/sn, ignore gn if we are using sn
+<span class="nc bnc" id="L1593" title="All 2 branches missed.">							if (sn == null) {</span>
+<span class="nc" id="L1594">								gn = cn;</span>
+							}
+						} else {
+<span class="nc" id="L1597">							gn = new String(cn.substring(0, index));</span>
+						}
+					}
+<span class="nc bnc" id="L1600" title="All 12 branches missed.">					if ( ( ((gn != null) &amp;&amp; (oldgn == null)) &amp;&amp; addNonExisting) || ( ((gn != null) &amp;&amp; (oldgn != null )) &amp;&amp; modifyExisting) ) {</span>
+<span class="nc" id="L1601">						LDAPAttribute attr = new LDAPAttribute(&quot;givenName&quot;, gn);</span>
+<span class="nc" id="L1602">						modSet.add(new LDAPModification(LDAPModification.REPLACE, attr));</span>
+					}
+				}
+<span class="nc" id="L1605">				String title = CertTools.getPartFromDN(dn, &quot;T&quot;);</span>
+<span class="nc" id="L1606">				LDAPAttribute oldTitle = oldEntry.getAttribute(&quot;Title&quot;);</span>
+<span class="nc bnc" id="L1607" title="All 12 branches missed.">				if ( ( (title != null) &amp;&amp; (oldTitle == null) &amp;&amp; addNonExisting) || ( (title != null) &amp;&amp; (oldTitle != null ) &amp;&amp; modifyExisting) ) {</span>
+<span class="nc" id="L1608">					LDAPAttribute attr = new LDAPAttribute(&quot;givenName&quot;, title);</span>
+<span class="nc" id="L1609">					modSet.add(new LDAPModification(LDAPModification.REPLACE, attr));</span>
+				}
+<span class="nc" id="L1611">				LDAPAttribute oldEmail = oldEntry.getAttribute(&quot;mail&quot;);</span>
+<span class="nc bnc" id="L1612" title="All 12 branches missed.">				if ( ( (email != null) &amp;&amp; (oldEmail == null) &amp;&amp; addNonExisting) || ( (email != null) &amp;&amp; (oldEmail != null ) &amp;&amp; modifyExisting) ) {</span>
+<span class="nc" id="L1613">					LDAPAttribute mailAttr = new LDAPAttribute(&quot;mail&quot;, email);</span>
+<span class="nc" id="L1614">					modSet.add(new LDAPModification(LDAPModification.REPLACE, mailAttr));											</span>
+				}
+
+				// All generic personal attributes
+<span class="nc" id="L1618">				modSet.addAll(getModificationSetFromDN(dn, oldEntry, MATCHINGPERSONALATTRIBUTES));</span>
+				// If we have selected to use the SN (serialNUmber DN field, we will also add it as an attribute
+				// This is not present in the normal objectClass (inetOrgPerson)
+<span class="nc" id="L1621">				Collection&lt;Integer&gt; usefields = getUseFieldInLdapDN();</span>
+<span class="nc bnc" id="L1622" title="All 2 branches missed.">				if (usefields.contains(Integer.valueOf(DNFieldExtractor.SN))) {</span>
+<span class="nc" id="L1623">					String serno = CertTools.getPartFromDN(dn, &quot;SN&quot;);</span>
+<span class="nc" id="L1624">					LDAPAttribute oldserno = oldEntry.getAttribute(&quot;SN&quot;);</span>
+<span class="nc bnc" id="L1625" title="All 12 branches missed.">					if (((serno != null) &amp;&amp; (oldserno == null) &amp;&amp; addNonExisting) || ( (serno != null) &amp;&amp; (oldserno != null ) &amp;&amp; modifyExisting)) {</span>
+<span class="nc" id="L1626">						LDAPAttribute attr = new LDAPAttribute(&quot;serialNumber&quot;, serno);</span>
+<span class="nc" id="L1627">						modSet.add(new LDAPModification(LDAPModification.REPLACE, attr));</span>
+					}            		
+				}
+                // If we are using the custom schema inetOrgPersonWithCertSerno, we will add the custom attribute certificateSerialNumber
+                // This is, as the name implies, the X509V3 certificate serial number, hex encoded into a printable string.
+<span class="nc bnc" id="L1632" title="All 4 branches missed.">                if (objectclass.contains(&quot;inetOrgPersonWithCertSerno&quot;) &amp;&amp; (cert != null)) {</span>
+<span class="nc" id="L1633">                    final String certSerno = CertTools.getSerialNumberAsString(cert);</span>
+<span class="nc bnc" id="L1634" title="All 2 branches missed.">                    if (certSerno != null) {</span>
+<span class="nc" id="L1635">                        LDAPAttribute attr = new LDAPAttribute(&quot;certificateSerialNumber&quot;, certSerno);</span>
+<span class="nc" id="L1636">                        modSet.add(new LDAPModification(LDAPModification.REPLACE, attr));</span>
+                    }
+                }
+				
+				// If this is an objectClass which is a SecurityObject, such as simpleSecurityObject, we will add the password as well, if not null
+<span class="nc bnc" id="L1641" title="All 8 branches missed.">				if ( (getSetUserPassword() &amp;&amp; (password != null)) &amp;&amp; (addNonExisting || modifyExisting) ) {</span>
+<span class="nc bnc" id="L1642" title="All 2 branches missed.">					if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1643">						log.debug(&quot;Modifying userPassword attribute&quot;);</span>
+					}
+<span class="nc" id="L1645">					LDAPAttribute attr = new LDAPAttribute(&quot;userPassword&quot;, password);</span>
+<span class="nc" id="L1646">					modSet.add(new LDAPModification(LDAPModification.REPLACE, attr));</span>
+				}
+			}
+		}
+<span class="nc bnc" id="L1650" title="All 2 branches missed.">		if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1651">			log.trace(&quot;&lt;getModificationSet()&quot;);</span>
+		}
+<span class="nc" id="L1653">		return modSet;</span>
+	} // getModificationSet
+
+	/**
+	 * Constructs the LDAP DN for a certificate to be published. Only DN objects defined by the publisher is used.
+	 * For each DN object to be published:
+	 *  First the certificate DN is search for this object.
+	 *  If no such certificate object then the userdata DN is searched.
+	 *  If no such userdata object either the object will not be a part of the LDAP DN.
+	 * @param certDN certificate DN
+	 * @param userDataDN user data DN
+	 * @return LDAP DN to be used.
+	 */
+	protected String constructLDAPDN(String certDN, String userDataDN){
+<span class="nc bnc" id="L1667" title="All 2 branches missed.">		if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1668">			log.debug(&quot;DN in certificate '&quot;+certDN+&quot;'. DN in user data '&quot;+userDataDN+&quot;'.&quot;);</span>
+		}
+<span class="nc" id="L1670">		final DNFieldExtractor certExtractor = new DNFieldExtractor(certDN, DNFieldExtractor.TYPE_SUBJECTDN);</span>
+<span class="nc bnc" id="L1671" title="All 2 branches missed.">		final DNFieldExtractor userDataExtractor = userDataDN!=null ? new DNFieldExtractor(userDataDN, DNFieldExtractor.TYPE_SUBJECTDN) : null;</span>
+
+<span class="nc" id="L1673">		Collection&lt;Integer&gt; usefields = getUseFieldInLdapDN();</span>
+<span class="nc bnc" id="L1674" title="All 2 branches missed.">		if(usefields instanceof List&lt;?&gt;){</span>
+<span class="nc" id="L1675">			Collections.sort((List&lt;Integer&gt;) usefields);</span>
+		}
+<span class="nc" id="L1677">		final X500NameBuilder nameBuilder = new X500NameBuilder(LdapNameStyle.INSTANCE);</span>
+<span class="nc bnc" id="L1678" title="All 2 branches missed.">		for (Integer fieldNum : usefields) { // There must be at least one</span>
+<span class="nc" id="L1679">            String dnField = certExtractor.getFieldString(fieldNum);</span>
+<span class="nc bnc" id="L1680" title="All 4 branches missed.">            if (StringUtils.isEmpty(dnField) &amp;&amp; userDataExtractor!=null) {</span>
+<span class="nc" id="L1681">                dnField = userDataExtractor.getFieldString(fieldNum);</span>
+            }
+            
+<span class="nc bnc" id="L1684" title="All 2 branches missed.">            if (StringUtils.isNotEmpty(dnField)) {</span>
+<span class="nc" id="L1685">                RDN rdn = new X500Name(LdapNameStyle.INSTANCE, dnField).getRDNs()[0];</span>
+<span class="nc" id="L1686">                nameBuilder.addRDN(rdn.getFirst());</span>
+            }
+<span class="nc" id="L1688">		}</span>
+		
+<span class="nc" id="L1690">		String retval = nameBuilder.build().toString() + &quot;,&quot; + this.getBaseDN(); </span>
+<span class="nc bnc" id="L1691" title="All 2 branches missed.">		if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1692">			log.debug(&quot;LdapPublisher: constructed DN: &quot; + retval );</span>
+		}
+<span class="nc" id="L1694">		return retval;	</span>
+	}
+
+<span class="nc" id="L1697">	protected static byte[] fakecrlbytes = Base64.decode(</span>
+			(&quot;MIIBKDCBkgIBATANBgkqhkiG9w0BAQUFADAvMQ8wDQYDVQQDEwZUZXN0Q0ExDzAN&quot;+
+					&quot;BgNVBAoTBkFuYVRvbTELMAkGA1UEBhMCU0UXDTA0MDExMjE0MTQyMloXDTA0MDEx&quot;+
+					&quot;MzE0MTQyMlqgLzAtMB8GA1UdIwQYMBaAFK1tyidIzx1qpuj5OjHl/0Ro8xTDMAoG&quot;+
+					&quot;A1UdFAQDAgEBMA0GCSqGSIb3DQEBBQUAA4GBABBSCWRAX8xyWQSuZYqR9MC8t4/V&quot;+
+					&quot;Tp4xTGJeT1OPlCfuyeHyjUdvdjB/TjTgc4EOJ7eIF7aQU8Mp6AcUAKil/qBlrTYa&quot;+
+					&quot;EFVr0WDeh2Aglgm4klAFnoJjDWfjTP1NVFdN4GMizqAz/vdXOY3DaDmkwx24eaRw&quot;+
+<span class="nc" id="L1704">			&quot;7SzqXca4gE7f1GTO&quot;).getBytes());</span>
+
+	/**
+	 * Method to lazy create the fake CRL.
+	 * @return fake CRL
+	 */
+	protected byte[] getFakeCRL(){
+<span class="nc" id="L1711">		byte[] fakecrl = null;</span>
+		try {
+<span class="nc" id="L1713">			X509CRL crl = CertTools.getCRLfromByteArray(fakecrlbytes);</span>
+<span class="nc" id="L1714">			fakecrl = crl.getEncoded();</span>
+<span class="nc" id="L1715">		} catch (CRLException e) {}</span>
+<span class="nc" id="L1716">		return fakecrl;</span>
+	}
+
+	/** 
+	 * @see org.ejbca.core.model.ca.publisher.BasePublisher#clone()
+	 */
+	@SuppressWarnings({ &quot;rawtypes&quot;, &quot;unchecked&quot; })
+    public Object clone() throws CloneNotSupportedException {
+<span class="nc" id="L1724">		LdapPublisher clone = new LdapPublisher();</span>
+<span class="nc" id="L1725">		HashMap clonedata = (HashMap) clone.saveData();</span>
+
+<span class="nc" id="L1727">		Iterator i = (data.keySet()).iterator();</span>
+<span class="nc bnc" id="L1728" title="All 2 branches missed.">		while(i.hasNext()){</span>
+<span class="nc" id="L1729">			Object key = i.next();</span>
+<span class="nc" id="L1730">			clonedata.put(key, data.get(key));</span>
+<span class="nc" id="L1731">		}</span>
+<span class="nc" id="L1732">		clone.loadData(clonedata);</span>
+<span class="nc" id="L1733">		return clone;	</span>
+	}
+
+	/* *
+	 * @see org.ejbca.core.model.ca.publisher.BasePublisher#getLatestVersion()
+	 */
+	public float getLatestVersion() {		
+<span class="nc" id="L1740">		return LATEST_VERSION;</span>
+	}
+
+	/** 
+	 * Implemtation of UpgradableDataHashMap function upgrade. 
+	 */
+	public void upgrade() {
+<span class="nc" id="L1747">		log.trace(&quot;&gt;upgrade&quot;);</span>
+<span class="nc bnc" id="L1748" title="All 2 branches missed.">		if(Float.compare(LATEST_VERSION, getVersion()) != 0) {</span>
+			// New version of the class, upgrade
+<span class="nc" id="L1750">			String msg = intres.getLocalizedMessage(&quot;publisher.upgrade&quot;, Float.valueOf(getVersion()));</span>
+<span class="nc" id="L1751">			log.info(msg);</span>
+<span class="nc bnc" id="L1752" title="All 2 branches missed.">			if(data.get(ADDMULTIPLECERTIFICATES) == null) {</span>
+<span class="nc" id="L1753">				setAddMultipleCertificates(false);                </span>
+			}
+<span class="nc bnc" id="L1755" title="All 2 branches missed.">			if(data.get(REMOVEREVOKED) == null) {</span>
+<span class="nc" id="L1756">				setRemoveRevokedCertificates(true);                </span>
+			}
+<span class="nc bnc" id="L1758" title="All 2 branches missed.">			if(data.get(REMOVEUSERONCERTREVOKE) == null) {</span>
+<span class="nc" id="L1759">				setRemoveUsersWhenCertRevoked(false);                </span>
+			}
+<span class="nc bnc" id="L1761" title="All 2 branches missed.">			if(data.get(CREATEINTERMEDIATENODES) == null) {</span>
+<span class="nc" id="L1762">				setCreateIntermediateNodes(false); // v6</span>
+			}
+<span class="nc bnc" id="L1764" title="All 2 branches missed.">			if(data.get(DELTACRLATTRIBUTE) == null) {</span>
+<span class="nc" id="L1765">				setDeltaCRLAttribute(DEFAULT_DELTACRLATTRIBUTE); // v7</span>
+			}
+<span class="nc bnc" id="L1767" title="All 2 branches missed.">			if(data.get(ADDNONEXISTINGATTR) == null) {</span>
+<span class="nc" id="L1768">				setModifyExistingAttributes(false); // v8</span>
+<span class="nc" id="L1769">				setAddNonExistingAttributes(true);</span>
+			}
+<span class="nc bnc" id="L1771" title="All 2 branches missed.">			if (getVersion() &lt; 9) {</span>
+<span class="nc" id="L1772">				setConnectionTimeOut(getConnectionTimeOut());	// v9</span>
+			}
+<span class="nc bnc" id="L1774" title="All 2 branches missed.">			if(data.get(SETUSERPASSWORD) == null) {</span>
+<span class="nc" id="L1775">				setUserPassword(false);	// v10</span>
+			}
+<span class="nc bnc" id="L1777" title="All 2 branches missed.">			if (data.get(READTIMEOUT) == null) {</span>
+<span class="nc" id="L1778">				setStoreTimeOut(getStoreTimeOut());	// v11</span>
+<span class="nc" id="L1779">				setReadTimeOut(getReadTimeOut());</span>
+			}
+<span class="nc bnc" id="L1781" title="All 2 branches missed.">			if (data.get(CONNECTIONSECURITY) == null) { // v12</span>
+<span class="nc bnc" id="L1782" title="All 2 branches missed.">				if (((Boolean) data.get(USESSL)).booleanValue() == true) {</span>
+<span class="nc" id="L1783">					setConnectionSecurity(ConnectionSecurity.SSL);</span>
+				} else {
+<span class="nc" id="L1785">					setConnectionSecurity(ConnectionSecurity.PLAIN);</span>
+				}
+			}
+				
+<span class="nc" id="L1789">			data.put(VERSION,  Float.valueOf(LATEST_VERSION));</span>
+		}
+<span class="nc" id="L1791">		log.trace(&quot;&lt;upgrade&quot;);</span>
+<span class="nc" id="L1792">	}</span>
+	
+    @Override
+    public boolean willPublishCertificate(int status, int revocationReason) {
+<span class="nc" id="L1796">        return true;</span>
+    }
+
+    @Override
+    public void validateDataSource(String dataSource) throws PublisherException {
+        // Method not applicable for this publisher type!
+<span class="nc" id="L1802">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

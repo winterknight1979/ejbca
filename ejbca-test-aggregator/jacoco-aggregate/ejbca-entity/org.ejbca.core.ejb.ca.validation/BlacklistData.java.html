@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>BlacklistData.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-entity</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.ca.validation</a> &gt; <span class="el_source">BlacklistData.java</span></div><h1>BlacklistData.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General                  *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.ejb.ca.validation;
+
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
+
+import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.PostLoad;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
+import javax.persistence.Query;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.util.AlgorithmConstants;
+import org.cesecore.dbprotection.ProtectedData;
+import org.cesecore.dbprotection.ProtectionStringBuilder;
+import org.cesecore.util.QueryResultWrapper;
+import org.ejbca.core.model.validation.BlacklistEntry;
+
+/**
+ * Representation of a public key blacklist entry.
+ * 
+ * @version $Id: BlacklistData.java 26310 2017-08-15 07:11:03Z anatom $
+ */
+@Entity
+@Table(name = &quot;BlacklistData&quot;)
+public class BlacklistData extends ProtectedData implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    /** Class logger. */
+<span class="fc" id="L48">    private static final Logger log = Logger.getLogger(BlacklistData.class);</span>
+
+    // data fields.
+    private int id;
+    private String type;
+    private String value;
+    private String data;
+    private int updateCounter;
+<span class="pc" id="L56">    private int rowVersion = 0;</span>
+    private String rowProtection;
+
+    /**
+     * Creates a new instance.
+     */
+<span class="nc" id="L62">    public BlacklistData() {</span>
+<span class="nc" id="L63">    }</span>
+
+    /**
+     * Creates a new instance.
+     * @param entry the public key blacklist domain object.
+     */
+<span class="fc" id="L69">    public BlacklistData(BlacklistEntry entry) {</span>
+<span class="fc" id="L70">        setBlacklistEntry(entry);</span>
+<span class="fc" id="L71">        setUpdateCounter(0);</span>
+<span class="fc" id="L72">    }</span>
+
+    /**
+     * Creates a new instance.
+     * @param entry the public key blacklist domain object.
+     */
+    @Transient
+    public void setBlacklistEntry(BlacklistEntry entry) {
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L81">            log.debug(&quot;Setting BlacklistData '&quot; + entry.getValue() + &quot;' (&quot; + entry.getID() + &quot;)&quot;);</span>
+        }
+<span class="fc" id="L83">        setId(entry.getID());</span>
+<span class="fc" id="L84">        setType(entry.getType());</span>
+<span class="fc" id="L85">        setValue(entry.getValue());</span>
+<span class="fc" id="L86">        setData(entry.getData());</span>
+<span class="fc" id="L87">        setUpdateCounter(getUpdateCounter()+1);</span>
+<span class="fc" id="L88">    }</span>
+
+    /**
+     * @return Gets a balacklist domain object.
+     */
+    @Transient
+    public BlacklistEntry getBlacklistEntry() {
+<span class="nc" id="L95">        final BlacklistEntry ret = new BlacklistEntry(getId(), getType(), getValue(), getData());</span>
+<span class="nc" id="L96">        return ret;</span>
+    }
+
+    //@Id @Column
+    public int getId() {
+<span class="fc" id="L101">        return id;</span>
+    }
+
+    public void setId(int id) {
+<span class="fc" id="L105">        this.id = id;</span>
+<span class="fc" id="L106">    }</span>
+
+    //@Column
+    public String getType() {
+<span class="fc" id="L110">        return type;</span>
+    }
+
+    public void setType(String type) {
+<span class="fc" id="L114">        this.type = type;</span>
+<span class="fc" id="L115">    }</span>
+
+    //@Column
+    /** See for instance {@link AlgorithmConstants#KEYALGORITHM_RSA} + length 'RSA2048' and others. 
+     * @return data*/
+    public String getData() {
+<span class="fc" id="L121">        return data;</span>
+    }
+
+    public void setData(String data) {
+<span class="fc" id="L125">        this.data = data;</span>
+<span class="fc" id="L126">    }</span>
+
+    //@Column
+    public String getValue() {
+<span class="fc" id="L130">        return value;</span>
+    }
+
+    public void setValue(String value) {
+<span class="fc" id="L134">        this.value = value;</span>
+<span class="fc" id="L135">    }</span>
+
+    //@Column
+    public int getUpdateCounter() {
+<span class="fc" id="L139">        return updateCounter;</span>
+    }
+
+    public void setUpdateCounter(int updateCounter) {
+<span class="fc" id="L143">        this.updateCounter = updateCounter;</span>
+<span class="fc" id="L144">    }</span>
+
+    //@Version @Column
+    public int getRowVersion() {
+<span class="nc" id="L148">        return rowVersion;</span>
+    }
+
+    public void setRowVersion(int rowVersion) {
+<span class="nc" id="L152">        this.rowVersion = rowVersion;</span>
+<span class="nc" id="L153">    }</span>
+
+    //@Column @Lob
+    @Override
+    public String getRowProtection() {
+<span class="nc" id="L158">        return rowProtection;</span>
+    }
+
+    @Override
+    public void setRowProtection(String rowProtection) {
+<span class="nc" id="L163">        this.rowProtection = rowProtection;</span>
+<span class="nc" id="L164">    }</span>
+
+    //
+    // Start Database integrity protection methods
+    //
+
+    @Transient
+    @Override
+    public String getProtectString(final int version) {
+<span class="fc" id="L173">        final ProtectionStringBuilder build = new ProtectionStringBuilder();</span>
+        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
+<span class="fc" id="L175">        build.append(getId()).append(getType()).append(getValue()).append(getData()).append(getUpdateCounter());</span>
+<span class="fc" id="L176">        return build.toString();</span>
+    }
+
+    @Transient
+    @Override
+    protected int getProtectVersion() {
+<span class="nc" id="L182">        return 1;</span>
+    }
+
+    @PrePersist
+    @PreUpdate
+    @Override
+    protected void protectData() {
+<span class="nc" id="L189">        super.protectData();</span>
+<span class="nc" id="L190">    }</span>
+
+    @PostLoad
+    @Override
+    protected void verifyData() {
+<span class="nc" id="L195">        super.verifyData();</span>
+<span class="nc" id="L196">    }</span>
+
+    @Override
+    @Transient
+    protected String getRowId() {
+<span class="nc" id="L201">        return String.valueOf(getId());</span>
+    }
+
+    //
+    // End Database integrity protection methods
+    //
+
+    //
+    // Search functions. 
+    // 
+
+    /** @param entityManager EM
+     * @param id ID
+     * @return the found entity instance or null if the entity does not exist */
+    public static BlacklistData findById(EntityManager entityManager, int id) {
+<span class="nc" id="L216">        return entityManager.find(BlacklistData.class, id);</span>
+    }
+
+    /**
+     * @param entityManager EM
+     * @param type Type
+     * @param value Value
+     * @throws javax.persistence.NonUniqueResultException if more than one entity with the name exists
+     * @return the found entity instance or null if the entity does not exist
+     */
+    public static BlacklistData findByTypeAndValue(EntityManager entityManager, final String type, final String value) {
+<span class="nc" id="L227">        final Query query = entityManager.createQuery(&quot;SELECT a FROM BlacklistData a WHERE a.type=:type and a.value=:value&quot;);</span>
+<span class="nc" id="L228">        query.setParameter(&quot;type&quot;, type);</span>
+<span class="nc" id="L229">        query.setParameter(&quot;value&quot;, value);</span>
+<span class="nc" id="L230">        return (BlacklistData) QueryResultWrapper.getSingleResult(query);</span>
+    }
+
+    /** @param entityManager EM
+     * @return return the query results as a List. */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public static List&lt;BlacklistData&gt; findAll(EntityManager entityManager) {
+<span class="nc" id="L237">        final Query query = entityManager.createQuery(&quot;SELECT a FROM BlacklistData a&quot;);</span>
+<span class="nc" id="L238">        return query.getResultList();</span>
+    }
+
+    /** @param entityManager EM
+     * @param ids IDs
+     * @return return the query results as a List. */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public static List&lt;BlacklistData&gt; findAllById(EntityManager entityManager, Collection&lt;Integer&gt; ids) {
+<span class="nc" id="L246">        final Query query = entityManager.createQuery(&quot;SELECT a FROM BlacklistData a WHERE a.id IN (:ids)&quot;);</span>
+<span class="nc" id="L247">        query.setParameter(&quot;ids&quot;, ids);</span>
+<span class="nc" id="L248">        return query.getResultList();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

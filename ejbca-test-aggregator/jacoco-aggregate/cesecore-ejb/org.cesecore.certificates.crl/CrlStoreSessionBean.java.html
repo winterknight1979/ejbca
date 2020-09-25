@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CrlStoreSessionBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">cesecore-ejb</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.crl</a> &gt; <span class="el_source">CrlStoreSessionBean.java</span></div><h1>CrlStoreSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.crl;
+
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.apache.log4j.Logger;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.enums.EventTypes;
+import org.cesecore.audit.enums.ModuleTypes;
+import org.cesecore.audit.enums.ServiceTypes;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.internal.InternalResources;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.util.CertTools;
+
+/**
+ * The name is kept for historic reasons. This Session Bean is used for creating and retrieving CRLs and information about CRLs. CRLs are signed using
+ * SignSessionBean.
+ * 
+ * @version $Id: CrlStoreSessionBean.java 25498 2017-03-15 17:01:37Z jeklund $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;CrlStoreSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L50">public class CrlStoreSessionBean implements CrlStoreSessionLocal, CrlStoreSessionRemote {</span>
+
+<span class="nc" id="L52">    private static final Logger log = Logger.getLogger(CrlStoreSessionBean.class);</span>
+
+    /** Internal localization of logs and errors */
+<span class="nc" id="L55">    protected static final InternalResources intres = InternalResources.getInstance();</span>
+
+    @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+    EntityManager entityManager;
+
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private SecurityEventsLoggerSessionLocal logSession;
+
+    @Override
+    public void storeCRL(AuthenticationToken admin, byte[] incrl, String cafp, int number, String issuerDN, Date thisUpdate, Date nextUpdate,
+            int deltaCRLIndicator) throws CrlStoreException, AuthorizationDeniedException {
+<span class="nc bnc" id="L68" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L69">            log.trace(&quot;&gt;storeCRL(&quot; + cafp + &quot;, &quot; + number + &quot;)&quot;);</span>
+        }
+        // Check that user is authorized to the CA that issued this CRL
+<span class="nc" id="L72">        String bcdn = CertTools.stringToBCDNString(issuerDN);</span>
+<span class="nc" id="L73">        int caid = bcdn.hashCode();</span>
+<span class="nc" id="L74">        authorizedToCA(admin, caid);</span>
+
+        try {
+<span class="nc bnc" id="L77" title="All 2 branches missed.">            boolean deltaCRL = deltaCRLIndicator &gt; 0;</span>
+<span class="nc" id="L78">            int lastNo = getLastCRLNumber(issuerDN, deltaCRL);</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">            if (number &lt;= lastNo) {</span>
+                // There is already a CRL with this number, or a later one stored. Don't create duplicates
+<span class="nc" id="L81">                final String msg = intres.getLocalizedMessage(&quot;store.errorstorecrlwrongnumber&quot;, Integer.valueOf(number), Integer.valueOf(lastNo), issuerDN);</span>
+<span class="nc" id="L82">                throw new CrlStoreException(msg);</span>
+            }
+<span class="nc" id="L84">            CRLData data = new CRLData(incrl, number, issuerDN, thisUpdate, nextUpdate, cafp, deltaCRLIndicator);</span>
+<span class="nc" id="L85">            this.entityManager.persist(data);</span>
+<span class="nc" id="L86">            String msg = intres.getLocalizedMessage(&quot;store.storecrl&quot;, Integer.valueOf(number), data.getFingerprint(), data.getIssuerDN());</span>
+<span class="nc" id="L87">            Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L88">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L89">            logSession.log(EventTypes.CRL_STORED, EventStatus.SUCCESS, ModuleTypes.CRL, ServiceTypes.CORE, admin.toString(), String.valueOf(caid), null, null, details);</span>
+<span class="nc" id="L90">        } catch (Exception e) {</span>
+<span class="nc" id="L91">            String msg = intres.getLocalizedMessage(&quot;store.errorstorecrl&quot;, Integer.valueOf(number), issuerDN);</span>
+<span class="nc" id="L92">            log.error(msg, e);</span>
+<span class="nc" id="L93">            throw new CrlStoreException(e); // will rollback etc</span>
+<span class="nc" id="L94">        }</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L96">            log.trace(&quot;&lt;storeCRL()&quot;);</span>
+        }
+<span class="nc" id="L98">    }</span>
+
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public byte[] getLastCRL(String issuerdn, boolean deltaCRL) {
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L105">            log.trace(&quot;&gt;getLastCRL(&quot; + issuerdn + &quot;, &quot; + deltaCRL + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L107">        int maxnumber = 0;</span>
+        try {
+<span class="nc" id="L109">            maxnumber = getLastCRLNumber(issuerdn, deltaCRL);</span>
+<span class="nc" id="L110">            byte[] crlbytes = null;</span>
+<span class="nc" id="L111">            final CRLData data = CRLData.findByIssuerDNAndCRLNumber(entityManager, issuerdn, maxnumber);</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">            if (data != null) {</span>
+<span class="nc" id="L113">                crlbytes = data.getCRLBytes();</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">                if (crlbytes != null) {</span>
+<span class="nc" id="L115">                    final String msg = intres.getLocalizedMessage(&quot;store.getcrl&quot;, issuerdn, Integer.valueOf(maxnumber));</span>
+<span class="nc" id="L116">                    log.info(msg);</span>
+<span class="nc" id="L117">                    return crlbytes;</span>
+                }
+            }
+<span class="nc" id="L120">        } catch (Exception e) {</span>
+<span class="nc" id="L121">            final String msg = intres.getLocalizedMessage(&quot;store.errorgetcrl&quot;, issuerdn);</span>
+<span class="nc" id="L122">            log.info(msg);</span>
+<span class="nc" id="L123">            throw new EJBException(e);</span>
+<span class="nc" id="L124">        }</span>
+<span class="nc" id="L125">        final String msg = intres.getLocalizedMessage(&quot;store.errorgetcrl&quot;, issuerdn, Integer.valueOf(maxnumber));</span>
+<span class="nc" id="L126">        log.info(msg);</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L128">            log.trace(&quot;&lt;getLastCRL()&quot;);</span>
+        }
+<span class="nc" id="L130">        return null;</span>
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public byte[] getCRL(String issuerdn, int crlNumber) {
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L137">            log.trace(&quot;&gt;getCRL(&quot; + issuerdn + &quot;, &quot; + crlNumber + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L139">        byte[] crlbytes = null;</span>
+<span class="nc" id="L140">        final CRLData data = CRLData.findByIssuerDNAndCRLNumber(entityManager, issuerdn, crlNumber);</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">        if (data != null) {</span>
+<span class="nc" id="L142">            crlbytes = data.getCRLBytes();</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">            if (crlbytes != null) {</span>
+<span class="nc" id="L144">                final String msg = intres.getLocalizedMessage(&quot;store.getcrl&quot;, issuerdn, Integer.valueOf(crlNumber));</span>
+<span class="nc" id="L145">                log.info(msg);</span>
+<span class="nc" id="L146">                return crlbytes;</span>
+            }
+        }
+<span class="nc" id="L149">        final String msg = intres.getLocalizedMessage(&quot;store.errorgetcrl&quot;, issuerdn, Integer.valueOf(crlNumber));</span>
+<span class="nc" id="L150">        log.info(msg);</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L152">            log.trace(&quot;&lt;getCRL()&quot;);</span>
+        }
+<span class="nc" id="L154">        return null;</span>
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public CRLInfo getLastCRLInfo(String issuerdn, boolean deltaCRL) {
+<span class="nc bnc" id="L160" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L161">            log.trace(&quot;&gt;getLastCRLInfo(&quot; + issuerdn + &quot;, &quot; + deltaCRL + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L163">        int crlnumber = 0;</span>
+        try {
+<span class="nc" id="L165">            crlnumber = getLastCRLNumber(issuerdn, deltaCRL);</span>
+<span class="nc" id="L166">            CRLInfo crlinfo = null;</span>
+<span class="nc" id="L167">            final CRLData data = CRLData.findByIssuerDNAndCRLNumber(entityManager, issuerdn, crlnumber);</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">            if (data != null) {</span>
+<span class="nc" id="L169">                crlinfo = new CRLInfo(data.getIssuerDN(), crlnumber, data.getThisUpdate(), data.getNextUpdate());</span>
+            } else {
+<span class="nc bnc" id="L171" title="All 4 branches missed.">                if (deltaCRL &amp;&amp; (crlnumber == 0)) {</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L173">                        log.debug(&quot;No delta CRL exists for CA with dn '&quot; + issuerdn + &quot;'&quot;);</span>
+                    }
+<span class="nc bnc" id="L175" title="All 2 branches missed.">                } else if (crlnumber == 0) {</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L177">                        log.debug(&quot;No CRL exists for CA with dn '&quot; + issuerdn + &quot;'&quot;);</span>
+                    }
+                } else {
+<span class="nc" id="L180">                    final String msg = intres.getLocalizedMessage(&quot;store.errorgetcrl&quot;, issuerdn, Integer.valueOf(crlnumber));</span>
+<span class="nc" id="L181">                    log.error(msg);</span>
+                }
+            }
+<span class="nc bnc" id="L184" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L185">                log.trace(&quot;&lt;getLastCRLInfo()&quot;);</span>
+            }
+<span class="nc" id="L187">            return crlinfo;</span>
+<span class="nc" id="L188">        } catch (Exception e) {</span>
+<span class="nc" id="L189">            final String msg = intres.getLocalizedMessage(&quot;store.errorgetcrlinfo&quot;, issuerdn);</span>
+<span class="nc" id="L190">            log.info(msg);</span>
+<span class="nc" id="L191">            throw new EJBException(e);</span>
+        }
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public CRLInfo getCRLInfo(String fingerprint) {
+<span class="nc bnc" id="L198" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L199">            log.trace(&quot;&gt;getCRLInfo(&quot; + fingerprint + &quot;)&quot;);</span>
+        }
+        try {
+<span class="nc" id="L202">            CRLInfo crlinfo = null;</span>
+<span class="nc" id="L203">            final CRLData data = CRLData.findByFingerprint(entityManager, fingerprint);</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">            if (data != null) {</span>
+<span class="nc" id="L205">                crlinfo = new CRLInfo(data.getIssuerDN(), data.getCrlNumber(), data.getThisUpdate(), data.getNextUpdate());</span>
+            } else {
+<span class="nc bnc" id="L207" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L208">                    log.debug(&quot;No CRL exists with fingerprint '&quot; + fingerprint + &quot;'&quot;);</span>
+                }
+<span class="nc" id="L210">                final String msg = intres.getLocalizedMessage(&quot;store.errorgetcrl&quot;, fingerprint, Integer.valueOf(0));</span>
+<span class="nc" id="L211">                log.info(msg);</span>
+            }
+<span class="nc bnc" id="L213" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L214">                log.trace(&quot;&lt;getCRLInfo()&quot;);</span>
+            }
+<span class="nc" id="L216">            return crlinfo;</span>
+<span class="nc" id="L217">        } catch (Exception e) {</span>
+<span class="nc" id="L218">            String msg = intres.getLocalizedMessage(&quot;store.errorgetcrlinfo&quot;, fingerprint);</span>
+<span class="nc" id="L219">            log.info(msg);</span>
+<span class="nc" id="L220">            throw new EJBException(e);</span>
+        }
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public int getLastCRLNumber(String issuerdn, boolean deltaCRL) {
+<span class="nc bnc" id="L227" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L228">            log.trace(&quot;&gt;getLastCRLNumber(&quot; + issuerdn + &quot;, &quot; + deltaCRL + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L230">        int maxnumber = 0;</span>
+<span class="nc" id="L231">        Integer result = CRLData.findHighestCRLNumber(entityManager, issuerdn, deltaCRL);</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">        if (result != null) {</span>
+<span class="nc" id="L233">            maxnumber = result.intValue();</span>
+        }
+<span class="nc bnc" id="L235" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L236">            log.trace(&quot;&lt;getLastCRLNumber(&quot; + maxnumber + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L238">        return maxnumber;</span>
+    }
+
+    private void authorizedToCA(final AuthenticationToken admin, final int caid) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L242" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(admin, StandardRules.CAACCESS.resource() + caid)) {</span>
+<span class="nc" id="L243">            final String msg = intres.getLocalizedMessage(&quot;caadmin.notauthorizedtoca&quot;, admin.toString(), caid);</span>
+<span class="nc" id="L244">            throw new AuthorizationDeniedException(msg);</span>
+        }
+<span class="nc" id="L246">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

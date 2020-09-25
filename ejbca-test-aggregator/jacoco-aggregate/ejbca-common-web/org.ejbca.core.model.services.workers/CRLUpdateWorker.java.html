@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CRLUpdateWorker.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.services.workers</a> &gt; <span class="el_source">CRLUpdateWorker.java</span></div><h1>CRLUpdateWorker.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.services.workers;
+
+import java.util.Collection;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.ejbca.core.ejb.crl.PublishingCrlSessionLocal;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.services.BaseWorker;
+import org.ejbca.core.model.services.ServiceExecutionFailedException;
+
+/**
+ * Class managing the updating of CRLs. Loops through the list of CAs to check and generates CRLs and deltaCRLs if needed.
+ * 
+ * @author Philip Vendil
+ * @version $Id: CRLUpdateWorker.java 24487 2016-10-10 09:10:53Z anatom $
+ */
+<span class="nc" id="L31">public class CRLUpdateWorker extends BaseWorker {</span>
+
+<span class="nc" id="L33">    private static final Logger log = Logger.getLogger(CRLUpdateWorker.class);	</span>
+
+    /** Semaphore that tries to make sure that this CRL creation job does not run several times on the same machine.
+     * Since CRL generation can sometimes take a lot of time, this is needed.
+     */
+<span class="nc" id="L38">	private static boolean running = false;</span>
+
+	/**
+	 * Checks if there are any CRL that needs to be updated, and then does the creation.
+	 * 
+	 * @see org.ejbca.core.model.services.IWorker#work
+	 */
+    @Override
+	public void work(Map&lt;Class&lt;?&gt;, Object&gt; ejbs) throws ServiceExecutionFailedException {
+<span class="nc" id="L47">        final PublishingCrlSessionLocal publishingCrlSession = ((PublishingCrlSessionLocal)ejbs.get(PublishingCrlSessionLocal.class));</span>
+		// A semaphore used to not run parallel CRL generation jobs if it is slow
+		// in generating CRLs, and this job runs very often
+<span class="nc bnc" id="L50" title="All 2 branches missed.">		if (!running) {</span>
+			try {
+<span class="nc" id="L52">				running = true;</span>
+<span class="nc" id="L53">			    long polltime = getNextInterval();</span>
+			    // Use true here so the service works the same as before upgrade from 3.9.0 when this function of 
+			    // selecting CAs did not exist, no CA = Any CA.
+<span class="nc" id="L56">			    Collection&lt;Integer&gt; caids = getCAIdsToCheck(true); </span>
+<span class="nc" id="L57">			    publishingCrlSession.createCRLs(getAdmin(), caids, polltime*1000);</span>
+<span class="nc" id="L58">			    publishingCrlSession.createDeltaCRLs(getAdmin(), caids, polltime*1000);</span>
+<span class="nc" id="L59">			} catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L60">				log.info(&quot;Authorization denied executing service: &quot;, e);</span>
+<span class="nc" id="L61">				throw new ServiceExecutionFailedException(e);</span>
+			} finally {
+<span class="nc" id="L63">				running = false;</span>
+<span class="nc" id="L64">			}			</span>
+		} else {
+<span class="nc" id="L66">			log.info(InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;services.alreadyrunninginvm&quot;, CRLUpdateWorker.class.getName()));</span>
+		}
+<span class="nc" id="L68">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

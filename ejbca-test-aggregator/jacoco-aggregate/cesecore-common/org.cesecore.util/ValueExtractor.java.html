@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ValueExtractor.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.util</a> &gt; <span class="el_source">ValueExtractor.java</span></div><h1>ValueExtractor.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.util;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
+import org.apache.log4j.Logger;
+
+/**
+ * Helper object to convert from JDBC driver specific objects to a unified form. 
+ *
+ * @version $Id: ValueExtractor.java 18045 2013-11-02 08:23:07Z anatom $
+ */
+<span class="nc" id="L25">public abstract class ValueExtractor {</span>
+    
+<span class="fc" id="L27">    private static final Logger LOG = Logger.getLogger(ValueExtractor.class);</span>
+
+    /**
+     * Return the intValue if the supplied object has a &quot;intValue&quot; method.
+     * Since different JDBC driver will return different types of objects like
+     * Integer, BigInteger or BigDecimal (Oracle) this is convenient.
+     * 
+     * As a sad little bonus, DB2 native queries returns a pair of {BigInteger, Integer}
+     * where the first value is row and the second is the value.
+     * As another sad little bonus, Oracle native queries returns a pair of {BigDecimal, BigDecimal}
+     * where the first value is the value and the second is the row.
+     * @param object object
+     * @return value
+     */
+    public static int extractIntValue(Object object) {
+        try {
+<span class="fc" id="L43">            final Object o = getObject(object, Integer.class);</span>
+<span class="fc" id="L44">            final Class&lt;?&gt; c = o.getClass();</span>
+<span class="fc" id="L45">            return ((Integer) c.getMethod(&quot;intValue&quot;).invoke(o)).intValue();</span>
+<span class="nc" id="L46">        } catch (Exception e) {</span>
+<span class="nc" id="L47">            final Class&lt;?&gt; c = object.getClass();</span>
+<span class="nc" id="L48">            LOG.error(c.getName() + &quot;, isPrimitive=&quot; + c.isPrimitive(), e);</span>
+<span class="nc" id="L49">            throw new RuntimeException(e);</span>
+        }
+    }
+
+    /**
+     * Return the longValue if the supplied object has a &quot;longValue&quot; method.
+     * Since different JDBC driver will return different types of objects like
+     * Long, BigInteger or BigDecimal (Oracle) this is convenient.
+     * @param object object
+     * @return value
+     */
+    public static long extractLongValue(Object object) {
+        try {
+<span class="fc" id="L62">            final Object o = getObject(object, Long.class);</span>
+<span class="fc" id="L63">            final Class&lt;?&gt; c = o.getClass();</span>
+<span class="fc" id="L64">            return ((Long) c.getMethod(&quot;longValue&quot;).invoke(o)).longValue();</span>
+<span class="nc" id="L65">        } catch (Exception e) {</span>
+<span class="nc" id="L66">            final Class&lt;?&gt; c = object.getClass();</span>
+<span class="nc" id="L67">            LOG.error(c.getName() + &quot;, isPrimitive=&quot; + c.isPrimitive(), e);</span>
+<span class="nc" id="L68">            throw new RuntimeException(e);</span>
+        }
+    }
+    
+       /** 
+     * 
+     * @param object to check if it is an array type and in that case extract the BigInteger, BigDecimal or Integer object
+     * @param clazz only used for logging
+     * @return the object to get value from
+     */
+    private static Object getObject(final Object object, final Class&lt;?&gt; clazz) {
+<span class="fc" id="L79">        Object ret = object;</span>
+<span class="fc" id="L80">        final Class&lt;?&gt; c = object.getClass();</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">        if (c.isArray()) {</span>
+<span class="fc" id="L82">            final Object[] objects = (Object[]) object;</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">            if (LOG.isTraceEnabled()) {</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">                for (Object o : objects) {</span>
+<span class="nc" id="L85">                    LOG.trace(o.getClass().getName() + &quot; isPrimitive=&quot; + o.getClass().isPrimitive() + &quot; toString=&quot; + o.toString());</span>
+                }
+            }
+<span class="fc bfc" id="L88" title="All 2 branches covered.">            if (objects[0].getClass().equals(BigInteger.class)) {</span>
+                // DB2 native queries returns a pair of {BigInteger, Integer} where the first value is row and the second is the value.
+<span class="fc" id="L90">                ret = objects[objects.length-1];</span>
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">            } else if (objects[objects.length-1].getClass().equals(BigDecimal.class)) {</span>
+                // Oracle native queries returns a pair of {BigDecimal, BigDecimal} where the first value is the value and the second is the row
+<span class="fc" id="L93">                ret = objects[0];</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">            } else if (objects[0].getClass().equals(Integer.class)) {</span>
+                // Yet another variant (DB2 again) returns a pair of {Integer, BigInteger} where the first value is the value and the second is the row.
+<span class="nc" id="L96">                ret = objects[0];</span>
+            } else {
+<span class="nc bnc" id="L98" title="All 2 branches missed.">                if (objects.length &gt; 1) {</span>
+<span class="nc" id="L99">                    throw new RuntimeException(&quot;Unsupported object type to convert to &quot;+clazz.getSimpleName() + &quot;. Was: objects.length=&quot;+objects.length+&quot;, objects[0] is a &quot;+objects[0].getClass().getName()+&quot;: &quot;+objects[0]+&quot;, objects[1] is a &quot;+objects[1].getClass().getName()+&quot;: &quot;+objects[1]);                    </span>
+                } else {
+<span class="nc" id="L101">                    throw new RuntimeException(&quot;Unsupported object type to convert to &quot;+clazz.getSimpleName() + &quot;. Was: objects.length=&quot;+objects.length+&quot;, objects[0] is a &quot;+objects[0].getClass().getName()+&quot;: &quot;+objects[0]);                    </span>
+                }
+            }
+        }
+<span class="fc" id="L105">        return ret;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

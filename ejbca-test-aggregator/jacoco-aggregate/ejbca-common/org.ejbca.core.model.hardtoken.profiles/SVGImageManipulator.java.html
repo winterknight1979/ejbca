@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>SVGImageManipulator.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.hardtoken.profiles</a> &gt; <span class="el_source">SVGImageManipulator.java</span></div><h1>SVGImageManipulator.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.model.hardtoken.profiles;
+
+
+import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
+import java.awt.print.Printable;
+import java.awt.print.PrinterException;
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.Reader;
+import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.regex.Pattern;
+
+import org.apache.batik.anim.dom.SAXSVGDocumentFactory;
+import org.apache.batik.anim.dom.SVGDOMImplementation;
+import org.apache.batik.anim.dom.SVGOMDocument;
+import org.apache.batik.anim.dom.SVGOMImageElement;
+import org.apache.batik.anim.dom.SVGOMTSpanElement;
+import org.apache.batik.dom.GenericText;
+import org.apache.batik.svggen.ImageHandlerBase64Encoder;
+import org.apache.batik.svggen.SVGGeneratorContext;
+import org.apache.batik.svggen.SimpleImageHandler;
+import org.apache.batik.transcoder.TranscoderInput;
+import org.apache.batik.transcoder.TranscoderOutput;
+import org.apache.batik.transcoder.print.PrintTranscoder;
+import org.apache.batik.util.XMLResourceDescriptor;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.util.DNFieldExtractor;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.svg.SVGDocument;
+import org.w3c.dom.svg.SVGRectElement;
+import org.w3c.dom.svg.SVGTextElement;
+
+
+
+
+
+/**
+ * This is a help class used to manipulate SVG images.
+ * It replaces all occurrenses of specified variables in the images 
+ * with the corresponding userdata.
+ *
+ * @version $Id: SVGImageManipulator.java 33834 2019-11-13 13:49:10Z anatom $
+ */
+public class SVGImageManipulator {
+	/**
+	 * For logging
+	 */
+<span class="nc" id="L71">	private static final Logger log = Logger.getLogger(SVGImageManipulator.class);</span>
+	
+	/**
+     * Available variables used to replace text in a printlayout
+     * Variable text are case-insensitive.
+     */
+<span class="nc" id="L77">    private static final Pattern USERNAME = Pattern.compile(&quot;\\$USERNAME&quot;, Pattern.CASE_INSENSITIVE);</span>
+<span class="nc" id="L78">    private static final Pattern UID      = Pattern.compile(&quot;\\$UID&quot;, Pattern.CASE_INSENSITIVE);</span>
+<span class="nc" id="L79">    private static final Pattern CN       = Pattern.compile(&quot;\\$CN&quot;, Pattern.CASE_INSENSITIVE);</span>
+<span class="nc" id="L80">    private static final Pattern SN       = Pattern.compile(&quot;\\$SN&quot;, Pattern.CASE_INSENSITIVE);    </span>
+<span class="nc" id="L81">    private static final Pattern GIVENNAME= Pattern.compile(&quot;\\$GIVENNAME&quot;, Pattern.CASE_INSENSITIVE);</span>
+<span class="nc" id="L82">    private static final Pattern INITIALS = Pattern.compile(&quot;\\$INITIALS&quot;, Pattern.CASE_INSENSITIVE);</span>
+<span class="nc" id="L83">    private static final Pattern SURNAME = Pattern.compile(&quot;\\$SURNAME&quot;, Pattern.CASE_INSENSITIVE);</span>
+<span class="nc" id="L84">    private static final Pattern O        = Pattern.compile(&quot;\\$O&quot;, Pattern.CASE_INSENSITIVE);</span>
+<span class="nc" id="L85">    private static final Pattern OU       = Pattern.compile(&quot;\\$OU&quot;, Pattern.CASE_INSENSITIVE);</span>
+<span class="nc" id="L86">    private static final Pattern C        = Pattern.compile(&quot;\\$C&quot;, Pattern.CASE_INSENSITIVE);</span>
+<span class="nc" id="L87">    private static final Pattern LOCATION = Pattern.compile(&quot;\\$LOCATION&quot;, Pattern.CASE_INSENSITIVE);</span>
+<span class="nc" id="L88">	private static final Pattern TITLE    = Pattern.compile(&quot;\\$TITLE&quot;, Pattern.CASE_INSENSITIVE);</span>
+	
+	/**
+	 * Indicates the start date of the tokens validity.
+	 */		
+<span class="nc" id="L93">    private static final Pattern STARTDATE = Pattern.compile(&quot;\\$STARTDATE&quot;, Pattern.CASE_INSENSITIVE);</span>
+	/**
+	 * Indicates the end date of the tokens validity.
+	 */		
+<span class="nc" id="L97">	private static final Pattern ENDDATE   = Pattern.compile(&quot;\\$ENDDATE&quot;, Pattern.CASE_INSENSITIVE);    </span>
+    
+<span class="nc" id="L99">    private static final Pattern HARDTOKENSN = Pattern.compile(&quot;\\$HARDTOKENSN&quot;, Pattern.CASE_INSENSITIVE);</span>
+
+<span class="nc" id="L101">	private static final Pattern HARDTOKENSNWITHOUTPREFIX = Pattern.compile(&quot;\\$HARDTOKENSNWITHOUTPREFIX&quot;, Pattern.CASE_INSENSITIVE);</span>
+
+    /**
+     * Constants used for pin and puk codes.     
+     */
+    private static final Pattern[] PINS;
+	private static final Pattern[] PUKS;
+
+    /**
+     *  Constants reserved for future use.
+     */
+//	private static final Pattern CUSTOMTEXTROW1 = Pattern.compile(&quot;\\$CUSTOMTEXTROW1&quot;, Pattern.CASE_INSENSITIVE);      
+//	private static final Pattern CUSTOMTEXTROW2 = Pattern.compile(&quot;\\$CUSTOMTEXTROW2&quot;, Pattern.CASE_INSENSITIVE);
+//	private static final Pattern CUSTOMTEXTROW3 = Pattern.compile(&quot;\\$CUSTOMTEXTROW3&quot;, Pattern.CASE_INSENSITIVE);
+//	private static final Pattern CUSTOMTEXTROW4 = Pattern.compile(&quot;\\$CUSTOMTEXTROW4&quot;, Pattern.CASE_INSENSITIVE);
+//	private static final Pattern CUSTOMTEXTROW5 = Pattern.compile(&quot;\\$CUSTOMTEXTROW5&quot;, Pattern.CASE_INSENSITIVE);
+//	private static final Pattern COPYOFSN = Pattern.compile(&quot;\\$COPYOFSN&quot;, Pattern.CASE_INSENSITIVE);
+//	private static final Pattern COPYOFSNWITHOUTPREFIX = Pattern.compile(&quot;\\$COPYOFSNWITHOUTPREFIX&quot;, Pattern.CASE_INSENSITIVE);
+
+    static {
+<span class="nc" id="L121">        PINS = new Pattern[0x50];</span>
+<span class="nc" id="L122">        PUKS = new Pattern[PINS.length];</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">        for (int i=0; i&lt;PINS.length; i++) {</span>
+<span class="nc" id="L124">            final int pinNr = i+1;</span>
+<span class="nc" id="L125">            PINS[i] = Pattern.compile(&quot;\\$PIN&quot;+pinNr, Pattern.CASE_INSENSITIVE);</span>
+<span class="nc" id="L126">            PUKS[i] = Pattern.compile(&quot;\\$PUK&quot;+pinNr, Pattern.CASE_INSENSITIVE);</span>
+        }
+<span class="nc" id="L128">    }</span>
+
+    /**
+     * Constructor for the SVGImageManipulator object
+     * 
+     * @param svgdata the xlm data to parse
+     * @param validity the validity of the card i days.
+     * @param hardtokensnprefix the prefix of all hard tokens generated with this profile.
+     * @throws IOException on I/O fail
+     */ 
+	
+    public SVGImageManipulator(Reader svgdata, 
+	                    int validity, 
+<span class="nc" id="L141">						 String hardtokensnprefix) throws IOException {</span>
+<span class="nc" id="L142">      this.validityms = ( ((long)validity) * 1000 *  3600 * 24); // Validity i ms</span>
+<span class="nc" id="L143">      this.hardtokensnprefix = hardtokensnprefix;      </span>
+
+<span class="nc" id="L145">      String parser = XMLResourceDescriptor.getXMLParserClassName();</span>
+<span class="nc" id="L146">      SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);</span>
+<span class="nc" id="L147">      String svgNS = SVGDOMImplementation.SVG_NAMESPACE_URI;</span>
+<span class="nc" id="L148">      Document doc = f.createDocument(svgNS, svgdata);	 </span>
+
+<span class="nc" id="L150">      svgdoc = ((SVGOMDocument) doc); 	</span>
+<span class="nc" id="L151">    }	</span>
+	
+    /**
+     * Returns the message with userspecific data replaced.
+     * @param userdata Data
+     * @param pincodes PIN
+     * @param pukcodes PUK
+     * @param hardtokensn Token
+     * @param copyoftokensn  Token copy
+     *
+     *
+     * @return A processed notification message.
+     * @throws IOException On IO fail
+     * @throws PrinterException On printer fail
+     *     
+     */
+    public Printable print(EndEntityInformation userdata, 
+                      String[] pincodes, String[] pukcodes,
+	                  String hardtokensn, String copyoftokensn) throws IOException, PrinterException {
+    	
+      // Initialize
+<span class="nc" id="L172">	  DNFieldExtractor dnfields = new DNFieldExtractor(userdata.getDN(), DNFieldExtractor.TYPE_SUBJECTDN);</span>
+	  // DNFieldExtractor subaltnamefields = new DNFieldExtractor(dn,DNFieldExtractor.TYPE_SUBJECTALTNAME);
+<span class="nc" id="L174">	  Date currenttime = new Date();</span>
+<span class="nc" id="L175">	  String startdate = DateFormat.getDateInstance(DateFormat.SHORT).format(currenttime);</span>
+	  
+<span class="nc" id="L177">	  String enddate = DateFormat.getDateInstance(DateFormat.SHORT).format(new Date(currenttime.getTime() + (this.validityms)));</span>
+<span class="nc" id="L178">      String hardtokensnwithoutprefix = hardtokensn.substring(this.hardtokensnprefix.length());</span>
+<span class="nc" id="L179">      String copyoftokensnwithoutprefix = copyoftokensn.substring(this.hardtokensnprefix.length());</span>
+
+<span class="nc" id="L181">      final SVGOMDocument clone = (SVGOMDocument)svgdoc.cloneNode(true);</span>
+      // Get Text rows
+<span class="nc" id="L183">      process( &quot;text&quot;, userdata, dnfields, pincodes, pukcodes,</span>
+	  			hardtokensn, hardtokensnwithoutprefix,
+				copyoftokensn, copyoftokensnwithoutprefix,
+				startdate, enddate, clone);
+<span class="nc" id="L187">      process( &quot;svg:text&quot;, userdata, dnfields, pincodes, pukcodes,</span>
+	  			hardtokensn, hardtokensnwithoutprefix,
+				copyoftokensn, copyoftokensnwithoutprefix,
+				startdate, enddate, clone);
+                       
+      // Add Image
+      /**
+      if(userdata.hasimage()){
+        addImage(userdata);       
+      } 
+       */
+<span class="nc" id="L198">	  insertImage(userdata, clone); // special dravel for demo</span>
+
+<span class="nc" id="L200">      PrintTranscoder t = new PrintTranscoder();</span>
+<span class="nc" id="L201">	  TranscoderInput input = new TranscoderInput(clone);</span>
+<span class="nc" id="L202">	  TranscoderOutput output = new TranscoderOutput(new ByteArrayOutputStream());</span>
+<span class="nc" id="L203">	  t.transcode(input, output);</span>
+	  {
+<span class="nc" id="L205">		  final String aDoNot = clone.getRootElement().getAttribute(&quot;doNotScaleToPage&quot;);</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">		  t.addTranscodingHint( PrintTranscoder.KEY_SCALE_TO_PAGE,</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">		                        Boolean.valueOf(aDoNot==null||aDoNot.trim().length()&lt;=0) );</span>
+	  }
+<span class="nc" id="L209">      return t;</span>
+    }
+
+    private void process(String tagName, EndEntityInformation userdata,
+    		DNFieldExtractor dnfields, String[] pincodes, String[] pukcodes,
+    		String hardtokensn, String hardtokensnwithoutprefix,
+    		String copyoftokensn, String copyoftokensnwithoutprefix,
+    		String startdate, String enddate, SVGDocument clone){
+<span class="nc" id="L217">    	Collection&lt;Node&gt; texts = new ArrayList&lt;Node&gt;();</span>
+<span class="nc" id="L218">    	NodeList list = clone.getDocumentElement().getElementsByTagName(tagName);</span>
+<span class="nc" id="L219">    	int numberofelements = list.getLength();	  </span>
+<span class="nc bnc" id="L220" title="All 2 branches missed.">    	for(int i=0; i&lt;numberofelements; i++){</span>
+<span class="nc" id="L221">    		Node node = list.item(i);		  </span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">    		if(node instanceof SVGTextElement){	</span>
+<span class="nc" id="L223">    			NodeList list2 = ((SVGTextElement) node).getChildNodes();</span>
+<span class="nc" id="L224">    			int numberofelements2 = list2.getLength();</span>
+<span class="nc bnc" id="L225" title="All 2 branches missed.">    			for(int j=0;j&lt;numberofelements2;j++){		  	  </span>
+<span class="nc" id="L226">    				Node node2 = list2.item(j);			  </span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">    				if(node2 instanceof GenericText) {</span>
+<span class="nc" id="L228">    					texts.add(node2);			  </span>
+    				}
+<span class="nc bnc" id="L230" title="All 2 branches missed.">    				if(node2 instanceof SVGOMTSpanElement){</span>
+<span class="nc" id="L231">    					SVGOMTSpanElement tspan = (SVGOMTSpanElement) node2;</span>
+<span class="nc" id="L232">    					NodeList list3 = tspan.getChildNodes();</span>
+<span class="nc" id="L233">    					int numberofelements3 = list3.getLength();</span>
+<span class="nc bnc" id="L234" title="All 2 branches missed.">    					for(int k=0;k&lt;numberofelements3;k++){</span>
+<span class="nc" id="L235">    						Node node3 = list3.item(k);</span>
+<span class="nc bnc" id="L236" title="All 2 branches missed.">    						if(node3 instanceof GenericText) {</span>
+<span class="nc" id="L237">    							texts.add(node3);			  </span>
+    						}
+    					}
+    				}		  
+    			}
+    		}
+    	}
+<span class="nc" id="L244">  	  Iterator&lt;Node&gt; iter = texts.iterator();</span>
+<span class="nc" id="L245">	  String data = &quot;&quot;;</span>
+<span class="nc bnc" id="L246" title="All 2 branches missed.">	  while(iter.hasNext()){</span>
+<span class="nc" id="L247">	  	GenericText text = (GenericText) iter.next(); </span>
+<span class="nc" id="L248">	  	data = text.getData();</span>
+<span class="nc" id="L249">	  	data = processString(data, userdata, dnfields, pincodes, pukcodes,</span>
+	  			hardtokensn, hardtokensnwithoutprefix,
+				copyoftokensn, copyoftokensnwithoutprefix,
+				startdate, enddate);			  
+<span class="nc" id="L253">	  	text.setData(data);</span>
+<span class="nc" id="L254">	  }</span>
+<span class="nc" id="L255">    }</span>
+    
+
+    private String processString(String text, EndEntityInformation userdata, DNFieldExtractor dnfields,
+                                 String[] pincodes, String[] pukcodes, 
+                                 String hardtokensn, String hardtokensnwithoutprefix,
+                                 String copyoftokensn, String copyoftokensnwithoutprefix,
+                                 String startdate, String enddate){
+ 
+ 
+<span class="nc" id="L265">  	  text = USERNAME.matcher(text).replaceAll(userdata.getUsername());	  </span>
+<span class="nc" id="L266">  	  text = UID.matcher(text).replaceAll(dnfields.getField(DNFieldExtractor.UID, 0));</span>
+<span class="nc" id="L267">      text = CN.matcher(text).replaceAll(dnfields.getField(DNFieldExtractor.CN, 0));</span>
+<span class="nc" id="L268">	  text = OU.matcher(text).replaceAll(dnfields.getField(DNFieldExtractor.OU, 0));</span>
+<span class="nc" id="L269">	  text = O.matcher(text).replaceAll(dnfields.getField(DNFieldExtractor.O, 0));</span>
+<span class="nc" id="L270">	  text = C.matcher(text).replaceAll(dnfields.getField(DNFieldExtractor.C, 0));</span>
+<span class="nc" id="L271">	  text = LOCATION.matcher(text).replaceAll(dnfields.getField(DNFieldExtractor.L, 0));</span>
+<span class="nc" id="L272">	  text = TITLE.matcher(text).replaceAll(dnfields.getField(DNFieldExtractor.T, 0));</span>
+<span class="nc" id="L273">      text = INITIALS.matcher(text).replaceAll(dnfields.getField(DNFieldExtractor.INITIALS, 0));       </span>
+<span class="nc" id="L274">      text = SN.matcher(text).replaceAll(dnfields.getField(DNFieldExtractor.SN, 0));</span>
+<span class="nc" id="L275">      text = SURNAME.matcher(text).replaceAll(dnfields.getField(DNFieldExtractor.SURNAME, 0));</span>
+<span class="nc" id="L276">      text = GIVENNAME.matcher(text).replaceAll(dnfields.getField(DNFieldExtractor.GIVENNAME, 0));</span>
+
+<span class="nc" id="L278">	  text = STARTDATE.matcher(text).replaceAll(startdate);			</span>
+<span class="nc" id="L279">	  text = ENDDATE.matcher(text).replaceAll(enddate);        </span>
+<span class="nc" id="L280">	  text = HARDTOKENSN.matcher(text).replaceAll(hardtokensn);</span>
+<span class="nc" id="L281">	  text = HARDTOKENSNWITHOUTPREFIX.matcher(text).replaceAll(hardtokensnwithoutprefix);</span>
+
+<span class="nc bnc" id="L283" title="All 2 branches missed.">      for(int i=Math.min(PINS.length, pincodes.length)-1; i&gt;=0; i--){</span>
+<span class="nc" id="L284">      	text = PINS[i].matcher(text).replaceAll(pincodes[i]);</span>
+      }
+
+<span class="nc bnc" id="L287" title="All 2 branches missed.">	  for(int i=Math.min(PUKS.length, pukcodes.length)-1; i&gt;=0; i--){</span>
+<span class="nc" id="L288">		text = PUKS[i].matcher(text).replaceAll(pukcodes[i]);</span>
+	  }
+
+      //text = CUSTOMTEXTROW1.matcher(text).replaceAll(?);      
+      //text = CUSTOMTEXTROW2.matcher(text).replaceAll(?);
+      //text = CUSTOMTEXTROW3.matcher(text).replaceAll(?);
+      //text = CUSTOMTEXTROW4.matcher(text).replaceAll(?);
+      //text = CUSTOMTEXTROW5.matcher(text).replaceAll(?);
+<span class="nc bnc" id="L296" title="All 4 branches missed.">      if (StringUtils.isNotEmpty(copyoftokensn) || StringUtils.isNotEmpty(copyoftokensnwithoutprefix)) {</span>
+<span class="nc" id="L297">          log.debug(&quot;copyoftokensn: &quot;+copyoftokensn+&quot; and/or copyoftokensnwithoutprefix: &quot;+copyoftokensnwithoutprefix+&quot; is not used.&quot;);          </span>
+      }
+      //text = COPYOFSN.matcher(text).replaceAll(copyoftokensn);
+      //text = COPYOFSNWITHOUTPREFIX.matcher(text).replaceAll(copyoftokensnwithoutprefix);
+
+      	
+<span class="nc" id="L303">      return text;	</span>
+    }
+
+
+    // Private Methods
+    private void insertImage(EndEntityInformation userdata, SVGOMDocument clone) throws FileNotFoundException, IOException{
+<span class="nc bnc" id="L309" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc bnc" id="L310" title="All 2 branches missed.">    		log.trace(&quot;&gt;insertImage(&quot;+userdata != null ? userdata.getUsername() : &quot;null&quot;+&quot;)&quot;);</span>
+    	}
+<span class="nc" id="L312">    	int imgx = 0;</span>
+<span class="nc" id="L313">    	int imgy = 0;</span>
+<span class="nc" id="L314">    	int imgwidth = 0;</span>
+<span class="nc" id="L315">    	int imgheight = 0;</span>
+    	
+<span class="nc" id="L317">    	String transform = null;</span>
+    	// Get image info from template
+<span class="nc" id="L319">    	NodeList list = clone.getDocumentElement().getElementsByTagName(&quot;rect&quot;);</span>
+<span class="nc" id="L320">    	int numberofelements = list.getLength();</span>
+<span class="nc bnc" id="L321" title="All 2 branches missed.">    	for(int i=0; i&lt;numberofelements; i++){</span>
+<span class="nc" id="L322">    		Node node = list.item(i);		  </span>
+<span class="nc bnc" id="L323" title="All 2 branches missed.">    		if(node instanceof SVGRectElement){</span>
+<span class="nc" id="L324">    			SVGRectElement rectnode = (SVGRectElement) node;</span>
+<span class="nc bnc" id="L325" title="All 2 branches missed.">    			if(rectnode.getId().equalsIgnoreCase(&quot;USERPICTURE&quot;)){</span>
+<span class="nc" id="L326">    				transform = rectnode.getAttribute(&quot;transform&quot;);</span>
+<span class="nc" id="L327">    				imgx = (int) rectnode.getX().getBaseVal().getValue();</span>
+<span class="nc" id="L328">    				imgy = (int) rectnode.getY().getBaseVal().getValue();                    </span>
+<span class="nc" id="L329">    				imgwidth = (int) rectnode.getWidth().getBaseVal().getValue();</span>
+<span class="nc" id="L330">    				imgheight = (int) rectnode.getHeight().getBaseVal().getValue();</span>
+    				
+    			}
+    		}
+    	}  
+    	
+<span class="nc bnc" id="L336" title="All 4 branches missed.">    	if(imgwidth != 0 &amp;&amp; imgheight != 0){    	</span>
+    		// Special dravel for demo remove
+    		// BufferedImage image = ImageIO.read(new FileInputStream(&quot;c:\\userpicture.jpg&quot;));
+    		// TODO: get image.
+<span class="nc" id="L340">    		BufferedImage image = null;</span>
+    		
+<span class="nc" id="L342">    		SVGOMImageElement imageelement = new SVGOMImageElement(&quot;&quot;, clone);</span>
+<span class="nc" id="L343">    		SimpleImageHandler imagehandler = new SimpleImageHandler(new ImageHandlerBase64Encoder());</span>
+    		
+<span class="nc" id="L345">    		SVGGeneratorContext svgcxt = SVGGeneratorContext.createDefault(clone);</span>
+    		
+<span class="nc" id="L347">    		imagehandler.handleImage((RenderedImage) image, imageelement,  </span>
+    				imgx, imgy, 
+					imgwidth, imgheight, 
+					svgcxt);
+    		
+<span class="nc bnc" id="L352" title="All 4 branches missed.">    		if(transform != null &amp;&amp; !transform.equals(&quot;&quot;)) {</span>
+<span class="nc" id="L353">    			imageelement.setAttribute(&quot;transform&quot;, transform); </span>
+    		}
+<span class="nc" id="L355">    		clone.getRootElement().appendChild(imageelement);</span>
+    	}
+    	
+<span class="nc" id="L358">    }</span>
+
+    // Private Variables
+    final private SVGOMDocument svgdoc;
+    final private long validityms;    
+    final private String hardtokensnprefix;    
+
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AccessTreeUpdateData.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">cesecore-entity</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.authorization.cache</a> &gt; <span class="el_source">AccessTreeUpdateData.java</span></div><h1>AccessTreeUpdateData.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.cesecore.authorization.cache;
+
+import java.io.Serializable;
+
+import javax.persistence.Entity;
+import javax.persistence.PostLoad;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.cesecore.dbprotection.ProtectedData;
+import org.cesecore.dbprotection.ProtectionStringBuilder;
+
+/** AccessTreeUpdateData holds a counter, i.e. sequence for when the access rules have been changed. 
+ * Especially in a cluster this is used in order to avoid rebuilding the internal access tree unless it has changed.
+ * I.e. this is for efficiency reasons, since building to complete access tree requires multiple database accesses and some processing.
+ *  
+ * @version $Id: AccessTreeUpdateData.java 25311 2017-02-21 19:07:00Z jeklund $
+ */
+@Entity
+@Table(name = &quot;AuthorizationTreeUpdateData&quot;)
+public class AccessTreeUpdateData extends ProtectedData implements Serializable {
+
+    private static final long serialVersionUID = 778158550351189295L;
+
+<span class="fc" id="L40">    public static final Integer AUTHORIZATIONTREEUPDATEDATA = Integer.valueOf(1);</span>
+<span class="fc" id="L41">    public static final Integer NEW_AUTHORIZATION_PATTERN_MARKER = Integer.valueOf(2);</span>
+    public static final int DEFAULTACCESSTREEUPDATENUMBER = 0;
+
+    private Integer primaryKey;
+    private int accessTreeUpdateNumber;
+<span class="nc" id="L46">    private int rowVersion = 0;</span>
+    private String rowProtection;
+
+<span class="nc" id="L49">    public AccessTreeUpdateData() {</span>
+<span class="nc" id="L50">        setPrimaryKey(AUTHORIZATIONTREEUPDATEDATA);</span>
+<span class="nc" id="L51">        setAccessTreeUpdateNumber(DEFAULTACCESSTREEUPDATENUMBER);</span>
+<span class="nc" id="L52">    }</span>
+
+    // @Id @Column
+    public Integer getPrimaryKey() {
+<span class="nc" id="L56">        return primaryKey;</span>
+    }
+
+    public final void setPrimaryKey(final Integer primKey) {
+<span class="nc" id="L60">        this.primaryKey = primKey;</span>
+<span class="nc" id="L61">    }</span>
+
+    /**
+     * Method returning the newest authorizationtreeupdatenumber. Should be used after each time the authorization tree is built.
+     * 
+     * @return the newest accessruleset number.
+     */
+    // @Column
+    public int getAccessTreeUpdateNumber() {
+<span class="nc" id="L70">        return accessTreeUpdateNumber;</span>
+    }
+
+    public void setAccessTreeUpdateNumber(int accessTreeUpdateNumber) {
+<span class="nc" id="L74">        this.accessTreeUpdateNumber = accessTreeUpdateNumber;</span>
+<span class="nc" id="L75">    }</span>
+
+    // @Version @Column
+    public int getRowVersion() {
+<span class="nc" id="L79">        return rowVersion;</span>
+    }
+
+    public void setRowVersion(final int rowVersion) {
+<span class="nc" id="L83">        this.rowVersion = rowVersion;</span>
+<span class="nc" id="L84">    }</span>
+
+    // @Column @Lob
+	@Override
+    public String getRowProtection() {
+<span class="nc" id="L89">        return rowProtection;</span>
+    }
+
+	@Override
+    public void setRowProtection(final String rowProtection) {
+<span class="nc" id="L94">        this.rowProtection = rowProtection;</span>
+<span class="nc" id="L95">    }</span>
+
+	//
+	// Start Database integrity protection methods
+	//
+	
+	@Transient
+	@Override
+	protected String getProtectString(final int version) {
+<span class="nc" id="L104">		final ProtectionStringBuilder build = new ProtectionStringBuilder();</span>
+		// What is important to protect here is the data that we define
+		// rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
+<span class="nc" id="L107">		build.append(getPrimaryKey()).append(getAccessTreeUpdateNumber());</span>
+<span class="nc" id="L108">		return build.toString();</span>
+	}
+
+	@Transient
+	@Override
+	protected int getProtectVersion() {
+<span class="nc" id="L114">		return 1;</span>
+	}
+
+	@PrePersist
+	@PreUpdate
+	@Override
+	protected void protectData() {
+<span class="nc" id="L121">		super.protectData();</span>
+<span class="nc" id="L122">	}</span>
+	
+	@PostLoad
+	@Override
+	protected void verifyData() {
+<span class="nc" id="L127">		super.verifyData();</span>
+<span class="nc" id="L128">	}</span>
+
+	@Override 
+    @Transient
+	protected String getRowId() {
+<span class="nc" id="L133">		return String.valueOf(getPrimaryKey());</span>
+	}
+	//
+	// End Database integrity protection methods
+	//
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

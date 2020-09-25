@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CustomUserDataSourceContainer.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.ra.userdatasource</a> &gt; <span class="el_source">CustomUserDataSourceContainer.java</span></div><h1>CustomUserDataSourceContainer.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.model.ra.userdatasource;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Properties;
+
+import javax.ejb.EJBException;
+
+import org.cesecore.authentication.tokens.AuthenticationToken;
+
+/**
+ * CustomUserDataSourceContainer is a class handling a custom user data source. It is used 
+ * to store and retrieve custom user data source configuration to database.
+ * 
+ *
+ * @version $Id: CustomUserDataSourceContainer.java 22139 2015-11-03 10:41:56Z mikekushner $
+ */
+public class CustomUserDataSourceContainer extends BaseUserDataSource{
+	private static final long serialVersionUID = -1356929899319563228L;
+
+<span class="nc" id="L38">    private ICustomUserDataSource customuserdatasource = null; </span>
+	
+	public static final float LATEST_VERSION = 1;
+	
+	public static final int TYPE_CUSTOMUSERDATASOURCECONTAINER = 1;
+	
+	// Default Values
+    
+    protected static final String CLASSPATH                       = &quot;classpath&quot;;
+    protected static final String PROPERTYDATA                 = &quot;propertydata&quot;;
+		
+    
+    
+    public CustomUserDataSourceContainer(){
+<span class="nc" id="L52">    	super();</span>
+<span class="nc" id="L53">    	data.put(TYPE, Integer.valueOf(TYPE_CUSTOMUSERDATASOURCECONTAINER));</span>
+<span class="nc" id="L54">    	setClassPath(&quot;&quot;);</span>
+<span class="nc" id="L55">    	setPropertyData(&quot;&quot;);</span>
+<span class="nc" id="L56">    }</span>
+    
+    // Public Methods    
+    /**
+     *  @return the class path of custom publisher used.
+     */    
+    public String getClassPath(){
+<span class="nc" id="L63">    	return (String) data.get(CLASSPATH);</span>
+    }
+
+    /**
+     *  Sets the class path of custom publisher used.
+     * @param classpath classpath
+     */        
+	public void setClassPath(String classpath){
+<span class="nc" id="L71">	  data.put(CLASSPATH, classpath);	</span>
+<span class="nc" id="L72">	}</span>
+
+	/**
+	 *  @return the propertydata used to configure this custom publisher.
+	 */    
+	public String getPropertyData(){
+<span class="nc" id="L78">		return (String) data.get(PROPERTYDATA);</span>
+	}
+
+	/**
+	 *  @param propertydata Sets the propertydata used to configure this custom publisher.
+	 */   
+	public void setPropertyData(String propertydata){
+<span class="nc" id="L85">		data.put(PROPERTYDATA, propertydata);	</span>
+<span class="nc" id="L86">	}</span>
+	
+	public Properties getProperties() throws IOException{
+<span class="nc" id="L89">		Properties prop = new Properties();</span>
+<span class="nc" id="L90">		prop.load(new ByteArrayInputStream(getPropertyData().getBytes()));</span>
+<span class="nc" id="L91">		return prop;</span>
+	}
+  
+    
+
+    
+    // Private methods
+	private ICustomUserDataSource getCustomUserDataSource() {
+<span class="nc bnc" id="L99" title="All 2 branches missed.">		if(customuserdatasource == null){</span>
+			try{
+				@SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L102">                Class&lt;? extends ICustomUserDataSource&gt; implClass = (Class&lt;? extends ICustomUserDataSource&gt;) Class.forName( getClassPath() );</span>
+<span class="nc" id="L103">				this.customuserdatasource = implClass.getConstructor().newInstance();</span>
+<span class="nc" id="L104">				this.customuserdatasource.init(getProperties());				</span>
+<span class="nc" id="L105">			}catch(ClassNotFoundException | NoSuchMethodException e){</span>
+<span class="nc" id="L106">				throw new EJBException(e);</span>
+			}
+<span class="nc" id="L108">			catch(IllegalAccessException iae){</span>
+<span class="nc" id="L109">				throw new EJBException(iae);</span>
+			}
+<span class="nc" id="L111">			catch(IOException ioe){</span>
+<span class="nc" id="L112">				throw new EJBException(ioe);</span>
+			}
+<span class="nc" id="L114">			catch(InstantiationException | InvocationTargetException ie){</span>
+<span class="nc" id="L115">				throw new EJBException(ie);</span>
+<span class="nc" id="L116">			}</span>
+		}
+		
+<span class="nc" id="L119">		return customuserdatasource;</span>
+	}
+		
+	/** 
+	 * @see org.ejbca.core.model.ra.userdatasource.BaseUserDataSource#clone()
+	 */
+	@SuppressWarnings({ &quot;unchecked&quot;, &quot;rawtypes&quot; })
+    public Object clone() throws CloneNotSupportedException {
+<span class="nc" id="L127">		CustomUserDataSourceContainer clone = new CustomUserDataSourceContainer();</span>
+<span class="nc" id="L128">		HashMap clonedata = (HashMap) clone.saveData();</span>
+
+<span class="nc" id="L130">        Iterator i = (data.keySet()).iterator();</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">		while(i.hasNext()){</span>
+<span class="nc" id="L132">			Object key = i.next();</span>
+<span class="nc" id="L133">			clonedata.put(key, data.get(key));</span>
+<span class="nc" id="L134">		}</span>
+
+<span class="nc" id="L136">		clone.loadData(clonedata);</span>
+<span class="nc" id="L137">		return clone;	</span>
+		}
+
+
+	public float getLatestVersion() {		
+<span class="nc" id="L142">		return LATEST_VERSION;</span>
+	}
+
+	/** 
+	 * @see org.ejbca.core.model.ra.userdatasource.BaseUserDataSource#fetch(AuthenticationToken, String)
+	 */
+	public Collection&lt;UserDataSourceVO&gt; fetch(AuthenticationToken admin, String searchstring) throws UserDataSourceException {		
+<span class="nc" id="L149">		return getCustomUserDataSource().fetch(admin,searchstring);</span>
+	}
+	
+	/** 
+	 * @throws MultipleMatchException  fail
+	 * @see org.ejbca.core.model.ra.userdatasource.BaseUserDataSource#removeUserData(AuthenticationToken, String, boolean)
+	 */
+	
+	public boolean removeUserData(AuthenticationToken admin, String searchstring, boolean removeMultipleMatch) throws UserDataSourceException, MultipleMatchException {
+<span class="nc" id="L158">		return getCustomUserDataSource().removeUserData(admin, searchstring, removeMultipleMatch);		</span>
+	}
+	
+	/** 
+	 * @see org.ejbca.core.model.ra.userdatasource.BaseUserDataSource
+	 */
+	public void testConnection(AuthenticationToken admin) throws UserDataSourceConnectionException {
+<span class="nc" id="L165">		getCustomUserDataSource().testConnection(admin);		</span>
+<span class="nc" id="L166">	}</span>
+	
+	/**
+	 * Resets the current custom user data source
+	 * @see org.cesecore.internal.UpgradeableDataHashMap#saveData()
+	 */
+	public Object saveData() {
+<span class="nc" id="L173">		this.customuserdatasource = null;</span>
+<span class="nc" id="L174">		return super.saveData();</span>
+	}
+
+
+
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

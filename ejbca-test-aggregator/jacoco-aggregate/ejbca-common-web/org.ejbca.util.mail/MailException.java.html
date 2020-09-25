@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>MailException.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util.mail</a> &gt; <span class="el_source">MailException.java</span></div><h1>MailException.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA: The OpenSource Certificate Authority                          *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.util.mail;
+
+/**
+ * Generic exception for mail handling.
+ * 
+ * @version $Id: MailException.java 26387 2017-08-22 14:14:36Z mikekushner $
+ *
+ */
+public class MailException extends Exception {
+
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * 
+     */
+<span class="nc" id="L28">    public MailException() {</span>
+<span class="nc" id="L29">    }</span>
+
+    /**
+     * @param message message
+     */
+    public MailException(String message) {
+<span class="nc" id="L35">        super(message);</span>
+<span class="nc" id="L36">    }</span>
+
+    /**
+     * @param cause cause
+     */
+    public MailException(Throwable cause) {
+<span class="nc" id="L42">        super(cause);</span>
+<span class="nc" id="L43">    }</span>
+
+    /**
+     * @param message message
+     * @param cause cause
+     */
+    public MailException(String message, Throwable cause) {
+<span class="nc" id="L50">        super(message, cause);</span>
+<span class="nc" id="L51">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>EjbLocalHelper.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-interface</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.util</a> &gt; <span class="el_source">EjbLocalHelper.java</span></div><h1>EjbLocalHelper.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.model.util;
+
+import java.util.concurrent.locks.ReentrantLock;
+
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+
+import org.apache.log4j.Logger;
+import org.cesecore.audit.audit.SecurityEventsAuditorSessionLocal;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.certificate.CertificateCreateSessionLocal;
+import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.certificates.crl.CrlCreateSessionLocal;
+import org.cesecore.certificates.crl.CrlStoreSessionLocal;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.keybind.InternalKeyBindingDataSessionLocal;
+import org.cesecore.keybind.InternalKeyBindingMgmtSessionLocal;
+import org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
+import org.cesecore.keys.token.CryptoTokenSessionLocal;
+import org.cesecore.keys.validation.KeyValidatorSessionLocal;
+import org.cesecore.roles.management.RoleDataSessionLocal;
+import org.cesecore.roles.management.RoleSessionLocal;
+import org.cesecore.roles.member.RoleMemberDataSessionLocal;
+import org.cesecore.roles.member.RoleMemberSessionLocal;
+import org.ejbca.core.ejb.EjbBridgeSessionLocal;
+import org.ejbca.core.ejb.approval.ApprovalExecutionSessionLocal;
+import org.ejbca.core.ejb.approval.ApprovalProfileSessionLocal;
+import org.ejbca.core.ejb.approval.ApprovalSessionLocal;
+import org.ejbca.core.ejb.audit.EjbcaAuditorSessionLocal;
+import org.ejbca.core.ejb.authentication.web.WebAuthenticationProviderSessionLocal;
+import org.ejbca.core.ejb.authorization.AuthorizationSystemSessionLocal;
+import org.ejbca.core.ejb.ca.auth.EndEntityAuthenticationSessionLocal;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionLocal;
+import org.ejbca.core.ejb.ca.publisher.PublisherQueueSessionLocal;
+import org.ejbca.core.ejb.ca.publisher.PublisherSessionLocal;
+import org.ejbca.core.ejb.ca.revoke.RevocationSessionLocal;
+import org.ejbca.core.ejb.ca.sign.SignSessionLocal;
+import org.ejbca.core.ejb.ca.store.CertReqHistorySessionLocal;
+import org.ejbca.core.ejb.ca.validation.BlacklistSessionLocal;
+import org.ejbca.core.ejb.crl.ImportCrlSessionLocal;
+import org.ejbca.core.ejb.crl.PublishingCrlSessionLocal;
+import org.ejbca.core.ejb.hardtoken.HardTokenBatchJobSessionLocal;
+import org.ejbca.core.ejb.hardtoken.HardTokenSessionLocal;
+import org.ejbca.core.ejb.keyrecovery.KeyRecoverySessionLocal;
+import org.ejbca.core.ejb.ra.EndEntityAccessSessionLocal;
+import org.ejbca.core.ejb.ra.EndEntityManagementSessionLocal;
+import org.ejbca.core.ejb.ra.raadmin.AdminPreferenceSessionLocal;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal;
+import org.ejbca.core.ejb.ra.userdatasource.UserDataSourceSessionLocal;
+import org.ejbca.core.ejb.rest.EjbcaRestHelperSessionLocal;
+import org.ejbca.core.ejb.services.ServiceSessionLocal;
+import org.ejbca.core.ejb.unidfnr.UnidfnrSession;
+import org.ejbca.core.ejb.unidfnr.UnidfnrSessionLocal;
+import org.ejbca.core.ejb.upgrade.UpgradeSessionLocal;
+import org.ejbca.core.ejb.ws.EjbcaWSHelperSessionLocal;
+import org.ejbca.core.model.era.RaMasterApiProxyBeanLocal;
+import org.ejbca.core.model.era.RaMasterApiSessionLocal;
+import org.ejbca.core.protocol.cmp.CmpMessageDispatcherSessionLocal;
+import org.ejbca.statedump.ejb.StatedumpSession;
+import org.ejbca.statedump.ejb.StatedumpSessionLocal;
+
+/**
+ * Helper methods to get EJB session interfaces.
+ * 
+ * @version $Id: EjbLocalHelper.java 29151 2018-06-07 15:11:05Z jeklund $
+ */
+<span class="nc" id="L84">public class EjbLocalHelper implements EjbBridgeSessionLocal {</span>
+	
+<span class="nc" id="L86">    private static final Logger log = Logger.getLogger(EjbLocalHelper.class);</span>
+<span class="nc" id="L87">	private static Context initialContext = null;</span>
+<span class="nc" id="L88">	private static ReentrantLock initialContextLock = new ReentrantLock(true);</span>
+	// Static is more performant, but a failed JEE5 lookup from one module would block all other JEE5 lookups
+<span class="nc" id="L90">	private /*static*/ boolean useEjb31GlobalJndiName = false;</span>
+	
+	public static final String DEFAULT_MODULE = &quot;ejbca-ejb&quot;;
+
+	private static Context getInitialContext() throws NamingException {
+		try {
+<span class="nc" id="L96">			initialContextLock.lock();</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">			if (initialContext == null) {</span>
+<span class="nc" id="L98">				initialContext = new InitialContext();</span>
+			}
+<span class="nc" id="L100">			return initialContext;</span>
+		} finally {
+<span class="nc" id="L102">			initialContextLock.unlock();</span>
+		}
+	}
+
+	/**
+	 * Requires a &quot;ejb-local-ref&quot; definition in web.xml and ejb-jar.xml from all accessing components
+	 * or an application server that support global JNDI names (introduced in EJB 3.1).
+	 * @return a reference to the bridge SSB
+	 * 
+	 * @throws LocalLookupException if local lookup couldn't be made.
+	 */
+	private EjbBridgeSessionLocal getEjbLocal() {
+<span class="nc" id="L114">		EjbBridgeSessionLocal ret = null;</span>
+		try {
+<span class="nc bnc" id="L116" title="All 2 branches missed.">			if (!useEjb31GlobalJndiName) {</span>
+<span class="nc" id="L117">				ret = (EjbBridgeSessionLocal) getInitialContext().lookup(&quot;java:comp/env/EjbBridgeSession&quot;);</span>
+			}
+<span class="nc" id="L119">		} catch (NamingException e) {</span>
+			// Let's try to use the EJB 3.1 syntax for a lookup. For example, JBoss 6.0.0.FINAL supports this from our CMP TCP threads, but ignores the ejb-ref from web.xml..
+			// java:global[/&lt;app-name&gt;]/&lt;module-name&gt;/&lt;bean-name&gt;[!&lt;fully-qualified-interface-name&gt;]
+<span class="nc" id="L122">			useEjb31GlobalJndiName = true;	// So let's not try what we now know is a failing method ever again..</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">			if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L124">	            log.debug(&quot;Failed JEE5 version of EjbBridgeSessionLocal JNDI lookup. All future lookups will JEE6 version lookups.&quot;);</span>
+			}
+<span class="nc" id="L126">		}</span>
+		try {
+<span class="nc bnc" id="L128" title="All 2 branches missed.">			if (useEjb31GlobalJndiName) {</span>
+<span class="nc" id="L129">				ret = (EjbBridgeSessionLocal) getInitialContext().lookup(&quot;java:global/ejbca/&quot;+DEFAULT_MODULE+&quot;/EjbBridgeSessionBean!org.ejbca.core.ejb.EjbBridgeSessionLocal&quot;);</span>
+			}
+<span class="nc" id="L131">		} catch (NamingException e) {</span>
+<span class="nc" id="L132">			throw new LocalLookupException(&quot;Cannot lookup EjbBridgeSessionLocal.&quot;, e);</span>
+<span class="nc" id="L133">		}</span>
+<span class="nc" id="L134">		return ret;</span>
+	}
+
+<span class="nc" id="L137">    @Override public AdminPreferenceSessionLocal getAdminPreferenceSession() { return getEjbLocal().getAdminPreferenceSession(); }</span>
+<span class="nc" id="L138">	@Override public ApprovalExecutionSessionLocal getApprovalExecutionSession() { return getEjbLocal().getApprovalExecutionSession(); }</span>
+<span class="nc" id="L139">	@Override public ApprovalSessionLocal getApprovalSession() { return getEjbLocal().getApprovalSession(); }</span>
+<span class="nc" id="L140">	@Override public ApprovalProfileSessionLocal getApprovalProfileSession() { return getEjbLocal().getApprovalProfileSession(); }</span>
+<span class="nc" id="L141">    @Override public AuthorizationSessionLocal getAuthorizationSession() { return getEjbLocal().getAuthorizationSession(); }</span>
+<span class="nc" id="L142">    @Override public AuthorizationSystemSessionLocal getAuthorizationSystemSession() { return getEjbLocal().getAuthorizationSystemSession(); }</span>
+<span class="nc" id="L143">	@Override public CAAdminSessionLocal getCaAdminSession() { return getEjbLocal().getCaAdminSession(); }</span>
+<span class="nc" id="L144">	@Override public CaSessionLocal getCaSession() { return getEjbLocal().getCaSession(); }</span>
+<span class="nc" id="L145">	@Override public CertificateCreateSessionLocal getCertificateCreateSession() { return getEjbLocal().getCertificateCreateSession(); }</span>
+<span class="nc" id="L146">	@Override public CertificateProfileSessionLocal getCertificateProfileSession() { return getEjbLocal().getCertificateProfileSession(); }</span>
+<span class="nc" id="L147">	@Override public CertificateStoreSessionLocal getCertificateStoreSession() { return getEjbLocal().getCertificateStoreSession(); }</span>
+<span class="nc" id="L148">	@Override public CertReqHistorySessionLocal getCertReqHistorySession() { return getEjbLocal().getCertReqHistorySession(); }</span>
+<span class="nc" id="L149">	@Override public RevocationSessionLocal getRevocationSession() { return getEjbLocal().getRevocationSession(); }</span>
+<span class="nc" id="L150">	@Override public CmpMessageDispatcherSessionLocal getCmpMessageDispatcherSession() { return getEjbLocal().getCmpMessageDispatcherSession(); }</span>
+<span class="nc" id="L151">	@Override public CrlCreateSessionLocal getCrlCreateSession() { return getEjbLocal().getCrlCreateSession(); }</span>
+<span class="nc" id="L152">	@Override public CrlStoreSessionLocal getCrlStoreSession() { return getEjbLocal().getCrlStoreSession(); }</span>
+<span class="nc" id="L153">    @Override public EjbcaAuditorSessionLocal getEjbcaAuditorSession() { return getEjbLocal().getEjbcaAuditorSession(); }</span>
+<span class="nc" id="L154">    @Override public EjbcaRestHelperSessionLocal getEjbcaRestHelperSession() { return getEjbLocal().getEjbcaRestHelperSession(); }</span>
+<span class="nc" id="L155">    @Override public EjbcaWSHelperSessionLocal getEjbcaWSHelperSession() { return getEjbLocal().getEjbcaWSHelperSession(); }</span>
+<span class="nc" id="L156">	@Override public EndEntityAccessSessionLocal getEndEntityAccessSession() { return getEjbLocal().getEndEntityAccessSession(); }</span>
+<span class="nc" id="L157">	@Override public EndEntityAuthenticationSessionLocal getEndEntityAuthenticationSession() { return getEjbLocal().getEndEntityAuthenticationSession(); }</span>
+<span class="nc" id="L158">	@Override public EndEntityProfileSessionLocal getEndEntityProfileSession() { return getEjbLocal().getEndEntityProfileSession(); }</span>
+<span class="nc" id="L159">	@Override public GlobalConfigurationSessionLocal getGlobalConfigurationSession() { return getEjbLocal().getGlobalConfigurationSession(); }</span>
+<span class="nc" id="L160">	@Override public HardTokenBatchJobSessionLocal getHardTokenBatchJobSession() { return getEjbLocal().getHardTokenBatchJobSession(); }</span>
+<span class="nc" id="L161">	@Override public HardTokenSessionLocal getHardTokenSession() { return getEjbLocal().getHardTokenSession(); }</span>
+<span class="nc" id="L162">	@Override public KeyRecoverySessionLocal getKeyRecoverySession() { return getEjbLocal().getKeyRecoverySession(); }</span>
+<span class="nc" id="L163">	@Override public KeyValidatorSessionLocal getKeyValidatorSession() { return getEjbLocal().getKeyValidatorSession(); }</span>
+<span class="nc" id="L164">	@Override public BlacklistSessionLocal getBlacklistSession() { return getEjbLocal().getBlacklistSession(); }</span>
+<span class="nc" id="L165">    @Override public EndEntityManagementSessionLocal getEndEntityManagementSession() { return getEjbLocal().getEndEntityManagementSession(); }</span>
+<span class="nc" id="L166">	@Override public PublisherQueueSessionLocal getPublisherQueueSession() { return getEjbLocal().getPublisherQueueSession(); }</span>
+<span class="nc" id="L167">	@Override public PublisherSessionLocal getPublisherSession() { return getEjbLocal().getPublisherSession(); }</span>
+<span class="nc" id="L168">    @Override public RaMasterApiProxyBeanLocal getRaMasterApiProxyBean() { return getEjbLocal().getRaMasterApiProxyBean(); }</span>
+<span class="nc" id="L169">    @Override public RoleMemberSessionLocal getRoleMemberSession() { return getEjbLocal().getRoleMemberSession(); }</span>
+<span class="nc" id="L170">    @Override public RoleMemberDataSessionLocal getRoleMemberDataSession() { return getEjbLocal().getRoleMemberDataSession(); }</span>
+<span class="nc" id="L171">    @Override public RoleSessionLocal getRoleSession() {return getEjbLocal().getRoleSession(); }</span>
+<span class="nc" id="L172">    @Override public RoleDataSessionLocal getRoleDataSession() {return getEjbLocal().getRoleDataSession(); }</span>
+<span class="nc" id="L173">	@Override public SecurityEventsAuditorSessionLocal getSecurityEventsAuditorSession() { return getEjbLocal().getSecurityEventsAuditorSession(); }</span>
+<span class="nc" id="L174">	@Override public SecurityEventsLoggerSessionLocal getSecurityEventsLoggerSession() { return getEjbLocal().getSecurityEventsLoggerSession(); }</span>
+<span class="nc" id="L175">	@Override public ServiceSessionLocal getServiceSession() { return getEjbLocal().getServiceSession(); }</span>
+<span class="nc" id="L176">	@Override public SignSessionLocal getSignSession() { return getEjbLocal().getSignSession(); }</span>
+<span class="nc" id="L177">	@Override public UpgradeSessionLocal getUpgradeSession() {return getEjbLocal().getUpgradeSession(); }</span>
+<span class="nc" id="L178">	@Override public UserDataSourceSessionLocal getUserDataSourceSession() { return getEjbLocal().getUserDataSourceSession(); }</span>
+<span class="nc" id="L179">	@Override public WebAuthenticationProviderSessionLocal getWebAuthenticationProviderSession() { return getEjbLocal().getWebAuthenticationProviderSession(); }</span>
+<span class="nc" id="L180">	@Override public CryptoTokenManagementSessionLocal getCryptoTokenManagementSession() { return getEjbLocal().getCryptoTokenManagementSession(); }</span>
+<span class="nc" id="L181">	@Override public CryptoTokenSessionLocal getCryptoTokenSession() { return getEjbLocal().getCryptoTokenSession(); }</span>
+<span class="nc" id="L182">    @Override public InternalKeyBindingDataSessionLocal getInternalKeyBindingDataSession() { return getEjbLocal().getInternalKeyBindingDataSession(); }</span>
+<span class="nc" id="L183">    @Override public InternalKeyBindingMgmtSessionLocal getInternalKeyBindingMgmtSession() { return getEjbLocal().getInternalKeyBindingMgmtSession(); }</span>
+<span class="nc" id="L184">    @Override public PublishingCrlSessionLocal getPublishingCrlSession() { return getEjbLocal().getPublishingCrlSession(); }</span>
+<span class="nc" id="L185">    @Override public ImportCrlSessionLocal getImportCrlSession() { return getEjbLocal().getImportCrlSession(); }</span>
+<span class="nc" id="L186">    @Override public RaMasterApiSessionLocal getRaMasterApiSession() { return getEjbLocal().getRaMasterApiSession(); }</span>
+
+    /** 
+     * Dynamically loads the StatedumpSession with JNDI. It's usually not available in the EJBCA source tree,
+     * and in this case this is properly handled  by returning null.
+     * 
+     * @return A statedump session object, or null if not available.
+     */
+    public StatedumpSessionLocal getStatedumpSession() {
+        try {
+<span class="nc bnc" id="L196" title="All 2 branches missed.">            if (!useEjb31GlobalJndiName) {</span>
+<span class="nc" id="L197">                return (StatedumpSessionLocal) getInitialContext().lookup(&quot;java:comp/env/StatedumpSession&quot;);</span>
+            }
+<span class="nc" id="L199">        } catch (NamingException e) {</span>
+            // NOPMD ignore and continue
+<span class="nc" id="L201">        }</span>
+        
+        // Try using EJB 3.1 name
+        try {
+<span class="nc" id="L205">            return (StatedumpSessionLocal) getInitialContext().lookup(&quot;java:global/ejbca/&quot;+StatedumpSession.STATEDUMP_MODULE+&quot;/StatedumpSessionBean!org.ejbca.statedump.ejb.StatedumpSessionLocal&quot;);</span>
+<span class="nc" id="L206">        } catch (NamingException e) {</span>
+<span class="nc" id="L207">            return null; // this is the common case, since statedump is an internal tool and is not included with EJBCA</span>
+        }
+    }
+    
+    
+    /** 
+     * Dynamically loads the UnidfnrSession with JNDI. It's usually not available in the EJBCA source tree,
+     * and in this case this is properly handled  by returning null.
+     * 
+     * @return A unidfnr session object, or null if not available.
+     */
+    public UnidfnrSessionLocal getUnidfnrSession() {
+        try {
+<span class="nc bnc" id="L220" title="All 2 branches missed.">            if (!useEjb31GlobalJndiName) {</span>
+<span class="nc" id="L221">                return (UnidfnrSessionLocal) getInitialContext().lookup(&quot;java:comp/env/UnidfnrSession&quot;);</span>
+            }
+<span class="nc" id="L223">        } catch (NamingException e) {</span>
+            // NOPMD ignore and continue
+<span class="nc" id="L225">        }</span>
+        
+        // Try using EJB 3.1 name
+        try {
+<span class="nc" id="L229">            return (UnidfnrSessionLocal) getInitialContext().lookup(&quot;java:global/ejbca/&quot;+UnidfnrSession.UNIDFNR_MODULE+&quot;/UnidfnrSessionBean!org.ejbca.core.ejb.unidfnr.UnidfnrSessionLocal&quot;);</span>
+<span class="nc" id="L230">        } catch (NamingException e) {</span>
+<span class="nc" id="L231">            return null; // this is the common case, since unidfnr is an special module and is not included with EJBCA</span>
+        }
+    }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

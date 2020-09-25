@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AuditLogValidationReport.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.audit.audit</a> &gt; <span class="el_source">AuditLogValidationReport.java</span></div><h1>AuditLogValidationReport.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.audit.audit;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
+/**
+ * This class represents the audit log validation report. 
+ * It's generated during validation.
+ *
+ * @version $Id: AuditLogValidationReport.java 17625 2013-09-20 07:12:06Z netmackan $
+ */
+public class AuditLogValidationReport implements Serializable{
+
+<span class="nc" id="L29">    private static final Logger log = Logger.getLogger(AuditLogValidationReport.class);</span>
+    private static final long serialVersionUID = 1L;
+    
+    private final List&lt;AuditLogReportElem&gt; errors;
+    private final List&lt;AuditLogReportElem&gt; warns;
+    
+<span class="nc" id="L35">    public AuditLogValidationReport() {</span>
+<span class="nc" id="L36">        this.errors = new ArrayList&lt;AuditLogReportElem&gt;();</span>
+<span class="nc" id="L37">        this.warns = new ArrayList&lt;AuditLogReportElem&gt;();</span>
+<span class="nc" id="L38">    }</span>
+
+    /** @return list of errors in this report. */
+    public List&lt;AuditLogReportElem&gt; errors() {
+<span class="nc" id="L42">        return errors;</span>
+    }
+
+    /**
+     * Add a new error to the report list
+     * @param error The error to be added.
+     */
+    public void error(final AuditLogReportElem error) {
+<span class="nc" id="L50">    	log.warn(String.format(&quot;ERROR: auditlog sequence: %d -&gt; %d. Reason: %s&quot;, error.getFirst(), error.getSecond(), error.getReasons()));</span>
+<span class="nc" id="L51">        this.errors.add(error);</span>
+<span class="nc" id="L52">    }</span>
+
+    /** @return a list of warnings in this report. */
+    public List&lt;AuditLogReportElem&gt; warnings() {
+<span class="nc" id="L56">        return this.warns;</span>
+    }
+
+    /**
+     * Add a new warning to the report.
+     * @param warning The warning.
+     */
+    public void warn(final AuditLogReportElem warning){
+<span class="nc" id="L64">    	log.info(String.format(&quot;WARN: auditlog sequence: %d -&gt; %d. Reason: %s&quot;, warning.getFirst(), warning.getSecond(), warning.getReasons()));</span>
+<span class="nc" id="L65">        this.warns.add(warning);</span>
+<span class="nc" id="L66">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

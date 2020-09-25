@@ -1,0 +1,458 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ScepResponseMessage.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.scep</a> &gt; <span class="el_source">ScepResponseMessage.java</span></div><h1>ScepResponseMessage.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.scep;
+
+import java.io.IOException;
+import java.security.PrivateKey;
+import java.security.cert.CRL;
+import java.security.cert.CRLException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateParsingException;
+import java.security.cert.X509CRL;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Hashtable;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.DEROctetString;
+import org.bouncycastle.asn1.DERPrintableString;
+import org.bouncycastle.asn1.DERSet;
+import org.bouncycastle.asn1.cms.Attribute;
+import org.bouncycastle.asn1.cms.AttributeTable;
+import org.bouncycastle.asn1.smime.SMIMECapability;
+import org.bouncycastle.cert.jcajce.JcaX509CRLHolder;
+import org.bouncycastle.cms.CMSAbsentContent;
+import org.bouncycastle.cms.CMSEnvelopedData;
+import org.bouncycastle.cms.CMSEnvelopedDataGenerator;
+import org.bouncycastle.cms.CMSException;
+import org.bouncycastle.cms.CMSProcessableByteArray;
+import org.bouncycastle.cms.CMSSignedData;
+import org.bouncycastle.cms.CMSSignedDataGenerator;
+import org.bouncycastle.cms.CMSTypedData;
+import org.bouncycastle.cms.DefaultSignedAttributeTableGenerator;
+import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder;
+import org.bouncycastle.cms.jcajce.JceCMSContentEncryptorBuilder;
+import org.bouncycastle.cms.jcajce.JceKeyTransRecipientInfoGenerator;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
+import org.bouncycastle.util.CollectionStore;
+import org.cesecore.certificates.certificate.Base64CertData;
+import org.cesecore.certificates.certificate.CertificateData;
+import org.cesecore.certificates.certificate.request.CertificateResponseMessage;
+import org.cesecore.certificates.certificate.request.FailInfo;
+import org.cesecore.certificates.certificate.request.RequestMessage;
+import org.cesecore.certificates.certificate.request.ResponseStatus;
+import org.cesecore.certificates.util.AlgorithmTools;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+
+/**
+ * A response message for scep (pkcs7).
+ *
+ * @version $Id: ScepResponseMessage.java 28201 2018-02-07 08:33:29Z andresjakobs $
+ */
+<span class="nc" id="L73">public class ScepResponseMessage implements CertificateResponseMessage {</span>
+    /**
+     * Determines if a de-serialized file is compatible with this class.
+     *
+     * Maintainers must change this value if and only if the new version
+     * of this class is not compatible with old versions. See Sun docs
+     * for &lt;a href=http://java.sun.com/products/jdk/1.1/docs/guide
+     * /serialization/spec/version.doc.html&gt; details. &lt;/a&gt;
+     *
+     */
+    static final long serialVersionUID = 2016710353393853879L;
+
+<span class="nc" id="L85">    private static Logger log = Logger.getLogger(ScepResponseMessage.class);</span>
+
+    /** The encoded response message */
+<span class="nc" id="L88">    private byte[] responseMessage = null;</span>
+
+    /** status for the response */
+<span class="nc" id="L91">    private ResponseStatus status = ResponseStatus.SUCCESS;</span>
+
+    /** Possible fail information in the response. Defaults to 'badRequest (2)'. */
+<span class="nc" id="L94">    private FailInfo failInfo = FailInfo.BAD_REQUEST;</span>
+
+    /** Possible clear text error information in the response. Defaults to null. */
+<span class="nc" id="L97">    private String failText = null;</span>
+
+    /**
+     * SenderNonce. This is base64 encoded bytes
+     */
+<span class="nc" id="L102">    private String senderNonce = null;</span>
+    /**
+     * RecipientNonce in a response is the senderNonce from the request. This is base64 encoded bytes
+     */
+<span class="nc" id="L106">    private String recipientNonce = null;</span>
+
+    /** transaction id */
+<span class="nc" id="L109">    private String transactionId = null;</span>
+
+    /** recipient key identifier, usually IssuerAndSerialno in X509 world. */
+<span class="nc" id="L112">    private byte[] recipientKeyInfo = null;</span>
+
+    /** Certificate to be in response message, not serialized */
+<span class="nc" id="L115">    private transient Certificate cert = null;</span>
+<span class="nc" id="L116">    private transient CRL crl = null;</span>
+    /** Certificate for the signer of the response message (CA or RA) */
+<span class="nc" id="L118">    private transient Collection&lt;Certificate&gt; signCertChain = null;</span>
+    /** Certificate for the CA of the response certificate in successful responses, is the same as signCert if not using RA mode */
+<span class="nc" id="L120">    private transient Certificate caCert = null;</span>
+    /** Private key used to sign the response message */
+<span class="nc" id="L122">    private transient PrivateKey signKey = null;</span>
+    /** If the CA certificate should be included in the reponse or not, default to true = yes */
+<span class="nc" id="L124">    private transient boolean includeCACert = true;</span>
+
+    /** Default digest algorithm for SCEP response message, can be overridden */
+<span class="nc" id="L127">    private transient String digestAlg = CMSSignedDataGenerator.DIGEST_MD5;</span>
+    
+    private transient CertificateData certificateData;
+    private transient Base64CertData base64CertData;
+    
+    /** The default provider is BC, if nothing else is specified when setting SignKeyInfo */
+<span class="nc" id="L133">    private transient String provider = BouncyCastleProvider.PROVIDER_NAME;</span>
+    
+    @Override
+    public CertificateData getCertificateData() {
+<span class="nc" id="L137">        return certificateData;</span>
+    }
+    
+    @Override
+    public void setCertificateData(CertificateData certificateData) {
+<span class="nc bnc" id="L142" title="All 2 branches missed.">        if (certificateData != null) {</span>
+<span class="nc" id="L143">            this.certificateData = new CertificateData(certificateData);</span>
+        } else {
+<span class="nc" id="L145">            this.certificateData = null;</span>
+        }
+<span class="nc" id="L147">    }</span>
+    
+    @Override
+    public Base64CertData getBase64CertData() {
+<span class="nc" id="L151">        return base64CertData;</span>
+    }
+    
+    @Override
+    public void setBase64CertData(final Base64CertData base64CertData) {
+<span class="nc bnc" id="L156" title="All 2 branches missed.">        if (base64CertData != null) {</span>
+<span class="nc" id="L157">            this.base64CertData = new Base64CertData(base64CertData);</span>
+        } else {
+<span class="nc" id="L159">            this.base64CertData = null;</span>
+        }
+<span class="nc" id="L161">    }</span>
+
+    @Override
+    public void setCertificate(Certificate cert) {
+<span class="nc" id="L165">        this.cert = cert;</span>
+<span class="nc" id="L166">    }</span>
+    
+    @Override
+    public Certificate getCertificate() {
+        try {
+<span class="nc" id="L171">            return CertTools.getCertfromByteArray(cert.getEncoded(), Certificate.class);</span>
+<span class="nc" id="L172">        } catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L173">            throw new Error(&quot;Could not encode certificate. This should not happen&quot;, e);</span>
+<span class="nc" id="L174">        } catch (CertificateException e) {</span>
+<span class="nc" id="L175">            throw new Error(&quot;Response was created without containing valid certificate. This should not happen&quot;, e);</span>
+        }
+    }
+
+    @Override
+    public void setCrl(CRL crl) {
+<span class="nc" id="L181">        this.crl = crl;</span>
+<span class="nc" id="L182">    }</span>
+
+    @Override
+    public void setIncludeCACert(boolean incCACert) {
+<span class="nc" id="L186">    	this.includeCACert = incCACert;</span>
+<span class="nc" id="L187">    }</span>
+
+    @Override
+    public void setCACert(Certificate caCert) {
+<span class="nc" id="L191">    	this.caCert = caCert;</span>
+<span class="nc" id="L192">    }</span>
+
+    @Override
+    public byte[] getResponseMessage() throws CertificateEncodingException {
+<span class="nc" id="L196">        return responseMessage;</span>
+    }
+
+    @Override
+    public void setStatus(ResponseStatus status) {
+<span class="nc" id="L201">        this.status = status;</span>
+<span class="nc" id="L202">    }</span>
+
+    @Override
+    public ResponseStatus getStatus() {
+<span class="nc" id="L206">        return status;</span>
+    }
+
+    @Override
+    public void setFailInfo(FailInfo failInfo) {
+<span class="nc" id="L211">        this.failInfo = failInfo;</span>
+<span class="nc" id="L212">    }</span>
+
+    @Override
+    public FailInfo getFailInfo() {
+<span class="nc" id="L216">        return failInfo;</span>
+    }
+
+    @Override
+    public void setFailText(String failText) {
+<span class="nc" id="L221">    	this.failText = failText;</span>
+<span class="nc" id="L222">    }</span>
+
+    @Override
+    public String getFailText() {
+<span class="nc" id="L226">    	return this.failText;</span>
+    }
+
+    @Override
+    public boolean create() throws CertificateEncodingException, CRLException {
+<span class="nc" id="L231">      boolean ret = false;</span>
+        try {
+<span class="nc bnc" id="L233" title="All 2 branches missed.">            if (status.equals(ResponseStatus.SUCCESS)) {</span>
+<span class="nc" id="L234">                log.debug(&quot;Creating a STATUS_OK message.&quot;);</span>
+            } else {
+<span class="nc bnc" id="L236" title="All 2 branches missed.">            	if (status.equals(ResponseStatus.FAILURE)) {</span>
+<span class="nc" id="L237">                    log.debug(&quot;Creating a STATUS_FAILED message (or returning false).&quot;);</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">                    if (failInfo.equals(FailInfo.WRONG_AUTHORITY)) {</span>
+<span class="nc" id="L239">                    	return false;      </span>
+                    }
+<span class="nc bnc" id="L241" title="All 2 branches missed.">                    if (failInfo.equals(FailInfo.INCORRECT_DATA)) {</span>
+<span class="nc" id="L242">                        return false;     </span>
+                    }
+                } else {
+<span class="nc" id="L245">                    log.debug(&quot;Creating a STATUS_PENDING message.&quot;);</span>
+                }               
+            }
+
+            CMSTypedData msg;
+            // Create encrypted response if this is success and NOT a CRL response message
+<span class="nc bnc" id="L251" title="All 2 branches missed.">            if (status.equals(ResponseStatus.SUCCESS)) {</span>
+
+<span class="nc" id="L253">                CMSEnvelopedDataGenerator edGen = new CMSEnvelopedDataGenerator();</span>
+                // Add the issued certificate to the signed portion of the CMS (as signer, degenerate case)
+<span class="nc" id="L255">                List&lt;X509Certificate&gt; certList = new ArrayList&lt;X509Certificate&gt;();</span>
+<span class="nc bnc" id="L256" title="All 2 branches missed.">                if (cert != null) {</span>
+<span class="nc" id="L257">                    log.debug(&quot;Adding certificates to response message&quot;);</span>
+<span class="nc" id="L258">                    certList.add((X509Certificate) cert);</span>
+                    // Add the CA cert, it's optional but Cisco VPN client complains if it isn't there
+<span class="nc bnc" id="L260" title="All 2 branches missed.">                    if (includeCACert) {</span>
+<span class="nc bnc" id="L261" title="All 2 branches missed.">                    	if (caCert != null) {</span>
+                    		// If we have an explicit CAcertificate
+<span class="nc" id="L263">                    		log.debug(&quot;Including explicitly set CA certificate in SCEP response.&quot;);</span>
+<span class="nc" id="L264">                    		certList.add((X509Certificate) caCert);</span>
+                    	} else {
+                    		// If we don't have an explicit caCert, we think that the signCert is the CA cert
+                    		// If we have an explicit caCert, the signCert is probably the RA certificate, and we don't include that one
+<span class="nc" id="L268">                    		log.debug(&quot;Including message signer certificate in SCEP response.&quot;);</span>
+<span class="nc" id="L269">                    		certList.add((X509Certificate) signCertChain.iterator().next());</span>
+                    	}
+                    }
+                }
+                // Create the signed CMS message to be contained inside the envelope
+                // this message does not contain any message, and no signerInfo
+<span class="nc" id="L275">                CMSSignedDataGenerator gen = new CMSSignedDataGenerator();</span>
+<span class="nc" id="L276">                gen.addCertificates(new CollectionStore&lt;&gt;(CertTools.convertToX509CertificateHolder(certList)));</span>
+<span class="nc bnc" id="L277" title="All 2 branches missed.">                if(crl != null) {</span>
+<span class="nc" id="L278">                    gen.addCRL(new JcaX509CRLHolder((X509CRL) crl));</span>
+                }
+
+<span class="nc" id="L281">                CMSSignedData s = gen.generate(new CMSAbsentContent(), false);</span>
+
+                // Envelope the CMS message
+<span class="nc bnc" id="L284" title="All 2 branches missed.">                if (recipientKeyInfo != null) {</span>
+                    try {
+<span class="nc" id="L286">                        X509Certificate rec = CertTools.getCertfromByteArray(recipientKeyInfo, X509Certificate.class);</span>
+<span class="nc" id="L287">                        log.debug(&quot;Added recipient information - issuer: '&quot; + CertTools.getIssuerDN(rec) + &quot;', serno: '&quot; + CertTools.getSerialNumberAsString(rec));</span>
+<span class="nc" id="L288">                        edGen.addRecipientInfoGenerator(new JceKeyTransRecipientInfoGenerator(rec).setProvider(BouncyCastleProvider.PROVIDER_NAME));</span>
+<span class="nc" id="L289">                    } catch (CertificateParsingException e) {</span>
+<span class="nc" id="L290">                        throw new IllegalArgumentException(&quot;Can not decode recipients self signed certificate!&quot;, e);</span>
+<span class="nc" id="L291">                    }</span>
+                } else {
+<span class="nc" id="L293">                    edGen.addRecipientInfoGenerator(new JceKeyTransRecipientInfoGenerator((X509Certificate) cert).setProvider(BouncyCastleProvider.PROVIDER_NAME));</span>
+                }
+                try {
+<span class="nc" id="L296">                    JceCMSContentEncryptorBuilder jceCMSContentEncryptorBuilder = new JceCMSContentEncryptorBuilder(SMIMECapability.dES_CBC).setProvider(BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="nc" id="L297">                    CMSEnvelopedData ed = edGen.generate(new CMSProcessableByteArray(s.getEncoded()), jceCMSContentEncryptorBuilder.build());</span>
+<span class="nc bnc" id="L298" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L299">                        log.debug(&quot;Enveloped data is &quot; + ed.getEncoded().length + &quot; bytes long&quot;);</span>
+                    }
+<span class="nc" id="L301">                    msg = new CMSProcessableByteArray(ed.getEncoded());</span>
+<span class="nc" id="L302">                } catch (IOException e) {</span>
+<span class="nc" id="L303">                    throw new IllegalStateException(&quot;Unexpected IOException caught&quot;, e);</span>
+<span class="nc" id="L304">                }</span>
+<span class="nc" id="L305">            } else {</span>
+                // Create an empty message here
+                //msg = new CMSProcessableByteArray(&quot;PrimeKey&quot;.getBytes());
+<span class="nc" id="L308">                msg = new CMSProcessableByteArray(new byte[0]);</span>
+            }
+
+            // Create the outermost signed data
+<span class="nc" id="L312">            CMSSignedDataGenerator gen1 = new CMSSignedDataGenerator();</span>
+
+            // add authenticated attributes...status, transactionId, sender- and recipientNonce and more...
+<span class="nc" id="L315">            Hashtable&lt;ASN1ObjectIdentifier, Attribute&gt; attributes = new Hashtable&lt;ASN1ObjectIdentifier, Attribute&gt;();</span>
+            ASN1ObjectIdentifier oid;
+            Attribute attr;
+            DERSet value;
+
+            // Message type (certrep)
+<span class="nc" id="L321">            oid = new ASN1ObjectIdentifier(ScepRequestMessage.id_messageType);</span>
+<span class="nc" id="L322">            value = new DERSet(new DERPrintableString(&quot;3&quot;));</span>
+<span class="nc" id="L323">            attr = new Attribute(oid, value);</span>
+<span class="nc" id="L324">            attributes.put(attr.getAttrType(), attr);</span>
+
+            // TransactionId
+<span class="nc bnc" id="L327" title="All 2 branches missed.">            if (transactionId != null) {</span>
+<span class="nc" id="L328">                oid = new ASN1ObjectIdentifier(ScepRequestMessage.id_transId);</span>
+<span class="nc" id="L329">                log.debug(&quot;Added transactionId: &quot; + transactionId);</span>
+<span class="nc" id="L330">                value = new DERSet(new DERPrintableString(transactionId));</span>
+<span class="nc" id="L331">                attr = new Attribute(oid, value);</span>
+<span class="nc" id="L332">                attributes.put(attr.getAttrType(), attr);</span>
+            }
+
+            // status
+<span class="nc" id="L336">            oid = new ASN1ObjectIdentifier(ScepRequestMessage.id_pkiStatus);</span>
+<span class="nc" id="L337">            value = new DERSet(new DERPrintableString(status.getStringValue()));</span>
+<span class="nc" id="L338">            attr = new Attribute(oid, value);</span>
+<span class="nc" id="L339">            attributes.put(attr.getAttrType(), attr);</span>
+
+<span class="nc bnc" id="L341" title="All 2 branches missed.">            if (status.equals(ResponseStatus.FAILURE)) {</span>
+<span class="nc" id="L342">                oid = new ASN1ObjectIdentifier(ScepRequestMessage.id_failInfo);</span>
+<span class="nc" id="L343">                log.debug(&quot;Added failInfo: &quot; + failInfo.getValue());</span>
+<span class="nc" id="L344">                value = new DERSet(new DERPrintableString(failInfo.getValue()));</span>
+<span class="nc" id="L345">                attr = new Attribute(oid, value);</span>
+<span class="nc" id="L346">                attributes.put(attr.getAttrType(), attr);</span>
+            }
+
+            // senderNonce
+<span class="nc bnc" id="L350" title="All 2 branches missed.">            if (senderNonce != null) {</span>
+<span class="nc" id="L351">                oid = new ASN1ObjectIdentifier(ScepRequestMessage.id_senderNonce);</span>
+<span class="nc" id="L352">                log.debug(&quot;Added senderNonce: &quot; + senderNonce);</span>
+<span class="nc" id="L353">                value = new DERSet(new DEROctetString(Base64.decode(senderNonce.getBytes())));</span>
+<span class="nc" id="L354">                attr = new Attribute(oid, value);</span>
+<span class="nc" id="L355">                attributes.put(attr.getAttrType(), attr);</span>
+            }
+
+            // recipientNonce
+<span class="nc bnc" id="L359" title="All 2 branches missed.">            if (recipientNonce != null) {</span>
+<span class="nc" id="L360">                oid = new ASN1ObjectIdentifier(ScepRequestMessage.id_recipientNonce);</span>
+<span class="nc" id="L361">                log.debug(&quot;Added recipientNonce: &quot; + recipientNonce);</span>
+<span class="nc" id="L362">                value = new DERSet(new DEROctetString(Base64.decode(recipientNonce.getBytes())));</span>
+<span class="nc" id="L363">                attr = new Attribute(oid, value);</span>
+<span class="nc" id="L364">                attributes.put(attr.getAttrType(), attr);</span>
+            }
+
+            // Add our signer info and sign the message
+<span class="nc" id="L368">            Certificate cacert = signCertChain.iterator().next();</span>
+<span class="nc" id="L369">            log.debug(&quot;Signing SCEP message with cert: &quot;+CertTools.getSubjectDN(cacert));</span>
+<span class="nc" id="L370">            String signatureAlgorithmName = AlgorithmTools.getAlgorithmNameFromDigestAndKey(digestAlg, signKey.getAlgorithm());</span>
+            try {
+<span class="nc" id="L372">                ContentSigner contentSigner = new JcaContentSignerBuilder(signatureAlgorithmName).setProvider(provider).build(signKey);</span>
+<span class="nc" id="L373">                JcaDigestCalculatorProviderBuilder calculatorProviderBuilder = new JcaDigestCalculatorProviderBuilder().setProvider(BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="nc" id="L374">                JcaSignerInfoGeneratorBuilder builder = new JcaSignerInfoGeneratorBuilder(calculatorProviderBuilder.build());</span>
+<span class="nc" id="L375">                builder.setSignedAttributeGenerator(new DefaultSignedAttributeTableGenerator(new AttributeTable(attributes)));</span>
+<span class="nc" id="L376">                gen1.addSignerInfoGenerator(builder.build(contentSigner, (X509Certificate) cacert));</span>
+<span class="nc" id="L377">            } catch (OperatorCreationException e) {</span>
+<span class="nc" id="L378">                throw new IllegalStateException(&quot;BouncyCastle failed in creating signature provider.&quot;, e);</span>
+<span class="nc" id="L379">            }</span>
+            // The un-encoded response message itself
+<span class="nc" id="L381">            final CMSSignedData signedData = gen1.generate(msg, true);</span>
+            try {
+<span class="nc" id="L383">                responseMessage = signedData.getEncoded();</span>
+<span class="nc" id="L384">            } catch (IOException e) {</span>
+<span class="nc" id="L385">                throw new IllegalStateException(&quot;Unexpected IOException caught.&quot;, e);</span>
+<span class="nc" id="L386">            }</span>
+<span class="nc bnc" id="L387" title="All 2 branches missed.">            if (responseMessage != null) {</span>
+<span class="nc" id="L388">                ret = true;</span>
+            }
+<span class="nc" id="L390">        } catch (CMSException e) {</span>
+<span class="nc" id="L391">            log.error(&quot;Error creating CMS message: &quot;, e);</span>
+<span class="nc" id="L392">        }</span>
+
+<span class="nc" id="L394">        return ret;</span>
+    }
+
+    @Override
+    public boolean requireSignKeyInfo() {
+<span class="nc" id="L399">        return true;</span>
+    }
+
+    @Override
+    public void setSignKeyInfo(Collection&lt;Certificate&gt; certs, PrivateKey key, String prov) {
+<span class="nc" id="L404">        this.signCertChain = certs;</span>
+<span class="nc" id="L405">        this.signKey = key;</span>
+<span class="nc bnc" id="L406" title="All 2 branches missed.">        if (prov != null) {</span>
+<span class="nc" id="L407">            this.provider = prov;</span>
+        }     
+<span class="nc" id="L409">    }</span>
+
+    @Override
+    public void setSenderNonce(String senderNonce) {
+<span class="nc" id="L413">        this.senderNonce = senderNonce;</span>
+<span class="nc" id="L414">    }</span>
+
+    @Override
+    public void setRecipientNonce(String recipientNonce) {
+<span class="nc" id="L418">        this.recipientNonce = recipientNonce;</span>
+<span class="nc" id="L419">    }</span>
+
+    @Override
+    public void setTransactionId(String transactionId) {
+<span class="nc" id="L423">        this.transactionId = transactionId;</span>
+<span class="nc" id="L424">    }</span>
+
+    @Override
+    public void setRecipientKeyInfo(byte[] recipientKeyInfo) {
+<span class="nc" id="L428">        this.recipientKeyInfo = recipientKeyInfo;</span>
+<span class="nc" id="L429">    }</span>
+
+    @Override
+    public void setPreferredDigestAlg(String digest) {
+<span class="nc" id="L433">    	this.digestAlg = digest;</span>
+<span class="nc" id="L434">    }</span>
+
+    @Override
+    public void setRequestType(int reqtype) {
+<span class="nc" id="L438">	}</span>
+
+    @Override
+    public void setRequestId(int reqid) {
+<span class="nc" id="L442">    }</span>
+
+    @Override
+    public void setProtectionParamsFromRequest(RequestMessage reqMsg) {
+<span class="nc" id="L446">    }</span>
+    
+    @Override
+    public void addAdditionalCaCertificates(final List&lt;Certificate&gt; certificates) {
+        // NOOP. Only for CMP.
+<span class="nc" id="L451">    }</span>
+
+    @Override
+    public void addAdditionalResponseExtraCertsCertificates(List&lt;Certificate&gt; certificates) {
+        // NOOP. Only for CMP.
+<span class="nc" id="L456">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

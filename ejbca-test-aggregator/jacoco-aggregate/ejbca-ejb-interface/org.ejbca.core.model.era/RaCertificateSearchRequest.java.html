@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RaCertificateSearchRequest.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb-interface</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.era</a> &gt; <span class="el_source">RaCertificateSearchRequest.java</span></div><h1>RaCertificateSearchRequest.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.era;
+
+import java.io.Serializable;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
+/**
+ * Search request for certificates from RA UI.
+ *
+ * @version $Id: RaCertificateSearchRequest.java 26524 2017-09-11 09:12:49Z bastianf $
+ */
+public class RaCertificateSearchRequest implements Serializable, Comparable&lt;RaCertificateSearchRequest&gt; {
+
+    private static final long serialVersionUID = 1L;
+    //private static final Logger log = Logger.getLogger(RaCertificateSearchRequest.class);
+    public static final int DEFAULT_MAX_RESULTS = 25;
+
+<span class="nc" id="L33">    private int maxResults = DEFAULT_MAX_RESULTS;</span>
+<span class="nc" id="L34">    private int pageNumber = 0;</span>
+<span class="nc" id="L35">    private List&lt;Integer&gt; eepIds = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L36">    private List&lt;Integer&gt; cpIds = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L37">    private List&lt;Integer&gt; caIds = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L38">    private String subjectDnSearchString = &quot;&quot;;</span>
+<span class="nc" id="L39">    private boolean subjectDnSearchExact = false;</span>
+<span class="nc" id="L40">    private String subjectAnSearchString = &quot;&quot;;</span>
+<span class="nc" id="L41">    private boolean subjectAnSearchExact = false;</span>
+<span class="nc" id="L42">    private String usernameSearchString = &quot;&quot;;</span>
+<span class="nc" id="L43">    private boolean usernameSearchExact = false;</span>
+<span class="nc" id="L44">    private String serialNumberSearchStringFromDec = &quot;&quot;;</span>
+<span class="nc" id="L45">    private String serialNumberSearchStringFromHex = &quot;&quot;;</span>
+<span class="nc" id="L46">    private long issuedAfter = 0L;</span>
+<span class="nc" id="L47">    private long issuedBefore = Long.MAX_VALUE;</span>
+<span class="nc" id="L48">    private long expiresAfter = 0L;</span>
+<span class="nc" id="L49">    private long expiresBefore = Long.MAX_VALUE;</span>
+<span class="nc" id="L50">    private long revokedAfter = 0L;</span>
+<span class="nc" id="L51">    private long revokedBefore = Long.MAX_VALUE;</span>
+<span class="nc" id="L52">    private List&lt;Integer&gt; statuses = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L53">    private List&lt;Integer&gt; revocationReasons = new ArrayList&lt;&gt;();</span>
+
+    /** Default constructor */
+<span class="nc" id="L56">    public RaCertificateSearchRequest() {}</span>
+
+    /** Copy constructor 
+     * @param request req*/
+<span class="nc" id="L60">    public RaCertificateSearchRequest(final RaCertificateSearchRequest request) {</span>
+<span class="nc" id="L61">        maxResults = request.maxResults;</span>
+<span class="nc" id="L62">        pageNumber = request.pageNumber;</span>
+<span class="nc" id="L63">        eepIds.addAll(request.eepIds);</span>
+<span class="nc" id="L64">        cpIds.addAll(request.cpIds);</span>
+<span class="nc" id="L65">        caIds.addAll(request.caIds);</span>
+<span class="nc" id="L66">        subjectDnSearchString = request.subjectDnSearchString;</span>
+<span class="nc" id="L67">        subjectDnSearchExact = request.subjectDnSearchExact;</span>
+<span class="nc" id="L68">        subjectAnSearchString = request.subjectAnSearchString;</span>
+<span class="nc" id="L69">        subjectAnSearchExact = request.subjectAnSearchExact;</span>
+<span class="nc" id="L70">        usernameSearchString = request.usernameSearchString;</span>
+<span class="nc" id="L71">        usernameSearchExact = request.usernameSearchExact;</span>
+<span class="nc" id="L72">        serialNumberSearchStringFromDec = request.serialNumberSearchStringFromDec;</span>
+<span class="nc" id="L73">        serialNumberSearchStringFromHex = request.serialNumberSearchStringFromHex;</span>
+<span class="nc" id="L74">        issuedAfter = request.issuedAfter;</span>
+<span class="nc" id="L75">        issuedBefore = request.issuedBefore;</span>
+<span class="nc" id="L76">        expiresAfter = request.expiresAfter;</span>
+<span class="nc" id="L77">        expiresBefore = request.expiresBefore;</span>
+<span class="nc" id="L78">        revokedAfter = request.revokedAfter;</span>
+<span class="nc" id="L79">        revokedBefore = request.revokedBefore;</span>
+<span class="nc" id="L80">        statuses.addAll(request.statuses);</span>
+<span class="nc" id="L81">        revocationReasons.addAll(request.revocationReasons);</span>
+<span class="nc" id="L82">    }</span>
+
+<span class="nc" id="L84">    public int getMaxResults() { return maxResults; }</span>
+
+    public int getPageNumber() {
+<span class="nc" id="L87">        return pageNumber;</span>
+    }
+
+    public void setPageNumber(final int pageNumber) {
+<span class="nc" id="L91">        this.pageNumber = pageNumber;</span>
+<span class="nc" id="L92">    }</span>
+
+<span class="nc" id="L94">    public void setMaxResults(final int maxResults) { this.maxResults = maxResults; }</span>
+<span class="nc" id="L95">    public void resetMaxResults() { this.maxResults = DEFAULT_MAX_RESULTS; }</span>
+
+<span class="nc" id="L97">    public List&lt;Integer&gt; getEepIds() { return eepIds; }</span>
+<span class="nc" id="L98">    public void setEepIds(final List&lt;Integer&gt; eepIds) { this.eepIds = eepIds; }</span>
+<span class="nc" id="L99">    public List&lt;Integer&gt; getCpIds() { return cpIds; }</span>
+<span class="nc" id="L100">    public void setCpIds(final List&lt;Integer&gt; cpIds) { this.cpIds = cpIds; }</span>
+<span class="nc" id="L101">    public List&lt;Integer&gt; getCaIds() { return caIds; }</span>
+<span class="nc" id="L102">    public void setCaIds(final List&lt;Integer&gt; caIds) { this.caIds = caIds; }</span>
+<span class="nc" id="L103">    public String getSubjectDnSearchString() { return subjectDnSearchString; }</span>
+<span class="nc" id="L104">    public void setSubjectDnSearchString(final String subjectDnSearchString) { this.subjectDnSearchString = subjectDnSearchString; }</span>
+<span class="nc" id="L105">    public boolean isSubjectDnSearchExact() { return subjectDnSearchExact; }</span>
+<span class="nc" id="L106">    public void setSubjectDnSearchExact(final boolean subjectDnSearchExact) { this.subjectDnSearchExact = subjectDnSearchExact; }</span>
+<span class="nc" id="L107">    public String getSubjectAnSearchString() { return subjectAnSearchString; }</span>
+<span class="nc" id="L108">    public void setSubjectAnSearchString(final String subjectAnSearchString) { this.subjectAnSearchString = subjectAnSearchString; }</span>
+<span class="nc" id="L109">    public boolean isSubjectAnSearchExact() { return subjectAnSearchExact; }</span>
+<span class="nc" id="L110">    public void setSubjectAnSearchExact(final boolean subjectAnSearchExact) { this.subjectAnSearchExact = subjectAnSearchExact; }</span>
+<span class="nc" id="L111">    public String getUsernameSearchString() { return usernameSearchString; }</span>
+<span class="nc" id="L112">    public void setUsernameSearchString(final String usernameSearchString) { this.usernameSearchString = usernameSearchString; }</span>
+<span class="nc" id="L113">    public boolean isUsernameSearchExact() { return usernameSearchExact; }</span>
+<span class="nc" id="L114">    public void setUsernameSearchExact(final boolean usernameSearchExact) { this.usernameSearchExact = usernameSearchExact; }</span>
+<span class="nc" id="L115">    public String getSerialNumberSearchStringFromDec() { return serialNumberSearchStringFromDec; }</span>
+    /** Set the serialNumber search string as a decimal String if it has potential to be a decimal certificate serial number. 
+     * @param serialNumberSearchStringFromDec sn */
+    public void setSerialNumberSearchStringFromDec(final String serialNumberSearchStringFromDec) {
+        // Assuming 8 octets and some leading zeroes
+<span class="nc" id="L120">        String value = &quot;&quot;;</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        if (serialNumberSearchStringFromDec.length()&gt;=16) {</span>
+            try {
+<span class="nc" id="L123">                value = new BigInteger(serialNumberSearchStringFromDec, 10).toString(10);</span>
+<span class="nc" id="L124">            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L125">            }</span>
+        }
+<span class="nc" id="L127">        this.serialNumberSearchStringFromDec = value;</span>
+
+<span class="nc" id="L129">    }</span>
+<span class="nc" id="L130">    public String getSerialNumberSearchStringFromHex() { return serialNumberSearchStringFromHex; }</span>
+    /** Set the serialNumber search string as a decimal String if it has potential to be a hex certificate serial number. 
+     * @param serialNumberSearchStringFromHex sn*/
+    public void setSerialNumberSearchStringFromHex(final String serialNumberSearchStringFromHex) {
+        // Assuming 8 octets and some leading zeroes
+<span class="nc" id="L135">        String value = &quot;&quot;;</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        if (serialNumberSearchStringFromHex.length()&gt;=14) {</span>
+            try {
+<span class="nc" id="L138">                value = new BigInteger(serialNumberSearchStringFromHex, 16).toString(10);</span>
+<span class="nc" id="L139">            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L140">            }</span>
+        }
+<span class="nc" id="L142">        this.serialNumberSearchStringFromHex = value;</span>
+<span class="nc" id="L143">    }</span>
+
+<span class="nc" id="L145">    public long getIssuedAfter() { return issuedAfter; }</span>
+<span class="nc" id="L146">    public void setIssuedAfter(final long issuedAfter) { this.issuedAfter = issuedAfter; }</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">    public boolean isIssuedAfterUsed() { return issuedAfter&gt;0L; }</span>
+<span class="nc" id="L148">    public void resetIssuedAfter() { this.issuedAfter = 0L; }</span>
+
+<span class="nc" id="L150">    public long getIssuedBefore() { return issuedBefore; }</span>
+<span class="nc" id="L151">    public void setIssuedBefore(final long issuedBefore) { this.issuedBefore = issuedBefore; }</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">    public boolean isIssuedBeforeUsed() { return issuedBefore&lt;Long.MAX_VALUE; }</span>
+<span class="nc" id="L153">    public void resetIssuedBefore() { this.issuedBefore = Long.MAX_VALUE; }</span>
+
+<span class="nc" id="L155">    public long getExpiresAfter() { return expiresAfter; }</span>
+<span class="nc" id="L156">    public void setExpiresAfter(final long expiresAfter) { this.expiresAfter = expiresAfter; }</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">    public boolean isExpiresAfterUsed() { return expiresAfter&gt;0L; }</span>
+<span class="nc" id="L158">    public void resetExpiresAfter() { this.expiresAfter = 0L; }</span>
+
+<span class="nc" id="L160">    public long getExpiresBefore() { return expiresBefore; }</span>
+<span class="nc" id="L161">    public void setExpiresBefore(final long expiresBefore) { this.expiresBefore = expiresBefore; }</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">    public boolean isExpiresBeforeUsed() { return expiresBefore&lt;Long.MAX_VALUE; }</span>
+<span class="nc" id="L163">    public void resetExpiresBefore() { this.expiresBefore = Long.MAX_VALUE; }</span>
+
+<span class="nc" id="L165">    public long getRevokedAfter() { return revokedAfter; }</span>
+<span class="nc" id="L166">    public void setRevokedAfter(final long revokedAfter) { this.revokedAfter = revokedAfter; }</span>
+<span class="nc bnc" id="L167" title="All 2 branches missed.">    public boolean isRevokedAfterUsed() { return revokedAfter&gt;0L; }</span>
+<span class="nc" id="L168">    public void resetRevokedAfter() { this.revokedAfter = 0L; }</span>
+
+<span class="nc" id="L170">    public long getRevokedBefore() { return revokedBefore; }</span>
+<span class="nc" id="L171">    public void setRevokedBefore(final long revokedBefore) { this.revokedBefore = revokedBefore; }</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">    public boolean isRevokedBeforeUsed() { return revokedBefore&lt;Long.MAX_VALUE; }</span>
+<span class="nc" id="L173">    public void resetRevokedBefore() { this.revokedBefore = Long.MAX_VALUE; }</span>
+
+<span class="nc" id="L175">    public List&lt;Integer&gt; getStatuses() { return statuses; }</span>
+<span class="nc" id="L176">    public void setStatuses(final List&lt;Integer&gt; statuses) { this.statuses = statuses; }</span>
+<span class="nc" id="L177">    public List&lt;Integer&gt; getRevocationReasons() { return revocationReasons; }</span>
+<span class="nc" id="L178">    public void setRevocationReasons(final List&lt;Integer&gt; revocationReasons) { this.revocationReasons = revocationReasons; }</span>
+
+    @Override
+    public int hashCode() {
+<span class="nc" id="L182">        return HashCodeBuilder.reflectionHashCode(this);</span>
+    }
+
+    @Override
+    public boolean equals(final Object object) {
+<span class="nc bnc" id="L187" title="All 2 branches missed.">        if (!(object instanceof RaCertificateSearchRequest)) {</span>
+<span class="nc" id="L188">            return false;</span>
+        }
+<span class="nc" id="L190">        final RaCertificateSearchRequest request = (RaCertificateSearchRequest) object;</span>
+<span class="nc bnc" id="L191" title="All 4 branches missed.">        return compareTo(request) == 0 &amp;&amp; request.getPageNumber() == this.pageNumber;</span>
+    }
+
+    // negative = this object is less (more narrow) than other. E.g. only when other contains this and more.
+    // positive = this object is greater (wider) than other
+    // zero = this object is equal to other
+    @Override
+    public int compareTo(final RaCertificateSearchRequest other) {
+<span class="nc bnc" id="L199" title="All 2 branches missed.">        if (other==null) {</span>
+<span class="nc" id="L200">            return 1;</span>
+        }
+        // First check if there is any there is any indication that this does not contain the whole other
+<span class="nc bnc" id="L203" title="All 2 branches missed.">        if (maxResults&gt;other.maxResults ||</span>
+<span class="nc bnc" id="L204" title="All 18 branches missed.">                isWider(eepIds, other.eepIds) || isWider(cpIds, other.cpIds) || isWider(caIds, other.caIds) ||</span>
+                issuedAfter&lt;other.issuedAfter || issuedBefore&gt;other.issuedBefore ||
+                expiresAfter&lt;other.expiresAfter || expiresBefore&gt;other.expiresBefore ||
+                revokedAfter&lt;other.revokedAfter || revokedBefore&gt;other.revokedBefore ||
+<span class="nc bnc" id="L208" title="All 2 branches missed.">                isWider(subjectDnSearchString, other.subjectDnSearchString) ||</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">                isWider(subjectDnSearchExact, other.subjectDnSearchExact) ||</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">                isWider(subjectAnSearchString, other.subjectAnSearchString) ||</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">                isWider(subjectAnSearchExact, other.subjectAnSearchExact) ||</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">                isWider(usernameSearchString, other.usernameSearchString) ||</span>
+<span class="nc bnc" id="L213" title="All 2 branches missed.">                isWider(usernameSearchExact, other.usernameSearchExact) ||</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">                isWider(serialNumberSearchStringFromDec, other.serialNumberSearchStringFromDec) ||</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">                isWider(serialNumberSearchStringFromHex, other.serialNumberSearchStringFromHex) ||</span>
+<span class="nc bnc" id="L216" title="All 4 branches missed.">                isWider(statuses, other.statuses) || isWider(revocationReasons, other.revocationReasons)) {</span>
+            // This does not contain whole other → wider
+<span class="nc" id="L218">            return 1;</span>
+        }
+        // Next check if this object is more narrow than the other
+<span class="nc bnc" id="L221" title="All 2 branches missed.">        if (maxResults&lt;other.maxResults ||</span>
+<span class="nc bnc" id="L222" title="All 18 branches missed.">                isMoreNarrow(eepIds, other.eepIds) || isMoreNarrow(cpIds, other.cpIds) || isMoreNarrow(caIds, other.caIds) ||</span>
+                issuedAfter&gt;other.issuedAfter || issuedBefore&lt;other.issuedBefore ||
+                expiresAfter&gt;other.expiresAfter || expiresBefore&lt;other.expiresBefore ||
+                revokedAfter&gt;other.revokedAfter || revokedBefore&lt;other.revokedBefore ||
+<span class="nc bnc" id="L226" title="All 2 branches missed.">                isMoreNarrow(subjectDnSearchString, other.subjectDnSearchString) ||</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">                isMoreNarrow(subjectDnSearchExact, other.subjectDnSearchExact) ||</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">                isMoreNarrow(subjectAnSearchString, other.subjectAnSearchString) ||</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">                isMoreNarrow(subjectAnSearchExact, other.subjectAnSearchExact) ||</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">                isMoreNarrow(usernameSearchString, other.usernameSearchString) ||</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">                isMoreNarrow(usernameSearchExact, other.usernameSearchExact) ||</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">                isMoreNarrow(serialNumberSearchStringFromDec, other.serialNumberSearchStringFromDec) ||</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">                isMoreNarrow(serialNumberSearchStringFromHex, other.serialNumberSearchStringFromHex) ||</span>
+<span class="nc bnc" id="L234" title="All 4 branches missed.">                isMoreNarrow(statuses, other.statuses) || isMoreNarrow(revocationReasons, other.revocationReasons)) {</span>
+            // This does contain whole other, but other does not contain whole this → more narrow
+<span class="nc" id="L236">            return -1;</span>
+        }
+<span class="nc" id="L238">        return 0;</span>
+    }
+
+    /** @param thisObject obj
+     * @param otherObject obj
+     * @return true if thisObject does contain whole other, but other does not contain whole this → more narrow */
+    private boolean isMoreNarrow(final List&lt;Integer&gt; thisObject, final List&lt;Integer&gt; otherObject) {
+<span class="nc bnc" id="L245" title="All 4 branches missed.">        return thisObject.containsAll(otherObject) &amp;&amp; !otherObject.containsAll(thisObject);</span>
+    }
+    /** @param thisObject obj
+     * @param otherObject obj
+     * @return true if thisObject does contain whole other, but other does not contain whole this → more narrow */
+    private boolean isMoreNarrow(final String thisObject, final String otherObject) {
+<span class="nc bnc" id="L251" title="All 4 branches missed.">        return thisObject.contains(otherObject) &amp;&amp; !otherObject.contains(thisObject);</span>
+    }
+    /** @param thisObjectExact obj
+     * @param otherObjectExact ong
+     * @return true if thisObject does contain whole other, but other does not contain whole this → more narrow */
+    private boolean isMoreNarrow(final boolean thisObjectExact, final boolean otherObjectExact) {
+<span class="nc bnc" id="L257" title="All 4 branches missed.">        return thisObjectExact &amp;&amp; !otherObjectExact;</span>
+    }
+    /** @param thisObject obj
+     * @param otherObject obj
+     * @return true if thisObject does not contain whole other → wider */
+    private boolean isWider(final List&lt;Integer&gt; thisObject, final List&lt;Integer&gt; otherObject) {
+<span class="nc bnc" id="L263" title="All 2 branches missed.">        return !thisObject.containsAll(otherObject);</span>
+    }
+    /** @param thisObject obj
+     * @param otherObject obj
+     * @return true if thisObject does not contain whole other → wider */
+    private boolean isWider(final String thisObject, final String otherObject) {
+<span class="nc bnc" id="L269" title="All 2 branches missed.">        return !thisObject.contains(otherObject);</span>
+    }
+    /** @param thisObjectExact obj
+     * @param otherObjectExact obj
+     * @return true if thisObject does not contain whole other → wider */
+    private boolean isWider(final boolean thisObjectExact, final boolean otherObjectExact) {
+<span class="nc bnc" id="L275" title="All 4 branches missed.">        return !thisObjectExact &amp;&amp; otherObjectExact;</span>
+    }
+
+    /** @param endEntityProfileId ID
+     * @return true if the endEntityProfileId is matched by this search. */
+<span class="nc bnc" id="L280" title="All 4 branches missed.">    public boolean matchEep(final int endEntityProfileId) { return eepIds.isEmpty() || eepIds.contains(Integer.valueOf(endEntityProfileId)); }</span>
+    /** @param certificateProfileId ID
+     * @return true if the certificateId is matched by this search. */
+<span class="nc bnc" id="L283" title="All 4 branches missed.">    public boolean matchCp(final int certificateProfileId) { return cpIds.isEmpty() || cpIds.contains(Integer.valueOf(certificateProfileId)); }</span>
+    /** @param caId ID
+     * @return true if the endEntityProfileId is matched by this search. */
+<span class="nc bnc" id="L286" title="All 4 branches missed.">    public boolean matchCa(final int caId) { return caIds.isEmpty() || caIds.contains(Integer.valueOf(caId)); }</span>
+
+    /** @param notBefore long
+     * @return true if the notBefore is matched by this search. */
+    public boolean matchIssuedInterval(final Long notBefore) {
+<span class="nc bnc" id="L291" title="All 6 branches missed.">        if (isIssuedAfterUsed() &amp;&amp; (notBefore==null || notBefore.longValue()&lt;issuedAfter)) {</span>
+<span class="nc" id="L292">            return false;</span>
+        }
+<span class="nc bnc" id="L294" title="All 6 branches missed.">        if (isIssuedBeforeUsed() &amp;&amp; (notBefore==null || notBefore.longValue()&gt;issuedBefore)) {</span>
+<span class="nc" id="L295">            return false;</span>
+        }
+<span class="nc" id="L297">        return true;</span>
+    }
+
+    /** @param expireDate date
+     * @return true if the expireDate is matched by this search. */
+    public boolean matchExpiresInterval(final long expireDate) {
+<span class="nc bnc" id="L303" title="All 4 branches missed.">        if (isExpiresAfterUsed() &amp;&amp; expireDate&lt;expiresAfter) {</span>
+<span class="nc" id="L304">            return false;</span>
+        }
+<span class="nc bnc" id="L306" title="All 4 branches missed.">        if (isExpiresBeforeUsed() &amp;&amp; expireDate&gt;expiresBefore) {</span>
+<span class="nc" id="L307">            return false;</span>
+        }
+<span class="nc" id="L309">        return true;</span>
+    }
+
+    /** @param revocationDate date
+     * @return true if the expireDate is matched by this search. */
+    public boolean matchRevokedInterval(long revocationDate) {
+<span class="nc bnc" id="L315" title="All 4 branches missed.">        if (isRevokedAfterUsed() &amp;&amp; revocationDate&lt;revokedAfter) {</span>
+<span class="nc" id="L316">            return false;</span>
+        }
+<span class="nc bnc" id="L318" title="All 4 branches missed.">        if (isRevokedBeforeUsed() &amp;&amp; revocationDate&gt;revokedBefore) {</span>
+<span class="nc" id="L319">            return false;</span>
+        }
+<span class="nc" id="L321">        return true;</span>
+    }
+
+    /** @param serialNumber SN
+     * @return true if the serialNumber is matched by this search (either as decimal or hexadecimal). */
+    public boolean matchSerialNumber(final String serialNumber) {
+<span class="nc bnc" id="L327" title="All 4 branches missed.">        return serialNumber.equals(getSerialNumberSearchStringFromDec()) || serialNumber.equals(getSerialNumberSearchStringFromHex());</span>
+    }
+
+    /** @param username User
+     * @return true if the username is matched by this search. */
+    public boolean matchUsername(final String username) {
+<span class="nc bnc" id="L333" title="All 8 branches missed.">        return username != null &amp;&amp; ((!usernameSearchExact &amp;&amp; username.toUpperCase().contains(usernameSearchString.toUpperCase())) ||</span>
+<span class="nc bnc" id="L334" title="All 2 branches missed.">                                    (usernameSearchExact &amp;&amp; username.equalsIgnoreCase(usernameSearchString)));</span>
+    }
+    /** @param subjectDn DN
+     * @return true if the subjectDn is matched by this search. */
+    public boolean matchSubjectDn(final String subjectDn) {
+<span class="nc bnc" id="L339" title="All 8 branches missed.">        return subjectDn != null &amp;&amp; ((!subjectDnSearchExact &amp;&amp; subjectDn.toUpperCase().contains(subjectDnSearchString.toUpperCase())) ||</span>
+<span class="nc bnc" id="L340" title="All 2 branches missed.">                                    (subjectDnSearchExact &amp;&amp; subjectDn.equalsIgnoreCase(subjectDnSearchString)));</span>
+    }
+    /** @param subjectAn An
+     * @return true if the subjectAn is matched by this search. */
+    public boolean matchSubjectAn(final String subjectAn) {
+<span class="nc bnc" id="L345" title="All 10 branches missed.">        return subjectAn != null &amp;&amp; ((!subjectAnSearchExact &amp;&amp; subjectAn.contains(subjectAnSearchString)) || (subjectAnSearchExact &amp;&amp; subjectAn.equals(subjectAnSearchString)));</span>
+    }
+
+    /** @param status status
+     * @param revocationReason rev
+     * @return true if the certicate status and revocation reason is matched by this search. */
+    public boolean matchStatusAndReason(final int status, final int revocationReason) {
+<span class="nc bnc" id="L352" title="All 4 branches missed.">        if (!statuses.isEmpty() &amp;&amp; !statuses.contains(status)) {</span>
+<span class="nc" id="L353">            return false;</span>
+        }
+<span class="nc bnc" id="L355" title="All 4 branches missed.">        if (!revocationReasons.isEmpty() &amp;&amp; !revocationReasons.contains(revocationReason)) {</span>
+<span class="nc" id="L356">            return false;</span>
+        }
+<span class="nc" id="L358">        return true;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

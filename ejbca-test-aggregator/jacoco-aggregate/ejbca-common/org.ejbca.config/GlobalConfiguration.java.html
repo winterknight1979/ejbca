@@ -1,0 +1,632 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>GlobalConfiguration.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.config</a> &gt; <span class="el_source">GlobalConfiguration.java</span></div><h1>GlobalConfiguration.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.config;
+
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.certificatetransparency.CTLogInfo;
+import org.cesecore.certificates.certificatetransparency.GoogleCtPolicy;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.config.ExternalScriptsConfiguration;
+import org.cesecore.configuration.ConfigurationBase;
+import org.cesecore.util.StringTools;
+
+
+/**
+ * This is a  class containing global configuration parameters.
+ *
+ * @version $Id: GlobalConfiguration.java 31276 2019-01-21 23:52:29Z jeklund $
+ */
+public class GlobalConfiguration extends ConfigurationBase implements ExternalScriptsConfiguration, Serializable {
+
+    private static final long serialVersionUID = -2051789798029184421L;
+
+<span class="nc" id="L42">    private static final Logger LOG = Logger.getLogger(GlobalConfiguration.class);</span>
+
+    // Default Values
+    public static final float LATEST_VERSION = 3f;
+
+<span class="nc" id="L47">    public static final String EJBCA_VERSION = InternalConfiguration.getAppVersion();</span>
+
+<span class="nc" id="L49">    public static final String PREFEREDINTERNALRESOURCES = CesecoreConfiguration.getInternalResourcesPreferredLanguage();</span>
+<span class="nc" id="L50">    public static final String SECONDARYINTERNALRESOURCES = CesecoreConfiguration.getInternalResourcesSecondaryLanguage();;</span>
+
+    // Entries to choose from in userpreference part, defines the size of data to be displayed on one page.
+<span class="nc" id="L53">    private final  String[] DEFAULTPOSSIBLEENTRIESPERPAGE = {&quot;10&quot; , &quot;25&quot; , &quot;50&quot; , &quot;100&quot;};</span>
+    // Entries to choose from in view log part, defines the size of data to be displayed on one page.
+<span class="nc" id="L55">    private final  String[] DEFAULTPOSSIBLELOGENTRIESPERPAGE = {&quot;10&quot; , &quot;25&quot; , &quot;50&quot; , &quot;100&quot;, &quot;200&quot;, &quot;400&quot;};</span>
+
+    public static final String GLOBAL_CONFIGURATION_ID = &quot;0&quot;;
+
+    // Path added to baseurl used as default value in CRLDistributionPointURI field in Certificate Profile definitions.
+    private static final  String   DEFAULTCRLDISTURIPATH  = &quot;publicweb/webdist/certdist?cmd=crl&amp;issuer=&quot;;
+
+    // Path added to baseurl used as default value in DeltaCRLDistributionPointURI field in Certificate Profile definitions.
+    private static final  String   DEFAULTDELTACRLDISTURIPATH  = &quot;publicweb/webdist/certdist?cmd=deltacrl&amp;issuer=&quot;;
+
+    // Path added to baseurl used as default value in CRLDistributionPointURI field in Certificate Profile definitions.
+    private static final  String   DEFAULTCRLDISTURIPATHDN  = &quot;CN=TestCA,O=AnaTom,C=SE&quot;;
+
+
+    // Path added to baseurl used as default value in OCSP Service Locator URI field in Certificate Profile definitions.
+	private static final  String   DEFAULTOCSPSERVICELOCATORURIPATH = &quot;publicweb/status/ocsp&quot;;
+
+    // Default name of headbanner in web interface.
+    public static final  String   DEFAULTHEADBANNER             = &quot;head_banner.jsp&quot;;
+    // Default name of footbanner page in web interface.
+    public static final  String   DEFAULTFOOTBANNER             = &quot;foot_banner.jsp&quot;; // used from systemconfiguration.jsp
+
+    // Default list of nodes in cluster
+<span class="nc" id="L78">    private static final Set&lt;String&gt; NODESINCLUSTER_DEFAULT      = new LinkedHashSet&lt;&gt;();</span>
+
+    // Title of ra admin web interface.
+<span class="nc" id="L81">    private static final  String   DEFAULTEJBCATITLE             = InternalConfiguration.getAppNameCapital() + &quot; Administration&quot;;</span>
+
+    // Default values for AutoEnroll
+    private static final  String  AUTOENROLL_DEFAULT_ADSERVER = &quot;dc1.company.local&quot;;
+    private static final  int  AUTOENROLL_DEFAULT_ADPORT = 0;
+    private static final  String  AUTOENROLL_DEFAULT_BASEDN_USER = &quot;CN=Users,DC=company,DC=local&quot;;
+    public static final  int  AUTOENROLL_DEFAULT_CA = -1;
+    private static final  String  AUTOENROLL_DEFAULT_CONNECTIONDN = &quot;CN=ADReader,CN=Users,DC=company,DC=local&quot;;
+    private static final  String  AUTOENROLL_DEFAULT_CONNECTIONPWD = &quot;foo123&quot;;
+    private static final  boolean  AUTOENROLL_DEFAULT_SSLCONNECTION = false;
+    private static final  boolean  AUTOENROLL_DEFAULT_USE = false;
+
+    /** Default value for Enable Command Line Interface. */
+    private static final boolean DEFAULTENABLECOMMANDLINEINTERFACE = true;
+    private static final boolean DEFAULTENABLECOMMANDLINEINTERFACEDEFAULTUSER = true;
+
+    private static final boolean DEFAULTENABLEEXTERNALSCRIPTS = false;
+
+    private static final boolean DEFAULTPUBLICWEBCERTCHAINORDEROOTFIRST = true;
+
+    // Default CT Logs
+<span class="nc" id="L102">    private static final LinkedHashMap&lt;Integer,CTLogInfo&gt; CTLOGS_DEFAULT = new LinkedHashMap&lt;&gt;();</span>
+
+    // Language codes. Observe the order is important
+    public static final  int      EN                 = 0;
+    public static final  int      SE                 = 1;
+
+    // Public constants.
+    public static final  String DOCWINDOW           = &quot;_ejbcaDocWindow&quot;; // Name of browser window used to display help
+
+    // Private constants
+    private static final   String ADMINPATH             = &quot;raadminpath&quot;;
+    private static final   String AVAILABLELANGUAGES    = &quot;availablelanguages&quot;;
+    private static final   String AVAILABLETHEMES       = &quot;availablethemes&quot;;
+    private static final   String PUBLICPORT            = &quot;publicport&quot;;
+    private static final   String PRIVATEPORT           = &quot;privateport&quot;;
+    private static final   String PUBLICPROTOCOL        = &quot;publicprotocol&quot;;
+    private static final   String PRIVATEPROTOCOL       = &quot;privateprotocol&quot;;
+
+
+      // Title
+    private static final   String TITLE              = &quot;title&quot;;
+      // Banner files.
+    private static final   String HEADBANNER         = &quot;headbanner&quot;;
+    private static final   String FOOTBANNER         = &quot;footbanner&quot;;
+      // Other configuration.
+    private static final   String ENABLEEEPROFILELIMITATIONS   = &quot;endentityprofilelimitations&quot;;
+    private static final   String ENABLEAUTHENTICATEDUSERSONLY = &quot;authenticatedusersonly&quot;;
+    private static final   String ENABLEKEYRECOVERY            = &quot;enablekeyrecovery&quot;;
+    private static final   String LOCALKEYRECOVERY             = &quot;localkeyrecovery&quot;;
+    private static final   String LOCALKEYRECOVERYCRYPTOTOKEN  = &quot;localkeyrecoverycryptotoken&quot;;
+    private static final   String LOCALKEYRECOVERYKEYALIAS     = &quot;localkeyrecoverykeyalias&quot;;
+    private static final   String ISSUEHARDWARETOKENS          = &quot;issuehardwaretokens&quot;;
+
+    private static final   String ENABLEICAOCANAMECHANGE       = &quot;enableicaocanamechange&quot;;
+
+    private static final   String NUMBEROFAPPROVALSTOVIEWPUK   = &quot;numberofapprovalstoviewpuk&quot;;
+    private static final   String HARDTOKENENCRYPTCA           = &quot;hardtokenencryptca&quot;;
+    private static final   String USEAPPROVALNOTIFICATIONS     = &quot;useapprovalnotifications&quot;;
+    private static final   String APPROVALADMINEMAILADDRESS    = &quot;approvaladminemailaddress&quot;;
+    private static final   String APPROVALNOTIFICATIONFROMADDR = &quot;approvalnotificationfromaddr&quot;;
+
+    private static final   String NODESINCLUSTER               = &quot;nodesincluster&quot;;
+
+    private static final   String ENABLECOMMANDLINEINTERFACE   = &quot;enablecommandlineinterface&quot;;
+    private static final   String ENABLECOMMANDLINEINTERFACEDEFAULTUSER = &quot;enablecommandlineinterfacedefaultuser&quot;;
+
+    private static final   String ENABLEEXTERNALSCRIPTS        = &quot;enableexternalscripts&quot;;
+
+    // Configuration for Auto Enrollment
+    private static final   String AUTOENROLL_USE = &quot;autoenroll.use&quot;;
+    private static final   String AUTOENROLL_ADSERVER = &quot;autoenroll.adserver&quot;;
+    private static final   String AUTOENROLL_ADPORT = &quot;autoenroll.adport&quot;;
+    private static final   String AUTOENROLL_SSLCONNECTION = &quot;autoenroll.sslconnection&quot;;
+    private static final   String AUTOENROLL_CONNECTIONDN = &quot;autoenroll.connectiondn&quot;;
+    private static final   String AUTOENROLL_CONNECTIONPWD = &quot;autoenroll.connectionpwd&quot;;
+    private static final   String AUTOENROLL_BASEDN_USER = &quot;autoenroll.basedn.user&quot;;
+    private static final   String AUTOENROLL_CA = &quot;autoenroll.caid&quot;;
+
+      // Paths
+    private static final   String AUTHORIZATION_PATH  = &quot;authorization_path&quot;;
+    private static final   String BANNERS_PATH        = &quot;banners_path&quot;;
+    private static final   String CA_PATH             = &quot;ca_path&quot;;
+    private static final   String CONFIG_PATH         = &quot;data_path&quot;;
+    private static final   String IMAGES_PATH         = &quot;images_path&quot;;
+    private static final   String LANGUAGE_PATH       = &quot;language_path&quot;;
+    private static final   String LOG_PATH            = &quot;log_path&quot;;
+    private static final   String REPORTS_PATH        = &quot;reports_path&quot;;
+    private static final   String RA_PATH             = &quot;ra_path&quot;;
+    private static final   String THEME_PATH          = &quot;theme_path&quot;;
+    private static final   String HARDTOKEN_PATH      = &quot;hardtoken_path&quot;;
+
+    private static final   String CTLOGS              = &quot;ctlogs&quot;;
+
+    private static final   String STATEDUMP_LOCKDOWN  = &quot;statedump_lockdown&quot;;
+
+    private static final   String LANGUAGEFILENAME      =  &quot;languagefilename&quot;;
+    private static final   String IECSSFILENAMEPOSTFIX  =  &quot;iecssfilenamepostfix&quot;;
+    private static final String GOOGLE_CT_POLICY = &quot;google_ct_policy&quot;;
+    private static final String EXTERNAL_SCRIPTS_WHITELIST = &quot;external_scripts_whitelist&quot;;
+    private static final String IS_EXTERNAL_SCRIPTS_WHITELIST_ENABLED = &quot;is_external_scripts_whitelist_enabled&quot;;
+
+    private static final String PUBLICWEBCERTCHAINORDEROOTFIRST = &quot;publicwebcertchainorderrootfirst&quot;;
+
+    /** Creates a new instance of GlobalConfiguration */
+    public GlobalConfiguration()  {
+<span class="nc" id="L187">       super();</span>
+
+<span class="nc" id="L189">       setEjbcaTitle(DEFAULTEJBCATITLE);</span>
+<span class="nc" id="L190">       setHeadBanner(DEFAULTHEADBANNER);</span>
+<span class="nc" id="L191">       setFootBanner(DEFAULTFOOTBANNER);</span>
+<span class="nc" id="L192">       setEnableEndEntityProfileLimitations(true);  // Still needed for 100% up-time upgrade from before EJBCA 6.3.0</span>
+<span class="nc" id="L193">       setEnableAuthenticatedUsersOnly(false);  // Still needed for 100% up-time upgrade from before EJBCA 6.3.0</span>
+<span class="nc" id="L194">       setEnableKeyRecovery(false);  // Still needed for 100% up-time upgrade from before EJBCA 6.3.0</span>
+<span class="nc" id="L195">       setIssueHardwareTokens(false);  // Still needed for 100% up-time upgrade from before EJBCA 6.3.0</span>
+<span class="nc" id="L196">       setEnableIcaoCANameChange(false);</span>
+<span class="nc" id="L197">    }</span>
+
+
+    /** Initializes a new global configuration with data used in ra web interface. 
+     * @param adminpath Path
+     * @param availablelanguages Langs 
+     * @param availablethemes Themes
+     * @param publicport Port
+     * @param privateport private port
+     * @param publicprotocol Protocol
+     * @param privateprotocol Private protocol */
+    public void initialize(String adminpath, String availablelanguages, String availablethemes,
+                           String publicport, String privateport, String publicprotocol, String privateprotocol){
+
+<span class="nc" id="L211">       String tempadminpath = adminpath.trim();</span>
+
+<span class="nc bnc" id="L213" title="All 2 branches missed.">       if(tempadminpath == null) {</span>
+<span class="nc" id="L214">         tempadminpath = &quot;&quot;;</span>
+       }
+<span class="nc bnc" id="L216" title="All 4 branches missed.">       if(!tempadminpath.endsWith(&quot;/&quot;) &amp;&amp; !tempadminpath.equals(&quot;&quot;)){</span>
+<span class="nc" id="L217">         tempadminpath = tempadminpath + &quot;/&quot;;   // Add ending '/'</span>
+       }
+<span class="nc bnc" id="L219" title="All 2 branches missed.">       if(tempadminpath.startsWith(&quot;/&quot;)){</span>
+<span class="nc" id="L220">         tempadminpath = tempadminpath.substring(1);   // Remove starting '/'</span>
+       }
+
+<span class="nc" id="L223">       data.put(ADMINPATH,tempadminpath);</span>
+<span class="nc" id="L224">       data.put(AVAILABLELANGUAGES,availablelanguages.trim());</span>
+<span class="nc" id="L225">       data.put(AVAILABLETHEMES,availablethemes.trim());</span>
+<span class="nc" id="L226">       data.put(PUBLICPORT,publicport.trim());</span>
+<span class="nc" id="L227">       data.put(PRIVATEPORT,privateport.trim());</span>
+<span class="nc" id="L228">       data.put(PUBLICPROTOCOL,publicprotocol.trim());</span>
+<span class="nc" id="L229">       data.put(PRIVATEPROTOCOL,privateprotocol.trim());</span>
+
+<span class="nc" id="L231">       data.put(AUTHORIZATION_PATH,tempadminpath+&quot;administratorprivileges&quot;);</span>
+<span class="nc" id="L232">       data.put(BANNERS_PATH,&quot;banners&quot;);</span>
+<span class="nc" id="L233">       data.put(CA_PATH, tempadminpath+&quot;ca&quot;);</span>
+<span class="nc" id="L234">       data.put(CONFIG_PATH,tempadminpath+&quot;sysconfig&quot;);</span>
+<span class="nc" id="L235">       data.put(IMAGES_PATH,&quot;images&quot;);</span>
+<span class="nc" id="L236">       data.put(LANGUAGE_PATH,&quot;languages&quot;);</span>
+<span class="nc" id="L237">       data.put(LOG_PATH,tempadminpath+&quot;log&quot;);</span>
+<span class="nc" id="L238">       data.put(REPORTS_PATH,tempadminpath+&quot;reports&quot;);</span>
+<span class="nc" id="L239">       data.put(RA_PATH,tempadminpath+&quot;ra&quot;);</span>
+<span class="nc" id="L240">       data.put(THEME_PATH,&quot;themes&quot;);</span>
+<span class="nc" id="L241">       data.put(HARDTOKEN_PATH,tempadminpath+&quot;hardtoken&quot;);</span>
+
+<span class="nc" id="L243">       data.put(LANGUAGEFILENAME,&quot;languagefile&quot;);</span>
+<span class="nc" id="L244">       data.put(IECSSFILENAMEPOSTFIX,&quot;_ie-fixes&quot;);</span>
+<span class="nc" id="L245">    }</span>
+
+    public void initializeAdminWeb() {
+<span class="nc" id="L248">        initialize(&quot;adminweb&quot;, WebConfiguration.getAvailableLanguages(), &quot;default_theme.css,second_theme.css&quot;,</span>
+<span class="nc" id="L249">                &quot;&quot;+WebConfiguration.getPublicHttpPort(), &quot;&quot;+WebConfiguration.getPrivateHttpsPort(), &quot;http&quot;, &quot;https&quot;);</span>
+<span class="nc" id="L250">    }</span>
+
+    /** Checks if global datauration have been initialized. 
+     * @return bool*/
+    public boolean isInitialized(){
+<span class="nc bnc" id="L255" title="All 2 branches missed.">      return data.get(AVAILABLELANGUAGES)!=null;</span>
+    }
+
+    /** @param scheme Scheme
+     * @param requestServerName Server 
+     * @param port Port
+     * @return The base URL of the application using the supplied values. */
+    public String getBaseUrl(final String scheme, final String requestServerName, final int port) {
+<span class="nc" id="L263">        return scheme + &quot;://&quot; + requestServerName + &quot;:&quot; + port + &quot;/&quot; + InternalConfiguration.getAppNameLower() + &quot;/&quot;;</span>
+    }
+
+    /** @return The base path (and not the URL as the name suggests). The name was kept to enable a smaller patch between EJBCA 6.15 and 7.0. */
+    public String getBaseUrl() {
+<span class="nc" id="L268">        return &quot;/&quot; + InternalConfiguration.getAppNameLower() + &quot;/&quot;;</span>
+    }
+
+    /** @return The base path derived values in configuration files */
+    public String getBaseUrlFromConfig() {
+<span class="nc" id="L273">        return getBaseUrl((String) data.get(GlobalConfiguration.PRIVATEPROTOCOL), WebConfiguration.getHostName(),</span>
+<span class="nc" id="L274">                Integer.parseInt((String) data.get(GlobalConfiguration.PRIVATEPORT)));</span>
+    }
+
+    private String getBaseUrlPublic() {
+<span class="nc" id="L278">        return getBaseUrl((String) data.get(PUBLICPROTOCOL), WebConfiguration.getHostName(), Integer.parseInt((String) data.get(PUBLICPORT)));</span>
+    }
+
+    public String getAdminWebPath() {
+<span class="nc" id="L282">        return getString(ADMINPATH, &quot;adminweb&quot;);</span>
+    }
+
+    public String getStandardCRLDistributionPointURI(){
+<span class="nc" id="L286">        return getStandardCRLDistributionPointURINoDN() + DEFAULTCRLDISTURIPATHDN;</span>
+    }
+
+    public String getStandardCRLDistributionPointURINoDN(){
+<span class="nc" id="L290">        return getBaseUrlPublic() + DEFAULTCRLDISTURIPATH;</span>
+    }
+
+    public String getStandardCRLIssuer() {
+<span class="nc" id="L294">    	return DEFAULTCRLDISTURIPATHDN;</span>
+    }
+
+    public String getStandardDeltaCRLDistributionPointURI(){
+<span class="nc" id="L298">    	return getStandardDeltaCRLDistributionPointURINoDN() + DEFAULTCRLDISTURIPATHDN;</span>
+    }
+
+    public String getStandardDeltaCRLDistributionPointURINoDN(){
+<span class="nc" id="L302">        return getBaseUrlPublic() + DEFAULTDELTACRLDISTURIPATH;</span>
+    }
+
+	public String getStandardOCSPServiceLocatorURI(){
+<span class="nc" id="L306">        return getBaseUrlPublic() + DEFAULTOCSPSERVICELOCATORURIPATH;</span>
+	}
+
+     /** Checks the themes path for css files and returns an array of filenames
+     *  without the &quot;.css&quot; ending. 
+     * @return Themes */
+    public   String[] getAvailableThemes() {
+       String[] availablethemes;
+<span class="nc" id="L314">       availablethemes =  getAvailableThemesAsString().split(&quot;,&quot;);</span>
+<span class="nc bnc" id="L315" title="All 2 branches missed.">       if(availablethemes != null){</span>
+<span class="nc bnc" id="L316" title="All 2 branches missed.">         for(int i = 0; i &lt;  availablethemes.length; i++){</span>
+<span class="nc" id="L317">           availablethemes[i] = availablethemes[i].trim();</span>
+<span class="nc bnc" id="L318" title="All 2 branches missed.">           if(availablethemes[i].endsWith(&quot;.css&quot;)){</span>
+<span class="nc" id="L319">             availablethemes[i] = availablethemes[i].substring(0,availablethemes[i].length()-4);</span>
+           }
+         }
+       }
+<span class="nc" id="L323">       return availablethemes;</span>
+    }
+
+    /** Returns the default available theme used by administrator preferences. 
+     * @return Theme*/
+    public String getDefaultAvailableTheme(){
+<span class="nc" id="L329">      return getAvailableThemes()[0];</span>
+    }
+
+
+
+    // Methods for manipulating the headbanner filename.
+<span class="nc" id="L335">    public   String getHeadBanner() {return fullHeadBannerPath((String) data.get(HEADBANNER));}</span>
+    public   void setHeadBanner(String head){
+<span class="nc" id="L337">      data.put(HEADBANNER, fullHeadBannerPath(head));</span>
+<span class="nc" id="L338">    }</span>
+    public boolean isNonDefaultHeadBanner() {
+<span class="nc bnc" id="L340" title="All 2 branches missed.">        return !fullHeadBannerPath(DEFAULTHEADBANNER).equals(data.get(HEADBANNER));</span>
+    }
+    private String fullHeadBannerPath(final String head) {
+<span class="nc" id="L343">        return ((String) data.get(ADMINPATH)) + ((String) data.get(BANNERS_PATH)) + &quot;/&quot; +</span>
+<span class="nc bnc" id="L344" title="All 2 branches missed.">                (StringUtils.isNotBlank(head) ? head.substring(head.lastIndexOf('/')+1) : DEFAULTHEADBANNER);</span>
+    }
+
+
+    // Methods for manipulating the headbanner filename.
+<span class="nc" id="L349">    public   String getFootBanner() {return fullFootBannerPath((String) data.get(FOOTBANNER));}</span>
+    public   void setFootBanner(String foot){
+<span class="nc" id="L351">      data.put(FOOTBANNER, fullFootBannerPath(foot));</span>
+<span class="nc" id="L352">    }</span>
+    private String fullFootBannerPath(final String foot) {
+<span class="nc" id="L354">        return &quot;/&quot; + ((String) data.get(BANNERS_PATH)) + &quot;/&quot; +</span>
+<span class="nc bnc" id="L355" title="All 2 branches missed.">                (StringUtils.isNotBlank(foot) ? foot.substring(foot.lastIndexOf('/')+1) : DEFAULTFOOTBANNER);</span>
+    }
+
+    // Methods for manipulating the title.
+<span class="nc" id="L359">    public   String getEjbcaTitle() {return (String) data.get(TITLE);}</span>
+<span class="nc" id="L360">    public   static String getEjbcaDefaultTitle() {return DEFAULTEJBCATITLE;}</span>
+<span class="nc" id="L361">    public   void setEjbcaTitle(String ejbcatitle) {data.put(TITLE,ejbcatitle);}</span>
+
+
+<span class="nc" id="L364">    public   String getAuthorizationPath() {return (String) data.get(AUTHORIZATION_PATH);}</span>
+<span class="nc" id="L365">    public   String getBannersPath() {return (String) data.get(BANNERS_PATH);}</span>
+<span class="nc" id="L366">    public   String getCaPath() {return (String) data.get(CA_PATH);}</span>
+<span class="nc" id="L367">    public   String getConfigPath() {return (String) data.get(CONFIG_PATH);}</span>
+<span class="nc" id="L368">    public   String getImagesPath() {return (String) data.get(IMAGES_PATH);}</span>
+<span class="nc" id="L369">    public   String getLanguagePath() {return (String) data.get(LANGUAGE_PATH);}</span>
+<span class="nc" id="L370">    public   String getLogPath() {return (String) data.get(LOG_PATH);}</span>
+<span class="nc" id="L371">    public   String getReportsPath() {return (String) data.get(REPORTS_PATH);}</span>
+<span class="nc" id="L372">    public   String getRaPath() {return (String) data.get(RA_PATH);}</span>
+<span class="nc" id="L373">    public   String getThemePath() {return (String) data.get(THEME_PATH);}</span>
+<span class="nc" id="L374">    public   String getHardTokenPath() {return (String) data.get(HARDTOKEN_PATH);}</span>
+
+<span class="nc" id="L376">    public   String getLanguageFilename(){return (String) data.get(LANGUAGEFILENAME);}</span>
+<span class="nc" id="L377">    public   String getIeCssFilenamePostfix(){return (String) data.get(IECSSFILENAMEPOSTFIX);}</span>
+
+<span class="nc" id="L379">    public   String[] getPossibleEntiresPerPage(){return DEFAULTPOSSIBLEENTRIESPERPAGE;}</span>
+<span class="nc" id="L380">    public   String[] getPossibleLogEntiresPerPage(){return DEFAULTPOSSIBLELOGENTRIESPERPAGE;}</span>
+
+<span class="nc" id="L382">    public   String getAvailableLanguagesAsString(){return (String) data.get(AVAILABLELANGUAGES);}</span>
+<span class="nc" id="L383">    public   String getAvailableThemesAsString(){return (String) data.get(AVAILABLETHEMES);}</span>
+
+<span class="nc" id="L385">    public boolean getEnableEndEntityProfileLimitations() { return getBoolean(ENABLEEEPROFILELIMITATIONS, true); }</span>
+<span class="nc" id="L386">    public void setEnableEndEntityProfileLimitations(final boolean value) { putBoolean(ENABLEEEPROFILELIMITATIONS, value); }</span>
+
+<span class="nc" id="L388">    public boolean getEnableAuthenticatedUsersOnly() { return getBoolean(ENABLEAUTHENTICATEDUSERSONLY, false);}</span>
+<span class="nc" id="L389">    public void setEnableAuthenticatedUsersOnly(final boolean value) { putBoolean(ENABLEAUTHENTICATEDUSERSONLY, value);}</span>
+
+<span class="nc" id="L391">    public boolean getEnableKeyRecovery() { return getBoolean(ENABLEKEYRECOVERY, false); }</span>
+<span class="nc" id="L392">    public void setEnableKeyRecovery(final boolean value) { putBoolean(ENABLEKEYRECOVERY, value);}</span>
+<span class="nc" id="L393">    public boolean getLocalKeyRecovery() { return getBoolean(LOCALKEYRECOVERY, false); }</span>
+<span class="nc" id="L394">    public void setLocalKeyRecovery(final boolean value) { putBoolean(LOCALKEYRECOVERY, value); }</span>
+<span class="nc" id="L395">    public Integer getLocalKeyRecoveryCryptoTokenId() { return (Integer) data.get(LOCALKEYRECOVERYCRYPTOTOKEN); }</span>
+<span class="nc" id="L396">    public void setLocalKeyRecoveryCryptoTokenId(final Integer value) { data.put(LOCALKEYRECOVERYCRYPTOTOKEN, value); }</span>
+<span class="nc" id="L397">    public String getLocalKeyRecoveryKeyAlias() { return (String) data.get(LOCALKEYRECOVERYKEYALIAS); }</span>
+<span class="nc" id="L398">    public void setLocalKeyRecoveryKeyAlias(final String value) { data.put(LOCALKEYRECOVERYKEYALIAS, value); }</span>
+
+<span class="nc" id="L400">    public boolean getIssueHardwareTokens() { return getBoolean(ISSUEHARDWARETOKENS, false);}</span>
+<span class="nc" id="L401">    public void setIssueHardwareTokens(final boolean value) { putBoolean(ISSUEHARDWARETOKENS, value);}</span>
+
+<span class="nc" id="L403">    public boolean getEnableIcaoCANameChange() { return getBoolean(ENABLEICAOCANAMECHANGE, false); }</span>
+<span class="nc" id="L404">    public void setEnableIcaoCANameChange(final boolean value) { putBoolean(ENABLEICAOCANAMECHANGE, value);}</span>
+
+   /**
+    * @return the number of required approvals to access sensitive hard token data (default 0)
+    */
+    public int getNumberOfApprovalsToViewPUK(){
+<span class="nc" id="L410">    	Object num = data.get(NUMBEROFAPPROVALSTOVIEWPUK);</span>
+<span class="nc bnc" id="L411" title="All 2 branches missed.">        if(num == null){</span>
+<span class="nc" id="L412">        	return 0;</span>
+        }
+<span class="nc" id="L414">    	return ((Integer) num).intValue();</span>
+    }
+
+    public void setNumberOfApprovalsToViewPUK(int numberOfHardTokenApprovals){
+<span class="nc" id="L418">    	data.put(NUMBEROFAPPROVALSTOVIEWPUK, Integer.valueOf(numberOfHardTokenApprovals));</span>
+<span class="nc" id="L419">    }</span>
+
+    /**
+     * @return the caid of the CA that should encrypt hardtoken data in the database. if CAid is 0 is the data stored unencrypted.
+     */
+     public   int getHardTokenEncryptCA(){
+<span class="nc" id="L425">     	Object num = data.get(HARDTOKENENCRYPTCA);</span>
+<span class="nc bnc" id="L426" title="All 2 branches missed.">         if(num == null){</span>
+<span class="nc" id="L427">         	return 0;</span>
+         }
+
+<span class="nc" id="L430">     	return ((Integer) num).intValue();</span>
+     }
+
+     /**
+      * @param hardTokenEncryptCA the caid of the CA that should encrypt hardtoken data in the database. if CAid is 0 is the data stored unencrypted.
+      */
+     public void setHardTokenEncryptCA(int hardTokenEncryptCA){
+<span class="nc" id="L437">     	data.put(HARDTOKENENCRYPTCA, Integer.valueOf(hardTokenEncryptCA));</span>
+<span class="nc" id="L438">     }</span>
+
+    /** @return true of email notification of requested approvals should be sent (default false) */
+     @Deprecated // Used during upgrade to EJBCA 6.6.0
+<span class="nc" id="L442">     public boolean getUseApprovalNotifications() { return getBoolean(USEAPPROVALNOTIFICATIONS, false); }</span>
+     /**
+      * Returns the email address to the administrators that should recieve notification emails
+      * should be an alias to all approval administrators default &quot;&quot; never null
+     * @return String
+      */
+     @Deprecated // Used during upgrade to EJBCA 6.6.0
+     public String getApprovalAdminEmailAddress() {
+<span class="nc" id="L450">         final Object value = data.get(APPROVALADMINEMAILADDRESS);</span>
+<span class="nc bnc" id="L451" title="All 2 branches missed.">         return value == null ? &quot;&quot; : (String) value;</span>
+     }
+     /** @return the email address used in the from field of approval notification emails */
+     @Deprecated // Used during upgrade to EJBCA 6.6.0
+     public String getApprovalNotificationFromAddress() {
+<span class="nc" id="L456">         final Object value = data.get(APPROVALNOTIFICATIONFROMADDR);</span>
+<span class="nc bnc" id="L457" title="All 2 branches missed.">         return value == null ? &quot;&quot; : (String) value;</span>
+     }
+
+<span class="nc" id="L460">       public void setAutoEnrollADServer(String server) { data.put(AUTOENROLL_ADSERVER, server); }</span>
+       public String getAutoEnrollADServer() {
+<span class="nc" id="L462">    	   String ret = (String) data.get(AUTOENROLL_ADSERVER);</span>
+<span class="nc bnc" id="L463" title="All 2 branches missed.">   		   return (ret == null ? AUTOENROLL_DEFAULT_ADSERVER : ret);</span>
+       }
+<span class="nc" id="L465">       public void setAutoEnrollADPort(int caid) { data.put(AUTOENROLL_ADPORT, Integer.valueOf(caid)); }</span>
+       public int getAutoEnrollADPort() {
+<span class="nc" id="L467">    	   Integer ret = (Integer) data.get(AUTOENROLL_ADPORT);</span>
+<span class="nc bnc" id="L468" title="All 2 branches missed.">   		   return (ret == null ? AUTOENROLL_DEFAULT_ADPORT : ret);</span>
+       }
+<span class="nc" id="L470">       public void setAutoEnrollBaseDNUser(String baseDN) { data.put(AUTOENROLL_BASEDN_USER, baseDN); }</span>
+       public String getAutoEnrollBaseDNUser() {
+<span class="nc" id="L472">    	   String ret = (String) data.get(AUTOENROLL_BASEDN_USER);</span>
+<span class="nc bnc" id="L473" title="All 2 branches missed.">   		   return (ret == null ? AUTOENROLL_DEFAULT_BASEDN_USER : ret);</span>
+   	   }
+<span class="nc" id="L475">       public void setAutoEnrollCA(int caid) { data.put(AUTOENROLL_CA, Integer.valueOf(caid)); }</span>
+       public int getAutoEnrollCA() {
+<span class="nc" id="L477">    	   Integer ret = (Integer) data.get(AUTOENROLL_CA);</span>
+<span class="nc bnc" id="L478" title="All 2 branches missed.">    	   return (ret == null ? AUTOENROLL_DEFAULT_CA : ret);</span>
+       }
+<span class="nc" id="L480">       public void setAutoEnrollConnectionDN(String connectionDN) { data.put(AUTOENROLL_CONNECTIONDN, connectionDN); }</span>
+       public String getAutoEnrollConnectionDN() {
+<span class="nc" id="L482">    	   String ret = (String) data.get(AUTOENROLL_CONNECTIONDN);</span>
+<span class="nc bnc" id="L483" title="All 2 branches missed.">   		   return (ret == null ? AUTOENROLL_DEFAULT_CONNECTIONDN : ret);</span>
+       }
+       public void setAutoEnrollConnectionPwd(String connectionPwd) {
+<span class="nc" id="L486">           data.put(AUTOENROLL_CONNECTIONPWD, StringTools.obfuscateIfNot(connectionPwd));</span>
+<span class="nc" id="L487">       }</span>
+       public String getAutoEnrollConnectionPwd() {
+<span class="nc" id="L489">    	   String ret = (String) data.get(AUTOENROLL_CONNECTIONPWD);</span>
+<span class="nc bnc" id="L490" title="All 2 branches missed.">   		   return (ret == null ? AUTOENROLL_DEFAULT_CONNECTIONPWD : StringTools.deobfuscateIf(ret));</span>
+       }
+<span class="nc" id="L492">       public void setAutoEnrollSSLConnection(final boolean value) { putBoolean(AUTOENROLL_SSLCONNECTION, value); }</span>
+<span class="nc" id="L493">       public boolean getAutoEnrollSSLConnection() { return getBoolean(AUTOENROLL_SSLCONNECTION, AUTOENROLL_DEFAULT_SSLCONNECTION); }</span>
+
+<span class="nc" id="L495">       public void setAutoEnrollUse(final boolean value) { putBoolean(AUTOENROLL_USE, value); }</span>
+<span class="nc" id="L496">       public boolean getAutoEnrollUse() { return getBoolean(AUTOENROLL_USE, AUTOENROLL_DEFAULT_USE); }</span>
+
+<span class="nc" id="L498">       public void setNodesInCluster(final Set&lt;String&gt; nodes) { data.put(NODESINCLUSTER, nodes); }</span>
+       @SuppressWarnings(&quot;unchecked&quot;)
+       public Set&lt;String&gt; getNodesInCluster() {
+           // In an earlier version (&lt;5.0.11) this was a HashSet, not a LinkedHashSet. Using a HashSet causes order to be non-deterministic, that makes it possible
+           // to get verification failures if using Database Protection. This was then changed to a LinkedHashSet that guarantees order.
+           // Therefore we try to ensure that a LinkedHashSet is returned, seamlessly upgrading any old HashSet.
+           // If an old object is in the database, after a getNodesInCluster(),  setNodesInCluster() and saveGlobalConfiguration() it should be a LinkedHashSet in the database.
+<span class="nc" id="L505">           Set&lt;String&gt; ret = null;</span>
+<span class="nc" id="L506">           Object o = data.get(NODESINCLUSTER);</span>
+<span class="nc bnc" id="L507" title="All 4 branches missed.">           if (o != null &amp;&amp; !(o instanceof LinkedHashSet&lt;?&gt;)) {</span>
+<span class="nc" id="L508">               LOG.debug(&quot;Converting GlobalConfiguration NodesInCluster from &quot;+o.getClass().getName()+&quot; to LinkedHashSet.&quot;);</span>
+<span class="nc" id="L509">               ret = new LinkedHashSet&lt;&gt;((Collection&lt;String&gt;)o);</span>
+           } else {
+<span class="nc" id="L511">               ret = (Set&lt;String&gt;)o;</span>
+           }
+<span class="nc bnc" id="L513" title="All 2 branches missed.">           return (ret == null ? NODESINCLUSTER_DEFAULT : ret);</span>
+       }
+
+<span class="nc" id="L516">       public void setEnableCommandLineInterface(final boolean value) { putBoolean(ENABLECOMMANDLINEINTERFACE, value); }</span>
+<span class="nc" id="L517">       public boolean getEnableCommandLineInterface() { return getBoolean(ENABLECOMMANDLINEINTERFACE, DEFAULTENABLECOMMANDLINEINTERFACE); }</span>
+
+<span class="nc" id="L519">       public void setEnableCommandLineInterfaceDefaultUser(final boolean value) { putBoolean(ENABLECOMMANDLINEINTERFACEDEFAULTUSER, value); }</span>
+<span class="nc" id="L520">       public boolean getEnableCommandLineInterfaceDefaultUser() { return getBoolean(ENABLECOMMANDLINEINTERFACEDEFAULTUSER, DEFAULTENABLECOMMANDLINEINTERFACEDEFAULTUSER); }</span>
+
+       @Override
+<span class="nc" id="L523">       public void setEnableExternalScripts(final boolean value) { putBoolean(ENABLEEXTERNALSCRIPTS, value); }</span>
+       @Override
+<span class="nc" id="L525">       public boolean getEnableExternalScripts() { return getBoolean(ENABLEEXTERNALSCRIPTS, DEFAULTENABLEEXTERNALSCRIPTS); }</span>
+
+    public boolean getPublicWebCertChainOrderRootFirst() {
+<span class="nc" id="L528">        return getBoolean(PUBLICWEBCERTCHAINORDEROOTFIRST, DEFAULTPUBLICWEBCERTCHAINORDEROOTFIRST);</span>
+    }
+
+    public void setPublicWebCertChainOrderRootFirst(boolean value) {
+<span class="nc" id="L532">        putBoolean(PUBLICWEBCERTCHAINORDEROOTFIRST, value);</span>
+<span class="nc" id="L533">    }</span>
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public LinkedHashMap&lt;Integer,CTLogInfo&gt; getCTLogs() {
+<span class="nc" id="L537">        final Map&lt;Integer,CTLogInfo&gt; ret = (Map&lt;Integer,CTLogInfo&gt;)data.get(CTLOGS);</span>
+<span class="nc bnc" id="L538" title="All 2 branches missed.">        return (ret == null ? CTLOGS_DEFAULT : new LinkedHashMap&lt;&gt;(ret));</span>
+    }
+
+    /** Sets the available CT logs. NOTE: The order of the is important, so this MUST be called with a LinkedHashMap! 
+     * @param ctlogs Logs*/
+    public void setCTLogs(LinkedHashMap&lt;Integer,CTLogInfo&gt; ctlogs) {
+<span class="nc" id="L544">        data.put(CTLOGS, ctlogs);</span>
+<span class="nc" id="L545">    }</span>
+
+    public void addCTLog(CTLogInfo ctlog) {
+<span class="nc" id="L548">        LinkedHashMap&lt;Integer,CTLogInfo&gt; logs = new LinkedHashMap&lt;&gt;(getCTLogs());</span>
+<span class="nc" id="L549">        logs.put(ctlog.getLogId(), ctlog);</span>
+<span class="nc" id="L550">        setCTLogs(logs);</span>
+<span class="nc" id="L551">    }</span>
+
+    public void removeCTLog(int ctlogId) {
+<span class="nc" id="L554">        LinkedHashMap&lt;Integer,CTLogInfo&gt; logs = new LinkedHashMap&lt;&gt;(getCTLogs());</span>
+<span class="nc" id="L555">        logs.remove(ctlogId);</span>
+<span class="nc" id="L556">        setCTLogs(logs);</span>
+<span class="nc" id="L557">    }</span>
+
+    public GoogleCtPolicy getGoogleCtPolicy() {
+<span class="nc" id="L560">        final GoogleCtPolicy googleCtPolicy = (GoogleCtPolicy) data.get(GOOGLE_CT_POLICY);</span>
+<span class="nc bnc" id="L561" title="All 2 branches missed.">        if (googleCtPolicy == null) {</span>
+<span class="nc" id="L562">            return new GoogleCtPolicy();</span>
+        }
+<span class="nc" id="L564">        return googleCtPolicy;</span>
+    }
+
+    public void setGoogleCtPolicy(final GoogleCtPolicy value) {
+<span class="nc" id="L568">        data.put(GOOGLE_CT_POLICY, value);</span>
+<span class="nc" id="L569">    }</span>
+
+    public boolean getStatedumpLockedDown() {
+<span class="nc" id="L572">        return getBoolean(STATEDUMP_LOCKDOWN, true);</span>
+    }
+
+    public void setStatedumpLockedDown(final boolean value) {
+<span class="nc" id="L576">        data.put(STATEDUMP_LOCKDOWN, value);</span>
+<span class="nc" id="L577">    }</span>
+
+    @Override
+    public float getLatestVersion(){
+<span class="nc" id="L581">       return LATEST_VERSION;</span>
+    }
+
+    @Override
+    public void upgrade(){
+<span class="nc bnc" id="L586" title="All 2 branches missed.">    	if(Float.compare(LATEST_VERSION, getVersion()) != 0) {</span>
+    		// New version of the class, upgrade
+<span class="nc bnc" id="L588" title="All 2 branches missed.">    		if(data.get(HARDTOKEN_PATH) == null){</span>
+<span class="nc" id="L589">    			data.put(HARDTOKEN_PATH, ((String) data.get(ADMINPATH) + &quot;hardtoken&quot;));</span>
+    		}
+<span class="nc bnc" id="L591" title="All 2 branches missed.">    		if(data.get(REPORTS_PATH) == null){</span>
+<span class="nc" id="L592">    			data.put(REPORTS_PATH, ((String) data.get(ADMINPATH) + &quot;reports&quot;));</span>
+    		}
+<span class="nc bnc" id="L594" title="All 2 branches missed.">    		if(data.get(ENABLECOMMANDLINEINTERFACEDEFAULTUSER) == null) {</span>
+<span class="nc" id="L595">    		        data.put(ENABLECOMMANDLINEINTERFACEDEFAULTUSER, Boolean.TRUE);</span>
+    		}
+<span class="nc bnc" id="L597" title="All 2 branches missed.">    		if(data.get(ENABLEEXTERNALSCRIPTS) == null) {</span>
+<span class="nc" id="L598">                data.put(ENABLEEXTERNALSCRIPTS, DEFAULTENABLEEXTERNALSCRIPTS);</span>
+    		}
+<span class="nc bnc" id="L600" title="All 2 branches missed.">    		if(data.get(ENABLEICAOCANAMECHANGE) == null) {</span>
+<span class="nc" id="L601">                data.put(ENABLEICAOCANAMECHANGE, Boolean.FALSE);</span>
+    		}
+<span class="nc" id="L603">    		data.put(VERSION,  Float.valueOf(LATEST_VERSION));</span>
+    	}
+<span class="nc" id="L605">    }</span>
+
+    @Override
+    public String getConfigurationId() {
+<span class="nc" id="L609">        return GLOBAL_CONFIGURATION_ID;</span>
+    }
+
+    @Override
+    public String getExternalScriptsWhitelist() {
+<span class="nc" id="L614">        return getString(EXTERNAL_SCRIPTS_WHITELIST, StringUtils.EMPTY);</span>
+    }
+
+    @Override
+    public void setExternalScriptsWhitelist(final String value) {
+<span class="nc" id="L619">        data.put(EXTERNAL_SCRIPTS_WHITELIST, value);</span>
+<span class="nc" id="L620">    }</span>
+
+    @Override
+    public boolean getIsExternalScriptsWhitelistEnabled() {
+<span class="nc" id="L624">        return getBoolean(IS_EXTERNAL_SCRIPTS_WHITELIST_ENABLED, false);</span>
+    }
+
+    @Override
+    public void setIsExternalScriptsWhitelistEnabled(final boolean value) {
+<span class="nc" id="L629">        data.put(IS_EXTERNAL_SCRIPTS_WHITELIST_ENABLED, value);</span>
+<span class="nc" id="L630">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

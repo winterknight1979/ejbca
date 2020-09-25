@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>BaseCmpMessage.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.cmp</a> &gt; <span class="el_source">BaseCmpMessage.java</span></div><h1>BaseCmpMessage.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.protocol.cmp;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.Serializable;
+import java.security.cert.Certificate;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1OctetString;
+import org.bouncycastle.asn1.ASN1OutputStream;
+import org.bouncycastle.asn1.cmp.PKIHeader;
+import org.bouncycastle.asn1.cmp.PKIMessage;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.cesecore.util.Base64;
+
+/**
+ * Base class for CMP request messages.
+ * 
+ * @version $Id: BaseCmpMessage.java 28286 2018-02-14 20:51:41Z bastianf $
+ */
+<span class="fc" id="L35">public abstract class BaseCmpMessage implements Serializable {</span>
+  
+	private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L39">	private transient PKIMessage pkiMessage = null;</span>
+<span class="fc" id="L40">	private String b64SenderNonce = null;</span>
+<span class="fc" id="L41">	private String b64RecipientNonce = null;</span>
+<span class="fc" id="L42">	private String b64TransId = null;</span>
+<span class="fc" id="L43">	private transient GeneralName recipient = null;	// GeneralName is not Serializable</span>
+<span class="fc" id="L44">	private byte[] recipientBytes = null;</span>
+<span class="fc" id="L45">	private transient GeneralName sender = null;	// GeneralName is not Serializable</span>
+<span class="fc" id="L46">	private byte[] senderBytes = null;</span>
+<span class="fc" id="L47">	private String protectionType = null;</span>
+<span class="fc" id="L48">	private String pbeDigestAlg = null;</span>
+<span class="fc" id="L49">	private String pbeMacAlg = null;</span>
+<span class="fc" id="L50">	private int pbeIterationCount = 1024;</span>
+<span class="fc" id="L51">	private String pbeKeyId = null;</span>
+<span class="fc" id="L52">	private String pbeKey = null;</span>
+
+<span class="fc" id="L54">	private List&lt;Certificate&gt; additionalCaCertificates = new ArrayList&lt;Certificate&gt;();</span>
+
+<span class="fc" id="L56">	private List&lt;Certificate&gt; additionalExtraCerts = new ArrayList&lt;Certificate&gt;();</span>
+	
+	/** @param asn1OctetString Octets
+	 * @return the ASN.1 encoded octets as a bas64 encoded String or null if no such data is available */
+	protected String getBase64FromAsn1OctetString(final ASN1OctetString asn1OctetString) {
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        if (asn1OctetString != null) {</span>
+<span class="nc" id="L62">            final byte[] val = asn1OctetString.getOctets();</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">            if (val != null) {</span>
+<span class="nc" id="L64">                return new String(Base64.encode(val));</span>
+            }
+        }
+<span class="nc" id="L67">        return null;</span>
+	}
+	/** @param asn1Encodable ASN.1
+	 * @return the byte array representation of the ASN.1 object 
+	 * @throws IllegalStateException fail*/
+    private byte[] getByteArrayFromAsn1Encodable(final ASN1Encodable asn1Encodable) throws IllegalStateException {
+<span class="fc" id="L73">        final ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+        try {
+<span class="fc" id="L75">            new ASN1OutputStream(baos).writeObject(asn1Encodable);</span>
+<span class="nc" id="L76">        } catch (IOException e) {</span>
+<span class="nc" id="L77">            throw new IllegalStateException(e);</span>
+<span class="fc" id="L78">        }</span>
+<span class="fc" id="L79">        return baos.toByteArray();</span>
+    }
+
+	public void setSenderNonce(String b64nonce) {
+<span class="fc" id="L83">		this.b64SenderNonce = b64nonce;</span>
+<span class="fc" id="L84">	}</span>
+	public String getSenderNonce() {
+<span class="fc" id="L86">		return b64SenderNonce;</span>
+	}
+	public void setRecipientNonce(String b64nonce) {
+<span class="fc" id="L89">		this.b64RecipientNonce = b64nonce;</span>
+<span class="fc" id="L90">	}</span>
+	public String getRecipientNonce() {
+<span class="fc" id="L92">		return b64RecipientNonce;</span>
+	}
+
+	public void setTransactionId(String b64transid) {
+<span class="fc" id="L96">		this.b64TransId = b64transid;</span>
+<span class="fc" id="L97">	}</span>
+	public String getTransactionId() {
+<span class="fc" id="L99">		return b64TransId;</span>
+	}
+
+	public GeneralName getRecipient() {
+<span class="pc bpc" id="L103" title="3 of 4 branches missed.">		if (recipient == null &amp;&amp; recipientBytes != null) {</span>
+<span class="nc" id="L104">            recipient = GeneralName.getInstance(recipientBytes);</span>
+		}
+<span class="fc" id="L106">		return recipient;</span>
+	}
+	public void setRecipient(final GeneralName recipient) {
+<span class="fc" id="L109">		this.recipient = recipient;</span>
+<span class="fc" id="L110">		recipientBytes = getByteArrayFromAsn1Encodable(recipient);</span>
+<span class="fc" id="L111">	}</span>
+	public GeneralName getSender() {
+<span class="pc bpc" id="L113" title="3 of 4 branches missed.">		if (sender == null &amp;&amp; senderBytes != null) {</span>
+<span class="nc" id="L114">            sender = GeneralName.getInstance(senderBytes);</span>
+		}
+<span class="fc" id="L116">		return sender;</span>
+	}
+	public void setSender(final GeneralName sender) {
+<span class="fc" id="L119">		this.sender = sender;</span>
+<span class="fc" id="L120">		senderBytes = getByteArrayFromAsn1Encodable(sender);</span>
+<span class="fc" id="L121">	}</span>
+	public PKIHeader getHeader() {
+<span class="nc" id="L123">		return pkiMessage.getHeader();</span>
+	}
+	public PKIMessage getMessage() {
+<span class="nc" id="L126">		return pkiMessage;</span>
+	}
+	public void setMessage(final PKIMessage pkiMessage) {
+<span class="nc" id="L129">		this.pkiMessage = pkiMessage;</span>
+<span class="nc" id="L130">	}</span>
+	public String getProtectionType() {
+<span class="nc" id="L132">		return protectionType;</span>
+	}
+	public void setProtectionType(String protectionType) {
+<span class="nc" id="L135">		this.protectionType = protectionType;</span>
+<span class="nc" id="L136">	}</span>
+	public void setPbeParameters(final String keyId, final String key, final String digestAlg, final String macAlg, final int iterationCount) {
+<span class="nc" id="L138">		this.pbeKeyId = keyId;</span>
+<span class="nc" id="L139">		this.pbeKey = key;</span>
+<span class="nc" id="L140">		this.pbeDigestAlg = digestAlg;</span>
+<span class="nc" id="L141">		this.pbeMacAlg = macAlg;</span>
+<span class="nc" id="L142">		this.pbeIterationCount = iterationCount;</span>
+<span class="nc" id="L143">	}</span>
+	public String getPbeDigestAlg() {
+<span class="fc" id="L145">		return pbeDigestAlg;</span>
+	}
+	public String getPbeKey() {
+<span class="nc" id="L148">		return pbeKey;</span>
+	}
+	public String getPbeKeyId() {
+<span class="nc" id="L151">		return pbeKeyId;</span>
+	}
+	public String getPbeMacAlg() {
+<span class="nc" id="L154">		return pbeMacAlg;</span>
+	}
+	public int getPbeIterationCount() {
+<span class="nc" id="L157">		return pbeIterationCount;</span>
+	}
+
+	/**
+     * Gets the list of additional CA certificates
+     * (i.e. to be appended to the user certificates CA certificate returned in the CMP response message caPubs field).
+     * @return the list of CA certificates.
+     */
+	public List&lt;Certificate&gt; getAdditionalCaCertificates() {
+<span class="nc" id="L166">        return additionalCaCertificates;</span>
+    }
+	
+	/**
+     * Sets the list of additional CA certificates
+     * (i.e. to be appended to the user certificates CA certificate returned in the CMP response message caPubs field).
+     * @param certificates the list of CA certificates.
+     */
+    public void setAdditionalCaCertificates(final List&lt;Certificate&gt; certificates) {
+<span class="nc" id="L175">        this.additionalCaCertificates = certificates;</span>
+<span class="nc" id="L176">    }</span>
+    
+    /**
+     * Gets the list of additional CA certificates to be appended to the PKI response message extraCerts field.
+     * @return the list of CA certificates.
+     */
+    public List&lt;Certificate&gt; getAdditionalExtraCertsCertificates() {
+<span class="nc" id="L183">        return additionalExtraCerts;</span>
+    }
+    
+    /**
+     * Sets the list of additional CA certificates to be appended to the PKI response message extraCerts field.
+     * @param certificates the list of CA certificates.
+     */
+    public void setAdditionalExtraCertsCertificates(final List&lt;Certificate&gt; certificates) {
+<span class="nc" id="L191">        this.additionalExtraCerts = certificates;</span>
+<span class="nc" id="L192">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

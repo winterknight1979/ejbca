@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RegexFieldValidator.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.ra.raadmin.validators</a> &gt; <span class="el_source">RegexFieldValidator.java</span></div><h1>RegexFieldValidator.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.ra.raadmin.validators;
+
+import java.io.Serializable;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
+import org.ejbca.core.model.ra.raadmin.EndEntityFieldValidator;
+import org.ejbca.core.model.ra.raadmin.EndEntityFieldValidatorException;
+
+/**
+ * Validator for end entity fields that validates using regex'es specified in the end entity profile.
+ * 
+ * @version $Id: RegexFieldValidator.java 25016 2017-01-16 10:23:57Z anatom $
+ */
+<span class="fc" id="L27">public class RegexFieldValidator implements EndEntityFieldValidator {</span>
+    
+    @Override
+    public void checkValidatorData(String field, Serializable validatorData) throws EndEntityFieldValidatorException {
+<span class="fc" id="L31">        final String regex = (String)validatorData;</span>
+        try {
+<span class="fc" id="L33">            Pattern.compile(regex);</span>
+<span class="fc" id="L34">        } catch (PatternSyntaxException e) {</span>
+<span class="fc" id="L35">            throw new EndEntityFieldValidatorException(&quot;Invalid regex for field &quot;+field+&quot;: &quot;+e.getMessage());</span>
+<span class="fc" id="L36">        }</span>
+<span class="fc" id="L37">    }</span>
+    
+    @Override
+    public boolean isApplicableTo(final String field) {
+        // Can be used with all fields
+<span class="nc" id="L42">        return true;</span>
+    }
+
+    @Override
+    public void validate(final String field, final Serializable validatorData, final String value) throws EndEntityFieldValidatorException {
+        // The DN component name is not used by this validator.
+<span class="fc" id="L48">        final String regex = (String)validatorData;</span>
+<span class="pc bpc" id="L49" title="1 of 4 branches missed.">        if (!Pattern.matches(regex, value == null ? &quot;&quot;:value)) {</span>
+<span class="fc" id="L50">            throw new EndEntityFieldValidatorException(&quot;Technical details: Value \&quot;&quot;+value+&quot;\&quot; does not match regex &quot;+regex);</span>
+        }
+<span class="fc" id="L52">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,642 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ApprovalProfileBase.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.approval.profile</a> &gt; <span class="el_source">ApprovalProfileBase.java</span></div><h1>ApprovalProfileBase.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA: The OpenSource Certificate Authority                          *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.approval.profile;
+
+import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.AuthenticationFailedException;
+import org.cesecore.authorization.user.AccessUserAspectData;
+import org.cesecore.profiles.ProfileBase;
+import org.cesecore.roles.RoleInformation;
+import org.cesecore.util.ProfileID;
+import org.cesecore.util.ui.DynamicUiProperty;
+import org.cesecore.util.ui.MultiLineString;
+import org.ejbca.config.EjbcaConfiguration;
+import org.ejbca.core.model.approval.Approval;
+
+/**
+ *
+ * Implementation of the ProfileBase class, common functionality for all approval type profiles.
+ *
+ * @version $Id: ApprovalProfileBase.java 29022 2018-05-24 19:35:09Z bastianf $
+ *
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+public abstract class ApprovalProfileBase extends ProfileBase implements ApprovalProfile, Cloneable {
+
+<span class="fc" id="L50">    private static final Logger log = Logger.getLogger(ApprovalProfileBase.class);</span>
+
+    private static final long serialVersionUID = 1L;
+
+    private static final int NO_SEQUENCES = -1;
+
+    private static final String STEPS_KEY = &quot;steps&quot;;
+    private static final String FIRST_STEP_KEY = &quot;firstStep&quot;;
+
+    /**
+     * The sequences of this approval profile, as mapped by their sequences
+     */
+<span class="fc" id="L62">    private transient Map&lt;Integer, ApprovalStep&gt; steps = new HashMap&lt;&gt;();</span>
+
+
+
+    public ApprovalProfileBase() {
+        //Public constructor needed deserialization
+<span class="fc" id="L68">        super();</span>
+<span class="fc" id="L69">    }</span>
+
+    public ApprovalProfileBase(final String name) {
+<span class="fc" id="L72">        super(name);</span>
+<span class="fc" id="L73">        data.put(PROPERTY_REQUEST_EXPIRATION_PERIOD, EjbcaConfiguration.getApprovalDefaultRequestValidity());</span>
+<span class="fc" id="L74">        data.put(PROPERTY_APPROVAL_EXPIRATION_PERIOD, EjbcaConfiguration.getApprovalDefaultApprovalValidity());</span>
+<span class="fc" id="L75">        data.put(PROPERTY_MAX_EXTENSION_TIME, EjbcaConfiguration.getApprovalDefaultMaxExtensionTime());</span>
+
+<span class="fc" id="L77">    }</span>
+
+    @Override
+    public String getProfileType() {
+<span class="fc" id="L81">        return TYPE_NAME;</span>
+    }
+
+    @Override
+    public long getRequestExpirationPeriod() {
+<span class="fc" id="L86">        final Object value = data.get(PROPERTY_REQUEST_EXPIRATION_PERIOD);</span>
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">        if(value == null) {</span>
+<span class="nc" id="L88">            return EjbcaConfiguration.getApprovalDefaultRequestValidity();</span>
+        }
+<span class="fc" id="L90">        return (long) value;</span>
+    }
+
+    @Override
+    public void setRequestExpirationPeriod(final long expirationPeriod) {
+<span class="fc" id="L95">        data.put(PROPERTY_REQUEST_EXPIRATION_PERIOD, expirationPeriod);</span>
+<span class="fc" id="L96">    }</span>
+
+    @Override
+    public long getApprovalExpirationPeriod() {
+<span class="nc" id="L100">        final Object value = data.get(PROPERTY_APPROVAL_EXPIRATION_PERIOD);</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">        if(value == null) {</span>
+<span class="nc" id="L102">            return EjbcaConfiguration.getApprovalDefaultApprovalValidity();</span>
+        }
+<span class="nc" id="L104">        return (long) value;</span>
+    }
+
+    @Override
+    public void setApprovalExpirationPeriod(final long expirationPeriod) {
+<span class="nc" id="L109">        data.put(PROPERTY_APPROVAL_EXPIRATION_PERIOD, expirationPeriod);</span>
+<span class="nc" id="L110">    }</span>
+
+    @Override
+    public long getMaxExtensionTime() {
+<span class="nc" id="L114">        final Object value = data.get(PROPERTY_MAX_EXTENSION_TIME);</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        if(value == null) {</span>
+<span class="nc" id="L116">            return EjbcaConfiguration.getApprovalDefaultMaxExtensionTime();</span>
+        }
+<span class="nc" id="L118">        return (long) value;</span>
+    }
+
+    @Override
+    public void setMaxExtensionTime(final long maxExtensionTime) {
+<span class="nc" id="L123">        data.put(PROPERTY_MAX_EXTENSION_TIME, maxExtensionTime);</span>
+<span class="nc" id="L124">    }</span>
+
+    @Override
+    public boolean getAllowSelfEdit() {
+<span class="nc" id="L128">        final Object value = data.get(PROPERTY_ALLOW_SELF_EDIT);</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        if (value == null) {</span>
+<span class="nc" id="L130">            return false;</span>
+        }
+<span class="nc" id="L132">        return (boolean) value;</span>
+    }
+
+    @Override
+    public void setAllowSelfEdit(boolean allowSelfEdit) {
+<span class="nc" id="L137">        data.put(PROPERTY_ALLOW_SELF_EDIT, allowSelfEdit);</span>
+<span class="nc" id="L138">    }</span>
+
+    @Override
+    public ApprovalProfile clone() {
+<span class="nc" id="L142">        getType();</span>
+        ApprovalProfile clone;
+        try {
+<span class="nc" id="L145">            clone = (ApprovalProfile) getType().getConstructor().newInstance();</span>
+<span class="nc" id="L146">        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {</span>
+<span class="nc" id="L147">            throw new IllegalStateException(&quot;Could not instansiate class of type &quot; + getType().getCanonicalName());</span>
+<span class="nc" id="L148">        }</span>
+<span class="nc" id="L149">        clone.setProfileName(getProfileName());</span>
+<span class="nc" id="L150">        clone.setProfileId(getProfileId());</span>
+
+        // We need to make a deep copy of the hashmap here
+<span class="nc" id="L153">        LinkedHashMap&lt;Object, Object&gt; dataMap = new LinkedHashMap&lt;&gt;(data.size());</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        for (final Entry&lt;Object, Object&gt; entry : data.entrySet()) {</span>
+<span class="nc" id="L155">            Object value = entry.getValue();</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">            if (value instanceof ArrayList&lt;?&gt;) {</span>
+                // We need to make a clone of this object, but the stored immutables can still be referenced
+<span class="nc" id="L158">                value = ((ArrayList&lt;?&gt;) value).clone();</span>
+            }
+<span class="nc" id="L160">            dataMap.put(entry.getKey(), value);</span>
+<span class="nc" id="L161">        }</span>
+<span class="nc" id="L162">        clone.setDataMap(dataMap);</span>
+<span class="nc" id="L163">        Map&lt;Integer, ApprovalStep&gt; stepClone = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">        for (ApprovalStep approvalStep : getSteps().values()) {</span>
+<span class="nc" id="L165">            stepClone.put(approvalStep.getStepIdentifier(), new ApprovalStep(approvalStep));</span>
+<span class="nc" id="L166">        }</span>
+<span class="nc" id="L167">        clone.setSteps(stepClone);</span>
+<span class="nc" id="L168">        clone.setFirstStep(getFirstStepId());</span>
+<span class="nc" id="L169">        return clone;</span>
+    }
+
+    @Override
+    public int compareTo(final ApprovalProfile approvalProfile) {
+<span class="nc bnc" id="L174" title="All 2 branches missed.">        if (approvalProfile == null) { return 1; }</span>
+<span class="nc" id="L175">        final String name = getProfileName();</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">        if (name == null) { return -1; }</span>
+<span class="nc" id="L177">        return name.compareToIgnoreCase(approvalProfile.getProfileName());</span>
+    }
+
+    @Override
+    public void setSteps(Map&lt;Integer, ApprovalStep&gt; stepsToBeEncoded) {
+<span class="nc" id="L182">        this.steps = null;</span>
+<span class="nc" id="L183">        data.put(STEPS_KEY, encodeSteps(stepsToBeEncoded.values()));</span>
+<span class="nc" id="L184">    }</span>
+
+    @Override
+    public ApprovalPartition addPartition(int stepIdentifier) {
+<span class="fc" id="L188">        ApprovalPartition result = getStep(stepIdentifier).addPartition();</span>
+        //Pass a deep copy
+<span class="fc" id="L190">        result = addConstantProperties(new ApprovalPartition(result));</span>
+<span class="fc" id="L191">        getStep(stepIdentifier).addPartition(result);</span>
+<span class="fc" id="L192">        saveTransientObjects();</span>
+<span class="fc" id="L193">        return result;</span>
+    }
+
+    /**
+     * Add whatever constant properties specified by the implementation.
+     *
+     * @param approvalPartition an approval partition
+     * @return a copy of the partition with the constant values.
+     */
+    protected abstract ApprovalPartition addConstantProperties(ApprovalPartition approvalPartition);
+
+    @Override
+    public boolean isNotificationEnabled(final ApprovalPartition approvalPartition) {
+<span class="nc bnc" id="L206" title="All 4 branches missed.">        return approvalPartition!=null &amp;&amp; approvalPartition.getProperty(ApprovalProfile.PROPERTY_NOTIFICATION_EMAIL_RECIPIENT) != null;</span>
+    }
+
+    @Override
+    public ApprovalPartition addNotificationProperties(final ApprovalPartition approvalPartition, String recipient, String sender, String subject, String body) {
+        // TODO: It would be nice with the email-address type
+<span class="nc" id="L212">        approvalPartition.addProperty(new DynamicUiProperty&lt;&gt;(PROPERTY_NOTIFICATION_EMAIL_RECIPIENT, recipient));</span>
+<span class="nc" id="L213">        approvalPartition.addProperty(new DynamicUiProperty&lt;&gt;(PROPERTY_NOTIFICATION_EMAIL_SENDER, sender));</span>
+<span class="nc" id="L214">        approvalPartition.addProperty(new DynamicUiProperty&lt;&gt;(PROPERTY_NOTIFICATION_EMAIL_MESSAGE_SUBJECT, subject));</span>
+<span class="nc" id="L215">        approvalPartition.addProperty(new DynamicUiProperty&lt;&gt;(PROPERTY_NOTIFICATION_EMAIL_MESSAGE_BODY, new MultiLineString(body)));</span>
+<span class="nc" id="L216">        return approvalPartition;</span>
+    }
+
+    @Override
+    public boolean isUserNotificationEnabled(final ApprovalPartition approvalPartition) {
+<span class="nc bnc" id="L221" title="All 4 branches missed.">        return approvalPartition!=null &amp;&amp; approvalPartition.getProperty(ApprovalProfile.PROPERTY_USER_NOTIFICATION_EMAIL_MESSAGE_SUBJECT) != null;</span>
+    }
+
+    @Override
+    public ApprovalPartition addUserNotificationProperties(final ApprovalPartition approvalPartition, String sender, String subject, String body) {
+        // TODO: It would be nice with the email-address type
+<span class="nc" id="L227">        approvalPartition.addProperty(new DynamicUiProperty&lt;&gt;(PROPERTY_USER_NOTIFICATION_EMAIL_SENDER, sender));</span>
+<span class="nc" id="L228">        approvalPartition.addProperty(new DynamicUiProperty&lt;&gt;(PROPERTY_USER_NOTIFICATION_EMAIL_MESSAGE_SUBJECT, subject));</span>
+<span class="nc" id="L229">        approvalPartition.addProperty(new DynamicUiProperty&lt;&gt;(PROPERTY_USER_NOTIFICATION_EMAIL_MESSAGE_BODY, new MultiLineString(body)));</span>
+<span class="nc" id="L230">        return approvalPartition;</span>
+    }
+
+    @Override
+    public final Set&lt;String&gt; getHiddenProperties() {
+<span class="nc" id="L235">        Set&lt;String&gt; result = new HashSet&lt;&gt;(Arrays.asList(PROPERTY_NOTIFICATION_EMAIL_RECIPIENT, PROPERTY_NOTIFICATION_EMAIL_SENDER,</span>
+                PROPERTY_NOTIFICATION_EMAIL_MESSAGE_SUBJECT, PROPERTY_NOTIFICATION_EMAIL_MESSAGE_BODY,
+                PROPERTY_USER_NOTIFICATION_EMAIL_SENDER,
+                PROPERTY_USER_NOTIFICATION_EMAIL_MESSAGE_SUBJECT, PROPERTY_USER_NOTIFICATION_EMAIL_MESSAGE_BODY
+                ));
+<span class="nc" id="L240">        result.addAll(Arrays.asList(getImplementationHiddenProperties()));</span>
+<span class="nc" id="L241">        return result;</span>
+    }
+
+    /**
+     * Allows implementations to specify their own list of hidden properties
+     *
+     * @return a list of property keys.
+     */
+    protected abstract String[] getImplementationHiddenProperties();
+
+    @Override
+    public ApprovalPartition removeNotificationProperties(final ApprovalPartition approvalPartition) {
+<span class="nc" id="L253">        approvalPartition.removeProperty(PROPERTY_NOTIFICATION_EMAIL_RECIPIENT);</span>
+<span class="nc" id="L254">        approvalPartition.removeProperty(PROPERTY_NOTIFICATION_EMAIL_SENDER);</span>
+<span class="nc" id="L255">        approvalPartition.removeProperty(PROPERTY_NOTIFICATION_EMAIL_MESSAGE_SUBJECT);</span>
+<span class="nc" id="L256">        approvalPartition.removeProperty(PROPERTY_NOTIFICATION_EMAIL_MESSAGE_BODY);</span>
+<span class="nc" id="L257">        return approvalPartition;</span>
+    }
+
+    @Override
+    public ApprovalPartition removeUserNotificationProperties(final ApprovalPartition approvalPartition) {
+<span class="nc" id="L262">        approvalPartition.removeProperty(PROPERTY_USER_NOTIFICATION_EMAIL_SENDER);</span>
+<span class="nc" id="L263">        approvalPartition.removeProperty(PROPERTY_USER_NOTIFICATION_EMAIL_MESSAGE_SUBJECT);</span>
+<span class="nc" id="L264">        approvalPartition.removeProperty(PROPERTY_USER_NOTIFICATION_EMAIL_MESSAGE_BODY);</span>
+<span class="nc" id="L265">        return approvalPartition;</span>
+    }
+
+    @Override
+    public void addPropertyToPartition(int stepId, int partitionId, DynamicUiProperty&lt;? extends Serializable&gt; property) throws NoSuchApprovalStepException {
+<span class="fc" id="L270">        ApprovalStep step = getSteps().get(stepId);</span>
+<span class="pc bpc" id="L271" title="1 of 2 branches missed.">        if (step == null) {</span>
+<span class="nc" id="L272">            throw new NoSuchApprovalStepException(&quot;Approval step with ID: &quot; + stepId + &quot; not found.&quot;);</span>
+        }
+<span class="fc" id="L274">        step.setPropertyToPartition(partitionId, property);</span>
+<span class="fc" id="L275">        saveTransientObjects();</span>
+<span class="fc" id="L276">    }</span>
+
+    @Override
+    public void removePropertyFromPartition(final int stepId, final int partitionId, final String propertyName) {
+<span class="nc" id="L280">        ApprovalStep step = getSteps().get(stepId);</span>
+<span class="nc bnc" id="L281" title="All 2 branches missed.">        if (step == null) {</span>
+<span class="nc" id="L282">            throw new NoSuchApprovalStepException(&quot;Approval step with ID: &quot; + stepId + &quot; not found.&quot;);</span>
+        }
+<span class="nc" id="L284">        step.removePropertyFromPartition(partitionId, propertyName);</span>
+<span class="nc" id="L285">        saveTransientObjects();</span>
+<span class="nc" id="L286">    }</span>
+
+    @Override
+    public void addPropertiesToPartition(Integer stepId, int partitionId, Collection&lt;DynamicUiProperty&lt;? extends Serializable&gt;&gt; properties)
+            throws NoSuchApprovalStepException {
+<span class="nc bnc" id="L291" title="All 2 branches missed.">        for (final DynamicUiProperty&lt;? extends Serializable&gt; property : properties) {</span>
+<span class="nc" id="L292">            addPropertyToPartition(stepId, partitionId, property);</span>
+<span class="nc" id="L293">        }</span>
+<span class="nc" id="L294">        saveTransientObjects();</span>
+<span class="nc" id="L295">    }</span>
+
+    @Override
+    public Map&lt;Integer, ApprovalStep&gt; getSteps() {
+<span class="fc bfc" id="L299" title="All 4 branches covered.">        if(steps == null || steps.isEmpty()) {</span>
+<span class="fc" id="L300">            loadStepsFromMap();</span>
+        }
+<span class="fc" id="L302">        return steps;</span>
+    }
+
+    @Override
+    public void addStep(ApprovalStep step) throws NonModifiableApprovalProfileException {
+<span class="nc bnc" id="L307" title="All 2 branches missed.">        if (isStepSizeFixed()) {</span>
+            //No operation, and method should not have been called without a prior check.
+<span class="nc" id="L309">            throw new NonModifiableApprovalProfileException(</span>
+                    &quot;Attempted adding a step to an approval profile implementation which does not support it.&quot;);
+        } else {
+<span class="nc" id="L312">            getSteps().put(step.getStepIdentifier(), step);</span>
+<span class="nc bnc" id="L313" title="All 4 branches missed.">            if (log.isDebugEnabled() &amp;&amp; !StringUtils.isEmpty(getProfileName())) {</span>
+                //This method may be called from the factory when creating archetypes, so don't debug log that case.
+<span class="nc" id="L315">                log.debug(&quot;Added step with ID &quot; + step.getStepIdentifier() + &quot; to profile &quot; + getProfileName());</span>
+            }
+            //All steps must have one partition minimum. This will also add standard fields from the underlying profile implementation
+<span class="nc bnc" id="L318" title="All 2 branches missed.">            if (step.getPartitions().size() == 0) {</span>
+<span class="nc" id="L319">                addPartition(step.getStepIdentifier());</span>
+            }
+        }
+<span class="nc" id="L322">        saveTransientObjects();</span>
+<span class="nc" id="L323">    }</span>
+
+    @Override
+    public ApprovalStep addStepFirst() {
+        int identifier;
+        do {
+<span class="nc" id="L329">            identifier = ProfileID.getRandomIdNumber();</span>
+<span class="nc bnc" id="L330" title="All 2 branches missed.">        } while(getSteps().containsKey(identifier));</span>
+<span class="nc" id="L331">        ApprovalStep newStep = new ApprovalStep(identifier);</span>
+<span class="nc" id="L332">        addStep(newStep);</span>
+<span class="nc bnc" id="L333" title="All 2 branches missed.">        if (getSteps().size() == 1) {</span>
+<span class="nc" id="L334">            setFirstStep(newStep.getStepIdentifier());</span>
+<span class="nc" id="L335">            return newStep;</span>
+        }
+        //Set the order.
+<span class="nc" id="L338">        ApprovalStep previousFirstStep = steps.get(getFirstStepId());</span>
+<span class="nc" id="L339">        setFirstStep(newStep.getStepIdentifier());</span>
+<span class="nc" id="L340">        newStep.setNextStep(previousFirstStep.getStepIdentifier());</span>
+<span class="nc" id="L341">        previousFirstStep.setPreviousStep(newStep.getStepIdentifier());</span>
+<span class="nc" id="L342">        saveTransientObjects();</span>
+<span class="nc" id="L343">        return newStep;</span>
+    }
+
+    @Override
+    public ApprovalStep addStepLast() {
+        int identifier;
+        do {
+<span class="nc" id="L350">            identifier = ProfileID.getRandomIdNumber();</span>
+<span class="nc bnc" id="L351" title="All 2 branches missed.">        } while(getSteps().containsKey(identifier));</span>
+<span class="nc" id="L352">        ApprovalStep newStep = new ApprovalStep(identifier);</span>
+<span class="nc" id="L353">        addStep(newStep);</span>
+        //Find the last step and set this one last
+<span class="nc" id="L355">        ApprovalStep step = steps.get(getFirstStepId());</span>
+<span class="nc bnc" id="L356" title="All 2 branches missed.">        while(step.getNextStep() != null) {</span>
+<span class="nc" id="L357">            step = steps.get(step.getNextStep());</span>
+        }
+<span class="nc" id="L359">        step.setNextStep(newStep.getStepIdentifier());</span>
+<span class="nc" id="L360">        newStep.setPreviousStep(step.getStepIdentifier());</span>
+<span class="nc" id="L361">        saveTransientObjects();</span>
+<span class="nc" id="L362">        return newStep;</span>
+    }
+
+    @Override
+    public void deleteStep(final int approvalStepIdentifier) {
+<span class="nc bnc" id="L367" title="All 2 branches missed.">        if(isStepSizeFixed()) {</span>
+<span class="nc" id="L368">            throw new NonModifiableApprovalProfileException(&quot;Cannot delete an approval step in a profile with fixed step size&quot;);</span>
+        }
+<span class="nc" id="L370">        ApprovalStep stepToDelete = getStep(approvalStepIdentifier);</span>
+<span class="nc" id="L371">        ApprovalStep previousStep = getStep(stepToDelete.getPreviousStep());</span>
+<span class="nc" id="L372">        ApprovalStep nextStep = getStep(stepToDelete.getNextStep());</span>
+<span class="nc bnc" id="L373" title="All 2 branches missed.">        if(previousStep == null) {</span>
+            // Handle deleting the last sequence, in which case there is no next step. In this case we can't set &quot;first step&quot; here,
+            // but in the end of this method if there are no steps we initialize, which will recreate the first step in a default manner.
+<span class="nc bnc" id="L376" title="All 2 branches missed.">            if (nextStep != null) {</span>
+                //This step was first, so set the next one first
+<span class="nc" id="L378">                setFirstStep(nextStep.getStepIdentifier());</span>
+            }
+        }
+<span class="nc bnc" id="L381" title="All 4 branches missed.">        if(nextStep == null &amp;&amp; previousStep != null) {</span>
+            //This was the last step, so make sure the previous step knows it's now last
+<span class="nc" id="L383">            previousStep.setNextStep(null);</span>
+        }
+<span class="nc bnc" id="L385" title="All 4 branches missed.">        if(nextStep != null &amp;&amp; previousStep != null) {</span>
+<span class="nc" id="L386">            previousStep.setNextStep(nextStep.getStepIdentifier());</span>
+<span class="nc" id="L387">            nextStep.setPreviousStep(previousStep.getStepIdentifier());</span>
+        }
+<span class="nc" id="L389">        getSteps().remove(approvalStepIdentifier);</span>
+<span class="nc bnc" id="L390" title="All 2 branches missed.">        if (getSteps().isEmpty()) {</span>
+            // We have removed all steps, re-initialize to default
+<span class="nc" id="L392">            initialize();</span>
+        }
+<span class="nc" id="L394">        saveTransientObjects();</span>
+<span class="nc" id="L395">    }</span>
+
+    @Override
+    public void deletePartition(final int approvalStepIdentifier, final int partitionIdentifier) {
+<span class="nc bnc" id="L399" title="All 2 branches missed.">        if(isStepSizeFixed()) {</span>
+<span class="nc" id="L400">            throw new NonModifiableApprovalProfileException(&quot;Cannot delete an approval step in a profile with fixed step size&quot;);</span>
+        }
+<span class="nc" id="L402">        ApprovalStep approvalStep = getStep(approvalStepIdentifier);</span>
+<span class="nc" id="L403">        approvalStep.removePartition(partitionIdentifier);</span>
+<span class="nc" id="L404">        saveTransientObjects();</span>
+<span class="nc" id="L405">    }</span>
+
+
+    @Override
+    public ApprovalStep getStep(Integer identifier) {
+<span class="pc bpc" id="L410" title="1 of 2 branches missed.">        if(identifier == null) {</span>
+<span class="nc" id="L411">            return null;</span>
+        }
+<span class="fc" id="L413">        return getSteps().get(identifier);</span>
+
+    }
+
+    private int getFirstStepId() {
+<span class="fc" id="L418">        Object value = data.get(FIRST_STEP_KEY);</span>
+<span class="fc bfc" id="L419" title="All 2 branches covered.">        if(value == null) {</span>
+<span class="fc" id="L420">        	return NO_SEQUENCES;</span>
+        }
+<span class="fc" id="L422">        return (int) value;</span>
+
+    }
+
+    @Override
+    public ApprovalStep getFirstStep() {
+<span class="nc" id="L428">        return getSteps().get(getFirstStepId());</span>
+    }
+
+    @Override
+    public void setFirstStep(int firstStep) {
+<span class="fc" id="L433">        data.put(FIRST_STEP_KEY, firstStep);</span>
+<span class="fc" id="L434">    }</span>
+
+    @Override
+    protected void saveTransientObjects() {
+        //Here we return all sequences to be persisted.
+<span class="fc" id="L439">        Map&lt;Object, Object&gt; transientObjects = new HashMap&lt;&gt;();</span>
+<span class="pc bpc" id="L440" title="1 of 2 branches missed.">        if (getSteps() != null) {</span>
+<span class="fc" id="L441">            transientObjects.put(STEPS_KEY, encodeSteps(getSteps().values()));</span>
+        }
+<span class="fc" id="L443">        transientObjects.put(FIRST_STEP_KEY, getFirstStepId());</span>
+<span class="fc" id="L444">        data.putAll(transientObjects);</span>
+<span class="fc" id="L445">    }</span>
+
+    @Override
+    protected void loadTransientObjects() {
+<span class="fc" id="L449">        loadStepsFromMap();</span>
+<span class="fc" id="L450">    }</span>
+
+    private  List&lt;String&gt; encodeSteps(Collection&lt;ApprovalStep&gt; stepsToEncode) {
+<span class="fc" id="L453">        List&lt;String&gt; stepsToSave =  new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L454" title="All 2 branches covered.">        for(ApprovalStep step : stepsToEncode) {</span>
+<span class="fc" id="L455">            stepsToSave.add(step.getEncoded());</span>
+<span class="fc" id="L456">        }</span>
+<span class="fc" id="L457">        return stepsToSave;</span>
+    }
+
+    /**
+     * Retrieves the transient steps object from the underlying datamap.
+     */
+    private void loadStepsFromMap() {
+        @SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L465">        ArrayList&lt;String&gt; loadedSteps = (ArrayList&lt;String&gt;) data.get(STEPS_KEY);</span>
+<span class="fc" id="L466">        steps = new HashMap&lt;&gt;();</span>
+<span class="pc bpc" id="L467" title="1 of 4 branches missed.">        if (loadedSteps != null &amp;&amp; loadedSteps.size() &gt; 0) {</span>
+<span class="fc bfc" id="L468" title="All 2 branches covered.">            for(String encodedStep : loadedSteps) {</span>
+<span class="fc" id="L469">                ApprovalStep step = new ApprovalStep(encodedStep);</span>
+<span class="fc" id="L470">                steps.put(step.getStepIdentifier(), step);</span>
+<span class="fc" id="L471">            }</span>
+        }
+<span class="fc" id="L473">    }</span>
+
+    @Override
+    public boolean isApprovalAuthorized(Collection&lt;Approval&gt; approvalsPerformed, Approval approval) throws AuthenticationFailedException {
+<span class="nc" id="L477">        ApprovalStep previousStep = getFirstStep();</span>
+<span class="nc" id="L478">        ApprovalStep relevantStep = getStep(approval.getStepId());</span>
+<span class="nc bnc" id="L479" title="All 2 branches missed.">        while(previousStep != null) {</span>
+<span class="nc bnc" id="L480" title="All 2 branches missed.">            if(!previousStep.equals(relevantStep)) {</span>
+<span class="nc bnc" id="L481" title="All 2 branches missed.">                if(!isStepSatisfied(previousStep, approvalsPerformed)) {</span>
+<span class="nc" id="L482">                    return false;</span>
+                } else {
+<span class="nc" id="L484">                    previousStep = getStep(previousStep.getNextStep());</span>
+                }
+            } else {
+              //Verify that all previous steps are good
+<span class="nc" id="L488">                ApprovalPartition approvalPartition = relevantStep.getPartition(approval.getPartitionId());</span>
+<span class="nc bnc" id="L489" title="All 2 branches missed.">                if(approvalPartition == null) {</span>
+<span class="nc" id="L490">                    return false;</span>
+                }
+<span class="nc" id="L492">                return canApprovePartition(approval.getAdmin(), approvalPartition);</span>
+
+            }
+        }
+<span class="nc" id="L496">        return false;</span>
+    }
+
+    /**
+     * @param approvalStep Step
+     * @param approvalsPerformed Approvals 
+     * @return true if the list of approvals validates the given step
+     * @throws AuthenticationFailedException if the authentication token in the approval doesn't check out
+     */
+    protected boolean isStepSatisfied(final ApprovalStep approvalStep, final Collection&lt;Approval&gt; approvalsPerformed)
+            throws AuthenticationFailedException {
+<span class="nc bnc" id="L507" title="All 2 branches missed.">        PARTITION_LOOP: for (ApprovalPartition partition : approvalStep.getPartitions().values()) {</span>
+<span class="nc bnc" id="L508" title="All 2 branches missed.">            for (Approval approval : approvalsPerformed) {</span>
+<span class="nc bnc" id="L509" title="All 4 branches missed.">                if (approval.getStepId() == approvalStep.getStepIdentifier() &amp;&amp; partition.getPartitionIdentifier() == approval.getPartitionId()) {</span>
+                    //While we already have checked the credentials of all partitions, doing so is cheap and a good double check.
+<span class="nc bnc" id="L511" title="All 2 branches missed.">                    if (canApprovePartition(approval.getAdmin(), partition)) {</span>
+<span class="nc" id="L512">                        continue PARTITION_LOOP;</span>
+                    }
+                }
+<span class="nc" id="L515">            }</span>
+            //If we've gotten to the bottom of a partition without satisfying it's conditions, we're done
+<span class="nc" id="L517">            return false;</span>
+        }
+        //If we've made it through all the partitions
+<span class="nc" id="L520">        return true;</span>
+    }
+
+    @Override
+    public int getNumberOfApprovalsRequired(final int stepIdentifier, final int partitionIdentifier) {
+<span class="pc bpc" id="L525" title="1 of 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="fc" id="L526">    	    log.trace(&quot;&gt;getNumberOfApprovalsRequired: &quot;+stepIdentifier+&quot;, &quot;+partitionIdentifier);</span>
+    	}
+<span class="fc" id="L528">        final DynamicUiProperty&lt;? extends Serializable&gt; numberOfRequiredApprovals = getStep(stepIdentifier).getPartition(partitionIdentifier).getProperty(PROPERTY_NUMBER_OF_REQUIRED_APPROVALS);</span>
+<span class="pc bpc" id="L529" title="1 of 2 branches missed.">        if (numberOfRequiredApprovals==null) {</span>
+<span class="nc bnc" id="L530" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L531">                log.trace(&quot;&lt;getNumberOfApprovalsRequired: 1&quot;);</span>
+            }
+<span class="nc" id="L533">            return 1;   // Default to 1 required approval per partition</span>
+        }
+<span class="fc" id="L535">        final int ret = (Integer) numberOfRequiredApprovals.getValue();</span>
+<span class="pc bpc" id="L536" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="fc" id="L537">            log.trace(&quot;&lt;getNumberOfApprovalsRequired: &quot;+ret);</span>
+        }
+<span class="fc" id="L539">        return ret;</span>
+    }
+
+    @Override
+    public int getRemainingApprovalsInPartition(final Collection&lt;Approval&gt; approvalsPerformed, final int stepIdentifier, final int partitionIdentifier) {
+<span class="nc" id="L544">        int partitionApprovalsRequired = getNumberOfApprovalsRequired(stepIdentifier, partitionIdentifier);</span>
+<span class="nc" id="L545">        int partitionApprovalsPerformed = 0;</span>
+<span class="nc bnc" id="L546" title="All 2 branches missed.">        for (Approval approval : approvalsPerformed) {</span>
+<span class="nc bnc" id="L547" title="All 2 branches missed.">            if (!approval.isApproved()) {</span>
+<span class="nc" id="L548">                return -1;</span>
+            }
+<span class="nc bnc" id="L550" title="All 4 branches missed.">            if (approval.getStepId() == stepIdentifier &amp;&amp; approval.getPartitionId() == partitionIdentifier) {</span>
+<span class="nc" id="L551">                partitionApprovalsPerformed++;</span>
+            }
+<span class="nc" id="L553">        }</span>
+        // Don't return a negative number, could happen if the partition has been approved multiple times
+<span class="nc" id="L555">        int diff = partitionApprovalsRequired - partitionApprovalsPerformed;</span>
+<span class="nc bnc" id="L556" title="All 2 branches missed.">        return diff &lt; 0 ? 0 : diff;</span>
+    }
+
+    @Override
+    public int getNumberOfSteps() {
+<span class="nc" id="L561">        return getSteps().size();</span>
+    }
+
+    @Override
+    public boolean isPropertyPredefined(int stepIdentifier, int partitionIdentifier, String propertyName) {
+<span class="nc" id="L566">        return Arrays.asList( PROPERTY_NOTIFICATION_EMAIL_RECIPIENT, PROPERTY_NOTIFICATION_EMAIL_SENDER,</span>
+                PROPERTY_NOTIFICATION_EMAIL_MESSAGE_SUBJECT, PROPERTY_NOTIFICATION_EMAIL_MESSAGE_BODY,
+                PROPERTY_USER_NOTIFICATION_EMAIL_SENDER,
+                PROPERTY_USER_NOTIFICATION_EMAIL_MESSAGE_SUBJECT, PROPERTY_USER_NOTIFICATION_EMAIL_MESSAGE_BODY
+<span class="nc" id="L570">                ).contains(propertyName);</span>
+    }
+
+    @Override
+    public void switchStepOrder(Integer firstStepIdentifier, Integer secondStepIdentifier) {
+<span class="nc bnc" id="L575" title="All 4 branches missed.">        if(firstStepIdentifier == null || secondStepIdentifier == null) {</span>
+<span class="nc" id="L576">            return;</span>
+        }
+<span class="nc" id="L578">        ApprovalStep firstStep = getStep(firstStepIdentifier);</span>
+<span class="nc" id="L579">        ApprovalStep secondStep = getStep(secondStepIdentifier);</span>
+<span class="nc" id="L580">        Integer firstStepPrevious = firstStep.getPreviousStep();</span>
+<span class="nc" id="L581">        Integer secondStepNext = secondStep.getNextStep();</span>
+<span class="nc bnc" id="L582" title="All 2 branches missed.">        if(firstStepPrevious != null) {</span>
+<span class="nc" id="L583">            ApprovalStep previousStep = getStep(firstStepPrevious);</span>
+<span class="nc" id="L584">            previousStep.setNextStep(secondStepIdentifier);</span>
+        }
+<span class="nc" id="L586">        secondStep.setPreviousStep(firstStepPrevious);</span>
+<span class="nc" id="L587">        secondStep.setNextStep(firstStepIdentifier);</span>
+<span class="nc bnc" id="L588" title="All 2 branches missed.">        if(secondStepNext != null) {</span>
+<span class="nc" id="L589">            ApprovalStep nextStep = getStep(secondStepNext);</span>
+<span class="nc" id="L590">            nextStep.setPreviousStep(firstStepIdentifier);</span>
+        }
+<span class="nc" id="L592">        firstStep.setPreviousStep(secondStepIdentifier);</span>
+<span class="nc" id="L593">        firstStep.setNextStep(secondStepNext);</span>
+<span class="nc bnc" id="L594" title="All 2 branches missed.">        if(getFirstStepId() == firstStepIdentifier) {</span>
+<span class="nc" id="L595">            setFirstStep(secondStepIdentifier);</span>
+        }
+<span class="nc" id="L597">        saveTransientObjects();</span>
+<span class="nc" id="L598">    }</span>
+
+    @Override
+    public boolean updateCAIds(final int fromId, final int toId, final String toSubjectDN) {
+<span class="nc" id="L602">        boolean changed = false;</span>
+<span class="nc" id="L603">        final Map&lt;Integer,ApprovalStep&gt; steps = getSteps();</span>
+<span class="nc bnc" id="L604" title="All 2 branches missed.">        for (final ApprovalStep step : new ArrayList&lt;&gt;(steps.values())) {</span>
+<span class="nc" id="L605">            final Map&lt;Integer,ApprovalPartition&gt; partitions = step.getPartitions();</span>
+<span class="nc bnc" id="L606" title="All 2 branches missed.">            for (final ApprovalPartition partition : new ArrayList&lt;&gt;(partitions.values())) {</span>
+                // Check if the role user aspect datas need updating
+<span class="nc" id="L608">                final DynamicUiProperty&lt;? extends Serializable&gt; prop = partition.getProperty(PartitionedApprovalProfile.PROPERTY_ROLES_WITH_APPROVAL_RIGHTS);</span>
+<span class="nc bnc" id="L609" title="All 2 branches missed.">                if (prop != null) {</span>
+                    @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L611">                    final List&lt;RoleInformation&gt; values = (List&lt;RoleInformation&gt;)prop.getValues();</span>
+<span class="nc" id="L612">                    boolean propertyChanged = false;</span>
+<span class="nc bnc" id="L613" title="All 2 branches missed.">                    for (final RoleInformation role : values) {</span>
+<span class="nc" id="L614">                        final List&lt;AccessUserAspectData&gt; userAspects = role.getAccessUserAspects();</span>
+<span class="nc bnc" id="L615" title="All 2 branches missed.">                        for (final AccessUserAspectData userAspect : userAspects) {</span>
+<span class="nc bnc" id="L616" title="All 2 branches missed.">                            if (userAspect.getCaId() == fromId) {</span>
+<span class="nc" id="L617">                                userAspect.setCaId(toId);</span>
+<span class="nc" id="L618">                                propertyChanged = true;</span>
+                            }
+<span class="nc" id="L620">                        }</span>
+<span class="nc" id="L621">                    }</span>
+<span class="nc bnc" id="L622" title="All 2 branches missed.">                    if (propertyChanged) {</span>
+                        // Update the property
+<span class="nc" id="L624">                        addPropertyToPartition(step.getStepIdentifier(), partition.getPartitionIdentifier(), prop);</span>
+<span class="nc" id="L625">                        changed = true;</span>
+                    }
+                }
+<span class="nc" id="L628">            }</span>
+<span class="nc" id="L629">        }</span>
+<span class="nc" id="L630">        return changed;</span>
+    }
+
+    @Override
+    public List&lt;ApprovalStep&gt; getStepList() {
+<span class="nc" id="L635">        final List&lt;ApprovalStep&gt; approvalSteps = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L636" title="All 2 branches missed.">        for (ApprovalStep step = getFirstStep(); step != null; step = getStep(step.getNextStep())) {</span>
+<span class="nc" id="L637">            approvalSteps.add(step);</span>
+        }
+<span class="nc" id="L639">        return approvalSteps;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

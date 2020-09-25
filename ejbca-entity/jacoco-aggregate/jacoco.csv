@@ -292,4 +292,4 @@ ejbca-entity/ejbca-common,org.ejbca.util.query,BasicMatch,0,6,0,0,0,2,0,2,0,2
 ejbca-entity/ejbca-common,org.ejbca.util.query,Query,199,93,16,3,34,17,19,4,9,4
 ejbca-entity/ejbca-common,org.ejbca.util.query,IllegalQueryException,7,0,0,0,4,0,2,0,2,0
 ejbca-entity/ejbca-common,org.ejbca.util.query,ApprovalMatch,128,0,18,0,21,0,13,0,4,0
-ejbca-entity/shared-resources,com.primekey.anttools,ServiceManifestBuilder,457,0,66,0,97,0,41,0,8,0
+ejbca-entity/shared-resources,com.primekey.anttools,ServiceManifestBuilder,539,0,66,0,98,0,41,0,8,0

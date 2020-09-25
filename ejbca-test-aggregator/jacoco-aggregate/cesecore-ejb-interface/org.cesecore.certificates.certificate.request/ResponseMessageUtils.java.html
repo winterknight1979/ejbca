@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ResponseMessageUtils.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">cesecore-ejb-interface</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.certificate.request</a> &gt; <span class="el_source">ResponseMessageUtils.java</span></div><h1>ResponseMessageUtils.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/ 
+
+package org.cesecore.certificates.certificate.request;
+
+import java.lang.reflect.InvocationTargetException;
+import java.security.PrivateKey;
+import java.security.cert.Certificate;
+import java.util.Collection;
+import java.util.Random;
+
+import org.apache.log4j.Logger;
+import org.cesecore.util.Base64;
+
+/**
+ * 
+ * @version $Id: ResponseMessageUtils.java 26080 2017-06-26 17:32:09Z anatom $
+ *
+ */
+
+<span class="nc" id="L31">public abstract class ResponseMessageUtils {</span>
+
+<span class="nc" id="L33">    private static final Logger log = Logger.getLogger(ResponseMessageUtils.class);</span>
+    
+    public static CertificateResponseMessage createResponseMessage(Class&lt;? extends ResponseMessage&gt; responseClass, RequestMessage req,
+            Collection&lt;Certificate&gt; certs, PrivateKey signPriv, String provider) {
+<span class="nc" id="L37">        CertificateResponseMessage ret = null;</span>
+        // Create the response message and set all required fields
+        try {
+<span class="nc" id="L40">            ret = (CertificateResponseMessage) responseClass.getConstructor().newInstance();</span>
+<span class="nc" id="L41">        } catch (InstantiationException | NoSuchMethodException | InvocationTargetException e) {</span>
+            //TODO : do something with these exceptions
+<span class="nc" id="L43">            log.error(&quot;Error creating response message&quot;, e);</span>
+<span class="nc" id="L44">            return null;</span>
+<span class="nc" id="L45">        } catch (IllegalAccessException e) {</span>
+<span class="nc" id="L46">            log.error(&quot;Error creating response message&quot;, e);</span>
+<span class="nc" id="L47">            return null;</span>
+<span class="nc" id="L48">        }</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        if (ret.requireSignKeyInfo()) {</span>
+<span class="nc" id="L50">            ret.setSignKeyInfo(certs, signPriv, provider);</span>
+        }
+<span class="nc bnc" id="L52" title="All 2 branches missed.">        if (req.getSenderNonce() != null) {</span>
+<span class="nc" id="L53">            ret.setRecipientNonce(req.getSenderNonce());</span>
+        }
+<span class="nc bnc" id="L55" title="All 2 branches missed.">        if (req.getTransactionId() != null) {</span>
+<span class="nc" id="L56">            ret.setTransactionId(req.getTransactionId());</span>
+        }
+        // Sender nonce is a random number
+<span class="nc" id="L59">        byte[] senderNonce = new byte[16];</span>
+<span class="nc" id="L60">        Random randomSource = new Random();</span>
+<span class="nc" id="L61">        randomSource.nextBytes(senderNonce);</span>
+<span class="nc" id="L62">        ret.setSenderNonce(new String(Base64.encode(senderNonce)));</span>
+        // If we have a specified request key info, use it in the reply
+<span class="nc bnc" id="L64" title="All 2 branches missed.">        if (req.getRequestKeyInfo() != null) {</span>
+<span class="nc" id="L65">            ret.setRecipientKeyInfo(req.getRequestKeyInfo());</span>
+        }
+        // Which digest algorithm to use to create the response, if applicable
+<span class="nc" id="L68">        ret.setPreferredDigestAlg(req.getPreferredDigestAlg());</span>
+        // Include the CA cert or not in the response, if applicable for the response type
+<span class="nc" id="L70">        ret.setIncludeCACert(req.includeCACert());</span>
+        // Hint to the response which request type it is in response to
+<span class="nc" id="L72">        ret.setRequestType(req.getRequestType());</span>
+<span class="nc" id="L73">        ret.setRequestId(req.getRequestId());</span>
+        // If there is some protection parameters, or other params, we need to lift over from the request message, the request and response knows about it
+<span class="nc" id="L75">        ret.setProtectionParamsFromRequest(req);</span>
+<span class="nc" id="L76">        return ret;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

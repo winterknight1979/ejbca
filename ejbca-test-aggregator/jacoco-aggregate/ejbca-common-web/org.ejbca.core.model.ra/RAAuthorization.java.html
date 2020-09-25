@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RAAuthorization.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.ra</a> &gt; <span class="el_source">RAAuthorization.java</span></div><h1>RAAuthorization.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.model.ra;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.certificates.ca.CaSession;
+import org.cesecore.configuration.GlobalConfigurationSession;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSession;
+import org.ejbca.core.model.approval.ApprovalDataVO;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+
+/**
+ * A class that looks up the which CA:s or end entity profiles the administrator is authorized to view.
+ *
+ * @version $Id: RAAuthorization.java 28563 2018-03-27 14:16:48Z mikekushner $
+ */
+public class RAAuthorization implements Serializable {
+
+    private static final long serialVersionUID = -3195162814492440326L;
+<span class="nc" id="L41">    private String authendentityprofilestring = null;</span>
+<span class="nc" id="L42">    private TreeMap&lt;String, String&gt; authprofilenames = null;</span>
+<span class="nc" id="L43">    private List&lt;String&gt; authprofileswithmissingcas = null;</span>
+    private AuthenticationToken admin;
+    private AuthorizationSessionLocal authorizationSession;
+    private GlobalConfigurationSession globalConfigurationSession;
+    private CaSession caSession;
+    private EndEntityProfileSession endEntityProfileSession;
+
+    /** Creates a new instance of RAAuthorization. 
+     * @param admin Admin
+     * @param globalConfigurationSession  session
+     * @param authorizationSession auth session
+     * @param caSession CA sessiom
+     * @param endEntityProfileSession profile session */
+    public RAAuthorization(AuthenticationToken admin, GlobalConfigurationSession globalConfigurationSession, AuthorizationSessionLocal authorizationSession,
+<span class="nc" id="L57">                    CaSession caSession, EndEntityProfileSession endEntityProfileSession) {</span>
+<span class="nc" id="L58">    	this.admin = admin;</span>
+<span class="nc" id="L59">    	this.globalConfigurationSession = globalConfigurationSession;</span>
+<span class="nc" id="L60">    	this.authorizationSession = authorizationSession;</span>
+<span class="nc" id="L61">    	this.caSession = caSession;</span>
+<span class="nc" id="L62">    	this.endEntityProfileSession = endEntityProfileSession;</span>
+<span class="nc" id="L63">    }</span>
+
+    private boolean isAuthorizedNoLogging(final AuthenticationToken authenticationToken, String... resources) {
+<span class="nc" id="L66">        return authorizationSession.isAuthorizedNoLogging(admin, resources);</span>
+    }
+
+    /**
+     * Method that checks the administrators CA privileges and returns a string that should be used in where clause of userdata SQL queries.
+     *
+     * @return a string of administrators CA privileges that should be used in the where clause of SQL queries.
+     */
+    public String getCAAuthorizationString() {
+<span class="nc" id="L75">        String authcastring = &quot;&quot;;</span>
+<span class="nc" id="L76">        final List&lt;Integer&gt; authorizedCaIds = caSession.getAuthorizedCaIds(admin);</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">        if (authorizedCaIds.isEmpty()) {</span>
+            // Setup a condition that can never be true if there are no authorized CAs
+<span class="nc" id="L79">            authcastring = &quot;(0=1)&quot;;</span>
+        } else {
+<span class="nc bnc" id="L81" title="All 2 branches missed.">            for (final Integer caId : caSession.getAuthorizedCaIds(admin)) {</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">                if (authcastring.equals(&quot;&quot;)) {</span>
+<span class="nc" id="L83">                    authcastring = &quot; cAId = &quot; + caId.toString();</span>
+                } else {
+<span class="nc" id="L85">                    authcastring = authcastring + &quot; OR cAId = &quot; + caId.toString();</span>
+                }
+<span class="nc" id="L87">            }</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">            if (!authcastring.isEmpty()) {</span>
+<span class="nc" id="L89">                authcastring = &quot;( &quot; + authcastring + &quot; )&quot;;</span>
+            }
+        }
+<span class="nc" id="L92">        return authcastring;</span>
+    }
+
+    /**
+     * @param endentityAccessRule Rule
+     * @return a string of end entity profile privileges that should be used in the where clause of SQL queries, or null if no authorized end entity profiles exist.
+     * @throws AuthorizationDeniedException if the current requester isn't authorized to query for approvals
+     */
+    public String getEndEntityProfileAuthorizationString(String endentityAccessRule) throws AuthorizationDeniedException {
+<span class="nc" id="L101">        boolean authorizedToApproveCAActions = false; // i.e approvals with endentityprofile ApprovalDataVO.ANY_ENDENTITYPROFILE</span>
+<span class="nc" id="L102">        boolean authorizedToApproveRAActions = false; // i.e approvals with endentityprofile not ApprovalDataVO.ANY_ENDENTITYPROFILE</span>
+
+<span class="nc" id="L104">        authorizedToApproveCAActions = isAuthorizedNoLogging(admin, AccessRulesConstants.REGULAR_APPROVECAACTION);</span>
+
+<span class="nc" id="L106">        authorizedToApproveRAActions = isAuthorizedNoLogging(admin, AccessRulesConstants.REGULAR_APPROVEENDENTITY);</span>
+
+<span class="nc bnc" id="L108" title="All 4 branches missed.">        if (!authorizedToApproveCAActions &amp;&amp; !authorizedToApproveRAActions) {</span>
+<span class="nc" id="L109">            throw new AuthorizationDeniedException(&quot;Not authorized to query for approvals: &quot;+authorizedToApproveCAActions+&quot;, &quot;+authorizedToApproveRAActions);</span>
+        }
+
+<span class="nc" id="L112">    	String endentityauth = null;</span>
+<span class="nc" id="L113">        GlobalConfiguration globalconfiguration = (GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID);</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        if (globalconfiguration.getEnableEndEntityProfileLimitations()){</span>
+<span class="nc" id="L115">        	endentityauth = getEndEntityProfileAuthorizationString(true, endentityAccessRule);</span>
+<span class="nc bnc" id="L116" title="All 4 branches missed.">        	if(authorizedToApproveCAActions &amp;&amp; authorizedToApproveRAActions){</span>
+<span class="nc" id="L117">        		endentityauth = getEndEntityProfileAuthorizationString(true, endentityAccessRule);</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">        		if(endentityauth != null){</span>
+<span class="nc" id="L119">        		  endentityauth = &quot;(&quot; + getEndEntityProfileAuthorizationString(false, endentityAccessRule) + &quot; OR endEntityProfileId=&quot; + ApprovalDataVO.ANY_ENDENTITYPROFILE + &quot; ) &quot;;</span>
+        		}
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        	}else if (authorizedToApproveCAActions) {</span>
+<span class="nc" id="L122">        		endentityauth = &quot; endEntityProfileId=&quot; + ApprovalDataVO.ANY_ENDENTITYPROFILE;</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">			}else if (authorizedToApproveRAActions) {</span>
+<span class="nc" id="L124">				endentityauth = getEndEntityProfileAuthorizationString(true, endentityAccessRule);</span>
+			}
+
+        }
+<span class="nc bnc" id="L128" title="All 2 branches missed.">        return endentityauth == null ? endentityauth : endentityauth.trim();</span>
+    }
+
+    /**
+     * Method that checks the administrators end entity profile privileges and returns a string that should be used in where clause of userdata SQL queries.
+     * @param includeparanteses bool
+     * @param endentityAccessRule Rle
+     *
+     * @return a string of end entity profile privileges that should be used in the where clause of SQL queries, or null if no authorized end entity profiles exist.
+     */
+    public String getEndEntityProfileAuthorizationString(boolean includeparanteses, String endentityAccessRule){
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        if (authendentityprofilestring==null) {</span>
+<span class="nc" id="L140">            final List&lt;Integer&gt; profileIds = new ArrayList&lt;Integer&gt;(endEntityProfileSession.getAuthorizedEndEntityProfileIds(admin, endentityAccessRule));</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">            if (!endentityAccessRule.startsWith(AccessRulesConstants.VIEW_END_ENTITY)) {</span>
+                // Additionally require view access to all the profiles
+<span class="nc bnc" id="L143" title="All 2 branches missed.">                for (final Integer profileid : new ArrayList&lt;Integer&gt;(profileIds)) {</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">                    if (!isAuthorizedNoLogging(admin, AccessRulesConstants.ENDENTITYPROFILEPREFIX + profileid + AccessRulesConstants.VIEW_END_ENTITY)) {</span>
+<span class="nc" id="L145">                        profileIds.remove(profileid);</span>
+                    }
+<span class="nc" id="L147">                }</span>
+            }
+<span class="nc bnc" id="L149" title="All 2 branches missed.">            for (final int profileId : profileIds) {</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">                if (authendentityprofilestring == null) {</span>
+<span class="nc" id="L151">                    authendentityprofilestring = &quot; endEntityProfileId = &quot; + profileId;</span>
+                } else {
+<span class="nc" id="L153">                    authendentityprofilestring = authendentityprofilestring + &quot; OR endEntityProfileId = &quot; + profileId;</span>
+                }
+<span class="nc" id="L155">            }</span>
+<span class="nc bnc" id="L156" title="All 4 branches missed.">            if (authendentityprofilestring != null &amp;&amp; includeparanteses) {</span>
+<span class="nc" id="L157">                authendentityprofilestring = &quot;( &quot; + authendentityprofilestring + &quot; )&quot;;</span>
+            }
+        }
+<span class="nc" id="L160">        return authendentityprofilestring;</span>
+    }
+
+    public TreeMap&lt;String, String&gt; getAuthorizedEndEntityProfileNames(final String endentityAccessRule) {
+<span class="nc bnc" id="L164" title="All 2 branches missed.">    	if (authprofilenames==null){</span>
+<span class="nc" id="L165">            authprofilenames = new TreeMap&lt;String, String&gt;(new Comparator&lt;String&gt;() {</span>
+                @Override
+                public int compare(String o1, String o2) {
+<span class="nc" id="L168">                    int result = o1.compareToIgnoreCase(o2);</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">                    if (result == 0) {</span>
+<span class="nc" id="L170">                        result = o1.compareTo(o2);</span>
+                    }
+<span class="nc" id="L172">                    return result;</span>
+                }
+            });
+<span class="nc" id="L175">    		final Map&lt;Integer, String&gt; idtonamemap = endEntityProfileSession.getEndEntityProfileIdToNameMap();</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">    		for (final Integer id : endEntityProfileSession.getAuthorizedEndEntityProfileIds(admin, endentityAccessRule)) {</span>
+<span class="nc" id="L177">                authprofilenames.put(idtonamemap.get(id), String.valueOf(id));</span>
+<span class="nc" id="L178">    		}</span>
+    	}
+<span class="nc" id="L180">    	return authprofilenames;</span>
+    }
+
+    public List&lt;String&gt; getViewAuthorizedEndEntityProfilesWithMissingCAs() {
+<span class="nc bnc" id="L184" title="All 2 branches missed.">	   if (authprofileswithmissingcas == null) {</span>
+<span class="nc" id="L185">            authprofileswithmissingcas = new ArrayList&lt;String&gt;();</span>
+<span class="nc" id="L186">            final List&lt;Integer&gt; entries = endEntityProfileSession.getAuthorizedEndEntityProfileIdsWithMissingCAs(admin);</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">            for (final Integer entry : entries) {</span>
+<span class="nc" id="L188">                authprofileswithmissingcas.add(String.valueOf(entry));</span>
+<span class="nc" id="L189">            }</span>
+	   }
+<span class="nc" id="L191">	   return authprofileswithmissingcas;</span>
+	}
+
+    public void clear(){
+<span class="nc" id="L195">      authendentityprofilestring=null;</span>
+<span class="nc" id="L196">      authprofilenames = null;</span>
+<span class="nc" id="L197">	  authprofileswithmissingcas = null;</span>
+<span class="nc" id="L198">    }</span>
+}
+
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

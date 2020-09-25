@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>GenerateTokenApprovalRequest.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.approval.approvalrequests</a> &gt; <span class="el_source">GenerateTokenApprovalRequest.java</span></div><h1>GenerateTokenApprovalRequest.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.approval.approvalrequests;
+
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.util.CertTools;
+import org.ejbca.core.model.approval.ApprovalDataText;
+import org.ejbca.core.model.approval.ApprovalDataVO;
+import org.ejbca.core.model.approval.ApprovalRequest;
+import org.ejbca.core.model.approval.ApprovalRequestExecutionException;
+import org.ejbca.core.model.approval.profile.ApprovalProfile;
+
+/**
+ * Special Approval Request created when an administrator wants
+ * to generate a token through the Web Service interface.
+ *  
+ * It is a two step approval request were the first step is
+ * a view hard token PUK data and the second is the actual
+ * hard token generation
+ * 
+ * @version $Id: GenerateTokenApprovalRequest.java 23981 2016-07-22 12:21:55Z anatom $
+ */
+public class GenerateTokenApprovalRequest extends ApprovalRequest {
+
+	private static final long serialVersionUID = -1L;
+	
+	public static final int STEP_0_VIEWHARDTOKENDATA = 0;
+	public static final int STEP_1_GENERATETOKEN     = 1;
+	
+	private static final int LATEST_VERSION = 1;
+		
+	private String dn;
+	private String username;
+	private String tokenTypeLabel;
+
+	/** Constructor used in externalization only */
+<span class="nc" id="L53">	public GenerateTokenApprovalRequest() {}</span>
+
+	public GenerateTokenApprovalRequest(String username, String userDN, String tokenTypeLabel, AuthenticationToken requestAdmin, 
+	        String requestSignature, int cAId, int endEntityProfileId, ApprovalProfile approvalProfile) {
+        // This is a 2 step approval, whatever that means...
+<span class="nc" id="L58">        super(requestAdmin, requestSignature, REQUESTTYPE_SIMPLE, cAId, endEntityProfileId, 2, approvalProfile);</span>
+<span class="nc" id="L59">		this.username = username;</span>
+<span class="nc" id="L60">		this.dn = userDN;</span>
+<span class="nc" id="L61">		this.tokenTypeLabel = tokenTypeLabel;</span>
+<span class="nc" id="L62">	}</span>
+	
+	@Override
+	public void execute() throws ApprovalRequestExecutionException {
+		// This is a non-executable approval
+<span class="nc" id="L67">	}</span>
+
+    /**
+     * Approval Id is generated of This approval type (i.e AddEndEntityApprovalRequest) and UserName
+     */
+	public int generateApprovalId() {
+<span class="nc" id="L73">		return new String(getApprovalType() + &quot;;&quot; + username + &quot;;&quot; + CertTools.getFingerprintAsString(getRequestAdminCert()) + </span>
+<span class="nc" id="L74">		        &quot;;&quot; + getApprovalProfile().getProfileName()).hashCode();</span>
+	}
+
+	public int getApprovalType() {		
+<span class="nc" id="L78">		return ApprovalDataVO.APPROVALTYPE_GENERATETOKEN;</span>
+	}
+
+	@Override
+	public List&lt;ApprovalDataText&gt; getNewRequestDataAsText(AuthenticationToken admin) {
+<span class="nc" id="L83">		ArrayList&lt;ApprovalDataText&gt; retval = new ArrayList&lt;ApprovalDataText&gt;();</span>
+<span class="nc" id="L84">		retval.add(new ApprovalDataText(&quot;USERNAME&quot;,username,true,false));		</span>
+<span class="nc" id="L85">		retval.add(new ApprovalDataText(&quot;SUBJECTDN&quot;,dn,true,false));</span>
+<span class="nc" id="L86">		retval.add(new ApprovalDataText(&quot;LABEL&quot;,tokenTypeLabel,true,true));</span>
+<span class="nc" id="L87">		return retval;</span>
+	}
+	
+	@Override
+	public List&lt;ApprovalDataText&gt; getOldRequestDataAsText(AuthenticationToken admin) {
+<span class="nc" id="L92">		return null;</span>
+	}
+
+	public boolean isExecutable() {		
+<span class="nc" id="L96">		return false;</span>
+	}
+	
+	public void writeExternal(ObjectOutput out) throws IOException {
+<span class="nc" id="L100">		super.writeExternal(out);</span>
+<span class="nc" id="L101">		out.writeInt(LATEST_VERSION);</span>
+<span class="nc" id="L102">		out.writeObject(username);</span>
+<span class="nc" id="L103">		out.writeObject(dn);</span>
+<span class="nc" id="L104">		out.writeObject(tokenTypeLabel);</span>
+<span class="nc" id="L105">	}</span>
+
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {        
+<span class="nc" id="L108">		super.readExternal(in);</span>
+<span class="nc" id="L109">        int version = in.readInt();</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        if(version == 1){</span>
+<span class="nc" id="L111">    		username = (String) in.readObject();</span>
+<span class="nc" id="L112">            dn = (String) in.readObject();</span>
+<span class="nc" id="L113">            tokenTypeLabel = (String) in.readObject();            </span>
+        }
+<span class="nc" id="L115">	}</span>
+
+	/**
+	 * @return the subject dn used in the request
+	 */
+	public String getDN() {
+<span class="nc" id="L121">		return dn;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

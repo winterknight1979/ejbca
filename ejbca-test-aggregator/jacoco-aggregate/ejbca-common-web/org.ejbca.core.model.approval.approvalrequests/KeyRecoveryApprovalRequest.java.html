@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>KeyRecoveryApprovalRequest.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.approval.approvalrequests</a> &gt; <span class="el_source">KeyRecoveryApprovalRequest.java</span></div><h1>KeyRecoveryApprovalRequest.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.approval.approvalrequests;
+
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ejb.EJBException;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+import org.ejbca.core.ejb.ra.EndEntityManagementSession;
+import org.ejbca.core.model.approval.ApprovalDataText;
+import org.ejbca.core.model.approval.ApprovalDataVO;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.ApprovalRequest;
+import org.ejbca.core.model.approval.ApprovalRequestExecutionException;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.core.model.approval.profile.ApprovalProfile;
+
+/**
+ * Approval Request created when an administrator wants
+ * to recovery a end entities keyset
+ * 
+ * @version $Id: KeyRecoveryApprovalRequest.java 26106 2017-06-30 13:39:10Z henriks $
+ */
+public class KeyRecoveryApprovalRequest extends ApprovalRequest {
+
+	private static final long serialVersionUID = -1L;
+<span class="nc" id="L50">	private static final Logger log = Logger.getLogger(KeyRecoveryApprovalRequest.class);</span>
+	private static final int LATEST_VERSION = 1;
+		
+	private String username;
+	private Certificate cert;
+
+<span class="nc" id="L56">	private boolean recoverNewestCert = false; </span>
+
+	/** Constructor used in externalization only */
+<span class="nc" id="L59">	public KeyRecoveryApprovalRequest() {}</span>
+
+    public KeyRecoveryApprovalRequest(Certificate cert, String username, boolean recoverNewestCert, AuthenticationToken requestAdmin,
+            String requestSignature, int cAId, int endEntityProfileId, ApprovalProfile approvalProfile) {
+<span class="nc" id="L63">        super(requestAdmin, requestSignature, REQUESTTYPE_SIMPLE, cAId, endEntityProfileId, approvalProfile);</span>
+<span class="nc" id="L64">		this.username = username;</span>
+<span class="nc" id="L65">		this.cert = cert;</span>
+<span class="nc" id="L66">		this.recoverNewestCert = recoverNewestCert;</span>
+<span class="nc" id="L67">	}</span>
+	
+
+	@Override
+	public void execute() throws ApprovalRequestExecutionException {
+<span class="nc" id="L72">		throw new RuntimeException(&quot;This execution requires additional bean references.&quot;);</span>
+	}
+
+    public void execute(EndEntityManagementSession endEntityManagementSession) throws ApprovalRequestExecutionException {
+<span class="nc" id="L76">        log.debug(&quot;Executing mark for recovery for user:&quot; + username);</span>
+        try {
+<span class="nc bnc" id="L78" title="All 2 branches missed.">            if (recoverNewestCert) {</span>
+<span class="nc" id="L79">                endEntityManagementSession.prepareForKeyRecovery(getRequestAdmin(), username, getEndEntityProfileId(), null);</span>
+            } else {
+<span class="nc" id="L81">                endEntityManagementSession.prepareForKeyRecovery(getRequestAdmin(), username, getEndEntityProfileId(), cert);</span>
+            }
+<span class="nc" id="L83">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L84">            throw new ApprovalRequestExecutionException(&quot;Authorization Denied :&quot; + e.getMessage(), e);</span>
+<span class="nc" id="L85">        } catch (ApprovalException e) {</span>
+<span class="nc" id="L86">            throw new EJBException(&quot;This should never happen&quot;, e);</span>
+<span class="nc" id="L87">        } catch (WaitingForApprovalException e) {</span>
+<span class="nc" id="L88">            throw new EJBException(&quot;This should never happen&quot;, e);</span>
+<span class="nc" id="L89">        } catch (CADoesntExistsException e) {</span>
+<span class="nc" id="L90">            throw new EJBException(&quot;This should never happen&quot;, e);</span>
+<span class="nc" id="L91">        }</span>
+<span class="nc" id="L92">    }</span>
+
+    /**
+     * Approval Id is generated of This approval type (i.e AddEndEntityApprovalRequest) and UserName
+     */
+	public int generateApprovalId() {		
+<span class="nc" id="L98">		return new String(getApprovalType() + &quot;;&quot; + username + &quot;;&quot; + getApprovalProfile().getProfileName()).hashCode();</span>
+	}
+
+	public int getApprovalType() {		
+<span class="nc" id="L102">		return ApprovalDataVO.APPROVALTYPE_KEYRECOVERY;</span>
+	}
+	
+	public String getUsername() {
+<span class="nc" id="L106">	    return username;</span>
+	}
+
+	@Override
+	public List&lt;ApprovalDataText&gt; getNewRequestDataAsText(AuthenticationToken admin) {
+<span class="nc" id="L111">		ArrayList&lt;ApprovalDataText&gt; retval = new ArrayList&lt;ApprovalDataText&gt;();</span>
+<span class="nc" id="L112">		retval.add(new ApprovalDataText(&quot;USERNAME&quot;,username,true,false));</span>
+<span class="nc" id="L113">		retval.add(new ApprovalDataText(&quot;CERTSERIALNUMBER&quot;,CertTools.getSerialNumberAsString(cert),true,false));</span>
+<span class="nc" id="L114">		retval.add(new ApprovalDataText(&quot;SUBJECTDN&quot;,CertTools.getSubjectDN(cert).toString(),true,false));</span>
+<span class="nc" id="L115">		retval.add(new ApprovalDataText(&quot;ISSUERDN&quot;,CertTools.getIssuerDN(cert).toString(),true,false));</span>
+<span class="nc" id="L116">		return retval;</span>
+	}
+	
+	@Override
+	public List&lt;ApprovalDataText&gt; getOldRequestDataAsText(AuthenticationToken admin) {
+<span class="nc" id="L121">		return null;</span>
+	}
+
+	public boolean isExecutable() {		
+<span class="nc" id="L125">		return true;</span>
+	}
+	
+	public void writeExternal(ObjectOutput out) throws IOException {
+<span class="nc" id="L129">		super.writeExternal(out);</span>
+<span class="nc" id="L130">		out.writeInt(LATEST_VERSION);</span>
+<span class="nc" id="L131">		out.writeObject(username);</span>
+<span class="nc" id="L132">		out.writeBoolean(recoverNewestCert);</span>
+		try {
+<span class="nc" id="L134">			String certString = new String(Base64.encode(cert.getEncoded()),&quot;UTF8&quot;);</span>
+<span class="nc" id="L135">			out.writeObject(certString);</span>
+<span class="nc" id="L136">		} catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L137">			log.debug(&quot;Error serializing certificate&quot;, e);</span>
+<span class="nc" id="L138">			throw new IOException(e.getMessage());</span>
+<span class="nc" id="L139">		}	</span>
+<span class="nc" id="L140">	}</span>
+
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {        
+<span class="nc" id="L143">		super.readExternal(in);</span>
+<span class="nc" id="L144">        int version = in.readInt();</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">        if(version == 1){</span>
+<span class="nc" id="L146">    		username = (String) in.readObject();</span>
+<span class="nc" id="L147">    		recoverNewestCert = in.readBoolean();</span>
+<span class="nc" id="L148">    		String certString = (String) in.readObject();    		</span>
+    		try {
+<span class="nc" id="L150">				cert = CertTools.getCertfromByteArray(Base64.decode(certString.getBytes(&quot;UTF8&quot;)), Certificate.class);</span>
+<span class="nc" id="L151">			} catch (CertificateException e) {</span>
+<span class="nc" id="L152">				log.debug(&quot;Error deserializing certificate&quot;, e);</span>
+<span class="nc" id="L153">				throw new IOException(e.getMessage());</span>
+<span class="nc" id="L154">			}	</span>
+        }
+<span class="nc" id="L156">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

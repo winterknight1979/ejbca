@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>InternalKeyBindingFactory.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.keybind</a> &gt; <span class="el_source">InternalKeyBindingFactory.java</span></div><h1>InternalKeyBindingFactory.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.keybind;
+
+import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.cesecore.keybind.impl.AuthenticationKeyBinding;
+import org.cesecore.keybind.impl.OcspKeyBinding;
+import org.cesecore.util.ui.DynamicUiProperty;
+
+/**
+ * Factory class with an internal registry of known implementations.
+ * 
+ * @version $Id: InternalKeyBindingFactory.java 23648 2016-06-09 15:19:55Z mikekushner $
+ */
+<span class="nc" id="L35">public enum InternalKeyBindingFactory {</span>
+<span class="nc" id="L36">    INSTANCE;</span>
+
+<span class="nc" id="L38">    private final Logger log = Logger.getLogger(InternalKeyBindingFactory.class);</span>
+<span class="nc" id="L39">    private final Map&lt;String, String&gt; aliasToImplementationMap = new HashMap&lt;String, String&gt;();</span>
+<span class="nc" id="L40">    private final Map&lt;String, String&gt; implementationToAliasMap = new HashMap&lt;String, String&gt;();</span>
+<span class="nc" id="L41">    private final Map&lt;String, Map&lt;String, DynamicUiProperty&lt;? extends Serializable&gt;&gt;&gt; implementationPropertiesMap = new HashMap&lt;String, Map&lt;String, DynamicUiProperty&lt;? extends Serializable&gt;&gt;&gt;();</span>
+
+<span class="nc" id="L43">    private InternalKeyBindingFactory() {</span>
+<span class="nc" id="L44">        addImplementation(OcspKeyBinding.class);</span>
+<span class="nc" id="L45">        addImplementation(AuthenticationKeyBinding.class);</span>
+        // Use ServiceLoader framework to find additional available implementations
+        // We add these after the built in ones, so the built in implementations can be overridden
+        // TODO the above when we need to
+<span class="nc" id="L49">    }</span>
+
+    public boolean existsTypeAlias(String alias) {
+<span class="nc" id="L52">        return aliasToImplementationMap.containsKey(alias);</span>
+    }
+
+    /**
+     * Creates a new InternalKeyBinding instance.
+     * 
+     * @param type is the alias of the registered InternalKeyBinding's type
+     * @param id is the unique identifier of this InternalKeyBinding
+     * @param name is the unique name that this InternalKeyBinding will be given
+     * @param status the initial status to give the InternalKeyBinding
+     * @param certificateId is the certificate fingerprint (lower case) matching the mapped key pair or null
+     * @param cryptoTokenId is the CryptoToken id of the container where the mapped key pair is stored
+     * @param keyPairAlias is the alias of the mapped key pair in the specified CryptoToken (may not be null)
+     * @param dataMap is a Map of implementation specific properties for this type of IntenalKeyBinding
+     * @return a new InternalKeyBinding instance
+     */
+    public InternalKeyBinding create(final String type, final int id, final String name, final InternalKeyBindingStatus status,
+            final String certificateId, final int cryptoTokenId, final String keyPairAlias, final LinkedHashMap&lt;Object, Object&gt; dataMap) {
+<span class="nc" id="L70">        final String implementationClassName = aliasToImplementationMap.get(type);</span>
+<span class="nc" id="L71">        InternalKeyBinding internalKeyBinding = null;</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">        if (implementationClassName == null) {</span>
+<span class="nc" id="L73">            log.error(&quot;Unable to create Signer. Implementation for type '&quot; + type + &quot;' not found.&quot;);</span>
+        } else {
+            try {
+<span class="nc" id="L76">                internalKeyBinding = (InternalKeyBinding) Class.forName(implementationClassName).getConstructor().newInstance();</span>
+                // Ensure that fingerprint is lower case, to match items in the database
+                final String certFp;
+<span class="nc bnc" id="L79" title="All 2 branches missed.">                if (certificateId != null) {</span>
+<span class="nc" id="L80">                    certFp = certificateId.toLowerCase(Locale.ENGLISH);</span>
+                } else {
+<span class="nc" id="L82">                    certFp = null;</span>
+                }
+<span class="nc" id="L84">                internalKeyBinding.init(id, name, status, certFp, cryptoTokenId, keyPairAlias, dataMap);</span>
+<span class="nc" id="L85">            } catch (InstantiationException e) {</span>
+<span class="nc" id="L86">                log.error(&quot;Unable to create InternalKeyBinding. Could not be instantiate implementation '&quot; + implementationClassName + &quot;'.&quot;, e);</span>
+<span class="nc" id="L87">            } catch (IllegalAccessException e) {</span>
+<span class="nc" id="L88">                log.error(&quot;Unable to create InternalKeyBinding. Not allowed to instantiate implementation '&quot; + implementationClassName + &quot;'.&quot;, e);</span>
+<span class="nc" id="L89">            } catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L90">                log.error(&quot;Unable to create InternalKeyBinding. Could not find implementation '&quot; + implementationClassName + &quot;'.&quot;, e);</span>
+<span class="nc" id="L91">            } catch (InvocationTargetException e) {</span>
+<span class="nc" id="L92">            	log.error(&quot;Unable to create InternalKeyBinding. Could not be instantiate implementation '&quot; + implementationClassName + &quot;'.&quot;, e);</span>
+<span class="nc" id="L93">            } catch (NoSuchMethodException e) {</span>
+<span class="nc" id="L94">            	log.error(&quot;Unable to create InternalKeyBinding. Could not find implementation '&quot; + implementationClassName + &quot;'.&quot;, e);</span>
+<span class="nc" id="L95">			}</span>
+        }
+<span class="nc" id="L97">        return internalKeyBinding;</span>
+    }
+
+    /** @param internalKeyBinding binding
+     * @return the registered alias for the provided Signer or &quot;null&quot; if this is an unknown implementation. */
+    public String getTypeFromImplementation(final InternalKeyBinding internalKeyBinding) {
+<span class="nc" id="L103">        return String.valueOf(implementationToAliasMap.get(internalKeyBinding.getClass().getName()));</span>
+    }
+
+    private void addImplementation(final Class&lt;? extends InternalKeyBinding&gt; c) {
+<span class="nc" id="L107">        String alias = null;</span>
+<span class="nc" id="L108">        List&lt;String&gt; implementationPropertyKeys = null;</span>
+<span class="nc" id="L109">        Map&lt;String, DynamicUiProperty&lt;? extends Serializable&gt;&gt; implementationProperties = null;</span>
+        try {
+<span class="nc" id="L111">            final InternalKeyBinding temporaryInstance = c.getConstructor().newInstance();</span>
+<span class="nc" id="L112">            alias = temporaryInstance.getImplementationAlias();</span>
+<span class="nc" id="L113">            implementationProperties = temporaryInstance.getCopyOfProperties();</span>
+<span class="nc" id="L114">            implementationPropertyKeys = new ArrayList&lt;String&gt;();</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">            for (String name : implementationProperties.keySet()) {</span>
+<span class="nc" id="L116">                implementationPropertyKeys.add(name);</span>
+<span class="nc" id="L117">            }</span>
+<span class="nc" id="L118">        } catch (InstantiationException | InvocationTargetException e) {</span>
+<span class="nc" id="L119">            log.error(&quot;Unable to create InternalKeyBinding. Could not be instantiate implementation '&quot; + c.getName() + &quot;'.&quot;, e);</span>
+<span class="nc" id="L120">        } catch (IllegalAccessException e) {</span>
+<span class="nc" id="L121">            log.error(&quot;Unable to create InternalKeyBinding. Not allowed to instantiate implementation '&quot; + c.getName() + &quot;'.&quot;, e);</span>
+<span class="nc" id="L122">        }  catch (NoSuchMethodException e) {</span>
+<span class="nc" id="L123">        	log.error(&quot;Unable to create InternalKeyBinding. Could not find implementation '&quot; + c.getName() + &quot;'.&quot;, e);</span>
+<span class="nc" id="L124">		}</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">        if (alias != null) {</span>
+<span class="nc" id="L126">            aliasToImplementationMap.put(alias, c.getName());</span>
+<span class="nc" id="L127">            implementationToAliasMap.put(c.getName(), alias);</span>
+<span class="nc" id="L128">            implementationPropertiesMap.put(alias, Collections.unmodifiableMap((implementationProperties)));</span>
+        }
+<span class="nc" id="L130">    }</span>
+
+    public Map&lt;String, Map&lt;String, DynamicUiProperty&lt;? extends Serializable&gt;&gt;&gt; getAvailableTypesAndProperties() {
+<span class="nc" id="L133">        return Collections.unmodifiableMap(implementationPropertiesMap);</span>
+    }
+
+    /**
+     * Method to be used from an external environment (such as the CLI) where contextual information about a key binding 
+     * implementation is not available. Will presume that all key binding properties were entered as strings, will return a
+     * data wrapper that contains a map of properly casted values, and information about any values which were either unknown
+     * or of an incorrect format.  
+     * 
+     * @param alias the alias of the key binding type to check for
+     * @param propertiesMap the inputed properties, as strings
+     * @return a wrapper class that contains the correctly casted values, and information about any values that were invalid.
+     */
+    public InternalKeyBindingPropertyValidationWrapper validateProperties(String alias, Map&lt;String, String&gt; propertiesMap) {
+<span class="nc" id="L147">        InternalKeyBindingPropertyValidationWrapper result = new InternalKeyBindingPropertyValidationWrapper();</span>
+<span class="nc" id="L148">        Map&lt;String, DynamicUiProperty&lt;? extends Serializable&gt;&gt; implementationProperties =  implementationPropertiesMap.get(alias);</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">        for (String key : propertiesMap.keySet()) {</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">            if(!implementationProperties.containsKey(key)) {</span>
+<span class="nc" id="L151">                result.addUnknownProperty(key);</span>
+<span class="nc" id="L152">                continue;</span>
+            }
+<span class="nc" id="L154">            DynamicUiProperty&lt;? extends Serializable&gt; property = implementationProperties.get(key);</span>
+<span class="nc" id="L155">            String value = propertiesMap.get(key);</span>
+<span class="nc" id="L156">            Serializable recastValue = property.valueOf(value);</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">            if(recastValue == null) {</span>
+<span class="nc" id="L158">                result.addInvalidValue(key, property.getType());</span>
+<span class="nc" id="L159">                continue;</span>
+            }
+<span class="nc" id="L161">            result.addProperty(key, recastValue);</span>
+<span class="nc" id="L162">        }</span>
+<span class="nc" id="L163">        return result;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>UserDataSourceVO.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.ra.userdatasource</a> &gt; <span class="el_source">UserDataSourceVO.java</span></div><h1>UserDataSourceVO.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.ra.userdatasource;
+
+import java.io.Serializable;
+import java.util.Set;
+
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.util.DNFieldExtractor;
+
+/**
+ * UserDataSourceVO is a value object returned from the fetch method
+ * of a user data source.
+ * 
+ * Contains two things one is the EndEntityInformationand the other is
+ * a set of constants indicating which fields that should be modifyable by the RA.
+ * 
+ *  
+ * @version $Id: UserDataSourceVO.java 25216 2017-02-08 12:27:16Z anatom $
+ */
+public class UserDataSourceVO implements Serializable {    
+
+    private static final long serialVersionUID = -7921890622152981851L;
+    /**
+	 * Constants used in isModifyable sets.
+	 */
+    public static final int ISMODIFYABLE_USERNAME           = 101;
+    public static final int ISMODIFYABLE_PASSWORD           = 102;
+    public static final int ISMODIFYABLE_CAID               = 103;
+    public static final int ISMODIFYABLE_EMAILDATA          = 104;
+    public static final int ISMODIFYABLE_TYPE               = 105;
+    public static final int ISMODIFYABLE_ENDENTITYPROFILE   = 106;
+    public static final int ISMODIFYABLE_CERTIFICATEPROFILE = 107;
+    public static final int ISMODIFYABLE_TOKENTYPE          = 108;
+    public static final int ISMODIFYABLE_HARDTOKENISSUER    = 109;
+
+<span class="nc" id="L47">    public static final int[] AVAILABLEMODIFYABLEFIELDS    = {</span>
+    	ISMODIFYABLE_USERNAME , ISMODIFYABLE_PASSWORD , ISMODIFYABLE_CAID , ISMODIFYABLE_EMAILDATA ,
+    	ISMODIFYABLE_TYPE , ISMODIFYABLE_ENDENTITYPROFILE , ISMODIFYABLE_CERTIFICATEPROFILE , ISMODIFYABLE_TOKENTYPE , ISMODIFYABLE_HARDTOKENISSUER,
+    	DNFieldExtractor.UID , DNFieldExtractor.CN , DNFieldExtractor.SN , 
+    	DNFieldExtractor.GIVENNAME , DNFieldExtractor.INITIALS , DNFieldExtractor.SURNAME , DNFieldExtractor.T ,
+    	DNFieldExtractor.OU , DNFieldExtractor.O , DNFieldExtractor.L , DNFieldExtractor.ST ,
+    	DNFieldExtractor.DC , DNFieldExtractor.C , DNFieldExtractor.UNSTRUCTUREDADDRESS , DNFieldExtractor.UNSTRUCTUREDNAME ,
+    	DNFieldExtractor.DNSNAME , DNFieldExtractor.IPADDRESS ,
+    	DNFieldExtractor.DIRECTORYNAME, DNFieldExtractor.URI ,
+    	DNFieldExtractor.UPN , DNFieldExtractor.GUID , DNFieldExtractor.KRB5PRINCIPAL ,
+    	DNFieldExtractor.PERMANTIDENTIFIER ,
+    	DNFieldExtractor.SUBJECTIDENTIFICATIONMETHOD ,
+    	DNFieldExtractor.DATEOFBIRTH , DNFieldExtractor.PLACEOFBIRTH , DNFieldExtractor.GENDER , DNFieldExtractor.COUNTRYOFCITIZENSHIP ,
+    	DNFieldExtractor.COUNTRYOFRESIDENCE 
+    };
+
+<span class="nc" id="L63">    private EndEntityInformation endEntityInformation = null;</span>
+<span class="nc" id="L64">    private Set&lt;Integer&gt; isModifyableSet = null;</span>
+	
+    /**
+	 * Constructor that should be used from the User Data Source Implementations
+	 * @param endEntityInformation info
+	 */
+	public UserDataSourceVO(EndEntityInformation endEntityInformation) {
+<span class="nc" id="L71">		super();</span>
+<span class="nc" id="L72">		this.endEntityInformation = endEntityInformation;</span>
+<span class="nc" id="L73">	}</span>
+	
+	/**
+	 * Method that should be used by BaseUserDataSource only.
+	 * @param isModifyableSet bool
+	 */
+	void setIsModifyableSet(Set&lt;Integer&gt; isModifyableSet){
+<span class="nc" id="L80">		this.isModifyableSet = isModifyableSet;</span>
+<span class="nc" id="L81">	}</span>
+	
+	/**
+	 * Method that returns the users EndEntityInformation.
+	 * @return info
+	 */
+	public EndEntityInformation getEndEntityInformation(){
+<span class="nc" id="L88">		return endEntityInformation;</span>
+	}
+	
+	/**
+	 * Method used to check if a field can be modifyable by the RA.
+	 * 
+	 * @param field containing one of the UserDataSourceVO.ISMODIFYABLE_ or
+	 * DNFieldExtractor constants defined in the AVAILABLEMODIFYABLEFIELDS array.
+	 * @return true if the field should be modifyable.
+	 */
+	public boolean isFieldModifyable(int field){
+<span class="nc" id="L99">		return isModifyableSet.contains(field);</span>
+	}	
+	
+	/**
+	 * Method returning the complete isModifyable Set, it is recommended
+	 * that the isFieldModifyable(int field) method is used instead.
+	 * 
+	 * @return the complete isFieldModifyable Set
+	 */
+	public Set&lt;Integer&gt; getIsFieldModifyableSet(){
+<span class="nc" id="L109">		return isModifyableSet;</span>
+	}		
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

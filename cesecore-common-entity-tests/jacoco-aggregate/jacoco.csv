@@ -31,7 +31,7 @@ cesecore-common-entity-tests/cesecore-common,org.cesecore.util,PKIXCertRevocatio
 cesecore-common-entity-tests/cesecore-common,org.cesecore.util,SimpleTime,33,407,6,4,12,78,5,25,1,23
 cesecore-common-entity-tests/cesecore-common,org.cesecore.util,ValueExtractor,122,88,8,6,16,17,6,6,1,4
 cesecore-common-entity-tests/cesecore-common,org.cesecore.util,ValidityDate,99,300,13,31,23,70,16,23,4,13
-cesecore-common-entity-tests/cesecore-common,org.cesecore.util,ConcurrentCache,166,535,29,65,44,114,30,35,6,12
+cesecore-common-entity-tests/cesecore-common,org.cesecore.util,ConcurrentCache,166,535,28,66,44,114,29,36,6,12
 cesecore-common-entity-tests/cesecore-common,org.cesecore.util,StreamSizeLimitExceededException,12,4,0,0,6,2,3,1,3,1
 cesecore-common-entity-tests/cesecore-common,org.cesecore.util,PrintableStringNameStyle,32,48,8,8,7,9,8,4,0,4
 cesecore-common-entity-tests/cesecore-common,org.cesecore.util,CertificateSerializableWrapper,45,14,7,1,14,6,6,1,2,1
@@ -390,4 +390,4 @@ cesecore-common-entity-tests/cesecore-entity,org.cesecore.dbprotection,Protectio
 cesecore-common-entity-tests/cesecore-entity,org.cesecore.dbprotection,ProtectedData,63,32,1,3,19,13,6,3,5,2
 cesecore-common-entity-tests/cesecore-entity,org.cesecore.roles.member,RoleMember,140,0,0,0,50,0,21,0,21,0
 cesecore-common-entity-tests/cesecore-entity,org.cesecore.roles.member,RoleMemberData,277,0,0,0,77,0,37,0,37,0
-cesecore-common-entity-tests/shared-resources,com.primekey.anttools,ServiceManifestBuilder,457,0,66,0,97,0,41,0,8,0
+cesecore-common-entity-tests/shared-resources,com.primekey.anttools,ServiceManifestBuilder,539,0,66,0,98,0,41,0,8,0

@@ -1,0 +1,631 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>JAXWSDocAndConvTools.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util</a> &gt; <span class="el_source">JAXWSDocAndConvTools.java</span></div><h1>JAXWSDocAndConvTools.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.util;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+
+/**
+ * JAX-WS Support.
+ * Utility for supporting JavaDoc creation of JAX-WS objects as well
+ * as supporting an option for securely reusing server-objects on the client
+ * to achieve a more uniform system.
+ * @author Anders Rundgren
+ * @version $Id: JAXWSDocAndConvTools.java 28766 2018-04-24 11:18:17Z tarmo_r_helmes $ 
+ */
+public class JAXWSDocAndConvTools {
+
+	CompilationUnit server;
+	CompilationUnit client;
+
+<span class="nc" id="L37">	enum Types {</span>
+<span class="nc" id="L38">		COMMENT,IDENTIFIER, SEMICOLON, STRING, CHARLITERAL, COMMA, NUMBER, LEFTPAR, RIGHTPAR, LEFTBRACK, RIGHTBRACK, </span>
+<span class="nc" id="L39">		LEFTARRAY, RIGHTARRAY, BINOP, EQUALOP, LEFTCURL, RIGHTCURL;</span>
+	}
+	  
+	class Token {
+<span class="nc" id="L43">		 int start = c_start;</span>
+<span class="nc" id="L44">		 int stop = c_index;</span>
+		 Types type;
+
+<span class="nc" id="L47">		 Token (Types type){</span>
+<span class="nc" id="L48">			 this.type = type;</span>
+<span class="nc" id="L49">			 curr = this;</span>
+<span class="nc" id="L50">		 }</span>
+
+<span class="nc" id="L52">		 Types getType () {return type;}</span>
+		 
+		 String getText (){
+<span class="nc" id="L55">			 return lines.substring(start, stop);</span>
+		 }
+		 
+		 boolean equals (String value){
+<span class="nc" id="L59">			 return value.equals(getText ());</span>
+		 }
+	}
+	
+<span class="nc" id="L63">	class Method{</span>
+		String java_doc;
+		String method_name;
+		String return_type;
+<span class="nc" id="L67">		List&lt;String&gt; declarators = new ArrayList&lt;String&gt; ();</span>
+<span class="nc" id="L68">		List&lt;String&gt; argument_names = new ArrayList&lt;String&gt; ();</span>
+<span class="nc" id="L69">		List&lt;String&gt; exceptions = new ArrayList&lt;String&gt; ();</span>
+		String signature (){
+<span class="nc" id="L71">			final StringBuilder sig = new StringBuilder();</span>
+<span class="nc" id="L72">			sig.append(method_name).append(':').append(return_type);</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">			for (String decl : declarators){</span>
+<span class="nc" id="L74">				sig.append('/').append(decl);</span>
+<span class="nc" id="L75">			}</span>
+<span class="nc" id="L76">			return sig.toString();</span>
+		}
+	}
+	
+<span class="nc" id="L80">	class CompilationUnit{</span>
+		String package_name;
+		String class_name;
+		String class_java_doc;
+<span class="nc" id="L84">		List&lt;String&gt; imports = new ArrayList&lt;String&gt; ();</span>
+<span class="nc" id="L85">		LinkedHashMap&lt;String,String&gt; exceptions = new LinkedHashMap&lt;String,String&gt; ();</span>
+<span class="nc" id="L86">		LinkedHashMap&lt;String,Method&gt; methods = new LinkedHashMap&lt;String,Method&gt; ();</span>
+		
+	}
+	int c_index;
+	int c_start;
+	StringBuilder lines;
+	boolean ws_gen;
+	Token curr;
+	
+	void bad (String error) throws Exception{
+<span class="nc" id="L96">		throw new Exception (error);</span>
+	}
+	
+	  
+    Token scan () throws Exception{
+    	while (true){
+<span class="nc bnc" id="L102" title="All 2 branches missed.">    		if (c_index &gt;= lines.length()){</span>
+<span class="nc" id="L103">    			return null;</span>
+    		}
+    			
+<span class="nc" id="L106">        	c_start = c_index;</span>
+<span class="nc" id="L107">        	int c = lines.charAt(c_index++);</span>
+<span class="nc bnc" id="L108" title="All 10 branches missed.">        	if ((c &gt;= 'a' &amp;&amp; c &lt;= 'z') || (c &gt;= 'A' &amp;&amp; c &lt;= 'Z') || c == '_'){</span>
+<span class="nc bnc" id="L109" title="All 16 branches missed.">        		while (((c =lines.charAt(c_index)) &gt;= 'a' &amp;&amp; c &lt;= 'z') || (c &gt;= 'A' &amp;&amp; c &lt;= 'Z') || (c &gt;= '0' &amp;&amp; c &lt;= '9') || c == '_' || c == '.'){</span>
+<span class="nc" id="L110">        			c_index++;</span>
+        		}
+<span class="nc" id="L112">        		return new Token (Types.IDENTIFIER);</span>
+        	}
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        	if (c == '@'){</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        		if (scan ().getType() != Types.IDENTIFIER){</span>
+<span class="nc" id="L116">        			bad (&quot;@ should be followed by an identifier&quot;);</span>
+        		}
+<span class="nc" id="L118">        		Token nxt = scan ();</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        		if (nxt.getType () == Types.LEFTPAR){</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        			while (scan ().getType () != Types.RIGHTPAR) {} // NOPMD, just loop through</span>
+            		continue;
+        		}
+<span class="nc" id="L123">        		return nxt;</span>
+        	}
+<span class="nc bnc" id="L125" title="All 2 branches missed.">        	if (c == '/'){</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        		if (lines.charAt(c_index) == '*'){</span>
+<span class="nc" id="L127">        			c_index++;</span>
+        			while (true){
+<span class="nc bnc" id="L129" title="All 2 branches missed.">            			if (lines.charAt(c_index++) == '*'){</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">            				if (lines.charAt(c_index) == '/'){</span>
+<span class="nc" id="L131">            					c_index++;</span>
+<span class="nc" id="L132">            					return new Token (Types.COMMENT);</span>
+            				}
+            			}
+        			}
+        		}
+<span class="nc bnc" id="L137" title="All 2 branches missed.">        		if (lines.charAt(c_index) == '/'){</span>
+<span class="nc" id="L138">        			c_index++;</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        			while (lines.charAt(c_index++) != '\n') { // NOPMD, just loop through</span>
+        			}
+        			continue;
+        		}
+        	}
+<span class="nc bnc" id="L144" title="All 2 branches missed.">        	if (c &lt;= ' '){</span>
+<span class="nc" id="L145">        		continue;</span>
+        	}
+
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        	if (c == ';'){</span>
+<span class="nc" id="L149">        		return new Token (Types.SEMICOLON);</span>
+        	}
+
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        	if (c == '('){</span>
+<span class="nc" id="L153">        		return new Token (Types.LEFTPAR);</span>
+        	}
+<span class="nc bnc" id="L155" title="All 2 branches missed.">        	if (c == ')'){</span>
+<span class="nc" id="L156">        		return new Token (Types.RIGHTPAR);</span>
+        	}
+<span class="nc bnc" id="L158" title="All 2 branches missed.">        	if (c == '['){</span>
+<span class="nc" id="L159">        		return new Token (Types.LEFTARRAY);</span>
+        	}
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        	if (c == ']'){</span>
+<span class="nc" id="L162">        		return new Token (Types.RIGHTARRAY);</span>
+        	}
+<span class="nc bnc" id="L164" title="All 2 branches missed.">        	if (c == '&lt;'){</span>
+<span class="nc" id="L165">        		return new Token (Types.LEFTBRACK);</span>
+        	}
+<span class="nc bnc" id="L167" title="All 2 branches missed.">        	if (c == '&gt;'){</span>
+<span class="nc" id="L168">        		return new Token (Types.RIGHTBRACK);</span>
+        	}
+<span class="nc bnc" id="L170" title="All 2 branches missed.">        	if (c == '{'){</span>
+<span class="nc" id="L171">        		return new Token (Types.LEFTCURL);</span>
+        	}
+<span class="nc bnc" id="L173" title="All 2 branches missed.">        	if (c == '}'){</span>
+<span class="nc" id="L174">        		return new Token (Types.RIGHTCURL);</span>
+        	}
+<span class="nc bnc" id="L176" title="All 2 branches missed.">        	if (c == ','){</span>
+<span class="nc" id="L177">        		return new Token (Types.COMMA);</span>
+        	}
+<span class="nc bnc" id="L179" title="All 2 branches missed.">        	if (c == '&amp;'){</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">        		if (lines.charAt(c_index) == '&amp;'){</span>
+<span class="nc" id="L181">        			c_index++;</span>
+        		}
+<span class="nc" id="L183">        		return new Token (Types.BINOP);</span>
+        	}
+<span class="nc bnc" id="L185" title="All 2 branches missed.">        	if (c == '|'){</span>
+<span class="nc bnc" id="L186" title="All 2 branches missed.">        		if (lines.charAt(c_index) == '|'){</span>
+<span class="nc" id="L187">        			c_index++;</span>
+        		}
+<span class="nc" id="L189">        		return new Token (Types.BINOP);</span>
+        	}
+<span class="nc bnc" id="L191" title="All 10 branches missed.">        	if (c == '.' || c == '!' || c == '~' || c == '?' || c == ':'){</span>
+<span class="nc" id="L192">        		return new Token (Types.BINOP);</span>
+        	}
+<span class="nc bnc" id="L194" title="All 2 branches missed.">        	if (c == '='){</span>
+<span class="nc bnc" id="L195" title="All 2 branches missed.">        		if ((c = lines.charAt(c_index)) == '='){</span>
+<span class="nc" id="L196">        			c_index++;</span>
+<span class="nc" id="L197">            		return new Token (Types.BINOP);</span>
+        		}
+<span class="nc" id="L199">        		return new Token (Types.EQUALOP);</span>
+        	}
+<span class="nc bnc" id="L201" title="All 14 branches missed.">        	if (c == '+' || c == '-' || c == '*' || c== '%' || c == '&amp;' || c == '|' || c == '^'){</span>
+<span class="nc bnc" id="L202" title="All 2 branches missed.">        		if ((c = lines.charAt(c_index)) == '='){</span>
+<span class="nc" id="L203">        			c_index++;</span>
+        		}
+<span class="nc" id="L205">        		return new Token (Types.BINOP);</span>
+        	}
+<span class="nc bnc" id="L207" title="All 4 branches missed.">        	if (c &gt;= '0' &amp;&amp; c &lt;= '9'){</span>
+<span class="nc bnc" id="L208" title="All 12 branches missed.">        		while (((c = lines.charAt(c_index)) &gt;= '0' &amp;&amp; c &lt;= '9') || c == 'x' || c == 'l' || c == 'X' || c == 'L'){</span>
+<span class="nc" id="L209">        			c_index++;</span>
+        		}
+<span class="nc" id="L211">        		return new Token (Types.NUMBER);</span>
+        	}
+<span class="nc bnc" id="L213" title="All 2 branches missed.">        	if (c == '&quot;'){</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">        		while ((c = lines.charAt(c_index++)) != '&quot;'){</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">        			if (c == '\\'){</span>
+<span class="nc" id="L216">        				c_index++;</span>
+        			}
+        		}
+<span class="nc" id="L219">        		return new Token (Types.STRING);</span>
+        	}
+<span class="nc bnc" id="L221" title="All 2 branches missed.">        	if (c == '\''){</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">        		while ((c = lines.charAt(c_index++)) != '\''){</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">        			if (c == '\\'){</span>
+<span class="nc" id="L224">        				c_index++;</span>
+        			}
+        		}
+<span class="nc" id="L227">        		return new Token (Types.CHARLITERAL);</span>
+        	}
+<span class="nc" id="L229">        	bad (&quot;Parser did not get it: &quot; + (char) c);</span>
+<span class="nc" id="L230">    	}</span>
+    		
+    }
+    
+
+    void readSemicolon () throws Exception{
+<span class="nc bnc" id="L236" title="All 2 branches missed.">    	if (scan ().getType () != Types.SEMICOLON) {</span>
+<span class="nc" id="L237">    		bad (&quot;Semicolon expected&quot;);</span>
+    	}
+<span class="nc" id="L239">    }</span>
+
+    Token removeModifiers (Token start) throws Exception{
+<span class="nc" id="L242">		boolean changed = false;</span>
+		do{
+<span class="nc" id="L244">	    	changed = false;</span>
+<span class="nc bnc" id="L245" title="All 2 branches missed.">	     	if (start.equals(&quot;public&quot;)){</span>
+<span class="nc" id="L246">	     		start = scan ();</span>
+<span class="nc" id="L247">	     		changed = true;</span>
+	     	}
+<span class="nc bnc" id="L249" title="All 2 branches missed.">	    	if (start.equals(&quot;static&quot;)){</span>
+<span class="nc" id="L250">	    		start = scan ();</span>
+<span class="nc" id="L251">	    		changed = true;</span>
+	    	}
+<span class="nc bnc" id="L253" title="All 2 branches missed.">	        if (start.equals(&quot;final&quot;)){</span>
+<span class="nc" id="L254">	        	start = scan ();</span>
+<span class="nc" id="L255">	        	changed = true;</span>
+	    	}
+<span class="nc bnc" id="L257" title="All 2 branches missed.">	        if (start.equals(&quot;abstract&quot;)){</span>
+<span class="nc" id="L258">	        	start = scan ();</span>
+<span class="nc" id="L259">	        	changed = true;</span>
+	    	}
+<span class="nc bnc" id="L261" title="All 2 branches missed.">		}while (changed);</span>
+<span class="nc bnc" id="L262" title="All 2 branches missed.">		if (start.getType () != Types.IDENTIFIER) {</span>
+<span class="nc" id="L263">			bad (&quot;Identifier expected:&quot; + start.getType ());</span>
+		}
+<span class="nc" id="L265">		return start;</span>
+    }
+
+    
+    boolean isInterfaceOrClass (Token token){
+<span class="nc bnc" id="L270" title="All 4 branches missed.">    	return token.equals(&quot;class&quot;) || token.equals(&quot;interface&quot;);</span>
+    }
+
+    void implementsOrExtends (Token token) throws Exception{
+<span class="nc bnc" id="L274" title="All 4 branches missed.">    	if (!token.equals(&quot;implements&quot;) &amp;&amp; !token.equals(&quot;extends&quot;)) {</span>
+<span class="nc" id="L275">    		bad (&quot;Expected implements/extend&quot;);</span>
+    	}
+<span class="nc" id="L277">    }</span>
+    
+    void checkSource () throws Exception{
+<span class="nc bnc" id="L280" title="All 2 branches missed.">    	if (ws_gen) {</span>
+<span class="nc" id="L281">    		bad (&quot;Unexpected element for generated file:&quot; + curr.getText());</span>
+    	}
+<span class="nc" id="L283">    }</span>
+    
+    Token nameList (Token id) throws Exception{
+    	while (true){
+<span class="nc bnc" id="L287" title="All 2 branches missed.">    		if (id.getType() != Types.IDENTIFIER) {</span>
+<span class="nc" id="L288">    			bad (&quot;Missing identifier in extend/impl&quot;);</span>
+    		}
+<span class="nc" id="L290">    		Token nxt = scan ();</span>
+<span class="nc bnc" id="L291" title="All 2 branches missed.">    		if (nxt.getType () != Types.COMMA) {</span>
+<span class="nc" id="L292">    			return nxt;</span>
+    		}
+<span class="nc" id="L294">    		id = scan ();</span>
+<span class="nc" id="L295">    	}</span>
+    }
+    
+    String getTypeDeclaration (Token start) throws Exception{
+<span class="nc" id="L299">    	final StringBuilder type_decl = new StringBuilder();</span>
+<span class="nc" id="L300">    	type_decl.append(start.getText());</span>
+<span class="nc" id="L301">    	Token nxt = scan ();</span>
+<span class="nc bnc" id="L302" title="All 2 branches missed.">    	if (nxt.getType() == Types.LEFTBRACK){</span>
+    		do{
+<span class="nc" id="L304">       			type_decl.append(nxt.getText());</span>
+<span class="nc bnc" id="L305" title="All 2 branches missed.">    			if (scan ().getType() != Types.IDENTIFIER) {</span>
+<span class="nc" id="L306">    				bad (&quot;Missing &lt;ID&quot;);</span>
+    			}
+<span class="nc" id="L308">       			type_decl.append(getTypeDeclaration (curr));</span>
+    		}
+<span class="nc bnc" id="L310" title="All 2 branches missed.">    		while ((nxt = curr).getType() == Types.COMMA);</span>
+<span class="nc bnc" id="L311" title="All 2 branches missed.">    	    if (nxt.getType() != Types.RIGHTBRACK) {</span>
+<span class="nc" id="L312">    	    	bad (&quot;&gt; expected&quot;);</span>
+    	    }
+<span class="nc" id="L314">   			type_decl.append(nxt.getText());</span>
+<span class="nc" id="L315">   	    	scan ();</span>
+    	}
+<span class="nc bnc" id="L317" title="All 2 branches missed.">    	if (nxt.getType () == Types.LEFTARRAY){</span>
+<span class="nc" id="L318">    		boolean byte_array = type_decl.toString ().equals(&quot;byte&quot;);</span>
+<span class="nc bnc" id="L319" title="All 4 branches missed.">    		if (ws_gen &amp;&amp; !byte_array) {</span>
+<span class="nc" id="L320">    			bad (&quot;did not expect [] in WS-gen&quot;);</span>
+    		}
+<span class="nc bnc" id="L322" title="All 2 branches missed.">    		while ((nxt = scan()).getType() != Types.RIGHTARRAY) { // NOPMD, just loop through</span>
+    		}
+<span class="nc bnc" id="L324" title="All 2 branches missed.">    		if (byte_array) {</span>
+<span class="nc" id="L325">    			type_decl.append(&quot;[]&quot;);</span>
+    		} else{
+<span class="nc" id="L327">        		type_decl.insert(0, &quot;List&lt;&quot;).append('&gt;');</span>
+    		}
+<span class="nc" id="L329">   			scan ();</span>
+    	}
+<span class="nc" id="L331">    	return type_decl.toString();</span>
+    }
+    
+    void decodeDeclaration (Token start, CompilationUnit compilation) throws Exception{
+<span class="nc" id="L335">    	start = removeModifiers (start);</span>
+<span class="nc bnc" id="L336" title="All 2 branches missed.">    	if (!isInterfaceOrClass (start)) {</span>
+<span class="nc" id="L337">    		bad (&quot;Expected class/interface declaration&quot;);</span>
+    	}
+		Token id;
+<span class="nc bnc" id="L340" title="All 2 branches missed.">		if ((id = scan ()).getType() != Types.IDENTIFIER) {</span>
+<span class="nc" id="L341">			bad (&quot;class/interface identifier missing&quot;);</span>
+		}
+<span class="nc" id="L343">		compilation.class_name = id.getText();</span>
+//		System.out.println (&quot;Class:&quot; + id.getText());
+		Token nxt;
+<span class="nc bnc" id="L346" title="All 2 branches missed.">		if ((nxt = scan()).getType() == Types.IDENTIFIER){</span>
+<span class="nc" id="L347">			checkSource ();</span>
+<span class="nc" id="L348">			implementsOrExtends (nxt);</span>
+<span class="nc" id="L349">			nxt = nameList(scan ());</span>
+		}
+<span class="nc bnc" id="L351" title="All 2 branches missed.">		if (nxt.getType() != Types.LEFTCURL) {</span>
+<span class="nc" id="L352">			bad (&quot;Missing {&quot;);</span>
+		}
+<span class="nc" id="L354">		String jdoc = null;</span>
+		while (true){
+<span class="nc" id="L356">			nxt = scan ();</span>
+<span class="nc bnc" id="L357" title="All 2 branches missed.">			if (nxt.getType () == Types.RIGHTCURL){</span>
+<span class="nc" id="L358">				break;</span>
+<span class="nc bnc" id="L359" title="All 2 branches missed.">			} else if (nxt.getType () == Types.COMMENT){</span>
+<span class="nc" id="L360">				jdoc = nxt.getText();</span>
+//				System.out.println (&quot;Comment&quot;);
+			} else {
+<span class="nc" id="L363">				nxt = removeModifiers (nxt);</span>
+<span class="nc bnc" id="L364" title="All 2 branches missed.">				if (isInterfaceOrClass (nxt)) {</span>
+<span class="nc" id="L365">					bad (&quot;Nested classes not implemented yet&quot;);</span>
+				}
+<span class="nc" id="L367">				String return_type = null;</span>
+<span class="nc" id="L368">				String method_name = null;</span>
+<span class="nc bnc" id="L369" title="All 2 branches missed.">				if (compilation.class_name.equals (nxt.getText())){</span>
+<span class="nc" id="L370">					return_type = &quot;&quot;;</span>
+<span class="nc" id="L371">					method_name = nxt.getText();</span>
+				}else{
+<span class="nc" id="L373">					return_type = getTypeDeclaration (nxt);</span>
+<span class="nc" id="L374">					method_name = curr.getText();</span>
+				}
+<span class="nc" id="L376">				scan ();</span>
+<span class="nc bnc" id="L377" title="All 2 branches missed.">				if (curr.getType() == Types.LEFTPAR){</span>
+//					System.out.println (&quot;Return type: '&quot; + return_type + &quot;' method: '&quot; + method_name + &quot;'&quot;);
+<span class="nc" id="L379">					Method method = new Method ();</span>
+<span class="nc" id="L380">					method.return_type = return_type;</span>
+<span class="nc" id="L381">					method.method_name = method_name;</span>
+<span class="nc" id="L382">					method.java_doc = jdoc;</span>
+<span class="nc" id="L383">					scan ();</span>
+					do{
+<span class="nc bnc" id="L385" title="All 2 branches missed.">						if (curr.getType () == Types.IDENTIFIER){</span>
+<span class="nc" id="L386">							String arg_type = getTypeDeclaration (curr);</span>
+//							System.out.println (&quot;Argtype:&quot; + arg_type);
+//							System.out.println (&quot;Argname:&quot; + 	curr.getText ());
+<span class="nc" id="L389">							method.declarators.add (arg_type);</span>
+<span class="nc" id="L390">							method.argument_names.add (curr.getText());</span>
+<span class="nc bnc" id="L391" title="All 2 branches missed.">							if (scan ().getType() == Types.COMMA){</span>
+<span class="nc" id="L392">								scan ();</span>
+							}
+						}
+<span class="nc bnc" id="L395" title="All 2 branches missed.">					}while (curr.getType () != Types.RIGHTPAR);</span>
+<span class="nc" id="L396">					scan ();</span>
+<span class="nc bnc" id="L397" title="All 2 branches missed.">					if (curr.equals (&quot;throws&quot;)){</span>
+						while (true){
+<span class="nc" id="L399">							scan ();</span>
+<span class="nc bnc" id="L400" title="All 2 branches missed.">							if (curr.getType() != Types.IDENTIFIER) {</span>
+<span class="nc" id="L401">								bad (&quot;exception id missing&quot;);</span>
+							}
+<span class="nc" id="L403">							compilation.exceptions.put(curr.getText(), &quot;YES&quot;);</span>
+<span class="nc" id="L404">							method.exceptions.add(curr.getText());</span>
+<span class="nc bnc" id="L405" title="All 2 branches missed.">							if (scan ().getType () != Types.COMMA) {</span>
+<span class="nc" id="L406">								break;</span>
+							}
+						}
+					}
+<span class="nc bnc" id="L410" title="All 2 branches missed.">					if (compilation.methods.put(method.signature (), method) != null) {</span>
+<span class="nc" id="L411">						bad (&quot;Collision&quot;);</span>
+					}
+//					bad (&quot;Done&quot;);
+				}
+<span class="nc bnc" id="L415" title="All 4 branches missed.">				while (curr.getType() != Types.SEMICOLON &amp;&amp; curr.getType() != Types.LEFTCURL){</span>
+<span class="nc" id="L416">					scan ();</span>
+				}
+<span class="nc" id="L418">				jdoc = null;</span>
+<span class="nc bnc" id="L419" title="All 2 branches missed.">				if (curr.getType() == Types.LEFTCURL){</span>
+<span class="nc" id="L420">					int i = 0;</span>
+					while (true){
+<span class="nc" id="L422">						scan ();</span>
+<span class="nc bnc" id="L423" title="All 2 branches missed.">						if (curr.getType () == Types.LEFTCURL){</span>
+<span class="nc" id="L424">							i++;</span>
+						}
+<span class="nc bnc" id="L426" title="All 2 branches missed.">						if (curr.getType() == Types.RIGHTCURL){</span>
+<span class="nc bnc" id="L427" title="All 2 branches missed.">							if (i-- == 0){</span>
+<span class="nc" id="L428">								break;</span>
+							}
+						}
+					}
+					
+				}
+<span class="nc" id="L434">			}</span>
+		}
+<span class="nc" id="L436">    }</span>
+    
+	
+    CompilationUnit parse(String file_name) throws Exception {
+<span class="nc" id="L440">        System.out.println(&quot;File to parse: &quot; + file_name);</span>
+<span class="nc" id="L441">        CompilationUnit compilation = new CompilationUnit();</span>
+<span class="nc" id="L442">        lines = new StringBuilder();</span>
+<span class="nc" id="L443">        BufferedReader in = new BufferedReader(new FileReader(file_name));</span>
+        try {
+            String line;
+<span class="nc bnc" id="L446" title="All 2 branches missed.">            while ((line = in.readLine()) != null) {</span>
+<span class="nc" id="L447">                lines.append(line).append('\n');</span>
+            }
+        } finally {
+<span class="nc" id="L450">            in.close();</span>
+        }
+<span class="nc" id="L452">        c_index = 0;</span>
+<span class="nc" id="L453">        curr = null;</span>
+<span class="nc" id="L454">        boolean packfound = false;</span>
+<span class="nc" id="L455">        String class_jdoc = null;</span>
+<span class="nc bnc" id="L456" title="All 2 branches missed.">        while (scan() != null) {</span>
+<span class="nc bnc" id="L457" title="All 3 branches missed.">            switch (curr.getType()) {</span>
+            case COMMENT:
+<span class="nc" id="L459">                class_jdoc = curr.getText();</span>
+<span class="nc" id="L460">                break;</span>
+
+            case IDENTIFIER:
+<span class="nc bnc" id="L463" title="All 2 branches missed.">                if (packfound) {</span>
+<span class="nc bnc" id="L464" title="All 2 branches missed.">                    if (curr.equals(&quot;import&quot;)) {</span>
+<span class="nc" id="L465">                        Token imp = scan();</span>
+<span class="nc bnc" id="L466" title="All 2 branches missed.">                        if (imp.getType() != Types.IDENTIFIER) {</span>
+<span class="nc" id="L467">                            bad(&quot;Misformed import&quot;);</span>
+                        }
+<span class="nc" id="L469">                        readSemicolon();</span>
+<span class="nc" id="L470">                        compilation.imports.add(imp.getText());</span>
+<span class="nc" id="L471">                        class_jdoc = null;</span>
+<span class="nc" id="L472">                    } else {</span>
+<span class="nc" id="L473">                        compilation.class_java_doc = class_jdoc;</span>
+<span class="nc" id="L474">                        decodeDeclaration(curr, compilation);</span>
+                    }
+                } else {
+<span class="nc bnc" id="L477" title="All 2 branches missed.">                    if (!curr.equals(&quot;package&quot;)) {</span>
+<span class="nc" id="L478">                        bad(&quot;No package key-word found&quot;);</span>
+                    }
+<span class="nc" id="L480">                    Token pack = scan();</span>
+<span class="nc bnc" id="L481" title="All 2 branches missed.">                    if (pack.getType() != Types.IDENTIFIER) {</span>
+<span class="nc" id="L482">                        bad(&quot;Package missing&quot;);</span>
+                    }
+<span class="nc" id="L484">                    compilation.package_name = pack.getText();</span>
+<span class="nc" id="L485">                    readSemicolon();</span>
+<span class="nc" id="L486">                    packfound = true;</span>
+<span class="nc" id="L487">                    class_jdoc = null;</span>
+                }
+<span class="nc" id="L489">                break;</span>
+            default:
+<span class="nc" id="L491">                break;</span>
+            }
+        }
+<span class="nc" id="L494">        return compilation;</span>
+    }
+
+	void generateJDocFriendlyFile(String gen_directory) throws Exception{
+		
+/*
+		for (String s : client.methods.keySet()){
+			System.out.print (&quot;method=&quot; + (server.methods.get(s) == null) + &quot;=&quot; + s + &quot;\nthrows:&quot;);
+			for (String e : client.methods.get(s).exceptions){
+				System.out.print(&quot; &quot; + e);
+			}
+			System.out.println ();
+		}
+*/
+<span class="nc" id="L508">		final StringBuilder ofile = new StringBuilder();</span>
+<span class="nc" id="L509">		ofile.append(gen_directory).append(&quot;/&quot;);</span>
+<span class="nc bnc" id="L510" title="All 2 branches missed.">		for (int i = 0; i &lt; client.package_name.length (); i++){</span>
+<span class="nc bnc" id="L511" title="All 2 branches missed.">			if (client.package_name.charAt(i) == '.'){</span>
+<span class="nc" id="L512">				ofile.append('/');</span>
+			} else {
+<span class="nc" id="L514">				ofile.append(client.package_name.charAt(i));</span>
+			}
+		}
+<span class="nc" id="L517">		String outPath = ofile.toString ();</span>
+<span class="nc" id="L518">		String[] cf = new File (outPath).list();</span>
+<span class="nc bnc" id="L519" title="All 2 branches missed.">		for (String f : cf){</span>
+<span class="nc bnc" id="L520" title="All 2 branches missed.">			if (f.toUpperCase().endsWith(&quot;EXCEPTION.JAVA&quot;)){</span>
+<span class="nc bnc" id="L521" title="All 2 branches missed.">				if (client.exceptions.get (f.substring (0, f.length () - 5)) == null){</span>
+	/*
+					if (!new File (outPath + &quot;/&quot; + f).delete()){
+						bad (&quot;Couldn't delete &quot; + f);
+					}
+	*/
+				}
+			}
+		}
+<span class="nc" id="L530">		ofile.append('/').append(client.class_name).append(&quot;.java&quot;);</span>
+//		System.out.println (&quot;f=&quot; + ofile.toString());
+<span class="nc" id="L532">		FileWriter out = new FileWriter (ofile.toString());</span>
+<span class="nc" id="L533">		out.write (&quot;package &quot; + client.package_name + &quot;;\n\n&quot;);</span>
+<span class="nc bnc" id="L534" title="All 2 branches missed.">		for (String imp : client.imports){</span>
+<span class="nc" id="L535">			out.write(&quot;import &quot; + imp + &quot;;\n&quot;);</span>
+<span class="nc" id="L536">		}</span>
+<span class="nc bnc" id="L537" title="All 2 branches missed.">		if (server.class_java_doc != null){</span>
+<span class="nc" id="L538">			out.write(&quot;\n&quot; + server.class_java_doc);</span>
+		}
+<span class="nc" id="L540">		out.write(&quot;\npublic interface &quot; + client.class_name + &quot;\n{\n&quot;);</span>
+<span class="nc bnc" id="L541" title="All 2 branches missed.">		for (String s : client.methods.keySet()){</span>
+<span class="nc" id="L542">			Method client_method = client.methods.get(s);</span>
+<span class="nc bnc" id="L543" title="All 2 branches missed.">			for (String f : cf){</span>
+<span class="nc bnc" id="L544" title="All 2 branches missed.">				if (f.equalsIgnoreCase(client_method.method_name + &quot;.java&quot;) ||</span>
+<span class="nc bnc" id="L545" title="All 2 branches missed.">					f.equalsIgnoreCase(client_method.method_name + &quot;response.java&quot;)){</span>
+<span class="nc bnc" id="L546" title="All 2 branches missed.">					if (!new File (outPath + &quot;/&quot; + f).delete()){</span>
+<span class="nc" id="L547">						bad (&quot;Couldn't delete:&quot; + f);</span>
+					}
+				}
+			}
+<span class="nc" id="L551">			String jdoc = server.methods.get(s).java_doc;</span>
+<span class="nc bnc" id="L552" title="All 2 branches missed.">			if (jdoc == null) { </span>
+<span class="nc" id="L553">				bad (&quot;missing javadoc for &quot; + s);</span>
+			}
+<span class="nc bnc" id="L555" title="All 2 branches missed.">			for (String e : client_method.exceptions){</span>
+<span class="nc" id="L556">			    int i = jdoc.indexOf(&quot;@throws &quot; + e.substring(0, e.length () - 10));</span>
+<span class="nc bnc" id="L557" title="All 2 branches missed.">			    if (i &gt; 0) {</span>
+<span class="nc" id="L558">			    	jdoc = jdoc.substring (0, i) + &quot;@throws &quot; + e + jdoc.substring(i + e.length () - 2);</span>
+			    } else {
+<span class="nc" id="L560">			    	bad(&quot;You need to declare @throws for '&quot; + e.substring(0, e.length () - 10) + &quot;' in method:&quot; + client_method.method_name);</span>
+			    }
+<span class="nc" id="L562">			}</span>
+<span class="nc" id="L563">			out.write(&quot;\n&quot; + jdoc + &quot;\n&quot;);</span>
+<span class="nc" id="L564">			out.write(&quot; public &quot; + client_method.return_type + &quot; &quot; + client_method.method_name + &quot;(&quot;);</span>
+<span class="nc" id="L565">			boolean comma = false;</span>
+<span class="nc" id="L566">			List&lt;String&gt; arg_names = server.methods.get(s).argument_names;</span>
+<span class="nc" id="L567">			int q = 0;</span>
+<span class="nc bnc" id="L568" title="All 2 branches missed.">			for (String arg : client_method.declarators){</span>
+<span class="nc bnc" id="L569" title="All 2 branches missed.">				if (comma){</span>
+<span class="nc" id="L570">					out.write(&quot;, &quot;);</span>
+				}
+<span class="nc" id="L572">				comma = true;</span>
+<span class="nc" id="L573">				out.write(arg + &quot; &quot; + arg_names.get(q++));</span>
+<span class="nc" id="L574">			}</span>
+<span class="nc" id="L575">			out.write(&quot;)&quot;);</span>
+<span class="nc bnc" id="L576" title="All 2 branches missed.">			if (!client_method.exceptions.isEmpty()){</span>
+<span class="nc" id="L577">				out.write(&quot; throws &quot;);</span>
+<span class="nc" id="L578">				comma = false;</span>
+<span class="nc bnc" id="L579" title="All 2 branches missed.">				for (String e : client_method.exceptions){</span>
+<span class="nc bnc" id="L580" title="All 2 branches missed.">					if (comma){</span>
+<span class="nc" id="L581">						out.write(&quot;, &quot;);</span>
+					}
+<span class="nc" id="L583">					comma = true;</span>
+<span class="nc" id="L584">					out.write(e);</span>
+<span class="nc" id="L585">				}</span>
+				
+			}
+<span class="nc" id="L588">			out.write(&quot;;\n&quot;);</span>
+<span class="nc" id="L589">		}</span>
+<span class="nc" id="L590">		out.write(&quot;}\n&quot;);</span>
+<span class="nc" id="L591">		out.close();</span>
+<span class="nc" id="L592">	}</span>
+
+	
+	void compareGeneratedWithWritten () throws Exception{
+<span class="nc bnc" id="L596" title="All 2 branches missed.">	    for (String s : client.methods.keySet()){</span>
+<span class="nc" id="L597">	    	Method m = server.methods.get(s);</span>
+<span class="nc bnc" id="L598" title="All 2 branches missed.">	    	if (m == null){</span>
+<span class="nc bnc" id="L599" title="All 2 branches missed.">	    	    for (String o : server.methods.keySet()){</span>
+<span class="nc" id="L600">	    	    	System.out.println (server.methods.get(o).signature());</span>
+<span class="nc" id="L601">	    	    }</span>
+<span class="nc" id="L602">	    		bad (&quot;Method mismatch: &quot; + s);</span>
+	    	}
+	    	
+<span class="nc" id="L605">		}</span>
+<span class="nc" id="L606">	}</span>
+	
+<span class="nc" id="L608">	JAXWSDocAndConvTools (String server_interface, String client_interface, String gen_directory) throws Exception {</span>
+<span class="nc" id="L609">		server = parse (server_interface);</span>
+<span class="nc bnc" id="L610" title="All 2 branches missed.">		ws_gen = (gen_directory != null);</span>
+<span class="nc" id="L611">		client = parse (client_interface);</span>
+<span class="nc bnc" id="L612" title="All 2 branches missed.">		if (gen_directory == null) {</span>
+<span class="nc" id="L613">			compareGeneratedWithWritten ();</span>
+		} else {
+<span class="nc" id="L615">			generateJDocFriendlyFile (gen_directory);</span>
+		}
+		
+<span class="nc" id="L618">	}</span>
+	  
+	static public void main (String[] args) throws Exception{
+<span class="nc bnc" id="L621" title="All 4 branches missed.">		if (args.length != 3 &amp;&amp; args.length != 2){</span>
+<span class="nc" id="L622">			System.out.println (JAXWSDocAndConvTools.class.getName() + &quot; WS-server-interface-file  WS-generated-client-interface-file jdoc-\&quot;gen\&quot;-dir\n&quot; +</span>
+<span class="nc" id="L623">					            JAXWSDocAndConvTools.class.getName() + &quot; WS-hand-written-file WS-generated-file\n\n&quot; +</span>
+					            &quot;Generate JDoc\nCompare Declarations\n&quot;);
+<span class="nc" id="L625">			System.exit(2); // NOPMD this is a cli command</span>
+		}
+<span class="nc bnc" id="L627" title="All 2 branches missed.">		new JAXWSDocAndConvTools (args[0], args[1], args.length == 3 ? args[2] : null);</span>
+<span class="nc" id="L628">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>HsmResponseThread.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">cesecore-ejb</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.ocsp</a> &gt; <span class="el_source">HsmResponseThread.java</span></div><h1>HsmResponseThread.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.ocsp;
+
+import java.security.PrivateKey;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
+import java.util.Date;
+import java.util.concurrent.Callable;
+
+import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
+import org.bouncycastle.cert.ocsp.BasicOCSPResp;
+import org.bouncycastle.cert.ocsp.BasicOCSPRespBuilder;
+import org.bouncycastle.cert.ocsp.OCSPException;
+import org.bouncycastle.operator.BufferingContentSigner;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.cesecore.certificates.ocsp.exception.OcspFailureException;
+import org.cesecore.util.CertTools;
+
+/**
+ * This internal class exists for the sole purpose of catching deadlocks in the HSM hardware.
+ * 
+ * @version $Id: HsmResponseThread.java 26780 2017-10-10 09:37:56Z mikekushner $
+ */
+public class HsmResponseThread implements Callable&lt;BasicOCSPResp&gt; {
+
+    public static final long HSM_TIMEOUT_SECONDS = 30;
+
+    private final BasicOCSPRespBuilder basicRes;
+    private final String signingAlgorithm;
+    private final PrivateKey signerKey;
+    private final JcaX509CertificateHolder[] chain;
+    private final String provider;
+    private final Date producedAt;
+
+    public HsmResponseThread(final BasicOCSPRespBuilder basicRes, final String signingAlgorithm, final PrivateKey signerKey,
+<span class="nc" id="L49">            final X509Certificate[] chain, final String provider, final Date producedAt) throws OcspFailureException {</span>
+<span class="nc" id="L50">        this.basicRes = basicRes;</span>
+<span class="nc" id="L51">        this.signingAlgorithm = signingAlgorithm;</span>
+<span class="nc" id="L52">        this.signerKey = signerKey;</span>
+<span class="nc" id="L53">        this.provider = provider;</span>
+<span class="nc" id="L54">        this.producedAt = producedAt;</span>
+        try {
+<span class="nc" id="L56">            this.chain = CertTools.convertToX509CertificateHolder(chain);</span>
+<span class="nc" id="L57">        } catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L58">            throw new OcspFailureException(e);</span>
+<span class="nc" id="L59">        }</span>
+<span class="nc" id="L60">    }</span>
+
+    @Override
+    public BasicOCSPResp call() throws OCSPException {
+        try {
+            /*
+             * BufferingContentSigner defaults to allocating a 4096 bytes buffer. Since a rather large OCSP response (e.g. signed with 4K
+             * RSA key, nonce and a one level chain) is less then 2KiB, this is generally a waste of allocation and garbage collection.
+             * 
+             * In high performance environments, the full OCSP response should in general be smaller than 1492 bytes to fit in a single
+             * Ethernet frame.
+             * 
+             * Lowering this allocation from 20480 to 4096 bytes under ECA-4084 which should still be plenty.
+             */
+<span class="nc" id="L74">            final ContentSigner signer = new BufferingContentSigner(new JcaContentSignerBuilder(signingAlgorithm).setProvider(provider).build(signerKey), 20480);</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">            return basicRes.build(signer, chain, producedAt!=null? producedAt : new Date());</span>
+<span class="nc" id="L76">        } catch (OperatorCreationException e) {</span>
+<span class="nc" id="L77">            throw new OcspFailureException(e);</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

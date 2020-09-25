@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ApprovalData.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-entity</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.approval</a> &gt; <span class="el_source">ApprovalData.java</span></div><h1>ApprovalData.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.ejb.approval;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import javax.persistence.Entity;
+import javax.persistence.PostLoad;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.apache.log4j.Logger;
+import org.cesecore.dbprotection.ProtectedData;
+import org.cesecore.dbprotection.ProtectionStringBuilder;
+import org.cesecore.util.Base64;
+import org.ejbca.core.model.approval.Approval;
+import org.ejbca.core.model.approval.ApprovalDataVO;
+import org.ejbca.core.model.approval.ApprovalRequest;
+
+/**
+ * Representation of approval request data used to control request and their approvals.
+ * 
+ * @version $Id: ApprovalData.java 24238 2016-08-29 11:32:18Z aveen4711 $
+ */
+@Entity
+@Table(name=&quot;ApprovalData&quot;)
+public class ApprovalData extends ProtectedData implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+<span class="fc" id="L49">	private static final Logger log = Logger.getLogger(ApprovalData.class);</span>
+
+	private int id; // the unique id stored in the database
+	private int approvalId; // a hash of the request
+	private int approvalType;
+	private int endEntityProfileId;
+	private int cAId;
+	private String reqAdminCertIssuerDn;
+	private String reqAdminCertSn;
+	private int status;
+	private String approvalData; // list of approvals 
+	private String requestData;
+	private long requestDate;
+	private long expireDate;
+	private int remainingApprovals;
+<span class="pc" id="L64">	private int rowVersion = 0;</span>
+	private String rowProtection;
+
+	/**
+	 * Entity holding data of a approval data.
+	 * 
+	 * The constructor is responsible for populating all non-nullable fields!
+	 * @param id ID
+	 */
+<span class="nc" id="L73">	public ApprovalData(final int id) {</span>
+<span class="nc" id="L74">		setId(id);</span>
+<span class="nc" id="L75">		setStatus(ApprovalDataVO.STATUS_WAITINGFORAPPROVAL);        </span>
+<span class="nc" id="L76">		setRequestdate(System.currentTimeMillis());</span>
+<span class="nc" id="L77">		log.debug(&quot;Created approval with id &quot; + id);</span>
+<span class="nc" id="L78">	}</span>
+
+<span class="fc" id="L80">	public ApprovalData() { </span>
+		// used from test code (also required by JPA!)
+<span class="fc" id="L82">	}</span>
+
+	/** unique row id 
+	 * @return ID*/
+	//@Id @Column
+<span class="fc" id="L87">	public int getId() { return id; }</span>
+
+	/** unique row id 
+	 * @param id ID*/
+<span class="fc" id="L91">	public final void setId(final int id) { this.id = id; }</span>
+
+	/**
+	 * Constructed from action data as actiontype, admin, username etc. It should
+	 * result in the same approvalid if the admin tries to request the same action twice.
+	 * @return ID
+	 */
+	//@Column
+<span class="fc" id="L99">	public int getApprovalid() { return approvalId; }</span>
+	/**
+	 * Constructed from action data as actiontype, admin, username etc. It should
+	 * result in the same approvalid if the admin tries to request the same action twice.
+	 * @param approvalId ID
+	 */
+<span class="fc" id="L105">	public void setApprovalid(int approvalId) { this.approvalId = approvalId; } </span>
+
+	/**   
+	 * Type of action that should be approved, should be one of ApprovalDataVO.APPROVALTYPE_ 
+	 * constants ex: ApprovalDataVO.APPROVALTYPE_ADDUSER
+	 * @return Type
+	 */
+	//@Column
+<span class="fc" id="L113">	public int getApprovaltype() { return approvalType; }</span>
+	/**
+	 * Type of action that should be approved, should be one of ApprovalDataVO.APPROVALTYPE_ 
+	 * constants ex: ApprovalDataVO.APPROVALTYPE_ADDUSER
+	 * @param approvalType Type
+	 */
+<span class="fc" id="L119">	public void setApprovaltype(int approvalType) { this.approvalType = approvalType; }</span>
+	
+	/**
+	 * For RA specific approval requests should the related end entity profile id be specified
+	 * for non ra request should this field be set to ApprovalDataVO.ANY_ENDENTITYPROFILE     
+	 * @return ID
+	 */
+	//@Column
+<span class="fc" id="L127">	public int getEndentityprofileid() { return endEntityProfileId; }</span>
+	/**
+	 * For RA specific approval requests should the related end entity profile id be specified
+	 * for non ra request should this field be set to ApprovalDataVO.ANY_ENDENTITYPROFILE     
+s	 
+	 * @param endEntityProfileId ID*/
+<span class="fc" id="L133">	public void setEndentityprofileid(int endEntityProfileId) { this.endEntityProfileId = endEntityProfileId; }</span>
+
+	/**
+	 * For CA specific approval requests should the related ca id be specified
+	 * for non ca request should this field be set to ApprovalDataVO.ANY_CA
+	 * @return ID
+	 */
+	//@Column
+<span class="fc" id="L141">	public int getCaid() { return cAId; }</span>
+	/**
+	 * For CA specific approval requests should the related ca id be specified
+	 * for non ca request should this field be set to ApprovalDataVO.ANY_CA    
+	 * @param cAId ID
+	 */
+<span class="fc" id="L147">	public void setCaid(int cAId) { this.cAId = cAId; }</span>
+
+	/**
+	 * The issuerdn of the administrator certificate that generated the request.
+	 * @return DN
+	 */
+	//@Column
+<span class="fc" id="L154">	public String getReqadmincertissuerdn() { return reqAdminCertIssuerDn; }</span>
+	/**
+	 * The issuerdn of the administrator certificate that generated the request.
+	 * @param reqAdminCertIssuerDn DN
+	 */
+<span class="fc" id="L159">	public void setReqadmincertissuerdn(String reqAdminCertIssuerDn) { this.reqAdminCertIssuerDn = reqAdminCertIssuerDn; }</span>
+
+	/**
+	 * The serialnumber of the administrator certificate that generated the request. String in Hex.
+	 * @return SN
+	 */
+	//@Column
+<span class="fc" id="L166">	public String getReqadmincertsn() { return reqAdminCertSn; }</span>
+	/**
+	 * The serialnumber of the administrator certificate that generated the request. String in Hex.
+	 * @param reqAdminCertSn SN
+	 */
+<span class="fc" id="L171">	public void setReqadmincertsn(String reqAdminCertSn) { this.reqAdminCertSn = reqAdminCertSn; }</span>
+
+	/**
+	 * Should be one of ApprovalDataVO.STATUS_WAITINGFORAPPROVAL, STATUS_APPROVED, 
+	 * STATUS_REJECTED, STATUS_EXPIRED
+	 * @return Status
+	 */
+	//@Column
+<span class="fc" id="L179">	public int getStatus() { return status; }</span>
+	/**
+	 * Should be one of ApprovalDataVO.STATUS_WAITINGFORAPPROVAL, STATUS_APPROVED, 
+	 * STATUS_REJECTED, STATUS_EXPIRED
+	 * @param status Status
+	 */
+<span class="fc" id="L185">	public void setStatus(int status) { this.status = status; }</span>
+
+	/**
+	 * String representation of data of approvals made by one or more administrators
+	 * @return Data
+	 */
+	//@Column @Lob
+<span class="fc" id="L192">	public String getApprovaldata() { return approvalData; }</span>
+
+	/**
+	 * String representation of data of approvals made by one or more administrators
+	 * @param approvalData Data
+	 */
+<span class="fc" id="L198">	public void setApprovaldata(String approvalData) { this.approvalData = approvalData; }</span>
+
+	/**
+	 * Data containing information about the request displayed for the approval administrator.
+	 * @return Data
+	 */
+	//@Column @Lob
+<span class="fc" id="L205">	public String getRequestdata() { return requestData; }</span>
+
+	/**
+	 * Data containing information about the request displayed for the approval administrator.
+	 * @param requestData Data
+	 */
+<span class="fc" id="L211">	public void setRequestdata(String requestData) { this.requestData = requestData; }            </span>
+
+	/**
+	 * Date the request for approval were added
+	 * @return Date
+	 */
+	//@Column
+<span class="fc" id="L218">	public long getRequestdate() { return requestDate; }</span>
+	/**
+	 * Date the request for approval were added
+	 * @param requestDate Date
+	 */
+<span class="fc" id="L223">	public void setRequestdate(long requestDate) { this.requestDate = requestDate; }</span>
+
+	/**
+	 * Date the request for action or the approval action will expire, Long.MAX_VALUE 
+	 * means that the request/approval never expires
+	 * @return Date
+	 */
+	//@Column
+<span class="fc" id="L231">	public long getExpiredate() { return expireDate; }</span>
+	/**
+	 * Date the request for action or the approval action will expire, Long.MAX_VALUE 
+	 * means that the request/approval never expires
+	 * @param expireDate Date
+	 */
+<span class="fc" id="L237">	public void setExpiredate(long expireDate) { this.expireDate = expireDate; }</span>
+
+	/**
+	 * Indicates the number of approvals that remains in order to execute the action
+	 * @return approvals
+	 * @deprecated in 6.6.0, the type of approval handled is now part of the approval profile
+	 */
+	//@Column
+	@Deprecated
+	public int getRemainingapprovals() {
+	    // TODO remove this method when support for Ejbca 6.5.x is dropped
+<span class="fc" id="L248">	    return remainingApprovals; </span>
+	}
+	/**
+	 * Indicates the number of approvals that remains in order to execute the action  
+	 * @param remainingApprovals approvals
+	 */
+	@Deprecated
+<span class="fc" id="L255">	public void setRemainingapprovals(int remainingApprovals) { this.remainingApprovals = remainingApprovals; }</span>
+
+	//@Version @Column
+<span class="fc" id="L258">	public int getRowVersion() { return rowVersion; }</span>
+<span class="fc" id="L259">	public void setRowVersion(final int rowVersion) { this.rowVersion = rowVersion; }</span>
+
+	//@Column @Lob
+	@Override
+<span class="fc" id="L263">	public String getRowProtection() { return rowProtection; }</span>
+	@Override
+<span class="fc" id="L265">	public void setRowProtection(final String rowProtection) { this.rowProtection = rowProtection; }</span>
+
+	@Transient 
+	public Date getRequestDate() {
+<span class="nc" id="L269">		return new Date(getRequestdate());</span>
+	}
+
+	@Transient 
+	public Date getExpireDate() {
+<span class="nc" id="L274">		return new Date(getExpiredate());</span>
+	}
+
+	/**
+	 * Method used to set the expire date of the request
+	 * @param expireDate date
+	 */
+	public void setExpireDate(final Date expireDate){
+<span class="nc" id="L282">		setExpiredate(expireDate.getTime());</span>
+<span class="nc" id="L283">	}</span>
+
+	/**
+	 * Method that checks if the request or approval have expired
+	 * The status is set to expired if it is
+	 * @return true of the request or approval have expired
+	 */
+	public boolean hasRequestOrApprovalExpired() {
+<span class="nc" id="L291">		final Date currentDate = new Date();</span>
+<span class="nc" id="L292">		boolean retval = false;</span>
+<span class="nc bnc" id="L293" title="All 2 branches missed.">		if(currentDate.after(getExpireDate())){</span>
+<span class="nc bnc" id="L294" title="All 2 branches missed.">			if(getStatus() == ApprovalDataVO.STATUS_WAITINGFORAPPROVAL ||</span>
+<span class="nc bnc" id="L295" title="All 2 branches missed.">					getStatus() == ApprovalDataVO.STATUS_APPROVED ||</span>
+<span class="nc bnc" id="L296" title="All 2 branches missed.">					getStatus() == ApprovalDataVO.STATUS_REJECTED){</span>
+<span class="nc" id="L297">				setStatus(ApprovalDataVO.STATUS_EXPIRED);</span>
+			}
+<span class="nc" id="L299">			retval=true;</span>
+		}
+<span class="nc" id="L301">		return retval;</span>
+	}
+
+    //
+    // Start Database integrity protection methods
+    //
+
+    @Transient
+    @Override
+    protected String getProtectString(final int version) {
+<span class="nc" id="L311">        final ProtectionStringBuilder build = new ProtectionStringBuilder();</span>
+        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking
+<span class="nc" id="L313">        build.append(getId()).append(getApprovalid()).append(getApprovaltype()).append(getEndentityprofileid()).append(getCaid()).append(getReqadmincertissuerdn());</span>
+<span class="nc" id="L314">        build.append(getReqadmincertsn()).append(getStatus()).append(getApprovaldata()).append(getRequestdata()).append(getRequestdate()).append(getExpiredate()).append(getRemainingapprovals());</span>
+<span class="nc" id="L315">        return build.toString();</span>
+    }
+
+    @Transient
+    @Override
+    protected int getProtectVersion() {
+<span class="nc" id="L321">        return 2;</span>
+    }
+
+    @PrePersist
+    @PreUpdate
+    @Override
+    protected void protectData() {
+<span class="fc" id="L328">        super.protectData();</span>
+<span class="fc" id="L329">    }</span>
+
+    @PostLoad
+    @Override
+    protected void verifyData() {
+<span class="nc" id="L334">        super.verifyData();</span>
+<span class="nc" id="L335">    }</span>
+
+    @Override
+    @Transient
+    protected String getRowId() {
+<span class="nc" id="L340">        return String.valueOf(getId());</span>
+    }
+
+
+    
+    //
+    // End Database integrity protection methods
+    //
+    
+    /**
+     * @return a value object representation of this entity bean
+     */
+    @Transient
+    public ApprovalDataVO getApprovalDataVO() {
+<span class="nc" id="L354">        hasRequestOrApprovalExpired();</span>
+<span class="nc" id="L355">        ApprovalDataVO result = new ApprovalDataVO(getId(), getApprovalid(), getApprovaltype(), getEndentityprofileid(), getCaid(), getReqadmincertissuerdn(),</span>
+<span class="nc" id="L356">                getReqadmincertsn(), getStatus(), getApprovals(), getApprovalRequest(), getRequestDate(), getExpireDate());</span>
+<span class="nc" id="L357">        return result;</span>
+    }
+    
+    @Transient
+    public ApprovalRequest getApprovalRequest() {
+<span class="nc" id="L362">        ApprovalRequest retval = null;      </span>
+        try {
+<span class="nc" id="L364">            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(Base64.decode(getRequestdata().getBytes())));</span>
+<span class="nc" id="L365">            retval= (ApprovalRequest) ois.readObject();</span>
+<span class="nc" id="L366">        } catch (IOException e) {</span>
+<span class="nc" id="L367">            log.error(&quot;Error building approval request.&quot;,e);</span>
+<span class="nc" id="L368">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L369">        } catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L370">            log.error(&quot;Error building approval request.&quot;,e);</span>
+<span class="nc" id="L371">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L372">        }</span>
+<span class="nc" id="L373">        return retval;</span>
+    }
+    
+    @Transient
+    public List&lt;Approval&gt; getApprovals() {
+<span class="nc" id="L378">        List&lt;Approval&gt; retval = new ArrayList&lt;Approval&gt;();</span>
+        try{
+<span class="nc" id="L380">            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(Base64.decode(getApprovaldata().getBytes())));</span>
+<span class="nc" id="L381">            int size = ois.readInt();</span>
+<span class="nc bnc" id="L382" title="All 2 branches missed.">            for(int i=0;i&lt;size;i++){</span>
+<span class="nc" id="L383">                Approval next = (Approval) ois.readObject();</span>
+<span class="nc" id="L384">                retval.add(next);</span>
+            }
+<span class="nc" id="L386">        } catch (IOException e) {</span>
+<span class="nc" id="L387">            log.error(&quot;Error building approvals.&quot;,e);</span>
+<span class="nc" id="L388">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L389">        } catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L390">            log.error(&quot;Error building approvals.&quot;,e);</span>
+<span class="nc" id="L391">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L392">        }</span>
+<span class="nc" id="L393">        return retval;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

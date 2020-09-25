@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>StandardRules.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">cesecore-ejb-interface</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.authorization.control</a> &gt; <span class="el_source">StandardRules.java</span></div><h1>StandardRules.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.authorization.control;
+
+/**
+ * @version $Id: StandardRules.java 26312 2017-08-15 07:15:23Z anatom $
+ */
+<span class="nc" id="L18">public enum StandardRules {</span>
+<span class="nc" id="L19">    ROLE_ROOT(&quot;/&quot;),</span>
+<span class="nc" id="L20">	CAACCESSBASE(&quot;/ca&quot;),</span>
+<span class="nc" id="L21">	CAACCESS(&quot;/ca/&quot;),</span>
+<span class="nc" id="L22">	CAACCESSANYCA(&quot;/ca/-1&quot;),</span>
+<span class="nc" id="L23">	CAFUNCTIONALITY(&quot;/ca_functionality&quot;),</span>
+<span class="nc" id="L24">	CAREMOVE(CAFUNCTIONALITY.resource()+&quot;/remove_ca&quot;),</span>
+<span class="nc" id="L25">	CAADD(CAFUNCTIONALITY.resource()+&quot;/add_ca&quot;),</span>
+<span class="nc" id="L26">	CAEDIT(CAFUNCTIONALITY.resource()+&quot;/edit_ca&quot;),</span>
+<span class="nc" id="L27">	CARENEW(CAFUNCTIONALITY.resource()+&quot;/renew_ca&quot;),</span>
+<span class="nc" id="L28">    CAVIEW(CAFUNCTIONALITY.resource()+&quot;/view_ca&quot;),  </span>
+<span class="nc" id="L29">	CREATECERT(CAFUNCTIONALITY.resource()+&quot;/create_certificate&quot;),</span>
+<span class="nc" id="L30">	CERTIFICATEPROFILEEDIT(CAFUNCTIONALITY.resource()+&quot;/edit_certificate_profiles&quot;),</span>
+<span class="nc" id="L31">	CERTIFICATEPROFILEVIEW(CAFUNCTIONALITY.resource()+&quot;/view_certificate_profiles&quot;),</span>
+<span class="nc" id="L32">	CREATECRL(CAFUNCTIONALITY.resource()+&quot;/create_crl&quot;),</span>
+<span class="nc" id="L33">	VALIDATORACCESSBASE(&quot;/validator&quot;),</span>
+<span class="nc" id="L34">	VALIDATORACCESS(&quot;/validator/&quot;),</span>
+<span class="nc" id="L35">	BLACKLISTEDIT(CAFUNCTIONALITY.resource()+&quot;/edit_blacklist&quot;),</span>
+<span class="nc" id="L36">	VALIDATORVIEW(CAFUNCTIONALITY.resource()+&quot;/view_validator&quot;),</span>
+<span class="nc" id="L37">	VALIDATOREDIT(CAFUNCTIONALITY.resource()+&quot;/edit_validator&quot;),</span>
+<span class="nc" id="L38">	SYSTEMFUNCTIONALITY(&quot;/system_functionality&quot;),</span>
+<span class="nc" id="L39">	EDITROLES(SYSTEMFUNCTIONALITY.resource()+&quot;/edit_administrator_privileges&quot;),</span>
+<span class="nc" id="L40">	VIEWROLES(SYSTEMFUNCTIONALITY.resource()+&quot;/view_administrator_privileges&quot;),</span>
+<span class="nc" id="L41">	RECOVERY(&quot;/recovery&quot;),</span>
+<span class="nc" id="L42">	BACKUP(RECOVERY.resource()+&quot;/backup&quot;),</span>
+<span class="nc" id="L43">	RESTORE(RECOVERY.resource()+&quot;/restore&quot;),</span>
+<span class="nc" id="L44">    SYSTEMCONFIGURATION_EDIT(SYSTEMFUNCTIONALITY.resource()+&quot;/edit_systemconfiguration&quot;),</span>
+<span class="nc" id="L45">    SYSTEMCONFIGURATION_VIEW(SYSTEMFUNCTIONALITY.resource()+&quot;/view_systemconfiguration&quot;),</span>
+<span class="nc" id="L46">    EKUCONFIGURATION_EDIT(SYSTEMFUNCTIONALITY.resource()+&quot;/edit_available_extended_key_usages&quot;),</span>
+<span class="nc" id="L47">    EKUCONFIGURATION_VIEW(SYSTEMFUNCTIONALITY.resource()+&quot;/view_available_extended_key_usages&quot;),</span>
+<span class="nc" id="L48">    CUSTOMCERTEXTENSIONCONFIGURATION_EDIT(SYSTEMFUNCTIONALITY.resource()+&quot;/edit_available_custom_certificate_extensions&quot;),</span>
+<span class="nc" id="L49">    CUSTOMCERTEXTENSIONCONFIGURATION_VIEW(SYSTEMFUNCTIONALITY.resource()+&quot;/view_available_custom_certificate_extensions&quot;),</span>
+<span class="nc" id="L50">    APPROVALPROFILEEDIT(CAFUNCTIONALITY.resource()+&quot;/edit_approval_profiles&quot;),</span>
+<span class="nc" id="L51">    APPROVALPROFILEVIEW(CAFUNCTIONALITY.resource()+&quot;/view_approval_profiles&quot;);</span>
+
+
+	
+	private final String resource;
+	
+<span class="nc" id="L57">	private StandardRules(String resource) {</span>
+<span class="nc" id="L58">        this.resource = resource;</span>
+<span class="nc" id="L59">    }</span>
+
+	public String resource() {
+<span class="nc" id="L62">		return this.resource;</span>
+	}
+
+	@Override
+	public String toString() {
+<span class="nc" id="L67">		return this.resource;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

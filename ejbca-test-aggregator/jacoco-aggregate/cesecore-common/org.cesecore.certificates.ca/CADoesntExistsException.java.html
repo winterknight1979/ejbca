@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CADoesntExistsException.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.ca</a> &gt; <span class="el_source">CADoesntExistsException.java</span></div><h1>CADoesntExistsException.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/ 
+package org.cesecore.certificates.ca;
+
+import javax.xml.ws.WebFault;
+
+import org.cesecore.CesecoreException;
+import org.cesecore.ErrorCode;
+
+
+/**
+ * An exception thrown when someone tries to get/edit/save a CA that does not exist.
+ * 
+ * Should really be called CADoesntExistsException, but changing this name have ripple effects down 
+ * to the WS-API, and it's not worth breaking any backwards compatibility to change this name. 
+ *
+ * @version $Id: CADoesntExistsException.java 17625 2013-09-20 07:12:06Z netmackan $
+ */
+@WebFault
+public class CADoesntExistsException extends CesecoreException {
+    
+    private static final long serialVersionUID = 1542504214401684378L;
+
+    /**
+     * Creates a new instance of &lt;code&gt;CADoesntExistsException&lt;/code&gt; without detail message.
+     */
+    public CADoesntExistsException() {
+<span class="nc" id="L38">        super(ErrorCode.CA_NOT_EXISTS);</span>
+<span class="nc" id="L39">    }</span>
+        
+    /**
+     * Constructs an instance of &lt;code&gt;CAProfileDoesntExistsException&lt;/code&gt; with the specified detail message.
+     * @param msg the detail message.
+     */
+    public CADoesntExistsException(String msg) {
+<span class="nc" id="L46">        super(ErrorCode.CA_NOT_EXISTS, msg);</span>
+<span class="nc" id="L47">    }</span>
+
+    /**
+     * Constructs an instance of &lt;code&gt;CAProfileDoesntExistsException&lt;/code&gt; with the specified cause.
+     * @param e the detail message.
+     */
+    public CADoesntExistsException(Exception e) {
+<span class="nc" id="L54">        super(e);</span>
+<span class="nc" id="L55">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

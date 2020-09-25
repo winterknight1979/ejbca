@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CertSernoCustomLdapPublisher.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.ca.publisher.custpubl2</a> &gt; <span class="el_source">CertSernoCustomLdapPublisher.java</span></div><h1>CertSernoCustomLdapPublisher.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.model.ca.publisher.custpubl2;
+
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.Properties;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.util.CertTools;
+import org.ejbca.core.model.ca.publisher.ICustomPublisher;
+import org.ejbca.core.model.ca.publisher.LdapPublisher;
+import org.ejbca.core.model.ca.publisher.PublisherException;
+
+import com.novell.ldap.LDAPAttribute;
+import com.novell.ldap.LDAPAttributeSet;
+
+/**
+ * A custom LDAP publisher that publishes User Entries with Certificate Serial Number. 
+ * The purpose is that you can search for certificates in the LDAP directory on certificate serial number, and each certificate is stored in one entry in the LDAP directory.
+ *
+ * The publisher inherits the standard LDAP publisher, but always makes sure that UID=certSerno (in decimal format) is set in the UserDN that is passed to publishing.
+ * If the publisher is configured to use UID as &quot;Use Fields in LDAP DN&quot; this will be used in the LDAP DN of the entry created.
+ * Configuration options are the same as for the standard LDAP publisher, but must be set using properties, as custom publishers are configured with a properties field.
+ * 
+ * To build using ejbca-custom:
+ * 1. Create a directory ejbca-custom/modules/ejbca-common/src/org/ejbca/core/model/ca/publisher/custpubl2 on the same level as your ejbca directory:
+ *    ejbca_6_0_0
+ *    ejbca-custom
+ * 2. Copy CertSernoCustomLdapPublisher.java to this directory
+ * 3. Build and re-deploy EJBCA with 'ant clean; ant bootstrap'
+ * 
+ * To use:
+ * 1. In EJBCA 6 and later, configure web.properties with web.manualclasspathsenabled=true
+ * 2. Create a new Custom Publisher in EJBCA
+ * 3. Specify the class path: org.ejbca.core.model.ca.publisher.custpubl2.CertSernoCustomLdapPublisher
+ * 4. Set properties (use the example normal config below)
+ * 5. Save and test connection
+ * 
+ * A normal configuration that should work in most cases (just change values to match your LDAP server) looks like:
+ * 
+hostname localhost
+port 1389
+baswdn dc=example,dc=com
+logindn cn=Directory Manager
+loginpassword foo123
+usefieldsinldapdn 1
+ * 
+ * usefieldsinldapdn uses decimal values from DNFieldExtractor where the most important are: 1=UID, 2=CN, 8=OU, 9=O
+ * 
+ * With the configuration above certificate entries with LDAP DN &quot;UID=123456789,dc=example,dc=com&quot; (where 123456789 is the certificate serial number in decimal format)
+ * will be added to the LDAP directory. The tree of the base DN (dc=example,dc=com) must exist already.
+ * 
+ * If you want to use a custom LDAP schema, such as the inetOrgPersonWithCertSerno, you can set this property, for example:
+ * 
+userobjectclass top;person;organizationalPerson;inetOrgPerson;inetOrgPersonWithCertSerno
+ * 
+ * Possible options for the properties field are (default values in parenthesis):
+ * 
+baswdn (misspelled, but it must be like this)
+logindn
+loginpassword
+hostname
+port (389)
+connectionsecurity (STARTTLS)
+timeout (5000)
+readtimeout (30000)
+storetimeout (60000)
+createnonexisting (true)
+modifyexisting (true)
+addnonexistingattr (true)
+modifyexistingattr (false)
+userobjectclass (top;person;organizationalPerson;inetOrgPerson)
+caobjectclass (top;applicationProcess;certificationAuthority-V2)
+usercertattribute (userCertificate;binary)
+cacertattribute (cACertificate;binary)
+crlattribute (certificateRevocationList;binary)
+deltacrlattribute (deltaRevocationList;binary)
+arlattribute (authorityRevocationList;binary)
+addmultiplecertificates (false)
+removerevoked (true)
+removeusersoncertrevoke (false)
+createintermediatenodes (false)
+setuserpasssword (false)
+usefieldsinldapdn
+ *
+ * In most cases default values are good. 
+ *
+ * @version $Id: CertSernoCustomLdapPublisher.java 34192 2020-01-07 15:10:21Z aminkh $
+ */
+<span class="nc" id="L108">public class CertSernoCustomLdapPublisher extends LdapPublisher implements ICustomPublisher {</span>
+
+
+    private static final long serialVersionUID = -584431431033065114L;
+<span class="nc" id="L112">    private static final Logger log = Logger.getLogger(CertSernoCustomLdapPublisher.class);</span>
+
+    @Override
+    public void init(Properties properties) {
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L117">            log.debug(&quot;&gt;init&quot;);</span>
+        }
+        // Transfer Properties into data used in LdapPublisher
+<span class="nc" id="L120">        Enumeration&lt;Object&gt; keys = properties.keys();</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        while (keys.hasMoreElements()) {</span>
+<span class="nc" id="L122">            final String key = (String)keys.nextElement();</span>
+<span class="nc" id="L123">            final String value = properties.getProperty(key);</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L125">                log.debug(&quot;Setting property: &quot;+key+&quot;,&quot;+value);</span>
+            }
+<span class="nc bnc" id="L127" title="All 2 branches missed.">            if (key.equals(&quot;usefieldsinldapdn&quot;)) {</span>
+                // Create use fieldsin ldapDN, it is a Collection that needs to be created
+<span class="nc" id="L129">                Collection&lt;Integer&gt; usefieldinldapdn = new ArrayList&lt;Integer&gt;();</span>
+<span class="nc" id="L130">                String[] values = StringUtils.split(value, ',');</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">                for (int i = 0; i &lt; values.length; i++) {</span>
+<span class="nc" id="L132">                    usefieldinldapdn.add(Integer.valueOf(values[i]));</span>
+<span class="nc" id="L133">                    setUseFieldInLdapDN(usefieldinldapdn);</span>
+                }
+<span class="nc bnc" id="L135" title="All 2 branches missed.">            } else if (key.equals(&quot;connectionsecurity&quot;)) {</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">                if (&quot;PLAIN&quot;.equalsIgnoreCase(value)) {</span>
+<span class="nc" id="L137">                    setConnectionSecurity(ConnectionSecurity.PLAIN);                    </span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">                } else if (&quot;STARTTLS&quot;.equalsIgnoreCase(value)) {</span>
+<span class="nc" id="L139">                    setConnectionSecurity(ConnectionSecurity.STARTTLS);                    </span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">                } else if (&quot;SSL&quot;.equalsIgnoreCase(value)) {</span>
+<span class="nc" id="L141">                    setConnectionSecurity(ConnectionSecurity.SSL);                    </span>
+                } 
+            } else {
+                // Booleans should be added as Booleans, not strings
+<span class="nc bnc" id="L145" title="All 4 branches missed.">                if (&quot;true&quot;.equalsIgnoreCase(value) || &quot;false&quot;.equalsIgnoreCase(value)) {</span>
+<span class="nc" id="L146">                    data.put(key, Boolean.valueOf(value));</span>
+                } else {
+                    // Everything else added as String
+<span class="nc" id="L149">                    data.put(key, value);                    </span>
+                }
+            }
+<span class="nc" id="L152">        }</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L154">            log.debug(&quot;&gt;init&quot;);</span>
+        }        
+<span class="nc" id="L156">    }</span>
+
+    @Override
+    public boolean storeCertificate(AuthenticationToken admin, Certificate incert, String username, String password, String userDN, String cafp, int status, int type, long revocationDate, int revocationReason, String tag, int certificateProfileId, long lastUpdate, ExtendedInformation extendedinformation) throws PublisherException{
+<span class="nc" id="L160">        userDN = getUidCertSernoDN(incert, username, userDN);</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L162">            log.debug(&quot;storeCertificate: &quot;+userDN);</span>
+        }
+<span class="nc" id="L164">        return super.storeCertificate(admin, incert, username, password, userDN, cafp, status, type, revocationDate, revocationReason, tag, certificateProfileId, lastUpdate, extendedinformation);</span>
+    }
+
+    private String getUidCertSernoDN(Certificate incert, String username, String userDN) {
+        // Construct the userDN with the certificate serial number as UID
+<span class="nc" id="L169">        X509Certificate xcert = (X509Certificate)incert;</span>
+<span class="nc" id="L170">        String certSerNo = xcert.getSerialNumber().toString();</span>
+<span class="nc" id="L171">        String snfromuser = CertTools.getPartFromDN(userDN, &quot;UID&quot;);</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(snfromuser)) {</span>
+<span class="nc" id="L173">            log.info(&quot;User '&quot;+username+&quot;' aready has a UID in DN, this will be replaced by Cert Serial No: &quot;+snfromuser);</span>
+<span class="nc" id="L174">            StringUtils.replace(userDN, snfromuser, certSerNo);</span>
+        } else {
+<span class="nc bnc" id="L176" title="All 2 branches missed.">            if (StringUtils.isEmpty(userDN)) {</span>
+<span class="nc" id="L177">                userDN = &quot;UID=&quot;+certSerNo;</span>
+            } else {
+<span class="nc" id="L179">                userDN += &quot;,UID=&quot;+certSerNo;                </span>
+            }
+        }
+<span class="nc" id="L182">        return userDN;</span>
+    }
+
+    @Override
+    public void revokeCertificate(AuthenticationToken admin, Certificate cert, String username, int reason, String userDN) throws PublisherException {
+<span class="nc" id="L187">        userDN = getUidCertSernoDN(cert, username, userDN);</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L189">            log.debug(&quot;revokeCertificate: &quot;+userDN);</span>
+        }
+<span class="nc" id="L191">        super.revokeCertificate(admin, cert, username, reason, userDN);</span>
+<span class="nc" id="L192">    }</span>
+
+    @Override
+    protected LDAPAttributeSet getAttributeSet(Certificate cert, String objectclass, String dn, String email, boolean extra, boolean person,
+            String password, ExtendedInformation extendedinformation) {
+<span class="nc" id="L197">        LDAPAttributeSet set = super.getAttributeSet(cert, objectclass, dn, email, extra, person, password, extendedinformation);</span>
+        // Add SerialNumber (from DN) attribute as well, it is not included by default by LDAPPublisher
+<span class="nc" id="L199">        String serno = CertTools.getPartFromDN(dn, &quot;SN&quot;);</span>
+<span class="nc bnc" id="L200" title="All 2 branches missed.">        if (serno != null) {</span>
+<span class="nc" id="L201">            set.add(new LDAPAttribute(&quot;serialNumber&quot;, serno));</span>
+        }
+<span class="nc" id="L203">        return set;</span>
+    }
+    
+    @Override
+    public boolean isReadOnly() {
+<span class="nc" id="L208">        return false;</span>
+    }
+
+    @Override
+    public void validateDataSource(String dataSource) throws PublisherException {
+        // Method not applicable for this publisher type!        
+<span class="nc" id="L214">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

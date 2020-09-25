@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AcmeAuthorizationData.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-entity</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.acme</a> &gt; <span class="el_source">AcmeAuthorizationData.java</span></div><h1>AcmeAuthorizationData.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA - Proprietary Modules: Enterprise Certificate Authority        *
+ *                                                                       *
+ *  Copyright (c), PrimeKey Solutions AB. All rights reserved.           *
+ *  The use of the Proprietary Modules are subject to specific           *
+ *  commercial license terms.                                            *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.acme;
+
+import java.beans.XMLEncoder;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import javax.persistence.Entity;
+import javax.persistence.PostLoad;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.apache.log4j.Logger;
+import org.cesecore.dbprotection.ProtectedData;
+import org.cesecore.dbprotection.ProtectionStringBuilder;
+import org.cesecore.util.Base64GetHashMap;
+import org.cesecore.util.Base64PutHashMap;
+import org.cesecore.util.SecureXMLDecoder;
+
+/**
+ * @version $Id: AcmeAuthorizationData.java 25797 2018-08-10 15:52:00Z jekaterina $
+ */
+@Entity
+@Table(name = &quot;AcmeAuthorizationData&quot;)
+public class AcmeAuthorizationData extends ProtectedData implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+<span class="fc" id="L43">    private static final Logger log = Logger.getLogger(AcmeAuthorizationData.class);</span>
+    
+    private String authorizationId;
+    private String orderId;
+    private String accountId;
+    private String rawData;
+<span class="nc" id="L49">    private int rowVersion = 0;</span>
+    private String rowProtection;
+
+<span class="nc" id="L52">    public AcmeAuthorizationData() {</span>
+        
+<span class="nc" id="L54">    }</span>
+            
+<span class="nc" id="L56">    public AcmeAuthorizationData(final String authorizationId, final String orderId, final String accountId, final LinkedHashMap&lt;Object, Object&gt; dataMap) {</span>
+<span class="nc" id="L57">        setAuthorizationId(authorizationId);</span>
+<span class="nc" id="L58">        setOrderId(orderId);</span>
+<span class="nc" id="L59">        setAccountId(accountId);</span>
+<span class="nc" id="L60">        setDataMap(dataMap);</span>
+<span class="nc" id="L61">    }</span>
+
+    //@Column
+    public String getAuthorizationId() {
+<span class="nc" id="L65">        return authorizationId;</span>
+    }
+    public void setAuthorizationId(String authorizationId) {
+<span class="nc" id="L68">        this.authorizationId = authorizationId;</span>
+<span class="nc" id="L69">    }</span>
+
+    //@Column
+    public String getOrderId() {
+<span class="nc" id="L73">        return orderId;</span>
+    }
+    public void setOrderId(String orderId) {
+<span class="nc" id="L76">        this.orderId = orderId;</span>
+<span class="nc" id="L77">    }</span>
+
+    public String getAccountId() {
+<span class="nc" id="L80">        return accountId;</span>
+    }
+
+    public void setAccountId(String accountId) {
+<span class="nc" id="L84">        this.accountId = accountId;</span>
+<span class="nc" id="L85">    }</span>
+
+    //@Column @Lob
+    public String getRawData() {
+<span class="nc" id="L89">        return rawData;</span>
+    }
+    public void setRawData(String rawData) {
+<span class="nc" id="L92">        this.rawData = rawData;</span>
+<span class="nc" id="L93">    }</span>
+
+
+    @Transient
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public LinkedHashMap&lt;Object, Object&gt; getDataMap() {
+<span class="nc" id="L99">        try (final SecureXMLDecoder decoder = new SecureXMLDecoder(new ByteArrayInputStream(getRawData().getBytes(StandardCharsets.UTF_8)));) {</span>
+            // Handle Base64 encoded string values
+<span class="nc" id="L101">            return new Base64GetHashMap((Map&lt;?, ?&gt;) decoder.readObject());</span>
+<span class="nc" id="L102">        } catch (IOException e) {</span>
+<span class="nc" id="L103">            final String msg = &quot;Failed to parse AcmeAuthorizationData data map in database: &quot; + e.getMessage();</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L105">                log.debug(msg + &quot;. Data:\n&quot; + getRawData());</span>
+            }
+<span class="nc" id="L107">            throw new IllegalStateException(msg, e);</span>
+        }
+    }
+
+    @Transient
+    public void setDataMap(final LinkedHashMap&lt;Object, Object&gt; dataMap) {
+        // We must base64 encode string for UTF safety
+<span class="nc" id="L114">        final ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+<span class="nc" id="L115">        try (final XMLEncoder encoder = new XMLEncoder(baos);) {</span>
+<span class="nc" id="L116">            encoder.writeObject(new Base64PutHashMap(dataMap));</span>
+        }
+<span class="nc" id="L118">        setRawData(new String(baos.toByteArray(), StandardCharsets.UTF_8));</span>
+<span class="nc" id="L119">    }</span>
+
+    //@Version @Column
+    public int getRowVersion() {
+<span class="nc" id="L123">        return rowVersion;</span>
+    }
+    public void setRowVersion(int rowVersion) {
+<span class="nc" id="L126">        this.rowVersion = rowVersion;</span>
+<span class="nc" id="L127">    }</span>
+
+    //@Column @Lob
+    @Override
+    public String getRowProtection() {
+<span class="nc" id="L132">        return rowProtection;</span>
+    }
+    @Override
+    public void setRowProtection(String rowProtection) {
+<span class="nc" id="L136">        this.rowProtection = rowProtection;</span>
+<span class="nc" id="L137">    }</span>
+
+
+    //
+    // Start Database integrity protection methods
+    //
+
+    @Transient
+    @Override
+    protected String getProtectString(final int version) {
+        // rowVersion is automatically updated by JPA, so it's not important, it is only used for optimistic locking so we will not include that in the database protection
+<span class="nc" id="L148">        return new ProtectionStringBuilder().append(getAuthorizationId()).append(getOrderId()).append(getRawData()).toString();</span>
+    }
+
+    @Transient
+    @Override
+    protected int getProtectVersion() {
+<span class="nc" id="L154">        return 1;</span>
+    }
+
+    @PrePersist
+    @PreUpdate
+    @Override
+    protected void protectData() {
+<span class="nc" id="L161">        super.protectData();</span>
+<span class="nc" id="L162">    }</span>
+
+    @PostLoad
+    @Override
+    protected void verifyData() {
+<span class="nc" id="L167">        super.verifyData();</span>
+<span class="nc" id="L168">    }</span>
+
+    @Override
+    @Transient
+    protected String getRowId() {
+<span class="nc" id="L173">        return getAuthorizationId();</span>
+    }
+
+    //
+    // End Database integrity protection methods
+    //
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

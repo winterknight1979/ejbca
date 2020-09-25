@@ -1,0 +1,876 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>KeyValidatorSessionBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">cesecore-ejb</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.keys.validation</a> &gt; <span class="el_source">KeyValidatorSessionBean.java</span></div><h1>KeyValidatorSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General                  *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.cesecore.keys.validation;
+
+import java.io.Serializable;
+import java.security.PublicKey;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.Extensions;
+import org.bouncycastle.util.encoders.Base64;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.enums.EventTypes;
+import org.cesecore.audit.enums.ModuleTypes;
+import org.cesecore.audit.enums.ServiceTypes;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.ca.CA;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.ca.IllegalValidityException;
+import org.cesecore.certificates.ca.internal.CertificateValidity;
+import org.cesecore.certificates.certificate.request.RequestMessage;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.config.ExternalScriptsConfiguration;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.internal.InternalResources;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.profiles.ProfileData;
+import org.cesecore.profiles.ProfileSessionLocal;
+import org.cesecore.util.CertTools;
+
+/**
+ * Handles management of key validators.
+ *
+ * @version $Id: KeyValidatorSessionBean.java 29947 2018-10-02 06:56:41Z aminkh $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;KeyValidatorSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L74">public class KeyValidatorSessionBean implements KeyValidatorSessionLocal, KeyValidatorSessionRemote {</span>
+
+	// NOTE: Should be replaced by a ManagedExecutorService when we drop support for JEE 6
+<span class="nc" id="L77">    private static final ExecutorService executorService = Executors.newFixedThreadPool(64);</span>
+
+    /** Class logger. */
+<span class="nc" id="L80">    private static final Logger log = Logger.getLogger(KeyValidatorSessionBean.class);</span>
+
+    /** Internal localization of logs and errors. */
+<span class="nc" id="L83">    private static final InternalResources intres = InternalResources.getInstance();</span>
+
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private GlobalConfigurationSessionLocal globalConfigurationSession;
+    @EJB
+    private CaSessionLocal caSession;
+    @EJB
+    private CertificateProfileSessionLocal certificateProfileSession;
+    @EJB
+    private ProfileSessionLocal profileSession;
+    @EJB
+    private SecurityEventsLoggerSessionLocal auditSession;
+
+    @Override
+    public Validator getValidator(int id) {
+<span class="nc" id="L100">        return getValidatorInternal(id, true);</span>
+    }
+
+    @Override
+    public String getKeyValidatorName(int id) {
+<span class="nc bnc" id="L105" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L106">            log.trace(&quot;&gt;getKeyValidatorName(id: &quot; + id + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L108">        final Validator entity = getValidatorInternal(id, true);</span>
+<span class="nc" id="L109">        String result = null;</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        if (null != entity) {</span>
+<span class="nc" id="L111">            result = entity.getProfileName();</span>
+        }
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L114">            log.trace(&quot;&lt;getKeyValidatorName(): &quot; + result);</span>
+        }
+<span class="nc" id="L116">        return result;</span>
+    }
+
+    @Override
+    public void importValidator(AuthenticationToken admin, Validator validator) throws AuthorizationDeniedException, KeyValidatorExistsException {
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L122">            log.trace(&quot;&gt;addKeyValidator(name: &quot; + validator.getProfileName() + &quot;, id: &quot; + validator.getProfileId() + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L124">        addValidatorInternal(admin, validator);</span>
+<span class="nc" id="L125">        final String message = intres.getLocalizedMessage(&quot;validator.added_validator&quot;, validator.getProfileName());</span>
+<span class="nc" id="L126">        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L127">        details.put(&quot;msg&quot;, message);</span>
+<span class="nc" id="L128">        auditSession.log(EventTypes.VALIDATOR_CREATION, EventStatus.SUCCESS, ModuleTypes.VALIDATOR, ServiceTypes.CORE, admin.toString(), null, null,</span>
+                null, details);
+<span class="nc bnc" id="L130" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L131">            log.trace(&quot;&lt;addKeyValidator()&quot;);</span>
+        }
+<span class="nc" id="L133">    }</span>
+
+    @Override
+    public void changeKeyValidator(AuthenticationToken admin, Validator validator)
+            throws AuthorizationDeniedException, KeyValidatorDoesntExistsException {
+<span class="nc" id="L138">        assertIsAuthorizedToEditValidators(admin);</span>
+<span class="nc" id="L139">        ProfileData data = profileSession.findById(validator.getProfileId());</span>
+        final String message;
+<span class="nc" id="L141">        final String name = validator.getProfileName();</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">        if (data != null) {</span>
+<span class="nc" id="L143">            profileSession.changeProfile(validator);</span>
+            // Since loading a KeyValidator is quite complex, we simple purge the cache here.
+<span class="nc" id="L145">            ValidatorCache.INSTANCE.removeEntry(data.getId());</span>
+<span class="nc" id="L146">            message = intres.getLocalizedMessage(&quot;validator.changed_validator&quot;, name);</span>
+<span class="nc" id="L147">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L148">            details.put(&quot;msg&quot;, message);</span>
+            //TODO: Include a diff in the changelog (profileData.getProfile().diff(profile);), but make sure to resolve all steps so that we don't
+            //      output a ton of serialized garbage (see ECA-5276)
+<span class="nc" id="L151">            auditSession.log(EventTypes.VALIDATOR_CHANGE, EventStatus.SUCCESS, ModuleTypes.VALIDATOR, ServiceTypes.CORE, admin.toString(), null, null,</span>
+                    null, details);
+<span class="nc" id="L153">        } else {</span>
+<span class="nc" id="L154">            message = intres.getLocalizedMessage(&quot;validator.error.change_validator&quot;, name);</span>
+<span class="nc" id="L155">            log.info(message);</span>
+<span class="nc" id="L156">            throw new KeyValidatorDoesntExistsException(&quot;Validator by ID &quot; + validator.getProfileId() + &quot; does not exist in database.&quot;);</span>
+        }
+<span class="nc" id="L158">    }</span>
+
+    @Override
+    public void removeKeyValidator(final AuthenticationToken admin, final int validatorId)
+            throws AuthorizationDeniedException, CouldNotRemoveKeyValidatorException {
+<span class="nc bnc" id="L163" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L164">            log.trace(&quot;&gt;removeKeyValidator(id: &quot; + validatorId + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L166">        assertIsAuthorizedToEditValidators(admin);</span>
+        String message;
+
+<span class="nc" id="L169">        ProfileData data = profileSession.findById(validatorId);</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">        if (data == null) {</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L172">                log.debug(&quot;Trying to remove a key validator that does not exist with ID: &quot; + validatorId);</span>
+            }
+<span class="nc" id="L174">            return;</span>
+        }
+
+<span class="nc bnc" id="L177" title="All 2 branches missed.">        if (caSession.existsKeyValidatorInCAs(data.getId())) {</span>
+<span class="nc" id="L178">            throw new CouldNotRemoveKeyValidatorException();</span>
+        }
+
+<span class="nc" id="L181">        profileSession.removeProfile(data);</span>
+        // Purge the cache here.
+<span class="nc" id="L183">        ValidatorCache.INSTANCE.removeEntry(data.getId());</span>
+<span class="nc" id="L184">        message = intres.getLocalizedMessage(&quot;validator.removed_validator&quot;, data.getProfileName());</span>
+<span class="nc" id="L185">        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L186">        details.put(&quot;msg&quot;, message);</span>
+<span class="nc" id="L187">        auditSession.log(EventTypes.VALIDATOR_REMOVAL, EventStatus.SUCCESS, ModuleTypes.VALIDATOR, ServiceTypes.CORE, admin.toString(), null, null,</span>
+                null, details);
+<span class="nc bnc" id="L189" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L190">            log.trace(&quot;&lt;removeKeyValidator()&quot;);</span>
+        }
+<span class="nc" id="L192">    }</span>
+
+    @Override
+    public void removeKeyValidator(AuthenticationToken admin, final String validatorName)
+            throws AuthorizationDeniedException, CouldNotRemoveKeyValidatorException {
+<span class="nc bnc" id="L197" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L198">            log.trace(&quot;&gt;removeKeyValidator(id: &quot; + validatorName + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L200">        assertIsAuthorizedToEditValidators(admin);</span>
+        String message;
+
+<span class="nc" id="L203">        List&lt;ProfileData&gt; datas = profileSession.findByNameAndType(validatorName, Validator.TYPE_NAME);</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">        if (datas == null) {</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L206">                log.debug(&quot;Trying to remove a key validator that does not exist with name: &quot; + validatorName);</span>
+            }
+<span class="nc" id="L208">            return;</span>
+        } else {
+<span class="nc bnc" id="L210" title="All 2 branches missed.">            for (ProfileData data : datas) {</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">                if (caSession.existsKeyValidatorInCAs(data.getId())) {</span>
+<span class="nc" id="L212">                    throw new CouldNotRemoveKeyValidatorException();</span>
+                }
+<span class="nc" id="L214">                profileSession.removeProfile(data);</span>
+                // Purge the cache here.
+<span class="nc" id="L216">                ValidatorCache.INSTANCE.removeEntry(data.getId());</span>
+<span class="nc" id="L217">                message = intres.getLocalizedMessage(&quot;validator.removed_validator&quot;, data.getProfileName());</span>
+<span class="nc" id="L218">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L219">                details.put(&quot;msg&quot;, message);</span>
+<span class="nc" id="L220">                auditSession.log(EventTypes.VALIDATOR_REMOVAL, EventStatus.SUCCESS, ModuleTypes.VALIDATOR, ServiceTypes.CORE, admin.toString(), null,</span>
+                        null, null, details);
+<span class="nc" id="L222">            }</span>
+        }
+
+<span class="nc bnc" id="L225" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L226">            log.trace(&quot;&lt;removeKeyValidator()&quot;);</span>
+        }
+<span class="nc" id="L228">    }</span>
+
+    @Override
+    public void flushKeyValidatorCache() {
+<span class="nc" id="L232">        ValidatorCache.INSTANCE.flush();</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L234">            log.debug(&quot;Flushed KeyValidator cache.&quot;);</span>
+        }
+<span class="nc" id="L236">    }</span>
+
+    @Override
+    public int addKeyValidator(AuthenticationToken admin, Validator validator) throws AuthorizationDeniedException, KeyValidatorExistsException {
+<span class="nc" id="L240">        final int id = addValidatorInternal(admin, validator);</span>
+<span class="nc" id="L241">        final String message = intres.getLocalizedMessage(&quot;validator.added_validator&quot;, validator.getProfileName());</span>
+<span class="nc" id="L242">        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L243">        details.put(&quot;msg&quot;, message);</span>
+<span class="nc" id="L244">        auditSession.log(EventTypes.VALIDATOR_CREATION, EventStatus.SUCCESS, ModuleTypes.VALIDATOR, ServiceTypes.CORE, admin.toString(), null, null,</span>
+                null, details);
+<span class="nc" id="L246">        return id;</span>
+    }
+
+    @Override
+    public void cloneKeyValidator(final AuthenticationToken admin, final int validatorId, final String newName)
+            throws AuthorizationDeniedException, KeyValidatorDoesntExistsException, KeyValidatorExistsException {
+<span class="nc" id="L252">        cloneKeyValidator(admin, getValidatorInternal(validatorId, true), newName);</span>
+<span class="nc" id="L253">    }</span>
+
+    @Override
+    public void cloneKeyValidator(final AuthenticationToken admin, final Validator validator, final String newName)
+            throws AuthorizationDeniedException, KeyValidatorDoesntExistsException, KeyValidatorExistsException {
+<span class="nc" id="L258">        Validator validatorClone = null;</span>
+<span class="nc" id="L259">        final Integer origProfileId = validator.getProfileId();</span>
+<span class="nc bnc" id="L260" title="All 2 branches missed.">        if (origProfileId == null) {</span>
+<span class="nc" id="L261">            throw new KeyValidatorDoesntExistsException(&quot;Could not find key validator &quot; + validator.getProfileName());</span>
+        }
+<span class="nc" id="L263">        validatorClone = getValidator(origProfileId).clone();</span>
+<span class="nc" id="L264">        validatorClone.setProfileName(newName);</span>
+        try {
+<span class="nc" id="L266">            addValidatorInternal(admin, validatorClone);</span>
+<span class="nc" id="L267">            final String message = intres.getLocalizedMessage(&quot;validator.cloned_validator&quot;, newName, validator.getProfileName());</span>
+<span class="nc" id="L268">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L269">            details.put(&quot;msg&quot;, message);</span>
+<span class="nc" id="L270">            auditSession.log(EventTypes.VALIDATOR_CREATION, EventStatus.SUCCESS, ModuleTypes.VALIDATOR, ServiceTypes.CORE, admin.toString(), null,</span>
+                    null, null, details);
+<span class="nc" id="L272">        } catch (KeyValidatorExistsException e) {</span>
+<span class="nc" id="L273">            final String message = intres.getLocalizedMessage(&quot;validator.error.clone_validator&quot;, newName, validator.getProfileName());</span>
+<span class="nc" id="L274">            log.info(message);</span>
+<span class="nc" id="L275">            throw e;</span>
+<span class="nc" id="L276">        }</span>
+<span class="nc" id="L277">    }</span>
+
+    @Override
+    public void renameKeyValidator(AuthenticationToken admin, final int validatorId, String newName)
+            throws AuthorizationDeniedException, KeyValidatorDoesntExistsException, KeyValidatorExistsException {
+<span class="nc" id="L282">        renameKeyValidator(admin, getValidatorInternal(validatorId, true), newName);</span>
+<span class="nc" id="L283">    }</span>
+
+    @Override
+    public void renameKeyValidator(AuthenticationToken admin, final Validator validator, String newName)
+            throws AuthorizationDeniedException, KeyValidatorDoesntExistsException, KeyValidatorExistsException {
+<span class="nc bnc" id="L288" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L289">            log.trace(&quot;&gt;renameKeyValidator(from &quot; + validator.getProfileName() + &quot; to &quot; + newName + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L291">        assertIsAuthorizedToEditValidators(admin);</span>
+<span class="nc" id="L292">        boolean success = false;</span>
+<span class="nc bnc" id="L293" title="All 2 branches missed.">        if (profileSession.findByNameAndType(newName, Validator.TYPE_NAME).isEmpty()) {</span>
+<span class="nc" id="L294">            ProfileData data = profileSession.findById(validator.getProfileId());</span>
+<span class="nc bnc" id="L295" title="All 2 branches missed.">            if (data != null) {</span>
+<span class="nc" id="L296">                data.setProfileName(newName);</span>
+<span class="nc" id="L297">                success = true;</span>
+                // Since loading a key validator is quite complex, we simple purge the cache here.
+<span class="nc" id="L299">                ValidatorCache.INSTANCE.removeEntry(data.getId());</span>
+            }
+        }
+<span class="nc bnc" id="L302" title="All 2 branches missed.">        if (success) {</span>
+<span class="nc" id="L303">            final String message = intres.getLocalizedMessage(&quot;validator.renamed_validator&quot;, validator.getProfileName(), newName);</span>
+<span class="nc" id="L304">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L305">            details.put(&quot;msg&quot;, message);</span>
+<span class="nc" id="L306">            auditSession.log(EventTypes.VALIDATOR_RENAME, EventStatus.SUCCESS, ModuleTypes.VALIDATOR, ServiceTypes.CORE, admin.toString(), null, null,</span>
+                    null, details);
+<span class="nc" id="L308">        } else {</span>
+<span class="nc" id="L309">            final String message = intres.getLocalizedMessage(&quot;validator.errorrenamekeyvalidator&quot;, validator.getProfileName(), newName);</span>
+<span class="nc" id="L310">            log.info(message);</span>
+<span class="nc" id="L311">            throw new KeyValidatorExistsException();</span>
+        }
+<span class="nc bnc" id="L313" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L314">            log.trace(&quot;&lt;renameKeyValidator()&quot;);</span>
+        }
+<span class="nc" id="L316">    }</span>
+
+    @Override
+    public Map&lt;Integer, Validator&gt; getAllKeyValidators() {
+<span class="nc" id="L320">        final List&lt;ProfileData&gt; keyValidators = findAllProfiles(Validator.TYPE_NAME);</span>
+<span class="nc" id="L321">        final Map&lt;Integer, Validator&gt; result = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L322">        final boolean enabled = ((ExternalScriptsConfiguration) globalConfigurationSession</span>
+<span class="nc" id="L323">                .getCachedConfiguration(&quot;0&quot;)).getEnableExternalScripts();</span>
+<span class="nc bnc" id="L324" title="All 2 branches missed.">        for (ProfileData data : keyValidators) {</span>
+<span class="nc bnc" id="L325" title="All 4 branches missed.">            if (!enabled &amp;&amp; data.getProfile() instanceof ExternalCommandCertificateValidator) {</span>
+<span class="nc bnc" id="L326" title="All 2 branches missed.">                if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L327">                    log.trace(&quot;Skip &quot; + data.getProfileType() + &quot; with name &quot; + data.getProfileName() + &quot; because calls for external command certificate validators are disabled.&quot;);</span>
+                }
+                continue;
+            }
+            //Cast is safe since we know we retrieved the correct implementation
+            try {
+<span class="nc" id="L333">                result.put(data.getId(), (Validator) data.getProfile());</span>
+<span class="nc" id="L334">            } catch (IllegalStateException e) {</span>
+                // NOPMD: Implementation not available in this version if EJBCA
+<span class="nc" id="L336">            }</span>
+<span class="nc" id="L337">        }</span>
+<span class="nc bnc" id="L338" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc bnc" id="L339" title="All 2 branches missed.">            for (Integer id : result.keySet()) {</span>
+<span class="nc" id="L340">                log.debug(&quot;Key validators found in datastore: &quot; + id + &quot;:&quot; + result.get(id).getProfileName());</span>
+<span class="nc" id="L341">            }</span>
+        }
+<span class="nc" id="L343">        return result;</span>
+    }
+
+    // Not used.
+    @Override
+    public Map&lt;Integer, Validator&gt; getKeyValidatorsById(Collection&lt;Integer&gt; ids) {
+<span class="nc" id="L349">        final List&lt;ProfileData&gt; keyValidators = findAllProfiles(Validator.TYPE_NAME);</span>
+<span class="nc" id="L350">        final Map&lt;Integer, Validator&gt; result = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L351" title="All 2 branches missed.">        for (ProfileData data : keyValidators) {</span>
+<span class="nc" id="L352">            result.put(data.getId(), (Validator) data.getProfile());</span>
+<span class="nc" id="L353">        }</span>
+<span class="nc bnc" id="L354" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc bnc" id="L355" title="All 2 branches missed.">            for (Integer id : result.keySet()) {</span>
+<span class="nc" id="L356">                log.debug(&quot;Key validators found in datastore: &quot; + id + &quot;:&quot; + result.get(id).getProfileName());</span>
+<span class="nc" id="L357">            }</span>
+        }
+<span class="nc" id="L359">        return result;</span>
+    }
+
+    @Override
+    public Map&lt;Integer, String&gt; getKeyValidatorIdToNameMap() {
+<span class="nc" id="L364">        final HashMap&lt;Integer, String&gt; result = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L365" title="All 2 branches missed.">        for (ProfileData data : findAllProfiles(Validator.TYPE_NAME)) {</span>
+<span class="nc" id="L366">            result.put(data.getId(), data.getProfileName());</span>
+<span class="nc" id="L367">        }</span>
+<span class="nc" id="L368">        return result;</span>
+    }
+
+    @Override
+    public Map&lt;Integer, String&gt; getKeyValidatorIdToNameMap(int applicableCa) {
+<span class="nc" id="L373">        final HashMap&lt;Integer, String&gt; result = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L374" title="All 2 branches missed.">        for (Entry&lt;Integer,Validator&gt; data : getAllKeyValidators().entrySet()) {</span>
+<span class="nc bnc" id="L375" title="All 2 branches missed.">            if (data.getValue().getApplicableCaTypes().contains(applicableCa)) {</span>
+<span class="nc" id="L376">                result.put(data.getKey(), data.getValue().getProfileName());</span>
+            }
+<span class="nc" id="L378">        }</span>
+<span class="nc bnc" id="L379" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L380">            log.debug(&quot;Found validators for applicable CAs &quot; + applicableCa + &quot;: &quot; + result);</span>
+        }
+<span class="nc" id="L382">        return result;</span>
+    }
+
+    @Override
+    public void validateDnsNames(final AuthenticationToken authenticationToken, final CA ca, final EndEntityInformation endEntityInformation,
+            final RequestMessage requestMessage) throws ValidationException {
+<span class="nc bnc" id="L388" title="All 2 branches missed.">        if (!CollectionUtils.isEmpty(ca.getValidators())) {</span>
+            Validator baseValidator;
+            DnsNameValidator validator;
+<span class="nc bnc" id="L391" title="All 2 branches missed.">            for (Integer id : ca.getValidators()) {</span>
+<span class="nc" id="L392">                baseValidator = getValidatorInternal(id, true);</span>
+<span class="nc bnc" id="L393" title="All 4 branches missed.">                if (baseValidator != null &amp;&amp; baseValidator.getValidatorSubType().equals(DnsNameValidator.class)) {</span>
+<span class="nc" id="L394">                    validator = (DnsNameValidator) baseValidator;</span>
+                    // Filter for validator criteria.
+<span class="nc bnc" id="L396" title="All 2 branches missed.">                    if (baseValidator instanceof CertificateProfileAwareValidator</span>
+<span class="nc bnc" id="L397" title="All 2 branches missed.">                            &amp;&amp; !filterCertificateProfileAwareValidator(validator, endEntityInformation.getCertificateProfileId())) {</span>
+<span class="nc" id="L398">                        continue;</span>
+                    }
+<span class="nc" id="L400">                    CertificateProfile certificateProfile = certificateProfileSession</span>
+<span class="nc" id="L401">                            .getCertificateProfile(endEntityInformation.getCertificateProfileId());</span>
+<span class="nc" id="L402">                    final String subjectAltName = endEntityInformation.getSubjectAltName();</span>
+<span class="nc" id="L403">                    final List&lt;String&gt; dnsNames = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L404" title="All 2 branches missed.">                    for (String split : subjectAltName.split(&quot;,&quot;)) {</span>
+<span class="nc bnc" id="L405" title="All 2 branches missed.">                        if (split.trim().toLowerCase().startsWith(CertTools.DNS.toLowerCase())) {</span>
+<span class="nc" id="L406">                            dnsNames.add(split.trim().substring(CertTools.DNS.length() + 1));</span>
+                        }
+                    }
+                    //If the certificate profile allows extension override, there may be SANs mixed in among the extensions in the request message
+<span class="nc bnc" id="L410" title="All 4 branches missed.">                    if (certificateProfile.getAllowExtensionOverride() &amp;&amp; requestMessage != null) {</span>
+<span class="nc" id="L411">                        Extensions extensions = requestMessage.getRequestExtensions();</span>
+<span class="nc bnc" id="L412" title="All 2 branches missed.">                        if (extensions != null) {</span>
+<span class="nc" id="L413">                            Extension extension = extensions.getExtension(Extension.subjectAlternativeName);</span>
+<span class="nc bnc" id="L414" title="All 2 branches missed.">                            if (extension != null) {</span>
+<span class="nc" id="L415">                                String extendedSubjectAltName = CertTools.getAltNameStringFromExtension(extension);</span>
+<span class="nc bnc" id="L416" title="All 2 branches missed.">                                for (String split : extendedSubjectAltName.split(&quot;,&quot;)) {</span>
+<span class="nc bnc" id="L417" title="All 2 branches missed.">                                    if (split.trim().toLowerCase().startsWith(CertTools.DNS.toLowerCase())) {</span>
+<span class="nc" id="L418">                                        dnsNames.add(split.trim().substring(CertTools.DNS.length() + 1));</span>
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+<span class="nc" id="L425">                    Entry&lt;Boolean, List&lt;String&gt;&gt; result = validator.validate(executorService, dnsNames.toArray(new String[dnsNames.size()]));</span>
+
+<span class="nc" id="L427">                    final String validatorName = validator.getProfileName();</span>
+<span class="nc" id="L428">                    final List&lt;String&gt; messages = result.getValue();</span>
+<span class="nc bnc" id="L429" title="All 2 branches missed.">                    if (!result.getKey()) {</span>
+                        // Validation has failed. Not security event as such, since it will break issuance and not cause anything important to happen.
+                        // We want thorough logging in order to trouble shoot though
+<span class="nc" id="L432">                        final String message = intres.getLocalizedMessage(&quot;validator.caa.validation_failed&quot;, validatorName,</span>
+<span class="nc" id="L433">                                validator.getIssuer(), messages);</span>
+<span class="nc" id="L434">                        log.info(EventTypes.VALIDATOR_VALIDATION_FAILED + &quot;;&quot; + EventStatus.FAILURE + &quot;;&quot; + ModuleTypes.VALIDATOR + &quot;;&quot; + ServiceTypes.CORE + &quot;;msg=&quot; + message);</span>
+<span class="nc" id="L435">                        final int index = validator.getFailedAction();</span>
+<span class="nc" id="L436">                        performValidationFailedActions(index, message);</span>
+<span class="nc" id="L437">                    } else {</span>
+                        // Validation succeeded, this can be considered a security audit event because CAs may be asked to present this as evidence to an auditor
+<span class="nc" id="L439">                        final String message = intres.getLocalizedMessage(&quot;validator.caa.validation_successful&quot;, validatorName,</span>
+<span class="nc" id="L440">                                validator.getIssuer(),</span>
+                                messages);
+<span class="nc" id="L442">                        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L443">                        details.put(&quot;msg&quot;, message);</span>
+<span class="nc" id="L444">                        auditSession.log(EventTypes.VALIDATOR_VALIDATION_SUCCESS, EventStatus.SUCCESS, ModuleTypes.VALIDATOR, ServiceTypes.CORE,</span>
+<span class="nc" id="L445">                                authenticationToken.toString(), String.valueOf(ca.getCAId()), null, endEntityInformation.getUsername(), details);</span>
+                    }
+
+                }
+<span class="nc" id="L449">            }</span>
+        } else {
+<span class="nc bnc" id="L451" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L452">                log.debug(&quot;No validators configured for CA &quot; + ca.getName() + &quot; (ID=&quot; + ca.getCAId() + &quot;).&quot;);</span>
+            }
+        }
+<span class="nc" id="L455">    }</span>
+
+    @Override
+    public boolean validatePublicKey(final AuthenticationToken admin, final CA ca, EndEntityInformation endEntityInformation,
+            CertificateProfile certificateProfile, Date notBefore, Date notAfter, PublicKey publicKey)
+            throws ValidationException, IllegalValidityException {
+<span class="nc" id="L461">        boolean result = true;</span>
+<span class="nc bnc" id="L462" title="All 4 branches missed.">        if (ca != null &amp;&amp; !CollectionUtils.isEmpty(ca.getValidators())) { // || certificateProfile.isTypeRootCA() || certificateProfile.isTypeSubCA()</span>
+<span class="nc" id="L463">            final CertificateValidity certificateValidity = new CertificateValidity(endEntityInformation, certificateProfile, notBefore, notAfter,</span>
+<span class="nc" id="L464">                    ca.getCACertificate(), false, false);</span>
+<span class="nc bnc" id="L465" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L466">                log.debug(&quot;Validate &quot; + publicKey.getAlgorithm() + &quot; public key with &quot; + publicKey.getFormat() + &quot; format.&quot;);</span>
+<span class="nc" id="L467">                log.debug(&quot;Certificate 'notBefore' &quot; + certificateValidity.getNotBefore());</span>
+<span class="nc" id="L468">                log.debug(&quot;Certificate 'notAfter' &quot; + certificateValidity.getNotAfter());</span>
+            }
+            Validator baseValidator;
+            KeyValidator validator;
+            String name;
+<span class="nc bnc" id="L473" title="All 2 branches missed.">            for (Integer id : ca.getValidators()) {</span>
+<span class="nc" id="L474">                baseValidator = getValidatorInternal(id, true);</span>
+<span class="nc bnc" id="L475" title="All 4 branches missed.">                if (baseValidator != null &amp;&amp; baseValidator.getValidatorSubType().equals(KeyValidator.class)) {</span>
+<span class="nc" id="L476">                    validator = (KeyValidator) baseValidator;</span>
+<span class="nc" id="L477">                    name = validator.getProfileName();</span>
+<span class="nc bnc" id="L478" title="All 2 branches missed.">                    if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L479">                        log.trace(&quot;Try to apply key validator: &quot; + validator.toDisplayString());</span>
+                    }
+                    try {
+                        // Filter for validator criteria.
+<span class="nc bnc" id="L483" title="All 2 branches missed.">                        if (validator instanceof CertificateProfileAwareValidator</span>
+<span class="nc bnc" id="L484" title="All 2 branches missed.">                                &amp;&amp; !filterCertificateProfileAwareValidator(validator, endEntityInformation.getCertificateProfileId())) {</span>
+<span class="nc" id="L485">                            continue;</span>
+                        }
+<span class="nc bnc" id="L487" title="All 2 branches missed.">                        if (validator instanceof ValidityAwareValidator</span>
+<span class="nc bnc" id="L488" title="All 2 branches missed.">                                &amp;&amp; !filterValidityAwareValidator(validator, certificateValidity.getNotBefore(), certificateValidity.getNotAfter())) {</span>
+<span class="nc" id="L489">                            continue;</span>
+                        }
+<span class="nc" id="L491">                        final String fingerprint = CertTools.createPublicKeyFingerprint(publicKey, &quot;SHA-256&quot;);</span>
+<span class="nc" id="L492">                        log.info(intres.getLocalizedMessage(&quot;validator.key.isbeingprocessed&quot;, name, endEntityInformation.getUsername(), fingerprint));</span>
+<span class="nc" id="L493">                        List&lt;String&gt; messages = validator.validate(publicKey, certificateProfile);</span>
+<span class="nc bnc" id="L494" title="All 2 branches missed.">                        if (messages.size() &gt; 0) { // Validation has failed.</span>
+<span class="nc" id="L495">                            result = false;</span>
+<span class="nc" id="L496">                            final int index = validator.getFailedAction();</span>
+<span class="nc" id="L497">                            final String message = intres.getLocalizedMessage(&quot;validator.key.validation_failed&quot;, name, messages);</span>
+<span class="nc" id="L498">                            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L499">                            details.put(&quot;msg&quot;, message);</span>
+<span class="nc" id="L500">                            auditSession.log(EventTypes.VALIDATOR_VALIDATION_FAILED, EventStatus.FAILURE, ModuleTypes.VALIDATOR, ServiceTypes.CORE,</span>
+<span class="nc" id="L501">                                    admin.toString(), String.valueOf(ca.getCAId()), fingerprint, endEntityInformation.getUsername(), details);</span>
+<span class="nc" id="L502">                            performValidationFailedActions(index, message);</span>
+<span class="nc" id="L503">                        } else {</span>
+<span class="nc" id="L504">                            final byte[] keyBytes = publicKey.getEncoded();</span>
+<span class="nc bnc" id="L505" title="All 2 branches missed.">                            final String publicKeyEncoded = (keyBytes != null ? new String(Base64.encode(keyBytes)) : &quot;null&quot;);</span>
+<span class="nc" id="L506">                            final String message = intres.getLocalizedMessage(&quot;validator.key.validation_successful&quot;, name, publicKeyEncoded);</span>
+<span class="nc" id="L507">                            log.info(message);</span>
+<span class="nc" id="L508">                            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L509">                            details.put(&quot;msg&quot;, message);</span>
+<span class="nc" id="L510">                            auditSession.log(EventTypes.VALIDATOR_VALIDATION_SUCCESS, EventStatus.SUCCESS, ModuleTypes.VALIDATOR, ServiceTypes.CORE,</span>
+<span class="nc" id="L511">                                    admin.toString(), String.valueOf(ca.getCAId()), null, endEntityInformation.getUsername(), details);</span>
+                        }
+<span class="nc" id="L513">                    } catch (ValidatorNotApplicableException e) {</span>
+                        // This methods either throws a KeyValidationException, or just logs a message and validation should be considered successful
+                        // use method performValidationFailedActions because it's the same actions
+<span class="nc" id="L516">                        performValidationFailedActions(validator.getNotApplicableAction(), e.getMessage());</span>
+<span class="nc" id="L517">                    } catch (ValidationException e) {</span>
+<span class="nc" id="L518">                        throw e;</span>
+<span class="nc" id="L519">                    }</span>
+                }
+<span class="nc" id="L521">            }</span>
+<span class="nc" id="L522">        } else {</span>
+<span class="nc bnc" id="L523" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L524">                log.debug(&quot;No key validator configured for CA &quot; + ca.getName() + &quot; (ID=&quot; + ca.getCAId() + &quot;).&quot;);</span>
+            }
+        }
+<span class="nc" id="L527">        return result;</span>
+    }
+
+    @Override
+    public void validateCertificate(final AuthenticationToken authenticationToken, final IssuancePhase phase, final CA ca,
+            final EndEntityInformation endEntityInformation, final X509Certificate certificate) throws ValidationException {
+<span class="nc bnc" id="L533" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L534">            log.debug(&quot;Validate certificate for phase &quot; + phase);</span>
+        }
+<span class="nc bnc" id="L536" title="All 4 branches missed.">        if (ca != null &amp;&amp; !CollectionUtils.isEmpty(ca.getValidators())) {</span>
+            Validator baseValidator;
+            CertificateValidator validator;
+            String name;
+<span class="nc bnc" id="L540" title="All 2 branches missed.">            for (Integer id : ca.getValidators()) {</span>
+<span class="nc" id="L541">                baseValidator = getValidatorInternal(id, true);</span>
+<span class="nc bnc" id="L542" title="All 4 branches missed.">                if (baseValidator != null &amp;&amp; baseValidator.getValidatorSubType().equals(CertificateValidator.class)) {</span>
+<span class="nc" id="L543">                    validator = (CertificateValidator) baseValidator;</span>
+<span class="nc" id="L544">                    name = validator.getProfileName();</span>
+<span class="nc bnc" id="L545" title="All 2 branches missed.">                    if (phase.getIndex() != validator.getPhase()) {</span>
+<span class="nc" id="L546">                        continue;</span>
+                    }
+<span class="nc bnc" id="L548" title="All 2 branches missed.">                    if (validator instanceof CertificateProfileAwareValidator</span>
+<span class="nc bnc" id="L549" title="All 2 branches missed.">                            &amp;&amp; !filterCertificateProfileAwareValidator(validator, endEntityInformation.getCertificateProfileId())) {</span>
+<span class="nc" id="L550">                        continue;</span>
+                    }
+<span class="nc bnc" id="L552" title="All 2 branches missed.">                    if (validator instanceof ValidityAwareValidator</span>
+<span class="nc bnc" id="L553" title="All 2 branches missed.">                            &amp;&amp; !filterValidityAwareValidator(validator, certificate.getNotBefore(), certificate.getNotAfter())) {</span>
+<span class="nc" id="L554">                        continue;</span>
+                    }
+                    try {
+<span class="nc" id="L557">                        final String fingerprint = CertTools.createPublicKeyFingerprint(certificate.getPublicKey(), &quot;SHA-256&quot;);</span>
+<span class="nc" id="L558">                        log.info(intres.getLocalizedMessage(&quot;validator.certificate.isbeingprocessed&quot;, name, phase, endEntityInformation.getUsername(),</span>
+                                fingerprint));
+<span class="nc" id="L560">                        final ExternalScriptsConfiguration externalScriptsConfiguration = (ExternalScriptsConfiguration) globalConfigurationSession</span>
+<span class="nc" id="L561">                                .getCachedConfiguration(&quot;0&quot;);</span>
+<span class="nc" id="L562">                        final ExternalScriptsWhitelist externalScriptsWhitelist = ExternalScriptsWhitelist.fromText(</span>
+<span class="nc" id="L563">                                externalScriptsConfiguration.getExternalScriptsWhitelist(),</span>
+<span class="nc" id="L564">                                externalScriptsConfiguration.getIsExternalScriptsWhitelistEnabled());</span>
+<span class="nc" id="L565">                        final List&lt;String&gt; messages = validator.validate(ca, certificate, externalScriptsWhitelist);</span>
+<span class="nc bnc" id="L566" title="All 2 branches missed.">                        if (messages.size() &gt; 0) { // Evaluation has failed.</span>
+<span class="nc" id="L567">                            final String message = intres.getLocalizedMessage(&quot;validator.certificate.validation_failed&quot;, name, messages);</span>
+<span class="nc" id="L568">                            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L569">                            details.put(&quot;msg&quot;, message);</span>
+<span class="nc" id="L570">                            auditSession.log(EventTypes.VALIDATOR_VALIDATION_FAILED, EventStatus.FAILURE, ModuleTypes.VALIDATOR, ServiceTypes.CORE,</span>
+<span class="nc" id="L571">                                    authenticationToken.toString(), String.valueOf(ca.getCAId()), fingerprint, endEntityInformation.getUsername(),</span>
+                                    details);
+<span class="nc" id="L573">                            performValidationFailedActions(validator.getFailedAction(), message);</span>
+<span class="nc" id="L574">                        } else {</span>
+<span class="nc" id="L575">                            final String message = intres.getLocalizedMessage(&quot;validator.certificate.validation_successful&quot;, name, fingerprint);</span>
+<span class="nc" id="L576">                            log.info(message);</span>
+<span class="nc" id="L577">                            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L578">                            details.put(&quot;msg&quot;, message);</span>
+<span class="nc" id="L579">                            auditSession.log(EventTypes.VALIDATOR_VALIDATION_SUCCESS, EventStatus.SUCCESS, ModuleTypes.VALIDATOR, ServiceTypes.CORE,</span>
+<span class="nc" id="L580">                                    authenticationToken.toString(), String.valueOf(ca.getCAId()), null, endEntityInformation.getUsername(), details);</span>
+                        }
+<span class="nc" id="L582">                    } catch (ValidatorNotApplicableException e) {</span>
+                        // This methods either throws a KeyValidationException, or just logs a message and validation should be considered successful
+                        // use method performValidationFailedActions because it's the same actions
+<span class="nc" id="L585">                        performValidationFailedActions(validator.getNotApplicableAction(), e.getMessage());</span>
+<span class="nc" id="L586">                    } catch (CertificateException e) {</span>
+<span class="nc" id="L587">                        throw new ValidationException(&quot;Certificate to validate could not be parsed or decoded: &quot; + e.getMessage(), e);</span>
+<span class="nc" id="L588">                    }</span>
+                }
+<span class="nc" id="L590">            }</span>
+        }
+<span class="nc" id="L592">    }</span>
+
+    // Method is never called.
+    public boolean authorizedToKeyValidatorWithResource(AuthenticationToken admin, CertificateProfile profile, boolean logging, String... resources) {
+        // We need to check that admin also have rights to the passed in resources
+<span class="nc" id="L597">        final List&lt;String&gt; rules = new ArrayList&lt;&gt;(Arrays.asList(resources));</span>
+        // Check that admin is authorized to all CAids
+<span class="nc bnc" id="L599" title="All 2 branches missed.">        for (final Integer caid : profile.getAvailableCAs()) {</span>
+<span class="nc" id="L600">            rules.add(StandardRules.CAACCESS.resource() + caid);</span>
+<span class="nc" id="L601">        }</span>
+        // Perform authorization check
+<span class="nc" id="L603">        boolean ret = false;</span>
+<span class="nc bnc" id="L604" title="All 2 branches missed.">        if (logging) {</span>
+<span class="nc" id="L605">            ret = authorizationSession.isAuthorized(admin, rules.toArray(new String[rules.size()]));</span>
+        } else {
+<span class="nc" id="L607">            ret = authorizationSession.isAuthorizedNoLogging(admin, rules.toArray(new String[rules.size()]));</span>
+        }
+<span class="nc" id="L609">        return ret;</span>
+    }
+
+    @Override
+    public Collection&lt;Integer&gt; getAuthorizedKeyValidatorIds(AuthenticationToken admin, String keyValidatorAccessRule) {
+<span class="nc" id="L614">        final ArrayList&lt;Integer&gt; result = new ArrayList&lt;Integer&gt;();</span>
+<span class="nc" id="L615">        final Map&lt;Integer, String&gt; map = getKeyValidatorIdToNameMap();</span>
+<span class="nc bnc" id="L616" title="All 2 branches missed.">        if (authorizationSession.isAuthorizedNoLogging(admin, keyValidatorAccessRule)) {</span>
+<span class="nc" id="L617">            final boolean rootAccess = authorizationSession.isAuthorizedNoLogging(admin, StandardRules.ROLE_ROOT.resource());</span>
+<span class="nc" id="L618">            final List&lt;Integer&gt; authorizedCPIDs = certificateProfileSession.getAuthorizedCertificateProfileIds(admin, 0);</span>
+<span class="nc bnc" id="L619" title="All 2 branches missed.">            for (final Entry&lt;Integer, String&gt; entry : map.entrySet()) {</span>
+                // Check that administrator have access to all certificate profiles referenced by the validator
+<span class="nc" id="L621">                Validator val = getValidator(entry.getKey());</span>
+<span class="nc" id="L622">                boolean allexists = true;</span>
+<span class="nc bnc" id="L623" title="All 2 branches missed.">                for (final Integer nextcpid : val.getCertificateProfileIds()) {</span>
+<span class="nc bnc" id="L624" title="All 2 branches missed.">                    if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L625">                        log.trace(&quot;Validator '&quot; + val.getProfileName() + &quot;' has &quot; + val.getCertificateProfileIds().size() + &quot; no of CPs selected&quot;);</span>
+                    }
+                    // If any CP is selected, it's access to all (only authorized will be displayed)
+<span class="nc bnc" id="L628" title="All 2 branches missed.">                    if (nextcpid.intValue() == -1) {</span>
+<span class="nc bnc" id="L629" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L630">                            log.debug(&quot;Validator is applicable to all certificate profiles, not limiting access based on CPs&quot;);</span>
+                        }
+<span class="nc" id="L632">                        allexists = true;</span>
+<span class="nc" id="L633">                        break;</span>
+                    }
+                    // superadmin should be able to access profiles with missing CA Ids
+<span class="nc bnc" id="L636" title="All 4 branches missed.">                    if (!authorizedCPIDs.contains(nextcpid) &amp;&amp; (!rootAccess)) {</span>
+<span class="nc bnc" id="L637" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L638">                            log.debug(&quot;Validator have certificate profile &quot; + nextcpid + &quot; selected which admin is not authorized to:&quot; + admin.toString());</span>
+                        }
+<span class="nc" id="L640">                        allexists = false;</span>
+<span class="nc" id="L641">                        break;</span>
+                    }
+<span class="nc" id="L643">                }</span>
+<span class="nc bnc" id="L644" title="All 2 branches missed.">                if (allexists) {</span>
+<span class="nc" id="L645">                    result.add(entry.getKey());</span>
+                }
+<span class="nc" id="L647">            }</span>
+        }
+<span class="nc" id="L649">        return result;</span>
+    }
+
+    @Override
+    public List&lt;Integer&gt; getConflictingKeyValidatorIds(final Validator validator) {
+<span class="nc" id="L654">        final List&lt;ProfileData&gt; conflicts = profileSession.findByNameAndType(validator.getProfileName(), Validator.TYPE_NAME);</span>
+<span class="nc" id="L655">        final List&lt;Integer&gt; conflictingValidatorIds = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L656" title="All 2 branches missed.">        for (final ProfileData conflict : conflicts) {</span>
+<span class="nc" id="L657">            conflictingValidatorIds.add(conflict.getId());</span>
+<span class="nc" id="L658">        }</span>
+<span class="nc" id="L659">        return conflictingValidatorIds;</span>
+    }
+
+    @Override
+    public void replaceKeyValidator(final AuthenticationToken authenticationToken, final LinkedHashMap&lt;Object, Object&gt; data, final int id)
+            throws AuthorizationDeniedException {
+<span class="nc" id="L665">        assertIsAuthorizedToEditValidators(authenticationToken);</span>
+
+<span class="nc" id="L667">        final Validator validatorToUpdate = getValidator(id);</span>
+<span class="nc bnc" id="L668" title="All 2 branches missed.">        if (validatorToUpdate == null) {</span>
+<span class="nc" id="L669">            return;</span>
+        }
+<span class="nc" id="L671">        validatorToUpdate.setDataMap(data);</span>
+<span class="nc" id="L672">        ValidatorCache.INSTANCE.flush();</span>
+
+<span class="nc" id="L674">        final String auditMessage = intres.getLocalizedMessage(&quot;validator.changed_validator&quot;, validatorToUpdate.getProfileName());</span>
+<span class="nc" id="L675">        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L676">        details.put(&quot;msg&quot;, auditMessage);</span>
+<span class="nc" id="L677">        auditSession.log(EventTypes.VALIDATOR_CHANGE, EventStatus.SUCCESS, ModuleTypes.VALIDATOR, ServiceTypes.CORE, authenticationToken.toString(),</span>
+                null, null, null, details);
+<span class="nc" id="L679">    }</span>
+
+    /**
+     * Gets a validator by cache or database, can return null. Puts it into the cache, if not already present.
+     *
+     * @param id the validators id.
+     * @param fromCache true if the validator can be taken from cache.
+     * @return a cloned validator that can be used at will without affecting the cache contents, edits have to be saved with replaceKeyValidator
+     * */
+    private Validator getValidatorInternal(int id, boolean fromCache) {
+<span class="nc" id="L689">        Validator result = null;</span>
+        // If we should read from cache, and we have an id to use in the cache, and the cache does not need to be updated
+<span class="nc bnc" id="L691" title="All 4 branches missed.">        if (fromCache &amp;&amp; !ValidatorCache.INSTANCE.shouldCheckForUpdates(id)) {</span>
+            // Get from cache (or null)
+<span class="nc" id="L693">            result = ValidatorCache.INSTANCE.getEntry(id);</span>
+        }
+
+        // if we selected to not read from cache, or if the cache did not contain this entry
+<span class="nc bnc" id="L697" title="All 2 branches missed.">        if (result == null) {</span>
+
+            // We need to read from database because we specified to not get from cache or we don't have anything in the cache
+<span class="nc" id="L700">            final ProfileData data = profileSession.findById(id);</span>
+<span class="nc bnc" id="L701" title="All 2 branches missed.">            if (data != null) {</span>
+<span class="nc" id="L702">                result = (Validator) data.getProfile();</span>
+<span class="nc bnc" id="L703" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L704">                    log.debug(&quot;Load validator: &quot; + result.getDataMap());</span>
+                }
+<span class="nc" id="L706">                final int digest = data.getProtectString(0).hashCode();</span>
+                // The cache compares the database data with what is in the cache
+                // If database is different from cache, replace it in the cache
+<span class="nc" id="L709">                ValidatorCache.INSTANCE.updateWith(data.getId(), digest, data.getProfileName(), result);</span>
+<span class="nc" id="L710">            } else {</span>
+                // Ensure that it is removed from cache if it exists
+<span class="nc" id="L712">                ValidatorCache.INSTANCE.removeEntry(id);</span>
+            }
+        }
+<span class="nc bnc" id="L715" title="All 2 branches missed.">        if (result == null) {</span>
+<span class="nc" id="L716">            log.warn(&quot;Validator with id &quot; + id + &quot; didn't return any validator&quot;);</span>
+        }
+        // We need to clone the validator, otherwise the cache contents will be modifiable from the outside
+<span class="nc bnc" id="L719" title="All 2 branches missed.">        if (result != null) {</span>
+<span class="nc" id="L720">            return result.clone();</span>
+        }
+<span class="nc" id="L722">        return null;</span>
+    }
+
+    /**
+     * Adds a key validator or throws an exception.
+     *
+     * @param admin AuthenticationToken of administrator.
+     * @param keyValidator the validator to add.
+     * @return the profile ID
+     * @throws AuthorizationDeniedException If access denied
+     * @throws KeyValidatorExistsException If validator does not exist
+     */
+    private int addValidatorInternal(AuthenticationToken admin, Validator keyValidator)
+            throws AuthorizationDeniedException, KeyValidatorExistsException {
+<span class="nc" id="L736">        assertIsAuthorizedToEditValidators(admin);</span>
+<span class="nc bnc" id="L737" title="All 2 branches missed.">        if (profileSession.findByNameAndType(keyValidator.getProfileName(), Validator.TYPE_NAME).isEmpty()) {</span>
+<span class="nc" id="L738">            return profileSession.addProfile(keyValidator);</span>
+        } else {
+<span class="nc" id="L740">            final String message = intres.getLocalizedMessage(&quot;validator.error.add_validator&quot;, keyValidator.getProfileName());</span>
+<span class="nc" id="L741">            log.info(message);</span>
+<span class="nc" id="L742">            throw new KeyValidatorExistsException();</span>
+        }
+    }
+
+    /**
+     * Assert the administrator is authorized to edit key validators.
+     *
+     * @param admin AuthenticationToken of administrator.
+     * @throws AuthorizationDeniedException if the administrator is not authorized to.
+     * */
+    private void assertIsAuthorizedToEditValidators(AuthenticationToken admin) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L753" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(admin, StandardRules.VALIDATOREDIT.resource())) {</span>
+<span class="nc" id="L754">            final String message = intres.getLocalizedMessage(&quot;store.editkeyvalidatornotauthorized&quot;, admin.toString());</span>
+<span class="nc" id="L755">            throw new AuthorizationDeniedException(message);</span>
+        }
+<span class="nc" id="L757">    }</span>
+
+    /**
+     * Applies validity conditions (see {@link KeyValidatorDateConditions}) to the validator.
+     *
+     * @param validator the validator.
+     * @param certificateNotBefore the certificates not before validity.
+     * @param certificateNotAfter the certificates not after validity.
+     * @return false, if the conditions does not match.
+     */
+    private boolean filterValidityAwareValidator(final ValidityAwareValidator validator, final Date certificateNotBefore,
+            final Date certificateNotAfter) {
+<span class="nc bnc" id="L769" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L770">            log.trace(&quot;Try to apply validity aware validator: &quot; + validator);</span>
+        }
+<span class="nc" id="L772">        final String name = validator.getProfileName();</span>
+<span class="nc" id="L773">        boolean result = true;</span>
+<span class="nc bnc" id="L774" title="All 2 branches missed.">        if (!KeyValidatorDateConditions.evaluate(validator.getNotBefore(), certificateNotBefore, validator.getNotBeforeCondition())) {</span>
+<span class="nc bnc" id="L775" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L776">                log.debug(intres.getLocalizedMessage(&quot;validator.filterconditiondoesnotmatch&quot;, name, &quot;notBefore&quot;));</span>
+            }
+<span class="nc" id="L778">            result = false;</span>
+        }
+<span class="nc bnc" id="L780" title="All 2 branches missed.">        if (!KeyValidatorDateConditions.evaluate(validator.getNotAfter(), certificateNotAfter, validator.getNotAfterCondition())) {</span>
+<span class="nc bnc" id="L781" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L782">                log.debug(intres.getLocalizedMessage(&quot;validator.filterconditiondoesnotmatch&quot;, name, &quot;notAfter&quot;));</span>
+            }
+<span class="nc" id="L784">            result = false;</span>
+        }
+<span class="nc" id="L786">        return result;</span>
+    }
+
+    /**
+     * Applies certificate profile conditions to the validator.
+     *
+     * @param validator the validator.
+     * @param certificateProfileId the certificate profile id.
+     * @return false, if the conditions does not match.
+     */
+    private boolean filterCertificateProfileAwareValidator(final CertificateProfileAwareValidator validator,
+            final int certificateProfileId) {
+<span class="nc bnc" id="L798" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L799">            log.trace(&quot;Try to apply certificate profile aware validator: &quot; + validator);</span>
+        }
+<span class="nc" id="L801">        boolean result = true;</span>
+<span class="nc" id="L802">        final List&lt;Integer&gt; ids = validator.getCertificateProfileIds();</span>
+<span class="nc" id="L803">        final boolean isAll = validator.isAllCertificateProfileIds();</span>
+<span class="nc bnc" id="L804" title="All 6 branches missed.">        if (!isAll &amp;&amp; null != ids &amp;&amp; !ids.contains(certificateProfileId)) {</span>
+<span class="nc bnc" id="L805" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L806">                log.debug(intres.getLocalizedMessage(&quot;validator.filterconditiondoesnotmatch&quot;, validator.getProfileName(), &quot;applicableCertificateProfiles&quot;));</span>
+            }
+<span class="nc" id="L808">            result = false;</span>
+        }
+<span class="nc" id="L810">        return result;</span>
+    }
+
+    /**
+     * Calling overloaded method performValidationFailedActions when parameter shortMessage should be the same as the message.
+     *
+     * @param failedAction Action
+     * @param message Message
+     * @throws ValidationException On fail
+     */
+    private void performValidationFailedActions(final int failedAction, final String message) throws ValidationException {
+<span class="nc" id="L821">        performValidationFailedActions(failedAction, message, message);</span>
+<span class="nc" id="L822">    }</span>
+
+    /**
+     * Post processes every validation depending on its failed action.
+     *
+     * @param failedAction the failed action index (see {@link KeyValidationFailedActions}).
+     * @param message the message to log.
+     * @param shortMessage the error message to EJBCA Certificate Enrollment Error page
+     * @throws ValidationException if a failed validation has to be abort the certificate issuance.
+     * */
+    private void performValidationFailedActions(final int failedAction, final String message, final String shortMessage) throws ValidationException {
+<span class="nc bnc" id="L833" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L834">            log.debug(&quot;Perform post action &quot; + failedAction + &quot; - &quot; + message);</span>
+        }
+<span class="nc bnc" id="L836" title="All 2 branches missed.">        if (KeyValidationFailedActions.LOG_INFO.getIndex() == failedAction) {</span>
+<span class="nc" id="L837">            log.info(message);</span>
+<span class="nc bnc" id="L838" title="All 2 branches missed.">        } else if (KeyValidationFailedActions.LOG_WARN.getIndex() == failedAction) {</span>
+<span class="nc" id="L839">            log.warn(message);</span>
+<span class="nc bnc" id="L840" title="All 2 branches missed.">        } else if (KeyValidationFailedActions.LOG_ERROR.getIndex() == failedAction) {</span>
+<span class="nc" id="L841">            log.error(message);</span>
+<span class="nc bnc" id="L842" title="All 2 branches missed.">        } else if (KeyValidationFailedActions.ABORT_CERTIFICATE_ISSUANCE.getIndex() == failedAction) {</span>
+<span class="nc" id="L843">            throw new ValidationException(shortMessage);</span>
+        } else {
+            // NOOP
+<span class="nc" id="L846">            log.debug(message);</span>
+        }
+<span class="nc" id="L848">    }</span>
+
+    /**
+     * Gets all profiles by type.
+     *
+     * @param profileType the profile type.
+     * @return all profiles that match that type. {@link ExternalCommandCertificateValidator} is only included if calls to external scripts are enabled.
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    // profileType does not change here!
+    private final List&lt;ProfileData&gt; findAllProfiles(final String profileType) {
+<span class="nc" id="L859">        final List&lt;ProfileData&gt; profiles = profileSession.findAllProfiles(profileType);</span>
+<span class="nc" id="L860">        final boolean enabled = ((ExternalScriptsConfiguration) globalConfigurationSession</span>
+<span class="nc" id="L861">                .getCachedConfiguration(&quot;0&quot;)).getEnableExternalScripts();</span>
+<span class="nc bnc" id="L862" title="All 2 branches missed.">        if (enabled) {</span>
+<span class="nc" id="L863">            return profiles;</span>
+        } else {
+<span class="nc" id="L865">            final List&lt;ProfileData&gt; result = new ArrayList&lt;ProfileData&gt;();</span>
+            Class&lt;? extends Serializable&gt; profileClass;
+<span class="nc bnc" id="L867" title="All 2 branches missed.">            for (ProfileData profile: profiles) {</span>
+<span class="nc bnc" id="L868" title="All 4 branches missed.">                if ((profileClass = (Class&lt;? extends Serializable&gt;) profile.getProfile().getDataMap().get(&quot;profile.type&quot;)) == null || !ExternalCommandCertificateValidator.class.getName().equals(profileClass.getName())) {</span>
+<span class="nc" id="L869">                    result.add(profile);</span>
+                }
+<span class="nc" id="L871">            }</span>
+<span class="nc" id="L872">            return result;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

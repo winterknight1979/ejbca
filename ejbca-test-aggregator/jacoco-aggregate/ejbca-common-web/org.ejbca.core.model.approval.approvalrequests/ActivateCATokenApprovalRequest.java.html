@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ActivateCATokenApprovalRequest.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-common-web</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.approval.approvalrequests</a> &gt; <span class="el_source">ActivateCATokenApprovalRequest.java</span></div><h1>ActivateCATokenApprovalRequest.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.approval.approvalrequests;
+
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ejb.EJBException;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSession;
+import org.ejbca.core.model.approval.ApprovalDataText;
+import org.ejbca.core.model.approval.ApprovalDataVO;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.ApprovalRequest;
+import org.ejbca.core.model.approval.ApprovalRequestExecutionException;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.core.model.approval.profile.ApprovalProfile;
+
+/**
+ * Approval Request created when trying to activate a CA Service.
+ * 
+ * For historic reasons this class refers to &quot;CA Tokens&quot;.
+ * 
+ * @version $Id: ActivateCATokenApprovalRequest.java 25898 2017-05-24 15:59:21Z mikekushner $
+ */
+public class ActivateCATokenApprovalRequest extends ApprovalRequest {
+
+	private static final long serialVersionUID = -1L;
+<span class="nc" id="L46">	private static final Logger log = Logger.getLogger(ActivateCATokenApprovalRequest.class);</span>
+	private static final int LATEST_VERSION = 1;	
+
+<span class="nc" id="L49">	private String cAName = null;</span>
+<span class="nc" id="L50">	private String authenticationCode = null;</span>
+
+	/** Constructor used in externalization only */
+<span class="nc" id="L53">	public ActivateCATokenApprovalRequest() {}</span>
+
+	/**
+	 * Construct an approval request for the activation of a CA Token
+	 * @param cAName CA
+	 * @param authenticationCode Auth
+	 * @param requestAdmin admin
+	 * @param cAId CA
+	 * @param endEntityProfileId Profile
+	 * @param approvalProfile Profile
+	 * @param certificateProfileId  Cert
+	 */
+    public ActivateCATokenApprovalRequest(String cAName, String authenticationCode, AuthenticationToken requestAdmin, int cAId,
+            int endEntityProfileId, ApprovalProfile approvalProfile, int certificateProfileId) {
+<span class="nc" id="L67">        super(requestAdmin, null, REQUESTTYPE_SIMPLE, cAId, endEntityProfileId, approvalProfile);</span>
+<span class="nc" id="L68">        this.cAName = cAName;</span>
+<span class="nc" id="L69">        this.authenticationCode = authenticationCode;</span>
+<span class="nc" id="L70">    }</span>
+	
+	@Override
+	public void execute() throws ApprovalRequestExecutionException {
+<span class="nc" id="L74">		throw new RuntimeException(&quot;This execution requires additional bean references.&quot;);</span>
+	}
+	/**
+	 * A main function of the ApprovalRequest, the execute() method
+	 * is run when all required approvals have been made.
+	 * 
+	 * execute should perform the action or nothing if the requesting admin
+	 * is supposed to try this action again.
+	 * @param caAdminSession Session
+	 * @throws ApprovalRequestExecutionException Fail
+	 */
+	public void execute(CAAdminSession caAdminSession) throws ApprovalRequestExecutionException {
+<span class="nc" id="L86">		log.debug(&quot;Executing &quot; + ApprovalDataVO.APPROVALTYPENAMES[getApprovalType()] + &quot; (&quot; + getApprovalType() + &quot;).&quot;);</span>
+		try {
+			// Use 'null' for GlobalConfiguration here since it's only used to extract approval information in the underlying code..
+<span class="nc" id="L89">		    caAdminSession.activateCAService(getRequestAdmin(), getCAId());</span>
+<span class="nc" id="L90">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L91">            throw new ApprovalRequestExecutionException(&quot;Authorization denied to activate CA Token :&quot; + e.getMessage(), e);</span>
+<span class="nc" id="L92">		} catch (CADoesntExistsException e) {</span>
+<span class="nc" id="L93">			throw new ApprovalRequestExecutionException(&quot;CA does not exist :&quot; + e.getMessage(), e);</span>
+<span class="nc" id="L94">		} catch (ApprovalException e) {</span>
+<span class="nc" id="L95">			throw new EJBException(&quot;This should never happen&quot;,e);</span>
+<span class="nc" id="L96">		} catch (WaitingForApprovalException e) {</span>
+<span class="nc" id="L97">			throw new EJBException(&quot;This should never happen&quot;,e);</span>
+		} finally{
+<span class="nc" id="L99">			authenticationCode = &quot;&quot;;</span>
+		}
+<span class="nc" id="L101">	}</span>
+
+	/**
+	 * Method that should generate an approval id for this type of
+	 * approval, the same request i.e the same admin want's to do the
+	 * same thing twice should result in the same approvalId.
+	 */
+	public int generateApprovalId() {
+<span class="nc" id="L109">		String idString = getApprovalType() + &quot;;&quot; + cAName + &quot;;&quot; + getApprovalProfile().getProfileName();</span>
+<span class="nc" id="L110">		return idString.hashCode();</span>
+	}
+
+	public int getApprovalType() {		
+<span class="nc" id="L114">		return ApprovalDataVO.APPROVALTYPE_ACTIVATECATOKEN;</span>
+	}
+
+	/**
+	 * This method should return the request data in text representation.
+	 * This text is presented for the approving administrator in order
+	 * for him to make a decision about the request.
+	 * 
+	 * Should return a List of ApprovalDataText, one for each row
+	 */
+	@Override
+	public List&lt;ApprovalDataText&gt; getNewRequestDataAsText(AuthenticationToken admin) {
+<span class="nc" id="L126">		ArrayList&lt;ApprovalDataText&gt; retval = new ArrayList&lt;ApprovalDataText&gt;();</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">		if ( cAName != null ) {</span>
+<span class="nc" id="L128">			retval.add(new ApprovalDataText(&quot;CANAME&quot;,cAName,true,false));</span>
+		}
+<span class="nc" id="L130">		return retval;</span>
+	}
+	
+	/**
+	 * This method should return the original request data in text representation.
+	 * Should only be implemented by TYPE_COMPARING ApprovalRequests.
+	 * TYPE_SIMPLE requests should return null;
+	 * 
+	 * This text is presented for the approving administrator for him to
+	 * compare of what will be done.
+	 * 
+	 * Should return a List of ApprovalDataText, one for each row
+	 */
+	@Override
+	public List&lt;ApprovalDataText&gt; getOldRequestDataAsText(AuthenticationToken admin) {
+<span class="nc" id="L145">		return null;</span>
+	}
+
+	/**
+	 * Should return true if the request if of the type that should be executed
+	 * by the last approver.
+	 * 
+	 * False if the request admin should do a polling action to try again.
+	 */
+	public boolean isExecutable() {		
+<span class="nc" id="L155">		return true;</span>
+	}
+	
+	public void writeExternal(ObjectOutput out) throws IOException {
+<span class="nc" id="L159">		super.writeExternal(out);</span>
+<span class="nc" id="L160">		out.writeInt(LATEST_VERSION);</span>
+<span class="nc" id="L161">		out.writeObject(cAName);</span>
+<span class="nc" id="L162">		out.writeObject(authenticationCode);</span>
+<span class="nc" id="L163">	}</span>
+
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {        
+<span class="nc" id="L166">		super.readExternal(in);</span>
+<span class="nc" id="L167">        int version = in.readInt();</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">        if(version == 1){</span>
+<span class="nc" id="L169">    		cAName = (String) in.readObject();</span>
+<span class="nc" id="L170">    		authenticationCode = (String) in.readObject(); 		</span>
+        }
+<span class="nc" id="L172">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

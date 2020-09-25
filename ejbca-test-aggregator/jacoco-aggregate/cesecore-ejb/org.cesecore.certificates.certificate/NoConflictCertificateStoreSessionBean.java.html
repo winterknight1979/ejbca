@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>NoConflictCertificateStoreSessionBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">cesecore-ejb</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.certificates.certificate</a> &gt; <span class="el_source">NoConflictCertificateStoreSessionBean.java</span></div><h1>NoConflictCertificateStoreSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.cesecore.certificates.certificate;
+
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.util.encoders.Hex;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.enums.EventTypes;
+import org.cesecore.audit.enums.ModuleTypes;
+import org.cesecore.audit.enums.ServiceTypes;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.certificates.crl.RevocationReasons;
+import org.cesecore.certificates.crl.RevokedCertInfo;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.internal.InternalResources;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.StringTools;
+import org.cesecore.util.ValidityDate;
+
+/**
+ * These methods call CertificateStoreSession for certificates that are plain CertificateData entities.
+ * See {@link CertificateStoreSession} for method descriptions.
+ * 
+ * &lt;p&gt;For NoConflictCertificateData the methods perform additional logic to check that it gets the most recent
+ * entry if there's more than one (taking permanent revocations into account), and for updates it
+ * appends new entries instead of updating existing ones. 
+ * 
+ * @version $Id: NoConflictCertificateStoreSessionBean.java 29433 2018-07-02 16:55:26Z mikekushner $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;NoConflictCertificateStoreSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+<span class="nc" id="L68">public class NoConflictCertificateStoreSessionBean implements NoConflictCertificateStoreSessionRemote, NoConflictCertificateStoreSessionLocal {</span>
+
+<span class="nc" id="L70">    private final static Logger log = Logger.getLogger(NoConflictCertificateStoreSessionBean.class);</span>
+    
+    /** Internal localization of logs and errors */
+<span class="nc" id="L73">    private static final InternalResources intres = InternalResources.getInstance();</span>
+
+    @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+    private EntityManager entityManager;
+    
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private CaSessionLocal caSession;
+    @EJB
+    private CertificateProfileSessionLocal certificateProfileSession;
+    @EJB
+    private CertificateStoreSessionLocal certificateStoreSession;
+    @EJB
+    private SecurityEventsLoggerSessionLocal logSession;
+    @EJB
+    private NoConflictCertificateDataSessionLocal noConflictCertificateDataSession;
+    
+    private void authorizedToCA(final AuthenticationToken admin, final int caid) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(admin, StandardRules.CAACCESS.resource() + caid)) {</span>
+<span class="nc" id="L93">            final String msg = intres.getLocalizedMessage(&quot;caadmin.notauthorizedtoca&quot;, admin.toString(), caid);</span>
+<span class="nc" id="L94">            throw new AuthorizationDeniedException(msg);</span>
+        }
+<span class="nc" id="L96">    }</span>
+    
+    /**
+     * Returns true if the CA allows revocation of non-existing certificates.
+     * @param issuerDN Subject DN of CA.
+     */
+    @Override
+    public boolean canRevokeNonExisting(final String issuerDN) {
+<span class="nc" id="L104">        final int caid = CertTools.stringToBCDNString(StringTools.strip(issuerDN)).hashCode();</span>
+<span class="nc" id="L105">        final CAInfo cainfo = caSession.getCAInfoInternal(caid);</span>
+<span class="nc" id="L106">        return canRevokeNonExisting(cainfo, issuerDN);</span>
+    }
+
+    /**
+     * @return true if the CA allows revocation of non-existing certificates.
+     * @param cainfo CA
+     * @param issuerDN Subject DN of CA, for safety check against CAId collisions.
+     * 
+     */
+    private boolean canRevokeNonExisting(final CAInfo cainfo, final String issuerDN) {
+<span class="nc" id="L116">        String dn = CertTools.stringToBCDNString(StringTools.strip(issuerDN));</span>
+<span class="nc bnc" id="L117" title="All 6 branches missed.">        if (cainfo == null || !cainfo.getSubjectDN().equals(dn) || !cainfo.isAcceptRevocationNonExistingEntry()) {</span>
+<span class="nc" id="L118">            return false;</span>
+        }
+        // XXX this option can be set in the certificate profile as well! does it make sense to have mixed locations? it would make CRL generation more complex!
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        if (cainfo.isUseCertificateStorage()) {</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L123">                log.debug(&quot;CA '&quot; + cainfo.getName() + &quot;' is misconfigured. Revocation of non-existing certificates is currently only supported for 'throw away CAs'.&quot;);</span>
+            }
+<span class="nc" id="L125">            return false;</span>
+        }
+<span class="nc" id="L127">        return true;</span>
+    }
+
+    @Override
+    public CertificateDataWrapper getCertificateDataByIssuerAndSerno(final String issuerdn, final BigInteger certserno) {
+<span class="nc" id="L132">        CertificateDataWrapper cdw = certificateStoreSession.getCertificateDataByIssuerAndSerno(issuerdn, certserno);</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        if (cdw != null) {</span>
+            // Full certificate is available, return it
+<span class="nc" id="L135">            return cdw;</span>
+        }
+
+        // Throw away CA or missing certificate
+<span class="nc" id="L139">        final int caid = CertTools.stringToBCDNString(StringTools.strip(issuerdn)).hashCode();</span>
+<span class="nc" id="L140">        final CAInfo cainfo = caSession.getCAInfoInternal(caid);</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">        if (!canRevokeNonExisting(cainfo, issuerdn)) {</span>
+<span class="nc bnc" id="L142" title="All 4 branches missed.">            if (cainfo == null &amp;&amp; log.isDebugEnabled()) {</span>
+<span class="nc" id="L143">                log.debug(&quot;Tried to look up certificate &quot; + certserno.toString(16) +&quot;, but neither certificate nor CA was found. CA Id: &quot; + caid + &quot;. Issuer DN: '&quot; + issuerdn + &quot;'&quot;);</span>
+            }
+<span class="nc" id="L145">            return null;</span>
+        }
+<span class="nc bnc" id="L147" title="All 2 branches missed.">        if (cainfo.isUseNoConflictCertificateData()) {</span>
+<span class="nc" id="L148">            final NoConflictCertificateData certificateData = getLimitedNoConflictCertDataRow(cainfo, certserno);</span>
+<span class="nc" id="L149">            return new CertificateDataWrapper(certificateData);</span>
+        } else {
+<span class="nc" id="L151">            final CertificateData certificateData = new CertificateData();</span>
+<span class="nc" id="L152">            fillInLimitedCertificateData(certificateData, cainfo, certserno);</span>
+<span class="nc" id="L153">            certificateData.setUpdateTime(System.currentTimeMillis());</span>
+<span class="nc" id="L154">            return new CertificateDataWrapper(certificateData, null);</span>
+        }
+    }
+    
+    @Override
+    public CertificateStatus getStatus(final String issuerDN, final BigInteger serno) {
+<span class="nc bnc" id="L160" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L161">            log.trace(&quot;&gt;getStatus(), dn:&quot; + issuerDN + &quot;, serno=&quot; + serno.toString(16));</span>
+        }
+        // First, try to look up in CertificateData
+<span class="nc" id="L164">        final String dn = CertTools.stringToBCDNString(issuerDN);</span>
+<span class="nc" id="L165">        CertificateStatus status = certificateStoreSession.getStatus(issuerDN, serno);</span>
+<span class="nc bnc" id="L166" title="All 4 branches missed.">        if (!canRevokeNonExisting(issuerDN) || status != CertificateStatus.NOT_AVAILABLE) {</span>
+<span class="nc" id="L167">            log.trace(&quot;&lt;getStatus()&quot;);</span>
+<span class="nc" id="L168">            return status;</span>
+        }
+        // If not found, take most recent certificate from NoConflictCertificateData
+<span class="nc" id="L171">        final NoConflictCertificateData noConflictCert = findMostRecentCertData(dn, serno); </span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">        if (noConflictCert == null) {</span>
+<span class="nc bnc" id="L173" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L174">                log.trace(&quot;&lt;getStatus() did not find certificate with dn &quot; + dn + &quot; and serno &quot; + serno.toString(16));</span>
+            }
+            // For throw-away CAs that allow revocation of non-existing certificates, we pretend that non-existing is OK
+<span class="nc" id="L177">            return CertificateStatus.OK;</span>
+        }
+<span class="nc" id="L179">        status = CertificateStatusHelper.getCertificateStatus(noConflictCert);</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L181">            log.trace(&quot;&lt;getStatus() returned &quot; + status + &quot; for cert number &quot; + serno.toString(16));</span>
+        }
+<span class="nc" id="L183">        return status;</span>
+        
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public CertificateDataWrapper getCertificateData(final String fingerprint) {
+<span class="nc" id="L190">        CertificateDataWrapper cdw = certificateStoreSession.getCertificateData(fingerprint);</span>
+<span class="nc bnc" id="L191" title="All 2 branches missed.">        if (cdw != null) {</span>
+<span class="nc" id="L192">            return cdw;</span>
+        }
+        // If not found, take most recent certificate from NoConflictCertificateData
+<span class="nc" id="L195">        final Collection&lt;NoConflictCertificateData&gt; certDatas = noConflictCertificateDataSession.findByFingerprint(fingerprint);</span>
+<span class="nc" id="L196">        return new CertificateDataWrapper(filterMostRecentCertData(certDatas));</span>
+    }
+    
+    @Override
+    public Collection&lt;RevokedCertInfo&gt; listRevokedCertInfo(String issuerdn, long lastbasecrldate) {
+<span class="nc bnc" id="L201" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L202">            log.trace(&quot;&gt;listRevokedCertInfo('&quot; + issuerdn + &quot;', &quot; + lastbasecrldate + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L204">        final Collection&lt;RevokedCertInfo&gt; revokedInCertData = certificateStoreSession.listRevokedCertInfo(issuerdn, lastbasecrldate);</span>
+<span class="nc" id="L205">        final Collection&lt;RevokedCertInfo&gt; revokedInNoConflictData = noConflictCertificateDataSession.getRevokedCertInfosWithDuplicates(issuerdn, lastbasecrldate);</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L207">            log.debug(&quot;listRevokedCertInfo: Got &quot; + revokedInCertData.size() + &quot; entries from CertificateData and &quot; + revokedInNoConflictData.size() + &quot; entries from NoConflictCertificateData&quot;);</span>
+        }
+<span class="nc" id="L209">        return RevokedCertInfo.mergeByDateAndStatus(revokedInCertData, revokedInNoConflictData, lastbasecrldate);</span>
+    }
+    
+    /**
+     * Locates the most recent entry in NoConflictCertificateData for a given issuerdn/serial number combination.
+     * @param issuerdn Issuer DN
+     * @param serno Certificate serial number
+     * @return NoConflictCertificateData entry, or null if not found. Entity is append-only, so do not modify it.
+     */
+    private NoConflictCertificateData findMostRecentCertData(final String issuerdn, final BigInteger serno) {
+<span class="nc" id="L219">        final Collection&lt;NoConflictCertificateData&gt; certDatas = noConflictCertificateDataSession.findByIssuerDNSerialNumber(issuerdn, serno.toString());</span>
+<span class="nc" id="L220">        return filterMostRecentCertData(certDatas);</span>
+    }
+    
+    /**
+     * Filters out the most recent entry in NoConflictCertificateData for a given issuerDN/serial number combination.
+     * Permanent revocations always take precedence over other updates, the first one wins.
+     * Otherwise, the most recent update wins.
+     * @param certDatas Collection of NoConflictCertificateData to filter.
+     * @return NoConflictCertificateData entry, or null if not found. Entity is append-only, so do not modify it.
+     */
+    private NoConflictCertificateData filterMostRecentCertData(final Collection&lt;NoConflictCertificateData&gt; certDatas) {
+<span class="nc bnc" id="L231" title="All 2 branches missed.">        if (CollectionUtils.isEmpty(certDatas)) {</span>
+<span class="nc" id="L232">            log.trace(&quot;&lt;findMostRecentCertData(): no certificates found&quot;);</span>
+<span class="nc" id="L233">            return null;</span>
+        }
+<span class="nc" id="L235">        NoConflictCertificateData mostRecentData = null;</span>
+<span class="nc bnc" id="L236" title="All 2 branches missed.">        for (final NoConflictCertificateData data : certDatas) {</span>
+<span class="nc bnc" id="L237" title="All 2 branches missed.">            if (mostRecentData == null) {</span>
+<span class="nc" id="L238">                mostRecentData = data;</span>
+<span class="nc" id="L239">                continue;</span>
+            }
+<span class="nc bnc" id="L241" title="All 2 branches missed.">            long timestampThis = data.getUpdateTime() != null ? data.getUpdateTime() : 0;</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">            long timestampRecent = mostRecentData.getUpdateTime() != null ? mostRecentData.getUpdateTime() : 0;</span>
+<span class="nc bnc" id="L243" title="All 2 branches missed.">            if (RevokedCertInfo.isPermanentlyRevoked(data.getRevocationReason())) {</span>
+                // Permanently revoked certificate always takes precedence over non-permanently revoked one.
+                // Older permanent revocations take precedence over newer ones.
+<span class="nc bnc" id="L246" title="All 4 branches missed.">                if (!RevokedCertInfo.isPermanentlyRevoked(mostRecentData.getRevocationReason()) || timestampRecent &gt; timestampThis) {</span>
+<span class="nc" id="L247">                    mostRecentData = data;</span>
+<span class="nc" id="L248">                    continue;</span>
+                }
+            }
+            // Permanent revocations take precedence over temporary ones
+<span class="nc bnc" id="L252" title="All 2 branches missed.">            if (RevokedCertInfo.isPermanentlyRevoked(mostRecentData.getRevocationReason())) {</span>
+<span class="nc" id="L253">                continue;</span>
+            }
+            // Otherwise, most recent status takes precedence
+<span class="nc bnc" id="L256" title="All 2 branches missed.">            if (timestampThis &gt; timestampRecent) {</span>
+<span class="nc" id="L257">                mostRecentData = data;</span>
+            }
+<span class="nc" id="L259">        }</span>
+<span class="nc" id="L260">        return mostRecentData;</span>
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public boolean setRevokeStatus(final AuthenticationToken admin, final CertificateDataWrapper cdw, final Date revokedDate, final int reason)
+            throws CertificateRevokeException, AuthorizationDeniedException {
+<span class="nc bnc" id="L267" title="All 2 branches missed.">        if (cdw.getBaseCertificateData() instanceof NoConflictCertificateData) {</span>
+<span class="nc bnc" id="L268" title="All 2 branches missed.">            if (entityManager.contains(cdw.getBaseCertificateData())) {</span>
+<span class="nc" id="L269">                throw new IllegalStateException(&quot;Cannot update existing row in NoConflictCertificateData. It is append-only.&quot;);</span>
+            }
+        }
+<span class="nc" id="L272">        return certificateStoreSession.setRevokeStatus(admin, cdw, revokedDate, reason);</span>
+    }
+    
+    @Override
+    public boolean setStatus(final AuthenticationToken admin, final String fingerprint, final int status) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L277" title="All 2 branches missed.">        if (!certificateStoreSession.setStatus(admin, fingerprint, status)) {</span>
+            // Perhaps stored in NoConflictCertificateData
+<span class="nc" id="L279">            final List&lt;NoConflictCertificateData&gt; certDatas = noConflictCertificateDataSession.findByFingerprint(fingerprint);</span>
+<span class="nc" id="L280">            NoConflictCertificateData certData = filterMostRecentCertData(certDatas);</span>
+<span class="nc bnc" id="L281" title="All 2 branches missed.">            if (certData != null) {</span>
+<span class="nc" id="L282">                changeStatus(admin, certData, status);</span>
+            }
+        }
+<span class="nc" id="L285">        return false;</span>
+    }
+    
+    private void changeStatus(final AuthenticationToken admin, final NoConflictCertificateData certificateData, final int status) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L289" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L290">            log.debug(&quot;Set status &quot; + status + &quot; for certificate with serial: &quot; + certificateData.getSerialNumberHex());</span>
+        }
+
+        // Must be authorized to CA in order to change status is certificates issued by the CA
+<span class="nc" id="L294">        String bcdn = CertTools.stringToBCDNString(certificateData.getIssuerDN());</span>
+<span class="nc" id="L295">        int caid = bcdn.hashCode();</span>
+<span class="nc" id="L296">        authorizedToCA(admin, caid);</span>
+        
+<span class="nc" id="L298">        final NoConflictCertificateData newCertData = new NoConflictCertificateData(certificateData);</span>
+<span class="nc" id="L299">        newCertData.setStatus(status);</span>
+<span class="nc" id="L300">        setUniqueIdAndUpdateTime(newCertData);</span>
+<span class="nc" id="L301">        entityManager.persist(newCertData);</span>
+        
+<span class="nc" id="L303">        final String serialNo = certificateData.getSerialNumberHex();</span>
+<span class="nc" id="L304">        final String msg = intres.getLocalizedMessage(&quot;store.setstatus&quot;, certificateData.getUsername(), certificateData.getFingerprint(), status, certificateData.getSubjectDnNeverNull(), certificateData.getIssuerDN(), serialNo);</span>
+<span class="nc" id="L305">        Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L306">        details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L307">        logSession.log(EventTypes.CERT_CHANGEDSTATUS, EventStatus.SUCCESS, ModuleTypes.CERTIFICATE, ServiceTypes.CORE, admin.toString(), String.valueOf(caid), serialNo, certificateData.getUsername(), details);</span>
+<span class="nc" id="L308">    }</span>
+    
+    /**
+     * Returns a row in the append-only NoConflictCertificateData table, or a new row that can be added.
+     * The row is initialized with the data from the most recent entry in the table,
+     * or as a new unrevoked entry if non-existent.
+     * @param cainfo Issuer.
+     * @param certserno Certificate serial number.
+     * @return New row, or copy of an existing row. Always has a fresh UUID and timestamp, so it can be appended directly.
+     */
+    private NoConflictCertificateData getLimitedNoConflictCertDataRow(final CAInfo cainfo, final BigInteger certserno) {
+<span class="nc" id="L319">        NoConflictCertificateData certificateData = findMostRecentCertData(cainfo.getSubjectDN(), certserno);</span>
+<span class="nc bnc" id="L320" title="All 2 branches missed.">        if (certificateData != null) {</span>
+            // Make a copy, to prevent overwrites
+<span class="nc" id="L322">            certificateData = new NoConflictCertificateData(certificateData);</span>
+        } else {
+<span class="nc" id="L324">            certificateData = new NoConflictCertificateData();</span>
+<span class="nc" id="L325">            fillInLimitedCertificateData(certificateData, cainfo, certserno);</span>
+        }
+<span class="nc" id="L327">        setUniqueIdAndUpdateTime(certificateData);</span>
+<span class="nc" id="L328">        return certificateData;</span>
+    }
+    
+    private void setUniqueIdAndUpdateTime(final NoConflictCertificateData certificateData) {
+        // Always generate new UUID and timestamp, so updates are stored as a new row
+<span class="nc" id="L333">        certificateData.setId(UUID.randomUUID().toString());</span>
+<span class="nc" id="L334">        certificateData.setUpdateTime(System.currentTimeMillis());</span>
+<span class="nc" id="L335">    }</span>
+
+    /** @param certificateData Data
+     * @param cainfo CA
+     * @param certserno Serial 
+     * @see org.cesecore.certificates.certificate.CertificateStoreSessionBean#updateLimitedCertificateDataStatus(AuthenticationToken, int, String, String, String, BigInteger, int, Date, int, String) */
+    private void fillInLimitedCertificateData(final BaseCertificateData certificateData, final CAInfo cainfo, final BigInteger certserno) {
+<span class="nc" id="L342">        final int certProfId = cainfo.getDefaultCertificateProfileId();</span>
+<span class="nc" id="L343">        certificateData.setSerialNumber(certserno.toString());</span>
+        // A fingerprint is needed by the publisher session, so we put a dummy fingerprint here
+<span class="nc" id="L345">        certificateData.setFingerprint(generateDummyFingerprint(cainfo.getSubjectDN(), certserno));</span>
+<span class="nc" id="L346">        certificateData.setIssuerDN(cainfo.getSubjectDN());</span>
+<span class="nc" id="L347">        certificateData.setSubject(&quot;CN=limited&quot;);</span>
+<span class="nc" id="L348">        certificateData.setUsername(null);</span>
+<span class="nc" id="L349">        certificateData.setCertificateProfileId(certProfId);</span>
+<span class="nc" id="L350">        certificateData.setStatus(CertificateConstants.CERT_ACTIVE);</span>
+<span class="nc" id="L351">        certificateData.setRevocationReason(RevocationReasons.NOT_REVOKED.getDatabaseValue());</span>
+<span class="nc" id="L352">        certificateData.setRevocationDate(-1L);</span>
+<span class="nc" id="L353">        certificateData.setCaFingerprint(CertTools.getFingerprintAsString(cainfo.getCertificateChain().get(0)));</span>
+<span class="nc" id="L354">        certificateData.setEndEntityProfileId(-1);</span>
+        // Set expire date to the maximum possible expire date this certificate could have (now + cert profile validity) 
+<span class="nc" id="L356">        final CertificateProfile certProf = certificateProfileSession.getCertificateProfile(certProfId);</span>
+<span class="nc bnc" id="L357" title="All 2 branches missed.">        if (certProf == null) {</span>
+<span class="nc" id="L358">            log.info(&quot;Missing certificate profile ID: &quot; + certProfId);</span>
+        } else {
+<span class="nc" id="L360">            final String encodedValidity = certProf.getEncodedValidity();</span>
+<span class="nc" id="L361">            final Date expireDate = ValidityDate.getDate(encodedValidity, new Date());</span>
+<span class="nc" id="L362">            certificateData.setExpireDate(expireDate);</span>
+        }
+<span class="nc" id="L364">    }</span>
+    
+    @Override
+    public String generateDummyFingerprint(final String issuerdn, final BigInteger certserno) {
+<span class="nc" id="L368">        final byte[] fingerprintBytes = CertTools.generateSHA1Fingerprint((certserno.toString()+';'+issuerdn).getBytes(StandardCharsets.UTF_8));</span>
+<span class="nc" id="L369">        return new String(Hex.encode(fingerprintBytes));</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>
