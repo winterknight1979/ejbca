@@ -383,6 +383,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
         <module>ejbca-entity</module>
         <module>ejbca-ws-common</module>
         <module>ejbca-ejb-interface</module>
+        <module>ejbca-common-web</module>
     </modules>
     <build>
     
