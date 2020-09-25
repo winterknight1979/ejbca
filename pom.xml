@@ -483,6 +483,9 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-report-plugin</artifactId>
                 <version>3.0.0-M4</version>
+                <configuration>
+                	<aggregate>true</aggregate>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -530,7 +533,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
                     <plugin>
                         <groupId>org.jacoco</groupId>
                         <artifactId>jacoco-maven-plugin</artifactId>
-                        <version>0.8.5</version>
+                        <version>0.8.6</version>
                         <executions>
                             <execution>
                                 <goals>
@@ -557,7 +560,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
                             <reportSet>
                                 <reports>
 <!-- select non-aggregate reports -->
-                                    <report>report</report>
+                                    <report>report-aggregate</report>
                                 </reports>
                             </reportSet>
                         </reportSets>
