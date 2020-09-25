@@ -7,7 +7,7 @@
 		<artifactId>ejbca</artifactId>
 		<version>1.0</version>
 	</parent>
-	<artifactId>cesecore-common-entity-tests</artifactId>
+	<artifactId>ejbca-test-aggregator</artifactId>
 
 	<properties>
 		<config.needed>true</config.needed>
@@ -26,6 +26,45 @@
 			<version>${project.version}</version>
 		</dependency>
 
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>cesecore-ejb-interface</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>cesecore-ejb</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>ejbca-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>ejbca-entity</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>ejbca-ws-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>ejbca-common-web</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>ejbca-ejb-interface</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 
 		<!-- Shared Resource bundle and Service Manifest generator -->
@@ -39,13 +78,13 @@
 
 	</dependencies>
 
-	<description>This module contains tests for cesecore-common that depend on classes from cesecore-entity.
+	<description>This module is used as an aggregator for (a) test coverage and (b) any tests that would create circular deps.
 
-Because Maven runs the tests immediately after building each induvidual jar, this creates a circular dependency.
-
-These tests have therefore been folded out into their own module.</description>
+It should explicutly depend on all other modules.</description>
 	<build>
 		<plugins>
+
+
 
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
@@ -115,56 +154,86 @@ These tests have therefore been folded out into their own module.</description>
 						<goals>
 							<goal>read-project-properties</goal>
 						</goals>
-						
+
 					</execution>
 				</executions>
 			</plugin>
 		</plugins>
 	</build>
-  <profiles>
-        <profile>
-            <id>coverage</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.jacoco</groupId>
-                        <artifactId>jacoco-maven-plugin</artifactId>
-                        <version>0.8.6</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>prepare-agent</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>report</id>
-                                <phase>prepare-package</phase>
-                                <goals>
-                                    <goal>report</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-            <reporting>
-                <plugins>
-                    <plugin>
-                        <groupId>org.jacoco</groupId>
-                        <artifactId>jacoco-maven-plugin</artifactId>
-                        <reportSets>
-                            <reportSet>
-                                <reports>
-<!-- select non-aggregate reports -->
+
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>3.1.1</version>
+				<reportSets>
+					<reportSet>
+						<reports>
+							<report>dependencies</report>
+							<report>dependency-info</report>
+							<report>summary</report>
+							<report>index</report>
+							<report>plugins</report>
+							<report>dependency-convergence</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-report-plugin</artifactId>
+				<version>3.0.0-M4</version>
+				
+			</plugin>
+		</plugins>
+	</reporting>
+
+	<profiles>
+		<profile>
+			<id>coverage</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<version>0.8.6</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>prepare-agent</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>report</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>report</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+			<reporting>
+				<plugins>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<reportSets>
+							<reportSet>
+								<reports>
+									<!-- select non-aggregate reports -->
 									<report>report</report>
-                                    <report>report-aggregate</report>
-                                    
-                                </reports>
-                            </reportSet>
-                        </reportSets>
-                    </plugin>
-                </plugins>
-            </reporting>
-        </profile>
-        </profiles>
+									<report>report-aggregate</report>
+
+								</reports>
+							</reportSet>
+						</reportSets>
+					</plugin>
+				</plugins>
+			</reporting>
+		</profile>
+	</profiles>
 </project>

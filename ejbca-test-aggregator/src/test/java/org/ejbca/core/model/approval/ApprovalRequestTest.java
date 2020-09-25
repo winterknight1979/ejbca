@@ -151,7 +151,8 @@ public class ApprovalRequestTest {
 
 	}
     
-    /** Tests editing (but not actually saving to the database, since this is handled in the ApprovalSessionBean class) */
+    /** Tests editing (but not actually saving to the database, since this is handled in the ApprovalSessionBean class) 
+     * @throws Exception fail*/
     @Test
     public void testEditedByMe() throws Exception {
         X509Certificate testcert = CertTools.getCertfromByteArray(testcertenc, X509Certificate.class);

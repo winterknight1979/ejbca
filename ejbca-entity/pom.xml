@@ -10,30 +10,30 @@
 	<artifactId>ejbca-entity</artifactId>
 
 	<dependencies>
-	
-	
-	   <dependency>
-                <groupId>org.hibernate</groupId>
-                <artifactId>hibernate-entitymanager</artifactId>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-            	<groupId>com.h2database</groupId>
-            	<artifactId>h2</artifactId>
-            	<scope>test</scope>
-            </dependency>
-	
-	<dependency>
+
+
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-entitymanager</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>cesecore-ejb-interface</artifactId>
 			<version>${project.version}</version>
-			</dependency>
-			<dependency>
+		</dependency>
+		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>ejbca-common</artifactId>
 			<version>${project.version}</version>
-			</dependency>
-	
+		</dependency>
+
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>shared-resources</artifactId>
@@ -57,9 +57,9 @@
 				<targetPath>META-INF/</targetPath>
 			</resource>
 		</resources>
-		
+
 		<testResources>
-		<testResource>
+			<testResource>
 				<filtering>true</filtering>
 				<directory>${project.basedir}/src/main/resources</directory>
 				<includes>
@@ -81,7 +81,7 @@
 				<directory>${project.build.directory}/maven-shared-archive-resource</directory>
 				<includes>
 					<include>persistence-test-template.xml</include> <!-- Non-existent file to stop resource bundle being copied -->
-	
+
 				</includes>
 			</testResource>
 		</testResources>
@@ -120,7 +120,7 @@
 						<goals>
 							<goal>read-project-properties</goal>
 						</goals>
-						
+
 					</execution>
 				</executions>
 			</plugin>
@@ -138,7 +138,9 @@
 						</goals>
 						<configuration>
 							<target>
-								<move file="${project.build.directory}/classes/META-INF/persistence-ds-template.xml" tofile="${project.build.directory}/classes/META-INF/persistence.xml" />
+								<move
+									file="${project.build.directory}/classes/META-INF/persistence-ds-template.xml"
+									tofile="${project.build.directory}/classes/META-INF/persistence.xml" />
 							</target>
 						</configuration>
 					</execution>
@@ -150,7 +152,9 @@
 						</goals>
 						<configuration>
 							<target>
-								<move file="${project.build.directory}/test-classes/META-INF/persistence-test-template.xml" tofile="${project.build.directory}/test-classes/META-INF/persistence.xml" />
+								<move
+									file="${project.build.directory}/test-classes/META-INF/persistence-test-template.xml"
+									tofile="${project.build.directory}/test-classes/META-INF/persistence.xml" />
 							</target>
 						</configuration>
 					</execution>
@@ -179,56 +183,85 @@
 							</resources>
 						</configuration>
 					</execution>
-					</executions>
-					</plugin>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
-	
-	 <profiles>
-        <profile>
-            <id>coverage</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.jacoco</groupId>
-                        <artifactId>jacoco-maven-plugin</artifactId>
-                        <version>0.8.6</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>prepare-agent</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>report</id>
-                                <phase>prepare-package</phase>
-                                <goals>
-                                    <goal>report</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-            <reporting>
-                <plugins>
-                    <plugin>
-                        <groupId>org.jacoco</groupId>
-                        <artifactId>jacoco-maven-plugin</artifactId>
-                        <reportSets>
-                            <reportSet>
-                                <reports>
-<!-- select non-aggregate reports -->
+
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>3.1.1</version>
+				<reportSets>
+					<reportSet>
+						<reports>
+							<report>dependencies</report>
+							<report>dependency-info</report>
+							<report>summary</report>
+							<report>index</report>
+							<report>plugins</report>
+							<report>dependency-convergence</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-report-plugin</artifactId>
+				<version>3.0.0-M4</version>
+				
+			</plugin>
+		</plugins>
+	</reporting>
+
+	<profiles>
+		<profile>
+			<id>coverage</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<version>0.8.6</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>prepare-agent</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>report</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>report</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+			<reporting>
+				<plugins>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<reportSets>
+							<reportSet>
+								<reports>
+									<!-- select non-aggregate reports -->
 									<report>report</report>
-                                    <report>report-aggregate</report>
-                                    
-                                </reports>
-                            </reportSet>
-                        </reportSets>
-                    </plugin>
-                </plugins>
-            </reporting>
-        </profile>
-        </profiles>
+									<report>report-aggregate</report>
+
+								</reports>
+							</reportSet>
+						</reportSets>
+					</plugin>
+				</plugins>
+			</reporting>
+		</profile>
+	</profiles>
 
 </project>
