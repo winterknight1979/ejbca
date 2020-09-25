@@ -698,5 +698,10 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
     </scm>
     <url>https://github.com/winterknight1979/ejbca</url>
     
+    <distributionManagement>
+    	<id>Github pages site</id>
+    	<url>scm:git:https://github.com/winterknight1979/ejbca.git</url>
+    </distributionManagement>
+    
     
 </project>
