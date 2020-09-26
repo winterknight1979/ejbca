@@ -1,1 +1,0 @@
-typeSearchIndex = [{"l":"All Classes","url":"allclasses-index.html"},{"p":"org.ejbca.database","l":"DatabaseSchemaTest"},{"p":"org.ejbca.util","l":"FixEndOfBrokenXMLTest"},{"p":"org.ejbca.core.ejb.profiles","l":"ProfileDataTest"},{"p":"org.ejbca.core.ejb.ra","l":"UserDataTest"}]

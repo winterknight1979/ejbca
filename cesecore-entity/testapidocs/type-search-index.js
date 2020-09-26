@@ -1,1 +1,0 @@
-typeSearchIndex = [{"p":"org.cesecore.authorization.rules","l":"AccessRuleDataTest"},{"p":"org.cesecore.roles","l":"AccessRulesMigratorTest"},{"p":"org.cesecore.authorization.user","l":"AccessUserAspectDataTest"},{"p":"org.cesecore.roles","l":"AdminGroupDataTest"},{"l":"All Classes","url":"allclasses-index.html"},{"p":"org.cesecore.roles","l":"RoleTest"}]

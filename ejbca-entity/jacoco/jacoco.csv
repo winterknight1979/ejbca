@@ -16,8 +16,8 @@ ejbca-entity,org.ejbca.core.ejb.hardtoken,HardTokenCertificateMap,57,41,0,0,16,1
 ejbca-entity,org.ejbca.core.ejb.hardtoken,HardTokenProfileData,141,55,6,0,37,17,12,15,9,15
 ejbca-entity,org.ejbca.core.ejb.hardtoken,HardTokenData,179,81,4,0,42,24,16,22,14,22
 ejbca-entity,org.ejbca.core.ejb.hardtoken,HardTokenPropertyData,118,37,3,0,29,13,11,10,9,10
-ejbca-entity,org.ejbca.core.ejb.hardtoken,HardTokenIssuerData,115,55,2,0,30,17,13,15,12,15
 ejbca-entity,org.ejbca.core.ejb.hardtoken,HardTokenPropertyDataPK,62,23,16,0,11,8,11,5,3,5
+ejbca-entity,org.ejbca.core.ejb.hardtoken,HardTokenIssuerData,115,55,2,0,30,17,13,15,12,15
 ejbca-entity,org.ejbca.core.ejb.ca.validation,BlacklistData,196,4,2,0,57,1,28,1,27,1
 ejbca-entity,org.ejbca.core.ejb.ra,UserData,452,270,30,10,110,105,31,56,13,54
 ejbca-entity,org.ejbca.core.ejb.ca.store,CertReqHistoryData.NotPossibleToFixXML,6,0,0,0,2,0,1,0,1,0

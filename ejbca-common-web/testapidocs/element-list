@@ -1,6 +1,0 @@
-org.ejbca.core.model.approval
-org.ejbca.core.model.ra
-org.ejbca.core.model.validation
-org.ejbca.core.protocol.cmp
-org.ejbca.ui.web
-org.ejbca.util

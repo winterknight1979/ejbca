@@ -1,1 +1,0 @@
-packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"org.ejbca.core.model.approval"},{"l":"org.ejbca.core.model.ra"},{"l":"org.ejbca.core.model.validation"},{"l":"org.ejbca.core.protocol.cmp"},{"l":"org.ejbca.ui.web"},{"l":"org.ejbca.util"}]

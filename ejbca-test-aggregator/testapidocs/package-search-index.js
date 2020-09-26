@@ -1,1 +1,0 @@
-packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"org.cesecore.authentication.tokens"},{"l":"org.cesecore.certificates.ca"},{"l":"org.cesecore.roles"},{"l":"org.cesecore.util"},{"l":"org.cesecore.util.ui"}]

@@ -31,7 +31,7 @@ ejbca-test-aggregator/cesecore-common,org.cesecore.util,PKIXCertRevocationStatus
 ejbca-test-aggregator/cesecore-common,org.cesecore.util,SimpleTime,33,407,6,4,12,78,5,25,1,23
 ejbca-test-aggregator/cesecore-common,org.cesecore.util,ValueExtractor,122,88,8,6,16,17,6,6,1,4
 ejbca-test-aggregator/cesecore-common,org.cesecore.util,ValidityDate,99,300,13,31,23,70,16,23,4,13
-ejbca-test-aggregator/cesecore-common,org.cesecore.util,ConcurrentCache,166,535,28,66,44,114,29,36,6,12
+ejbca-test-aggregator/cesecore-common,org.cesecore.util,ConcurrentCache,174,527,29,65,43,115,29,36,6,12
 ejbca-test-aggregator/cesecore-common,org.cesecore.util,StreamSizeLimitExceededException,12,4,0,0,6,2,3,1,3,1
 ejbca-test-aggregator/cesecore-common,org.cesecore.util,PrintableStringNameStyle,32,48,8,8,7,9,8,4,0,4
 ejbca-test-aggregator/cesecore-common,org.cesecore.util,CertificateSerializableWrapper,45,14,7,1,14,6,6,1,2,1
@@ -45,7 +45,7 @@ ejbca-test-aggregator/cesecore-common,org.cesecore.util,Base64PutHashMap,0,32,0,
 ejbca-test-aggregator/cesecore-common,org.cesecore.util,TimeUnitFormat,0,231,0,24,0,54,0,15,0,3
 ejbca-test-aggregator/cesecore-common,org.cesecore.util,CertTools.BasicX509NameTokenizer,7,115,3,17,2,31,3,10,0,3
 ejbca-test-aggregator/cesecore-common,org.cesecore.util,EjbRemoteHelper,68,0,12,0,17,0,9,0,3,0
-ejbca-test-aggregator/cesecore-common,org.cesecore.util,SecureXMLDecoder,482,939,69,109,97,250,63,72,0,22
+ejbca-test-aggregator/cesecore-common,org.cesecore.util,SecureXMLDecoder,484,937,70,108,97,250,64,71,0,22
 ejbca-test-aggregator/cesecore-common,org.cesecore.util,RFC4683Tools,35,431,10,42,8,85,10,24,0,8
 ejbca-test-aggregator/cesecore-common,org.cesecore.util,NetworkTools,109,0,16,0,34,0,12,0,4,0
 ejbca-test-aggregator/cesecore-common,org.cesecore.util,StringTools.CharSet,0,52,0,2,0,11,0,5,0,4
@@ -83,8 +83,8 @@ ejbca-test-aggregator/cesecore-common,org.cesecore.internal,CommonCacheBase.Cach
 ejbca-test-aggregator/cesecore-common,org.cesecore.internal,InternalResources,62,365,15,43,21,87,15,26,0,12
 ejbca-test-aggregator/cesecore-common,org.cesecore.certificates.ocsp,SHA1DigestCalculator,8,32,0,0,3,9,1,4,1,4
 ejbca-test-aggregator/cesecore-common,org.cesecore.util.ui,RadioButton,76,0,12,0,22,0,13,0,7,0
-ejbca-test-aggregator/cesecore-common,org.cesecore.util.ui,DynamicUiProperty,849,597,89,27,189,132,95,39,43,33
 ejbca-test-aggregator/cesecore-common,org.cesecore.util.ui,PositiveIntegerValidator,16,13,1,1,2,6,2,4,1,4
+ejbca-test-aggregator/cesecore-common,org.cesecore.util.ui,DynamicUiProperty,849,597,89,27,189,132,95,39,43,33
 ejbca-test-aggregator/cesecore-common,org.cesecore.util.ui,DynamicUiModelException,13,0,0,0,6,0,3,0,3,0
 ejbca-test-aggregator/cesecore-common,org.cesecore.util.ui,DynamicUiPropertyCallback,0,34,0,0,0,2,0,1,0,1
 ejbca-test-aggregator/cesecore-common,org.cesecore.util.ui,DynamicUiModel,358,0,42,0,78,0,38,0,17,0
@@ -544,8 +544,8 @@ ejbca-test-aggregator/ejbca-common,org.ejbca.core.model.hardtoken,HardTokenProfi
 ejbca-test-aggregator/ejbca-common,org.ejbca.core.model.hardtoken,HardTokenIssuerInformation,49,0,0,0,19,0,10,0,10,0
 ejbca-test-aggregator/ejbca-common,org.ejbca.core.model.hardtoken,HardTokenExistsException,7,0,0,0,4,0,2,0,2,0
 ejbca-test-aggregator/ejbca-common,org.ejbca.core.model.hardtoken,UnavailableTokenException,7,0,0,0,4,0,2,0,2,0
-ejbca-test-aggregator/ejbca-common,org.ejbca.core.model.hardtoken,HardTokenInformation,111,0,6,0,32,0,22,0,19,0
 ejbca-test-aggregator/ejbca-common,org.ejbca.core.model.hardtoken,HardTokenDoesntExistsException,7,0,0,0,4,0,2,0,2,0
+ejbca-test-aggregator/ejbca-common,org.ejbca.core.model.hardtoken,HardTokenInformation,111,0,6,0,32,0,22,0,19,0
 ejbca-test-aggregator/ejbca-common,org.ejbca.core.model.ca,AuthLoginException,9,0,0,0,4,0,2,0,2,0
 ejbca-test-aggregator/ejbca-common,org.ejbca.core.model.ca,AuthStatusException,4,0,0,0,2,0,1,0,1,0
 ejbca-test-aggregator/ejbca-common,org.ejbca.core.protocol.ocsp.extension.unid,OCSPUnidResponse,132,0,10,0,42,0,20,0,15,0
@@ -665,8 +665,8 @@ ejbca-test-aggregator/ejbca-common,org.ejbca.core.model.ca.publisher.custpubl1,C
 ejbca-test-aggregator/ejbca-common,org.ejbca.core.model.ca.publisher.custpubl1,CustomerLdapPublisher1.new CustomerLdapPublisher1.LDAPConnectionAction() {...},82,0,10,0,19,0,8,0,3,0
 ejbca-test-aggregator/ejbca-common,org.ejbca.core.model.ca.publisher.custpubl1,CustomerLdapPublisher1.new CustomerLdapPublisher1.LDAPConnectionAction() {...},153,0,6,0,21,0,6,0,3,0
 ejbca-test-aggregator/ejbca-common,org.ejbca.core.model.ca.publisher.custpubl1,CustomerLdapPublisher1.new CustomerLdapPublisher1.LDAPConnectionAction() {...},107,0,2,0,12,0,4,0,3,0
-ejbca-test-aggregator/ejbca-common,org.ejbca.core.model.ca.publisher.custpubl1,CustomerLdapPublisher1.LogInfo,0,194,0,8,0,47,0,20,0,16
 ejbca-test-aggregator/ejbca-common,org.ejbca.core.model.ca.publisher.custpubl1,CustomerLdapPublisher1,426,783,34,36,89,186,37,32,9,25
+ejbca-test-aggregator/ejbca-common,org.ejbca.core.model.ca.publisher.custpubl1,CustomerLdapPublisher1.LogInfo,0,194,0,8,0,47,0,20,0,16
 ejbca-test-aggregator/ejbca-common,org.ejbca.core.model.approval.profile,NonModifiableApprovalProfileException,16,0,0,0,8,0,4,0,4,0
 ejbca-test-aggregator/ejbca-common,org.ejbca.core.model.approval.profile,ApprovalPartition,99,62,12,2,25,15,10,6,3,6
 ejbca-test-aggregator/ejbca-common,org.ejbca.core.model.approval.profile,ApprovalStep,147,228,14,2,39,41,16,11,8,11
@@ -762,8 +762,8 @@ ejbca-test-aggregator/ejbca-entity,org.ejbca.core.ejb.hardtoken,HardTokenCertifi
 ejbca-test-aggregator/ejbca-entity,org.ejbca.core.ejb.hardtoken,HardTokenProfileData,141,55,6,0,37,17,12,15,9,15
 ejbca-test-aggregator/ejbca-entity,org.ejbca.core.ejb.hardtoken,HardTokenData,179,81,4,0,42,24,16,22,14,22
 ejbca-test-aggregator/ejbca-entity,org.ejbca.core.ejb.hardtoken,HardTokenPropertyData,118,37,3,0,29,13,11,10,9,10
-ejbca-test-aggregator/ejbca-entity,org.ejbca.core.ejb.hardtoken,HardTokenIssuerData,115,55,2,0,30,17,13,15,12,15
 ejbca-test-aggregator/ejbca-entity,org.ejbca.core.ejb.hardtoken,HardTokenPropertyDataPK,62,23,16,0,11,8,11,5,3,5
+ejbca-test-aggregator/ejbca-entity,org.ejbca.core.ejb.hardtoken,HardTokenIssuerData,115,55,2,0,30,17,13,15,12,15
 ejbca-test-aggregator/ejbca-entity,org.ejbca.core.ejb.ca.validation,BlacklistData,97,103,1,1,27,31,15,14,14,14
 ejbca-test-aggregator/ejbca-entity,org.ejbca.core.ejb.ra,UserData,452,270,30,10,110,105,31,56,13,54
 ejbca-test-aggregator/ejbca-entity,org.ejbca.core.ejb.ca.store,CertReqHistoryData.NotPossibleToFixXML,6,0,0,0,2,0,1,0,1,0
@@ -867,8 +867,8 @@ ejbca-test-aggregator/ejbca-ejb-interface,org.ejbca.configdump,ConfigDumpSetting
 ejbca-test-aggregator/ejbca-ejb-interface,org.ejbca.configdump,ConfigdumpExportResult,19,0,0,0,7,0,4,0,4,0
 ejbca-test-aggregator/ejbca-ejb-interface,org.ejbca.configdump,ConfigdumpPattern,43,0,2,0,11,0,5,0,4,0
 ejbca-test-aggregator/ejbca-ejb-interface,org.ejbca.statedump.ejb,StatedumpObjectKey,71,0,8,0,16,0,11,0,7,0
-ejbca-test-aggregator/ejbca-ejb-interface,org.ejbca.statedump.ejb,StatedumpOverride,15,0,0,0,6,0,3,0,3,0
 ejbca-test-aggregator/ejbca-ejb-interface,org.ejbca.statedump.ejb,StatedumpOverride.Type,44,0,0,0,5,0,1,0,1,0
+ejbca-test-aggregator/ejbca-ejb-interface,org.ejbca.statedump.ejb,StatedumpOverride,15,0,0,0,6,0,3,0,3,0
 ejbca-test-aggregator/ejbca-ejb-interface,org.ejbca.statedump.ejb,StatedumpImportResult,92,0,0,0,25,0,13,0,13,0
 ejbca-test-aggregator/ejbca-ejb-interface,org.ejbca.statedump.ejb,StatedumpCAIdChange,21,0,0,0,8,0,4,0,4,0
 ejbca-test-aggregator/ejbca-ejb-interface,org.ejbca.statedump.ejb,StatedumpImportOptions,142,0,2,0,37,0,18,0,17,0
@@ -887,8 +887,8 @@ ejbca-test-aggregator/ejbca-ejb-interface,org.ejbca.core.model.era,KeyToValueHol
 ejbca-test-aggregator/ejbca-ejb-interface,org.ejbca.core.model.era,RaApprovalRequestInfo,544,0,84,0,121,0,76,0,34,0
 ejbca-test-aggregator/ejbca-ejb-interface,org.ejbca.core.model.era,RaRoleSearchRequest,30,0,0,0,10,0,6,0,6,0
 ejbca-test-aggregator/ejbca-ejb-interface,org.ejbca.core.model.era,RaApprovalStepInfo,15,0,0,0,6,0,3,0,3,0
-ejbca-test-aggregator/ejbca-ejb-interface,org.ejbca.core.model.era,RaRoleMemberSearchResponse,83,0,6,0,19,0,9,0,6,0
 ejbca-test-aggregator/ejbca-ejb-interface,org.ejbca.core.model.era,RaAcmeRequest,52,0,0,0,17,0,11,0,11,0
+ejbca-test-aggregator/ejbca-ejb-interface,org.ejbca.core.model.era,RaRoleMemberSearchResponse,83,0,6,0,19,0,9,0,6,0
 ejbca-test-aggregator/ejbca-ejb-interface,org.ejbca.core.model.era,RaApprovalResponseRequest,39,0,0,0,14,0,7,0,7,0
 ejbca-test-aggregator/ejbca-ejb-interface,org.ejbca.core.model.era,RaRoleMemberSearchRequest,89,0,0,0,19,0,11,0,11,0
 ejbca-test-aggregator/ejbca-ejb-interface,org.ejbca.core.model.era,RaApprovalEditRequest,15,0,0,0,6,0,3,0,3,0
@@ -904,4 +904,4 @@ ejbca-test-aggregator/ejbca-ejb-interface,org.ejbca.core.model.era,RaAuthorizati
 ejbca-test-aggregator/ejbca-ejb-interface,org.ejbca.core.model.era,RaEndEntitySearchRequest,715,0,142,0,115,0,123,0,52,0
 ejbca-test-aggregator/ejbca-ejb-interface,org.ejbca.core.model.era,RaRoleSearchResponse,83,0,6,0,19,0,9,0,6,0
 ejbca-test-aggregator/ejbca-ejb-interface,org.ejbca.core.model.era,RaAcmeResponse,42,0,0,0,12,0,6,0,6,0
-ejbca-test-aggregator/shared-resources,com.primekey.anttools,ServiceManifestBuilder,539,0,66,0,98,0,41,0,8,0
+ejbca-test-aggregator/shared-resources,com.primekey.anttools,ServiceManifestBuilder,457,0,66,0,97,0,41,0,8,0

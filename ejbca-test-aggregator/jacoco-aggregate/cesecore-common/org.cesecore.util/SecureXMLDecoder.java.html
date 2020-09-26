@@ -735,7 +735,7 @@ public class SecureXMLDecoder implements AutoCloseable {
     
     private boolean methodExists(final Class&lt;?&gt; klass, final String methodName) {
 <span class="pc bpc" id="L737" title="1 of 2 branches missed.">        for (final Method method : klass.getMethods()) {</span>
-<span class="fc bfc" id="L738" title="All 2 branches covered.">            if (methodName.equals(method.getName())) {</span>
+<span class="pc bpc" id="L738" title="1 of 2 branches missed.">            if (methodName.equals(method.getName())) {</span>
 <span class="fc" id="L739">                return true;</span>
             }
         }

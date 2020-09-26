@@ -91,8 +91,8 @@ ejbca-entity/ejbca-common,org.ejbca.core.model.hardtoken,HardTokenProfileExistsE
 ejbca-entity/ejbca-common,org.ejbca.core.model.hardtoken,HardTokenIssuerInformation,49,0,0,0,19,0,10,0,10,0
 ejbca-entity/ejbca-common,org.ejbca.core.model.hardtoken,HardTokenExistsException,7,0,0,0,4,0,2,0,2,0
 ejbca-entity/ejbca-common,org.ejbca.core.model.hardtoken,UnavailableTokenException,7,0,0,0,4,0,2,0,2,0
-ejbca-entity/ejbca-common,org.ejbca.core.model.hardtoken,HardTokenInformation,111,0,6,0,32,0,22,0,19,0
 ejbca-entity/ejbca-common,org.ejbca.core.model.hardtoken,HardTokenDoesntExistsException,7,0,0,0,4,0,2,0,2,0
+ejbca-entity/ejbca-common,org.ejbca.core.model.hardtoken,HardTokenInformation,111,0,6,0,32,0,22,0,19,0
 ejbca-entity/ejbca-common,org.ejbca.core.model.ca,AuthLoginException,9,0,0,0,4,0,2,0,2,0
 ejbca-entity/ejbca-common,org.ejbca.core.model.ca,AuthStatusException,4,0,0,0,2,0,1,0,1,0
 ejbca-entity/ejbca-common,org.ejbca.core.protocol.ocsp.extension.unid,OCSPUnidResponse,132,0,10,0,42,0,20,0,15,0
@@ -212,8 +212,8 @@ ejbca-entity/ejbca-common,org.ejbca.core.model.ca.publisher.custpubl1,CustomerLd
 ejbca-entity/ejbca-common,org.ejbca.core.model.ca.publisher.custpubl1,CustomerLdapPublisher1.new CustomerLdapPublisher1.LDAPConnectionAction() {...},82,0,10,0,19,0,8,0,3,0
 ejbca-entity/ejbca-common,org.ejbca.core.model.ca.publisher.custpubl1,CustomerLdapPublisher1.new CustomerLdapPublisher1.LDAPConnectionAction() {...},153,0,6,0,21,0,6,0,3,0
 ejbca-entity/ejbca-common,org.ejbca.core.model.ca.publisher.custpubl1,CustomerLdapPublisher1.new CustomerLdapPublisher1.LDAPConnectionAction() {...},107,0,2,0,12,0,4,0,3,0
-ejbca-entity/ejbca-common,org.ejbca.core.model.ca.publisher.custpubl1,CustomerLdapPublisher1.LogInfo,0,194,0,8,0,47,0,20,0,16
 ejbca-entity/ejbca-common,org.ejbca.core.model.ca.publisher.custpubl1,CustomerLdapPublisher1,426,783,34,36,89,186,37,32,9,25
+ejbca-entity/ejbca-common,org.ejbca.core.model.ca.publisher.custpubl1,CustomerLdapPublisher1.LogInfo,0,194,0,8,0,47,0,20,0,16
 ejbca-entity/ejbca-common,org.ejbca.core.model.approval.profile,NonModifiableApprovalProfileException,16,0,0,0,8,0,4,0,4,0
 ejbca-entity/ejbca-common,org.ejbca.core.model.approval.profile,ApprovalPartition,99,62,12,2,25,15,10,6,3,6
 ejbca-entity/ejbca-common,org.ejbca.core.model.approval.profile,ApprovalStep,147,228,14,2,39,41,16,11,8,11
@@ -292,4 +292,4 @@ ejbca-entity/ejbca-common,org.ejbca.util.query,BasicMatch,0,6,0,0,0,2,0,2,0,2
 ejbca-entity/ejbca-common,org.ejbca.util.query,Query,199,93,16,3,34,17,19,4,9,4
 ejbca-entity/ejbca-common,org.ejbca.util.query,IllegalQueryException,7,0,0,0,4,0,2,0,2,0
 ejbca-entity/ejbca-common,org.ejbca.util.query,ApprovalMatch,128,0,18,0,21,0,13,0,4,0
-ejbca-entity/shared-resources,com.primekey.anttools,ServiceManifestBuilder,539,0,66,0,98,0,41,0,8,0
+ejbca-entity/shared-resources,com.primekey.anttools,ServiceManifestBuilder,457,0,66,0,97,0,41,0,8,0

@@ -1,1 +1,0 @@
-packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"org.cesecore.certificates.ca.internal"},{"l":"org.cesecore.certificates.ocsp"},{"l":"org.cesecore.keys.validation"}]
