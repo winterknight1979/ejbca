@@ -1,38 +1,38 @@
 GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
-cesecore-ejb-interface,org.cesecore.certificates.crl,CrlImportException,16,0,0,0,8,0,4,0,4,0
-cesecore-ejb-interface,org.cesecore.certificates.crl,CrlStoreException,11,0,0,0,6,0,3,0,3,0
-cesecore-ejb-interface,org.cesecore.certificates.crl,CRLInfo,33,0,0,0,10,0,5,0,5,0
-cesecore-ejb-interface,org.cesecore.time.providers,TrustedTimeProviderException,16,0,0,0,8,0,4,0,4,0
-cesecore-ejb-interface,org.cesecore.keys.token,CryptoTokenNameInUseException,22,0,0,0,9,0,4,0,4,0
-cesecore-ejb-interface,org.cesecore.audit.impl.integrityprotected,IntegrityProtectedDevice,68,0,0,0,13,0,10,0,10,0
-cesecore-ejb-interface,org.cesecore.audit.impl.integrityprotected,NodeSequenceHolder,74,0,4,0,16,0,7,0,5,0
-cesecore-ejb-interface,org.cesecore.certificates.ocsp,OcspResponseInformation,190,0,22,0,51,0,21,0,10,0
-cesecore-ejb-interface,org.cesecore.certificates.ca,CAExistsException,13,0,0,0,6,0,3,0,3,0
-cesecore-ejb-interface,org.cesecore.certificates.ca,SignedByExternalCANotSupportedException,5,0,0,0,2,0,1,0,1,0
-cesecore-ejb-interface,org.cesecore.certificates.ocsp.exception,OcspInitializationException,16,0,0,0,8,0,4,0,4,0
-cesecore-ejb-interface,org.cesecore.certificates.ocsp.exception,CryptoProviderException,16,0,0,0,8,0,4,0,4,0
-cesecore-ejb-interface,org.cesecore.certificates.ocsp.exception,CacheNotInitializedException,16,0,0,0,8,0,4,0,4,0
-cesecore-ejb-interface,org.cesecore.certificates.ocsp.exception,NotSupportedException,8,0,0,0,4,0,2,0,2,0
-cesecore-ejb-interface,org.cesecore.certificates.ocsp.exception,MalformedRequestException,16,0,0,0,8,0,4,0,4,0
-cesecore-ejb-interface,org.cesecore.audit.impl,AuditExporterDummy,11,0,0,0,9,0,9,0,9,0
-cesecore-ejb-interface,org.cesecore.audit.impl,AuditExporterXml,2,47,0,0,2,15,2,7,2,7
-cesecore-ejb-interface,org.cesecore.common.exception,ReferencesToItemExistException,13,0,0,0,6,0,3,0,3,0
-cesecore-ejb-interface,org.cesecore.profiles,ProfileDoesNotExistException,7,0,0,0,4,0,2,0,2,0
-cesecore-ejb-interface,org.cesecore.audit,AuditDevicesConfig,380,0,38,0,100,0,33,0,14,0
-cesecore-ejb-interface,org.cesecore.certificates.certificate,CertificateRevokeException,8,0,0,0,4,0,2,0,2,0
-cesecore-ejb-interface,org.cesecore.certificates.certificate,CertificateDataWrapper,214,0,24,0,56,0,23,0,11,0
-cesecore-ejb-interface,org.cesecore.certificates.certificate.request,X509ResponseMessage,163,0,14,0,63,0,38,0,31,0
-cesecore-ejb-interface,org.cesecore.certificates.certificate.request,ResponseMessageUtils,100,0,8,0,29,0,7,0,3,0
-cesecore-ejb-interface,org.cesecore.keys.validation,ValidatorImportResult,15,0,0,0,6,0,3,0,3,0
-cesecore-ejb-interface,org.cesecore.audit.audit,SigningFileOutputStream,160,0,4,0,40,0,7,0,5,0
-cesecore-ejb-interface,org.cesecore.audit.audit,LogServiceState,0,51,0,4,0,10,0,7,0,5
-cesecore-ejb-interface,org.cesecore.roles,RoleExistsException,16,0,0,0,8,0,4,0,4,0
-cesecore-ejb-interface,org.cesecore.roles,RoleNotFoundException,16,0,0,0,8,0,4,0,4,0
-cesecore-ejb-interface,org.cesecore.certificates.certificate.exception,CertificateSerialNumberException,10,0,0,0,4,0,2,0,2,0
-cesecore-ejb-interface,org.cesecore.certificates.certificate.exception,CustomCertificateSerialNumberException,8,0,0,0,4,0,2,0,2,0
-cesecore-ejb-interface,org.cesecore.certificates.certificateprofile,CertificateProfileExistsException,7,0,0,0,4,0,2,0,2,0
-cesecore-ejb-interface,org.cesecore.certificates.certificateprofile,CertificateProfileDoesNotExistException,7,0,0,0,4,0,2,0,2,0
-cesecore-ejb-interface,org.cesecore.audit.impl.log4j,Log4jDeviceErrorHandler,67,0,2,0,25,0,10,0,9,0
-cesecore-ejb-interface,org.cesecore.audit.impl.log4j,Log4jDevice,192,0,22,0,54,0,23,0,12,0
-cesecore-ejb-interface,org.cesecore.authorization.control,CryptoTokenRules,146,0,0,0,16,0,4,0,4,0
-cesecore-ejb-interface,org.cesecore.authorization.control,StandardRules,429,0,0,0,39,0,4,0,4,0
+CeSeCore Security EJB Interface,org.cesecore.certificates.crl,CrlImportException,16,0,0,0,8,0,4,0,4,0
+CeSeCore Security EJB Interface,org.cesecore.certificates.crl,CrlStoreException,11,0,0,0,6,0,3,0,3,0
+CeSeCore Security EJB Interface,org.cesecore.certificates.crl,CRLInfo,33,0,0,0,10,0,5,0,5,0
+CeSeCore Security EJB Interface,org.cesecore.time.providers,TrustedTimeProviderException,16,0,0,0,8,0,4,0,4,0
+CeSeCore Security EJB Interface,org.cesecore.keys.token,CryptoTokenNameInUseException,22,0,0,0,9,0,4,0,4,0
+CeSeCore Security EJB Interface,org.cesecore.audit.impl.integrityprotected,IntegrityProtectedDevice,68,0,0,0,13,0,10,0,10,0
+CeSeCore Security EJB Interface,org.cesecore.audit.impl.integrityprotected,NodeSequenceHolder,74,0,4,0,16,0,7,0,5,0
+CeSeCore Security EJB Interface,org.cesecore.certificates.ocsp,OcspResponseInformation,190,0,22,0,51,0,21,0,10,0
+CeSeCore Security EJB Interface,org.cesecore.certificates.ca,CAExistsException,13,0,0,0,6,0,3,0,3,0
+CeSeCore Security EJB Interface,org.cesecore.certificates.ca,SignedByExternalCANotSupportedException,5,0,0,0,2,0,1,0,1,0
+CeSeCore Security EJB Interface,org.cesecore.certificates.ocsp.exception,OcspInitializationException,16,0,0,0,8,0,4,0,4,0
+CeSeCore Security EJB Interface,org.cesecore.certificates.ocsp.exception,CryptoProviderException,16,0,0,0,8,0,4,0,4,0
+CeSeCore Security EJB Interface,org.cesecore.certificates.ocsp.exception,CacheNotInitializedException,16,0,0,0,8,0,4,0,4,0
+CeSeCore Security EJB Interface,org.cesecore.certificates.ocsp.exception,NotSupportedException,8,0,0,0,4,0,2,0,2,0
+CeSeCore Security EJB Interface,org.cesecore.certificates.ocsp.exception,MalformedRequestException,16,0,0,0,8,0,4,0,4,0
+CeSeCore Security EJB Interface,org.cesecore.audit.impl,AuditExporterDummy,11,0,0,0,9,0,9,0,9,0
+CeSeCore Security EJB Interface,org.cesecore.audit.impl,AuditExporterXml,2,47,0,0,2,15,2,7,2,7
+CeSeCore Security EJB Interface,org.cesecore.common.exception,ReferencesToItemExistException,13,0,0,0,6,0,3,0,3,0
+CeSeCore Security EJB Interface,org.cesecore.profiles,ProfileDoesNotExistException,7,0,0,0,4,0,2,0,2,0
+CeSeCore Security EJB Interface,org.cesecore.audit,AuditDevicesConfig,380,0,38,0,100,0,33,0,14,0
+CeSeCore Security EJB Interface,org.cesecore.certificates.certificate,CertificateRevokeException,8,0,0,0,4,0,2,0,2,0
+CeSeCore Security EJB Interface,org.cesecore.certificates.certificate,CertificateDataWrapper,214,0,24,0,56,0,23,0,11,0
+CeSeCore Security EJB Interface,org.cesecore.certificates.certificate.request,X509ResponseMessage,163,0,14,0,63,0,38,0,31,0
+CeSeCore Security EJB Interface,org.cesecore.certificates.certificate.request,ResponseMessageUtils,100,0,8,0,29,0,7,0,3,0
+CeSeCore Security EJB Interface,org.cesecore.keys.validation,ValidatorImportResult,15,0,0,0,6,0,3,0,3,0
+CeSeCore Security EJB Interface,org.cesecore.audit.audit,SigningFileOutputStream,160,0,4,0,40,0,7,0,5,0
+CeSeCore Security EJB Interface,org.cesecore.audit.audit,LogServiceState,0,51,0,4,0,10,0,7,0,5
+CeSeCore Security EJB Interface,org.cesecore.roles,RoleExistsException,16,0,0,0,8,0,4,0,4,0
+CeSeCore Security EJB Interface,org.cesecore.roles,RoleNotFoundException,16,0,0,0,8,0,4,0,4,0
+CeSeCore Security EJB Interface,org.cesecore.certificates.certificate.exception,CertificateSerialNumberException,10,0,0,0,4,0,2,0,2,0
+CeSeCore Security EJB Interface,org.cesecore.certificates.certificate.exception,CustomCertificateSerialNumberException,8,0,0,0,4,0,2,0,2,0
+CeSeCore Security EJB Interface,org.cesecore.certificates.certificateprofile,CertificateProfileExistsException,7,0,0,0,4,0,2,0,2,0
+CeSeCore Security EJB Interface,org.cesecore.certificates.certificateprofile,CertificateProfileDoesNotExistException,7,0,0,0,4,0,2,0,2,0
+CeSeCore Security EJB Interface,org.cesecore.audit.impl.log4j,Log4jDeviceErrorHandler,67,0,2,0,25,0,10,0,9,0
+CeSeCore Security EJB Interface,org.cesecore.audit.impl.log4j,Log4jDevice,192,0,22,0,54,0,23,0,12,0
+CeSeCore Security EJB Interface,org.cesecore.authorization.control,CryptoTokenRules,146,0,0,0,16,0,4,0,4,0
+CeSeCore Security EJB Interface,org.cesecore.authorization.control,StandardRules,429,0,0,0,39,0,4,0,4,0

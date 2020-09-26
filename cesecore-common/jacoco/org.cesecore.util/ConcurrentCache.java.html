@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ConcurrentCache.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">cesecore-common</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.util</a> &gt; <span class="el_source">ConcurrentCache.java</span></div><h1>ConcurrentCache.java</h1><pre class="source lang-java linenums">/*************************************************************************
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ConcurrentCache.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CeSeCore Security - Common Code</a> &gt; <a href="index.source.html" class="el_package">org.cesecore.util</a> &gt; <span class="el_source">ConcurrentCache.java</span></div><h1>ConcurrentCache.java</h1><pre class="source lang-java linenums">/*************************************************************************
  *                                                                       *
  *  CESeCore: CE Security Core                                           *
  *                                                                       *
@@ -265,8 +265,8 @@ public final class ConcurrentCache&lt;K,V&gt; {
 <span class="fc bfc" id="L265" title="All 2 branches covered.">                if (!cache.containsKey(key)) {</span>
 <span class="fc" id="L266">                    cleanupIfNeeded();</span>
 <span class="fc" id="L267">                    theirSemaphore.wait(timeout);</span>
-<span class="pc bpc" id="L268" title="1 of 4 branches missed.">                    while (!cache.containsKey(key) &amp;&amp; System.currentTimeMillis() &lt; timeAtEntry+timeout) {</span>
-<span class="fc" id="L269">                        theirSemaphore.wait(timeout/10L+1L);</span>
+<span class="pc bpc" id="L268" title="3 of 4 branches missed.">                    while (!cache.containsKey(key) &amp;&amp; System.currentTimeMillis() &lt; timeAtEntry+timeout) {</span>
+<span class="nc" id="L269">                        theirSemaphore.wait(timeout/10L+1L);</span>
                     }
                 }
 <span class="fc" id="L272">            }</span>
@@ -434,9 +434,9 @@ public final class ConcurrentCache&lt;K,V&gt; {
 <span class="fc" id="L434">            final Iterator&lt;Map.Entry&lt;K,InternalEntry&lt;V&gt;&gt;&gt; iter = cache.entrySet().iterator();</span>
 <span class="fc bfc" id="L435" title="All 2 branches covered.">            while (iter.hasNext()) {</span>
 <span class="fc" id="L436">                final Map.Entry&lt;K,InternalEntry&lt;V&gt;&gt; mapEntry = iter.next();</span>
-<span class="pc bpc" id="L437" title="1 of 2 branches missed.">                if (mapEntry.getValue().expire &lt;= now) {</span>
-<span class="nc" id="L438">                    iter.remove();</span>
-<span class="nc" id="L439">                    numEntries.decrementAndGet();</span>
+<span class="fc bfc" id="L437" title="All 2 branches covered.">                if (mapEntry.getValue().expire &lt;= now) {</span>
+<span class="fc" id="L438">                    iter.remove();</span>
+<span class="fc" id="L439">                    numEntries.decrementAndGet();</span>
 <span class="pc bpc" id="L440" title="1 of 4 branches missed.">                } else if (maxEntries != NO_LIMIT &amp;&amp; random.nextFloat() &lt; ratioToRemove) {</span>
 <span class="fc" id="L441">                    pendingRemoval.add(mapEntry.getKey());</span>
                 }

@@ -1,69 +1,69 @@
 GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
-ejbca-common-web,org.ejbca.ui.web,CertificateView,886,0,122,0,229,0,108,0,47,0
-ejbca-common-web,org.ejbca.ui.web,CertificateRequestResponse,3,12,0,0,1,5,1,2,1,2
-ejbca-common-web,org.ejbca.ui.web,RevokedInfoView,51,0,6,0,14,0,10,0,7,0
-ejbca-common-web,org.ejbca.ui.web,RequestHelper,697,134,92,8,192,36,66,6,16,5
-ejbca-common-web,org.ejbca.ui.web,CertificateResponseType,35,67,4,0,6,9,5,2,3,2
-ejbca-common-web,org.ejbca.ui.web.pub,ServletUtils,65,0,16,0,20,0,12,0,4,0
-ejbca-common-web,org.ejbca.ui.web.pub,ServletDebug,191,0,8,0,51,0,11,0,7,0
-ejbca-common-web,org.ejbca.core.model.services.workers,CertificateExpirationNotifierWorker,439,0,44,0,96,0,27,0,5,0
-ejbca-common-web,org.ejbca.core.model.services.workers,EmailSendingWorker,120,0,10,0,31,0,14,0,9,0
-ejbca-common-web,org.ejbca.core.model.services.workers,CRLDownloadWorker,322,0,52,0,78,0,31,0,5,0
-ejbca-common-web,org.ejbca.core.model.services.workers,EmailSendingWorker.EmailCertData,24,0,0,0,9,0,3,0,3,0
-ejbca-common-web,org.ejbca.core.model.services.workers,RenewCAWorker,139,0,6,0,36,0,7,0,4,0
-ejbca-common-web,org.ejbca.core.model.services.workers,PublishQueueProcessWorker,136,0,8,0,35,0,8,0,4,0
-ejbca-common-web,org.ejbca.core.model.services.workers,UserPasswordExpireWorker,176,0,14,0,34,0,11,0,4,0
-ejbca-common-web,org.ejbca.core.model.services.workers,CRLUpdateWorker,69,0,2,0,17,0,4,0,3,0
-ejbca-common-web,org.ejbca.core.model.services.workers,HsmKeepAliveWorker,143,0,22,0,37,0,14,0,3,0
-ejbca-common-web,org.ejbca.core.model.services.workers,RolloverWorker,141,0,14,0,33,0,11,0,4,0
-ejbca-common-web,org.ejbca.core.model.approval.approvalrequests,EditEndEntityApprovalRequest,925,0,70,0,145,0,52,0,17,0
-ejbca-common-web,org.ejbca.core.model.approval.approvalrequests,RevocationApprovalRequest,392,0,20,0,84,0,26,0,15,0
-ejbca-common-web,org.ejbca.core.model.approval.approvalrequests,ChangeStatusEndEntityApprovalRequest,289,0,34,0,89,0,36,0,14,0
-ejbca-common-web,org.ejbca.core.model.approval.approvalrequests,ViewHardTokenDataApprovalRequest,164,0,4,0,36,0,12,0,10,0
-ejbca-common-web,org.ejbca.core.model.approval.approvalrequests,GenerateTokenApprovalRequest,131,0,2,0,31,0,12,0,11,0
-ejbca-common-web,org.ejbca.core.model.approval.approvalrequests,ActivateCATokenApprovalRequest,163,0,4,0,41,0,14,0,12,0
-ejbca-common-web,org.ejbca.core.model.approval.approvalrequests,AddEndEntityApprovalRequest,533,0,30,0,90,0,30,0,15,0
-ejbca-common-web,org.ejbca.core.model.approval.approvalrequests,KeyRecoveryApprovalRequest,257,0,4,0,57,0,15,0,13,0
-ejbca-common-web,org.ejbca.core.model.approval,ApprovalRequestHelper,48,0,6,0,11,0,5,0,2,0
-ejbca-common-web,org.ejbca.core.model.validation,PublicKeyBlacklistKeyValidator,167,182,15,21,36,51,17,16,6,9
-ejbca-common-web,org.ejbca.core.protocol.cmp.authentication,RegTokenPasswordExtractor,195,0,40,0,62,0,27,0,7,0
-ejbca-common-web,org.owasp.filters,ContentSecurityPolicyFilter,177,0,10,0,44,0,9,0,4,0
-ejbca-common-web,org.ejbca.util.mail,MailException,16,0,0,0,8,0,4,0,4,0
-ejbca-common-web,org.ejbca.util.mail,MailAttachment,91,0,4,0,28,0,7,0,5,0
-ejbca-common-web,org.ejbca.util.mail,MailSender,207,0,28,0,56,0,18,0,4,0
-ejbca-common-web,org.ejbca.core.model.ra,UsernameGenerator,54,205,12,21,13,60,11,21,0,14
-ejbca-common-web,org.ejbca.core.model.ra,RAAuthorization.new Comparator() {...},18,0,2,0,5,0,3,0,2,0
-ejbca-common-web,org.ejbca.core.model.ra,UserNotificationParamGen,77,334,22,10,26,70,24,5,3,5
-ejbca-common-web,org.ejbca.core.model.ra,UsernameGeneratorParams,14,99,1,1,5,31,3,14,2,14
-ejbca-common-web,org.ejbca.core.model.ra,RAAuthorization,350,0,50,0,75,0,33,0,8,0
-ejbca-common-web,org.ejbca.core.protocol.cmp,CmpPbeVerifyer,280,6,12,0,67,2,13,1,7,1
-ejbca-common-web,org.ejbca.core.protocol.cmp,CmpResponseMessage,861,0,80,0,217,0,71,0,31,0
-ejbca-common-web,org.ejbca.core.protocol.cmp,CmpErrorResponseMessage,67,139,14,8,16,33,22,9,12,8
-ejbca-common-web,org.ejbca.core.protocol.cmp,CrmfRequestMessage,985,0,150,0,284,0,123,0,48,0
-ejbca-common-web,org.ejbca.core.protocol.cmp,EncryptedValueBuilder,211,0,2,0,47,0,8,0,7,0
-ejbca-common-web,org.ejbca.core.protocol.cmp,InvalidCmpProtectionException,16,0,0,0,8,0,4,0,4,0
-ejbca-common-web,org.ejbca.core.protocol.cmp,BaseCmpMessage,97,123,10,2,32,41,21,13,15,13
-ejbca-common-web,org.ejbca.core.protocol.cmp,JcaEncryptedValueBuilder,18,0,0,0,4,0,3,0,3,0
-ejbca-common-web,org.ejbca.core.protocol.cmp,CmpMessageHelper,884,410,92,14,204,69,64,12,12,10
-ejbca-common-web,org.ejbca.core.protocol.cmp,CmpPKIBodyConstants,3,0,0,0,1,0,1,0,1,0
-ejbca-common-web,org.ejbca.config,VAConfiguration,12,0,0,0,3,0,3,0,3,0
-ejbca-common-web,org.ejbca.config,MailConfiguration,10,0,0,0,3,0,3,0,3,0
-ejbca-common-web,org.ejbca.ui.web.protocol,RFC4387URL,102,0,6,0,14,0,10,0,7,0
-ejbca-common-web,org.ejbca.ui.web.protocol,StoreServletBase,425,0,46,0,121,0,35,0,12,0
-ejbca-common-web,org.ejbca.ui.web.protocol,StoreServletBase.HtmlPrintWriter,19,0,0,0,9,0,3,0,3,0
-ejbca-common-web,org.ejbca.core.model.services.intervals,DummyInterval,12,0,0,0,4,0,3,0,3,0
-ejbca-common-web,org.ejbca.core.model.services.intervals,PeriodicalInterval,194,0,12,0,33,0,9,0,3,0
-ejbca-common-web,org.ejbca.core.model.services.actions,MailAction,134,0,14,0,30,0,11,0,4,0
-ejbca-common-web,org.ejbca.core.model.services.actions,NoAction,4,0,0,0,2,0,2,0,2,0
-ejbca-common-web,org.ejbca.core.model.services.actions,MailActionInfo,40,0,0,0,15,0,6,0,6,0
-ejbca-common-web,org.ejbca.core.model.hardtoken,HardTokenIssuerDoesntExistsException,7,0,0,0,4,0,2,0,2,0
-ejbca-common-web,org.ejbca.core.model.hardtoken,HardTokenIssuerExistsException,7,0,0,0,4,0,2,0,2,0
-ejbca-common-web,org.ejbca.core.model.services,BaseAction,16,0,0,0,6,0,2,0,2,0
-ejbca-common-web,org.ejbca.core.model.services,BaseInterval,16,0,0,0,6,0,2,0,2,0
-ejbca-common-web,org.ejbca.core.model.services,BaseWorker,407,0,30,0,86,0,23,0,8,0
-ejbca-common-web,org.ejbca.core.model.services,ActionException,9,0,0,0,4,0,2,0,2,0
-ejbca-common-web,org.ejbca.util,DummyPatternLogger,8,0,0,0,6,0,6,0,6,0
-ejbca-common-web,org.ejbca.util,PatternLogger,104,117,8,6,21,29,10,4,4,3
-ejbca-common-web,org.ejbca.util,HTMLTools,96,1149,14,8,24,94,10,6,2,3
-ejbca-common-web,org.ejbca.util,ServiceControlFilter,71,0,8,0,20,0,9,0,5,0
-ejbca-common-web,org.ejbca.core.model.ra.userdatasource,CustomUserDataSourceContainer,168,0,4,0,45,0,15,0,13,0
+EJB-CA Common Web code,org.ejbca.ui.web,CertificateView,886,0,122,0,229,0,108,0,47,0
+EJB-CA Common Web code,org.ejbca.ui.web,CertificateRequestResponse,3,12,0,0,1,5,1,2,1,2
+EJB-CA Common Web code,org.ejbca.ui.web,RevokedInfoView,51,0,6,0,14,0,10,0,7,0
+EJB-CA Common Web code,org.ejbca.ui.web,RequestHelper,697,134,92,8,192,36,66,6,16,5
+EJB-CA Common Web code,org.ejbca.ui.web,CertificateResponseType,35,67,4,0,6,9,5,2,3,2
+EJB-CA Common Web code,org.ejbca.ui.web.pub,ServletUtils,65,0,16,0,20,0,12,0,4,0
+EJB-CA Common Web code,org.ejbca.ui.web.pub,ServletDebug,191,0,8,0,51,0,11,0,7,0
+EJB-CA Common Web code,org.ejbca.core.model.services.workers,CertificateExpirationNotifierWorker,439,0,44,0,96,0,27,0,5,0
+EJB-CA Common Web code,org.ejbca.core.model.services.workers,EmailSendingWorker,120,0,10,0,31,0,14,0,9,0
+EJB-CA Common Web code,org.ejbca.core.model.services.workers,CRLDownloadWorker,322,0,52,0,78,0,31,0,5,0
+EJB-CA Common Web code,org.ejbca.core.model.services.workers,EmailSendingWorker.EmailCertData,24,0,0,0,9,0,3,0,3,0
+EJB-CA Common Web code,org.ejbca.core.model.services.workers,RenewCAWorker,139,0,6,0,36,0,7,0,4,0
+EJB-CA Common Web code,org.ejbca.core.model.services.workers,PublishQueueProcessWorker,136,0,8,0,35,0,8,0,4,0
+EJB-CA Common Web code,org.ejbca.core.model.services.workers,UserPasswordExpireWorker,176,0,14,0,34,0,11,0,4,0
+EJB-CA Common Web code,org.ejbca.core.model.services.workers,CRLUpdateWorker,69,0,2,0,17,0,4,0,3,0
+EJB-CA Common Web code,org.ejbca.core.model.services.workers,HsmKeepAliveWorker,143,0,22,0,37,0,14,0,3,0
+EJB-CA Common Web code,org.ejbca.core.model.services.workers,RolloverWorker,141,0,14,0,33,0,11,0,4,0
+EJB-CA Common Web code,org.ejbca.core.model.approval.approvalrequests,EditEndEntityApprovalRequest,925,0,70,0,145,0,52,0,17,0
+EJB-CA Common Web code,org.ejbca.core.model.approval.approvalrequests,RevocationApprovalRequest,392,0,20,0,84,0,26,0,15,0
+EJB-CA Common Web code,org.ejbca.core.model.approval.approvalrequests,ChangeStatusEndEntityApprovalRequest,289,0,34,0,89,0,36,0,14,0
+EJB-CA Common Web code,org.ejbca.core.model.approval.approvalrequests,ViewHardTokenDataApprovalRequest,164,0,4,0,36,0,12,0,10,0
+EJB-CA Common Web code,org.ejbca.core.model.approval.approvalrequests,GenerateTokenApprovalRequest,131,0,2,0,31,0,12,0,11,0
+EJB-CA Common Web code,org.ejbca.core.model.approval.approvalrequests,ActivateCATokenApprovalRequest,163,0,4,0,41,0,14,0,12,0
+EJB-CA Common Web code,org.ejbca.core.model.approval.approvalrequests,AddEndEntityApprovalRequest,533,0,30,0,90,0,30,0,15,0
+EJB-CA Common Web code,org.ejbca.core.model.approval.approvalrequests,KeyRecoveryApprovalRequest,257,0,4,0,57,0,15,0,13,0
+EJB-CA Common Web code,org.ejbca.core.model.approval,ApprovalRequestHelper,48,0,6,0,11,0,5,0,2,0
+EJB-CA Common Web code,org.ejbca.core.model.validation,PublicKeyBlacklistKeyValidator,167,182,15,21,36,51,17,16,6,9
+EJB-CA Common Web code,org.ejbca.core.protocol.cmp.authentication,RegTokenPasswordExtractor,195,0,40,0,62,0,27,0,7,0
+EJB-CA Common Web code,org.owasp.filters,ContentSecurityPolicyFilter,177,0,10,0,44,0,9,0,4,0
+EJB-CA Common Web code,org.ejbca.util.mail,MailException,16,0,0,0,8,0,4,0,4,0
+EJB-CA Common Web code,org.ejbca.util.mail,MailAttachment,91,0,4,0,28,0,7,0,5,0
+EJB-CA Common Web code,org.ejbca.util.mail,MailSender,207,0,28,0,56,0,18,0,4,0
+EJB-CA Common Web code,org.ejbca.core.model.ra,UsernameGenerator,54,205,12,21,13,60,11,21,0,14
+EJB-CA Common Web code,org.ejbca.core.model.ra,RAAuthorization.new Comparator() {...},18,0,2,0,5,0,3,0,2,0
+EJB-CA Common Web code,org.ejbca.core.model.ra,UserNotificationParamGen,77,334,22,10,26,70,24,5,3,5
+EJB-CA Common Web code,org.ejbca.core.model.ra,UsernameGeneratorParams,14,99,1,1,5,31,3,14,2,14
+EJB-CA Common Web code,org.ejbca.core.model.ra,RAAuthorization,350,0,50,0,75,0,33,0,8,0
+EJB-CA Common Web code,org.ejbca.core.protocol.cmp,CmpPbeVerifyer,280,6,12,0,67,2,13,1,7,1
+EJB-CA Common Web code,org.ejbca.core.protocol.cmp,CmpResponseMessage,861,0,80,0,217,0,71,0,31,0
+EJB-CA Common Web code,org.ejbca.core.protocol.cmp,CmpErrorResponseMessage,67,139,14,8,16,33,22,9,12,8
+EJB-CA Common Web code,org.ejbca.core.protocol.cmp,CrmfRequestMessage,985,0,150,0,284,0,123,0,48,0
+EJB-CA Common Web code,org.ejbca.core.protocol.cmp,EncryptedValueBuilder,211,0,2,0,47,0,8,0,7,0
+EJB-CA Common Web code,org.ejbca.core.protocol.cmp,InvalidCmpProtectionException,16,0,0,0,8,0,4,0,4,0
+EJB-CA Common Web code,org.ejbca.core.protocol.cmp,BaseCmpMessage,97,123,10,2,32,41,21,13,15,13
+EJB-CA Common Web code,org.ejbca.core.protocol.cmp,JcaEncryptedValueBuilder,18,0,0,0,4,0,3,0,3,0
+EJB-CA Common Web code,org.ejbca.core.protocol.cmp,CmpMessageHelper,884,410,92,14,204,69,64,12,12,10
+EJB-CA Common Web code,org.ejbca.core.protocol.cmp,CmpPKIBodyConstants,3,0,0,0,1,0,1,0,1,0
+EJB-CA Common Web code,org.ejbca.config,VAConfiguration,12,0,0,0,3,0,3,0,3,0
+EJB-CA Common Web code,org.ejbca.config,MailConfiguration,10,0,0,0,3,0,3,0,3,0
+EJB-CA Common Web code,org.ejbca.ui.web.protocol,RFC4387URL,102,0,6,0,14,0,10,0,7,0
+EJB-CA Common Web code,org.ejbca.ui.web.protocol,StoreServletBase,425,0,46,0,121,0,35,0,12,0
+EJB-CA Common Web code,org.ejbca.ui.web.protocol,StoreServletBase.HtmlPrintWriter,19,0,0,0,9,0,3,0,3,0
+EJB-CA Common Web code,org.ejbca.core.model.services.intervals,DummyInterval,12,0,0,0,4,0,3,0,3,0
+EJB-CA Common Web code,org.ejbca.core.model.services.intervals,PeriodicalInterval,194,0,12,0,33,0,9,0,3,0
+EJB-CA Common Web code,org.ejbca.core.model.services.actions,MailAction,134,0,14,0,30,0,11,0,4,0
+EJB-CA Common Web code,org.ejbca.core.model.services.actions,NoAction,4,0,0,0,2,0,2,0,2,0
+EJB-CA Common Web code,org.ejbca.core.model.services.actions,MailActionInfo,40,0,0,0,15,0,6,0,6,0
+EJB-CA Common Web code,org.ejbca.core.model.hardtoken,HardTokenIssuerDoesntExistsException,7,0,0,0,4,0,2,0,2,0
+EJB-CA Common Web code,org.ejbca.core.model.hardtoken,HardTokenIssuerExistsException,7,0,0,0,4,0,2,0,2,0
+EJB-CA Common Web code,org.ejbca.core.model.services,BaseAction,16,0,0,0,6,0,2,0,2,0
+EJB-CA Common Web code,org.ejbca.core.model.services,BaseInterval,16,0,0,0,6,0,2,0,2,0
+EJB-CA Common Web code,org.ejbca.core.model.services,BaseWorker,407,0,30,0,86,0,23,0,8,0
+EJB-CA Common Web code,org.ejbca.core.model.services,ActionException,9,0,0,0,4,0,2,0,2,0
+EJB-CA Common Web code,org.ejbca.util,DummyPatternLogger,8,0,0,0,6,0,6,0,6,0
+EJB-CA Common Web code,org.ejbca.util,PatternLogger,104,117,8,6,21,29,10,4,4,3
+EJB-CA Common Web code,org.ejbca.util,HTMLTools,96,1149,14,8,24,94,10,6,2,3
+EJB-CA Common Web code,org.ejbca.util,ServiceControlFilter,71,0,8,0,20,0,9,0,5,0
+EJB-CA Common Web code,org.ejbca.core.model.ra.userdatasource,CustomUserDataSourceContainer,168,0,4,0,45,0,15,0,13,0

@@ -38,18 +38,18 @@
           <nav class="well sidebar-nav">
   <ul class="nav nav-list">
    <li class="nav-header">Modules</li>
-    <li><a href="cesecore-common/index.html" title="cesecore-common"><span class="none"></span>cesecore-common</a></li>
-    <li><a href="shared-resources/index.html" title="shared-resources"><span class="none"></span>shared-resources</a></li>
-    <li><a href="cesecore-entity/index.html" title="cesecore-entity"><span class="none"></span>cesecore-entity</a></li>
-    <li><a href="ejbca-test-aggregator/index.html" title="ejbca-test-aggregator"><span class="none"></span>ejbca-test-aggregator</a></li>
-    <li><a href="cesecore-ejb-interface/index.html" title="cesecore-ejb-interface"><span class="none"></span>cesecore-ejb-interface</a></li>
-    <li><a href="cesecore-ejb/index.html" title="cesecore-ejb"><span class="none"></span>cesecore-ejb</a></li>
-    <li><a href="ejbca-common/index.html" title="ejbca-common"><span class="none"></span>ejbca-common</a></li>
-    <li><a href="ejbca-entity/index.html" title="ejbca-entity"><span class="none"></span>ejbca-entity</a></li>
-    <li><a href="ejbca-ws-common/index.html" title="ejbca-ws-common"><span class="none"></span>ejbca-ws-common</a></li>
-    <li><a href="ejbca-ejb-interface/index.html" title="ejbca-ejb-interface"><span class="none"></span>ejbca-ejb-interface</a></li>
-    <li><a href="ejbca-common-web/index.html" title="ejbca-common-web"><span class="none"></span>ejbca-common-web</a></li>
-    <li><a href="publicweb-gui/index.html" title="publicweb-gui"><span class="none"></span>publicweb-gui</a></li>
+    <li><a href="cesecore-common/index.html" title="CeSeCore Security - Common Code"><span class="none"></span>CeSeCore Security - Common Code</a></li>
+    <li><a href="shared-resources/index.html" title="EJBCA Shared resource bundle"><span class="none"></span>EJBCA Shared resource bundle</a></li>
+    <li><a href="cesecore-entity/index.html" title="CeSeCore Security JPA Entities"><span class="none"></span>CeSeCore Security JPA Entities</a></li>
+    <li><a href="ejbca-test-aggregator/index.html" title="Unit Test Aggregator"><span class="none"></span>Unit Test Aggregator</a></li>
+    <li><a href="cesecore-ejb-interface/index.html" title="CeSeCore Security EJB Interface"><span class="none"></span>CeSeCore Security EJB Interface</a></li>
+    <li><a href="cesecore-ejb/index.html" title="CeSeCore Security - EJB Implementation"><span class="none"></span>CeSeCore Security - EJB Implementation</a></li>
+    <li><a href="ejbca-common/index.html" title="EJB-CA Common code"><span class="none"></span>EJB-CA Common code</a></li>
+    <li><a href="ejbca-entity/index.html" title="EJBCA JPA Entities"><span class="none"></span>EJBCA JPA Entities</a></li>
+    <li><a href="ejbca-ws-common/index.html" title="EJBCA Webservices - common code"><span class="none"></span>EJBCA Webservices - common code</a></li>
+    <li><a href="ejbca-ejb-interface/index.html" title="EJB-CA EJB Interfaces"><span class="none"></span>EJB-CA EJB Interfaces</a></li>
+    <li><a href="ejbca-common-web/index.html" title="EJB-CA Common Web code"><span class="none"></span>EJB-CA Common Web code</a></li>
+    <li><a href="publicweb-gui/index.html" title="EJBCA Public web GUI"><span class="none"></span>EJBCA Public web GUI</a></li>
    <li class="nav-header">Project Documentation</li>
     <li><a href="project-info.html" title="Project Information"><span class="icon-chevron-down"></span>Project Information</a>
      <ul class="nav nav-list">
@@ -83,7 +83,9 @@
         <main id="bodyColumn"  class="span10" >
 <section>
 <h2><a name="About_EJB-CA"></a>About EJB-CA</h2><a name="About_EJB-CA"></a>
-<p>Fork of EJB-CA CE 6.15.2.6</p><section>
+<p>&quot;New&quot; EJB CA for Java 11 and modern app servers
+
+Forked from PrimeKey EJB-CA CE 6.15.2.6</p><section>
 <h3><a name="Project_Modules"></a>Project Modules</h3><a name="Project_Modules"></a>
 <p>This project has declared the following modules:</p>
 <table border="0" class="table table-striped">
@@ -91,43 +93,45 @@
 <th>Name</th>
 <th>Description</th></tr>
 <tr class="b">
-<td><a href="./cesecore-common/index.html">cesecore-common</a></td>
-<td>Fork of EJB-CA CE 6.15.2.6</td></tr>
+<td><a href="./cesecore-common/index.html">CeSeCore Security - Common Code</a></td>
+<td>Common code from CeSeCore</td></tr>
 <tr class="a">
-<td><a href="./shared-resources/index.html">shared-resources</a></td>
-<td>Fork of EJB-CA CE 6.15.2.6</td></tr>
+<td><a href="./shared-resources/index.html">EJBCA Shared resource bundle</a></td>
+<td>Shared resource bundle; configurator,  and Service Manifest builder.</td></tr>
 <tr class="b">
-<td><a href="./cesecore-entity/index.html">cesecore-entity</a></td>
-<td>Fork of EJB-CA CE 6.15.2.6</td></tr>
+<td><a href="./cesecore-entity/index.html">CeSeCore Security JPA Entities</a></td>
+<td>Java Persistence API entities for CeSeCore</td></tr>
 <tr class="a">
-<td><a href="./ejbca-test-aggregator/index.html">ejbca-test-aggregator</a></td>
+<td><a href="./ejbca-test-aggregator/index.html">Unit Test Aggregator</a></td>
 <td>This module is used as an aggregator for (a) test coverage and (b) any tests that would create circular deps.
 
-It should explicutly depend on all other modules.</td></tr>
+It should explicitly depend on all other modules.</td></tr>
 <tr class="b">
-<td><a href="./cesecore-ejb-interface/index.html">cesecore-ejb-interface</a></td>
-<td>Fork of EJB-CA CE 6.15.2.6</td></tr>
+<td><a href="./cesecore-ejb-interface/index.html">CeSeCore Security EJB Interface</a></td>
+<td>Public interfaces for CeSeCore EJB's</td></tr>
 <tr class="a">
-<td><a href="./cesecore-ejb/index.html">cesecore-ejb</a></td>
-<td>Fork of EJB-CA CE 6.15.2.6</td></tr>
+<td><a href="./cesecore-ejb/index.html">CeSeCore Security - EJB Implementation</a></td>
+<td>Implementation of CeSeCore Enterprise JavaBeans</td></tr>
 <tr class="b">
-<td><a href="./ejbca-common/index.html">ejbca-common</a></td>
-<td>Fork of EJB-CA CE 6.15.2.6</td></tr>
+<td><a href="./ejbca-common/index.html">EJB-CA Common code</a></td>
+<td>Common code for all EJB-CA modules</td></tr>
 <tr class="a">
-<td><a href="./ejbca-entity/index.html">ejbca-entity</a></td>
-<td>Fork of EJB-CA CE 6.15.2.6</td></tr>
+<td><a href="./ejbca-entity/index.html">EJBCA JPA Entities</a></td>
+<td>Java Persistence API entities and descriptor for EJBCA</td></tr>
 <tr class="b">
-<td><a href="./ejbca-ws-common/index.html">ejbca-ws-common</a></td>
-<td>Fork of EJB-CA CE 6.15.2.6</td></tr>
+<td><a href="./ejbca-ws-common/index.html">EJBCA Webservices - common code</a></td>
+<td>Common code for EJBCA webservices.
+
+Note: Upstream combines ejbca-ws-common and ejbcs-ws-ejb into a single jar. They've been split here to avoid a circular dependency on ejbca-entity.</td></tr>
 <tr class="a">
-<td><a href="./ejbca-ejb-interface/index.html">ejbca-ejb-interface</a></td>
-<td>Fork of EJB-CA CE 6.15.2.6</td></tr>
+<td><a href="./ejbca-ejb-interface/index.html">EJB-CA EJB Interfaces</a></td>
+<td>Public interfaces for EJB-CA EJB's</td></tr>
 <tr class="b">
-<td><a href="./ejbca-common-web/index.html">ejbca-common-web</a></td>
-<td>Fork of EJB-CA CE 6.15.2.6</td></tr>
+<td><a href="./ejbca-common-web/index.html">EJB-CA Common Web code</a></td>
+<td>Common code for EJB-CA web interfaces</td></tr>
 <tr class="a">
-<td><a href="./publicweb-gui/index.html">publicweb-gui</a></td>
-<td>Fork of EJB-CA CE 6.15.2.6</td></tr></table></section></section>
+<td><a href="./publicweb-gui/index.html">EJBCA Public web GUI</a></td>
+<td>Web GUI frontend for EJBCA.</td></tr></table></section></section>
         </main>
       </div>
     </div>
