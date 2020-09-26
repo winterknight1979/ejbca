@@ -504,6 +504,7 @@
 				<version>3.0.0</version>
 				<configuration>
 					<scmBranch>gh-pages</scmBranch>
+					<username>winterknight1979</username>
 				</configuration>
 			</plugin>
 		</plugins>
