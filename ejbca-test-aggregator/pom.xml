@@ -88,7 +88,7 @@
 
 	<description>This module is used as an aggregator for (a) test coverage and (b) any tests that would create circular deps.
 
-It should explicutly depend on all other modules.</description>
+It should explicitly depend on all other modules.</description>
 	<build>
 		<plugins>
 
@@ -244,4 +244,5 @@ It should explicutly depend on all other modules.</description>
 			</reporting>
 		</profile>
 	</profiles>
+	<name>Unit Test Aggregator</name>
 </project>

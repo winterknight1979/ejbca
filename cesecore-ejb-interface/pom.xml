@@ -261,4 +261,6 @@
 			</reporting>
 		</profile>
 	</profiles>
+	<name>CeSeCore Security EJB Interface</name>
+	<description>Public interfaces for CeSeCore EJB's</description>
 </project>

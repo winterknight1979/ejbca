@@ -264,4 +264,6 @@
 		</profile>
 	</profiles>
 
+	<name>EJBCA JPA Entities</name>
+	<description>Java Persistence API entities and descriptor for EJBCA</description>
 </project>

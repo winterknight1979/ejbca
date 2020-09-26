@@ -245,4 +245,6 @@
 			</reporting>
 		</profile>
 	</profiles>
+	<name>CeSeCore Security JPA Entities</name>
+	<description>Java Persistence API entities for CeSeCore</description>
 </project>
