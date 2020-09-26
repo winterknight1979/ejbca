@@ -13,6 +13,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    
 
     steps:
     - uses: actions/checkout@v2
@@ -21,4 +22,10 @@ jobs:
       with:
         java-version: 11
     - name: Build with Maven
-      run: mvn -B package --file pom.xml
+      run: mvn -B package -Pcoverage -Dmaven.test.failure.ignore=false -fae --file pom.xml
+    - name: build site
+      run: mvn -Pcoverage -B site site:stage --file pom.xml
+    - name: deploy site
+      env:
+        PASS: ${{ secrets.REPO_PASS }}
+      run: mvn -B -Dpassword=$PASS scm-publish:publish-scm --file pom.xml
