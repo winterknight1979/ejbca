@@ -394,6 +394,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<module>ejbca-ejb-interface</module>
 		<module>ejbca-common-web</module>
 		<module>publicweb-gui</module>
+		<module>ejbca-renew-war</module>
 	</modules>
 	<build>
 

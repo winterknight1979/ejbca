@@ -230,6 +230,7 @@ public final class EjbcaConfigurationHolder {
 	 * @return string
 
 	 */
+	@SuppressWarnings("el-syntax")
 	public static String getExpandedString(final String property) {
 		String ret = getString(property);
 		if (ret != null) {
