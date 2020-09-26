@@ -71,6 +71,7 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>publicweb-gui</artifactId>
 			<version>${project.version}</version>
+			<classifier>classes</classifier>
 		</dependency>
 
 
