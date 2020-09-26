@@ -151,6 +151,7 @@ org.ejbca.ui.web.protocol
 org.ejbca.ui.web.pub
 org.ejbca.ui.web.pub.inspect
 org.ejbca.ui.web.pub.retrieve
+org.ejbca.ui.web.renew
 org.ejbca.util
 org.ejbca.util.cert
 org.ejbca.util.crypto

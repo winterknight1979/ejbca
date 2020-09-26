@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RenewServlet.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-renew-war</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.renew</a> &gt; <span class="el_source">RenewServlet.java</span></div><h1>RenewServlet.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.ui.web.renew;
+
+import java.io.IOException;
+import java.security.cert.X509Certificate;
+
+import javax.ejb.EJB;
+import javax.ejb.ObjectNotFoundException;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.WebPrincipal;
+import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.EndEntityTypes;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.ejbca.core.ejb.ra.EndEntityAccessSessionLocal;
+import org.ejbca.core.ejb.ra.EndEntityManagementSessionLocal;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
+
+/**
+ * Servlet used for requesting browser certificate renewals.
+ * 
+ * @version $Id: RenewServlet.java 22811 2016-02-15 16:48:23Z samuellb $
+ */
+<span class="nc" id="L49">public class RenewServlet extends HttpServlet {</span>
+
+    private static final long serialVersionUID = 1L;
+
+<span class="nc" id="L53">    private static final Logger log = Logger.getLogger(RenewServlet.class);</span>
+    
+    /** Submit button on the web page */
+	public static final String BUTTONRENEW = &quot;buttonrenew&quot;;
+
+	@EJB
+	private CertificateStoreSessionLocal certificateStoreSession;
+	@EJB
+	private EndEntityAccessSessionLocal endEntityAccessSession;
+	@EJB
+	private EndEntityProfileSessionLocal endEntityProfileSession;
+	@EJB
+	private EndEntityManagementSessionLocal endEntityManagementSession;
+    
+    /**
+     * Servlet init
+     *
+     * @param config servlet configuration
+     * @throws ServletException on error
+     */
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+<span class="nc" id="L75">        super.init(config);</span>
+        // Install BouncyCastle provider
+<span class="nc" id="L77">        CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+<span class="nc" id="L78">    }</span>
+
+    public void doRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+    	
+<span class="nc" id="L82">        AuthenticationToken admin = new AlwaysAllowLocalAuthenticationToken(new WebPrincipal(&quot;RenewServlet&quot;, request.getRemoteAddr()));</span>
+    	
+    	// SSL client authentication
+<span class="nc" id="L85">    	Object o = request.getAttribute(&quot;javax.servlet.request.X509Certificate&quot;);</span>
+<span class="nc bnc" id="L86" title="All 4 branches missed.">    	if (o == null || !(o instanceof X509Certificate[])) {</span>
+<span class="nc" id="L87">    	    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, &quot;This servlet requires certificate authentication!&quot;);</span>
+<span class="nc" id="L88">    	    return;</span>
+    	}
+<span class="nc" id="L90">    	X509Certificate certificate = ((X509Certificate[]) o)[0];</span>
+<span class="nc" id="L91">    	request.setAttribute(&quot;certificate&quot;, certificate);</span>
+<span class="nc" id="L92">    	boolean isrevoked = certificateStoreSession.isRevoked(certificate.getIssuerDN().getName(), certificate.getSerialNumber());</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">    	if (isrevoked) {</span>
+<span class="nc" id="L94">    		request.setAttribute(&quot;errorMessage&quot;, &quot;User certificate with serial number &quot;+certificate.getSerialNumber() + &quot; from issuer \'&quot;+certificate.getIssuerDN()+&quot;\' is revoked.&quot;);</span>
+    	} else {
+<span class="nc" id="L96">	    	String username = certificateStoreSession.findUsernameByCertSerno(certificate.getSerialNumber(), CertTools.getIssuerDN(certificate));</span>
+<span class="nc bnc" id="L97" title="All 4 branches missed.">	    	if (username==null || username.length()==0) {</span>
+<span class="nc" id="L98">	    		throw new ServletException(new ObjectNotFoundException(&quot;Not possible to retrieve user name&quot;));</span>
+	    	}
+<span class="nc" id="L100">	    	request.setAttribute(&quot;username&quot;, username);</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">	    	if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L102">	    		log.debug(&quot;User authenticated as '&quot; + username + &quot;'.&quot;);</span>
+	    	}
+	    	
+	    	// Request certificate renewal
+<span class="nc bnc" id="L106" title="All 2 branches missed.">	    	if(request.getParameter(BUTTONRENEW) != null) {</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">	    		if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L108">	    			log.debug(&quot;Got renewal request for '&quot; + username + &quot;'.&quot;);</span>
+	    		}
+	    		String statusMessage;
+	    		try {
+<span class="nc" id="L112">		    		EndEntityInformation userdata = endEntityAccessSession.findUser(admin, username);</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">		    		if (userdata.getType().contains(EndEntityTypes.SENDNOTIFICATION)) {</span>
+<span class="nc" id="L114">		    		    EndEntityProfile profile = endEntityProfileSession.getEndEntityProfile(userdata.getEndEntityProfileId());</span>
+<span class="nc" id="L115">		    		    userdata.setPassword(profile.getAutoGeneratedPasswd());</span>
+<span class="nc" id="L116">		    		    userdata.setStatus(EndEntityConstants.STATUS_NEW);</span>
+<span class="nc" id="L117">		    		    endEntityManagementSession.changeUser(admin, userdata, false);</span>
+<span class="nc" id="L118">		    		    statusMessage = &quot;Your request for certificate renewal has been submitted. You will be notified by mail of the status change and new password.&quot;;</span>
+<span class="nc" id="L119">		    		} else {	    		    </span>
+<span class="nc" id="L120">		    		    log.warn(&quot;End entity with username &quot; + username + &quot; attempted to renew browser certificate, but password cannot be retrieved since notifications are not configured.&quot;);</span>
+<span class="nc" id="L121">		    		    statusMessage = &quot;No notifications have been set for this end entity, so the new password can't be retrieved.&quot;;</span>
+		    		}
+<span class="nc" id="L123">	    		} catch(WaitingForApprovalException ex) {</span>
+<span class="nc" id="L124">	    			statusMessage = &quot;Your request for certificate renewal has been submitted and is now waiting for approval.&quot;;</span>
+<span class="nc" id="L125">	    		} catch(ApprovalException ex) {</span>
+<span class="nc" id="L126">	    			statusMessage = &quot;Your request for certificate renewal has been submitted before and is already waiting for approval.&quot;;</span>
+<span class="nc" id="L127">	    		} catch(Exception ex) {</span>
+<span class="nc" id="L128">	    			throw new ServletException(ex);</span>
+<span class="nc" id="L129">	    		}</span>
+<span class="nc" id="L130">	    		request.setAttribute(&quot;statusMessage&quot;, statusMessage);</span>
+	    	}
+    	}
+<span class="nc" id="L133">    	request.setAttribute(&quot;buttonRenew&quot;, BUTTONRENEW);</span>
+<span class="nc" id="L134">    	request.getRequestDispatcher(&quot;/renewpage.jsp&quot;).forward(request, response); </span>
+<span class="nc" id="L135">    }</span>
+
+    /**
+     * Handles HTTP POST
+     *
+     * @param request servlet request
+     * @param response servlet response
+     *
+     * @throws IOException input/output error
+     * @throws ServletException on error
+     */
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+<span class="nc" id="L147">        doRequest(request, response);</span>
+<span class="nc" id="L148">    }</span>
+
+    /**
+     * Handles HTTP GET
+     *
+     * @param request servlet request
+     * @param response servlet response
+     *
+     * @throws IOException input/output error
+     * @throws ServletException on error
+     */
+    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+<span class="nc" id="L160">    	doRequest(request, response);</span>
+<span class="nc" id="L161">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

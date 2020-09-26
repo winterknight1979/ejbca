@@ -238,104 +238,105 @@
 <a class="jxr_linenumber" name="L230" href="#L230">230</a> <em class="jxr_javadoccomment">	 * @return string</em>
 <a class="jxr_linenumber" name="L231" href="#L231">231</a> 
 <a class="jxr_linenumber" name="L232" href="#L232">232</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="L233" href="#L233">233</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String getExpandedString(<strong class="jxr_keyword">final</strong> String property) {
-<a class="jxr_linenumber" name="L234" href="#L234">234</a> 		String ret = getString(property);
-<a class="jxr_linenumber" name="L235" href="#L235">235</a> 		<strong class="jxr_keyword">if</strong> (ret != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L236" href="#L236">236</a> 			<strong class="jxr_keyword">while</strong> (ret.indexOf(<span class="jxr_string">"${"</span>) != -1) {
-<a class="jxr_linenumber" name="L237" href="#L237">237</a> 				ret = interpolate(ret);
-<a class="jxr_linenumber" name="L238" href="#L238">238</a> 			}
-<a class="jxr_linenumber" name="L239" href="#L239">239</a> 		}
-<a class="jxr_linenumber" name="L240" href="#L240">240</a> 		<strong class="jxr_keyword">return</strong> ret;
-<a class="jxr_linenumber" name="L241" href="#L241">241</a> 	}
-<a class="jxr_linenumber" name="L242" href="#L242">242</a> 	
-<a class="jxr_linenumber" name="L243" href="#L243">243</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> String interpolate(<strong class="jxr_keyword">final</strong> String orderString) {
-<a class="jxr_linenumber" name="L244" href="#L244">244</a> 		<strong class="jxr_keyword">final</strong> Pattern PATTERN = Pattern.compile(<span class="jxr_string">"&#92;&#92;$&#92;&#92;{(.+?)&#92;&#92;}"</span>);
-<a class="jxr_linenumber" name="L245" href="#L245">245</a> 		<strong class="jxr_keyword">final</strong> Matcher m = PATTERN.matcher(orderString);
-<a class="jxr_linenumber" name="L246" href="#L246">246</a> 		<strong class="jxr_keyword">final</strong> StringBuffer sb = <strong class="jxr_keyword">new</strong> StringBuffer(orderString.length());
-<a class="jxr_linenumber" name="L247" href="#L247">247</a> 		m.reset();
-<a class="jxr_linenumber" name="L248" href="#L248">248</a> 		<strong class="jxr_keyword">while</strong> (m.find()) {
-<a class="jxr_linenumber" name="L249" href="#L249">249</a> 			<em class="jxr_comment">// when the pattern is ${identifier}, group 0 is 'identifier'</em>
-<a class="jxr_linenumber" name="L250" href="#L250">250</a> 			<strong class="jxr_keyword">final</strong> String key = m.group(1);
-<a class="jxr_linenumber" name="L251" href="#L251">251</a> 			<strong class="jxr_keyword">final</strong> String value = getExpandedString(key);
-<a class="jxr_linenumber" name="L252" href="#L252">252</a> 			
-<a class="jxr_linenumber" name="L253" href="#L253">253</a> 			<em class="jxr_comment">// if the pattern does exists, replace it by its value</em>
-<a class="jxr_linenumber" name="L254" href="#L254">254</a> 			<em class="jxr_comment">// otherwise keep the pattern ( it is group(0) )</em>
-<a class="jxr_linenumber" name="L255" href="#L255">255</a> 			<strong class="jxr_keyword">if</strong> (value != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L256" href="#L256">256</a> 				m.appendReplacement(sb, value);
-<a class="jxr_linenumber" name="L257" href="#L257">257</a> 			} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L258" href="#L258">258</a> 				<em class="jxr_comment">// I'm doing this to avoid the backreference problem as there will be a $</em>
-<a class="jxr_linenumber" name="L259" href="#L259">259</a> 				<em class="jxr_comment">// if I replace directly with the group 0 (which is also a pattern)</em>
-<a class="jxr_linenumber" name="L260" href="#L260">260</a> 				m.appendReplacement(sb, <span class="jxr_string">""</span>);
-<a class="jxr_linenumber" name="L261" href="#L261">261</a> 				<strong class="jxr_keyword">final</strong> String unknown = m.group(0);
-<a class="jxr_linenumber" name="L262" href="#L262">262</a> 				sb.append(unknown);
-<a class="jxr_linenumber" name="L263" href="#L263">263</a> 			}
-<a class="jxr_linenumber" name="L264" href="#L264">264</a> 		}
-<a class="jxr_linenumber" name="L265" href="#L265">265</a> 		m.appendTail(sb);
-<a class="jxr_linenumber" name="L266" href="#L266">266</a> 		<strong class="jxr_keyword">return</strong> sb.toString();
-<a class="jxr_linenumber" name="L267" href="#L267">267</a> 	}
-<a class="jxr_linenumber" name="L268" href="#L268">268</a> 
-<a class="jxr_linenumber" name="L269" href="#L269">269</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L270" href="#L270">270</a> <em class="jxr_javadoccomment">	 * Backups the original configuration in a non thread safe way.</em>
-<a class="jxr_linenumber" name="L271" href="#L271">271</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="L272" href="#L272">272</a> <em class="jxr_javadoccomment"> 	 * NOTE: This method should only be used by tests through ConfigurationSessionBean!</em>
-<a class="jxr_linenumber" name="L273" href="#L273">273</a> <em class="jxr_javadoccomment">	 * @return bool</em>
-<a class="jxr_linenumber" name="L274" href="#L274">274</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="L275" href="#L275">275</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> backupConfiguration() {
-<a class="jxr_linenumber" name="L276" href="#L276">276</a> 		<strong class="jxr_keyword">if</strong> (configBackup != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L277" href="#L277">277</a> 			<strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L278" href="#L278">278</a> 		}
-<a class="jxr_linenumber" name="L279" href="#L279">279</a> 		configBackup = (CompositeConfiguration) config.clone();
-<a class="jxr_linenumber" name="L280" href="#L280">280</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L281" href="#L281">281</a> 	}
-<a class="jxr_linenumber" name="L282" href="#L282">282</a> 	
-<a class="jxr_linenumber" name="L283" href="#L283">283</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L284" href="#L284">284</a> <em class="jxr_javadoccomment">	 * Restores the original configuration in a non thread safe way.</em>
-<a class="jxr_linenumber" name="L285" href="#L285">285</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="L286" href="#L286">286</a> <em class="jxr_javadoccomment">	 * NOTE: This method should only be used by tests through ConfigurationSessionBean!</em>
-<a class="jxr_linenumber" name="L287" href="#L287">287</a> <em class="jxr_javadoccomment">	 * @return bool</em>
-<a class="jxr_linenumber" name="L288" href="#L288">288</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="L289" href="#L289">289</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> restoreConfiguration() {
-<a class="jxr_linenumber" name="L290" href="#L290">290</a> 		<strong class="jxr_keyword">if</strong> (configBackup == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L291" href="#L291">291</a> 			<strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L292" href="#L292">292</a> 		}
-<a class="jxr_linenumber" name="L293" href="#L293">293</a> 		config = configBackup;
-<a class="jxr_linenumber" name="L294" href="#L294">294</a> 		configBackup = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L295" href="#L295">295</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L296" href="#L296">296</a> 	}
-<a class="jxr_linenumber" name="L297" href="#L297">297</a> 
-<a class="jxr_linenumber" name="L298" href="#L298">298</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L299" href="#L299">299</a> <em class="jxr_javadoccomment">	 * Takes a backup of the active configuration if necessary and updates the active configuration. </em>
-<a class="jxr_linenumber" name="L300" href="#L300">300</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="L301" href="#L301">301</a> <em class="jxr_javadoccomment">	 * NOTE: This method should only be used by tests through ConfigurationSessionBean!</em>
-<a class="jxr_linenumber" name="L302" href="#L302">302</a> <em class="jxr_javadoccomment">	 * @param properties props</em>
-<a class="jxr_linenumber" name="L303" href="#L303">303</a> <em class="jxr_javadoccomment">	 * @return bool</em>
-<a class="jxr_linenumber" name="L304" href="#L304">304</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="L305" href="#L305">305</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> updateConfiguration(<strong class="jxr_keyword">final</strong> Properties properties) {
-<a class="jxr_linenumber" name="L306" href="#L306">306</a> 		backupConfiguration();	<em class="jxr_comment">// Only takes a backup if necessary.</em>
-<a class="jxr_linenumber" name="L307" href="#L307">307</a> 		<strong class="jxr_keyword">final</strong> Iterator&lt;Object&gt; i = properties.keySet().iterator();
-<a class="jxr_linenumber" name="L308" href="#L308">308</a> 		<strong class="jxr_keyword">while</strong> (i.hasNext()) {
-<a class="jxr_linenumber" name="L309" href="#L309">309</a> 			<strong class="jxr_keyword">final</strong> String key = (String) i.next();
-<a class="jxr_linenumber" name="L310" href="#L310">310</a> 			<strong class="jxr_keyword">final</strong> String value = (String) properties.get(key);
-<a class="jxr_linenumber" name="L311" href="#L311">311</a> 			config.setProperty(key, value);
-<a class="jxr_linenumber" name="L312" href="#L312">312</a> 		}
-<a class="jxr_linenumber" name="L313" href="#L313">313</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L314" href="#L314">314</a> 	}
-<a class="jxr_linenumber" name="L315" href="#L315">315</a> 
-<a class="jxr_linenumber" name="L316" href="#L316">316</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L317" href="#L317">317</a> <em class="jxr_javadoccomment">	 * Takes a backup of the active configuration if necessary and updates the active configuration. </em>
-<a class="jxr_linenumber" name="L318" href="#L318">318</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="L319" href="#L319">319</a> <em class="jxr_javadoccomment">	 * NOTE: This method should only be used by tests through ConfigurationSessionBean!</em>
-<a class="jxr_linenumber" name="L320" href="#L320">320</a> <em class="jxr_javadoccomment">	 * @param key key</em>
-<a class="jxr_linenumber" name="L321" href="#L321">321</a> <em class="jxr_javadoccomment">	 * @param value value</em>
-<a class="jxr_linenumber" name="L322" href="#L322">322</a> <em class="jxr_javadoccomment">	 * @return bool</em>
-<a class="jxr_linenumber" name="L323" href="#L323">323</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="L324" href="#L324">324</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> updateConfiguration(<strong class="jxr_keyword">final</strong> String key, <strong class="jxr_keyword">final</strong> String value) {
-<a class="jxr_linenumber" name="L325" href="#L325">325</a> 		backupConfiguration();	<em class="jxr_comment">// Only takes a backup if necessary.</em>
-<a class="jxr_linenumber" name="L326" href="#L326">326</a> 		config.setProperty(key, value);
-<a class="jxr_linenumber" name="L327" href="#L327">327</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L328" href="#L328">328</a> 	}
-<a class="jxr_linenumber" name="L329" href="#L329">329</a> 
-<a class="jxr_linenumber" name="L330" href="#L330">330</a> }
+<a class="jxr_linenumber" name="L233" href="#L233">233</a> 	@SuppressWarnings(<span class="jxr_string">"el-syntax"</span>)
+<a class="jxr_linenumber" name="L234" href="#L234">234</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String getExpandedString(<strong class="jxr_keyword">final</strong> String property) {
+<a class="jxr_linenumber" name="L235" href="#L235">235</a> 		String ret = getString(property);
+<a class="jxr_linenumber" name="L236" href="#L236">236</a> 		<strong class="jxr_keyword">if</strong> (ret != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L237" href="#L237">237</a> 			<strong class="jxr_keyword">while</strong> (ret.indexOf(<span class="jxr_string">"${"</span>) != -1) {
+<a class="jxr_linenumber" name="L238" href="#L238">238</a> 				ret = interpolate(ret);
+<a class="jxr_linenumber" name="L239" href="#L239">239</a> 			}
+<a class="jxr_linenumber" name="L240" href="#L240">240</a> 		}
+<a class="jxr_linenumber" name="L241" href="#L241">241</a> 		<strong class="jxr_keyword">return</strong> ret;
+<a class="jxr_linenumber" name="L242" href="#L242">242</a> 	}
+<a class="jxr_linenumber" name="L243" href="#L243">243</a> 	
+<a class="jxr_linenumber" name="L244" href="#L244">244</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> String interpolate(<strong class="jxr_keyword">final</strong> String orderString) {
+<a class="jxr_linenumber" name="L245" href="#L245">245</a> 		<strong class="jxr_keyword">final</strong> Pattern PATTERN = Pattern.compile(<span class="jxr_string">"&#92;&#92;$&#92;&#92;{(.+?)&#92;&#92;}"</span>);
+<a class="jxr_linenumber" name="L246" href="#L246">246</a> 		<strong class="jxr_keyword">final</strong> Matcher m = PATTERN.matcher(orderString);
+<a class="jxr_linenumber" name="L247" href="#L247">247</a> 		<strong class="jxr_keyword">final</strong> StringBuffer sb = <strong class="jxr_keyword">new</strong> StringBuffer(orderString.length());
+<a class="jxr_linenumber" name="L248" href="#L248">248</a> 		m.reset();
+<a class="jxr_linenumber" name="L249" href="#L249">249</a> 		<strong class="jxr_keyword">while</strong> (m.find()) {
+<a class="jxr_linenumber" name="L250" href="#L250">250</a> 			<em class="jxr_comment">// when the pattern is ${identifier}, group 0 is 'identifier'</em>
+<a class="jxr_linenumber" name="L251" href="#L251">251</a> 			<strong class="jxr_keyword">final</strong> String key = m.group(1);
+<a class="jxr_linenumber" name="L252" href="#L252">252</a> 			<strong class="jxr_keyword">final</strong> String value = getExpandedString(key);
+<a class="jxr_linenumber" name="L253" href="#L253">253</a> 			
+<a class="jxr_linenumber" name="L254" href="#L254">254</a> 			<em class="jxr_comment">// if the pattern does exists, replace it by its value</em>
+<a class="jxr_linenumber" name="L255" href="#L255">255</a> 			<em class="jxr_comment">// otherwise keep the pattern ( it is group(0) )</em>
+<a class="jxr_linenumber" name="L256" href="#L256">256</a> 			<strong class="jxr_keyword">if</strong> (value != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L257" href="#L257">257</a> 				m.appendReplacement(sb, value);
+<a class="jxr_linenumber" name="L258" href="#L258">258</a> 			} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L259" href="#L259">259</a> 				<em class="jxr_comment">// I'm doing this to avoid the backreference problem as there will be a $</em>
+<a class="jxr_linenumber" name="L260" href="#L260">260</a> 				<em class="jxr_comment">// if I replace directly with the group 0 (which is also a pattern)</em>
+<a class="jxr_linenumber" name="L261" href="#L261">261</a> 				m.appendReplacement(sb, <span class="jxr_string">""</span>);
+<a class="jxr_linenumber" name="L262" href="#L262">262</a> 				<strong class="jxr_keyword">final</strong> String unknown = m.group(0);
+<a class="jxr_linenumber" name="L263" href="#L263">263</a> 				sb.append(unknown);
+<a class="jxr_linenumber" name="L264" href="#L264">264</a> 			}
+<a class="jxr_linenumber" name="L265" href="#L265">265</a> 		}
+<a class="jxr_linenumber" name="L266" href="#L266">266</a> 		m.appendTail(sb);
+<a class="jxr_linenumber" name="L267" href="#L267">267</a> 		<strong class="jxr_keyword">return</strong> sb.toString();
+<a class="jxr_linenumber" name="L268" href="#L268">268</a> 	}
+<a class="jxr_linenumber" name="L269" href="#L269">269</a> 
+<a class="jxr_linenumber" name="L270" href="#L270">270</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L271" href="#L271">271</a> <em class="jxr_javadoccomment">	 * Backups the original configuration in a non thread safe way.</em>
+<a class="jxr_linenumber" name="L272" href="#L272">272</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="L273" href="#L273">273</a> <em class="jxr_javadoccomment"> 	 * NOTE: This method should only be used by tests through ConfigurationSessionBean!</em>
+<a class="jxr_linenumber" name="L274" href="#L274">274</a> <em class="jxr_javadoccomment">	 * @return bool</em>
+<a class="jxr_linenumber" name="L275" href="#L275">275</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="L276" href="#L276">276</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> backupConfiguration() {
+<a class="jxr_linenumber" name="L277" href="#L277">277</a> 		<strong class="jxr_keyword">if</strong> (configBackup != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L278" href="#L278">278</a> 			<strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L279" href="#L279">279</a> 		}
+<a class="jxr_linenumber" name="L280" href="#L280">280</a> 		configBackup = (CompositeConfiguration) config.clone();
+<a class="jxr_linenumber" name="L281" href="#L281">281</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L282" href="#L282">282</a> 	}
+<a class="jxr_linenumber" name="L283" href="#L283">283</a> 	
+<a class="jxr_linenumber" name="L284" href="#L284">284</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L285" href="#L285">285</a> <em class="jxr_javadoccomment">	 * Restores the original configuration in a non thread safe way.</em>
+<a class="jxr_linenumber" name="L286" href="#L286">286</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="L287" href="#L287">287</a> <em class="jxr_javadoccomment">	 * NOTE: This method should only be used by tests through ConfigurationSessionBean!</em>
+<a class="jxr_linenumber" name="L288" href="#L288">288</a> <em class="jxr_javadoccomment">	 * @return bool</em>
+<a class="jxr_linenumber" name="L289" href="#L289">289</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="L290" href="#L290">290</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> restoreConfiguration() {
+<a class="jxr_linenumber" name="L291" href="#L291">291</a> 		<strong class="jxr_keyword">if</strong> (configBackup == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L292" href="#L292">292</a> 			<strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L293" href="#L293">293</a> 		}
+<a class="jxr_linenumber" name="L294" href="#L294">294</a> 		config = configBackup;
+<a class="jxr_linenumber" name="L295" href="#L295">295</a> 		configBackup = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L296" href="#L296">296</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L297" href="#L297">297</a> 	}
+<a class="jxr_linenumber" name="L298" href="#L298">298</a> 
+<a class="jxr_linenumber" name="L299" href="#L299">299</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L300" href="#L300">300</a> <em class="jxr_javadoccomment">	 * Takes a backup of the active configuration if necessary and updates the active configuration. </em>
+<a class="jxr_linenumber" name="L301" href="#L301">301</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="L302" href="#L302">302</a> <em class="jxr_javadoccomment">	 * NOTE: This method should only be used by tests through ConfigurationSessionBean!</em>
+<a class="jxr_linenumber" name="L303" href="#L303">303</a> <em class="jxr_javadoccomment">	 * @param properties props</em>
+<a class="jxr_linenumber" name="L304" href="#L304">304</a> <em class="jxr_javadoccomment">	 * @return bool</em>
+<a class="jxr_linenumber" name="L305" href="#L305">305</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="L306" href="#L306">306</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> updateConfiguration(<strong class="jxr_keyword">final</strong> Properties properties) {
+<a class="jxr_linenumber" name="L307" href="#L307">307</a> 		backupConfiguration();	<em class="jxr_comment">// Only takes a backup if necessary.</em>
+<a class="jxr_linenumber" name="L308" href="#L308">308</a> 		<strong class="jxr_keyword">final</strong> Iterator&lt;Object&gt; i = properties.keySet().iterator();
+<a class="jxr_linenumber" name="L309" href="#L309">309</a> 		<strong class="jxr_keyword">while</strong> (i.hasNext()) {
+<a class="jxr_linenumber" name="L310" href="#L310">310</a> 			<strong class="jxr_keyword">final</strong> String key = (String) i.next();
+<a class="jxr_linenumber" name="L311" href="#L311">311</a> 			<strong class="jxr_keyword">final</strong> String value = (String) properties.get(key);
+<a class="jxr_linenumber" name="L312" href="#L312">312</a> 			config.setProperty(key, value);
+<a class="jxr_linenumber" name="L313" href="#L313">313</a> 		}
+<a class="jxr_linenumber" name="L314" href="#L314">314</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L315" href="#L315">315</a> 	}
+<a class="jxr_linenumber" name="L316" href="#L316">316</a> 
+<a class="jxr_linenumber" name="L317" href="#L317">317</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L318" href="#L318">318</a> <em class="jxr_javadoccomment">	 * Takes a backup of the active configuration if necessary and updates the active configuration. </em>
+<a class="jxr_linenumber" name="L319" href="#L319">319</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="L320" href="#L320">320</a> <em class="jxr_javadoccomment">	 * NOTE: This method should only be used by tests through ConfigurationSessionBean!</em>
+<a class="jxr_linenumber" name="L321" href="#L321">321</a> <em class="jxr_javadoccomment">	 * @param key key</em>
+<a class="jxr_linenumber" name="L322" href="#L322">322</a> <em class="jxr_javadoccomment">	 * @param value value</em>
+<a class="jxr_linenumber" name="L323" href="#L323">323</a> <em class="jxr_javadoccomment">	 * @return bool</em>
+<a class="jxr_linenumber" name="L324" href="#L324">324</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="L325" href="#L325">325</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> updateConfiguration(<strong class="jxr_keyword">final</strong> String key, <strong class="jxr_keyword">final</strong> String value) {
+<a class="jxr_linenumber" name="L326" href="#L326">326</a> 		backupConfiguration();	<em class="jxr_comment">// Only takes a backup if necessary.</em>
+<a class="jxr_linenumber" name="L327" href="#L327">327</a> 		config.setProperty(key, value);
+<a class="jxr_linenumber" name="L328" href="#L328">328</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L329" href="#L329">329</a> 	}
+<a class="jxr_linenumber" name="L330" href="#L330">330</a> 
+<a class="jxr_linenumber" name="L331" href="#L331">331</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2020. All rights reserved.</div>
