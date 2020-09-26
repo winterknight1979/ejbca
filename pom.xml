@@ -485,7 +485,7 @@
 		</pluginManagement>
 
 		<plugins>
-
+		
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
@@ -704,7 +704,7 @@
 	<distributionManagement>
 		<site>
 			<id>Github pages site</id>
-			<url>scm:git:https://github.com/winterknight1979/ejbca.git</url>
+			<url>scm:git:git@github.com/winterknight1979/ejbca.git</url>
 		</site>
 	</distributionManagement>
 
