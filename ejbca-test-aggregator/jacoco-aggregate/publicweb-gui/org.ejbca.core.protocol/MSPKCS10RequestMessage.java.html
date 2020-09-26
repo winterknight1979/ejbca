@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>MSPKCS10RequestMessage.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">publicweb-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol</a> &gt; <span class="el_source">MSPKCS10RequestMessage.java</span></div><h1>MSPKCS10RequestMessage.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.protocol;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Iterator;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1Integer;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.ASN1Set;
+import org.bouncycastle.asn1.ASN1String;
+import org.bouncycastle.asn1.DEROctetString;
+import org.bouncycastle.asn1.DERPrintableString;
+import org.bouncycastle.asn1.DERSequence;
+import org.bouncycastle.asn1.DERTaggedObject;
+import org.bouncycastle.asn1.DERUTF8String;
+import org.bouncycastle.asn1.pkcs.Attribute;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
+import org.cesecore.certificates.certificate.request.PKCS10RequestMessage;
+
+/** Extends the PKCS10RequestMessgae and contains a few function to parse MS specific information like GUID, DNS, Template etc..
+ *
+ * @version $Id: MSPKCS10RequestMessage.java 20728 2015-02-20 14:55:55Z mikekushner $
+ */
+public class MSPKCS10RequestMessage extends PKCS10RequestMessage {
+	
+	private static final long serialVersionUID = 2936342787428871121L;
+<span class="nc" id="L45">    private static final Logger log = Logger.getLogger(MSPKCS10RequestMessage.class);</span>
+
+	public MSPKCS10RequestMessage() {
+<span class="nc" id="L48">		super();</span>
+<span class="nc" id="L49">	}</span>
+
+	public MSPKCS10RequestMessage(byte[] msg) throws IOException {
+<span class="nc" id="L52">		super(msg);</span>
+<span class="nc" id="L53">	}</span>
+    
+	public MSPKCS10RequestMessage(PKCS10CertificationRequest p10) throws IOException {
+<span class="nc" id="L56">		super(new JcaPKCS10CertificationRequest(p10));</span>
+<span class="nc" id="L57">	}</span>
+
+    public static final String szOID_CERTIFICATE_TEMPLATE_V2 = &quot;1.3.6.1.4.1.311.21.7&quot;;		//MicrosoftObjectIdentifiers.microsoftCertTemplateV2?
+    public static final String szOID_CMC_REG_INFO = &quot;1.3.6.1.5.5.7.7.18&quot;;
+    public static final String szOID_REQUEST_CLIENT_INFO = &quot;1.3.6.1.4.1.311.21.20&quot;;
+    public static final String szOID_ENROLL_CERTTYPE_EXTENSION = &quot;1.3.6.1.4.1.311.20.2&quot;;
+    public static final String szOID_EXTENSION_REQUEST = &quot;1.2.840.113549.1.9.14&quot;;
+    public static final String someTemplateOID = &quot;1.3.6.1.4.1.311.21.8.4014942.3497959.5914804.3829722.12246394.103.3066650.1537810&quot;;
+    public static final String OID_GUID = &quot;1.3.6.1.4.1.311.25.1&quot;;
+    
+    /**
+     * Returns the MS request client info object (1.3.6.1.4.1.311.21.20) as an ArrayList&lt;String&gt;.
+     * 
+     * E.g. an Machine-template request contains the following structure
+     *     SEQUENCE {
+     *         	 209    9:         OBJECT IDENTIFIER '1 3 6 1 4 1 311 21 20'
+     *             	 220   57:         SET {
+     *                 	 222   55:           SEQUENCE {
+     *                     	 224    1:             INTEGER 1
+     *                         	 227   18:             UTF8String 'host.company.local'
+     *                          247   21:             UTF8String 'COMPANY\Administrator'
+     *                          270    7:             UTF8String 'certreq'
+     *    	         :             }
+     *    	         :           }
+     *    	         :         }
+     * @return list
+     */
+    private ArrayList&lt;String&gt; getMSRequestInfo() {
+<span class="nc" id="L85">        ArrayList&lt;String&gt; ret = new ArrayList&lt;String&gt;(); </span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (pkcs10 == null) {</span>
+<span class="nc" id="L87">        	log.error(&quot;PKCS10 not inited!&quot;);</span>
+<span class="nc" id="L88">        	return ret;</span>
+        }
+        // Get attributes
+<span class="nc" id="L91">        Attribute[] attributes = pkcs10.getAttributes(new ASN1ObjectIdentifier(szOID_REQUEST_CLIENT_INFO));</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        if (attributes.length == 0) {</span>
+<span class="nc" id="L93">                return ret;                </span>
+        } else {
+<span class="nc" id="L95">            ASN1Set values = attributes[0].getAttrValues();</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">            if (values.size() == 0) {</span>
+<span class="nc" id="L97">            	return ret;</span>
+            }
+<span class="nc" id="L99">            DERSequence seq = (DERSequence) DERSequence.getInstance(values.getObjectAt(0));</span>
+<span class="nc" id="L100">            Enumeration&lt;?&gt; enumeration = seq.getObjects();</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">            while (enumeration.hasMoreElements()) {</span>
+<span class="nc" id="L102">            	Object current = enumeration.nextElement();</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">            	if (current instanceof DERPrintableString) {</span>
+<span class="nc" id="L104">                	ret.add(((DERPrintableString) current).getString());</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">            	} else if (current instanceof DERUTF8String) {</span>
+<span class="nc" id="L106">                	ret.add(((DERUTF8String) current).getString());</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">            	} else if (current instanceof ASN1Integer) {</span>
+<span class="nc" id="L108">                	ret.add(((ASN1Integer) current).toString());</span>
+            	} else {
+<span class="nc" id="L110">            		ret.add(&quot;Unsupported type: &quot; + current.getClass().getName());</span>
+            	}
+<span class="nc" id="L112">            }</span>
+<span class="nc" id="L113">            Iterator&lt;String&gt; iter = ret.iterator();</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">            while (iter.hasNext()) {</span>
+<span class="nc" id="L115">            	log.info(&quot;TEMP-DEBUG-: &quot; + iter.next());</span>
+            }
+        }
+<span class="nc" id="L118">        return ret;</span>
+    }
+    
+    /**
+     * Returns the DNS of the MS request client info object (1.3.6.1.4.1.311.21.20) as a String.
+     * 
+     * This is probably the machine from where the reqeust was made.
+     * @return DNS
+     */
+    public String getMSRequestInfoDNS() {
+<span class="nc" id="L128">    	ArrayList&lt;String&gt; ri = getMSRequestInfo();</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">    	if (ri.size() != 0) {</span>
+<span class="nc" id="L130">    		return (String) ri.get(1);</span>
+    	} else {
+<span class="nc" id="L132">    		return null;</span>
+    	}
+    }
+
+    /**
+     * Returns the name of the Certificate Template or null if not available or not known.
+     * @return name
+     */
+    public String getMSRequestInfoTemplateName() {
+<span class="nc bnc" id="L141" title="All 2 branches missed.">    	if (pkcs10 == null) {</span>
+<span class="nc" id="L142">    		log.error(&quot;PKCS10 not inited!&quot;);</span>
+<span class="nc" id="L143">    		return null;</span>
+    	}
+        // Get attributes
+<span class="nc" id="L146">        Attribute[] attributes = pkcs10.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">        if (attributes.length == 0) {</span>
+<span class="nc" id="L148">        	log.error(&quot;Cannot find request extension.&quot;);</span>
+<span class="nc" id="L149">        	return null;</span>
+        }
+<span class="nc" id="L151">        ASN1Set set = attributes[0].getAttrValues();</span>
+<span class="nc" id="L152">        DERSequence seq = (DERSequence) DERSequence.getInstance(set.getObjectAt(0));</span>
+<span class="nc" id="L153">        Enumeration&lt;?&gt; enumeration = seq.getObjects();</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        while (enumeration.hasMoreElements()) {</span>
+<span class="nc" id="L155">        	DERSequence seq2 = (DERSequence) DERSequence.getInstance(enumeration.nextElement());</span>
+<span class="nc" id="L156">        	ASN1ObjectIdentifier oid = (ASN1ObjectIdentifier) seq2.getObjectAt(0);</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">        	if (szOID_ENROLL_CERTTYPE_EXTENSION.equals(oid.getId())) {</span>
+        		try {
+<span class="nc" id="L159">        			DEROctetString dos = (DEROctetString) seq2.getObjectAt(1);</span>
+<span class="nc" id="L160">        			ASN1InputStream dosAsn1InputStream = new ASN1InputStream(new ByteArrayInputStream(dos.getOctets()));</span>
+                    try {
+<span class="nc" id="L162">                        ASN1String derobj = (ASN1String) dosAsn1InputStream.readObject();</span>
+<span class="nc" id="L163">                        return derobj.getString();</span>
+                    } finally {
+<span class="nc" id="L165">                        dosAsn1InputStream.close();</span>
+                    }
+<span class="nc" id="L167">        		} catch (IOException e) {</span>
+<span class="nc" id="L168">        			log.error(e);</span>
+        		}
+        	}
+<span class="nc" id="L171">        }</span>
+<span class="nc" id="L172">        return null;</span>
+    }
+
+    /**
+     * Returns a String vector with known subject altnames:
+     *   [0] Requested GUID
+     *   [1] Requested DNS
+     * @return vector
+     */
+    public String[] getMSRequestInfoSubjectAltnames() {
+<span class="nc" id="L182">    	String[] ret = new String[2];	// GUID, DNS so far..</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">    	if (pkcs10 == null) {</span>
+<span class="nc" id="L184">    		log.error(&quot;PKCS10 not inited!&quot;);</span>
+<span class="nc" id="L185">    		return ret;</span>
+    	}
+        // Get attributes
+<span class="nc" id="L188">        Attribute[] attributes = pkcs10.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">        if (attributes.length != 0) {</span>
+<span class="nc" id="L190">            ASN1Set set = attributes[0].getAttrValues();</span>
+<span class="nc" id="L191">            DERSequence seq = (DERSequence) DERSequence.getInstance(set.getObjectAt(0));</span>
+<span class="nc" id="L192">            Enumeration&lt;?&gt; enumeration = seq.getObjects();</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">            while (enumeration.hasMoreElements()) {</span>
+<span class="nc" id="L194">            	DERSequence seq2 = (DERSequence) DERSequence.getInstance(enumeration.nextElement());</span>
+<span class="nc" id="L195">            	ASN1ObjectIdentifier oid = (ASN1ObjectIdentifier) seq2.getObjectAt(0);</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">            	if (&quot;2.5.29.17&quot;.equals(oid.getId())) {	//SubjectAN</span>
+            		try {
+<span class="nc" id="L198">            			DEROctetString dos = (DEROctetString) seq2.getObjectAt(2);</span>
+<span class="nc" id="L199">            			ASN1InputStream ais = new ASN1InputStream(new ByteArrayInputStream(dos.getOctets()));</span>
+<span class="nc bnc" id="L200" title="All 2 branches missed.">            			while (ais.available()&gt;0) {</span>
+<span class="nc" id="L201">                			DERSequence seq3 = (DERSequence) ais.readObject();</span>
+<span class="nc" id="L202">                			Enumeration&lt;?&gt; enum1 = seq3.getObjects();</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">                			while (enum1.hasMoreElements()) {</span>
+<span class="nc" id="L204">                				DERTaggedObject dto = (DERTaggedObject) enum1.nextElement();</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">                				if (dto.getTagNo() == 0) {</span>
+                					// Sequence of OIDs and tagged objects
+<span class="nc" id="L207">                					DERSequence ds = (DERSequence) dto.getObject();</span>
+<span class="nc" id="L208">                					ASN1ObjectIdentifier doid = (ASN1ObjectIdentifier) ds.getObjectAt(0);</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">                        			if (OID_GUID.equals((doid).getId())) {</span>
+<span class="nc" id="L210">                            			DEROctetString dos3 = (DEROctetString) ((DERTaggedObject)ds.getObjectAt(1)).getObject();</span>
+<span class="nc" id="L211">                            			ret[0] = dos3.toString().substring(1); // Removes the initial #-sign</span>
+                        			}
+<span class="nc bnc" id="L213" title="All 2 branches missed.">                				} else if (dto.getTagNo() == 2) {</span>
+                					// DNS
+<span class="nc" id="L215">                					DEROctetString dos3 = (DEROctetString) dto.getObject();</span>
+<span class="nc" id="L216">                					ret[1] = new String(dos3.getOctets());</span>
+                				}
+<span class="nc" id="L218">                			}</span>
+<span class="nc" id="L219">            			}</span>
+<span class="nc" id="L220">            			ais.close();</span>
+<span class="nc" id="L221">            		} catch (IOException e) {</span>
+<span class="nc" id="L222">						log.error(e);</span>
+<span class="nc" id="L223">					}</span>
+            	}
+<span class="nc" id="L225">            }</span>
+        }
+<span class="nc" id="L227">    	return ret;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

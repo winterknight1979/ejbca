@@ -281,40 +281,41 @@ public final class ConfigurationHolder {
      * @param property the property to look for
      * @return String configured for property, or the default value defined in defaultvalues.properties, or null if no such value exists
      */
+    @SuppressWarnings(&quot;el-syntax&quot;)
     public static String getExpandedString(final String property) {
-<span class="fc" id="L285">        String ret = getString(property);</span>
-<span class="pc bpc" id="L286" title="1 of 2 branches missed.">        if (ret != null) {</span>
-<span class="pc bpc" id="L287" title="1 of 2 branches missed.">            while (ret.indexOf(&quot;${&quot;) != -1) {</span>
-<span class="nc" id="L288">                ret = interpolate(ret);</span>
+<span class="fc" id="L286">        String ret = getString(property);</span>
+<span class="pc bpc" id="L287" title="1 of 2 branches missed.">        if (ret != null) {</span>
+<span class="pc bpc" id="L288" title="1 of 2 branches missed.">            while (ret.indexOf(&quot;${&quot;) != -1) {</span>
+<span class="nc" id="L289">                ret = interpolate(ret);</span>
             }
         }
-<span class="fc" id="L291">        return ret;</span>
+<span class="fc" id="L292">        return ret;</span>
     }
 
     private static String interpolate(final String orderString) {
-<span class="nc" id="L295">        final Pattern PATTERN = Pattern.compile(&quot;\\$\\{(.+?)\\}&quot;);</span>
-<span class="nc" id="L296">        final Matcher m = PATTERN.matcher(orderString);</span>
-<span class="nc" id="L297">        final StringBuffer sb = new StringBuffer(orderString.length());</span>
-<span class="nc" id="L298">        m.reset();</span>
-<span class="nc bnc" id="L299" title="All 2 branches missed.">        while (m.find()) {</span>
+<span class="nc" id="L296">        final Pattern PATTERN = Pattern.compile(&quot;\\$\\{(.+?)\\}&quot;);</span>
+<span class="nc" id="L297">        final Matcher m = PATTERN.matcher(orderString);</span>
+<span class="nc" id="L298">        final StringBuffer sb = new StringBuffer(orderString.length());</span>
+<span class="nc" id="L299">        m.reset();</span>
+<span class="nc bnc" id="L300" title="All 2 branches missed.">        while (m.find()) {</span>
             // when the pattern is ${identifier}, group 0 is 'identifier'
-<span class="nc" id="L301">            final String key = m.group(1);</span>
-<span class="nc" id="L302">            final String value = getExpandedString(key);</span>
+<span class="nc" id="L302">            final String key = m.group(1);</span>
+<span class="nc" id="L303">            final String value = getExpandedString(key);</span>
 
             // if the pattern does exists, replace it by its value
             // otherwise keep the pattern ( it is group(0) )
-<span class="nc bnc" id="L306" title="All 2 branches missed.">            if (value != null) {</span>
-<span class="nc" id="L307">                m.appendReplacement(sb, value);</span>
+<span class="nc bnc" id="L307" title="All 2 branches missed.">            if (value != null) {</span>
+<span class="nc" id="L308">                m.appendReplacement(sb, value);</span>
             } else {
                 // I'm doing this to avoid the backreference problem as there will be a $
                 // if I replace directly with the group 0 (which is also a pattern)
-<span class="nc" id="L311">                m.appendReplacement(sb, &quot;&quot;);</span>
-<span class="nc" id="L312">                final String unknown = m.group(0);</span>
-<span class="nc" id="L313">                sb.append(unknown);</span>
+<span class="nc" id="L312">                m.appendReplacement(sb, &quot;&quot;);</span>
+<span class="nc" id="L313">                final String unknown = m.group(0);</span>
+<span class="nc" id="L314">                sb.append(unknown);</span>
             }
-<span class="nc" id="L315">        }</span>
-<span class="nc" id="L316">        m.appendTail(sb);</span>
-<span class="nc" id="L317">        return sb.toString();</span>
+<span class="nc" id="L316">        }</span>
+<span class="nc" id="L317">        m.appendTail(sb);</span>
+<span class="nc" id="L318">        return sb.toString();</span>
     }
 
     /**
@@ -325,17 +326,17 @@ public final class ConfigurationHolder {
      */
     @SuppressWarnings(&quot;unchecked&quot;)
 	public static List&lt;String&gt; getPrefixedPropertyNames(String prefix) {
-<span class="fc" id="L328">        Set&lt;String&gt; algs = new HashSet&lt;String&gt;();</span>
+<span class="fc" id="L329">        Set&lt;String&gt; algs = new HashSet&lt;String&gt;();</span>
         // Just get the keys from configuration that starts with prefix, we assume below that it has a . following the prefix
-<span class="fc" id="L330">        Iterator&lt;String&gt; iterator = config.getKeys(prefix);</span>
-<span class="pc bpc" id="L331" title="1 of 2 branches missed.">        while (iterator.hasNext()) {</span>
-<span class="nc" id="L332">            final String key = iterator.next();</span>
-<span class="nc" id="L333">            final int dot = key.indexOf(&quot;.&quot;, prefix.length()+1); // +1 to skip the . directly following prefix</span>
-<span class="nc" id="L334">            algs.add(key.substring(prefix.length()+1, dot));</span>
-<span class="nc" id="L335">        }</span>
-<span class="fc" id="L336">        ArrayList&lt;String&gt; list = new ArrayList&lt;String&gt;(algs);</span>
-<span class="fc" id="L337">        Collections.sort(list);</span>
-<span class="fc" id="L338">        return list;</span>
+<span class="fc" id="L331">        Iterator&lt;String&gt; iterator = config.getKeys(prefix);</span>
+<span class="pc bpc" id="L332" title="1 of 2 branches missed.">        while (iterator.hasNext()) {</span>
+<span class="nc" id="L333">            final String key = iterator.next();</span>
+<span class="nc" id="L334">            final int dot = key.indexOf(&quot;.&quot;, prefix.length()+1); // +1 to skip the . directly following prefix</span>
+<span class="nc" id="L335">            algs.add(key.substring(prefix.length()+1, dot));</span>
+<span class="nc" id="L336">        }</span>
+<span class="fc" id="L337">        ArrayList&lt;String&gt; list = new ArrayList&lt;String&gt;(algs);</span>
+<span class="fc" id="L338">        Collections.sort(list);</span>
+<span class="fc" id="L339">        return list;</span>
     }
 
     /**
@@ -347,12 +348,12 @@ public final class ConfigurationHolder {
      * @return boolean
      */
     public static boolean backupConfiguration() {
-<span class="fc bfc" id="L350" title="All 2 branches covered.">        if (configBackup != null) {</span>
-<span class="fc" id="L351">            return false;</span>
+<span class="fc bfc" id="L351" title="All 2 branches covered.">        if (configBackup != null) {</span>
+<span class="fc" id="L352">            return false;</span>
         }
-<span class="fc" id="L353">        instance();</span>
-<span class="fc" id="L354">        configBackup = (CompositeConfiguration) config.clone();</span>
-<span class="fc" id="L355">        return true;</span>
+<span class="fc" id="L354">        instance();</span>
+<span class="fc" id="L355">        configBackup = (CompositeConfiguration) config.clone();</span>
+<span class="fc" id="L356">        return true;</span>
     }
 
     /**
@@ -364,12 +365,12 @@ public final class ConfigurationHolder {
      * @return boolean
      */
     public static boolean restoreConfiguration() {
-<span class="pc bpc" id="L367" title="1 of 2 branches missed.">        if (configBackup == null) {</span>
-<span class="nc" id="L368">            return false;</span>
+<span class="pc bpc" id="L368" title="1 of 2 branches missed.">        if (configBackup == null) {</span>
+<span class="nc" id="L369">            return false;</span>
         }
-<span class="fc" id="L370">        config = configBackup;</span>
-<span class="fc" id="L371">        configBackup = null;</span>
-<span class="fc" id="L372">        return true;</span>
+<span class="fc" id="L371">        config = configBackup;</span>
+<span class="fc" id="L372">        configBackup = null;</span>
+<span class="fc" id="L373">        return true;</span>
     }
 
     /**
@@ -381,8 +382,8 @@ public final class ConfigurationHolder {
      * @return boolean
      */
     public static boolean updateConfiguration(final Properties properties) {
-<span class="nc" id="L384">        backupConfiguration(); // Only takes a backup if necessary.</span>
-<span class="nc" id="L385">        return updateConfigurationWithoutBackup(properties);</span>
+<span class="nc" id="L385">        backupConfiguration(); // Only takes a backup if necessary.</span>
+<span class="nc" id="L386">        return updateConfigurationWithoutBackup(properties);</span>
     }
 
     /**
@@ -395,8 +396,8 @@ public final class ConfigurationHolder {
      * @return boolwan
      */
     public static boolean updateConfiguration(final String key, final String value) {
-<span class="fc" id="L398">        backupConfiguration(); // Only takes a backup if necessary.</span>
-<span class="fc" id="L399">        return updateConfigurationWithoutBackup(key, value);</span>
+<span class="fc" id="L399">        backupConfiguration(); // Only takes a backup if necessary.</span>
+<span class="fc" id="L400">        return updateConfigurationWithoutBackup(key, value);</span>
     }
 
     /**
@@ -406,12 +407,12 @@ public final class ConfigurationHolder {
      * @return boolean
      */
     public static boolean updateConfigurationWithoutBackup(final Properties properties) {
-<span class="nc bnc" id="L409" title="All 2 branches missed.">        for (Object key : properties.keySet()) {</span>
+<span class="nc bnc" id="L410" title="All 2 branches missed.">        for (Object key : properties.keySet()) {</span>
 
-<span class="nc" id="L411">            final String value = (String) properties.get(key);</span>
-<span class="nc" id="L412">            config.setProperty((String) key, value);</span>
-<span class="nc" id="L413">        }</span>
-<span class="nc" id="L414">        return true;</span>
+<span class="nc" id="L412">            final String value = (String) properties.get(key);</span>
+<span class="nc" id="L413">            config.setProperty((String) key, value);</span>
+<span class="nc" id="L414">        }</span>
+<span class="nc" id="L415">        return true;</span>
     }
 
     /**
@@ -422,8 +423,8 @@ public final class ConfigurationHolder {
      * @return boolean
      */
     public static boolean updateConfigurationWithoutBackup(final String key, final String value) {
-<span class="fc" id="L425">        config.setProperty(key, value);</span>
-<span class="fc" id="L426">        return true;</span>
+<span class="fc" id="L426">        config.setProperty(key, value);</span>
+<span class="fc" id="L427">        return true;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

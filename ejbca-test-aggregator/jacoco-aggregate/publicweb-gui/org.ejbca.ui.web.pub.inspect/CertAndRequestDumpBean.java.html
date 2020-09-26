@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CertAndRequestDumpBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">publicweb-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.pub.inspect</a> &gt; <span class="el_source">CertAndRequestDumpBean.java</span></div><h1>CertAndRequestDumpBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.ui.web.pub.inspect;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+
+import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.util.ASN1Dump;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.cesecore.certificates.certificate.request.RequestMessageUtils;
+import org.cesecore.util.CertTools;
+import org.ejbca.cvc.CVCObject;
+import org.ejbca.cvc.CertificateParser;
+import org.ejbca.cvc.exception.CvcException;
+
+/**
+ * This bean dumps contents of certificate and certificate request as text. CVC dump or ASN.1 dump.
+ * 
+ * To make it easy to use from JSTL pages, most methods take no arguments.
+ * The arguments are supplied as member variables instead. &lt;br&gt;
+ * 
+ * @version $Id: CertAndRequestDumpBean.java 22553 2016-01-11 13:06:46Z mikekushner $
+ */
+public class CertAndRequestDumpBean {
+	
+	private byte[] bytes;
+<span class="nc" id="L45">	private String type = &quot;unknown&quot;;</span>
+
+	/**
+	 * Empty default constructor.
+	 */
+<span class="nc" id="L50">	public CertAndRequestDumpBean() {</span>
+<span class="nc" id="L51">	}</span>
+
+	public void setBytes(final byte[] b) {
+<span class="nc bnc" id="L54" title="All 2 branches missed.">		if (b.length &lt; 10000) {</span>
+			// don't accept anything too large
+<span class="nc" id="L56">			this.bytes = b;</span>
+			// Figure out type of request
+<span class="nc" id="L58">			getDump(); // as side effect sets type variable</span>
+		} else {
+<span class="nc" id="L60">			type = &quot;too large&quot;;</span>
+		}
+<span class="nc" id="L62">	}</span>
+	
+	/** Dumps contents, and updates &quot;type&quot; variable as side-effect.
+	 * 
+	 * @return String containing raw text output or null of input is null, or error message if input invalid.
+	 */
+	public String getDump() {
+<span class="nc" id="L69">		String ret = null;</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">		if (bytes == null) {</span>
+<span class="nc" id="L71">			return null;</span>
+		}
+<span class="nc" id="L73">		final byte[] requestBytes = RequestMessageUtils.getDecodedBytes(bytes);</span>
+<span class="nc" id="L74">		ret = getCvcDump(false);</span>
+<span class="nc bnc" id="L75" title="All 6 branches missed.">		if ((ret == null) &amp;&amp; (requestBytes != null) &amp;&amp; (requestBytes.length &gt; 0)) {</span>
+			// Not a CVC request, perhaps a PKCS10 request
+			try {
+<span class="nc" id="L78">				final PKCS10CertificationRequest pkcs10 = new PKCS10CertificationRequest(requestBytes);</span>
+//				ret = pkcs10.toString();
+<span class="nc" id="L80">				final ASN1InputStream ais = new ASN1InputStream(new ByteArrayInputStream(pkcs10.getEncoded()));</span>
+<span class="nc" id="L81">				final ASN1Primitive obj = ais.readObject();</span>
+<span class="nc" id="L82">				ais.close();</span>
+<span class="nc" id="L83">				ret = ASN1Dump.dumpAsString(obj);</span>
+<span class="nc" id="L84">				type = &quot;PKCS#10&quot;;</span>
+<span class="nc" id="L85">			} catch (IOException e1) {</span>
+				 // ignore, move on to certificate decoding
+<span class="nc" id="L87">			} catch (IllegalArgumentException e1) {</span>
+				// ignore, move on to certificate decoding
+<span class="nc" id="L89">			} catch (ClassCastException e2) {</span>
+				// ignore, move on to certificate decoding
+<span class="nc" id="L91">			}</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">		} else if (ret != null) {</span>
+<span class="nc" id="L93">			type = &quot;CVC&quot;;</span>
+		}
+<span class="nc bnc" id="L95" title="All 2 branches missed.">		if (ret == null) {</span>
+			// Not a CVC object or PKCS10 request message, perhaps a X.509 certificate?
+			try {
+<span class="nc" id="L98">				final Certificate cert = getCert(bytes);</span>
+<span class="nc" id="L99">				ret = CertTools.dumpCertificateAsString(cert);</span>
+<span class="nc" id="L100">				type = &quot;X.509&quot;;</span>
+<span class="nc" id="L101">			} catch (Exception e) {</span>
+				// Not a X.509 certificate either...try to simply decode asn.1
+				try {
+<span class="nc" id="L104">					final ASN1InputStream ais = new ASN1InputStream(new ByteArrayInputStream(bytes));</span>
+<span class="nc" id="L105">					final ASN1Primitive obj = ais.readObject();</span>
+<span class="nc" id="L106">					ais.close();</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">					if (obj != null) {</span>
+<span class="nc" id="L108">						ret = ASN1Dump.dumpAsString(obj);</span>
+<span class="nc" id="L109">						type = &quot;ASN.1&quot;;						</span>
+					}
+<span class="nc" id="L111">				} catch (IOException e1) {</span>
+					// Last stop, say what the error is
+<span class="nc" id="L113">					ret = e1.getMessage();</span>
+<span class="nc" id="L114">				}</span>
+<span class="nc" id="L115">			}						</span>
+		}
+<span class="nc" id="L117">		return ret;</span>
+	}
+
+	public String getType() {
+<span class="nc" id="L121">		return type;</span>
+	}
+
+	public String getCvcDump(final boolean returnMessageOnError) {
+<span class="nc" id="L125">		String ret = null;</span>
+<span class="nc" id="L126">		final byte[] requestBytes = RequestMessageUtils.getDecodedBytes(bytes);</span>
+		try {
+<span class="nc" id="L128">			final CVCObject obj = getCVCObject(requestBytes);</span>
+<span class="nc" id="L129">			ret = obj.getAsText(&quot;&quot;);</span>
+<span class="nc" id="L130">		} catch (Exception e) {</span>
+			// Not a CVC request, perhaps a PKCS10 request
+<span class="nc bnc" id="L132" title="All 2 branches missed.">			if (returnMessageOnError) {</span>
+<span class="nc" id="L133">				ret = e.getMessage();				</span>
+			}
+<span class="nc" id="L135">		}</span>
+<span class="nc" id="L136">		return ret;</span>
+	}
+
+	private static CVCObject getCVCObject(final byte[] cvcdata) throws IOException, CvcException, CertificateException {
+<span class="nc" id="L140">		CVCObject ret = null;</span>
+		try {
+<span class="nc" id="L142">			ret = CertificateParser.parseCVCObject(cvcdata);</span>
+<span class="nc" id="L143">		} catch (Exception e) {</span>
+			try {
+				// this was not parseable, try to see it it was a PEM certificate
+<span class="nc" id="L146">				final Collection&lt;Certificate&gt; col = CertTools.getCertsFromPEM(new ByteArrayInputStream(cvcdata), Certificate.class);</span>
+<span class="nc" id="L147">				final Certificate cert = col.iterator().next();</span>
+<span class="nc" id="L148">	        	ret = CertificateParser.parseCVCObject(cert.getEncoded());</span>
+<span class="nc" id="L149">			} catch (Exception ie) {</span>
+				// this was not a PEM cert, try to see it it was a PEM certificate req
+<span class="nc" id="L151">				final byte[] req = RequestMessageUtils.getRequestBytes(cvcdata);</span>
+<span class="nc" id="L152">				ret = CertificateParser.parseCVCObject(req);</span>
+<span class="nc" id="L153">			}</span>
+<span class="nc" id="L154">		}</span>
+<span class="nc" id="L155">		return ret;</span>
+	}
+
+	private Certificate getCert(final byte[] certbytes) throws CertificateException {
+<span class="nc" id="L159">		  Certificate cert = null;</span>
+<span class="nc" id="L160">		  Collection&lt;Certificate&gt; cachain = null;</span>
+		  try {
+<span class="nc" id="L162">			  final Collection&lt;Certificate&gt; certs = CertTools.getCertsFromPEM(new ByteArrayInputStream(certbytes), Certificate.class);</span>
+<span class="nc" id="L163">			  final Iterator&lt;Certificate&gt; iter = certs.iterator();</span>
+<span class="nc" id="L164">			  cert = iter.next();	</span>
+<span class="nc bnc" id="L165" title="All 2 branches missed.">			  if (iter.hasNext()) {</span>
+				  // There is a complete certificate chain returned here
+<span class="nc" id="L167">				  cachain = new ArrayList&lt;Certificate&gt;();</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">				  while (iter.hasNext()) {</span>
+<span class="nc" id="L169">					  final Certificate chaincert = iter.next();</span>
+<span class="nc" id="L170">					  cachain.add(chaincert);</span>
+<span class="nc" id="L171">				  }</span>
+			  }
+<span class="nc" id="L173">		  } catch (CertificateException e) {</span>
+			  // See if it is a single binary certificate
+<span class="nc" id="L175">			  cert = CertTools.getCertfromByteArray(certbytes, Certificate.class);</span>
+<span class="nc" id="L176">		  }</span>
+<span class="nc" id="L177">		  return cert;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

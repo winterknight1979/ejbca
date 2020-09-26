@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AutoEnrollServlet.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">publicweb-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.pub</a> &gt; <span class="el_source">AutoEnrollServlet.java</span></div><h1>AutoEnrollServlet.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.pub;
+
+import java.io.IOException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
+import java.security.cert.X509Certificate;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.Iterator;
+
+import javax.ejb.EJB;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.PublicWebPrincipal;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
+import org.cesecore.certificates.certificate.request.ResponseMessage;
+import org.cesecore.certificates.certificate.request.X509ResponseMessage;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.EndEntityType;
+import org.cesecore.certificates.endentity.EndEntityTypes;
+import org.cesecore.certificates.util.DnComponents;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.EJBTools;
+import org.cesecore.util.StringTools;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.core.ejb.ca.sign.SignSessionLocal;
+import org.ejbca.core.ejb.ra.EndEntityManagementSessionLocal;
+import org.ejbca.core.ejb.ra.raadmin.AdminPreferenceSessionLocal;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileNotFoundException;
+import org.ejbca.core.protocol.MSPKCS10RequestMessage;
+import org.ejbca.ui.web.RequestHelper;
+import org.ejbca.util.ActiveDirectoryTools;
+import org.ejbca.util.passgen.PasswordGeneratorFactory;
+
+/**
+ * Parses a posted request and returns a correct certificate depending on the type.
+ * 
+ * This Servlet assumes that it is protected by an Kerberos verifying proxy and is insecure to use without.
+ * 
+ * @version $Id: AutoEnrollServlet.java 22811 2016-02-15 16:48:23Z samuellb $
+ */
+<span class="nc" id="L74">public class AutoEnrollServlet extends HttpServlet {</span>
+
+	private static final long serialVersionUID = 1L;
+<span class="nc" id="L77">	private final static Logger log = Logger.getLogger(AutoEnrollServlet.class);</span>
+
+	@EJB
+	private CertificateStoreSessionLocal certificateStoreSession;
+	@EJB
+	private EndEntityProfileSessionLocal endEntityProfileSession;
+	@EJB
+	private AdminPreferenceSessionLocal raAdminSession;
+	@EJB
+	private SignSessionLocal signSession;
+	@EJB
+	private EndEntityManagementSessionLocal endEntityManagementSession;
+	@EJB
+	private CertificateProfileSessionLocal certificateProfileSession;
+	@EJB
+	private GlobalConfigurationSessionLocal globalConfigurationSession;
+	
+    @Override
+	public void init(ServletConfig config) throws ServletException {
+<span class="nc" id="L96">		super.init(config);</span>
+		try {
+			// Install BouncyCastle provider
+<span class="nc" id="L99">			CryptoProviderTools.installBCProvider();</span>
+<span class="nc" id="L100">		} catch (Exception e) {</span>
+<span class="nc" id="L101">			throw new ServletException(e);</span>
+<span class="nc" id="L102">		}</span>
+<span class="nc" id="L103">	}</span>
+
+	/**
+	 * Recievies the request.
+	 */
+    @Override
+	public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+<span class="nc" id="L110">	    log.trace(&quot;&gt;doPost&quot;);</span>
+	    try {
+
+<span class="nc" id="L113">	        AuthenticationToken internalAdmin = new AlwaysAllowLocalAuthenticationToken(new PublicWebPrincipal(&quot;AutoEnrollServlet&quot;, request.getRemoteAddr()));</span>
+	        //Admin internalAdmin = Admin.getInternalAdmin();
+<span class="nc" id="L115">	        GlobalConfiguration globalConfiguration = (GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID);</span>
+	        // Make sure we allow use of this Servlet
+<span class="nc bnc" id="L117" title="All 2 branches missed.">	        if ( !globalConfiguration.getAutoEnrollUse() ) {</span>
+<span class="nc" id="L118">	            log.info(&quot;Unauthorized access attempt from &quot; + request.getRemoteAddr());</span>
+<span class="nc" id="L119">	            response.getOutputStream().println(&quot;Not allowed.&quot;);</span>
+<span class="nc" id="L120">	            return;</span>
+	        }
+<span class="nc" id="L122">	        int caid = globalConfiguration.getAutoEnrollCA();</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">	        if (caid == GlobalConfiguration.AUTOENROLL_DEFAULT_CA) {</span>
+<span class="nc" id="L124">	            log.info(&quot;Configure a proper CA to use with enroll.&quot;);</span>
+<span class="nc" id="L125">	            response.getOutputStream().println(&quot;Configure a proper CA to use with enroll.&quot;);</span>
+<span class="nc" id="L126">	            return;</span>
+	        }
+<span class="nc" id="L128">	        boolean debugRequest = &quot;true&quot;.equalsIgnoreCase(request.getParameter(&quot;debug&quot;));</span>
+<span class="nc" id="L129">	        String debugInfo = &quot;&quot;;</span>
+
+<span class="nc" id="L131">	        RequestHelper.setDefaultCharacterEncoding(request);</span>
+
+<span class="nc bnc" id="L133" title="All 2 branches missed.">	        if (debugRequest) {</span>
+<span class="nc" id="L134">	            debugInfo += &quot;getAttributeNames:\n&quot;;</span>
+<span class="nc" id="L135">	            Enumeration&lt;?&gt; enumeration = request.getAttributeNames();</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">	            while (enumeration.hasMoreElements()) {</span>
+<span class="nc" id="L137">	                String temp = enumeration.nextElement().toString();</span>
+<span class="nc" id="L138">	                debugInfo += temp + &quot; = &quot; + request.getAttribute(temp) + &quot;\n&quot;;</span>
+<span class="nc" id="L139">	            }</span>
+<span class="nc" id="L140">	            debugInfo += &quot;\ngetParameterNames:\n&quot;;</span>
+<span class="nc" id="L141">	            enumeration = request.getParameterNames();</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">	            while (enumeration.hasMoreElements()) {</span>
+<span class="nc" id="L143">	                String temp = enumeration.nextElement().toString();</span>
+<span class="nc" id="L144">	                debugInfo += temp + &quot; = &quot; + request.getParameter(temp) + &quot;\n&quot;;</span>
+<span class="nc" id="L145">	            }</span>
+<span class="nc" id="L146">	            debugInfo += &quot;\ngetHeaderNames:\n&quot;;</span>
+<span class="nc" id="L147">	            enumeration = request.getHeaderNames();</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">	            while (enumeration.hasMoreElements()) {</span>
+<span class="nc" id="L149">	                String temp = enumeration.nextElement().toString();</span>
+<span class="nc" id="L150">	                debugInfo += temp + &quot; = &quot; + request.getHeader(temp) + &quot;\n&quot;;</span>
+<span class="nc" id="L151">	            }</span>
+<span class="nc" id="L152">	            debugInfo += &quot;Remote address: &quot; + request.getRemoteAddr() + &quot;\n&quot;;</span>
+<span class="nc" id="L153">	            log.info(debugInfo);</span>
+	        }
+
+<span class="nc" id="L156">	        byte[] result = null;	</span>
+<span class="nc" id="L157">	        String requestData = MSCertTools.extractRequestFromRawData(request.getParameter(&quot;request&quot;));</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">	        if (requestData == null) {</span>
+<span class="nc" id="L159">	            response.getOutputStream().println(&quot;No request supplied..&quot;);</span>
+<span class="nc" id="L160">	            return;</span>
+	        }
+<span class="nc" id="L162">	        log.info(&quot;Got request: &quot;+requestData);</span>
+	        // The next line expects apache to forward the kerberos-authenticated user as X-Remote-User&quot;
+<span class="nc" id="L164">	        String remoteUser = request.getHeader(&quot;X-Remote-User&quot;) ;</span>
+<span class="nc" id="L165">	        String usernameShort = StringTools.stripUsername(remoteUser.substring(0, remoteUser.indexOf(&quot;@&quot;))).replaceAll(&quot;/&quot;, &quot;&quot;);</span>
+<span class="nc bnc" id="L166" title="All 6 branches missed.">	        if (remoteUser == null || &quot;&quot;.equals(remoteUser) || &quot;(null)&quot;.equals(remoteUser)) {</span>
+<span class="nc" id="L167">	            response.getOutputStream().println(&quot;X-Remote-User was not supplied..&quot;);</span>
+<span class="nc" id="L168">	            return;</span>
+	        }
+<span class="nc" id="L170">	        MSPKCS10RequestMessage req = null;</span>
+<span class="nc" id="L171">	        String certificateTemplate = null;</span>
+<span class="nc" id="L172">	        String command = request.getParameter(&quot;command&quot;);</span>
+<span class="nc bnc" id="L173" title="All 4 branches missed.">	        if (command != null &amp;&amp; &quot;status&quot;.equalsIgnoreCase(command)) {</span>
+<span class="nc" id="L174">	            response.getOutputStream().println(returnStatus(internalAdmin, &quot;Autoenrolled-&quot; + usernameShort + &quot;-&quot; + request.getParameter(&quot;template&quot;)));</span>
+<span class="nc" id="L175">	            return; </span>
+	        } else {
+	            // Default command &quot;request&quot;
+	        }
+<span class="nc" id="L179">	        req = new MSPKCS10RequestMessage(Base64.decode(requestData.getBytes()));</span>
+<span class="nc" id="L180">	        certificateTemplate = req.getMSRequestInfoTemplateName();</span>
+<span class="nc" id="L181">	        int templateIndex = MSCertTools.getTemplateIndex(certificateTemplate);</span>
+	        /* TODO: Lookup requesting entity in AD here to verify that only Machines request Machine Certificates etc.. Also check permissions
+						like who is allowed to enroll for what if possible. */
+	        // Create or edit a user &quot;Autoenrolled-Username-Templatename&quot;
+<span class="nc" id="L185">	        String username = &quot;Autoenrolled-&quot; + usernameShort + &quot;-&quot; + certificateTemplate;</span>
+<span class="nc" id="L186">	        log.info(&quot;Got autoenroll request from &quot; + remoteUser + &quot; (&quot; + username + &quot;) for a &quot; + certificateTemplate + &quot;-certificate.&quot;);</span>
+<span class="nc" id="L187">	        String fetchedSubjectDN = null;</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">	        if (MSCertTools.isRequired(templateIndex, MSCertTools.GET_SUBJECTDN_FROM_AD, 0)) {</span>
+<span class="nc" id="L189">	            fetchedSubjectDN = ActiveDirectoryTools.getUserDNFromActiveDirectory(globalConfiguration, usernameShort);</span>
+	        }
+<span class="nc" id="L191">	        int certProfileId = MSCertTools.getOrCreateCertificateProfile(internalAdmin, templateIndex, certificateProfileSession);</span>
+	        
+            int endEntityProfileId;
+            try {
+<span class="nc" id="L195">                endEntityProfileId = MSCertTools.getOrCreateEndEndtityProfile(internalAdmin, templateIndex, certProfileId, caid, usernameShort,</span>
+                        fetchedSubjectDN, raAdminSession, endEntityProfileSession);
+<span class="nc" id="L197">            } catch (EndEntityProfileNotFoundException e) {</span>
+<span class="nc" id="L198">                String msg = &quot;Could not retrieve required information from AD.&quot;;</span>
+<span class="nc" id="L199">                log.error(msg, e);</span>
+<span class="nc" id="L200">                response.getOutputStream().println(msg);</span>
+<span class="nc" id="L201">                return;</span>
+<span class="nc" id="L202">            } catch(IllegalArgumentException e) {</span>
+<span class="nc" id="L203">                String msg = &quot;Could not retrieve required information from AD.&quot;;</span>
+<span class="nc" id="L204">                log.error(msg, e);</span>
+<span class="nc" id="L205">                response.getOutputStream().println(msg);</span>
+<span class="nc" id="L206">                return;</span>
+<span class="nc" id="L207">            }</span>
+	       
+	  
+	        
+	        // Create user
+
+	        // The CA needs to use non-LDAP order and we need to have the SAN like &quot;CN=Users, CN=Username, DC=com, DC=company&quot;.. why??
+	        // TODO: fix this here.. or is this an general order issue?
+<span class="nc" id="L215">	        String subjectDN = fetchedSubjectDN;</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">	        if (subjectDN == null) {</span>
+<span class="nc bnc" id="L217" title="All 2 branches missed.">	            if (MSCertTools.isRequired(templateIndex, DnComponents.COMMONNAME, 0)) {</span>
+<span class="nc" id="L218">	                subjectDN = &quot;CN=&quot;+usernameShort;</span>
+	            }
+	        }
+<span class="nc" id="L221">	        String subjectAN = &quot;&quot;;</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">	        if (MSCertTools.isRequired(templateIndex, DnComponents.UPN, 0)) {</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">	            subjectAN += (subjectAN.length() == 0 ? &quot;&quot; : &quot;,&quot;) + &quot;UPN=&quot; +remoteUser;</span>
+	        }
+<span class="nc bnc" id="L225" title="All 2 branches missed.">	        if (MSCertTools.isRequired(templateIndex, DnComponents.GUID, 0)) {</span>
+<span class="nc" id="L226">	            String reqGUID = req.getMSRequestInfoSubjectAltnames()[0];</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">	            subjectAN += (subjectAN.length() == 0 ? &quot;&quot; : &quot;,&quot;) + &quot;GUID=&quot; +reqGUID;</span>
+	        }
+<span class="nc bnc" id="L229" title="All 2 branches missed.">	        if (MSCertTools.isRequired(templateIndex, DnComponents.DNSNAME, 0)) {</span>
+<span class="nc" id="L230">	            String reqDNS = req.getMSRequestInfoSubjectAltnames()[1];</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">	            subjectAN += (subjectAN.length() == 0 ? &quot;&quot; : &quot;,&quot;) + &quot;DNSNAME=&quot; +reqDNS;</span>
+	        }
+<span class="nc" id="L233">	        log.info(&quot;sdn=&quot; + subjectDN + &quot;, san=&quot; + subjectAN);</span>
+<span class="nc" id="L234">	        debugInfo += &quot;\nsdn=&quot; + subjectDN + &quot;, san=&quot; + subjectAN + &quot;\n&quot;;</span>
+<span class="nc" id="L235">            EndEntityInformation userData = new EndEntityInformation(username, subjectDN, caid, subjectAN, null, EndEntityConstants.STATUS_NEW,</span>
+                    new EndEntityType(EndEntityTypes.ENDUSER), endEntityProfileId, certProfileId, new Date(), new Date(),
+                    SecConst.TOKEN_SOFT_BROWSERGEN, 0, null);
+<span class="nc" id="L238">	        String password = PasswordGeneratorFactory.getInstance(PasswordGeneratorFactory.PASSWORDTYPE_LETTERSANDDIGITS).getNewPassword(8,8);</span>
+<span class="nc" id="L239">	        userData.setPassword(password);</span>
+	        try {
+<span class="nc bnc" id="L241" title="All 2 branches missed.">	            if (endEntityManagementSession.existsUser(username)) {</span>
+<span class="nc" id="L242">	                endEntityManagementSession.changeUser(internalAdmin, userData, true);</span>
+	            } else {
+<span class="nc" id="L244">	                endEntityManagementSession.addUser(internalAdmin, userData, true);</span>
+	            }
+<span class="nc" id="L246">	        } catch (Exception e) {</span>
+<span class="nc" id="L247">	            log.error(&quot;Could not add user &quot;+username, e);</span>
+<span class="nc" id="L248">	        }</span>
+<span class="nc" id="L249">	        X509Certificate cert=null;</span>
+<span class="nc" id="L250">	        debugInfo += &quot;Request: &quot; + requestData + &quot;\n&quot;;</span>
+<span class="nc" id="L251">	        req.setUsername(username);</span>
+<span class="nc" id="L252">	        req.setPassword(password);</span>
+	        ResponseMessage resp;
+	        try {
+<span class="nc" id="L255">	            resp = signSession.createCertificate(internalAdmin, req, X509ResponseMessage.class, null);</span>
+<span class="nc" id="L256">	            cert = CertTools.getCertfromByteArray(resp.getResponseMessage(), X509Certificate.class);</span>
+<span class="nc" id="L257">	            result = signSession.createPKCS7(internalAdmin, cert, true);</span>
+<span class="nc" id="L258">	            debugInfo += &quot;Resulting cert: &quot; + new String(Base64.encode(result, true)) + &quot;\n&quot;; </span>
+<span class="nc" id="L259">	        } catch (Exception e) {</span>
+<span class="nc" id="L260">	            log.error(&quot;Noooo!!! &quot;, e);</span>
+<span class="nc" id="L261">	            response.getOutputStream().println(&quot;An error has occurred.&quot;);</span>
+<span class="nc" id="L262">	            return;</span>
+<span class="nc" id="L263">	        }</span>
+<span class="nc bnc" id="L264" title="All 2 branches missed.">	        if (debugRequest) {            </span>
+<span class="nc" id="L265">                response.getOutputStream().println(StringEscapeUtils.escapeJavaScript(debugInfo));</span>
+	        } else {
+	            // Output the certificate
+<span class="nc" id="L268">	            ServletOutputStream os = response.getOutputStream();</span>
+<span class="nc" id="L269">	            os.print(RequestHelper.BEGIN_PKCS7_WITH_NL);</span>
+<span class="nc" id="L270">	            os.print(new String(Base64.encode(result, true)));</span>
+<span class="nc" id="L271">	            os.print(RequestHelper.END_PKCS7_WITH_NL);</span>
+<span class="nc" id="L272">	            response.flushBuffer();</span>
+<span class="nc" id="L273">	            log.info(&quot;Sent cert to client&quot;);</span>
+	        }
+<span class="nc" id="L275">	    } catch (AuthorizationDeniedException e1) {</span>
+<span class="nc" id="L276">	        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e1.getMessage());</span>
+<span class="nc" id="L277">	    }</span>
+<span class="nc" id="L278">		log.trace(&quot;&lt;doPost&quot;);</span>
+<span class="nc" id="L279">	}</span>
+
+    @Override
+	public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+<span class="nc" id="L283">		log.trace(&quot;&gt;doGet&quot;);</span>
+<span class="nc" id="L284">		doPost(request, response);</span>
+<span class="nc" id="L285">		log.trace(&quot;&lt;doGet&quot;);</span>
+<span class="nc" id="L286">	}</span>
+
+	/**
+	 * Return &quot;OK&quot; if renewal isn't needed.
+	 * @param admin admin
+	 * @param username user
+	 * @return ok
+	 */
+	private String returnStatus(AuthenticationToken admin, String username) {
+<span class="nc bnc" id="L295" title="All 2 branches missed.">		if (!endEntityManagementSession.existsUser(username)) {</span>
+<span class="nc" id="L296">			return &quot;NO_SUCH_USER&quot;;</span>
+		}
+<span class="nc" id="L298">		Collection&lt;Certificate&gt; certificates = EJBTools.unwrapCertCollection(certificateStoreSession.findCertificatesByUsername(username));</span>
+<span class="nc" id="L299">		Iterator&lt;Certificate&gt; iter = certificates.iterator();</span>
+<span class="nc bnc" id="L300" title="All 2 branches missed.">		if (!iter.hasNext()) {</span>
+<span class="nc" id="L301">			return &quot;NO_CERTIFICATES&quot;;</span>
+		}
+<span class="nc bnc" id="L303" title="All 2 branches missed.">		while (iter.hasNext()) {</span>
+<span class="nc" id="L304">			X509Certificate cert = (X509Certificate)iter.next();</span>
+			try {
+<span class="nc" id="L306">				cert.checkValidity(new Date(System.currentTimeMillis() + 14 * 24 * 3600 * 1000));</span>
+<span class="nc" id="L307">				return &quot;OK&quot;;</span>
+<span class="nc" id="L308">			} catch (CertificateExpiredException e) {</span>
+				try {
+<span class="nc" id="L310">					cert.checkValidity(new Date(System.currentTimeMillis()));</span>
+<span class="nc" id="L311">					return &quot;EXPIRING&quot;;</span>
+<span class="nc" id="L312">				} catch (CertificateExpiredException e1) {</span>
+<span class="nc" id="L313">				} catch (CertificateNotYetValidException e1) {</span>
+<span class="nc" id="L314">					return &quot;ERROR&quot;;</span>
+<span class="nc" id="L315">				}</span>
+<span class="nc" id="L316">			} catch (CertificateNotYetValidException e) {</span>
+<span class="nc" id="L317">				return &quot;ERROR&quot;;</span>
+<span class="nc" id="L318">			}</span>
+<span class="nc" id="L319">		}</span>
+<span class="nc" id="L320">		return &quot;EXPIRED&quot;;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

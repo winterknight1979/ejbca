@@ -1,0 +1,657 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RegisterReqBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">publicweb-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.pub</a> &gt; <span class="el_source">RegisterReqBean.java</span></div><h1>RegisterReqBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.pub;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.PublicWebPrincipal;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.ApprovalRequestType;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.EndEntityType;
+import org.cesecore.certificates.endentity.EndEntityTypes;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.certificates.util.DNFieldExtractor;
+import org.ejbca.config.EjbcaConfigurationHolder;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.core.EjbcaException;
+import org.ejbca.core.ejb.approval.ApprovalProfileSessionLocal;
+import org.ejbca.core.ejb.approval.ApprovalSessionLocal;
+import org.ejbca.core.ejb.ra.EndEntityManagementSessionLocal;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.approval.approvalrequests.AddEndEntityApprovalRequest;
+import org.ejbca.core.model.approval.profile.ApprovalProfile;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileNotFoundException;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
+import org.ejbca.core.model.util.EjbLocalHelper;
+import org.ejbca.util.DNFieldDescriber;
+import org.ietf.ldap.LDAPDN;
+
+/**
+ * Used by enrol/reg*.jsp for self-registration. This bean implements implements listing of certificate types (defined in web.properties),
+ * listing of modifiable end-entity fields and submission of requests.
+ * 
+ * @version $Id: RegisterReqBean.java 27740 2018-01-05 07:24:53Z mikekushner $
+ */
+<span class="nc" id="L67">public class RegisterReqBean {</span>
+    
+<span class="nc" id="L69">    private static final Logger log = Logger.getLogger(RegisterReqBean.class);</span>
+    
+    
+<span class="nc" id="L72">    private final EjbLocalHelper ejbLocalHelper = new EjbLocalHelper();</span>
+<span class="nc" id="L73">    private final EndEntityProfileSessionLocal endEntityProfileSession = ejbLocalHelper.getEndEntityProfileSession();</span>
+<span class="nc" id="L74">    private final CertificateProfileSessionLocal certificateProfileSession = ejbLocalHelper.getCertificateProfileSession();</span>
+<span class="nc" id="L75">    private final EndEntityManagementSessionLocal endEntityManagementSession = ejbLocalHelper.getEndEntityManagementSession();</span>
+<span class="nc" id="L76">    private final ApprovalSessionLocal approvalSession = ejbLocalHelper.getApprovalSession();</span>
+<span class="nc" id="L77">    private final GlobalConfiguration globalConfiguration = (GlobalConfiguration) ejbLocalHelper.getGlobalConfigurationSession().getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID);</span>
+
+    // Form fields
+<span class="nc" id="L80">    private String subjectDN = &quot;&quot;;</span>
+<span class="nc" id="L81">    private String subjectAltName = &quot;&quot;;</span>
+<span class="nc" id="L82">    private String subjectDirAttrs = &quot;&quot;;</span>
+    
+    private String certType;
+    private EndEntityProfile eeprofile; // of cert type
+    
+    private String username;
+    private String email;
+    private int tokenType;
+    private String captcha;
+    
+    // Form errors
+<span class="nc" id="L93">    private final List&lt;String&gt; errors = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L94">    private boolean initialized = false;</span>
+    private String remoteAddress;
+    
+    /**
+     * Finds all properties matching web.selfreg.certtypes.KEY.description=VALUE
+     * and returns a map with these keys and values.
+     * @return map
+     */
+    public Map&lt;String,String&gt; getCertificateTypes() {
+<span class="nc" id="L103">        Map&lt;String,String&gt; certtypes = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        for (Entry&lt;Object,Object&gt; entry : EjbcaConfigurationHolder.getAsProperties().entrySet()) {</span>
+<span class="nc" id="L105">            final Object k = entry.getKey();</span>
+<span class="nc" id="L106">            final Object v = entry.getValue();</span>
+<span class="nc bnc" id="L107" title="All 4 branches missed.">            if (k instanceof String &amp;&amp; v instanceof String) {</span>
+<span class="nc" id="L108">                String key = (String)k;</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">                if (key.matches(&quot;web\\.selfreg\\.certtypes\\.([^.]+)\\.description&quot;)) {</span>
+<span class="nc" id="L110">                    final String name = key.split(&quot;\\.&quot;)[3];</span>
+                    // Check if the certificate exists
+<span class="nc" id="L112">                    final String eeprofname = getCertTypeInfoOptional(name, &quot;eeprofile&quot;, null);</span>
+<span class="nc" id="L113">                    final String certprofname = getCertTypeInfoOptional(name, &quot;certprofile&quot;, null);</span>
+                    try {
+<span class="nc bnc" id="L115" title="All 4 branches missed.">                        if (eeprofname == null || certprofname == null) {</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">                            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L117">                                log.debug(&quot;Ignoring certificate type &quot;+name+&quot; due to missing eeprofile/certprofile properties&quot;);</span>
+                            }
+<span class="nc" id="L119">                            continue;</span>
+                        }
+<span class="nc" id="L121">                        endEntityProfileSession.getEndEntityProfileId(eeprofname);</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">                        if (certificateProfileSession.getCertificateProfileId(certprofname) == 0) {</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">                            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L124">                                log.debug(&quot;Ignoring certificate type &quot;+name+&quot; due to missing certificate profile '&quot;+certprofname+&quot;'&quot;);</span>
+                            }
+<span class="nc" id="L126">                            continue; // Ignore this certificate</span>
+                        }
+<span class="nc" id="L128">                    } catch (EndEntityProfileNotFoundException e) {</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L130">                            log.debug(&quot;Ignoring certificate type &quot;+name+&quot; due to missing end-entity profile '&quot;+eeprofname+&quot;'&quot;);</span>
+                        }
+<span class="nc" id="L132">                        continue; // Ignore this certificate</span>
+<span class="nc" id="L133">                    }</span>
+                    
+<span class="nc" id="L135">                    certtypes.put(name, (String)v);</span>
+                }
+            }
+<span class="nc" id="L138">        }</span>
+<span class="nc" id="L139">        return certtypes;</span>
+    }
+    
+    /**
+     * Reads config property web.selfreg.certtypes.CERTTYPE.xxxxx from web.xml
+     * @param certType type
+     * @param subproperty prop
+     * @return info
+     */
+    private String getCertTypeInfo(String certType, String subproperty) {
+<span class="nc" id="L149">        String key = &quot;web.selfreg.certtypes.&quot;+certType+&quot;.&quot;+subproperty;</span>
+<span class="nc" id="L150">        String value = EjbcaConfigurationHolder.getString(key);</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">        if (value == null) {</span>
+<span class="nc" id="L152">            internalError(&quot;Configuration property &quot;+key+&quot; not defined&quot;);</span>
+        }
+<span class="nc" id="L154">        return value;</span>
+    }
+    
+    private String getCertTypeInfoOptional(String certType, String subproperty, String defaultValue) {
+<span class="nc" id="L158">        String key = &quot;web.selfreg.certtypes.&quot;+certType+&quot;.&quot;+subproperty;</span>
+<span class="nc" id="L159">        String value = EjbcaConfigurationHolder.getString(key);</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">        if (value == null) {</span>
+<span class="nc" id="L161">            return defaultValue;</span>
+        }
+<span class="nc" id="L163">        return value;</span>
+    }
+    
+    public String getCertType() {
+<span class="nc" id="L167">        return certType;</span>
+    }
+    
+    public String getCertTypeDescription() {
+<span class="nc" id="L171">        return getCertTypeInfo(certType, &quot;description&quot;);</span>
+    }
+    
+    public int getEndEntityProfileId() throws EndEntityProfileNotFoundException {
+<span class="nc" id="L175">        return endEntityProfileSession.getEndEntityProfileId(getCertTypeInfo(certType, &quot;eeprofile&quot;));</span>
+    }
+    
+    public EndEntityProfile getEndEntityProfile() {
+<span class="nc" id="L179">        String typeInfo = getCertTypeInfo(certType, &quot;eeprofile&quot;);</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">        if (typeInfo != null) {</span>
+<span class="nc" id="L181">            return endEntityProfileSession.getEndEntityProfile(typeInfo);</span>
+        } else {
+<span class="nc" id="L183">            return null;</span>
+        }
+    }
+    
+    public int getCertificateProfileId() {
+<span class="nc" id="L188">        return certificateProfileSession.getCertificateProfileId(getCertTypeInfo(certType, &quot;certprofile&quot;));</span>
+    }
+    
+    public String getUsernameMapping() {
+<span class="nc" id="L192">        String um = EjbcaConfigurationHolder.getString(&quot;web.selfreg.certtypes.&quot;+certType+&quot;.usernamemapping&quot;);</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">        return um != null ? um.toUpperCase(Locale.ROOT) : null; </span>
+    }
+    
+    public String getDefaultCertType() {
+<span class="nc" id="L197">        String s = EjbcaConfigurationHolder.getString(&quot;web.selfreg.defaultcerttype&quot;);</span>
+<span class="nc bnc" id="L198" title="All 2 branches missed.">        return (s != null ? s : &quot;1&quot;);</span>
+    }
+    
+    /**
+     * Returns a list of all certificate DN fields in the
+     * end-entity profile of the given certtype.
+     * @return list
+     */
+    public List&lt;DNFieldDescriber&gt; getDnFields() {
+<span class="nc" id="L207">        List&lt;DNFieldDescriber&gt; fields = new ArrayList&lt;&gt;();</span>
+        
+<span class="nc" id="L209">        int numberofsubjectdnfields = eeprofile.getSubjectDNFieldOrderLength();</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">        for (int i=0; i &lt; numberofsubjectdnfields; i++) {</span>
+<span class="nc" id="L211">            int[] fielddata = eeprofile.getSubjectDNFieldsInOrder(i);</span>
+<span class="nc" id="L212">            fields.add(new DNFieldDescriber(i, fielddata, eeprofile, DNFieldExtractor.TYPE_SUBJECTDN));</span>
+        }
+        
+<span class="nc" id="L215">        return fields;</span>
+    }
+    
+    public List&lt;DNFieldDescriber&gt; getAltNameFields() {
+<span class="nc" id="L219">        List&lt;DNFieldDescriber&gt; fields = new ArrayList&lt;&gt;();</span>
+        
+<span class="nc" id="L221">        int numberofaltnamefields = eeprofile.getSubjectAltNameFieldOrderLength();</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">        for (int i=0; i &lt; numberofaltnamefields; i++) {</span>
+<span class="nc" id="L223">            int[] fielddata = eeprofile.getSubjectAltNameFieldsInOrder(i);</span>
+<span class="nc" id="L224">            fields.add(new DNFieldDescriber(i, fielddata, eeprofile, DNFieldExtractor.TYPE_SUBJECTALTNAME));</span>
+        }
+        
+<span class="nc" id="L227">        return fields;</span>
+    }
+    
+    public List&lt;DNFieldDescriber&gt; getDirAttrFields() {
+<span class="nc" id="L231">        List&lt;DNFieldDescriber&gt; fields = new ArrayList&lt;&gt;();</span>
+        
+<span class="nc" id="L233">        int count = eeprofile.getSubjectDirAttrFieldOrderLength();</span>
+<span class="nc bnc" id="L234" title="All 2 branches missed.">        for (int i=0; i &lt; count; i++) {</span>
+<span class="nc" id="L235">            int[] fielddata = eeprofile.getSubjectDirAttrFieldsInOrder(i);</span>
+<span class="nc" id="L236">            fields.add(new DNFieldDescriber(i, fielddata, eeprofile, DNFieldExtractor.TYPE_SUBJECTDIRATTR));</span>
+        }
+        
+<span class="nc" id="L239">        return fields;</span>
+    }
+    
+    public boolean isEmailDomainFrozen() {
+<span class="nc bnc" id="L243" title="All 2 branches missed.">        if (eeprofile.isModifyable(EndEntityProfile.EMAIL, 0)) return false;</span>
+<span class="nc" id="L244">        String value = eeprofile.getValue(EndEntityProfile.EMAIL, 0);</span>
+<span class="nc bnc" id="L245" title="All 2 branches missed.">        return !value.contains(&quot;;&quot;);</span>
+    }
+    
+    public boolean isEmailDomainSelectable() {
+<span class="nc bnc" id="L249" title="All 2 branches missed.">        if (eeprofile.isModifyable(EndEntityProfile.EMAIL, 0)) return false;</span>
+<span class="nc" id="L250">        String value = eeprofile.getValue(EndEntityProfile.EMAIL, 0);</span>
+<span class="nc" id="L251">        return value.contains(&quot;;&quot;);</span>
+    }
+    
+    public String[] getSelectableEmailDomains() {
+<span class="nc" id="L255">        String value = eeprofile.getValue(EndEntityProfile.EMAIL, 0);</span>
+<span class="nc" id="L256">        return value.trim().split(&quot;;&quot;);</span>
+    }
+    
+    private String[] getAvailableTokenTypes() {
+<span class="nc" id="L260">        String[] tokenTypes = eeprofile.getValue(EndEntityProfile.AVAILKEYSTORE, 0).split(EndEntityProfile.SPLITCHAR).clone();</span>
+<span class="nc" id="L261">        Arrays.sort(tokenTypes);</span>
+<span class="nc" id="L262">        return tokenTypes;</span>
+    }
+    
+    public boolean isTokenTypeVisible() {
+<span class="nc bnc" id="L266" title="All 2 branches missed.">        return getAvailableTokenTypes().length &gt;= 2;</span>
+    }
+    
+    public String getDefaultTokenType() {
+<span class="nc" id="L270">        return eeprofile.getValue(EndEntityProfile.DEFKEYSTORE, 0);</span>
+    }
+    
+    private String getTokenTypeName(String idString) {
+<span class="nc" id="L274">        int id = Integer.parseInt(idString);</span>
+<span class="nc bnc" id="L275" title="All 5 branches missed.">        switch (id) {</span>
+<span class="nc" id="L276">        case SecConst.TOKEN_SOFT_BROWSERGEN: return &quot;User generated&quot;;</span>
+<span class="nc" id="L277">        case SecConst.TOKEN_SOFT_P12: return &quot;PKCS12 file&quot;;</span>
+<span class="nc" id="L278">        case SecConst.TOKEN_SOFT_PEM: return &quot;PEM file&quot;;</span>
+<span class="nc" id="L279">        case SecConst.TOKEN_SOFT_JKS: return &quot;JKS file&quot;;</span>
+<span class="nc" id="L280">        default: return idString;</span>
+        }
+    }
+    
+    public boolean isInitialized() {
+<span class="nc" id="L285">        return initialized;</span>
+    }
+
+    public static class TokenTypeInfo {
+        private final String key;
+        private final String text;
+<span class="nc" id="L291">        TokenTypeInfo(String key, String text) {</span>
+<span class="nc" id="L292">            this.key = key;</span>
+<span class="nc" id="L293">            this.text = text;</span>
+<span class="nc" id="L294">        }</span>
+<span class="nc" id="L295">        public String getKey() { return key; }</span>
+<span class="nc" id="L296">        public String getText() { return text; }</span>
+    }
+    
+    public List&lt;TokenTypeInfo&gt; getSelectableTokenTypeItems() {
+<span class="nc" id="L300">        List&lt;TokenTypeInfo&gt; items = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L301" title="All 2 branches missed.">        for (String keystore : getAvailableTokenTypes()) {</span>
+<span class="nc" id="L302">            items.add(new TokenTypeInfo(keystore, getTokenTypeName(keystore)));</span>
+        }
+<span class="nc" id="L304">        return items;</span>
+    }
+    
+    /**
+     * Checks if the Certificate Profile and End Entity Profile fulfills the self-registration requirements.
+     * 
+     * @return true if CP and EEP fulfills requirements
+     */
+    public boolean validCpAndEep() {
+<span class="nc" id="L313">        boolean valid = true;</span>
+<span class="nc" id="L314">        CertificateProfile certificateProfile = certificateProfileSession.getCertificateProfile(getCertificateProfileId());</span>
+<span class="nc" id="L315">        EndEntityProfile endEntityProfile = getEndEntityProfile();</span>
+        
+        // Check that the Certificate Profile or the Default CA has an Approval Profile set for Add/Edit End Entity
+<span class="nc" id="L318">        final AuthenticationToken admin = new AlwaysAllowLocalAuthenticationToken(new PublicWebPrincipal(remoteAddress));</span>
+<span class="nc" id="L319">        ApprovalProfile approvalProfile = null;</span>
+        try {
+<span class="nc" id="L321">            CAInfo caInfo = ejbLocalHelper.getCaSession().getCAInfo(admin, endEntityProfile.getDefaultCA());</span>
+<span class="nc" id="L322">            approvalProfile = ejbLocalHelper.getApprovalProfileSession().getApprovalProfileForAction(ApprovalRequestType.ADDEDITENDENTITY, caInfo, certificateProfile);</span>
+<span class="nc" id="L323">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L324">            log.info(&quot;Self Registration: Could not get Approval Profile&quot;, e);</span>
+<span class="nc" id="L325">        }</span>
+<span class="nc bnc" id="L326" title="All 2 branches missed.">        if (approvalProfile == null) {</span>
+<span class="nc" id="L327">            log.info(&quot;Self Registration: An Approval Profile must be set for 'Add/Edit End Entity' in the Certificate Profile/Default CA for Certificate type: &quot; + getCertType());</span>
+<span class="nc" id="L328">            valid = false;</span>
+        }
+        // Check that the End Entity Profile has End Entity E-mail enabled
+<span class="nc bnc" id="L331" title="All 2 branches missed.">        if (!endEntityProfile.getUse(EndEntityProfile.EMAIL, 0)) {</span>
+<span class="nc" id="L332">            log.info(&quot;Self Registration: End Entity E-mail must be enabled in the End Entity Profile for Certificate type: &quot; + getCertType());</span>
+<span class="nc" id="L333">            valid = false;</span>
+        }
+        // Check that the End Entity Profile has Auto-generated password enabled
+<span class="nc bnc" id="L336" title="All 2 branches missed.">        if (!endEntityProfile.useAutoGeneratedPasswd()) {</span>
+<span class="nc" id="L337">            log.info(&quot;Self Registration: Password must be Auto-generated in the End Entity Profile for Certificate type: &quot; + getCertType());</span>
+<span class="nc" id="L338">            valid = false;</span>
+        }
+<span class="nc" id="L340">        return valid;</span>
+    }
+    
+    public boolean isUsernameVisible() {
+<span class="nc bnc" id="L344" title="All 2 branches missed.">        return getUsernameMapping() == null;</span>
+    }
+    
+    private void checkCertEEProfilesExist() {
+<span class="nc" id="L348">        String eeprofName = getCertTypeInfo(certType, &quot;eeprofile&quot;);</span>
+<span class="nc bnc" id="L349" title="All 4 branches missed.">        if (eeprofName != null &amp;&amp; endEntityProfileSession.getEndEntityProfile(eeprofName) == null) {</span>
+<span class="nc" id="L350">            internalError(&quot;End entity profile &quot;+eeprofName+&quot; does not exist. Please ask the administrator to check the web.selfreg.certtypes.&quot;+certType+&quot;.eeprofile configuration&quot;);</span>
+        }
+        
+<span class="nc" id="L353">        String certprofName = getCertTypeInfo(certType, &quot;certprofile&quot;);</span>
+<span class="nc bnc" id="L354" title="All 4 branches missed.">        if (certprofName != null &amp;&amp; certificateProfileSession.getCertificateProfile(certprofName) == null) {</span>
+<span class="nc" id="L355">            internalError(&quot;Certificate profile &quot;+certprofName+&quot; does not exist. Please ask the administrator to check the web.selfreg.certtypes.&quot;+certType+&quot;.certprofile configuration&quot;);</span>
+        }
+<span class="nc" id="L357">    }</span>
+    
+    public void checkConfig() {
+<span class="nc" id="L360">        String s = EjbcaConfigurationHolder.getString(&quot;web.selfreg.defaultcerttype&quot;);</span>
+<span class="nc bnc" id="L361" title="All 4 branches missed.">        if (s != null &amp;&amp; getCertTypeInfo(s, &quot;description&quot;) == null) {</span>
+<span class="nc" id="L362">            internalError(&quot;Please ask the administrator to check the default certificate type. It is configured by web.selfreg.defaultcerttype.&quot;);</span>
+        }
+        
+<span class="nc bnc" id="L365" title="All 2 branches missed.">        if (getCertificateTypes().isEmpty()) {</span>
+<span class="nc" id="L366">            internalError(&quot;No certificate types have been configured. Self registration is not available.&quot;);</span>
+        }
+<span class="nc" id="L368">    }</span>
+    
+    /** Appends a field to a Subject DN, Subject Alternative Name, or Subject Directory Attributes. 
+     * @param dn DN
+     * @param dnName Name
+     * @param value Val
+     * @return DN  */
+    private static String appendToDN(final String dn, final String dnName, final String value) {
+<span class="nc" id="L376">        final String field = LDAPDN.escapeRDN(dnName.toUpperCase(Locale.ROOT) + &quot;=&quot; + value);</span>
+<span class="nc bnc" id="L377" title="All 2 branches missed.">        if (dn.isEmpty()) {</span>
+<span class="nc" id="L378">            return field;</span>
+        } else {
+<span class="nc" id="L380">            return dn + &quot;,&quot; + field;</span>
+        }
+    }
+    
+    /**
+     * Reads all parameters from the request. Used to receive the parameters from both step 1 and step 2.
+     * @param request req
+     */
+    public void initialize(final HttpServletRequest request) {
+<span class="nc bnc" id="L389" title="All 2 branches missed.">        if (!&quot;POST&quot;.equalsIgnoreCase(request.getMethod())) {</span>
+<span class="nc" id="L390">            internalError(&quot;Internal error: Invalid request method.&quot;);</span>
+        }
+        
+<span class="nc" id="L393">        certType = request.getParameter(&quot;certType&quot;);</span>
+        
+<span class="nc" id="L395">        checkConfig();</span>
+<span class="nc" id="L396">        checkCertEEProfilesExist();</span>
+<span class="nc" id="L397">        eeprofile = getEndEntityProfile();</span>
+<span class="nc bnc" id="L398" title="All 4 branches missed.">        if (eeprofile == null &amp;&amp; !errors.isEmpty()) {</span>
+<span class="nc" id="L399">            return;</span>
+        }
+<span class="nc" id="L401">        String usernameMapping = getUsernameMapping();</span>
+
+        // Get all fields
+<span class="nc" id="L404">        final Map&lt;String,String&gt; allFields = new HashMap&lt;&gt;();</span>
+        @SuppressWarnings(&quot;rawtypes&quot;)
+<span class="nc" id="L406">        Enumeration en = request.getParameterNames();</span>
+<span class="nc bnc" id="L407" title="All 2 branches missed.">        while (en.hasMoreElements()) {</span>
+<span class="nc" id="L408">            String key = (String)en.nextElement();</span>
+<span class="nc" id="L409">            String value = request.getParameter(key).trim();</span>
+            
+<span class="nc" id="L411">            String id = key.replaceFirst(&quot;^[a-z]+_&quot;, &quot;&quot;); // format is e.g. dnfield_cn, altnamefield_123 or dirattrfield_123 </span>
+<span class="nc bnc" id="L412" title="All 2 branches missed.">            if (key.startsWith(&quot;dnfield_&quot;)) {</span>
+<span class="nc bnc" id="L413" title="All 2 branches missed.">                if (!value.isEmpty()) {</span>
+<span class="nc" id="L414">                    String dnName = DNFieldDescriber.extractSubjectDnNameFromId(eeprofile, id);</span>
+<span class="nc" id="L415">                    subjectDN = appendToDN(subjectDN, dnName, value);</span>
+<span class="nc" id="L416">                    allFields.put(dnName.toUpperCase(Locale.ROOT), value);</span>
+                }
+            }
+            
+<span class="nc bnc" id="L420" title="All 2 branches missed.">            if (key.startsWith(&quot;altnamefield_&quot;)) {</span>
+<span class="nc bnc" id="L421" title="All 2 branches missed.">                if (!value.isEmpty()) {</span>
+<span class="nc" id="L422">                    boolean valid = true;</span>
+<span class="nc" id="L423">                    String domain = request.getParameter(&quot;domain_&quot; + key);</span>
+<span class="nc bnc" id="L424" title="All 2 branches missed.">                    if (domain != null) {</span>
+                        // The field is RFC 822 or MS UPN
+<span class="nc" id="L426">                        domain = domain.trim();</span>
+<span class="nc bnc" id="L427" title="All 2 branches missed.">                        if (!domain.isEmpty()) {</span>
+<span class="nc" id="L428">                            value = value += &quot;@&quot; + domain;</span>
+                        } else {
+                            // Got value but empty domain name
+<span class="nc" id="L431">                            valid = false;</span>
+<span class="nc" id="L432">                            internalError(&quot;Incomplete field: &quot; + request.getParameter(&quot;type_&quot; + key));</span>
+                        }
+                    }
+<span class="nc bnc" id="L435" title="All 2 branches missed.">                    if (valid) {</span>
+<span class="nc" id="L436">                        String altName = DNFieldDescriber.extractSubjectAltNameFromId(eeprofile, id);</span>
+<span class="nc" id="L437">                        subjectAltName = appendToDN(subjectAltName, altName, value);</span>
+<span class="nc" id="L438">                        allFields.put(altName.toUpperCase(Locale.ROOT), value);</span>
+                    }
+                }
+            }
+            
+<span class="nc bnc" id="L443" title="All 2 branches missed.">            if (key.startsWith(&quot;dirattrfield_&quot;)) {</span>
+<span class="nc bnc" id="L444" title="All 2 branches missed.">                if (!value.isEmpty()) {</span>
+<span class="nc" id="L445">                    String dirAttr = DNFieldDescriber.extractSubjectDirAttrFromId(eeprofile, id);</span>
+<span class="nc" id="L446">                    subjectDirAttrs = appendToDN(subjectDirAttrs, dirAttr, value);</span>
+<span class="nc" id="L447">                    allFields.put(dirAttr.toUpperCase(Locale.ROOT), value);</span>
+                }
+            }
+<span class="nc" id="L450">        }</span>
+        
+        // User account
+<span class="nc" id="L453">        email = request.getParameter(&quot;email&quot;);</span>
+<span class="nc" id="L454">        String domain = request.getParameter(&quot;emaildomain&quot;);</span>
+<span class="nc bnc" id="L455" title="All 4 branches missed.">        if (domain != null &amp;&amp; !email.isEmpty()) email += &quot;@&quot; + domain;</span>
+<span class="nc" id="L456">        captcha = request.getParameter(&quot;code&quot;);</span>
+        
+<span class="nc" id="L458">        String tokenStr = request.getParameter(&quot;tokenType&quot;);</span>
+<span class="nc bnc" id="L459" title="All 2 branches missed.">        tokenType = Integer.parseInt(tokenStr != null ? tokenStr : getDefaultTokenType());</span>
+<span class="nc bnc" id="L460" title="All 2 branches missed.">        if (&quot;1&quot;.equals(request.getParameter(&quot;emailindn&quot;))) {</span>
+<span class="nc" id="L461">            subjectDN = appendToDN(subjectDN, &quot;E&quot;, email);</span>
+<span class="nc" id="L462">            allFields.put(&quot;E&quot;, email);</span>
+        }
+        
+<span class="nc bnc" id="L465" title="All 2 branches missed.">        if (request.getParameter(&quot;emailinaltname&quot;) != null) {</span>
+<span class="nc" id="L466">            String id = request.getParameter(&quot;emailinaltname&quot;);</span>
+<span class="nc" id="L467">            String altName = DNFieldDescriber.extractSubjectAltNameFromId(eeprofile, id);</span>
+<span class="nc" id="L468">            subjectAltName = appendToDN(subjectAltName, altName, email);</span>
+<span class="nc" id="L469">            allFields.put(altName, email);</span>
+        }
+        
+<span class="nc bnc" id="L472" title="All 2 branches missed.">        if (isUsernameVisible()) {</span>
+<span class="nc" id="L473">            username = request.getParameter(&quot;username&quot;);</span>
+        } else {
+<span class="nc" id="L475">            username = allFields.get(usernameMapping);</span>
+<span class="nc bnc" id="L476" title="All 4 branches missed.">            if (!allFields.isEmpty() &amp;&amp; username == null) {</span>
+<span class="nc" id="L477">                internalError(&quot;DN field of usernamemapping doesn't exist: &quot;+usernameMapping);</span>
+            }
+        }
+        
+<span class="nc" id="L481">        remoteAddress = request.getRemoteAddr();</span>
+<span class="nc" id="L482">        initialized = true;</span>
+<span class="nc" id="L483">    }</span>
+    
+    private void checkFormFields() {
+<span class="nc" id="L486">        boolean cantDoCaptcha = false;</span>
+        
+<span class="nc bnc" id="L488" title="All 4 branches missed.">        if (certType == null || certType.isEmpty()) {</span>
+<span class="nc" id="L489">            errors.add(&quot;Certificate type is not specified.&quot;);</span>
+        }
+        
+        // User account
+<span class="nc bnc" id="L493" title="All 4 branches missed.">        if (username == null || username.isEmpty()) {</span>
+<span class="nc" id="L494">            errors.add(&quot;Username is not specified.&quot;);</span>
+<span class="nc bnc" id="L495" title="All 2 branches missed.">            if (isUsernameVisible()) cantDoCaptcha = true;</span>
+        }
+        
+<span class="nc bnc" id="L498" title="All 4 branches missed.">        if (email == null || !email.matches(&quot;[^@]+@.+&quot;)) {</span>
+<span class="nc" id="L499">            errors.add(&quot;E-mail is not specified.&quot;);</span>
+<span class="nc bnc" id="L500" title="All 2 branches missed.">            if (!isUsernameVisible()) cantDoCaptcha = true;</span>
+        }
+        
+        // Token type
+<span class="nc bnc" id="L504" title="All 2 branches missed.">        if (!ArrayUtils.contains(getAvailableTokenTypes(), String.valueOf(tokenType))) {</span>
+<span class="nc" id="L505">            errors.add(&quot;Token type is not allowed by end-entity profile.&quot;);</span>
+        }
+
+<span class="nc bnc" id="L508" title="All 2 branches missed.">        String captchaField = isUsernameVisible() ? username : email;</span>
+        
+        // The captcha simply is the last character of the name
+<span class="nc bnc" id="L511" title="All 6 branches missed.">        if (!cantDoCaptcha &amp;&amp; (captcha == null || !captcha.equalsIgnoreCase(captchaField.substring(captchaField.length()-1)))) {</span>
+<span class="nc" id="L512">            errors.add(&quot;Captcha code is incorrect.&quot;);</span>
+        }
+<span class="nc" id="L514">    }</span>
+    
+    /**
+     * Returns a list of errors to be displayed by the .jsp
+     * @return list
+     */
+    public List&lt;String&gt; getErrors() {
+<span class="nc" id="L521">        return new ArrayList&lt;&gt;(errors);</span>
+    }
+    
+    /**
+     * Adds and logs an internal or configuration error.
+     * @param message message
+     */
+    public void internalError(String message) {
+<span class="nc" id="L529">        errors.add(message);</span>
+<span class="nc" id="L530">        log.info(message);</span>
+<span class="nc" id="L531">    }</span>
+    
+    private void assignDirAttrs(EndEntityInformation endEntity) {
+<span class="nc" id="L534">        ExtendedInformation ext = endEntity.getExtendedInformation();</span>
+<span class="nc bnc" id="L535" title="All 2 branches missed.">        if (ext == null) {</span>
+<span class="nc" id="L536">            ext = new ExtendedInformation();</span>
+        }
+<span class="nc" id="L538">        ext.setSubjectDirectoryAttributes(subjectDirAttrs);</span>
+<span class="nc" id="L539">        endEntity.setExtendedInformation(ext);</span>
+<span class="nc" id="L540">    }</span>
+    
+    /**
+     * Creates a approval request from the given information in the form.
+     * initialize() must have been called before this method is called.  
+     */
+    public void submit() {
+<span class="nc bnc" id="L547" title="All 2 branches missed.">        if (!initialized) {</span>
+<span class="nc" id="L548">            throw new IllegalStateException(&quot;initialize not called before submit&quot;);</span>
+        }
+        
+        // Set up config for admingui (e.g. for e-mails to admins with links to it)
+        // This should be OK to do here and to do per request, since it just
+        // sets up some hard-coded config strings, etc.
+<span class="nc" id="L554">        globalConfiguration.initializeAdminWeb();</span>
+        
+<span class="nc" id="L556">        checkFormFields();</span>
+<span class="nc" id="L557">        final String usernamePrefix = getCertTypeInfoOptional(certType, &quot;usernameprefix&quot;, null);</span>
+<span class="nc bnc" id="L558" title="All 2 branches missed.">        if (usernamePrefix != null) {</span>
+<span class="nc" id="L559">            username = usernamePrefix + username;</span>
+        }
+        
+<span class="nc bnc" id="L562" title="All 2 branches missed.">        if (!errors.isEmpty()) {</span>
+<span class="nc" id="L563">            return;</span>
+        }
+        
+        int eeProfileId;
+        try {
+<span class="nc" id="L568">            eeProfileId = getEndEntityProfileId();</span>
+<span class="nc" id="L569">        } catch (EndEntityProfileNotFoundException e) {</span>
+<span class="nc" id="L570">            errors.add(&quot;Validation error: &quot;+e.getMessage());</span>
+<span class="nc" id="L571">            return;</span>
+<span class="nc" id="L572">        }</span>
+<span class="nc" id="L573">        final EndEntityProfile eeprofile = endEntityProfileSession.getEndEntityProfile(eeProfileId);</span>
+<span class="nc" id="L574">        final int caid = eeprofile.getDefaultCA();</span>
+<span class="nc bnc" id="L575" title="All 2 branches missed.">        if (caid == -1) {</span>
+<span class="nc" id="L576">            internalError(&quot;The end-entity profile &quot;+getCertTypeInfo(certType, &quot;eeprofile&quot;)+&quot; for cert type &quot;+certType+&quot; does not have any default CA.&quot;);</span>
+        }
+        
+<span class="nc" id="L579">        final int certProfileId = getCertificateProfileId();</span>
+        
+<span class="nc bnc" id="L581" title="All 2 branches missed.">        if (endEntityManagementSession.existsUser(username)) {</span>
+<span class="nc" id="L582">            errors.add(&quot;A user with that name exists already&quot;);</span>
+        }
+        
+<span class="nc bnc" id="L585" title="All 2 branches missed.">        if (!errors.isEmpty()) {</span>
+<span class="nc" id="L586">            return;</span>
+        }
+        
+<span class="nc" id="L589">        final AuthenticationToken admin = new AlwaysAllowLocalAuthenticationToken(new PublicWebPrincipal(remoteAddress));</span>
+        
+<span class="nc" id="L591">        EndEntityInformation endEntity = new EndEntityInformation(username, subjectDN, caid, subjectAltName, </span>
+                null, EndEntityConstants.STATUS_NEW, new EndEntityType(EndEntityTypes.ENDUSER), eeProfileId, certProfileId,
+                null,null, tokenType, 0, null);
+<span class="nc bnc" id="L594" title="All 2 branches missed.">        if (eeprofile.getUse(EndEntityProfile.SENDNOTIFICATION, 0)) {</span>
+<span class="nc" id="L595">            endEntity.setSendNotification(true);</span>
+        }
+<span class="nc" id="L597">        assignDirAttrs(endEntity);</span>
+<span class="nc bnc" id="L598" title="All 2 branches missed.">        if (email != null) {</span>
+<span class="nc" id="L599">            endEntity.setEmail(email);</span>
+        }
+        
+        try {
+<span class="nc" id="L603">            endEntity = endEntityManagementSession.canonicalizeUser(endEntity);</span>
+<span class="nc bnc" id="L604" title="All 2 branches missed.">            if (globalConfiguration.getEnableEndEntityProfileLimitations()) {</span>
+<span class="nc" id="L605">                eeprofile.doesUserFulfillEndEntityProfile(endEntity, false);</span>
+                
+            }
+<span class="nc" id="L608">        } catch (EjbcaException e) {</span>
+<span class="nc" id="L609">            errors.add(&quot;Validation error: &quot;+e.getMessage());</span>
+<span class="nc" id="L610">            return;</span>
+<span class="nc" id="L611">        } catch (EndEntityProfileValidationException e) {</span>
+<span class="nc" id="L612">            errors.add(&quot;User information does not fulfill requirements: &quot;+e.getMessage());</span>
+<span class="nc" id="L613">            return;</span>
+<span class="nc" id="L614">        }</span>
+        
+<span class="nc" id="L616">        final CaSessionLocal casession = ejbLocalHelper.getCaSession();</span>
+<span class="nc" id="L617">        CAInfo cainfo = casession.getCAInfoInternal(caid);</span>
+<span class="nc bnc" id="L618" title="All 2 branches missed.">        if(cainfo == null) {</span>
+<span class="nc" id="L619">            errors.add(&quot;CA with ID &quot; + caid + &quot; does not exist.&quot;);</span>
+<span class="nc" id="L620">            return;</span>
+        }
+<span class="nc" id="L622">        final ApprovalProfile approvalProfile = getApprovalProfile(cainfo, certProfileId);        </span>
+        // Add approval request
+<span class="nc" id="L624">        final AddEndEntityApprovalRequest approvalReq = new AddEndEntityApprovalRequest(endEntity, false, admin, null, caid,</span>
+                eeProfileId, approvalProfile);
+        try {
+<span class="nc" id="L627">            approvalSession.addApprovalRequest(admin, approvalReq);</span>
+<span class="nc" id="L628">        } catch (EjbcaException e) {</span>
+<span class="nc" id="L629">            errors.add(&quot;Could not submit the information for approval: &quot;+e.getMessage());</span>
+<span class="nc" id="L630">            log.info(&quot;Approval request could not be added&quot;, e);</span>
+<span class="nc" id="L631">        }</span>
+<span class="nc" id="L632">    }</span>
+    
+    private ApprovalProfile getApprovalProfile(final CAInfo cainfo, final int certProfileId) {
+        //FIXME: We shouldn't have to pluck out a session bean for this... 
+<span class="nc" id="L636">        final ApprovalProfileSessionLocal approvalProfileSession = ejbLocalHelper.getApprovalProfileSession();</span>
+<span class="nc" id="L637">        final CertificateProfile certProfile = certificateProfileSession.getCertificateProfile(certProfileId);</span>
+<span class="nc bnc" id="L638" title="All 2 branches missed.">        if (certProfile != null) {</span>
+<span class="nc" id="L639">            Integer approvalProfileId = certProfile.getApprovals().get(ApprovalRequestType.ADDEDITENDENTITY);</span>
+<span class="nc bnc" id="L640" title="All 2 branches missed.">            if (approvalProfileId != null) {</span>
+<span class="nc" id="L641">                return approvalProfileSession.getApprovalProfile(approvalProfileId);</span>
+            }
+        }
+<span class="nc" id="L644">        Integer approvalProfileId = cainfo.getApprovals().get(ApprovalRequestType.ADDEDITENDENTITY);</span>
+<span class="nc bnc" id="L645" title="All 2 branches missed.">        if (approvalProfileId != null) {</span>
+<span class="nc" id="L646">            return approvalProfileSession.getApprovalProfile(approvalProfileId);</span>
+        }
+<span class="nc" id="L648">        log.error(&quot;Could not find a suitable approval profile for certificate profile &quot;+certProfileId+&quot; or CA &quot;+cainfo.getCAId());</span>
+<span class="nc" id="L649">        return null;</span>
+
+    }
+    
+}
+
+
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

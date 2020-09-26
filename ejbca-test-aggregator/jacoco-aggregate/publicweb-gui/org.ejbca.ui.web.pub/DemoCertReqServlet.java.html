@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>DemoCertReqServlet.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">publicweb-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.pub</a> &gt; <span class="el_source">DemoCertReqServlet.java</span></div><h1>DemoCertReqServlet.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.pub;
+
+import java.io.IOException;
+import java.util.Date;
+import java.util.Enumeration;
+
+import javax.ejb.EJB;
+import javax.ejb.ObjectNotFoundException;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.util.encoders.DecoderException;
+import org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.PublicWebPrincipal;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.ca.SignRequestException;
+import org.cesecore.certificates.ca.SignRequestSignatureException;
+import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.EndEntityType;
+import org.cesecore.certificates.endentity.EndEntityTypes;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.StringTools;
+import org.ejbca.core.ejb.ca.sign.SignSessionLocal;
+import org.ejbca.core.ejb.ra.EndEntityAccessSession;
+import org.ejbca.core.ejb.ra.EndEntityAccessSessionLocal;
+import org.ejbca.core.ejb.ra.EndEntityManagementSessionLocal;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.ca.AuthLoginException;
+import org.ejbca.core.model.ca.AuthStatusException;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileNotFoundException;
+import org.ejbca.ui.web.CertificateResponseType;
+import org.ejbca.ui.web.RequestHelper;
+import org.ejbca.util.HTMLTools;
+
+/**
+ * This is a servlet that is used for creating a user into EJBCA and retrieving her certificate. Supports only POST.
+ * &lt;p&gt;
+ * The CGI parameters for requests are the following.
+ * &lt;/p&gt;
+ * &lt;dl&gt;
+ * &lt;dt&gt;pkcs10req&lt;/dt&gt;
+ * &lt;dd&gt;
+ * A PKCS#10 request, mandatory.&lt;/dd&gt;
+ * &lt;dt&gt;username&lt;/dt&gt;
+ * &lt;dd&gt;
+ * The username (for EJBCA use only). Optional, defaults to the CN in the PKCS#10 request.&lt;/dd&gt;
+ * &lt;dt&gt;password&lt;/dt&gt;
+ * &lt;dd&gt;
+ * Password for the user (for EJBCA internal use only). Optional, defaults to an empty string. Used for authorization of the certificate request.&lt;/dd&gt;
+ * &lt;dt&gt;email&lt;/dt&gt;
+ * &lt;dd&gt;
+ * Email of the user for inclusion in subject alternative names. Optional, defaults to none.&lt;/dd&gt;
+ * &lt;dt&gt;entityprofile&lt;/dt&gt;
+ * &lt;dd&gt;
+ * The name of the EJBCA end entity profile for the user. Optional, defaults to an empty end entity profile.&lt;/dd&gt;
+ * &lt;dt&gt;certificateprofile&lt;/dt&gt;
+ * &lt;dd&gt;
+ * The name of the EJBCA certificate profile to use. Optional, defaults to the fixed end user profile.&lt;/dd&gt;
+ * &lt;/dl&gt;
+ *
+ * @version $Id: DemoCertReqServlet.java 27422 2017-12-05 14:05:42Z bastianf $
+ */
+<span class="nc" id="L86">public class DemoCertReqServlet extends HttpServlet {</span>
+
+    private static final long serialVersionUID = -3011724049895073472L;
+
+<span class="nc" id="L90">    private final static Logger log = Logger.getLogger(DemoCertReqServlet.class);</span>
+
+    // Edit this constant to the id of your preferable CA used to sign certificate.
+    private final static int DEFAULT_DEMOCAID = 0;
+
+    @EJB
+    private CaSessionLocal caSession;
+    @EJB
+    private SignSessionLocal signSession;
+    @EJB
+    private CertificateProfileSessionLocal certificateProfileSession;
+    @EJB
+    private EndEntityAccessSessionLocal endEntityAccessSession;
+    @EJB
+    private EndEntityManagementSessionLocal endEntityManagementSession;
+    @EJB
+    private EndEntityProfileSessionLocal endEntityProfileSession;
+
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+<span class="nc" id="L110">        super.init(config);</span>
+        try {
+<span class="nc" id="L112">            CryptoProviderTools.installBCProvider(); // Install BouncyCastle provider</span>
+<span class="nc" id="L113">        } catch (Exception e) {</span>
+<span class="nc" id="L114">            throw new ServletException(e);</span>
+<span class="nc" id="L115">        }</span>
+<span class="nc" id="L116">    }</span>
+
+    /**
+     * Handles PKCS10 certificate request, these are constructed as:
+     *
+     * &lt;pre&gt;
+     * CertificationRequest ::= SEQUENCE {
+     * certificationRequestInfo  CertificationRequestInfo,
+     * signatureAlgorithm          AlgorithmIdentifier{{ SignatureAlgorithms }},
+     * signature                       BIT STRING
+     * }
+     * CertificationRequestInfo ::= SEQUENCE {
+     * version             INTEGER { v1(0) } (v1,...),
+     * subject             Name,
+     * subjectPKInfo   SubjectPublicKeyInfo{{ PKInfoAlgorithms }},
+     * attributes          [0] Attributes{{ CRIAttributes }}
+     * }
+     * SubjectPublicKeyInfo { ALGORITHM : IOSet} ::= SEQUENCE {
+     * algorithm           AlgorithmIdentifier {{IOSet}},
+     * subjectPublicKey    BIT STRING
+     * }
+     * &lt;/pre&gt;
+     *
+     * PublicKey's encoded-format has to be RSA X.509.
+     */
+    @Override
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+<span class="nc" id="L143">        ServletDebug debug = new ServletDebug(request, response);</span>
+
+<span class="nc" id="L145">        AuthenticationToken admin = new AlwaysAllowLocalAuthenticationToken(new PublicWebPrincipal(&quot;DemoCertReqServlet&quot;, request.getRemoteAddr()));</span>
+<span class="nc" id="L146">        RequestHelper.setDefaultCharacterEncoding(request);</span>
+
+<span class="nc" id="L148">        String dn = null;</span>
+<span class="nc" id="L149">        dn = request.getParameter(&quot;user&quot;);</span>
+<span class="nc" id="L150">        byte[] reqBytes = null;</span>
+<span class="nc" id="L151">        int type = 0;</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        if (request.getParameter(&quot;keygen&quot;) != null) {</span>
+<span class="nc" id="L153">            reqBytes = request.getParameter(&quot;keygen&quot;).getBytes();</span>
+<span class="nc" id="L154">            log.debug(&quot;Received NS request:&quot; + new String(reqBytes));</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">            if (reqBytes != null) {</span>
+<span class="nc" id="L156">                type = 1;</span>
+            }
+<span class="nc bnc" id="L158" title="All 2 branches missed.">        } else if (request.getParameter(&quot;pkcs10req&quot;) != null) {</span>
+            // if not firefox, check if it's IE
+<span class="nc" id="L160">            reqBytes = request.getParameter(&quot;pkcs10req&quot;).getBytes();</span>
+<span class="nc" id="L161">            log.debug(&quot;Received IE request:&quot; + new String(reqBytes));</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">            if (reqBytes != null) {</span>
+<span class="nc" id="L163">                type = 2;</span>
+            }
+        }
+<span class="nc bnc" id="L166" title="All 2 branches missed.">        if (reqBytes == null) {</span>
+            // abort here, no request received
+<span class="nc" id="L168">            throw new ServletException(&quot;A certification request must be provided!&quot;);</span>
+        }
+
+<span class="nc" id="L171">        String username = request.getParameter(&quot;username&quot;);</span>
+<span class="nc bnc" id="L172" title="All 4 branches missed.">        if (username == null || username.trim().length() == 0) {</span>
+<span class="nc" id="L173">            username = CertTools.getPartFromDN(dn, &quot;CN&quot;);</span>
+        }
+<span class="nc" id="L175">        username = username + &quot;(&quot; + (new Date()).toString() + &quot;)&quot;;</span>
+        // Strip dangerous chars
+<span class="nc" id="L177">        username = StringTools.stripUsername(username);</span>
+        // need null check here?
+        // Before doing anything else, check if the user name is unique and ok.
+<span class="nc" id="L180">        boolean check = checkUsername(admin, username, endEntityAccessSession);</span>
+<span class="nc bnc" id="L181" title="All 2 branches missed.">        if (check == false) {</span>
+<span class="nc" id="L182">            String msg = &quot;User '&quot; + HTMLTools.htmlescape(username) + &quot;' already exist.&quot;;</span>
+<span class="nc" id="L183">            log.error(msg);</span>
+<span class="nc" id="L184">            debug.printMessage(msg);</span>
+<span class="nc" id="L185">            debug.printDebugInfo();</span>
+<span class="nc" id="L186">            return;</span>
+        }
+
+        // Functionality to determine the class id of ie page.
+<span class="nc" id="L190">        String classid = &quot;clsid:127698e4-e730-4e5c-a2b1-21490a70c8a1\&quot; CODEBASE=\&quot;/CertControl/xenroll.cab#Version=5,131,3659,0&quot;;</span>
+<span class="nc bnc" id="L191" title="All 4 branches missed.">        if (request.getParameter(&quot;classid&quot;) != null &amp;&amp; !request.getParameter(&quot;classid&quot;).equals(&quot;&quot;)) {</span>
+<span class="nc" id="L192">            classid = request.getParameter(&quot;classid&quot;);</span>
+        }
+
+<span class="nc" id="L195">        String includeEmail = request.getParameter(&quot;includeemail&quot;);</span>
+<span class="nc" id="L196">        log.debug(&quot;includeEmail=&quot; + includeEmail);</span>
+
+<span class="nc" id="L198">        EndEntityInformation newuser = new EndEntityInformation();</span>
+<span class="nc" id="L199">        newuser.setType(new EndEntityType(EndEntityTypes.ENDUSER));</span>
+<span class="nc" id="L200">        newuser.setUsername(username);</span>
+<span class="nc" id="L201">        newuser.setDN(dn);</span>
+<span class="nc" id="L202">        newuser.setTokenType(SecConst.TOKEN_SOFT_BROWSERGEN);</span>
+<span class="nc" id="L203">        newuser.setKeyRecoverable(false);</span>
+<span class="nc" id="L204">        newuser.setSendNotification(false);</span>
+
+<span class="nc" id="L206">        String email = request.getParameter(&quot;email&quot;);</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">        if (email == null) {</span>
+<span class="nc" id="L208">            email = CertTools.getPartFromDN(dn, &quot;EMAILADDRESS&quot;);</span>
+        }
+<span class="nc bnc" id="L210" title="All 4 branches missed.">        if ((email != null) &amp;&amp; (email.length() &gt; 0)) {</span>
+<span class="nc" id="L211">            newuser.setEmail(email);</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">            if (includeEmail != null) {</span>
+<span class="nc" id="L213">                newuser.setSubjectAltName(&quot;RFC822NAME=&quot; + email);</span>
+            }
+        }
+
+<span class="nc" id="L217">        String tmp = null;</span>
+<span class="nc" id="L218">        int eProfileId = EndEntityConstants.EMPTY_END_ENTITY_PROFILE;</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">        if ((tmp = request.getParameter(&quot;entityprofile&quot;)) != null) {</span>
+            try {
+<span class="nc" id="L221">                eProfileId = endEntityProfileSession.getEndEntityProfileId(request.getParameter(&quot;entityprofile&quot;));</span>
+<span class="nc" id="L222">            } catch (EndEntityProfileNotFoundException e) {</span>
+<span class="nc" id="L223">                throw new ServletException(&quot;No such end entity profile: &quot; + tmp, e);</span>
+<span class="nc" id="L224">            }</span>
+        }
+<span class="nc" id="L226">        newuser.setEndEntityProfileId(eProfileId);</span>
+
+<span class="nc" id="L228">        int cProfileId = CertificateProfileConstants.CERTPROFILE_FIXED_ENDUSER;</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">        if ((tmp = request.getParameter(&quot;certificateprofile&quot;)) != null) {</span>
+<span class="nc" id="L230">            cProfileId = certificateProfileSession.getCertificateProfileId(request.getParameter(&quot;certificateprofile&quot;));</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">            if (cProfileId == 0) {</span>
+<span class="nc" id="L232">                throw new ServletException(&quot;No such certificate profile: &quot; + tmp);</span>
+            }
+        }
+<span class="nc" id="L235">        newuser.setCertificateProfileId(cProfileId);</span>
+
+<span class="nc" id="L237">        int caid = DEFAULT_DEMOCAID;</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">        if ((tmp = request.getParameter(&quot;ca&quot;)) != null) {</span>
+            // Do NOT get requested CA to sign with from form.
+            // For security reasons, if there are more than one CA in the system
+            // we definataly want to hardwire the demo to the demo CA.
+        }
+<span class="nc" id="L243">        newuser.setCAId(caid);</span>
+
+<span class="nc" id="L245">        String password = request.getParameter(&quot;password&quot;);</span>
+<span class="nc bnc" id="L246" title="All 2 branches missed.">        if (password == null) {</span>
+<span class="nc" id="L247">            password = &quot;demo&quot;;</span>
+        }
+<span class="nc" id="L249">        newuser.setPassword(password);</span>
+
+        try {
+<span class="nc" id="L252">            endEntityManagementSession.addUser(admin, newuser.getUsername(), newuser.getPassword(), newuser.getDN(), newuser.getSubjectAltName(),</span>
+<span class="nc" id="L253">                    newuser.getEmail(), false, newuser.getEndEntityProfileId(), newuser.getCertificateProfileId(), newuser.getType(),</span>
+<span class="nc" id="L254">                    newuser.getTokenType(), newuser.getHardTokenIssuerId(), newuser.getCAId());</span>
+<span class="nc" id="L255">        } catch (Exception e) {</span>
+<span class="nc" id="L256">            throw new ServletException(&quot;Error adding user: &quot;, e);</span>
+<span class="nc" id="L257">        }</span>
+
+<span class="nc" id="L259">        RequestHelper helper = new RequestHelper(admin, debug);</span>
+        try {
+<span class="nc bnc" id="L261" title="All 2 branches missed.">            if (type == 1) {</span>
+<span class="nc" id="L262">                byte[] certs = helper.nsCertRequest(signSession, reqBytes, username, password);</span>
+<span class="nc" id="L263">                RequestHelper.sendNewCertToNSClient(certs, response);</span>
+            }
+<span class="nc bnc" id="L265" title="All 2 branches missed.">            if (type == 2) {</span>
+<span class="nc" id="L266">                byte[] b64cert = helper.pkcs10CertRequest(signSession, caSession, reqBytes, username, password, CertificateResponseType.ENCODED_PKCS7).getEncoded();</span>
+<span class="nc" id="L267">                debug.ieCertFix(b64cert);</span>
+<span class="nc" id="L268">                RequestHelper.sendNewCertToIEClient(b64cert, response.getOutputStream(), getServletContext(), getInitParameter(&quot;responseTemplate&quot;),</span>
+                        classid);
+            }
+<span class="nc" id="L271">        } catch (ObjectNotFoundException oe) {</span>
+<span class="nc" id="L272">            log.debug(&quot;Non existens username!&quot;);</span>
+<span class="nc" id="L273">            debug.printMessage(&quot;Non existent username!&quot;);</span>
+<span class="nc" id="L274">            debug.printMessage(&quot;To generate a certificate a valid username and password must be entered.&quot;);</span>
+<span class="nc" id="L275">            debug.printDebugInfo();</span>
+<span class="nc" id="L276">            return;</span>
+<span class="nc" id="L277">        } catch (AuthStatusException ase) {</span>
+<span class="nc" id="L278">            log.debug(&quot;Wrong user status!&quot;);</span>
+<span class="nc" id="L279">            debug.printMessage(&quot;Wrong user status!&quot;);</span>
+<span class="nc" id="L280">            debug.printMessage(&quot;To generate a certificate for a user the user must have status new, failed or inprocess.&quot;);</span>
+<span class="nc" id="L281">            debug.printDebugInfo();</span>
+<span class="nc" id="L282">            return;</span>
+<span class="nc" id="L283">        } catch (AuthLoginException ale) {</span>
+<span class="nc" id="L284">            log.debug(&quot;Wrong password for user!&quot;);</span>
+<span class="nc" id="L285">            debug.printMessage(&quot;Wrong username or password!&quot;);</span>
+<span class="nc" id="L286">            debug.printMessage(&quot;To generate a certificate a valid username and password must be entered.&quot;);</span>
+<span class="nc" id="L287">            debug.printDebugInfo();</span>
+<span class="nc" id="L288">            return;</span>
+<span class="nc" id="L289">        } catch (SignRequestException re) {</span>
+<span class="nc" id="L290">            log.debug(&quot;Invalid request!&quot;);</span>
+<span class="nc" id="L291">            debug.printMessage(&quot;Invalid request!&quot;);</span>
+<span class="nc" id="L292">            debug.printMessage(&quot;Please supply a correct request.&quot;);</span>
+<span class="nc" id="L293">            debug.printDebugInfo();</span>
+<span class="nc" id="L294">            return;</span>
+<span class="nc" id="L295">        } catch (SignRequestSignatureException se) {</span>
+<span class="nc" id="L296">            log.debug(&quot;Invalid signature on certificate request!&quot;);</span>
+<span class="nc" id="L297">            debug.printMessage(&quot;Invalid signature on certificate request!&quot;);</span>
+<span class="nc" id="L298">            debug.printMessage(&quot;Please supply a correctly signed request.&quot;);</span>
+<span class="nc" id="L299">            debug.printDebugInfo();</span>
+<span class="nc" id="L300">            return;</span>
+<span class="nc" id="L301">        } catch (java.lang.ArrayIndexOutOfBoundsException ae) {</span>
+<span class="nc" id="L302">            log.debug(&quot;Empty or invalid request received.&quot;);</span>
+<span class="nc" id="L303">            debug.printMessage(&quot;Empty or invalid request!&quot;);</span>
+<span class="nc" id="L304">            debug.printMessage(&quot;Please supply a correct request.&quot;);</span>
+<span class="nc" id="L305">            debug.printDebugInfo();</span>
+<span class="nc" id="L306">            return;</span>
+<span class="nc" id="L307">        } catch (DecoderException de) {</span>
+<span class="nc" id="L308">            log.debug(&quot;Empty or invalid request received.&quot;);</span>
+<span class="nc" id="L309">            debug.printMessage(&quot;Empty or invalid request!&quot;);</span>
+<span class="nc" id="L310">            debug.printMessage(&quot;Please supply a correct request.&quot;);</span>
+<span class="nc" id="L311">            debug.printDebugInfo();</span>
+<span class="nc" id="L312">            return;</span>
+<span class="nc" id="L313">        } catch (Exception e) {</span>
+<span class="nc" id="L314">            log.debug(e);</span>
+<span class="nc" id="L315">            debug.print(&quot;&lt;h3&gt;parameter name and values: &lt;/h3&gt;&quot;);</span>
+<span class="nc" id="L316">            Enumeration&lt;? extends Object&gt; paramNames = request.getParameterNames();</span>
+<span class="nc bnc" id="L317" title="All 2 branches missed.">            while (paramNames.hasMoreElements()) {</span>
+<span class="nc" id="L318">                String name = paramNames.nextElement().toString();</span>
+<span class="nc" id="L319">                String parameter = request.getParameter(name);</span>
+<span class="nc" id="L320">                debug.print(&quot;&lt;h4&gt;&quot; + HTMLTools.htmlescape(name) + &quot;:&lt;/h4&gt;&quot; + HTMLTools.htmlescape(parameter) + &quot;&lt;br&gt;&quot;);</span>
+<span class="nc" id="L321">            }</span>
+<span class="nc" id="L322">            debug.takeCareOfException(e);</span>
+<span class="nc" id="L323">            debug.printDebugInfo();</span>
+<span class="nc" id="L324">            return;</span>
+<span class="nc" id="L325">        }</span>
+<span class="nc" id="L326">    }</span>
+
+    @Override
+    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+<span class="nc" id="L330">        log.trace(&quot;&gt;doGet()&quot;);</span>
+<span class="nc" id="L331">        response.setHeader(&quot;Allow&quot;, &quot;POST&quot;);</span>
+<span class="nc" id="L332">        ServletDebug debug = new ServletDebug(request, response);</span>
+<span class="nc" id="L333">        debug.print(&quot;The certificate request servlet only handles POST method.&quot;);</span>
+<span class="nc" id="L334">        debug.printDebugInfo();</span>
+<span class="nc" id="L335">        log.trace(&quot;&lt;doGet()&quot;);</span>
+<span class="nc" id="L336">    } // doGet</span>
+
+    /**
+     * @param admin admin
+     * @param username user
+     * @param adminsession admin
+     * @return true if the username is ok (does not already exist), false otherwise
+     * @throws ServletException fail
+     */
+    private final boolean checkUsername(AuthenticationToken admin, String username, EndEntityAccessSession adminsession) throws ServletException {
+<span class="nc bnc" id="L346" title="All 2 branches missed.">        if (username != null) {</span>
+<span class="nc" id="L347">            username = username.trim();</span>
+        }
+<span class="nc bnc" id="L349" title="All 4 branches missed.">        if (username == null || username.length() == 0) {</span>
+<span class="nc" id="L350">            throw new ServletException(&quot;Username must not be empty.&quot;);</span>
+        }
+
+<span class="nc" id="L353">        EndEntityInformation tmpuser = null;</span>
+        try {
+<span class="nc" id="L355">            tmpuser = adminsession.findUser(admin, username);</span>
+<span class="nc" id="L356">        } catch (Exception e) {</span>
+<span class="nc" id="L357">            throw new ServletException(&quot;Error checking username '&quot; + username + &quot;: &quot;, e);</span>
+<span class="nc" id="L358">        }</span>
+<span class="nc bnc" id="L359" title="All 2 branches missed.">        return (tmpuser == null) ? true : false;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

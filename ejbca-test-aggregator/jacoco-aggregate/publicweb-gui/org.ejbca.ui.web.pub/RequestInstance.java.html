@@ -1,0 +1,863 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RequestInstance.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">publicweb-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.pub</a> &gt; <span class="el_source">RequestInstance.java</span></div><h1>RequestInstance.java</h1><pre class="source lang-java linenums">package org.ejbca.ui.web.pub;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.security.KeyStore;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.ejb.ObjectNotFoundException;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.util.encoders.DecoderException;
+import org.cesecore.ErrorCode;
+import org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.PublicWebPrincipal;
+import org.cesecore.authentication.tokens.UsernamePrincipal;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.ca.SignRequestException;
+import org.cesecore.certificates.ca.SignRequestSignatureException;
+import org.cesecore.certificates.certificate.CertificateCreateException;
+import org.cesecore.certificates.certificate.IllegalKeyException;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.util.AlgorithmConstants;
+import org.cesecore.configuration.GlobalConfigurationSession;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.keys.util.KeyTools;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.FileTools;
+import org.cesecore.util.StringTools;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.config.WebConfiguration;
+import org.ejbca.core.EjbcaException;
+import org.ejbca.core.ejb.ca.sign.SignSessionLocal;
+import org.ejbca.core.ejb.ra.EndEntityAccessSessionLocal;
+import org.ejbca.core.ejb.ra.EndEntityManagementSessionLocal;
+import org.ejbca.core.ejb.ra.KeyStoreCreateSessionLocal;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.ca.AuthLoginException;
+import org.ejbca.core.model.ca.AuthStatusException;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
+import org.ejbca.cvc.CAReferenceField;
+import org.ejbca.cvc.CVCertificate;
+import org.ejbca.cvc.CertificateParser;
+import org.ejbca.cvc.HolderReferenceField;
+import org.ejbca.ui.web.CertificateRequestResponse;
+import org.ejbca.ui.web.CertificateResponseType;
+import org.ejbca.ui.web.RequestHelper;
+import org.ejbca.util.HTMLTools;
+
+/**
+ *
+ * @version $Id: RequestInstance.java 30322 2018-10-31 20:00:59Z anatom $
+ *
+ */
+
+public class RequestInstance {
+
+<span class="nc" id="L92">	private static final Logger log = Logger.getLogger(RequestInstance.class);</span>
+<span class="nc" id="L93">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+
+    /** Max size of request parameters that we will receive */
+    private static final int REQUEST_MAX_SIZE = 10000;
+
+    private class IncomatibleTokenTypeException extends EjbcaException {
+        private static final long serialVersionUID = 5435852400591856793L;
+
+<span class="nc" id="L101">        public IncomatibleTokenTypeException() {</span>
+<span class="nc" id="L102">            super(ErrorCode.BAD_USER_TOKEN_TYPE);</span>
+<span class="nc" id="L103">        }</span>
+    }
+
+	private ServletContext servletContext;
+	private ServletConfig servletConfig;
+	private CaSessionLocal caSession;
+    private CertificateProfileSessionLocal certificateProfileSession;
+    private EndEntityProfileSessionLocal endEntityProfileSession;
+	private KeyStoreCreateSessionLocal keyStoreCreateSession;
+	private SignSessionLocal signSession;
+	private EndEntityManagementSessionLocal endEntityManagementSession;
+	private GlobalConfigurationSession globalConfigurationSession;
+	private EndEntityAccessSessionLocal endEntityAccessSession;
+
+<span class="nc" id="L117">	private String password=null;</span>
+<span class="nc" id="L118">	private String username=null;</span>
+<span class="nc" id="L119">	private String openvpn=null;</span>
+<span class="nc" id="L120">	private String certprofile=null;</span>
+<span class="nc" id="L121">	private String keylength=&quot;2048&quot;;</span>
+<span class="nc" id="L122">	private String keyalg=AlgorithmConstants.KEYALGORITHM_RSA;</span>
+	// Possibility to override by code and ignore parameters
+<span class="nc" id="L124">	private String keylengthstring=null;</span>
+<span class="nc" id="L125">	private String keyalgstring=null;</span>
+
+	/** HttpServletrequest.getParametersMap has changed from Map&lt;String,Object&gt; to Map&lt;String,String[]&gt; so
+	 * we can not be type safe here */
+<span class="nc" id="L129">    @SuppressWarnings(&quot;rawtypes&quot;)</span>
+    private Map params = null;
+
+	protected RequestInstance(ServletContext servletContext, ServletConfig servletConfig, EndEntityAccessSessionLocal endEntityAccessSession, CaSessionLocal caSession,
+	        CertificateProfileSessionLocal certificateProfileSession, EndEntityProfileSessionLocal endEntityProfileSession, KeyStoreCreateSessionLocal keyStoreCreateSession,
+<span class="nc" id="L134">	        SignSessionLocal signSession, EndEntityManagementSessionLocal endEntityManagementSession, GlobalConfigurationSession globalConfigurationSession) {</span>
+<span class="nc" id="L135">		this.servletContext = servletContext;</span>
+<span class="nc" id="L136">		this.servletConfig = servletConfig;</span>
+<span class="nc" id="L137">		this.caSession = caSession;</span>
+<span class="nc" id="L138">		this.certificateProfileSession = certificateProfileSession;</span>
+<span class="nc" id="L139">		this.endEntityProfileSession = endEntityProfileSession;</span>
+<span class="nc" id="L140">		this.keyStoreCreateSession = keyStoreCreateSession;</span>
+<span class="nc" id="L141">		this.signSession = signSession;</span>
+<span class="nc" id="L142">		this.endEntityManagementSession = endEntityManagementSession;</span>
+<span class="nc" id="L143">		this.endEntityAccessSession = endEntityAccessSession;</span>
+<span class="nc" id="L144">		this.globalConfigurationSession = globalConfigurationSession;</span>
+<span class="nc" id="L145">	}</span>
+
+	/**************************************************************
+     ** If you want to force some parameters, you
+     ** may set them here. These settings will
+     ** override parameters in request
+	 * @return pwd
+     **************************************************************/
+    public String getPassword() {
+<span class="nc" id="L154">        return password;</span>
+    }
+
+
+    public void setPassword(String password) {
+<span class="nc" id="L159">        this.password = password;</span>
+<span class="nc" id="L160">    }</span>
+
+
+    public String getUsername() {
+<span class="nc" id="L164">        return username;</span>
+    }
+
+
+    public void setUsername(String username) {
+<span class="nc" id="L169">        this.username = username;</span>
+<span class="nc" id="L170">    }</span>
+
+    public String getOpenvpn() {
+<span class="nc" id="L173">        return openvpn;</span>
+    }
+
+
+    public void setOpenvpn(String openvpn) {
+<span class="nc" id="L178">        this.openvpn = openvpn;</span>
+<span class="nc" id="L179">    }</span>
+
+
+    public String getCertprofile() {
+<span class="nc" id="L183">        return certprofile;</span>
+    }
+
+
+    public void setCertprofile(String certprofile) {
+<span class="nc" id="L188">        this.certprofile = certprofile;</span>
+<span class="nc" id="L189">    }</span>
+
+
+    public String getKeylength() {
+<span class="nc" id="L193">        return keylength;</span>
+    }
+
+
+    // set key lengths, but can be overridden by request parameter
+    public void setKeylength(String keylength) {
+<span class="nc" id="L199">        this.keylength = keylength;</span>
+<span class="nc" id="L200">    }</span>
+
+
+    public String getKeyalg() {
+<span class="nc" id="L204">        return keyalg;</span>
+    }
+
+    // set key algorithm, but can be overridden by request parameter
+    public void setKeyalg(String keyalg) {
+<span class="nc" id="L209">        this.keyalg = keyalg;</span>
+<span class="nc" id="L210">    }</span>
+
+    public String getKeylengthstring() {
+<span class="nc" id="L213">        return keylengthstring;</span>
+    }
+
+
+    // Override request parameters with &quot;hardcoded&quot; key length from your code
+    public void setKeylengthstring(String keylengthstring) {
+<span class="nc" id="L219">        this.keylengthstring = keylengthstring;</span>
+<span class="nc" id="L220">    }</span>
+
+
+    public String getKeyalgstring() {
+<span class="nc" id="L224">        return keyalgstring;</span>
+    }
+
+
+    // Override request parameters with &quot;hardcoded&quot; key algorithm from your code
+    public void setKeyalgstring(String keyalgstring) {
+<span class="nc" id="L230">        this.keyalgstring = keyalgstring;</span>
+<span class="nc" id="L231">    }</span>
+
+
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+<span class="nc" id="L235">		ServletDebug debug = new ServletDebug(request, response);</span>
+<span class="nc" id="L236">		boolean usekeyrecovery = false;</span>
+
+<span class="nc" id="L238">		RequestHelper.setDefaultCharacterEncoding(request);</span>
+<span class="nc" id="L239">		String iErrorMessage = null;</span>
+		try {
+<span class="nc" id="L241">			setParameters(request);</span>
+
+            /*********************************************************************
+             ** If parameters are not set by Set... they must be
+             ** provided by request
+             *********************************************************************/
+<span class="nc bnc" id="L247" title="All 2 branches missed.">            if (username==null) {</span>
+<span class="nc" id="L248">                username = StringUtils.strip(getParameter(&quot;user&quot;));</span>
+            }
+<span class="nc bnc" id="L250" title="All 2 branches missed.">            if (password==null) {</span>
+<span class="nc" id="L251">                password = getParameter(&quot;password&quot;);</span>
+            }
+<span class="nc bnc" id="L253" title="All 2 branches missed.">            if (openvpn==null) {</span>
+<span class="nc" id="L254">                openvpn = getParameter(&quot;openvpn&quot;);</span>
+            }
+<span class="nc bnc" id="L256" title="All 2 branches missed.">            if (certprofile==null) {</span>
+<span class="nc" id="L257">                certprofile = getParameter(&quot;certprofile&quot;);</span>
+            }
+<span class="nc bnc" id="L259" title="All 4 branches missed.">            if (keyalgstring==null &amp;&amp; keylengthstring==null) {</span>
+            	// For token generation the option comes in the form &quot;KEYALGORITHM_KEYSPEC&quot;
+<span class="nc" id="L261">                final String tokenKeySpec = getParameter(&quot;tokenKeySpec&quot;);</span>
+<span class="nc bnc" id="L262" title="All 2 branches missed.">                if (tokenKeySpec!=null) {</span>
+<span class="nc" id="L263">                    final String[] tokenKeySpecSplit = tokenKeySpec.split(&quot;_&quot;);</span>
+<span class="nc bnc" id="L264" title="All 2 branches missed.">                    if (tokenKeySpecSplit.length==2) {</span>
+<span class="nc" id="L265">                        keyalgstring = tokenKeySpecSplit[0];</span>
+<span class="nc" id="L266">                        keylengthstring = tokenKeySpecSplit[1];</span>
+                    }
+                }
+            }
+<span class="nc bnc" id="L270" title="All 2 branches missed.">            if (keylengthstring==null) {</span>
+<span class="nc" id="L271">                keylengthstring = getParameter(&quot;keylength&quot;);</span>
+            }
+<span class="nc bnc" id="L273" title="All 2 branches missed.">            if (keyalgstring==null) {</span>
+<span class="nc" id="L274">                keyalgstring = getParameter(&quot;keyalg&quot;);</span>
+            }
+            // If nothing has been set by setKeyLengthString and nothing is received by request parameters use default value of keylength
+<span class="nc bnc" id="L277" title="All 2 branches missed.">            if (keylengthstring != null) {</span>
+<span class="nc" id="L278">                keylength = keylengthstring;</span>
+            }
+            // If nothing has been set by setKeyAlgString and nothing is received by request parameters use default value of keyalg
+<span class="nc bnc" id="L281" title="All 2 branches missed.">            if (keyalgstring != null) {</span>
+<span class="nc" id="L282">                keyalg = keyalgstring;</span>
+            }
+
+<span class="nc" id="L285">			CertificateResponseType resulttype = CertificateResponseType.UNSPECIFIED;</span>
+<span class="nc bnc" id="L286" title="All 2 branches missed.">			if(getParameter(&quot;resulttype&quot;) != null) {</span>
+<span class="nc" id="L287">				resulttype = CertificateResponseType.fromNumber(getParameter(&quot;resulttype&quot;)); // Indicates if certificate or PKCS7 should be returned on manual PKCS10 request.</span>
+			}
+
+<span class="nc" id="L290">			String classid = &quot;clsid:127698e4-e730-4e5c-a2b1-21490a70c8a1\&quot; CODEBASE=\&quot;/CertControl/xenroll.cab#Version=5,131,3659,0&quot;;</span>
+
+<span class="nc bnc" id="L292" title="All 2 branches missed.">			if ((getParameter(&quot;classid&quot;) != null) &amp;&amp;</span>
+<span class="nc bnc" id="L293" title="All 2 branches missed.">					!getParameter(&quot;classid&quot;).equals(&quot;&quot;)) {</span>
+<span class="nc" id="L294">				classid = getParameter(&quot;classid&quot;);</span>
+			}
+
+<span class="nc" id="L297">            final AuthenticationToken administrator = new AlwaysAllowLocalAuthenticationToken(new PublicWebPrincipal(&quot;RequestInstance&quot;, request.getRemoteAddr()));</span>
+
+<span class="nc" id="L299">			RequestHelper helper = new RequestHelper(administrator, debug);</span>
+
+<span class="nc" id="L301">			log.info(intres.getLocalizedMessage(&quot;certreq.receivedcertreq&quot;, username, request.getRemoteAddr()));</span>
+<span class="nc" id="L302">			debug.print(&quot;Username: &quot; + HTMLTools.htmlescape(username));</span>
+
+			// Check user
+<span class="nc" id="L305">			int tokentype = SecConst.TOKEN_SOFT_BROWSERGEN;</span>
+
+<span class="nc" id="L307">			usekeyrecovery = ((GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID)).getEnableKeyRecovery();</span>
+
+<span class="nc" id="L309">			EndEntityInformation data = endEntityAccessSession.findUser(administrator, username);</span>
+
+<span class="nc bnc" id="L311" title="All 2 branches missed.">			if (data == null) {</span>
+<span class="nc" id="L312">				throw new ObjectNotFoundException();</span>
+			}
+
+<span class="nc bnc" id="L315" title="All 6 branches missed.">			boolean savekeys = data.getKeyRecoverable() &amp;&amp; usekeyrecovery &amp;&amp;  (data.getStatus() != EndEntityConstants.STATUS_KEYRECOVERY);</span>
+<span class="nc bnc" id="L316" title="All 4 branches missed.">			boolean loadkeys = (data.getStatus() == EndEntityConstants.STATUS_KEYRECOVERY) &amp;&amp; usekeyrecovery;</span>
+
+<span class="nc" id="L318">			int endEntityProfileId = data.getEndEntityProfileId();</span>
+<span class="nc" id="L319">			int certificateProfileId = data.getCertificateProfileId();</span>
+<span class="nc" id="L320">			EndEntityProfile endEntityProfile = endEntityProfileSession.getEndEntityProfile(endEntityProfileId);</span>
+<span class="nc" id="L321">			boolean reusecertificate = endEntityProfile.getReUseKeyRecoveredCertificate();</span>
+			// Set a new certificate profile, if we have requested one specific
+<span class="nc bnc" id="L323" title="All 2 branches missed.">			if (StringUtils.isNotEmpty(certprofile)) {</span>
+<span class="nc" id="L324">				boolean clearpwd = StringUtils.isNotEmpty(data.getPassword());</span>
+<span class="nc" id="L325">				int id = certificateProfileSession.getCertificateProfileId(certprofile);</span>
+				// Change the value if there exists a certprofile with the requested name, and it is not the same as
+				// the one already registered to be used by default
+<span class="nc bnc" id="L328" title="All 2 branches missed.">                if (id &gt; 0) {</span>
+<span class="nc bnc" id="L329" title="All 2 branches missed.">					if (id != certificateProfileId) {</span>
+						// Check if it is in allowed profiles in the entity profile
+<span class="nc" id="L331">						final Collection&lt;Integer&gt; ids = endEntityProfile.getAvailableCertificateProfileIds();</span>
+<span class="nc bnc" id="L332" title="All 2 branches missed.">						if (ids.contains(id)) {</span>
+<span class="nc" id="L333">							data.setCertificateProfileId(id);</span>
+							// This admin can be the public web user, which may not be allowed to change status,
+							// this is a bit ugly, but what can a man do...
+<span class="nc" id="L336">							AuthenticationToken tempadmin = new AlwaysAllowLocalAuthenticationToken(new UsernamePrincipal(&quot;RequestInstance&quot;+request.getRemoteAddr()));</span>
+<span class="nc" id="L337">							endEntityManagementSession.changeUser(tempadmin, data, clearpwd);</span>
+<span class="nc" id="L338">						} else {</span>
+<span class="nc" id="L339">							String defaultCertificateProfileName = certificateProfileSession.getCertificateProfileName(certificateProfileId);</span>
+<span class="nc" id="L340">							log.info(intres.getLocalizedMessage(&quot;certreq.badcertprofile&quot;, certprofile, defaultCertificateProfileName));</span>
+						}
+<span class="nc" id="L342">					}</span>
+				} else {
+<span class="nc" id="L344">					String defaultCertificateProfileName = certificateProfileSession.getCertificateProfileName(certificateProfileId);</span>
+<span class="nc" id="L345">					log.info(intres.getLocalizedMessage(&quot;certreq.nosuchcertprofile&quot;, certprofile, defaultCertificateProfileName));</span>
+				}
+			}
+
+			// get users Token Type.
+<span class="nc" id="L350">			tokentype = data.getTokenType();</span>
+<span class="nc bnc" id="L351" title="All 2 branches missed.">			if(tokentype == SecConst.TOKEN_SOFT_P12){</span>
+			    // If the user is configured for a server generated token, but submitted a CSR, it is most likely an administrative error.
+			    // The RA admin should probably have set token type usergenerated instead.
+<span class="nc bnc" id="L354" title="All 2 branches missed.">			    if (hasCSRInRequest()) {</span>
+<span class="nc" id="L355">			        throw new IncomatibleTokenTypeException();</span>
+			    }
+<span class="nc" id="L357">                KeyStore ks = keyStoreCreateSession.generateOrKeyRecoverToken(administrator, username, password, data.getCAId(), keylength, keyalg,</span>
+                        null, null, false, loadkeys, savekeys, reusecertificate, endEntityProfileId);
+<span class="nc bnc" id="L359" title="All 2 branches missed.">				if (StringUtils.equals(openvpn, &quot;on&quot;)) {</span>
+<span class="nc" id="L360">					sendOpenVPNToken(ks, username, password, response);</span>
+				} else {
+<span class="nc" id="L362">					sendP12Token(ks, username, password, response);</span>
+				}
+			}
+<span class="nc bnc" id="L365" title="All 2 branches missed.">			if(tokentype == SecConst.TOKEN_SOFT_JKS){</span>
+                // If the user is configured for a server generated token, but submitted a CSR, it is most likely an administrative error.
+                // The RA admin should probably have set token type usergenerated instead.
+<span class="nc bnc" id="L368" title="All 2 branches missed.">                if (hasCSRInRequest()) {</span>
+<span class="nc" id="L369">                    throw new IncomatibleTokenTypeException();</span>
+                }
+<span class="nc" id="L371">                KeyStore ks = keyStoreCreateSession.generateOrKeyRecoverToken(administrator, username, password, data.getCAId(), keylength, keyalg,</span>
+                        null, null, true, loadkeys, savekeys, reusecertificate, endEntityProfileId);
+<span class="nc" id="L373">				sendJKSToken(ks, username, password, response);</span>
+			}
+<span class="nc bnc" id="L375" title="All 2 branches missed.">			if(tokentype == SecConst.TOKEN_SOFT_PEM){</span>
+                // If the user is configured for a server generated token, but submitted a CSR, it is most likely an administrative error.
+                // The RA admin should probably have set token type usergenerated instead.
+<span class="nc bnc" id="L378" title="All 2 branches missed.">                if (hasCSRInRequest()) {</span>
+<span class="nc" id="L379">                    throw new IncomatibleTokenTypeException();</span>
+                }
+<span class="nc" id="L381">                KeyStore ks = keyStoreCreateSession.generateOrKeyRecoverToken(administrator, username, password, data.getCAId(), keylength, keyalg,</span>
+                        null, null, false, loadkeys, savekeys, reusecertificate, endEntityProfileId);
+<span class="nc" id="L383">				sendPEMTokens(ks, username, password, response);</span>
+			}
+<span class="nc bnc" id="L385" title="All 2 branches missed.">			if(tokentype == SecConst.TOKEN_SOFT_BROWSERGEN){</span>
+
+				// first check if it is a Firefox request,
+<span class="nc bnc" id="L388" title="All 2 branches missed.">				if (getParameter(&quot;keygen&quot;) != null) {</span>
+<span class="nc" id="L389">					byte[] reqBytes=getParameter(&quot;keygen&quot;).getBytes();</span>
+<span class="nc bnc" id="L390" title="All 4 branches missed.">					if ((reqBytes != null) &amp;&amp; (reqBytes.length&gt;0)) {</span>
+<span class="nc bnc" id="L391" title="All 2 branches missed.">					    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L392">					        log.debug(&quot;Received NS request: &quot;+new String(reqBytes));</span>
+					    }
+<span class="nc" id="L394">						byte[] certs = helper.nsCertRequest(signSession, reqBytes, username, password);</span>
+<span class="nc bnc" id="L395" title="All 4 branches missed.">						if (Boolean.valueOf(getParameter(&quot;showResultPage&quot;)) &amp;&amp; !isCertIssuerThrowAwayCA(certs, username)) {</span>
+						  // Send info page that redirects to download URL that
+						  // retrieves the new certificate from the database
+<span class="nc" id="L398">						  RequestHelper.sendResultPage(certs, response, &quot;true&quot;.equals(getParameter(&quot;hidemenu&quot;)), &quot;netscape&quot;);</span>
+						} else {
+						  // The certificate will not be stored in the database,
+						  // so we must send the certificate while we still have it
+<span class="nc" id="L402">						  RequestHelper.sendNewCertToNSClient(certs, response);</span>
+						}
+<span class="nc" id="L404">					} else {</span>
+<span class="nc" id="L405">						throw new SignRequestException(&quot;No request bytes received.&quot;);</span>
+					}
+<span class="nc bnc" id="L407" title="All 4 branches missed.">				} else if ( (getParameter(&quot;pkcs10&quot;) != null) || (getParameter(&quot;PKCS10&quot;) != null) ) {</span>
+					// if not firefox, check if it's IE
+<span class="nc" id="L409">					byte[] reqBytes = getParameter(&quot;pkcs10&quot;).getBytes();</span>
+<span class="nc bnc" id="L410" title="All 2 branches missed.">					if (reqBytes == null) {</span>
+<span class="nc" id="L411">						reqBytes=getParameter(&quot;PKCS10&quot;).getBytes();</span>
+					}
+<span class="nc bnc" id="L413" title="All 4 branches missed.">					if ((reqBytes != null) &amp;&amp; (reqBytes.length&gt;0)) {</span>
+<span class="nc bnc" id="L414" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L415">                            log.debug(&quot;Received IE request: &quot;+new String(reqBytes));</span>
+                        }
+<span class="nc" id="L417">						byte[] b64cert=helper.pkcs10CertRequest(signSession, caSession, reqBytes, username, password, CertificateResponseType.ENCODED_PKCS7).getEncoded();</span>
+<span class="nc" id="L418">						debug.ieCertFix(b64cert);</span>
+<span class="nc" id="L419">						response.setContentType(&quot;text/html&quot;);</span>
+<span class="nc" id="L420">						RequestHelper.sendNewCertToIEClient(b64cert, response.getOutputStream(), servletContext, servletConfig.getInitParameter(&quot;responseTemplate&quot;),classid);</span>
+<span class="nc" id="L421">					} else {</span>
+<span class="nc" id="L422">						throw new SignRequestException(&quot;No request bytes received.&quot;);</span>
+					}
+<span class="nc bnc" id="L424" title="All 6 branches missed.">				} else if ( ((getParameter(&quot;pkcs10req&quot;) != null) || (getParameter(&quot;pkcs10file&quot;) != null)) &amp;&amp; resulttype != CertificateResponseType.UNSPECIFIED) {</span>
+<span class="nc" id="L425">					byte[] reqBytes = null;</span>
+<span class="nc" id="L426">					String pkcs10req = getParameter(&quot;pkcs10req&quot;);</span>
+<span class="nc bnc" id="L427" title="All 2 branches missed.">					if (StringUtils.isEmpty(pkcs10req)) {</span>
+						// did we upload a file instead?
+<span class="nc bnc" id="L429" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L430">                            log.debug(&quot;No pasted request received, checking for uploaded file.&quot;);</span>
+                        }
+<span class="nc" id="L432">						pkcs10req = getParameter(&quot;pkcs10file&quot;);</span>
+<span class="nc bnc" id="L433" title="All 2 branches missed.">						if (StringUtils.isNotEmpty(pkcs10req)) {</span>
+							// The uploaded file has been converted to a base64 encoded string
+<span class="nc" id="L435">							reqBytes = Base64.decode(pkcs10req.getBytes());</span>
+
+						}
+					} else {
+<span class="nc" id="L439">						reqBytes=pkcs10req.getBytes(); // The pasted request</span>
+					}
+
+<span class="nc bnc" id="L442" title="All 4 branches missed.">					if ((reqBytes != null) &amp;&amp; (reqBytes.length&gt;0)) {</span>
+					    try {
+<span class="nc" id="L444">					        pkcs10Req(request, response, username, password, resulttype, helper, reqBytes);</span>
+<span class="nc" id="L445">					    } catch(Exception exp) {</span>
+<span class="nc bnc" id="L446" title="All 2 branches missed.">					        if(exp.getCause() instanceof NullPointerException) {</span>
+<span class="nc" id="L447">					            iErrorMessage = &quot;Failed to parse request&quot;;</span>
+					        } else {
+<span class="nc" id="L449">					            iErrorMessage = intres.getLocalizedMessage(&quot;certreq.failed&quot;, exp.getLocalizedMessage());</span>
+					        }
+<span class="nc" id="L451">                        }</span>
+					} else {
+<span class="nc" id="L453">						throw new SignRequestException(&quot;No request bytes received.&quot;);</span>
+					}
+<span class="nc bnc" id="L455" title="All 6 branches missed.">				} else if ( ((getParameter(&quot;cvcreq&quot;) != null) || (getParameter(&quot;cvcreqfile&quot;) != null)) &amp;&amp; resulttype != CertificateResponseType.UNSPECIFIED) {</span>
+					// It's a CVC certificate request (EAC ePassports)
+<span class="nc" id="L457">					byte[] reqBytes = null;</span>
+<span class="nc" id="L458">					String req = getParameter(&quot;cvcreq&quot;);</span>
+<span class="nc bnc" id="L459" title="All 2 branches missed.">					if (StringUtils.isEmpty(req)) {</span>
+						// did we upload a file instead?
+<span class="nc bnc" id="L461" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L462">                            log.debug(&quot;No pasted request received, checking for uploaded file.&quot;);</span>
+                        }
+<span class="nc" id="L464">						req = getParameter(&quot;cvcreqfile&quot;);</span>
+<span class="nc bnc" id="L465" title="All 2 branches missed.">						if (StringUtils.isNotEmpty(req)) {</span>
+							// The uploaded file has been converted to a base64 encoded string
+<span class="nc" id="L467">							reqBytes = Base64.decode(req.getBytes());</span>
+
+						}
+					} else {
+<span class="nc" id="L471">						reqBytes=req.getBytes(); // The pasted request</span>
+					}
+
+<span class="nc bnc" id="L474" title="All 4 branches missed.">					if ((reqBytes != null) &amp;&amp; (reqBytes.length&gt;0)) {</span>
+<span class="nc bnc" id="L475" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L476">                            log.debug(&quot;Received CVC request: &quot;+new String(reqBytes));</span>
+                        }
+<span class="nc" id="L478">						byte[] b64cert=helper.cvcCertRequest(signSession, reqBytes, username, password);</span>
+<span class="nc" id="L479">						CVCertificate cvccert = (CVCertificate) CertificateParser.parseCVCObject(Base64.decode(b64cert));</span>
+<span class="nc" id="L480">						String filename = &quot;&quot;;</span>
+<span class="nc" id="L481">						CAReferenceField carf = cvccert.getCertificateBody().getAuthorityReference();</span>
+<span class="nc bnc" id="L482" title="All 2 branches missed.">						if (carf != null) {</span>
+<span class="nc" id="L483">							String car = carf.getConcatenated();</span>
+<span class="nc" id="L484">							filename += car;</span>
+						}
+<span class="nc" id="L486">						HolderReferenceField chrf = cvccert.getCertificateBody().getHolderReference();</span>
+<span class="nc bnc" id="L487" title="All 2 branches missed.">						if (chrf != null) {</span>
+<span class="nc" id="L488">							String chr = chrf.getConcatenated();</span>
+<span class="nc bnc" id="L489" title="All 2 branches missed.">							if (filename.length() &gt; 0) {</span>
+<span class="nc" id="L490">								filename += &quot;_&quot;;</span>
+							}
+<span class="nc" id="L492">							filename +=chr;</span>
+						}
+<span class="nc bnc" id="L494" title="All 2 branches missed.">						if (filename.length() == 0) {</span>
+<span class="nc" id="L495">							filename = username;</span>
+						}
+<span class="nc bnc" id="L497" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L498">                            log.debug(&quot;Filename: &quot;+filename);</span>
+                        }
+<span class="nc bnc" id="L500" title="All 2 branches missed.">						if(resulttype == CertificateResponseType.BINARY_CERTIFICATE) {</span>
+<span class="nc" id="L501">							RequestHelper.sendBinaryBytes(Base64.decode(b64cert), response, &quot;application/octet-stream&quot;, filename+&quot;.cvcert&quot;);</span>
+						}
+<span class="nc bnc" id="L503" title="All 2 branches missed.">						if(resulttype == CertificateResponseType.ENCODED_CERTIFICATE) {</span>
+<span class="nc" id="L504">							RequestHelper.sendNewB64File(b64cert, response, filename+&quot;.pem&quot;, CertTools.BEGIN_CERTIFICATE_WITH_NL, CertTools.END_CERTIFICATE_WITH_NL);</span>
+						}
+<span class="nc" id="L506">					} else {</span>
+<span class="nc" id="L507">						throw new SignRequestException(&quot;No request bytes received.&quot;);</span>
+					}
+<span class="nc" id="L509">				} else {</span>
+				    // throw general exception, will be caught below and all parameters printed.
+<span class="nc" id="L511">                    throw new Exception(&quot;No known request type received.&quot;);</span>
+				}
+			}
+<span class="nc" id="L514">		} catch (AuthStatusException ase) {</span>
+<span class="nc" id="L515">			iErrorMessage = intres.getLocalizedMessage(&quot;certreq.wrongstatus&quot;);</span>
+<span class="nc" id="L516">        } catch (ObjectNotFoundException oe) {</span>
+            // Same error message for user not found and wrong password
+<span class="nc" id="L518">            iErrorMessage = intres.getLocalizedMessage(&quot;ra.wrongusernameorpassword&quot;);</span>
+            // But debug log the real issue if needed
+<span class="nc bnc" id="L520" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L521">                log.debug(intres.getLocalizedMessage(&quot;ra.errorentitynotexist&quot;, username));</span>
+            }
+<span class="nc" id="L523">		} catch (AuthLoginException ale) {</span>
+<span class="nc" id="L524">			iErrorMessage = intres.getLocalizedMessage(&quot;ra.wrongusernameorpassword&quot;);</span>
+<span class="nc" id="L525">			log.info(iErrorMessage + &quot; - username: &quot; + username);</span>
+<span class="nc" id="L526">        } catch (IncomatibleTokenTypeException re) {</span>
+<span class="nc" id="L527">            iErrorMessage = intres.getLocalizedMessage(&quot;certreq.csrreceivedforservergentoken&quot;);</span>
+<span class="nc" id="L528">		} catch (SignRequestException re) {</span>
+<span class="nc" id="L529">		    log.info(re.getMessage(), re);</span>
+<span class="nc" id="L530">			iErrorMessage = intres.getLocalizedMessage(&quot;certreq.invalidreq&quot;, re.getMessage());</span>
+<span class="nc" id="L531">		} catch (SignRequestSignatureException se) {</span>
+<span class="nc" id="L532">			String iMsg = intres.getLocalizedMessage(&quot;certreq.invalidsign&quot;);</span>
+<span class="nc" id="L533">			log.info(iMsg, se);</span>
+<span class="nc" id="L534">			debug.printMessage(iMsg);</span>
+<span class="nc" id="L535">			debug.printDebugInfo();</span>
+<span class="nc" id="L536">			return;</span>
+<span class="nc" id="L537">		} catch (ArrayIndexOutOfBoundsException | DecoderException ae) {</span>
+<span class="nc" id="L538">			iErrorMessage = intres.getLocalizedMessage(&quot;certreq.invalidreq&quot;);</span>
+<span class="nc" id="L539">		} catch (IllegalKeyException e) {</span>
+<span class="nc" id="L540">			iErrorMessage = intres.getLocalizedMessage(&quot;certreq.invalidkey&quot;, e.getMessage());</span>
+<span class="nc" id="L541">		} catch (CryptoTokenOfflineException ctoe) {</span>
+<span class="nc" id="L542">		    String ctoeMsg = ctoe.getMessage();</span>
+<span class="nc bnc" id="L543" title="All 2 branches missed.">		    for (Throwable e = ctoe; e != null; e = e.getCause()) {</span>
+		        //We can not do &quot;if (e instanceof sun.security.pkcs11.wrapper.PKCS11Exception)&quot; here because these classes are not guaranteed to exist on all platforms
+<span class="nc bnc" id="L545" title="All 2 branches missed.">                if (e.getClass().getName().contains(&quot;PKCS11&quot;)) {</span>
+<span class="nc" id="L546">		            ctoeMsg = &quot;PKCS11 error &quot;+e.getMessage();</span>
+<span class="nc" id="L547">		            break;</span>
+		        }
+		    }
+<span class="nc" id="L550">            iErrorMessage = intres.getLocalizedMessage(&quot;certreq.catokenoffline&quot;, ctoeMsg);</span>
+<span class="nc" id="L551">		} catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L552">		    iErrorMessage = intres.getLocalizedMessage(&quot;certreq.authorizationdenied&quot;) + e.getLocalizedMessage();</span>
+<span class="nc" id="L553">		} catch(CertificateCreateException e) {</span>
+<span class="nc bnc" id="L554" title="All 4 branches missed.">		    if (e.getErrorCode()!=null &amp;&amp; e.getErrorCode().equals(ErrorCode.CERTIFICATE_WITH_THIS_SUBJECTDN_ALREADY_EXISTS_FOR_ANOTHER_USER)) {</span>
+<span class="nc" id="L555">		        iErrorMessage = e.getLocalizedMessage();</span>
+		    } else {
+<span class="nc bnc" id="L557" title="All 4 branches missed.">		        if (e.getErrorCode()!=null &amp;&amp; e.getErrorCode().equals(ErrorCode.NOT_AUTHORIZED)) {</span>
+<span class="nc" id="L558">		            debug.print(e.getLocalizedMessage());</span>
+<span class="nc" id="L559">		            debug.printDebugInfo();</span>
+		        } else {
+<span class="nc" id="L561">		            debug.takeCareOfException(e);</span>
+<span class="nc" id="L562">		            debug.printDebugInfo();</span>
+		        }
+		    }
+<span class="nc" id="L565">		} catch (Exception e) {</span>
+<span class="nc" id="L566">			Throwable e1 = e.getCause();</span>
+<span class="nc bnc" id="L567" title="All 2 branches missed.">			if (e1 instanceof CryptoTokenOfflineException) {</span>
+<span class="nc" id="L568">				String iMsg = intres.getLocalizedMessage(&quot;certreq.catokenoffline&quot;, e1.getMessage());</span>
+				// this is already logged as an error, so no need to log it one more time
+<span class="nc" id="L570">				debug.printMessage(iMsg);</span>
+<span class="nc" id="L571">				debug.printDebugInfo();</span>
+<span class="nc" id="L572">				return;</span>
+			} else {
+<span class="nc bnc" id="L574" title="All 2 branches missed.">				if (e1 == null) { e1 = e; }</span>
+<span class="nc" id="L575">                String iMsg = intres.getLocalizedMessage(&quot;certreq.errorgeneral&quot;, e1.getMessage());</span>
+<span class="nc bnc" id="L576" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L577">                    log.debug(iMsg, e);</span>
+                }
+<span class="nc" id="L579">				iMsg = intres.getLocalizedMessage(&quot;certreq.parameters&quot;, e1.getMessage());</span>
+<span class="nc" id="L580">				debug.print(iMsg + &quot;:\n&quot;);</span>
+				@SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L582">                Set&lt;String&gt; paramNames = params.keySet();</span>
+<span class="nc bnc" id="L583" title="All 2 branches missed.">				for(String name : paramNames) {</span>
+<span class="nc" id="L584">					String parameter = getParameter(name);</span>
+<span class="nc bnc" id="L585" title="All 2 branches missed.">                    if (!StringUtils.equals(name, &quot;password&quot;)) {</span>
+<span class="nc" id="L586">                        debug.print(HTMLTools.htmlescape(name) + &quot;: '&quot; + HTMLTools.htmlescape(parameter) + &quot;'\n&quot;);</span>
+                    } else {
+<span class="nc" id="L588">                        debug.print(HTMLTools.htmlescape(name) + &quot;: &lt;hidden&gt;\n&quot;);</span>
+                    }
+<span class="nc" id="L590">				}</span>
+				// Don't print back details to the client, this is considered information leak
+				//debug.takeCareOfException(e);
+<span class="nc" id="L593">				debug.printDebugInfo();</span>
+			}
+<span class="nc" id="L595">		}</span>
+<span class="nc bnc" id="L596" title="All 2 branches missed.">		if (iErrorMessage != null) {</span>
+<span class="nc bnc" id="L597" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L598">                log.debug(iErrorMessage);</span>
+            }
+<span class="nc" id="L600">			debug.printMessage(iErrorMessage);</span>
+<span class="nc" id="L601">			debug.printDebugInfo();</span>
+<span class="nc" id="L602">			return;</span>
+		}
+<span class="nc" id="L604">	}</span>
+
+    /** Check is a request to this servlet contains a Certificate Signing Request (CSR) in any
+     * format that we support.
+     * @return bool
+     */
+    private boolean hasCSRInRequest() {
+<span class="nc bnc" id="L611" title="All 4 branches missed.">        if ((getParameter(&quot;cvcreq&quot;) != null) || (getParameter(&quot;cvcreqfile&quot;) != null)</span>
+<span class="nc bnc" id="L612" title="All 4 branches missed.">                || (getParameter(&quot;pkcs10req&quot;) != null) || (getParameter(&quot;pkcs10file&quot;) != null)</span>
+<span class="nc bnc" id="L613" title="All 4 branches missed.">                || (getParameter(&quot;pkcs10&quot;) != null) || (getParameter(&quot;PKCS10&quot;) != null)</span>
+<span class="nc bnc" id="L614" title="All 2 branches missed.">                || (getParameter(&quot;iidPkcs10&quot;) != null)</span>
+<span class="nc bnc" id="L615" title="All 2 branches missed.">                || (getParameter(&quot;keygen&quot;) != null)) {</span>
+<span class="nc" id="L616">            return true;</span>
+        }
+<span class="nc" id="L618">        return false;</span>
+    }
+
+    /**
+     * Determines whether the issuer of a certificate is a &quot;throw away&quot; CA, i.e.
+     * if it does not store certificates it issues in the database.
+     *
+     * @param certbytes DER encoded certificate.
+     * @param username user
+     * @return vool
+     * @throws CADoesntExistsException fail
+     * @throws CertificateException fail
+     */
+    private boolean isCertIssuerThrowAwayCA(final byte[] certbytes, final String username) throws CADoesntExistsException, CertificateException {
+<span class="nc" id="L632">        Certificate cert = CertTools.getCertfromByteArray(certbytes, Certificate.class);</span>
+<span class="nc" id="L633">        String issuerDN = CertTools.getIssuerDN(cert);</span>
+<span class="nc" id="L634">        int caid = issuerDN.hashCode();</span>
+<span class="nc" id="L635">        CAInfo caInfo = caSession.getCAInfoInternal(caid);</span>
+<span class="nc" id="L636">        EndEntityInformation endEntityInformation = endEntityAccessSession.findUser(username);</span>
+<span class="nc" id="L637">        CertificateProfile certificateProfile = certificateProfileSession.getCertificateProfile(endEntityInformation.getCertificateProfileId());</span>
+<span class="nc bnc" id="L638" title="All 6 branches missed.">        return (!caInfo.isUseCertificateStorage() &amp;&amp; !certificateProfile.getUseCertificateStorage()) || !certificateProfile.getStoreCertificateData();</span>
+    }
+
+	/**
+	 * Method creating a Map of request values, designed to handle both
+	 * regular x-encoded forms and multipart encoded upload forms.
+	 *
+	 * @param request
+	 *            HttpServletRequest
+	 * @throws FileUploadException
+	 *             if multipart request can not be parsed
+	 * @throws IOException
+	 *             If input stream of uploaded object can not be read
+	 */
+	@SuppressWarnings(&quot;unchecked&quot;)
+    private void setParameters(HttpServletRequest request) throws FileUploadException, IOException {
+<span class="nc bnc" id="L654" title="All 2 branches missed.">		if (ServletFileUpload.isMultipartContent(request)) {</span>
+<span class="nc" id="L655">			params = new HashMap&lt;String, String&gt;();</span>
+<span class="nc" id="L656">            final DiskFileItemFactory diskFileItemFactory = new DiskFileItemFactory();</span>
+<span class="nc" id="L657">            diskFileItemFactory.setSizeThreshold(9999);</span>
+<span class="nc" id="L658">            ServletFileUpload upload = new ServletFileUpload(diskFileItemFactory);</span>
+<span class="nc" id="L659">			upload.setSizeMax(REQUEST_MAX_SIZE);</span>
+<span class="nc" id="L660">            List&lt;FileItem&gt; items = upload.parseRequest(request);</span>
+<span class="nc" id="L661">			Iterator&lt;FileItem&gt; iter = items.iterator();</span>
+<span class="nc bnc" id="L662" title="All 2 branches missed.">			while (iter.hasNext()) {</span>
+<span class="nc" id="L663">                FileItem item = iter.next();</span>
+<span class="nc bnc" id="L664" title="All 2 branches missed.">				if (item.isFormField()) {</span>
+<span class="nc" id="L665">					params.put(item.getFieldName(), item.getString());</span>
+				} else {
+<span class="nc" id="L667">					InputStream is = item.getInputStream();</span>
+<span class="nc" id="L668">					byte[] bytes = FileTools.readInputStreamtoBuffer(is);</span>
+<span class="nc" id="L669">					params.put(item.getFieldName(), new String(Base64.encode(bytes)));</span>
+				}
+<span class="nc" id="L671">			}</span>
+<span class="nc" id="L672">		} else {</span>
+<span class="nc" id="L673">			params = request.getParameterMap();</span>
+		}
+<span class="nc" id="L675">	}</span>
+
+	private String getParameter(String param) {
+<span class="nc" id="L678">		String ret = null;</span>
+<span class="nc" id="L679">		Object o = params.get(param);</span>
+<span class="nc bnc" id="L680" title="All 2 branches missed.">		if (o != null) {</span>
+<span class="nc bnc" id="L681" title="All 2 branches missed.">			if (o instanceof String) {</span>
+<span class="nc bnc" id="L682" title="All 2 branches missed.">			    if ( ((String)o).length() &gt; REQUEST_MAX_SIZE ) {</span>
+<span class="nc bnc" id="L683" title="All 2 branches missed.">			        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L684">			            log.debug(&quot;Parameter '&quot;+param+&quot;' exceed size limit of &quot;+REQUEST_MAX_SIZE);</span>
+			        }
+			    } else {
+<span class="nc" id="L687">			        ret = (String) o;</span>
+			    }
+<span class="nc bnc" id="L689" title="All 2 branches missed.">			} else if (o instanceof String[]) { // keygen is of this type</span>
+			    // for some reason...
+<span class="nc" id="L691">			    String[] str = (String[]) o;</span>
+<span class="nc bnc" id="L692" title="All 4 branches missed.">			    if ((str != null) &amp;&amp; (str.length &gt; 0)) {</span>
+<span class="nc bnc" id="L693" title="All 2 branches missed.">			        if ( str[0].length() &gt; REQUEST_MAX_SIZE ) {</span>
+<span class="nc bnc" id="L694" title="All 2 branches missed.">			            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L695">			                log.debug(&quot;Parameter (first in list) '&quot;+param+&quot;' exceed size limit of &quot;+REQUEST_MAX_SIZE);</span>
+			            }
+			        } else {
+<span class="nc" id="L698">			            ret = str[0];</span>
+			        }
+			    }
+<span class="nc" id="L701">			} else {</span>
+<span class="nc" id="L702">				log.debug(&quot;Can not cast object of type: &quot; + o.getClass().getName());</span>
+			}
+		}
+<span class="nc" id="L705">		return ret;</span>
+	}
+
+	private void pkcs10Req(HttpServletRequest request, HttpServletResponse response, String username, String password, CertificateResponseType resulttype,
+			RequestHelper helper, byte[] reqBytes) throws Exception, IOException {
+<span class="nc bnc" id="L710" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L711">            log.debug(&quot;Received PKCS10 request: &quot; + new String(reqBytes));</span>
+        }
+<span class="nc" id="L713">		CertificateRequestResponse result = helper.pkcs10CertRequest(signSession, caSession, reqBytes, username, password, resulttype);</span>
+<span class="nc" id="L714">		byte[] b64data = result.getEncoded(); // PEM cert, cert-chain or PKCS7</span>
+<span class="nc" id="L715">		byte[] b64subject = result.getCertificate().getEncoded(); // always a PEM cert of the subject</span>
+<span class="nc bnc" id="L716" title="All 4 branches missed.">		if (Boolean.valueOf(getParameter(&quot;showResultPage&quot;)) &amp;&amp; !isCertIssuerThrowAwayCA(b64subject, username)) {</span>
+<span class="nc" id="L717">            RequestHelper.sendResultPage(b64subject, response, &quot;true&quot;.equals(getParameter(&quot;hidemenu&quot;)), resulttype);</span>
+        } else {
+<span class="nc bnc" id="L719" title="All 4 branches missed.">            switch (resulttype) {</span>
+            case ENCODED_PKCS7:
+<span class="nc" id="L721">                RequestHelper.sendNewB64File(b64data, response, username + &quot;.pem&quot;, RequestHelper.BEGIN_PKCS7_WITH_NL, RequestHelper.END_PKCS7_WITH_NL);</span>
+<span class="nc" id="L722">                break;</span>
+            case ENCODED_CERTIFICATE:
+<span class="nc" id="L724">                RequestHelper.sendNewB64File(b64data, response, username + &quot;.pem&quot;, CertTools.BEGIN_CERTIFICATE_WITH_NL,</span>
+                        CertTools.END_CERTIFICATE_WITH_NL);
+<span class="nc" id="L726">                break;</span>
+            case ENCODED_CERTIFICATE_CHAIN:
+                //Begin/end keys have already been set in the serialized object
+<span class="nc" id="L729">                RequestHelper.sendNewB64File(b64data, response, username + &quot;.pem&quot;, &quot;&quot;, &quot;&quot;);</span>
+<span class="nc" id="L730">                break;</span>
+            default:
+<span class="nc" id="L732">                log.warn(&quot;Unknown resulttype requested from pkcs10 request.&quot;);</span>
+                break;
+            }
+        }
+<span class="nc" id="L736">	}</span>
+
+	/**
+	 * method to create an install package for OpenVPN including keys and
+	 * send to user. Contributed by: Jon Bendtsen,
+	 * jon.bendtsen(at)laerdal.dk
+	 * @param ks KS
+	 * @param username User 
+	 * @param kspassword KS
+	 * @param out Out
+	 * @throws Exception Fail 
+	 */
+	private void sendOpenVPNToken(KeyStore ks, String username, String kspassword, HttpServletResponse out) throws Exception {
+<span class="nc" id="L749">		ByteArrayOutputStream buffer = new ByteArrayOutputStream();</span>
+<span class="nc" id="L750">		ks.store(buffer, kspassword.toCharArray());</span>
+
+<span class="nc" id="L752">		String tempDirectory = System.getProperty(&quot;java.io.tmpdir&quot;);</span>
+<span class="nc" id="L753">		File fout = new File(tempDirectory + System.getProperty(&quot;file.separator&quot;) + username + &quot;.p12&quot;);</span>
+<span class="nc" id="L754">		String IssuerDN = null;</span>
+<span class="nc" id="L755">		String SubjectDN = null;</span>
+<span class="nc" id="L756">		try (FileOutputStream certfile = new FileOutputStream(fout)) {</span>
+<span class="nc" id="L757">		    Enumeration&lt;String&gt; en = ks.aliases();</span>
+<span class="nc" id="L758">		    String alias = en.nextElement();</span>
+		    // Then get the certificates
+<span class="nc" id="L760">		    Certificate[] certs = KeyTools.getCertChain(ks, alias);</span>
+		    // The first one (certs[0]) is the users cert and the last
+		    // one (certs [certs.lenght-1]) is the CA-cert
+<span class="nc" id="L763">		    X509Certificate x509cert = (X509Certificate) certs[0];</span>
+<span class="nc" id="L764">		    IssuerDN = x509cert.getIssuerDN().toString();</span>
+<span class="nc" id="L765">		    SubjectDN = x509cert.getSubjectDN().toString();</span>
+
+		    // export the users certificate to file
+<span class="nc" id="L768">		    buffer.writeTo(certfile);</span>
+<span class="nc" id="L769">		    buffer.flush();</span>
+<span class="nc" id="L770">		    buffer.close();</span>
+<span class="nc" id="L771">		    certfile.close();</span>
+		}
+		// run shell script, which will also remove the created files
+		// parameters are the username, IssuerDN and SubjectDN
+		// IssuerDN and SubjectDN will be used to select the right
+		// openvpn configuration file
+		// they have to be written to stdin of the script to support
+		// spaces in the username, IssuerDN or SubjectDN
+<span class="nc" id="L779">		Runtime rt = Runtime.getRuntime();</span>
+<span class="nc bnc" id="L780" title="All 2 branches missed.">		if (rt == null) {</span>
+<span class="nc" id="L781">			log.error(intres.getLocalizedMessage(&quot;certreq.ovpntnoruntime&quot;));</span>
+		} else {
+<span class="nc" id="L783">			final String script = WebConfiguration.getOpenVPNCreateInstallerScript();</span>
+<span class="nc" id="L784">			Process p = rt.exec(script);</span>
+<span class="nc bnc" id="L785" title="All 2 branches missed.">			if (p == null) {</span>
+<span class="nc" id="L786">				log.error(intres.getLocalizedMessage(&quot;certreq.ovpntfailedexec&quot;, script));</span>
+			} else {
+<span class="nc" id="L788">				OutputStream pstdin = p.getOutputStream();</span>
+<span class="nc" id="L789">				PrintStream stdoutp = new PrintStream(pstdin);</span>
+<span class="nc" id="L790">				stdoutp.println(username);</span>
+<span class="nc" id="L791">				stdoutp.println(IssuerDN);</span>
+<span class="nc" id="L792">				stdoutp.println(SubjectDN);</span>
+<span class="nc" id="L793">				stdoutp.flush();</span>
+<span class="nc" id="L794">				stdoutp.close();</span>
+<span class="nc" id="L795">				pstdin.close();</span>
+<span class="nc" id="L796">				int exitVal = p.waitFor();</span>
+<span class="nc bnc" id="L797" title="All 2 branches missed.">				if (exitVal != 0) {</span>
+<span class="nc" id="L798">					log.error(intres.getLocalizedMessage(&quot;certreq.ovpntexiterror&quot;, exitVal));</span>
+				} else {
+<span class="nc bnc" id="L800" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L801">                        log.debug(intres.getLocalizedMessage(&quot;certreq.ovpntexiterror&quot;, exitVal));</span>
+                    }
+				}
+			}
+		}
+
+		// we ought to check if the script was okay or not, but in a little
+		// while we will look for the openvpn-gui-install-$username.exe
+		// and fail there if the script failed. Also, one could question
+		// what to do if it did fail, serve the user the certificate?
+
+		// sending the OpenVPN windows installer
+<span class="nc" id="L813">		String filename = &quot;openvpn-gui-install-&quot; + username + &quot;.exe&quot;;</span>
+<span class="nc" id="L814">		File fin = new File(tempDirectory + System.getProperty(&quot;file.separator&quot;) + filename);</span>
+<span class="nc" id="L815">		FileInputStream vpnfile = new FileInputStream(fin);</span>
+<span class="nc" id="L816">		out.setContentType(&quot;application/x-msdos-program&quot;);</span>
+<span class="nc" id="L817">		out.setHeader(&quot;Content-disposition&quot;, &quot;filename=\&quot;&quot; + StringTools.stripFilename(filename) + &quot;\&quot;&quot;);</span>
+<span class="nc" id="L818">		out.setContentLength((int)fin.length());</span>
+<span class="nc" id="L819">		OutputStream os = out.getOutputStream();</span>
+<span class="nc" id="L820">		byte[] buf = new byte[4096];</span>
+<span class="nc" id="L821">		int bytes = 0;</span>
+<span class="nc bnc" id="L822" title="All 2 branches missed.">		while ((bytes = vpnfile.read(buf)) != -1) {</span>
+<span class="nc" id="L823">			os.write(buf, 0, bytes);</span>
+		}
+<span class="nc" id="L825">		vpnfile.close();</span>
+		// delete OpenVPN windows installer, the script will delete cert.
+<span class="nc" id="L827">		fin.delete();</span>
+<span class="nc" id="L828">		out.flushBuffer();</span>
+<span class="nc" id="L829">	} // sendOpenVPNToken</span>
+
+	private void sendP12Token(KeyStore ks, String username, String kspassword, HttpServletResponse out) throws Exception {
+<span class="nc" id="L832">		ByteArrayOutputStream buffer = new ByteArrayOutputStream();</span>
+<span class="nc" id="L833">		ks.store(buffer, kspassword.toCharArray());</span>
+
+<span class="nc" id="L835">		out.setContentType(&quot;application/x-pkcs12&quot;);</span>
+<span class="nc" id="L836">		out.setHeader(&quot;Content-disposition&quot;, &quot;filename=\&quot;&quot; + StringTools.stripFilename(username + &quot;.p12&quot;) + &quot;\&quot;&quot;);</span>
+<span class="nc" id="L837">		out.setContentLength(buffer.size());</span>
+<span class="nc" id="L838">		buffer.writeTo(out.getOutputStream());</span>
+<span class="nc" id="L839">		out.flushBuffer();</span>
+<span class="nc" id="L840">		buffer.close();</span>
+<span class="nc" id="L841">	}</span>
+
+	private void sendJKSToken(KeyStore ks, String username, String kspassword, HttpServletResponse out) throws Exception {
+<span class="nc" id="L844">		ByteArrayOutputStream buffer = new ByteArrayOutputStream();</span>
+<span class="nc" id="L845">		ks.store(buffer, kspassword.toCharArray());</span>
+
+<span class="nc" id="L847">		out.setContentType(&quot;application/octet-stream&quot;);</span>
+<span class="nc" id="L848">		out.setHeader(&quot;Content-disposition&quot;, &quot;filename=\&quot;&quot; + StringTools.stripFilename(username + &quot;.jks&quot;) + &quot;\&quot;&quot;);</span>
+<span class="nc" id="L849">		out.setContentLength(buffer.size());</span>
+<span class="nc" id="L850">		buffer.writeTo(out.getOutputStream());</span>
+<span class="nc" id="L851">		out.flushBuffer();</span>
+<span class="nc" id="L852">		buffer.close();</span>
+<span class="nc" id="L853">	}</span>
+
+	private void sendPEMTokens(KeyStore ks, String username, String kspassword, HttpServletResponse out) throws Exception {
+<span class="nc" id="L856">		out.setContentType(&quot;application/octet-stream&quot;);</span>
+<span class="nc" id="L857">		out.setHeader(&quot;Content-disposition&quot;, &quot; attachment; filename=\&quot;&quot; + StringTools.stripFilename(username + &quot;.pem&quot;) + &quot;\&quot;&quot;);</span>
+<span class="nc" id="L858">		out.getOutputStream().write(KeyTools.getSinglePemFromKeyStore(ks, kspassword.toCharArray()));</span>
+<span class="nc" id="L859">		out.flushBuffer();</span>
+<span class="nc" id="L860">	}</span>
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

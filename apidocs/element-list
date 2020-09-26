@@ -149,6 +149,8 @@ org.ejbca.ui.cli
 org.ejbca.ui.web
 org.ejbca.ui.web.protocol
 org.ejbca.ui.web.pub
+org.ejbca.ui.web.pub.inspect
+org.ejbca.ui.web.pub.retrieve
 org.ejbca.util
 org.ejbca.util.cert
 org.ejbca.util.crypto

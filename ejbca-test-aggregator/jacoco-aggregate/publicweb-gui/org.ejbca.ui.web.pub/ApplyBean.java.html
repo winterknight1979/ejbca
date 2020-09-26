@@ -1,0 +1,576 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ApplyBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">publicweb-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.pub</a> &gt; <span class="el_source">ApplyBean.java</span></div><h1>ApplyBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.pub;
+
+import java.io.File;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.PublicWebPrincipal;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.util.AlgorithmConstants;
+import org.cesecore.certificates.util.AlgorithmTools;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.util.StringTools;
+import org.ejbca.config.WebConfiguration;
+import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
+import org.ejbca.core.model.util.EjbLocalHelper;
+
+/**
+ * A class used as an interface between Apply jsp pages and ejbca functions.
+ *
+ * @version $Id: ApplyBean.java 28125 2018-01-29 16:41:28Z bastianf $
+ */
+public class ApplyBean implements Serializable {
+    /**
+	 * Version number for serialization
+	 */
+	private static final long serialVersionUID = 1L;
+
+<span class="nc" id="L58">	private static final Logger log = Logger.getLogger(ApplyBean.class);</span>
+
+    private boolean initialized;
+    private AuthenticationToken administrator;
+<span class="nc" id="L62">    private String username = &quot;&quot;;</span>
+<span class="nc" id="L63">    private EndEntityInformation endEntityInformation = null;</span>
+<span class="nc" id="L64">    private String browser = &quot;unknown&quot;;</span>
+    /** Is set to true by setUserOk if user exists and password is correct */
+<span class="nc" id="L66">    private boolean userOk = false;</span>
+
+	private EjbLocalHelper ejbLocalHelper;
+
+	/**
+     * Creates a new instance of CaInterfaceBean
+     */
+<span class="nc" id="L73">    public ApplyBean() {</span>
+<span class="nc" id="L74">    }</span>
+
+    // Public methods
+    public void initialize(HttpServletRequest request)
+        throws Exception {
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        if (!initialized) {</span>
+<span class="nc" id="L80">            administrator = new AlwaysAllowLocalAuthenticationToken(new PublicWebPrincipal(request.getRemoteAddr()));</span>
+<span class="nc" id="L81">            ejbLocalHelper = new EjbLocalHelper();</span>
+<span class="nc" id="L82">            browser = detectBrowser(request);</span>
+<span class="nc" id="L83">            initialized = true;</span>
+        }
+<span class="nc" id="L85">    }</span>
+
+    /**
+     * Method that returns a users tokentype defined in SecConst, if 0 is returned user couldn't be
+     * found i database.
+     *
+     * @param username the user whose tokentype should be returned
+     *
+     * @return caid of user.
+     * @throws Exception Fail
+     *
+     * @see org.ejbca.core.model.SecConst
+     */
+    public int getTokenType(String username) throws Exception {
+<span class="nc" id="L99">        int returnval = 0;</span>
+
+<span class="nc bnc" id="L101" title="All 4 branches missed.">		if(!username.equals(this.username) || this.endEntityInformation == null){</span>
+<span class="nc" id="L102">			this.endEntityInformation = ejbLocalHelper.getEndEntityAccessSession().findUser(administrator, username);</span>
+		}
+
+<span class="nc bnc" id="L105" title="All 2 branches missed.">        if (endEntityInformation != null) {</span>
+<span class="nc" id="L106">            returnval = endEntityInformation.getTokenType();</span>
+        }
+<span class="nc" id="L108">		this.username = username;</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">		if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L110">			log.trace(&quot;&lt;getTokenType(&quot; + username + &quot;) --&gt; &quot; + returnval);</span>
+		}
+<span class="nc" id="L112">        return returnval;</span>
+    }
+
+    /**
+     * Method that returns the CAId of the CA the user was registered with, if 0 is returned user couldn't be
+     * found i database.
+     *
+     * @param username the user whose caid should be returned
+     *
+     * @return caid
+     * @throws Exception Fail
+     */
+	public int getCAId(String username) throws Exception {
+<span class="nc" id="L125">		int returnval = 0;</span>
+
+<span class="nc bnc" id="L127" title="All 4 branches missed.">		if(!username.equals(this.username) || this.endEntityInformation == null){</span>
+<span class="nc" id="L128">			this.endEntityInformation = ejbLocalHelper.getEndEntityAccessSession().findUser(administrator, username);</span>
+		}
+
+<span class="nc bnc" id="L131" title="All 2 branches missed.">		if (endEntityInformation != null) {</span>
+<span class="nc" id="L132">			returnval = endEntityInformation.getCAId();</span>
+		}
+<span class="nc" id="L134">		this.username = username;</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">		if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L136">			log.trace(&quot;&lt;getCAId(&quot; + username + &quot;) --&gt; &quot; + returnval);</span>
+		}
+<span class="nc" id="L138">		return returnval;</span>
+	}
+
+
+    /**
+     * Method that returns a bitlengths available for the user. Returns null if user couldn't be
+     * found in database.
+     *
+     * @param username user whose bit lengts are requested.
+     *
+     * @return array of available bit lengths
+     * @throws Exception Fail
+     */
+    public int[] availableBitLengths(String username) throws Exception {
+<span class="nc" id="L152">        int[] returnval = null;</span>
+
+<span class="nc bnc" id="L154" title="All 4 branches missed.">        if(!username.equals(this.username) || this.endEntityInformation == null){</span>
+<span class="nc" id="L155">        	this.endEntityInformation = ejbLocalHelper.getEndEntityAccessSession().findUser(administrator, username);</span>
+        }
+
+<span class="nc bnc" id="L158" title="All 2 branches missed.">        if (endEntityInformation != null) {</span>
+<span class="nc" id="L159">            int certprofile = endEntityInformation.getCertificateProfileId();</span>
+
+<span class="nc bnc" id="L161" title="All 2 branches missed.">            if (certprofile != CertificateProfileConstants.CERTPROFILE_NO_PROFILE) {</span>
+<span class="nc" id="L162">                CertificateProfile p = ejbLocalHelper.getCertificateProfileSession().getCertificateProfile(certprofile);</span>
+<span class="nc" id="L163">                returnval = p.getAvailableBitLengths();</span>
+            }
+        }
+<span class="nc" id="L166">        this.username = username;</span>
+
+<span class="nc bnc" id="L168" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L169">        	String retdebug = &quot;&quot;;</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">        	if (returnval != null) {</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">        		for (int i=0;i&lt;returnval.length;i++) {</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">        			if (StringUtils.isNotEmpty(retdebug)) {</span>
+<span class="nc" id="L173">        				retdebug += &quot;,&quot;;</span>
+        			}
+<span class="nc" id="L175">            		retdebug += returnval[i];</span>
+        		}
+        	}
+<span class="nc bnc" id="L178" title="All 2 branches missed.">        	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L179">        		log.trace(&quot;&lt;availableBitLengths(&quot; + username + &quot;) --&gt; &quot; + retdebug);</span>
+        	}
+        }
+<span class="nc" id="L182">        return returnval;</span>
+    }
+
+    /**
+     * Method that returns the avialable certificate profiles for the end entity profile
+     * a user is registered with. Returns null if user couldn't be found in database.
+     *
+     * @param username user whose certificate profiles are requested.
+     *
+     * @return array of available certificate profile names
+     * @throws Exception Fail
+     */
+    public String[] availableCertificateProfiles(String username) throws Exception {
+<span class="nc" id="L195">        String[] returnval = null;</span>
+
+<span class="nc bnc" id="L197" title="All 4 branches missed.">        if(!username.equals(this.username) || this.endEntityInformation == null){</span>
+<span class="nc" id="L198">        	this.endEntityInformation = ejbLocalHelper.getEndEntityAccessSession().findUser(administrator, username);</span>
+        }
+
+<span class="nc bnc" id="L201" title="All 2 branches missed.">        if (endEntityInformation != null) {</span>
+<span class="nc" id="L202">            final EndEntityProfile eprof = ejbLocalHelper.getEndEntityProfileSession().getEndEntityProfile(endEntityInformation.getEndEntityProfileId());</span>
+<span class="nc" id="L203">            final Collection&lt;Integer&gt; ids = eprof.getAvailableCertificateProfileIds();</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">            if (!ids.isEmpty()) {</span>
+<span class="nc" id="L205">            	final ArrayList&lt;String&gt; names = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">            	for (int id : ids) {</span>
+<span class="nc" id="L207">                    String name = ejbLocalHelper.getCertificateProfileSession().getCertificateProfileName(id);</span>
+<span class="nc" id="L208">                	names.add(name);</span>
+<span class="nc" id="L209">                }</span>
+<span class="nc" id="L210">                returnval = names.toArray(new String[names.size()]);</span>
+            }
+        }
+<span class="nc" id="L213">        this.username = username;</span>
+
+<span class="nc bnc" id="L215" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L216">        	String retdebug = &quot;&quot;;</span>
+<span class="nc bnc" id="L217" title="All 2 branches missed.">        	if (returnval != null) {</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">        		for (int i=0;i&lt;returnval.length;i++) {</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">        			if (StringUtils.isNotEmpty(retdebug)) {</span>
+<span class="nc" id="L220">        				retdebug += &quot;,&quot;;</span>
+        			}
+<span class="nc" id="L222">            		retdebug += returnval[i];</span>
+        		}
+        	}
+<span class="nc bnc" id="L225" title="All 2 branches missed.">        	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L226">        		log.trace(&quot;&lt;availableCertificateProfiles(&quot; + username + &quot;) --&gt; &quot; + retdebug);</span>
+        	}
+        }
+<span class="nc" id="L229">        return returnval;</span>
+    }
+
+    /**
+     * Method that returns the certificate profile registered for the end entity.
+     * Returns null if user couldn't be found in database.
+     *
+     * @param username user whose certificate profile is requested.
+     *
+     * @return certificate profile name
+     * @throws Exception Fail
+     */
+    public String getUserCertificateProfile(String username) throws Exception {
+<span class="nc" id="L242">        String returnval = null;</span>
+
+<span class="nc bnc" id="L244" title="All 4 branches missed.">        if(!username.equals(this.username) || this.endEntityInformation == null){</span>
+<span class="nc" id="L245">        	this.endEntityInformation = ejbLocalHelper.getEndEntityAccessSession().findUser(administrator, username);</span>
+        }
+
+<span class="nc bnc" id="L248" title="All 2 branches missed.">        if (endEntityInformation != null) {</span>
+<span class="nc" id="L249">            returnval = ejbLocalHelper.getCertificateProfileSession().getCertificateProfileName(endEntityInformation.getCertificateProfileId());</span>
+        }
+<span class="nc" id="L251">        this.username = username;</span>
+
+<span class="nc bnc" id="L253" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L254">        	log.trace(&quot;&lt;getUserCertificateProfile(&quot; + username + &quot;) --&gt; &quot; + returnval);</span>
+        }
+<span class="nc" id="L256">        return returnval;</span>
+    }
+
+    /**
+     * Method that returns if the user exists and password matches.
+     *
+     * @param username user whose authentication should be checked.
+     * @param password PWD
+     * @throws Exception Fail
+     *
+     */
+    public void setUserOk(String username, String password) throws Exception {
+<span class="nc bnc" id="L268" title="All 4 branches missed.">        if(!username.equals(this.username) || this.endEntityInformation == null){</span>
+            try {
+<span class="nc" id="L270">                this.userOk = ejbLocalHelper.getEndEntityManagementSession().verifyPassword(administrator, username, password, true);</span>
+<span class="nc" id="L271">            } catch (NoSuchEndEntityException e) {</span>
+                // Username does not exist
+<span class="nc" id="L273">                this.userOk = false;</span>
+<span class="nc" id="L274">            }</span>
+        }
+<span class="nc bnc" id="L276" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L277">            log.trace(&quot;&lt;userOk(&quot; + username + &quot;) --&gt; &quot; + this.userOk);</span>
+        }
+<span class="nc" id="L279">    }</span>
+
+    /**
+     * Returns if the user exists and password matches. Must be initialized by call to setUserOk(username, password)
+     *
+     * @return true if user exists and pwd is ok, false otherwise
+     */
+    public boolean getUserOk() {
+<span class="nc" id="L287">        return this.userOk;</span>
+    }
+
+    /**
+     * Detects the browser type from the User-Agent HTTP header and returns it.
+     * @param request req
+     * @return Either &quot;netscape&quot;, &quot;explorer&quot; or &quot;unknown&quot;
+     */
+    private String detectBrowser(HttpServletRequest request) {
+<span class="nc" id="L296">        String userAgent = request.getHeader(&quot;User-Agent&quot;);</span>
+<span class="nc bnc" id="L297" title="All 2 branches missed.">        if (userAgent != null) {</span>
+<span class="nc" id="L298">            final boolean isGecko = userAgent.contains(&quot;Gecko&quot;);</span>
+<span class="nc" id="L299">            final boolean isIE = userAgent.contains(&quot;MSIE&quot;);</span>
+<span class="nc" id="L300">            final boolean isNewIE = userAgent.contains(&quot;Trident&quot;); // IE11</span>
+
+<span class="nc bnc" id="L302" title="All 4 branches missed.">            if (isIE &amp;&amp; !isGecko) {</span>
+<span class="nc" id="L303">                return &quot;explorer&quot;;</span>
+            }
+<span class="nc bnc" id="L305" title="All 2 branches missed.">            if (isNewIE) {</span>
+<span class="nc" id="L306">                return &quot;explorer&quot;;</span>
+            }
+<span class="nc bnc" id="L308" title="All 4 branches missed.">            if (isGecko &amp;&amp; !isNewIE) {</span>
+<span class="nc" id="L309">                return &quot;netscape&quot;;</span>
+                /*
+                 * TODO: IE 11.0 will emulate Firefox in some aspects and implement some HTML5 stuff
+                 * (&lt;keygen&gt; is standardized in HTML5). When it has been released we should try it out.
+                 *
+                 * See: http://msdn.microsoft.com/en-us/library/ie/bg182625%28v=vs.85%29.aspx
+                 */
+            }
+        }
+<span class="nc" id="L318">        return &quot;unknown&quot;;</span>
+    }
+
+    /**
+     * Returns the detected browser type.
+     * @see #detectBrowser
+     * @return Either &quot;netscape&quot;, &quot;explorer&quot; or &quot;unknown&quot;
+     */
+    public String getBrowser() {
+<span class="nc" id="L327">        return browser;</span>
+    }
+
+
+    //--------------------------------------------------------------
+    // Convenience methods used from JSTL.
+    // In JSTL, there is no practical way of calling regular functions,
+    // but accessing &quot;properties&quot; of objects (get-methods without arguments)
+    // is easy. Since most methods in ApplyBean take a &quot;username&quot; argument,
+    // we give the JSP page a way to set the username beforehand and then
+    // access the other methods like properties.
+
+<span class="nc" id="L339">    private String defaultUsername = &quot;&quot;;</span>
+
+    /**
+     * Sets the default user name. Some methods in this class come in two versions,
+     * one that takes a String username and one without arguments. The version without
+     * argument uses the default user name set by this method.
+     *
+     * @param newUsername The new default user name
+     */
+    public void setDefaultUsername(String newUsername) {
+<span class="nc" id="L349">    	defaultUsername = newUsername;</span>
+<span class="nc" id="L350">    }</span>
+
+    /**
+     * Returns the token type for the default user.
+     * @see #setDefaultUsername(String)
+     * @see #getTokenType(String)
+     * @return the token type for the default user.
+     * @throws Exception if an error occurs
+     */
+    public int getTokenType() throws Exception {
+<span class="nc" id="L360">    	return getTokenType(defaultUsername);</span>
+    }
+
+    /**
+     * Returns the CA identity for the default user.
+     * @see #setDefaultUsername(String)
+     * @see #getCAId(String)
+     * @return the CA Id for the default user.
+     * @throws Exception if an error occurs
+     */
+	public int getCAId() throws Exception {
+<span class="nc" id="L371">    	return getCAId(defaultUsername);</span>
+    }
+
+    /**
+     * Returns the encryption key lengths available to the default user.
+     * @see #setDefaultUsername(String)
+     * @see #availableBitLengths(String)
+     * @return the bit lengths available to the default user.
+     * @throws Exception if an error occurs
+     */
+	public int[] getAvailableBitLengths() throws Exception {
+<span class="nc" id="L382">		return availableBitLengths(defaultUsername);</span>
+	}
+
+	/**
+     * Returns the smallest available keylength.
+     * @see #getAvailableBitLengths()
+     * @return the minimum key length, or Integer.MAX_VALUE if there are no keylengths available.
+	 * @throws Exception fail
+     */
+    public int getMinimumAvailableKeyLength() throws Exception {
+<span class="nc" id="L392">        int minimum = Integer.MAX_VALUE;</span>
+<span class="nc" id="L393">        int[] keylengths = getAvailableBitLengths();</span>
+<span class="nc bnc" id="L394" title="All 2 branches missed.">        if (keylengths != null) {</span>
+<span class="nc bnc" id="L395" title="All 2 branches missed.">            for (int keylength : keylengths) {</span>
+<span class="nc bnc" id="L396" title="All 2 branches missed.">                if (keylength &lt; minimum) {</span>
+<span class="nc" id="L397">                    minimum = keylength;</span>
+                }
+            }
+        }
+<span class="nc" id="L401">        return minimum;</span>
+    }
+
+    /**
+     * Checks if there's more than one key length to choose from
+     * @return true if there's more than one key length, or if no available key lengths could be found.
+     * @throws Exception fail
+     */
+    public int getNumberOfLengthsAvailable() throws Exception {
+<span class="nc" id="L410">        int[] keylengths = getAvailableBitLengths();</span>
+<span class="nc bnc" id="L411" title="All 2 branches missed.">        return keylengths == null ? 0 : keylengths.length;</span>
+    }
+
+    public int getAvailableTokenKeySpecsSize() throws IllegalStateException, AuthorizationDeniedException {
+<span class="nc" id="L415">        return getAvailableTokenKeySpecs().length;</span>
+    }
+	public String[] getAvailableTokenKeySpecs() throws IllegalStateException, AuthorizationDeniedException {
+<span class="nc" id="L418">	    return getAvailableTokenKeySpecs(defaultUsername);</span>
+	}
+    public String[] getAvailableTokenKeySpecs(String username) throws IllegalStateException, AuthorizationDeniedException {
+<span class="nc" id="L421">        final List&lt;String&gt; ret = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L422" title="All 4 branches missed.">        if(!username.equals(this.username) || this.endEntityInformation == null){</span>
+<span class="nc" id="L423">            this.endEntityInformation = ejbLocalHelper.getEndEntityAccessSession().findUser(administrator, username);</span>
+        }
+<span class="nc" id="L425">        this.username = username;</span>
+<span class="nc" id="L426">        CertificateProfile certificateProfile = null;</span>
+<span class="nc bnc" id="L427" title="All 2 branches missed.">        if (endEntityInformation != null) {</span>
+<span class="nc" id="L428">            final int certprofile = endEntityInformation.getCertificateProfileId();</span>
+<span class="nc bnc" id="L429" title="All 2 branches missed.">            if (certprofile != CertificateProfileConstants.CERTPROFILE_NO_PROFILE) {</span>
+<span class="nc" id="L430">                certificateProfile = ejbLocalHelper.getCertificateProfileSession().getCertificateProfile(certprofile);</span>
+            } else {
+<span class="nc" id="L432">                throw new IllegalStateException(&quot;End entity must have a certificate profile.&quot;);</span>
+            }
+        }
+<span class="nc" id="L435">        final List&lt;String&gt; availableKeyAlgorithms = certificateProfile.getAvailableKeyAlgorithmsAsList();</span>
+<span class="nc" id="L436">        final List&lt;Integer&gt; availableBitLengths = certificateProfile.getAvailableBitLengthsAsList();</span>
+<span class="nc bnc" id="L437" title="All 2 branches missed.">        if (availableKeyAlgorithms.contains(AlgorithmConstants.KEYALGORITHM_DSA)) {</span>
+<span class="nc bnc" id="L438" title="All 2 branches missed.">            for (final int availableBitLength : availableBitLengths) {</span>
+<span class="nc bnc" id="L439" title="All 2 branches missed.">                if (availableBitLength==1024) {</span>
+<span class="nc" id="L440">                    ret.add(AlgorithmConstants.KEYALGORITHM_DSA + &quot;_&quot; + availableBitLength + &quot;;&quot; + AlgorithmConstants.KEYALGORITHM_DSA + &quot; &quot; + availableBitLength + &quot; bits&quot;);</span>
+                }
+<span class="nc" id="L442">            }</span>
+        }
+<span class="nc bnc" id="L444" title="All 2 branches missed.">        if (availableKeyAlgorithms.contains(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
+<span class="nc bnc" id="L445" title="All 2 branches missed.">            for (final int availableBitLength : availableBitLengths) {</span>
+<span class="nc bnc" id="L446" title="All 2 branches missed.">                if (availableBitLength&gt;=1024) {</span>
+<span class="nc" id="L447">                    ret.add(AlgorithmConstants.KEYALGORITHM_RSA + &quot;_&quot; + availableBitLength + &quot;;&quot; + AlgorithmConstants.KEYALGORITHM_RSA + &quot; &quot; + availableBitLength + &quot; bits&quot;);</span>
+                }
+<span class="nc" id="L449">            }</span>
+        }
+<span class="nc bnc" id="L451" title="All 2 branches missed.">        if (availableKeyAlgorithms.contains(AlgorithmConstants.KEYALGORITHM_ECDSA)) {</span>
+<span class="nc" id="L452">            final Set&lt;String&gt; ecChoices = new HashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L453" title="All 2 branches missed.">            if (certificateProfile.getAvailableEcCurvesAsList().contains(CertificateProfile.ANY_EC_CURVE)) {</span>
+<span class="nc bnc" id="L454" title="All 2 branches missed.">                for (final String ecNamedCurve : AlgorithmTools.getNamedEcCurvesMap(false).keySet()) {</span>
+<span class="nc bnc" id="L455" title="All 2 branches missed.">                    if (CertificateProfile.ANY_EC_CURVE.equals(ecNamedCurve)) {</span>
+<span class="nc" id="L456">                        continue;</span>
+                    }
+<span class="nc" id="L458">                    final int bitLength = AlgorithmTools.getNamedEcCurveBitLength(ecNamedCurve);</span>
+<span class="nc bnc" id="L459" title="All 2 branches missed.">                    if (availableBitLengths.contains(Integer.valueOf(bitLength))) {</span>
+<span class="nc" id="L460">                        ecChoices.add(ecNamedCurve);</span>
+                    }
+<span class="nc" id="L462">                }</span>
+            }
+<span class="nc" id="L464">            ecChoices.addAll(certificateProfile.getAvailableEcCurvesAsList());</span>
+<span class="nc" id="L465">            ecChoices.remove(CertificateProfile.ANY_EC_CURVE);</span>
+<span class="nc" id="L466">            final List&lt;String&gt; ecChoicesList = new ArrayList&lt;&gt;(ecChoices);</span>
+<span class="nc" id="L467">            Collections.sort(ecChoicesList);</span>
+<span class="nc bnc" id="L468" title="All 2 branches missed.">            for (final String ecNamedCurve : ecChoicesList) {</span>
+<span class="nc bnc" id="L469" title="All 2 branches missed.">                if (!AlgorithmTools.isKnownAlias(ecNamedCurve)) {</span>
+<span class="nc" id="L470">                    log.warn(&quot;Ignoring unknown curve &quot; + ecNamedCurve + &quot; from being displayed in the Public Web.&quot;);</span>
+<span class="nc" id="L471">                    continue;</span>
+                }
+<span class="nc" id="L473">                ret.add(AlgorithmConstants.KEYALGORITHM_ECDSA + &quot;_&quot; + ecNamedCurve + &quot;;&quot;+AlgorithmConstants.KEYALGORITHM_ECDSA + &quot; &quot; +</span>
+<span class="nc" id="L474">                        StringTools.getAsStringWithSeparator(&quot; / &quot;, AlgorithmTools.getAllCurveAliasesFromAlias(ecNamedCurve)));</span>
+<span class="nc" id="L475">            }</span>
+        }
+<span class="nc bnc" id="L477" title="All 2 branches missed.">        for (final String algName : CesecoreConfiguration.getExtraAlgs()) {</span>
+<span class="nc bnc" id="L478" title="All 2 branches missed.">            if (availableKeyAlgorithms.contains(CesecoreConfiguration.getExtraAlgTitle(algName))) {</span>
+<span class="nc bnc" id="L479" title="All 2 branches missed.">                for (final String subAlg : CesecoreConfiguration.getExtraAlgSubAlgs(algName)) {</span>
+<span class="nc" id="L480">                    final String name = CesecoreConfiguration.getExtraAlgSubAlgName(algName, subAlg);</span>
+<span class="nc" id="L481">                    final int bitLength = AlgorithmTools.getNamedEcCurveBitLength(name);</span>
+<span class="nc bnc" id="L482" title="All 2 branches missed.">                    if (availableBitLengths.contains(Integer.valueOf(bitLength))) {</span>
+<span class="nc" id="L483">                        ret.add(CesecoreConfiguration.getExtraAlgTitle(algName) + &quot;_&quot; + name + &quot;;&quot; + CesecoreConfiguration.getExtraAlgSubAlgTitle(algName, subAlg));</span>
+                    } else {
+<span class="nc bnc" id="L485" title="All 2 branches missed.">                        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L486">                            log.trace(&quot;Excluding &quot; + name + &quot; from enrollment options since bit length &quot; + bitLength + &quot; is not available.&quot;);</span>
+                        }
+                    }
+<span class="nc" id="L489">                }</span>
+            }
+<span class="nc" id="L491">        }</span>
+<span class="nc bnc" id="L492" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L493">            final StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L494" title="All 2 branches missed.">            for (final String availableTokenKeySpec : ret) {</span>
+<span class="nc bnc" id="L495" title="All 2 branches missed.">                if (sb.length()&gt;0) {</span>
+<span class="nc" id="L496">                    sb.append(&quot;, &quot;);</span>
+                }
+<span class="nc" id="L498">                sb.append(availableTokenKeySpec);</span>
+<span class="nc" id="L499">            }</span>
+<span class="nc" id="L500">            log.debug(&quot;&lt;availableBitLengths(&quot; + username + &quot;) --&gt; &quot; + sb.toString());</span>
+        }
+<span class="nc" id="L502">        return ret.toArray(new String[ret.size()]);</span>
+    }
+
+    /**
+     * Returns the default encryption key lengths.
+     * @see #availableBitLengths(String)
+     * @return the default bit lengths available.
+     * @throws Exception if an error occurs
+     */
+	public int[] getDefaultBitLengths() throws Exception {
+<span class="nc" id="L512">		return SecConst.DEFAULT_KEY_LENGTHS;</span>
+	}
+
+    /**
+     * Returns the certificate profiles available to the default user.
+     * @see #setDefaultUsername(String)
+     * @see #availableCertificateProfiles(String)
+     * @return the certificate profile names available to the default user.
+     * @throws Exception if an error occurs
+     */
+	public String[] getAvailableCertificateProfiles() throws Exception {
+<span class="nc" id="L523">		return availableCertificateProfiles(defaultUsername);</span>
+	}
+
+	/**
+     * Returns true if a list of certificate profiles should be shown to the user.
+	 * @return bool
+	 * @throws Exception fail
+     * @see #getAvailableCertificateProfiles()
+     */
+    public boolean isCertificateProfileListShown() throws Exception {
+<span class="nc bnc" id="L533" title="All 2 branches missed.">        return getAvailableCertificateProfiles().length != 1;</span>
+    }
+
+    /**
+     * Returns true if the user has status &quot;Key Recovery&quot;.
+     * @return true if user status is &quot;Key Recovery&quot;
+     * @throws AuthorizationDeniedException if the admin is not authorized to the user
+     */
+    public boolean isKeyRecovery() throws AuthorizationDeniedException {
+<span class="nc" id="L542">        EndEntityInformation user = endEntityInformation;</span>
+<span class="nc bnc" id="L543" title="All 4 branches missed.">        if (user == null || !user.getUsername().equals(defaultUsername)) {</span>
+<span class="nc" id="L544">            user = ejbLocalHelper.getEndEntityAccessSession().findUser(administrator, defaultUsername);</span>
+        }
+<span class="nc bnc" id="L546" title="All 4 branches missed.">        return user != null &amp;&amp; user.getStatus() == EndEntityConstants.STATUS_KEYRECOVERY;</span>
+    }
+
+	/** Returns the certificate profile the user is registered with
+	 *
+	 * @return certificate profile name
+	 * @throws Exception id an error occurs
+	 */
+	public String getUserCertificateProfile() throws Exception {
+<span class="nc" id="L555">		return getUserCertificateProfile(defaultUsername);</span>
+	}
+
+	/**
+	 * Checks if the &quot;OpenVPN installer&quot; option should be available.
+	 * @return bool
+	 * @throws Exception fail 
+	 */
+	public boolean isOpenVPNInstallerConfigured() throws Exception {  
+        // Check that the OpenVPN installer script exists
+<span class="nc" id="L565">        final String script = WebConfiguration.getOpenVPNCreateInstallerScript();</span>
+<span class="nc bnc" id="L566" title="All 4 branches missed.">        boolean exists = (script != null &amp;&amp; new File(script).exists());</span>
+
+<span class="nc bnc" id="L568" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L569">            log.debug(&quot;OpenVPN installer script does not exist, so the option will be hidden: &quot; + script);</span>
+        }
+
+<span class="nc" id="L572">        return exists;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

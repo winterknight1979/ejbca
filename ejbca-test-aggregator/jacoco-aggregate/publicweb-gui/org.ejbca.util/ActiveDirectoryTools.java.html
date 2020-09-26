@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ActiveDirectoryTools.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">publicweb-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util</a> &gt; <span class="el_source">ActiveDirectoryTools.java</span></div><h1>ActiveDirectoryTools.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.util;
+
+import java.util.Iterator;
+
+import org.apache.log4j.Logger;
+import org.ejbca.config.GlobalConfiguration;
+
+import com.novell.ldap.LDAPAttribute;
+import com.novell.ldap.LDAPConnection;
+import com.novell.ldap.LDAPEntry;
+import com.novell.ldap.LDAPException;
+import com.novell.ldap.LDAPJSSESecureSocketFactory;
+import com.novell.ldap.LDAPSearchResults;
+
+/**
+ * @version $Id: ActiveDirectoryTools.java 19902 2014-09-30 14:32:24Z anatom $
+ */
+<span class="nc" id="L30">public class ActiveDirectoryTools {</span>
+<span class="nc" id="L31">	private static final Logger log = Logger.getLogger(ActiveDirectoryTools.class);</span>
+    //private static final InternalResources intres = InternalResources.getInstance();
+
+	/**
+     * Return the DN of the requested user.
+     * 
+	 *@param globalConfiguration contains Active Directory configuration for autenrollment used in this method
+	 *@param usernameShort is the SAMUserAccountName e.g. &quot;Administrator&quot; 
+	 * @return String
+	 */
+	public static String getUserDNFromActiveDirectory(GlobalConfiguration globalConfiguration, String usernameShort) {
+<span class="nc" id="L42">		String activeDirectoryServer = globalConfiguration.getAutoEnrollADServer();</span>
+<span class="nc" id="L43">		int activeDirectoryPort = globalConfiguration.getAutoEnrollADPort();</span>
+<span class="nc" id="L44">		boolean useSSLConnection = globalConfiguration.getAutoEnrollSSLConnection();	</span>
+<span class="nc" id="L45">		String activeDirectoryUserDN = globalConfiguration.getAutoEnrollConnectionDN();</span>
+<span class="nc" id="L46">		String activeDirectoryUserPassword = globalConfiguration.getAutoEnrollConnectionPwd();</span>
+<span class="nc" id="L47">		String userSearchBaseDN = globalConfiguration.getAutoEnrollBaseDNUser();</span>
+<span class="nc" id="L48">		return ActiveDirectoryTools.getSubjectDNFromUserInAD(activeDirectoryServer, activeDirectoryPort, useSSLConnection, activeDirectoryUserDN, activeDirectoryUserPassword,</span>
+				userSearchBaseDN, usernameShort);
+	}
+	
+	/**
+     * Return the DN of the requested user.
+     * 
+     * @param serverAddress host of the Active Directory server
+	 * @param port can be set to 0 to use the default port (389 or 636 for SSL)
+     * @param useSSL if the AD can handle this
+     * @param connectionDN is the connectors DN. E.g. &quot;cn=Administrator,cn=Users,dc=org,dc=local&quot;
+     * @param connectionPassword is the connectors password
+     * @param baseDN is base DN of where to look for the user. E.g. &quot;cn=Users,dc=org,dc=local&quot;
+     * @param username is the SAMAccountName for the user to look for
+     * @return the full DN of the user
+     */
+	static public String getSubjectDNFromUserInAD(String serverAddress, int port, boolean useSSL,
+			String connectionDN, String connectionPassword, String baseDN, String username) {
+<span class="nc" id="L66">		String requestedDN = null;</span>
+<span class="nc" id="L67">		LDAPConnection lc = getNewConnection(serverAddress, port, useSSL, connectionDN, connectionPassword);</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">		if (lc == null) {</span>
+<span class="nc" id="L69">			return null;</span>
+		}
+<span class="nc" id="L71">		LDAPEntry entry = null;</span>
+		try {
+<span class="nc" id="L73">			String searchFilter = &quot;(&amp;(objectClass=person)(sAMAccountName=&quot; + username + &quot;))&quot;;</span>
+<span class="nc" id="L74">	        String[] attrs = { LDAPConnection.NO_ATTRS };</span>
+	        // Search recursively, but don't return any attributes for found objects
+<span class="nc" id="L76">			LDAPSearchResults searchResults = lc.search(baseDN, LDAPConnection.SCOPE_SUB, searchFilter, attrs, true);</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">			if (searchResults.hasMore()) {</span>
+				// Re-read the object to get the attributes now
+<span class="nc" id="L79">				requestedDN = searchResults.next().getDN();</span>
+				// List all props just for fun.. (TODO: Remove this..)
+<span class="nc" id="L81">				entry = lc.read(requestedDN);</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">				if (entry != null) {</span>
+					@SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L84">                    Iterator&lt;LDAPAttribute&gt; iter = entry.getAttributeSet().iterator();</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">					while (iter.hasNext()) {</span>
+<span class="nc" id="L86">						log.info(&quot;.. &quot; + iter.next().toString().replaceAll(&quot;[^A-Za-z]&quot;, &quot;&quot;));</span>
+					}
+<span class="nc" id="L88">				}</span>
+			} else {
+<span class="nc" id="L90">				log.info(&quot;No matches found using filter: '&quot; +searchFilter + &quot;'.&quot;);</span>
+			}
+<span class="nc" id="L92">		} catch (LDAPException e) {</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">			if (e.getResultCode() == LDAPException.NO_SUCH_OBJECT) {</span>
+<span class="nc" id="L94">				log.info(&quot;No such entry exist.&quot;);</span>
+			} else {
+<span class="nc" id="L96">				log.error(&quot;Unknown AD error&quot;, e);</span>
+			}
+		} finally {
+			// disconnect with the server
+<span class="nc" id="L100">			disconnect(lc);</span>
+		}
+<span class="nc" id="L102">		return requestedDN;</span>
+	}
+
+	/**
+	 * Create new LDAP connection to Active Directory server.
+	 * @param serverAddress Server
+	 * @param port can be set to 0 to use the default port (389 or 636 for SSL)
+	 * @param useSSL bool
+	 * @param connectionDN DN
+	 * @param connectionPassword PWD
+	 * @return connection
+	 */
+	private static LDAPConnection getNewConnection(String serverAddress, int port, boolean useSSL, String connectionDN, String connectionPassword) {
+<span class="nc" id="L115">		LDAPConnection lc = null;</span>
+<span class="nc" id="L116">		int ldapPort = port;</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">		if (useSSL) {</span>
+<span class="nc" id="L118">			lc = new LDAPConnection(new LDAPJSSESecureSocketFactory());</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">			if (ldapPort == 0) {</span>
+<span class="nc" id="L120">				ldapPort = LDAPConnection.DEFAULT_SSL_PORT;	// Port 636</span>
+			}
+		} else {
+<span class="nc" id="L123">			lc = new LDAPConnection();</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">			if (ldapPort == 0) {</span>
+<span class="nc" id="L125">				ldapPort = LDAPConnection.DEFAULT_PORT;	// Port 389</span>
+			}
+		}
+		try {
+			// connect to the server
+<span class="nc" id="L130">			lc.connect(serverAddress, ldapPort);</span>
+			// authenticate to the server
+<span class="nc" id="L132">			lc.bind(LDAPConnection.LDAP_V3, connectionDN, connectionPassword.getBytes());</span>
+<span class="nc" id="L133">		} catch (LDAPException e) {</span>
+<span class="nc" id="L134">			log.error(&quot;Error during AD bind&quot;, e);</span>
+<span class="nc" id="L135">			disconnect(lc);</span>
+<span class="nc" id="L136">			lc = null;</span>
+<span class="nc" id="L137">		}</span>
+<span class="nc" id="L138">		return lc;</span>
+	}
+
+	/**
+	 * Clsoe and clean up existing connection.
+	 * @param lc connection
+	 */
+	private static void disconnect(LDAPConnection lc) {
+		try {
+<span class="nc" id="L147">			lc.disconnect();</span>
+<span class="nc" id="L148">		} catch (LDAPException e) {</span>
+<span class="nc" id="L149">			log.error(&quot;Error during AD disconnect&quot;, e);</span>
+<span class="nc" id="L150">		}</span>
+<span class="nc" id="L151">	}</span>
+			
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

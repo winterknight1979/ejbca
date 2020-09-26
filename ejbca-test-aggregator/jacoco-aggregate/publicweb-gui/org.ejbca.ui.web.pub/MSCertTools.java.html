@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>MSCertTools.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">ejbca-test-aggregator</a> &gt; <a href="../index.html" class="el_bundle">publicweb-gui</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.pub</a> &gt; <span class="el_source">MSCertTools.java</span></div><h1>MSCertTools.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.pub;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import javax.ejb.EJBException;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.x509.KeyPurposeId;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.CertificateProfileExistsException;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSession;
+import org.cesecore.certificates.util.DNFieldExtractor;
+import org.cesecore.certificates.util.DnComponents;
+import org.cesecore.util.CertTools;
+import org.ejbca.core.ejb.ra.raadmin.AdminPreferenceSession;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSession;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileExistsException;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileNotFoundException;
+
+/**
+ * @version $Id: MSCertTools.java 25552 2017-03-21 08:16:31Z anatom $
+ */
+<span class="nc" id="L40">public class MSCertTools {</span>
+
+<span class="nc" id="L42">	private static final Logger log = Logger.getLogger(MSCertTools.class);</span>
+
+	private static final String REQUESTSTART = &quot;-----BEGIN NEW CERTIFICATE REQUEST-----&quot;;
+	private static final String REQUESTEND = &quot;-----END NEW CERTIFICATE REQUEST-----&quot;;
+
+	private static final String CERTIFICATE_TEMPLATENAME_USER = &quot;User&quot;;
+	private static final String CERTIFICATE_TEMPLATENAME_MACHINE = &quot;Machine&quot;;
+	private static final String CERTIFICATE_TEMPLATENAME_DOMAINCONTROLLER = &quot;DomainController&quot;;
+	//private static final String CERTIFICATE_TEMPLATENAME_SMARTCARDLOGON = &quot;SmartcardLogon&quot;;
+	
+<span class="nc" id="L52">	private static final String[] SUPPORTEDCERTIFICATETEMPLATES = {</span>
+		CERTIFICATE_TEMPLATENAME_USER, CERTIFICATE_TEMPLATENAME_MACHINE,
+		CERTIFICATE_TEMPLATENAME_DOMAINCONTROLLER /*, CERTIFICATE_TEMPLATENAME_SMARTCARDLOGON*/};
+	
+	/*
+	Non-crit key usage,
+	NC Template Name: User
+	NC CPD
+	NC AIA
+	NC EKU
+	NC UPN
+	User cert:
+	SMIME Capabilities (non crit)
+	[1]SMIME Capability
+     Object ID=1.2.840.113549.3.2
+     Parameters=02 01 38
+	[2]SMIME Capability
+     Object ID=1.2.840.113549.3.4
+     Parameters=02 01 38
+	[3]SMIME Capability
+     Object ID=1.3.14.3.2.7
+
+
+	Administrator:
+	Microsoft Trust List Signing (1.3.6.1.4.1.311.10.3.1)
+
+	 */
+
+<span class="nc" id="L80">	private static final int[][] KEYUSAGES = {</span>
+		// &quot;User&quot; Key Usage: Digital signature, Allow key exchange only with key encryption
+		{CertificateConstants.DIGITALSIGNATURE, CertificateConstants.KEYENCIPHERMENT},
+		// &quot;Machine&quot; Key Usage: Digital signature, Allow key exchange only with key encryption
+		{CertificateConstants.DIGITALSIGNATURE, CertificateConstants.KEYENCIPHERMENT},
+		// &quot;DomainController&quot; Key Usage: 
+		{CertificateConstants.DIGITALSIGNATURE},
+		// &quot;SmartcardLogon&quot; Key Usage: 
+		{CertificateConstants.DIGITALSIGNATURE, CertificateConstants.KEYENCIPHERMENT}
+	};
+
+<span class="nc" id="L91">	private static final String[][] EXTENDEDKEYUSAGES = {</span>
+		// &quot;User&quot; Extended Key Usage: Encrypting File System, Secure Email, Client Authentication
+<span class="nc" id="L93">		{CertTools.EFS_OBJECTID, KeyPurposeId.id_kp_emailProtection.getId(), KeyPurposeId.id_kp_clientAuth.getId()},</span>
+		// &quot;Machine&quot; Extended Key Usage: Client Authentication, Server Authentication
+<span class="nc" id="L95">		{KeyPurposeId.id_kp_clientAuth.getId(), KeyPurposeId.id_kp_serverAuth.getId()},</span>
+		// &quot;DomainController&quot; Extended Key Usage: 
+<span class="nc" id="L97">		{KeyPurposeId.id_kp_clientAuth.getId(), KeyPurposeId.id_kp_serverAuth.getId()},</span>
+		// &quot;SmartcardLogon&quot; Extended Key Usage: 
+<span class="nc" id="L99">		{KeyPurposeId.id_kp_clientAuth.getId(), KeyPurposeId.id_kp_smartcardlogon.getId()}</span>
+	};
+	
+	public static final String GET_SUBJECTDN_FROM_AD = &quot;GET_SUBJECTDN_FROM_AD&quot;;
+	
+<span class="nc" id="L104">	private static final String[][] DNFIELDS = {</span>
+		// Required fields for &quot;User&quot;
+		{GET_SUBJECTDN_FROM_AD, DnComponents.UPN},
+		// Required fields for &quot;Machine&quot;
+		{DnComponents.COMMONNAME},
+		// Required fields for &quot;DomainController&quot;
+		{DnComponents.COMMONNAME, DnComponents.DNSNAME, DnComponents.GUID},
+		// Required fields for &quot;SmartcardLogon&quot;
+		{GET_SUBJECTDN_FROM_AD, DnComponents.UPN}
+	};
+
+	// Special properties:
+	// User: UPN is remote user? Is UPN even required?
+	// Machine:
+	// DomainController - Use CDP, Use CA defined CDP, Use MS Template Value, DomainController, GUID in request, DNS-name in request
+	// SmartcardLogon - Use CDP, Use CA defined CDP, UPN is remote user
+	
+<span class="nc" id="L121">	private static final boolean[] USE_CA_CDP = {</span>
+		false, false, true, true
+	};
+	
+<span class="nc" id="L125">	private static final String[] MS_TEMPLATE_VALUE = {</span>
+		null, null, &quot;DomainController&quot;, null
+	};
+
+	
+	public static String extractRequestFromRawData(String requestData) {
+<span class="nc bnc" id="L131" title="All 4 branches missed.">		if (requestData == null || &quot;&quot;.equals(requestData)) {</span>
+<span class="nc" id="L132">			return null;</span>
+		}
+<span class="nc" id="L134">		requestData = requestData.replaceFirst(REQUESTSTART, &quot;&quot;).replaceFirst(REQUESTEND, &quot;&quot;);</span>
+<span class="nc" id="L135">		return requestData.replaceAll(&quot; &quot;, &quot;+&quot;);	// Replace lost +-chars in b64-encoding</span>
+	}
+
+	public static int getTemplateIndex(String certificateTemplate) {
+<span class="nc" id="L139">		int templateIndex = -1;</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">		if (certificateTemplate != null) {</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">			for (int i=0; i&lt;SUPPORTEDCERTIFICATETEMPLATES.length; i++) {</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">				if (SUPPORTEDCERTIFICATETEMPLATES[i].equalsIgnoreCase(certificateTemplate)) {</span>
+<span class="nc" id="L143">					certificateTemplate = SUPPORTEDCERTIFICATETEMPLATES[i]; //TODO: bug? assigning the parameter?</span>
+<span class="nc" id="L144">					templateIndex = i;</span>
+				}
+			}
+		}
+<span class="nc bnc" id="L148" title="All 2 branches missed.">		if (templateIndex == -1) {</span>
+<span class="nc" id="L149">			templateIndex = 0;</span>
+<span class="nc" id="L150">			log.warn(&quot;Got request for a unsupported certificate template \&quot;&quot; + certificateTemplate + &quot;\&quot; using \&quot;&quot; + SUPPORTEDCERTIFICATETEMPLATES[templateIndex] + &quot;\&quot; instead.&quot;);</span>
+<span class="nc" id="L151">			certificateTemplate = SUPPORTEDCERTIFICATETEMPLATES[templateIndex]; //TODO: bug? assigning the parameter?</span>
+		}
+<span class="nc" id="L153">		return templateIndex;</span>
+	}
+	
+	public static boolean isRequired(int templateIndex, String dnComponent, int count) {
+<span class="nc" id="L157">		int counter = 0;</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">		for (int i=0; i&lt;DNFIELDS[templateIndex].length; i++) {</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">			if (DNFIELDS[templateIndex][i].equals(dnComponent)) {</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">				if (counter == count) {</span>
+<span class="nc" id="L161">					return true;</span>
+				}
+<span class="nc" id="L163">				counter++;</span>
+			}
+		}
+<span class="nc" id="L166">		return false;</span>
+	}
+
+	public static int getOrCreateCertificateProfile(AuthenticationToken admin, int templateIndex, CertificateProfileSession certificateProfileSession) {
+<span class="nc" id="L170">		String certProfileName = &quot;Autoenroll-&quot; + SUPPORTEDCERTIFICATETEMPLATES[templateIndex];</span>
+		// Create certificate profile if neccesary
+<span class="nc" id="L172">		boolean newCertificateProfile = false;</span>
+<span class="nc" id="L173">		CertificateProfile certProfile = certificateProfileSession.getCertificateProfile(certProfileName);</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">		if (certProfile == null) {</span>
+<span class="nc" id="L175">			certProfile = new CertificateProfile();</span>
+			try {
+<span class="nc" id="L177">			    certificateProfileSession.addCertificateProfile(admin, certProfileName, certProfile);</span>
+<span class="nc" id="L178">				newCertificateProfile = true;</span>
+<span class="nc" id="L179">			} catch (CertificateProfileExistsException e) {</span>
+<span class="nc" id="L180">				throw new EJBException(e);	// We just checked for this so this cannot happen</span>
+<span class="nc" id="L181">			} catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L182">				throw new EJBException(e);</span>
+<span class="nc" id="L183">			}</span>
+		}
+		// Add User-specifics to profiles if nessesary
+<span class="nc" id="L186">		int[] keyUsages = KEYUSAGES[templateIndex];</span>
+<span class="nc" id="L187">		String[] extendedKeyUsages = EXTENDEDKEYUSAGES[templateIndex];</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">		if (newCertificateProfile) {</span>
+<span class="nc" id="L189">			certProfile.setUseKeyUsage(true);</span>
+<span class="nc" id="L190">			certProfile.setKeyUsageCritical(true);</span>
+<span class="nc" id="L191">			certProfile.setKeyUsage(new boolean[9]);</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">			for (int i=0; i&lt;keyUsages.length; i++) {</span>
+<span class="nc" id="L193">				certProfile.setKeyUsage(keyUsages[i], true);</span>
+			}
+<span class="nc" id="L195">			certProfile.setUseExtendedKeyUsage(true);</span>
+<span class="nc" id="L196">			certProfile.setExtendedKeyUsageCritical(true);</span>
+<span class="nc" id="L197">			ArrayList&lt;String&gt; eku = new ArrayList&lt;String&gt;();</span>
+<span class="nc bnc" id="L198" title="All 2 branches missed.">			for (int i=0; i&lt;extendedKeyUsages.length; i++) {</span>
+<span class="nc" id="L199">				eku.add(extendedKeyUsages[i]);</span>
+			}
+<span class="nc" id="L201">			certProfile.setExtendedKeyUsage(eku);</span>
+<span class="nc bnc" id="L202" title="All 2 branches missed.">			if (USE_CA_CDP[templateIndex]) {</span>
+<span class="nc" id="L203">				certProfile.setUseCRLDistributionPoint(true);</span>
+<span class="nc" id="L204">				certProfile.setUseDefaultCRLDistributionPoint(true);</span>
+			}
+<span class="nc bnc" id="L206" title="All 2 branches missed.">			if (MS_TEMPLATE_VALUE[templateIndex] != null) {</span>
+<span class="nc" id="L207">				certProfile.setUseMicrosoftTemplate(true);</span>
+<span class="nc" id="L208">				certProfile.setMicrosoftTemplate(MS_TEMPLATE_VALUE[templateIndex]);</span>
+			}
+		}
+		try {
+<span class="nc" id="L212">			certificateProfileSession.changeCertificateProfile(admin, certProfileName, certProfile);</span>
+<span class="nc" id="L213">		} catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L214">			throw new EJBException(e);</span>
+<span class="nc" id="L215">		}</span>
+<span class="nc" id="L216">		return certificateProfileSession.getCertificateProfileId(certProfileName);</span>
+	}
+
+    public static int getOrCreateEndEndtityProfile(AuthenticationToken admin, int templateIndex, int certProfileId, int caid, String usernameShort,
+            String fetchedSubjectDN, AdminPreferenceSession raAdminSession, EndEntityProfileSession endEntityProfileSession)
+            throws AuthorizationDeniedException, EndEntityProfileNotFoundException {
+        // Create end entity profile if necessary
+<span class="nc" id="L223">		String endEntityProfileName = &quot;Autoenroll-&quot; + SUPPORTEDCERTIFICATETEMPLATES[templateIndex];</span>
+
+<span class="nc" id="L225">		boolean newEndEntityProfile = false;</span>
+<span class="nc" id="L226">		EndEntityProfile endEntityProfile = endEntityProfileSession.getEndEntityProfile(endEntityProfileName);</span>
+
+<span class="nc bnc" id="L228" title="All 2 branches missed.">		if (endEntityProfile == null) {</span>
+<span class="nc" id="L229">			endEntityProfile = new EndEntityProfile(false);</span>
+			try {
+<span class="nc" id="L231">				endEntityProfile.setValue(EndEntityProfile.DEFAULTCERTPROFILE, 0, &quot;&quot; + certProfileId);</span>
+<span class="nc" id="L232">				endEntityProfile.setValue(EndEntityProfile.AVAILCERTPROFILES, 0, &quot;&quot; + certProfileId);</span>
+<span class="nc" id="L233">				endEntityProfile.setValue(EndEntityProfile.DEFAULTCA, 0, &quot;&quot; + caid);</span>
+<span class="nc" id="L234">				endEntityProfile.setValue(EndEntityProfile.AVAILCAS, 0, &quot;&quot; + caid);</span>
+<span class="nc" id="L235">				endEntityProfile.setUse(EndEntityProfile.CLEARTEXTPASSWORD, 0,true);</span>
+<span class="nc" id="L236">				endEntityProfile.setValue(EndEntityProfile.CLEARTEXTPASSWORD,0,EndEntityProfile.TRUE);</span>
+<span class="nc" id="L237">				endEntityProfile.removeField(DnComponents.COMMONNAME, 0);	// We will add the right number of CNs later</span>
+<span class="nc" id="L238">				endEntityProfileSession.addEndEntityProfile(admin, endEntityProfileName, endEntityProfile);</span>
+<span class="nc" id="L239">				newEndEntityProfile = true;</span>
+<span class="nc" id="L240">			} catch (EndEntityProfileExistsException e) {</span>
+<span class="nc" id="L241">				throw new EJBException(e);	// We just checked for this so this cannot happen</span>
+<span class="nc" id="L242">			}</span>
+		}
+<span class="nc" id="L244">		String[] requiredFields = DNFIELDS[templateIndex];</span>
+<span class="nc bnc" id="L245" title="All 2 branches missed.">		for (int i=0; i&lt;requiredFields.length; i++) {</span>
+<span class="nc bnc" id="L246" title="All 2 branches missed.">			if (GET_SUBJECTDN_FROM_AD.equals(requiredFields[i])) {</span>
+<span class="nc" id="L247">				log.info(&quot;Got DN &quot;+ fetchedSubjectDN + &quot; for user &quot; + usernameShort);</span>
+<span class="nc bnc" id="L248" title="All 2 branches missed.">				if (fetchedSubjectDN == null) {</span>
+<span class="nc" id="L249">					throw new IllegalArgumentException(&quot;fetchedSubjectDN was null for user &quot; + usernameShort);</span>
+				}
+			}
+		}
+<span class="nc bnc" id="L253" title="All 2 branches missed.">		if (newEndEntityProfile) {</span>
+<span class="nc bnc" id="L254" title="All 2 branches missed.">			for (int i=0; i&lt;requiredFields.length; i++) {</span>
+<span class="nc bnc" id="L255" title="All 2 branches missed.">				if (GET_SUBJECTDN_FROM_AD.equals(requiredFields[i])) {</span>
+<span class="nc" id="L256">					DNFieldExtractor dnfe = new DNFieldExtractor(fetchedSubjectDN, DNFieldExtractor.TYPE_SUBJECTDN);</span>
+					// Loop through all fields in DN
+<span class="nc" id="L258">					HashMap&lt;Integer, Integer&gt; hmFields = dnfe.getNumberOfFields();</span>
+<span class="nc bnc" id="L259" title="All 2 branches missed.">					for (int j=0; j&lt;100; j++) {	// TODO: 100 is really an internal constant..</span>
+<span class="nc" id="L260">						Integer fieldsOfType = hmFields.get(Integer.valueOf(j));</span>
+<span class="nc bnc" id="L261" title="All 2 branches missed.">						if (fieldsOfType != null) {</span>
+<span class="nc" id="L262">							log.info(&quot;fieldsOfType=&quot;+fieldsOfType);</span>
+<span class="nc bnc" id="L263" title="All 2 branches missed.">							for (int k = 0; k&lt;fieldsOfType; k++) {</span>
+<span class="nc" id="L264">								endEntityProfile.addField(DnComponents.dnIdToProfileId(j));</span>
+<span class="nc" id="L265">								endEntityProfile.setRequired(DnComponents.dnIdToProfileId(j), k, true);</span>
+<span class="nc" id="L266">								log.info(&quot;Added a &quot; + DnComponents.dnIdToProfileId(j) + &quot; field and set it required.&quot;);</span>
+							}
+						}
+					}
+<span class="nc" id="L270">				} else {</span>
+<span class="nc" id="L271">					int count = 0;</span>
+<span class="nc bnc" id="L272" title="All 2 branches missed.">					for (int j=0; j&lt;i; j++) {</span>
+<span class="nc bnc" id="L273" title="All 2 branches missed.">						if (requiredFields[i].equals(requiredFields[j])) {</span>
+<span class="nc" id="L274">							count++;</span>
+						}
+					}
+<span class="nc" id="L277">					endEntityProfile.addField(requiredFields[i]);</span>
+<span class="nc" id="L278">					endEntityProfile.setRequired(requiredFields[i], count, true);</span>
+				}
+			}
+		}
+		
+<span class="nc" id="L283">		    endEntityProfileSession.changeEndEntityProfile(admin, endEntityProfileName, endEntityProfile);</span>
+<span class="nc" id="L284">            return endEntityProfileSession.getEndEntityProfileId(endEntityProfileName);</span>
+  
+	}
+
+	
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>
