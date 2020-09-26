@@ -33,6 +33,12 @@
 			<version>2.3.1</version>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>jstl</artifactId>
+    <version>1.2</version>
+    <scope>provided</scope>
+</dependency>
 		<!-- test -->
 
 		<dependency>
@@ -385,6 +391,7 @@
 		<module>ejbca-ws-common</module>
 		<module>ejbca-ejb-interface</module>
 		<module>ejbca-common-web</module>
+		<module>publicweb-gui</module>
 	</modules>
 	<build>
 

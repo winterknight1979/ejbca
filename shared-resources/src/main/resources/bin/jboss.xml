@@ -1,3 +1,4 @@
+<!DOCTYPE project>
 <project name="jboss" basedir=".." default="jee:deploy" xmlns:jboss="jboss">
 	<property environment="env"/>
 

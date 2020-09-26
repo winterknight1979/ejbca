@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
 <!--
 /*************************************************************************
  *                                                                       *
@@ -16,6 +15,7 @@
 
  version: $Id: log4j.xml 12771 2011-09-29 17:11:14Z jeklund $
  -->
+ <!DOCTYPE log4j:configuration>
 <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
 
 	<!-- Console output -->

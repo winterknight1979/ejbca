@@ -281,6 +281,7 @@ public final class ConfigurationHolder {
      * @param property the property to look for
      * @return String configured for property, or the default value defined in defaultvalues.properties, or null if no such value exists
      */
+    @SuppressWarnings("el-syntax")
     public static String getExpandedString(final String property) {
         String ret = getString(property);
         if (ret != null) {

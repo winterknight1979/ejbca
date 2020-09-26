@@ -65,6 +65,13 @@
 			<artifactId>ejbca-ejb-interface</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		
+		
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>publicweb-gui</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 
 		<!-- Shared Resource bundle and Service Manifest generator -->

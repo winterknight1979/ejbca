@@ -1,3 +1,4 @@
+<!DOCTYPE project>
 <project name="cli" default="ejbca:install" basedir="." xmlns:ejbca="ejbca">
 
 	<fail unless="ejbca.home" message="This ant script cannot be run stand-alone.."/>

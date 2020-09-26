@@ -1,3 +1,4 @@
+<!DOCTYPE project>
 <project name="glassfish" basedir=".." default="jee:deploy">
 	<property environment="env"/>
 

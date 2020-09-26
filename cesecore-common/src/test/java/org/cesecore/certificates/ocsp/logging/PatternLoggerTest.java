@@ -31,6 +31,7 @@ public class PatternLoggerTest {
 
     /** Try out some interpolation with focus on different date formats. 
      * @throws Exception fail*/
+    @SuppressWarnings("el-syntax")
     @Test
     public void testPatternLoggerDateFormats() throws Exception {
         log.trace(">testPatternLogger");

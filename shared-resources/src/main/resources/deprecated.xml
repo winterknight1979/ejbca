@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE project>
 <project name="deprecated" basedir="." default="deprecated:check">
     <description>
         This build file contains deprecation checks for EJBCA. These may be
