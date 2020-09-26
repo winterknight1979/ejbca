@@ -723,6 +723,11 @@
 		<timezone>GMT</timezone>
 		
 		</developer>
+		<developer>
+			<id>Origin</id>
+			<name>Original code from</name>
+			<url>https://www.primekey.com</url>
+		</developer>
 	</developers>
 
 
