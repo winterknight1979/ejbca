@@ -45,9 +45,7 @@ import org.ejbca.core.model.InternalEjbcaResources;
  * certificate request. <br>
  * 3. The new certificate is created by calling the RSASignSession session bean. <br>
  * 4. A page containing the new certificate and a script that installs it is returned to the
- * browser. <br>
- * 
- * <p>
+ * browser. <br><br>
  * 
  * <p>
  * The following initiation parameters are needed by this servlet: <br>
