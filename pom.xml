@@ -397,6 +397,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<module>ejbca-renew-war</module>
 		<module>ejbca-scep-war</module>
 		<module>ejbca-webdist-war</module>
+		<module>ejbca-cmp-war</module>
 	</modules>
 	<build>
 
