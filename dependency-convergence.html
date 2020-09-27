@@ -56,6 +56,9 @@
     <li><a href="ejbca-cmp-war/index.html" title="EJBCA CMP WAR"><span class="none"></span>EJBCA CMP WAR</a></li>
     <li><a href="healthcheck-war/index.html" title="EJBCA Healthcheck"><span class="none"></span>EJBCA Healthcheck</a></li>
     <li><a href="clearcache-war/index.html" title="EJBCA ClearCache"><span class="none"></span>EJBCA ClearCache</a></li>
+    <li><a href="ejbca-ws/index.html" title="EJBCA WS"><span class="none"></span>EJBCA WS</a></li>
+    <li><a href="edition-specific-ejb/index.html" title="Edition Specific EJB"><span class="none"></span>Edition Specific EJB</a></li>
+    <li><a href="edition-specific-interface/index.html" title="Edition-specific interface"><span class="none"></span>Edition-specific interface</a></li>
    <li class="nav-header">Project Documentation</li>
     <li><a href="project-info.html" title="Project Information"><span class="icon-chevron-down"></span>Project Information</a>
      <ul class="nav nav-list">
@@ -90,29 +93,36 @@
 <section>
 <h2><a name="Reactor_Dependency_Convergence"></a>Reactor Dependency Convergence</h2>
 <table border="0" class="table table-striped"><caption>
-  <b>Statistics:</b>
+  <b>Legend:</b>
 </caption>
 <tr class="a">
+<td><figure><figcaption>[Error]</figcaption><img src="images/icon_error_sml.gif" alt="" /></figure></td>
+<td>At least one dependency has a differing version of the dependency or has SNAPSHOT dependencies.</td></tr></table><br />
+<table border="0" class="table table-striped"><caption>
+  <b>Statistics:</b>
+</caption>
+<tr class="b">
 <th>Number of modules:</th>
-<td>19</td></tr>
-<tr class="b">
-<th>Number of dependencies (NOD):</th>
-<td>102</td></tr>
+<td>22</td></tr>
 <tr class="a">
-<th>Number of unique artifacts (NOA):</th>
-<td>102</td></tr>
+<th>Number of dependencies (NOD):</th>
+<td>142</td></tr>
 <tr class="b">
+<th>Number of unique artifacts (NOA):</th>
+<td>144</td></tr>
+<tr class="a">
 <th>Number of version-conflicting artifacts (NOC):</th>
 <td>0</td></tr>
-<tr class="a">
+<tr class="b">
 <th>Number of SNAPSHOT artifacts (NOS):</th>
 <td>0</td></tr>
-<tr class="b">
-<th>Convergence (NOD/NOA):</th>
-<td><figure><figcaption>[Success]</figcaption><img src="images/icon_success_sml.gif" alt="" /></figure>&#160;<b>100 %</b></td></tr>
 <tr class="a">
+<th>Convergence (NOD/NOA):</th>
+<td><figure><figcaption>[Error]</figcaption><img src="images/icon_error_sml.gif" alt="" /></figure>&#160;<b>98 %</b></td></tr>
+<tr class="b">
 <th>Ready for release (100% convergence and no SNAPSHOTS):</th>
-<td><figure><figcaption>[Success]</figcaption><img src="images/icon_success_sml.gif" alt="" /></figure>&#160;<b>Success</b></td></tr></table></section>
+<td><figure><figcaption>[Error]</figcaption><img src="images/icon_error_sml.gif" alt="" /></figure>&#160;<b>Error</b><br />You do not have 100% convergence.</td></tr></table></section><section>
+<h3><a name="Dependencies_used_in_modules"></a>Dependencies used in modules</h3></section>
         </main>
       </div>
     </div>

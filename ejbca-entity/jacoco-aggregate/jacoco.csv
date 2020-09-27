@@ -266,7 +266,7 @@ EJBCA JPA Entities/ejbca-common,org.ejbca.util,DatabaseIndexUtil.DatabaseIndex,1
 EJBCA JPA Entities/ejbca-common,org.ejbca.util,PerformanceTest.Log.LogThread,162,0,16,0,46,0,15,0,7,0
 EJBCA JPA Entities/ejbca-common,org.ejbca.util,JAXWSDocAndConvTools.Types,174,0,0,0,3,0,1,0,1,0
 EJBCA JPA Entities/ejbca-common,org.ejbca.util,JAXWSDocAndConvTools.CompilationUnit,21,0,0,0,4,0,1,0,1,0
-EJBCA JPA Entities/ejbca-common,org.ejbca.util,KeyValuePair,32,0,0,0,14,0,6,0,6,0
+EJBCA JPA Entities/ejbca-common,org.ejbca.util,KeyValuePair,17,15,0,0,8,6,3,3,3,3
 EJBCA JPA Entities/ejbca-common,org.ejbca.util,Log4jHandler,158,0,22,0,47,0,18,0,7,0
 EJBCA JPA Entities/ejbca-common,org.ejbca.util,TCPTool,55,0,4,0,16,0,6,0,4,0
 EJBCA JPA Entities/ejbca-common,org.ejbca.util,LdapTools,4,117,2,12,0,20,2,7,0,2

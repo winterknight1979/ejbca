@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AcmeAccountDataSessionBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">edition-specific-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb</a> &gt; <span class="el_source">AcmeAccountDataSessionBean.java</span></div><h1>AcmeAccountDataSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.ejb;
+
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+
+import org.cesecore.jndi.JndiConstants;
+import org.ejbca.acme.AcmeAccountData;
+import org.ejbca.core.protocol.acme.AcmeAccount;
+import org.ejbca.core.protocol.acme.AcmeAccountDataSessionLocal;
+import org.ejbca.core.protocol.acme.AcmeAccountDataSessionRemote;
+
+/**
+ * Class that receives a Acme message and passes it on to the correct message handler.
+ * Not available in Community Edition
+ *
+ * @version $Id: AcmeAccountDataSessionBean.java 27609 2017-12-20 15:55:45Z mikekushner $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;AcmeAccountDataSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L34">public class AcmeAccountDataSessionBean implements AcmeAccountDataSessionRemote, AcmeAccountDataSessionLocal {</span>
+    
+    @Override
+    public String createOrUpdate(final AcmeAccount acmeAccount) {
+<span class="nc" id="L38">        throw new UnsupportedOperationException(&quot;ACME calls are only supported in EJBCA Enterprise&quot;);</span>
+    }
+    
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public AcmeAccountData find(final String accountId) {
+<span class="nc" id="L44">        throw new UnsupportedOperationException(&quot;ACME calls are only supported in EJBCA Enterprise&quot;);</span>
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public AcmeAccount getAcmeAccount(final String accountId) {
+<span class="nc" id="L50">        throw new UnsupportedOperationException(&quot;ACME calls are only supported in EJBCA Enterprise&quot;);</span>
+    }
+    
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public AcmeAccountData findByPublicKeyStorageId(final String publicKeyStorageId) {
+<span class="nc" id="L56">        throw new UnsupportedOperationException(&quot;ACME calls are only supported in EJBCA Enterprise&quot;);</span>
+    }
+    
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public AcmeAccount getAcmeAccountByPublicKeyStorageId(final String accountId) {
+<span class="nc" id="L62">        throw new UnsupportedOperationException(&quot;ACME calls are only supported in EJBCA Enterprise&quot;);</span>
+    }
+
+    @Override
+    public void remove(String accountId) {
+<span class="nc" id="L67">        throw new UnsupportedOperationException(&quot;ACME calls are only supported in EJBCA Enterprise&quot;);        </span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

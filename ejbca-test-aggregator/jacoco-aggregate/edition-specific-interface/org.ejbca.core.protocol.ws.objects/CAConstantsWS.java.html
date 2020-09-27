@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CAConstantsWS.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">edition-specific-interface</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.objects</a> &gt; <span class="el_source">CAConstantsWS.java</span></div><h1>CAConstantsWS.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.protocol.ws.objects;
+
+import org.cesecore.certificates.ca.catoken.CATokenConstants;
+
+/**
+ * Property keys for creation of CAs via WS.
+ * 
+ * @version $Id: CAConstantsWS.java 26057 2017-06-22 08:08:34Z anatom $
+ */
+<span class="nc" id="L22">public class CAConstantsWS {</span>
+
+    /**
+     * The policy ID can be 'null' if no Certificate Policy extension should be present, or\nobjectID as '2.5.29.32.0' 
+     * or objectID and cpsurl as '2.5.29.32.0 http://foo.bar.com/mycps.txt'. You can add multiple policies such as 
+     * '2.5.29.32.0 http://foo.bar.com/mycps.txt 1.1.1.1.1 http://foo.bar.com/111cps.txt'.
+     */
+    public static final String POLICYID = &quot;policyid&quot;;
+    
+    /** Certificate signing key alias */
+    public static final String CAKEYPURPOSE_CERTSIGN_STRING = CATokenConstants.CAKEYPURPOSE_CERTSIGN_STRING;
+    /** Certificate Revocation List (CRL) signing key alias. Must be the same as the certificate signing key.  */
+    public static final String CAKEYPURPOSE_CRLSIGN_STRING = CATokenConstants.CAKEYPURPOSE_CRLSIGN_STRING;
+    /** Used for decryption of key recovery data. Must be an RSA key. */
+    public static final String CAKEYPURPOSE_KEYENCRYPT_STRING = CATokenConstants.CAKEYPURPOSE_KEYENCRYPT_STRING;
+    /** Test signing key. Used by health-check. */
+    public static final String CAKEYPURPOSE_TESTKEY_STRING = CATokenConstants.CAKEYPURPOSE_TESTKEY_STRING;
+    /** Default key. If any of the other aliases are not specified, this will be used in their place. Must be an RSA key if decryption key aliases are not specified.*/
+    public static final String CAKEYPURPOSE_DEFAULT_STRING = CATokenConstants.CAKEYPURPOSE_DEFAULT_STRING;
+    /** Used for decryption of hard token data (e.g. PUK code). Must be an RSA key. */
+    public static final String CAKEYPURPOSE_HARDTOKENENCRYPT_STRING = CATokenConstants.CAKEYPURPOSE_HARDTOKENENCRYPT_STRING;
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

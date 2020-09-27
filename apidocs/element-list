@@ -137,11 +137,14 @@ org.ejbca.core.protocol.cmp
 org.ejbca.core.protocol.cmp.authentication
 org.ejbca.core.protocol.cmp.client
 org.ejbca.core.protocol.dnssec
+org.ejbca.core.protocol.est
 org.ejbca.core.protocol.ocsp.extension.unid
 org.ejbca.core.protocol.rest
 org.ejbca.core.protocol.scep
 org.ejbca.core.protocol.ws
 org.ejbca.core.protocol.ws.common
+org.ejbca.core.protocol.ws.jaxws
+org.ejbca.core.protocol.ws.logger
 org.ejbca.core.protocol.ws.objects
 org.ejbca.peerconnector
 org.ejbca.statedump.ejb

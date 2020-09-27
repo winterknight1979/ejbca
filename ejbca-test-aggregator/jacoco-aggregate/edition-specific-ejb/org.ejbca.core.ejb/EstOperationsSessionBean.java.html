@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>EstOperationsSessionBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">edition-specific-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb</a> &gt; <span class="el_source">EstOperationsSessionBean.java</span></div><h1>EstOperationsSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA - Proprietary Modules: Enterprise Certificate Authority        *
+ *                                                                       *
+ *  Copyright (c), PrimeKey Solutions AB. All rights reserved.           *
+ *  The use of the Proprietary Modules are subject to specific           *
+ *  commercial license terms.                                            *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.ejb;
+
+import java.security.cert.X509Certificate;
+
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+
+import org.cesecore.jndi.JndiConstants;
+import org.ejbca.core.protocol.est.EstOperationsSessionLocal;
+import org.ejbca.core.protocol.est.EstOperationsSessionRemote;
+
+/**
+ * Class that receives a EST message and passes it on to the correct message handler.
+ * Not available in Community Edition
+ *
+ * @version $Id: EstOperationsSessionBean.java 27609 2017-12-20 15:55:45Z mikekushner $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;EstOperationsSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+<span class="nc" id="L31">public class EstOperationsSessionBean implements EstOperationsSessionLocal, EstOperationsSessionRemote {</span>
+
+	@Override
+	@TransactionAttribute(TransactionAttributeType.REQUIRED)
+	public byte[] dispatchRequest(String operation, String alias, X509Certificate cert, String username, String password, byte[] requestBody) 
+	        throws UnsupportedOperationException{
+<span class="nc" id="L37">        throw new UnsupportedOperationException(&quot;EST calls are only supported in EJBCA Enterprise&quot;);</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

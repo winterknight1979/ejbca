@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>EnterpriseEjbLocalHelper.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">edition-specific-interface</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.util</a> &gt; <span class="el_source">EnterpriseEjbLocalHelper.java</span></div><h1>EnterpriseEjbLocalHelper.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.model.util;
+
+import java.util.concurrent.locks.ReentrantLock;
+
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+
+import org.apache.log4j.Logger;
+import org.ejbca.core.ejb.EnterpriseEditionEjbBridgeSessionLocal;
+
+/**
+ * Helper methods to get EJB session interfaces.
+ * 
+ * @version $Id: EnterpriseEjbLocalHelper.java 23165 2016-04-11 16:49:18Z samuellb $
+ */
+<span class="nc" id="L30">public class EnterpriseEjbLocalHelper implements EnterpriseEditionEjbBridgeSessionLocal {</span>
+    
+<span class="nc" id="L32">    private static final Logger log = Logger.getLogger(EnterpriseEjbLocalHelper.class);</span>
+<span class="nc" id="L33">    private static Context initialContext = null;</span>
+<span class="nc" id="L34">    private static ReentrantLock initialContextLock = new ReentrantLock(true);</span>
+    // Static is more performant, but a failed JEE5 lookup from one module would block all other JEE5 lookups
+<span class="nc" id="L36">    private /*static*/ boolean useEjb31GlobalJndiName = false;</span>
+    
+    private Context getInitialContext() throws NamingException {
+        try {
+<span class="nc" id="L40">            initialContextLock.lock();</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">            if (initialContext == null) {</span>
+<span class="nc" id="L42">                initialContext = new InitialContext();</span>
+            }
+<span class="nc" id="L44">            return initialContext;</span>
+        } finally {
+<span class="nc" id="L46">            initialContextLock.unlock();</span>
+        }
+    }
+    
+       /**
+     * Requires a &quot;ejb-local-ref&quot; definition in web.xml and ejb-jar.xml from all accessing components
+     * or an application server that support global JNDI names (introduced in EJB 3.1).
+     * @return a reference to the bridge SSB
+     * 
+     * @throws LocalLookupException if local lookup couldn't be made.
+     */
+    private EnterpriseEditionEjbBridgeSessionLocal getEnterpriseEditionEjbLocal() {
+<span class="nc" id="L58">        EnterpriseEditionEjbBridgeSessionLocal ret = null;</span>
+        try {
+<span class="nc bnc" id="L60" title="All 2 branches missed.">            if (!useEjb31GlobalJndiName) {</span>
+<span class="nc" id="L61">                ret = (EnterpriseEditionEjbBridgeSessionLocal) getInitialContext().lookup(&quot;java:comp/env/EnterpriseEditionEjbBridgeSession&quot;);</span>
+            }
+<span class="nc" id="L63">        } catch (NamingException e) {</span>
+            // Let's try to use the EJB 3.1 syntax for a lookup. For example, JBoss 6.0.0.FINAL supports this from our CMP TCP threads, but ignores the ejb-ref from web.xml..
+            // java:global[/&lt;app-name&gt;]/&lt;module-name&gt;/&lt;bean-name&gt;[!&lt;fully-qualified-interface-name&gt;]
+<span class="nc" id="L66">            useEjb31GlobalJndiName = true;  // So let's not try what we now know is a failing method ever again..</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L68">                log.debug(&quot;Failed JEE5 version of EnterpriseEditionEjbBridgeSessionLocal JNDI lookup. All future lookups will JEE6 version lookups.&quot;);</span>
+            }
+<span class="nc" id="L70">        }</span>
+        try {
+<span class="nc bnc" id="L72" title="All 2 branches missed.">            if (useEjb31GlobalJndiName) {</span>
+<span class="nc" id="L73">                ret = (EnterpriseEditionEjbBridgeSessionLocal) getInitialContext().lookup(&quot;java:global/ejbca/peerconnector-ejb/EnterpriseEditionEjbBridgeSessionBean!org.ejbca.core.ejb.EnterpriseEditionEjbBridgeSessionLocal&quot;);</span>
+            }
+<span class="nc" id="L75">        } catch (NamingException e) {</span>
+<span class="nc" id="L76">            throw new LocalLookupException(&quot;Cannot lookup EnterpriseEditionEjbBridgeSessionLocal.&quot;, e);</span>
+<span class="nc" id="L77">        }</span>
+<span class="nc" id="L78">        return ret;</span>
+    }
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    @Override
+    public &lt;T&gt; T getEnterpriseEditionEjbLocal(final Class&lt;T&gt; localInterfaceClass, final String modulename) {
+        try {
+            // Try JEE6 lookup first
+<span class="nc" id="L86">            return (T) getInitialContext().lookup(&quot;java:global/ejbca/&quot;+modulename+&quot;/&quot;+localInterfaceClass.getSimpleName().replaceAll(&quot;Local&quot;, &quot;Bean&quot;) + &quot;!&quot;+localInterfaceClass.getName());</span>
+<span class="nc" id="L87">        } catch (NamingException e) {</span>
+<span class="nc" id="L88">            return getEnterpriseEditionEjbLocal().getEnterpriseEditionEjbLocal(localInterfaceClass, null);</span>
+        }
+    }
+
+    @Override
+    public boolean isRunningEnterprise() {
+<span class="nc" id="L94">        return getEnterpriseEditionEjbLocal().isRunningEnterprise();</span>
+    }
+    
+    @Override
+    public void requestClearEnterpriseAuthorizationCaches() {
+<span class="nc" id="L99">        getEnterpriseEditionEjbLocal().requestClearEnterpriseAuthorizationCaches();</span>
+<span class="nc" id="L100">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>
