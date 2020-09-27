@@ -29,13 +29,15 @@ public interface AcmeRandomnessSingletonLocal {
      *       and MUST NOT include base64 padding characters ("=")."
      *       
      *  128 bits = 16 bytes
+     * @return token
      */
     String generateAcmeChallengeToken();
 
     /** @return the end entity password used to finalize the ACME order */
     String generateAcmeOrderEnrollmentCode();
 
-    /** @return a new unique identity for this local node (of the requested size) */
+    /** @param byteCount count
+     * @return a new unique identity for this local node (of the requested size) */
     byte[] generateAcmeNodeId(int byteCount);
 
     String generateAcmeAccountId();

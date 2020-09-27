@@ -26,6 +26,7 @@ public interface AcmeChallengeDataSessionLocal extends AcmeChallengeDataSession{
 
     /**
      * Create or update the AcmeChallenge.
+     * @param acmeChallenge challenge
      *
      * @return the persisted version of the AcmeChallenge.
      */
@@ -33,6 +34,7 @@ public interface AcmeChallengeDataSessionLocal extends AcmeChallengeDataSession{
 
     /**
      * Create or update the AcmeChallenges.
+     * @param acmeChallenges Challenge
      *
      */
     void createOrUpdateList(final List<AcmeChallenge> acmeChallenges);

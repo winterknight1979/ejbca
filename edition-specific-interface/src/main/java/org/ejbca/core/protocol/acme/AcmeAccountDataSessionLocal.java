@@ -42,6 +42,7 @@ public interface AcmeAccountDataSessionLocal extends AcmeAccountDataSession {
     
     /**
      * Create or update the AcmeAccount.
+     * @param acmeAccount account
      *
      * @return the persisted version of the AcmeAccount.
      */

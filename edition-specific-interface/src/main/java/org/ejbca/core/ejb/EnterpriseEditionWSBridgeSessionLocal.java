@@ -97,7 +97,7 @@ public interface EnterpriseEditionWSBridgeSessionLocal {
      * @param caProperties Optional CA properties. See {@link org.ejbca.core.protocol.ws.objects.CAConstantsWS}
      * 
      * @throws UnsupportedMethodException When trying to access this method in the community version
-     * @throws SignedByExternalCANotSupportedException
+     * @throws SignedByExternalCANotSupportedException fail
      * @throws CAExistsException if a CA with the given name already exists
      * @throws AuthorizationDeniedException if admin is not authorized to create CAs
      * @throws CertificateProfileDoesNotExistException if the certificate profile specified by certprofile doesn't exist

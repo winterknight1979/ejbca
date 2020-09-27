@@ -43,6 +43,7 @@ public interface AcmeOrderDataSession {
     
     /**
      * Create or update the AcmeOrder.
+     * @param acmeOrder order
      *
      * @return the persisted version of the AcmeOrder.
      */
@@ -50,6 +51,7 @@ public interface AcmeOrderDataSession {
 
     /**
      * Create or update the AcmeOrders.
+     * @param acmeOrders orders
      *
      * @return the list of persisted versions of the AcmeOrders.
      */
@@ -57,12 +59,14 @@ public interface AcmeOrderDataSession {
     
     /**
      * Remove the AcmeOrder.
+     * @param orderId ID
      *
      */
     void remove(final String orderId);
     
 	   /**
      * Remove the AcmeOrders.
+	 * @param orderIds IDs
      *
      */
     void removeAll(final List<String> orderIds);

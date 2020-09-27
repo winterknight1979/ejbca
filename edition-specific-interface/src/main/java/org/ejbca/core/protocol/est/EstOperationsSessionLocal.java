@@ -30,13 +30,13 @@ public interface EstOperationsSessionLocal extends EstOperationsSession {
 
     /**
      * 
-     * @param operation
-     * @param alias
-     * @param cert
-     * @param username
-     * @param password
-     * @param requestBody
-     * @return
+     * @param operation Op
+     * @param alias Alias
+     * @param cert Cert
+     * @param username USer
+     * @param password PWD
+     * @param requestBody Body
+     * @return Response
      * @throws NoSuchAliasException if the alias doesn't exist
      * @throws CADoesntExistsException if the CA specified in a request for CA certs doesn't exist
      * @throws CertificateCreateException if an error was encountered when trying to enroll

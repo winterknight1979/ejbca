@@ -44,6 +44,7 @@ public class WebServiceConfiguration {
 	/**
 	 * Authorization control on the fetchUserData call, making it possible for all with a valid
      * certificate to retrieve userData
+	 * @return success
 	 */
 	public static boolean getNoAuthorizationOnFetchUserData() {
 		return "true".equalsIgnoreCase(EjbcaConfigurationHolder.getExpandedString("jaxws.noauthonfetchuserdata"));
@@ -54,6 +55,7 @@ public class WebServiceConfiguration {
 	 * If this is false, MS SmartCard Logon certificates will not be put on hold.
 	 * This is used when a temporary card is issued with ToLiMa, since MS doesn't
 	 * work well with temporarily revoked smartcards.
+	 * @return success
 	 */
 	public static boolean getSuspendAllCertificates() {
 		return "true".equalsIgnoreCase(EjbcaConfigurationHolder.getExpandedString("jaxws.gentokens.setmslogononhold"));
@@ -61,6 +63,7 @@ public class WebServiceConfiguration {
 
 	/**
 	 * Use transaction logging for all WS calls.
+	 * @return bool
 	 */
 	public static boolean getTransactionLogEnabled() {
 		return "true".equalsIgnoreCase(EjbcaConfigurationHolder.getExpandedString("ejbcaws.trx-log"));
@@ -68,6 +71,7 @@ public class WebServiceConfiguration {
 	
 	/**
 	 * Returns the date and time format that will be used for transaction logging. 
+	 * @return date
 	 */
 	public static String getTransactionLogDateFormat() {
 		return EjbcaConfigurationHolder.getString("ejbcaws.log-date");
@@ -75,6 +79,7 @@ public class WebServiceConfiguration {
 	
 	/**
 	 * Returns the time zone that will be used for transaction logging. 
+	 * @return TZ
 	 */
 	public static String getTransactionLogTimeZone() {
 		return EjbcaConfigurationHolder.getExpandedString("ejbcaws.log-timezone");
@@ -82,6 +87,7 @@ public class WebServiceConfiguration {
 	
 	/**
 	 * Returns the matching pattern that will be used for transaction logging. 
+	 * @return pattern
 	 */
 	public static String getTransactionLogPattern() {
 		return EjbcaConfigurationHolder.getString("ejbcaws.trx-log-pattern");
@@ -89,6 +95,7 @@ public class WebServiceConfiguration {
 	
 	/**
 	 * Returns the the base string that will be substituted during transaction logging. 
+	 * @return Order
 	 */
 	public static String getTransactionLogOrder() {
 		return EjbcaConfigurationHolder.getString("ejbcaws.trx-log-order");

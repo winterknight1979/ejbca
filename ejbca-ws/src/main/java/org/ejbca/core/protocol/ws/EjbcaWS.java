@@ -200,6 +200,7 @@ import org.ejbca.util.query.IllegalQueryException;
  *
  * @version $Id: EjbcaWS.java 29509 2018-07-18 13:06:55Z henriks $
  */
+@SuppressWarnings("deprecation")
 @Stateless
 @WebService(name="EjbcaWS", serviceName="EjbcaWSService", targetNamespace="http://ws.protocol.core.ejbca.org/", portName="EjbcaWSPort")	//portName="EjbcaWSPort" default
 public class EjbcaWS implements IEjbcaWS {
@@ -276,10 +277,11 @@ public class EjbcaWS implements IEjbcaWS {
      *
      * If Web Services is disabled globally, an UnsupportedOperationException will be thrown
      *
-     * @param wsContext web service context that contains the SSL information
      * @return Admin object based on the SSL client certificate
+     * @throws AuthorizationDeniedException Fail
+     * @throws EjbcaException Fail
      */
-    private AuthenticationToken getAdmin() throws AuthorizationDeniedException, EjbcaException {
+    private AuthenticationToken getAdmin() throws AuthorizationDeniedException, EjbcaException  {
           return getAdmin(false);
     }
 
@@ -317,6 +319,7 @@ public class EjbcaWS implements IEjbcaWS {
      * Method used to check if the admin is an administrator
      * i.e have administrator flag set and access to resource
      * /administrator
+     * @return bool
      */
     private boolean isAdmin() {
         boolean retval = false;
@@ -346,7 +349,6 @@ public class EjbcaWS implements IEjbcaWS {
     }
 
     @Override
-	@SuppressWarnings("deprecation")
     public void editUser(final UserDataVOWS userdata)
 			throws CADoesntExistsException, AuthorizationDeniedException, UserDoesntFullfillEndEntityProfile, EjbcaException, ApprovalException, WaitingForApprovalException {
         final IPatternLogger logger = TransactionLogger.getPatternLogger();
@@ -643,7 +645,6 @@ public class EjbcaWS implements IEjbcaWS {
 	}
 
 	@Override
-    @SuppressWarnings("deprecation")
     public List<Certificate> cvcRequest(String username, String password, String cvcreq)
             throws CADoesntExistsException, AuthorizationDeniedException, UserDoesntFullfillEndEntityProfile, NotFoundException,
             EjbcaException, CesecoreException, ApprovalException, WaitingForApprovalException, SignRequestException, CertificateExpiredException {
@@ -1378,7 +1379,6 @@ public class EjbcaWS implements IEjbcaWS {
         return retval;
 	}
 
-    @SuppressWarnings("deprecation")
     @Override
     public List<TokenCertificateResponseWS> genTokenCertificates(UserDataVOWS userDataWS, List<TokenCertificateRequestWS> tokenRequests,
             HardTokenDataWS hardTokenDataWS, boolean overwriteExistingSN, boolean revokePreviousCards) throws CADoesntExistsException,
@@ -1774,7 +1774,6 @@ public class EjbcaWS implements IEjbcaWS {
         }
 	}
 
-    @SuppressWarnings("deprecation")
     @Override
     public HardTokenDataWS getHardTokenData(String hardTokenSN, boolean viewPUKData, boolean onlyValidCertificates)
             throws CADoesntExistsException, AuthorizationDeniedException, HardTokenDoesntExistsException, NotFoundException,
@@ -2281,7 +2280,6 @@ public class EjbcaWS implements IEjbcaWS {
     	userdata.setTokenType(UserDataVOWS.TOKEN_TYPE_USERGENERATED);
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public CertificateResponse certificateRequest(final UserDataVOWS userdata, final String requestData, final int requestType, final String hardTokenSN, final String responseType)
 	        throws AuthorizationDeniedException, NotFoundException, UserDoesntFullfillEndEntityProfile,
@@ -2332,7 +2330,6 @@ public class EjbcaWS implements IEjbcaWS {
         }
 	}
 
-    @SuppressWarnings("deprecation")
     @Override
 	public KeyStore softTokenRequest(UserDataVOWS userdata, String hardTokenSN, String keyspec, String keyalg)
 	throws CADoesntExistsException, AuthorizationDeniedException, NotFoundException, UserDoesntFullfillEndEntityProfile,

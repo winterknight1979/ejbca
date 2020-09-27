@@ -27,7 +27,7 @@ public class UnsupportedMethodException extends CesecoreException {
     private static final long serialVersionUID = -6099472895840497282L;
 
     /**
-     * @param message with more information what is wrong
+     * @param m with more information what is wrong
      */
     public UnsupportedMethodException(String m) {
         super(ErrorCode.UNSUPPORTED_METHOD, m);

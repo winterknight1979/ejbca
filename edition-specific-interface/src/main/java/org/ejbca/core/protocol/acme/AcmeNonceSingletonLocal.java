@@ -48,10 +48,12 @@ import javax.ejb.Local;
 @Local
 public interface AcmeNonceSingletonLocal {
 
-    /** @return true if the provided nonce is one that has been generated and has not yet been used. (Non RFC quirk: we will reject expired nonces.) */
+    /** @param nonce nonce
+     * @return true if the provided nonce is one that has been generated and has not yet been used. (Non RFC quirk: we will reject expired nonces.) */
     boolean isNonceValid(String nonce);
 
-    /** @return a new nonce as a base64 url-safe encoded String */
+    /** @return a new nonce as a base64 url-safe encoded String 
+     * @throws IllegalStateException fail*/
     String getReplayNonce() throws IllegalStateException;
 
 }

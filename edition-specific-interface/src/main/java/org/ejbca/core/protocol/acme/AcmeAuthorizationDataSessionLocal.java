@@ -49,6 +49,7 @@ public interface AcmeAuthorizationDataSessionLocal extends AcmeAuthorizationData
 
     /**
      * Create or update the AcmeAuthorization.
+     * @param acmeAuthorization Auth
      *
      * @return the id of persisted version of the AcmeAuthorization.
      */
@@ -57,6 +58,7 @@ public interface AcmeAuthorizationDataSessionLocal extends AcmeAuthorizationData
 
     /**
      * Create or update the AcmeAuthorizations .
+     * @param acmeAuthorizations Auth
      */
     void createOrUpdateList(final List<AcmeAuthorization> acmeAuthorizations);
 
