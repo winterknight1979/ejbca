@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CmpServlet.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-cmp-war</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.protocol</a> &gt; <span class="el_source">CmpServlet.java</span></div><h1>CmpServlet.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.protocol;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
+import javax.ejb.EJB;
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.UsernamePrincipal;
+import org.cesecore.authentication.tokens.WebPrincipal;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.era.RaMasterApiProxyBeanLocal;
+import org.ejbca.core.protocol.NoSuchAliasException;
+import org.ejbca.ui.web.LimitLengthASN1Reader;
+import org.ejbca.ui.web.RequestHelper;
+import org.ejbca.ui.web.pub.ServletUtils;
+
+/**
+ * Servlet implementing server side of the Certificate Management Protocols (CMP)
+ * 
+ * @version $Id: CmpServlet.java 28713 2018-04-13 14:35:47Z anatom $
+ */
+<span class="nc" id="L43">public class CmpServlet extends HttpServlet {</span>
+
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L46">    private static final Logger log = Logger.getLogger(CmpServlet.class);</span>
+<span class="nc" id="L47">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+    
+    /** Only intended to check if Peer connected instance is authorized to CMP at all. */
+<span class="nc" id="L50">    private final AuthenticationToken raCmpAuthCheckToken = new AlwaysAllowLocalAuthenticationToken(new UsernamePrincipal(&quot;cmpProtocolAuthCheck&quot;));</span>
+    
+    private static final String DEFAULT_CMP_ALIAS = &quot;cmp&quot;;
+    
+    @EJB
+    private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
+    @EJB
+    private GlobalConfigurationSessionLocal globalConfigurationSession;
+    /**
+     * Handles HTTP post
+     * 
+     * @param request java standard arg
+     * @param response java standard arg
+     * 
+     * @throws IOException input/output error
+     */
+    @Override
+    public void doPost(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
+<span class="nc bnc" id="L68" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L69">            log.trace(&quot;&gt;doPost()&quot;);</span>
+        }
+<span class="nc" id="L71">        boolean isProtocolAuthorized = raMasterApiProxyBean.isAuthorizedNoLogging(raCmpAuthCheckToken, AccessRulesConstants.REGULAR_PEERPROTOCOL_CMP);</span>
+        try {
+<span class="nc bnc" id="L73" title="All 2 branches missed.">            if (!isProtocolAuthorized) {</span>
+<span class="nc" id="L74">                log.info(&quot;CMP Protocol not authorized for this Peer&quot;);</span>
+<span class="nc" id="L75">                response.sendError(HttpServletResponse.SC_FORBIDDEN, &quot;CMP Protocol not authorized for this Peer&quot;);</span>
+<span class="nc" id="L76">                return;</span>
+            }
+<span class="nc" id="L78">            final String alias = getAlias(request.getPathInfo());</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">            if(alias.length() &gt; 32) {</span>
+<span class="nc" id="L80">                log.info(&quot;Unaccepted alias more than 32 characters.&quot;);</span>
+<span class="nc" id="L81">                response.sendError(HttpServletResponse.SC_BAD_REQUEST, &quot;Unaccepted alias more than 32 characters.&quot;);</span>
+<span class="nc" id="L82">                return;</span>
+            }
+<span class="nc" id="L84">            final ServletInputStream sin = request.getInputStream();</span>
+            // This small code snippet is inspired/copied by apache IO utils to Tomas Gustavsson...
+<span class="nc" id="L86">            final ByteArrayOutputStream output = new ByteArrayOutputStream();</span>
+<span class="nc" id="L87">            final byte[] buf = new byte[1024];</span>
+<span class="nc" id="L88">            int n = 0;</span>
+<span class="nc" id="L89">            int bytesRead = 0;</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">            while (-1 != (n = sin.read(buf))) {</span>
+<span class="nc" id="L91">                bytesRead += n;</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">                if (bytesRead &gt; LimitLengthASN1Reader.MAX_REQUEST_SIZE) {</span>
+<span class="nc" id="L93">                    throw new IllegalArgumentException(&quot;Request is larger than &quot;+LimitLengthASN1Reader.MAX_REQUEST_SIZE+&quot; bytes.&quot;);</span>
+                }
+<span class="nc" id="L95">                output.write(buf, 0, n);</span>
+            }
+<span class="nc" id="L97">            service(output.toByteArray(), request.getRemoteAddr(), response, alias);</span>
+<span class="nc" id="L98">        } catch (IOException | RuntimeException e) {</span>
+<span class="nc" id="L99">            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());</span>
+<span class="nc" id="L100">            log.info(intres.getLocalizedMessage(&quot;cmp.errornoasn1&quot;), e);</span>
+<span class="nc" id="L101">        }</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L103">            log.trace(&quot;&lt;doPost()&quot;);</span>
+        }
+<span class="nc" id="L105">    }</span>
+
+    /**
+     * Handles HTTP get
+     * 
+     * @param request java standard arg
+     * @param response java standard arg
+     * 
+     * @throws IOException input/output error
+     */
+    @Override
+    public void doGet(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L118">            log.trace(&quot;&gt;doGet()&quot;);</span>
+        }
+<span class="nc" id="L120">        log.info(&quot;Received un-allowed method GET in CMP servlet: query string=&quot; + request.getQueryString());</span>
+<span class="nc" id="L121">        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, &quot;You can only use POST!&quot;);</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L123">            log.trace(&quot;&lt;doGet()&quot;);</span>
+        }
+<span class="nc" id="L125">    }</span>
+
+    private void service(final byte[] pkiMessageBytes, final String remoteAddr, final HttpServletResponse response, String alias) throws IOException {
+        try {
+<span class="nc" id="L129">            log.info(intres.getLocalizedMessage(&quot;cmp.receivedmsg&quot;, remoteAddr, alias));</span>
+<span class="nc" id="L130">            final long startTime = System.currentTimeMillis();</span>
+<span class="nc" id="L131">            byte[] result = null;</span>
+            try {
+<span class="nc" id="L133">                final AuthenticationToken authenticationToken = new AlwaysAllowLocalAuthenticationToken(new WebPrincipal(&quot;CmpServlet&quot;, remoteAddr));</span>
+<span class="nc" id="L134">                result = raMasterApiProxyBean.cmpDispatch(authenticationToken, pkiMessageBytes, alias);</span>
+<span class="nc" id="L135">            } catch (NoSuchAliasException e) {</span>
+                // The CMP alias does not exist
+<span class="nc" id="L137">                response.sendError(HttpServletResponse.SC_NOT_FOUND, e.getMessage());</span>
+<span class="nc" id="L138">                log.info(e.getMessage());</span>
+<span class="nc" id="L139">                return;</span>
+<span class="nc" id="L140">            }</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">            if (result == null) {</span>
+                // If resp is null, it means that the dispatcher failed to process the message.
+<span class="nc" id="L143">                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, intres.getLocalizedMessage(&quot;cmp.errornullresp&quot;));</span>
+<span class="nc" id="L144">                return;</span>
+            }
+            // Add no-cache headers as defined in 
+            // http://tools.ietf.org/html/draft-ietf-pkix-cmp-transport-protocols-14
+<span class="nc" id="L148">            ServletUtils.addCacheHeaders(response);</span>
+            // Send back CMP response
+<span class="nc" id="L150">            RequestHelper.sendBinaryBytes(result, response, &quot;application/pkixcmp&quot;, null);</span>
+<span class="nc" id="L151">            final long endTime = System.currentTimeMillis();</span>
+<span class="nc" id="L152">            log.info(intres.getLocalizedMessage(&quot;cmp.sentresponsemsg&quot;, remoteAddr, Long.valueOf(endTime - startTime)));</span>
+<span class="nc" id="L153">        } catch (IOException | RuntimeException e) {</span>
+<span class="nc" id="L154">            log.error(&quot;Error in CmpServlet:&quot;, e);</span>
+<span class="nc" id="L155">            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());</span>
+<span class="nc" id="L156">        }</span>
+<span class="nc" id="L157">    }</span>
+    
+    private String getAlias(final String pathInfo) {
+        // PathInfo contains the alias used for CMP configuration. 
+        // The CMP URL for custom configuration looks like: http://HOST:PORT/ejbca/publicweb/cmp/*
+        // pathInfo contains what * is and should have the form &quot;/&lt;SOME IDENTIFYING TEXT&gt;&quot;. We extract the &quot;SOME IDENTIFYING 
+        // TEXT&quot; and that will be the CMP configuration alias.
+        final String alias;
+<span class="nc bnc" id="L165" title="All 4 branches missed.">        if (pathInfo!=null &amp;&amp; pathInfo.length()&gt;1) {</span>
+<span class="nc" id="L166">            alias = pathInfo.substring(1);</span>
+<span class="nc bnc" id="L167" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L168">                log.debug(&quot;Using CMP configuration alias: &quot; + alias);</span>
+            }
+        } else {
+<span class="nc" id="L171">            alias = DEFAULT_CMP_ALIAS;</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L173">                log.debug(&quot;No CMP alias specified in the URL. Using the default alias: &quot; + DEFAULT_CMP_ALIAS);</span>
+            }
+        }
+<span class="nc" id="L176">        return alias;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

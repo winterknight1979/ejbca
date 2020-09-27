@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>HealthCheckServlet.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">healthcheck-war</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.pub</a> &gt; <span class="el_source">HealthCheckServlet.java</span></div><h1>HealthCheckServlet.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.pub;
+
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Writer;
+import java.util.Properties;
+
+import javax.ejb.EJB;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.ocsp.OcspResponseGeneratorSessionLocal;
+import org.cesecore.util.CryptoProviderTools;
+import org.ejbca.config.EjbcaConfiguration;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionLocal;
+import org.ejbca.core.ejb.ca.publisher.PublisherSessionLocal;
+import org.ejbca.core.ejb.config.HealthCheckSessionLocal;
+import org.ejbca.core.model.InternalEjbcaResources;
+
+/**
+ * Servlet used to check the health of an EJBCA instance and can be used to
+ * build a cluster using a loadbalancer.
+ * 
+ * Does the following system checks.
+ * 
+ * * If a maintenance file is specific and the property is set to true, this message will be returned
+ * * Not about to run out if memory i below configurable value
+ * * Database connection can be established.
+ * * All CATokens are active, if not set as offline and not set to specifically not be monitored
+ * * All Publishers can establish connection
+ * * All active OcspKeyBindings can be used.
+ * 
+ * * Optionally you can configure the CAToken test to also make a test signature, not only check if the token status is active.
+ * 
+ * @version $Id: HealthCheckServlet.java 25741 2017-04-25 08:18:56Z anatom $
+ */
+<span class="nc" id="L59">public class HealthCheckServlet extends HttpServlet {</span>
+
+<span class="nc" id="L61">    private static final Logger log = Logger.getLogger(HealthCheckServlet.class);</span>
+    private static final long serialVersionUID = 1L;
+
+    /** Internal localization of logs and errors */
+<span class="nc" id="L65">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+<span class="nc" id="L66">    private static final SameRequestRateLimiter&lt;String&gt; rateLimiter = new SameRequestRateLimiter&lt;String&gt;();</span>
+    
+<span class="nc" id="L68">    private String[] authIPs = null;</span>
+<span class="nc" id="L69">    private boolean anyIpAuthorized = false;</span>
+
+<span class="nc" id="L71">    private final long minfreememory = EjbcaConfiguration.getHealthCheckAmountFreeMem();</span>
+<span class="nc" id="L72">    private boolean checkPublishers = EjbcaConfiguration.getHealthCheckPublisherConnections();</span>
+
+    @EJB
+    private CAAdminSessionLocal caAdminSession;
+    @EJB
+    private PublisherSessionLocal publisherSession;
+    @EJB
+    private HealthCheckSessionLocal healthCheckSession;
+    @EJB
+    private OcspResponseGeneratorSessionLocal ocspResponseGeneratorSession;
+
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+<span class="nc" id="L85">        super.init(config);</span>
+        // Install BouncyCastle provider
+<span class="nc" id="L87">        CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+<span class="nc" id="L88">        authIPs = EjbcaConfiguration.getHealthCheckAuthorizedIps().split(&quot;;&quot;);</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">        if (ArrayUtils.contains(authIPs, &quot;ANY&quot;)) {</span>
+<span class="nc" id="L90">            log.info(intres.getLocalizedMessage(&quot;healthcheck.allipsauthorized&quot;));</span>
+<span class="nc" id="L91">            anyIpAuthorized = true;</span>
+        }
+<span class="nc bnc" id="L93" title="All 2 branches missed.">        if (config.getInitParameter(&quot;CheckPublishers&quot;) != null) {</span>
+<span class="nc" id="L94">            log.warn(&quot;CheckPublishers servlet parameter has been dropped. Use \&quot;healthcheck.publisherconnections\&quot; property instead.&quot;);</span>
+        }
+<span class="nc" id="L96">        initMaintenanceFile();</span>
+<span class="nc" id="L97">    }</span>
+
+    @Override
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+<span class="nc" id="L101">        doGet(request, response);</span>
+<span class="nc" id="L102">    }</span>
+
+    @Override
+    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (isAuthorized(request, response)) {</span>
+<span class="nc" id="L107">            respond(getRateLimitedResult(request), response);</span>
+        }
+<span class="nc" id="L109">    }</span>
+    
+    private boolean isAuthorized(HttpServletRequest request, HttpServletResponse response) {
+<span class="nc" id="L112">        String remoteIP = request.getRemoteAddr();</span>
+<span class="nc bnc" id="L113" title="All 4 branches missed.">        if (remoteIP == null || remoteIP.length()&gt;100) {</span>
+<span class="nc" id="L114">            remoteIP = &quot;unknown&quot;;</span>
+        }
+<span class="nc bnc" id="L116" title="All 4 branches missed.">        if (anyIpAuthorized || ArrayUtils.contains(authIPs, remoteIP)) {</span>
+<span class="nc" id="L117">            return true;</span>
+        } else {
+            try {
+<span class="nc" id="L120">                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, &quot;ERROR : Healthcheck request received from an non authorized IP: &quot; + remoteIP);</span>
+<span class="nc" id="L121">            } catch (IOException e) {</span>
+<span class="nc" id="L122">                log.error(&quot;Problems generating unauthorized http response.&quot;, e);</span>
+<span class="nc" id="L123">            }</span>
+<span class="nc" id="L124">            log.error(intres.getLocalizedMessage(&quot;healthcheck.errorauth&quot;, remoteIP));</span>
+        }
+<span class="nc" id="L126">        return false;</span>
+    }
+    
+    private String getRateLimitedResult(HttpServletRequest request) {
+<span class="nc" id="L130">        final SameRequestRateLimiter&lt;String&gt;.Result result = rateLimiter.getResult();</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">        if (result.isFirst()) {</span>
+            try {
+<span class="nc" id="L133">                result.setValue(doAllHealthChecks(request));</span>
+<span class="nc" id="L134">            } catch (Throwable t) { // NOPMD: we want to catch all possible strangeness</span>
+<span class="nc" id="L135">                result.setError(t);</span>
+<span class="nc" id="L136">            }</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">        } else if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L138">            log.debug(&quot;Re-using health check answer from first concurrent request for this request to conserve server load.&quot;);</span>
+        }
+<span class="nc" id="L140">        return result.getValue();</span>
+    }
+    
+    private void respond(String status, HttpServletResponse resp) {
+<span class="nc" id="L144">        resp.setContentType(&quot;text/plain&quot;);</span>
+        try {
+<span class="nc" id="L146">            final Writer out = resp.getWriter();</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">            if (status == null) {</span>
+                // Return ok message
+<span class="nc" id="L149">                out.write(EjbcaConfiguration.getOkMessage());</span>
+            } else {
+                // Check if we return a static error message or the more informative
+<span class="nc" id="L152">                final String customErrorMessage = EjbcaConfiguration.getCustomErrorMessage();</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L154">                    log.debug(&quot;Healthcheck returned error. Status='&quot;+status+&quot;', customErrorMessage='&quot;+customErrorMessage+&quot;'.&quot;);</span>
+                }
+<span class="nc bnc" id="L156" title="All 2 branches missed.">                if (customErrorMessage != null) {</span>
+<span class="nc" id="L157">                    status = customErrorMessage;</span>
+                }
+                // Return fail message
+<span class="nc bnc" id="L160" title="All 2 branches missed.">                if (EjbcaConfiguration.getSendServerError()) {</span>
+<span class="nc" id="L161">                    resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, status);</span>
+                } else {
+<span class="nc" id="L163">                    out.write(status);</span>
+                }
+            }
+<span class="nc" id="L166">            out.flush();</span>
+<span class="nc" id="L167">            out.close();</span>
+<span class="nc" id="L168">        } catch (IOException e) {</span>
+<span class="nc" id="L169">            log.error(&quot;Error writing to Servlet Response.&quot;, e);</span>
+<span class="nc" id="L170">        }</span>
+<span class="nc" id="L171">    }</span>
+    
+    public String doAllHealthChecks(HttpServletRequest request) {
+<span class="nc bnc" id="L174" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L175">            log.debug(&quot;Starting HealthCheck requested by : &quot; + request.getRemoteAddr());</span>
+        }
+        // Start by checking if we are in maintance mode
+<span class="nc" id="L178">        final Properties maintenanceProperties = getMaintenanceProperties();</span>
+<span class="nc" id="L179">        final String maintenancePropertyName = EjbcaConfiguration.getHealthCheckMaintenancePropertyName();</span>
+<span class="nc bnc" id="L180" title="All 4 branches missed.">        if (maintenanceProperties != null &amp;&amp; Boolean.valueOf(maintenanceProperties.getProperty(maintenancePropertyName))) {</span>
+            // Return directly without performing any more checks
+<span class="nc" id="L182">            return &quot;MAINT: &quot; + maintenancePropertyName;</span>
+        }
+<span class="nc" id="L184">        final StringBuilder sb = new StringBuilder(0);</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L186">            log.debug(&quot;Checking database connection.&quot;);</span>
+        }
+<span class="nc" id="L188">        sb.append(healthCheckSession.getDatabaseStatus());</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">        if (sb.length()==0) { </span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L191">                log.debug(&quot;Checking JVM heap memory.&quot;);</span>
+            }
+            // Memory still not allocated by the JVM + available memory of what is allocated by the JVM
+<span class="nc" id="L194">            final long maxAllocation = Runtime.getRuntime().maxMemory();</span>
+            // The total amount of memory allocated to the JVM.
+<span class="nc" id="L196">            final long currentlyAllocation = Runtime.getRuntime().totalMemory();</span>
+            // Available memory of what is allocated by the JVM
+<span class="nc" id="L198">            final long freeAllocated = Runtime.getRuntime().freeMemory();</span>
+            // Memory still not allocated by the JVM + available memory of what is allocated by the JVM
+<span class="nc" id="L200">            final long currentFreeMemory = maxAllocation - currentlyAllocation + freeAllocated;</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L202">                log.debug((100L*(maxAllocation-currentFreeMemory)/maxAllocation)+&quot;% of the &quot; + (maxAllocation/1048576L) + &quot; MiB heap is currently used.&quot;);</span>
+            }
+<span class="nc bnc" id="L204" title="All 2 branches missed.">            if (minfreememory &gt;= currentFreeMemory) {</span>
+<span class="nc" id="L205">                sb.append(&quot;\nMEM: Error Virtual Memory is about to run out, currently free memory :&quot;).append(String.valueOf(Runtime.getRuntime().freeMemory()));    </span>
+            }
+<span class="nc bnc" id="L207" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L208">                log.debug(&quot;Checking CAs.&quot;);</span>
+            }
+<span class="nc" id="L210">            sb.append(caAdminSession.healthCheck());</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">            if (checkPublishers) {</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L213">                    log.debug(&quot;Checking publishers.&quot;);</span>
+                }
+<span class="nc" id="L215">                sb.append(publisherSession.testAllConnections());</span>
+            }
+<span class="nc bnc" id="L217" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L218">                log.debug(&quot;Checking OcspKeyBindings.&quot;);</span>
+            }
+<span class="nc" id="L220">            sb.append(ocspResponseGeneratorSession.healthCheck());</span>
+        }
+<span class="nc bnc" id="L222" title="All 2 branches missed.">        return sb.length()==0 ? null : sb.toString();</span>
+    }
+
+    /** Create the maintenance file if it should be used and does not exists */
+    private void initMaintenanceFile() {
+<span class="nc" id="L227">        final String maintenanceFile = EjbcaConfiguration.getHealthCheckMaintenanceFile();</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">        if (StringUtils.isEmpty(maintenanceFile)) {</span>
+<span class="nc" id="L229">            log.debug(&quot;Maintenance file not specified, node will be monitored&quot;);</span>
+        } else {
+<span class="nc bnc" id="L231" title="All 2 branches missed.">            if (getMaintenanceProperties() == null) {</span>
+<span class="nc" id="L232">                log.info(&quot;Expected to find Maintenance File '&quot;+ maintenanceFile + &quot;'. File will be created.&quot;);</span>
+<span class="nc" id="L233">                OutputStream out = null;</span>
+                try {
+<span class="nc" id="L235">                    out = new FileOutputStream(&quot;filename.properties&quot;);</span>
+<span class="nc" id="L236">                    new Properties().store(out, null);</span>
+<span class="nc" id="L237">                } catch (IOException e2) {</span>
+<span class="nc" id="L238">                    log.error(&quot;Could not create Maintenance File at: &quot;+ maintenanceFile);</span>
+                } finally {
+<span class="nc bnc" id="L240" title="All 2 branches missed.">                    if (out != null) {</span>
+                        try {
+<span class="nc" id="L242">                            out.close();                    </span>
+<span class="nc" id="L243">                        } catch (IOException e) {</span>
+<span class="nc" id="L244">                            log.error(&quot;Error closing file: &quot;, e);</span>
+<span class="nc" id="L245">                        }</span>
+                    }
+                }
+            }
+        }
+<span class="nc" id="L250">    }</span>
+    
+    /** @return the maintenance file as properties or null of the file does not exist */
+    private Properties getMaintenanceProperties() {
+<span class="nc" id="L254">        final String maintenanceFile = EjbcaConfiguration.getHealthCheckMaintenanceFile();</span>
+<span class="nc bnc" id="L255" title="All 2 branches missed.">        if (!StringUtils.isEmpty(maintenanceFile)) {</span>
+<span class="nc" id="L256">            InputStream in = null;</span>
+            try {
+<span class="nc" id="L258">                in = new FileInputStream(maintenanceFile);</span>
+<span class="nc" id="L259">                final Properties maintenanceProperties = new Properties();</span>
+<span class="nc" id="L260">                maintenanceProperties.load(in);</span>
+<span class="nc" id="L261">                return maintenanceProperties;</span>
+<span class="nc" id="L262">            } catch (IOException e) {</span>
+<span class="nc bnc" id="L263" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L264">                    log.debug(&quot;Could not read Maintenance File. Expected to find file at: &quot;+ maintenanceFile);</span>
+                }
+            } finally {
+<span class="nc bnc" id="L267" title="All 2 branches missed.">                if (in != null) {</span>
+                    try {
+<span class="nc" id="L269">                        in.close();                 </span>
+<span class="nc" id="L270">                    } catch (IOException e) {</span>
+<span class="nc" id="L271">                        log.error(&quot;Error closing file: &quot;, e);</span>
+<span class="nc" id="L272">                    }</span>
+                }
+            }
+        }
+<span class="nc" id="L276">        return null;</span>
+    }    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

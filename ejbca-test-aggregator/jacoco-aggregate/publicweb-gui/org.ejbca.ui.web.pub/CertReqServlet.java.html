@@ -45,9 +45,7 @@ import org.ejbca.core.model.InternalEjbcaResources;
  * certificate request. &lt;br&gt;
  * 3. The new certificate is created by calling the RSASignSession session bean. &lt;br&gt;
  * 4. A page containing the new certificate and a script that installs it is returned to the
- * browser. &lt;br&gt;
- * 
- * &lt;p&gt;
+ * browser. &lt;br&gt;&lt;br&gt;
  * 
  * &lt;p&gt;
  * The following initiation parameters are needed by this servlet: &lt;br&gt;
@@ -59,11 +57,11 @@ import org.ejbca.core.model.InternalEjbcaResources;
  *
  * @version $Id: CertReqServlet.java 25830 2017-05-10 13:36:45Z mikekushner $
  */
-<span class="nc" id="L62">public class CertReqServlet extends HttpServlet {</span>
+<span class="nc" id="L60">public class CertReqServlet extends HttpServlet {</span>
 
 	private static final long serialVersionUID = 1L;
-<span class="nc" id="L65">	private static final Logger log = Logger.getLogger(CertReqServlet.class);</span>
-<span class="nc" id="L66">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+<span class="nc" id="L63">	private static final Logger log = Logger.getLogger(CertReqServlet.class);</span>
+<span class="nc" id="L64">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
 
     // This injection has been verified on JBoss
 	@EJB
@@ -97,10 +95,10 @@ import org.ejbca.core.model.InternalEjbcaResources;
      *             on error
      */
     public void init(ServletConfig config) throws ServletException {
-<span class="nc" id="L100">        super.init(config);</span>
+<span class="nc" id="L98">        super.init(config);</span>
         // Install BouncyCastle provider
-<span class="nc" id="L102">        CryptoProviderTools.installBCProvider();</span>
-<span class="nc" id="L103">    }</span>
+<span class="nc" id="L100">        CryptoProviderTools.installBCProvider();</span>
+<span class="nc" id="L101">    }</span>
 
     /**
      * Handles HTTP POST
@@ -116,10 +114,10 @@ import org.ejbca.core.model.InternalEjbcaResources;
      *             on error
      */
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-<span class="nc" id="L119">        new RequestInstance(getServletContext(), getServletConfig(), endEntityAccessSession, caSession,</span>
+<span class="nc" id="L117">        new RequestInstance(getServletContext(), getServletConfig(), endEntityAccessSession, caSession,</span>
                 certificateProfileSession, endEntityProfileSession, keyStoreCreateSession, signSession, endEntityManagementSession,
-<span class="nc" id="L121">                globalConfigurationSession).doPost(request, response);</span>
-<span class="nc" id="L122">    }</span>
+<span class="nc" id="L119">                globalConfigurationSession).doPost(request, response);</span>
+<span class="nc" id="L120">    }</span>
 
     /**
      * Handles HTTP GET
@@ -135,14 +133,14 @@ import org.ejbca.core.model.InternalEjbcaResources;
      *             on error
      */
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-<span class="nc" id="L138">        log.trace(&quot;&gt;doGet()&quot;);</span>
-<span class="nc" id="L139">        response.setHeader(&quot;Allow&quot;, &quot;POST&quot;);</span>
+<span class="nc" id="L136">        log.trace(&quot;&gt;doGet()&quot;);</span>
+<span class="nc" id="L137">        response.setHeader(&quot;Allow&quot;, &quot;POST&quot;);</span>
 
-<span class="nc" id="L141">        ServletDebug debug = new ServletDebug(request, response);</span>
-<span class="nc" id="L142">        String iMsg = intres.getLocalizedMessage(&quot;certreq.postonly&quot;);</span>
-<span class="nc" id="L143">        debug.print(iMsg);</span>
-<span class="nc" id="L144">        debug.printDebugInfo();</span>
-<span class="nc" id="L145">        log.trace(&quot;&lt;doGet()&quot;);</span>
-<span class="nc" id="L146">    }</span>
+<span class="nc" id="L139">        ServletDebug debug = new ServletDebug(request, response);</span>
+<span class="nc" id="L140">        String iMsg = intres.getLocalizedMessage(&quot;certreq.postonly&quot;);</span>
+<span class="nc" id="L141">        debug.print(iMsg);</span>
+<span class="nc" id="L142">        debug.printDebugInfo();</span>
+<span class="nc" id="L143">        log.trace(&quot;&lt;doGet()&quot;);</span>
+<span class="nc" id="L144">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

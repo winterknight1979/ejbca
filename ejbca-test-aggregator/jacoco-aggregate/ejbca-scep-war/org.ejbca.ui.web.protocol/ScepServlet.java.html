@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ScepServlet.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-scep-war</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.protocol</a> &gt; <span class="el_source">ScepServlet.java</span></div><h1>ScepServlet.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.ui.web.protocol;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.security.SignatureException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.ejb.EJB;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.util.encoders.DecoderException;
+import org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.UsernamePrincipal;
+import org.cesecore.authentication.tokens.WebPrincipal;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.certificate.IllegalKeyException;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CryptoProviderTools;
+import org.ejbca.config.EjbcaConfiguration;
+import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.ca.AuthLoginException;
+import org.ejbca.core.model.ca.AuthStatusException;
+import org.ejbca.core.model.era.RaMasterApiProxyBeanLocal;
+import org.ejbca.core.protocol.NoSuchAliasException;
+import org.ejbca.ui.web.RequestHelper;
+import org.ejbca.util.HTMLTools;
+
+
+/**
+ * Servlet implementing server side of the Simple Certificate Enrollment Protocol (SCEP) 
+ * ----- 
+ * This processes does the following: 
+ * 1. decode a PKCS#7 signed data message from the standard input 
+ * 2. extract the signed attributes from the the message, which indicate the type of request 
+ * 3. decrypt the enveloped data PKCS#7 inside 
+ * 4. branch to different actions depending on the type of the message: 
+ * - PKCSReq 
+ * - GetCertInitial 
+ * - GetCert 
+ * - GetCRL 
+ * - v2PKCSReq or Proxy request 
+ * - GetCACaps
+ * 5. envelop (PKCS#7) the reply data from the previous step 
+ * 6. sign the reply data (PKCS#7) from the previous step 
+ * 7. output the result as a der encoded block on stdout 
+ * -----
+ *
+ * @version $Id: ScepServlet.java 28857 2018-05-07 08:35:30Z samuellb $
+ */
+<span class="nc" id="L76">public class ScepServlet extends HttpServlet {</span>
+    private static final long serialVersionUID = -6776853218419335240L;
+<span class="nc" id="L78">    private static final Logger log = Logger.getLogger(ScepServlet.class);</span>
+    /** Internal localization of logs and errors */
+<span class="nc" id="L80">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+    /** Only intended to check if Peer connected instance is authorized to SCEP at all. This will not affect user authorization */
+<span class="nc" id="L82">    private final AuthenticationToken raScepAuthCheckToken = new AlwaysAllowLocalAuthenticationToken(new UsernamePrincipal(&quot;scepProtocolAuthCheck&quot;));</span>
+    
+    @EJB
+    private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
+    
+    private static final String DEFAULT_SCEP_ALIAS = &quot;scep&quot;;
+
+    /**
+     * Inits the SCEP servlet
+     *
+     * @param config servlet configuration
+     *
+     * @throws ServletException on error during initialization
+     */
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+<span class="nc" id="L98">        super.init(config);</span>
+        try {
+            // Install BouncyCastle provider
+<span class="nc" id="L101">            CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+<span class="nc" id="L102">        } catch (Exception e) {</span>
+<span class="nc" id="L103">            throw new ServletException(e);</span>
+<span class="nc" id="L104">        }</span>
+<span class="nc" id="L105">    }</span>
+
+    /**
+     * Handles HTTP post
+     *
+     * @param request java standard arg
+     * @param response java standard arg
+     *
+     * @throws IOException input/output error
+     * @throws ServletException if the post could not be handled
+     */
+    @Override
+    public void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, ServletException {
+<span class="nc" id="L119">        log.trace(&quot;&gt;SCEP doPost()&quot;);</span>
+<span class="nc" id="L120">        final boolean isProtocolAuthorized = raMasterApiProxyBean.isAuthorizedNoLogging(raScepAuthCheckToken,</span>
+                AccessRulesConstants.REGULAR_PEERPROTOCOL_SCEP);
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (!isProtocolAuthorized) {</span>
+<span class="nc" id="L123">            log.info(&quot;SCEP Protocol not authorized for this Peer&quot;);</span>
+<span class="nc" id="L124">            response.sendError(HttpServletResponse.SC_FORBIDDEN, &quot;SCEP Protocol not authorized for this Peer&quot;);</span>
+<span class="nc" id="L125">            return;</span>
+        }
+        
+        /* 
+         If the remote CA supports it, any of the PKCS#7-encoded SCEP messages
+         may be sent via HTTP POST instead of HTTP GET.   This is allowed for
+         any SCEP message except GetCACert, GetCACertChain, GetNextCACert,
+         or GetCACaps.  In this form of the message, Base 64 encoding is not
+         used.
+         
+         POST /cgi-bin/pkiclient.exe?operation=PKIOperation
+         &lt;binary PKCS7 data&gt;
+         */
+<span class="nc" id="L138">        String operation = &quot;PKIOperation&quot;;</span>
+<span class="nc" id="L139">        ServletInputStream sin = request.getInputStream();</span>
+        // This small code snippet is inspired/copied by apache IO utils to Tomas Gustavsson...
+<span class="nc" id="L141">        ByteArrayOutputStream output = new ByteArrayOutputStream();</span>
+<span class="nc" id="L142">        byte[] buf = new byte[1024];</span>
+<span class="nc" id="L143">        int n = 0;</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">        while (-1 != (n = sin.read(buf))) {</span>
+<span class="nc" id="L145">            output.write(buf, 0, n);</span>
+        }
+<span class="nc" id="L147">        String message = new String(Base64.encode(output.toByteArray()));</span>
+<span class="nc" id="L148">        service(operation, message, request.getRemoteAddr(), response, request.getPathInfo());</span>
+<span class="nc" id="L149">        log.trace(&quot;&lt;SCEP doPost()&quot;);</span>
+<span class="nc" id="L150">    }</span>
+
+    /**
+     * Handles HTTP get
+     *
+     * @param request java standard arg
+     * @param response java standard arg
+     *
+     * @throws IOException input/output error
+     * @throws ServletException if the post could not be handled
+     */
+    @Override
+    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+<span class="nc" id="L163">        log.trace(&quot;&gt;SCEP doGet()&quot;);</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L165">            log.debug(&quot;query string=&quot; + request.getQueryString());</span>
+        }
+<span class="nc" id="L167">        final boolean isProtocolAuthorized = raMasterApiProxyBean.isAuthorizedNoLogging(raScepAuthCheckToken,</span>
+                AccessRulesConstants.REGULAR_PEERPROTOCOL_SCEP);
+<span class="nc bnc" id="L169" title="All 2 branches missed.">        if (!isProtocolAuthorized) {</span>
+<span class="nc" id="L170">            log.info(&quot;SCEP Protocol not authorized for this Peer&quot;);</span>
+<span class="nc" id="L171">            response.sendError(HttpServletResponse.SC_FORBIDDEN, &quot;SCEP Protocol not authorized for this Peer&quot;);</span>
+<span class="nc" id="L172">            return;</span>
+        }
+        
+        // These are mandatory in SCEP GET
+        /*
+         GET /cgi-bin/pkiclient.exe?operation=PKIOperation&amp;message=MIAGCSqGSIb3D
+         QEHA6CAMIACAQAxgDCBzAIBADB2MGIxETAPBgNVBAcTCE ......AAAAAA== 
+         */
+<span class="nc" id="L180">        String operation = request.getParameter(&quot;operation&quot;);</span>
+<span class="nc" id="L181">        String message = request.getParameter(&quot;message&quot;);</span>
+        // Some clients don't url encode the + sign in the request. Message is only used to PKIOperations
+<span class="nc bnc" id="L183" title="All 6 branches missed.">        if (message != null &amp;&amp; operation != null &amp;&amp; operation.equals(&quot;PKIOperation&quot;)) {</span>
+<span class="nc" id="L184">            message = message.replace(' ', '+');</span>
+        }
+
+<span class="nc" id="L187">        service(operation, message, request.getRemoteAddr(), response, request.getPathInfo());</span>
+
+<span class="nc" id="L189">        log.trace(&quot;&lt;SCEP doGet()&quot;);</span>
+<span class="nc" id="L190">    }</span>
+
+    private void service(String operation, String message, String remoteAddr, HttpServletResponse response, String pathInfo) throws IOException {
+<span class="nc" id="L193">        String alias = getAlias(pathInfo);</span>
+<span class="nc" id="L194">        String caname = getCAName(message);</span>
+<span class="nc bnc" id="L195" title="All 2 branches missed.">        if(alias == null) {</span>
+<span class="nc" id="L196">            log.info(&quot;Wrong URL format. The SCEP URL should look like: &quot; +</span>
+            		&quot;'http://HOST:PORT/ejbca/publicweb/apply/scep/ALIAS/pkiclient.exe' &quot; +
+            		&quot;but was 'http://HOST:PORT/ejbca/publicweb/apply/scep&quot; + pathInfo + &quot;'&quot;);
+<span class="nc" id="L199">            response.sendError(HttpServletResponse.SC_BAD_REQUEST, &quot;Wrong URL. No alias found.&quot;);</span>
+<span class="nc" id="L200">            return;</span>
+        }
+<span class="nc bnc" id="L202" title="All 2 branches missed.">        if(alias.length() &gt; 32) {</span>
+<span class="nc" id="L203">            log.info(&quot;Unaccepted alias more than 32 characters.&quot;);</span>
+<span class="nc" id="L204">            response.sendError(HttpServletResponse.SC_BAD_REQUEST, &quot;Unaccepted alias more than 32 characters.&quot;);</span>
+<span class="nc" id="L205">            return;</span>
+        }
+        
+        try {
+<span class="nc bnc" id="L209" title="All 2 branches missed.">            if (operation == null) {</span>
+<span class="nc" id="L210">        		String errMsg = intres.getLocalizedMessage(&quot;scep.errormissingparam&quot;, remoteAddr);</span>
+<span class="nc" id="L211">                log.error(errMsg);</span>
+<span class="nc" id="L212">                response.sendError(HttpServletResponse.SC_BAD_REQUEST,errMsg);</span>
+<span class="nc" id="L213">                return;</span>
+            }
+<span class="nc bnc" id="L215" title="All 4 branches missed.">            if (operation.equals(&quot;PKIOperation&quot;) &amp;&amp; message == null) {</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">                if (message == null) {</span>
+<span class="nc" id="L217">                    String errMsg = intres.getLocalizedMessage(&quot;scep.errormissingparam&quot;, remoteAddr);</span>
+<span class="nc" id="L218">                    log.error(errMsg);</span>
+<span class="nc" id="L219">                    response.sendError(HttpServletResponse.SC_BAD_REQUEST,errMsg);</span>
+<span class="nc" id="L220">                    return;</span>
+                }
+            }
+<span class="nc" id="L223">            final AuthenticationToken administrator = new AlwaysAllowLocalAuthenticationToken(new WebPrincipal(&quot;ScepServlet&quot;, remoteAddr));</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L225">                log.debug(&quot;Got request '&quot; + operation + &quot;'&quot;);</span>
+<span class="nc" id="L226">                log.debug(&quot;Message: &quot; + message);</span>
+            }
+<span class="nc" id="L228">    		String iMsg = intres.getLocalizedMessage(&quot;scep.receivedmsg&quot;, remoteAddr);</span>
+<span class="nc" id="L229">			log.info(iMsg);	</span>
+<span class="nc" id="L230">			byte[] dispatchResponse = raMasterApiProxyBean.scepDispatch(administrator, operation, message, alias);</span>
+			
+<span class="nc bnc" id="L232" title="All 2 branches missed.">            if (operation.equals(&quot;PKIOperation&quot;)) {</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">                if (dispatchResponse == null) {</span>
+<span class="nc" id="L234">                    response.sendError(HttpServletResponse.SC_NOT_IMPLEMENTED, &quot;Can not handle request&quot;);</span>
+<span class="nc" id="L235">                    return;</span>
+                }
+                // Send back Scep response, PKCS#7 which contains the end entity's certificate (or failure)
+<span class="nc" id="L238">                RequestHelper.sendBinaryBytes(dispatchResponse, response, &quot;application/x-pki-message&quot;, null);</span>
+<span class="nc" id="L239">        		iMsg = intres.getLocalizedMessage(&quot;scep.sentresponsemsg&quot;, &quot;PKIOperation&quot;, remoteAddr);</span>
+<span class="nc" id="L240">    			log.info(iMsg);</span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">            } else if (operation.equals(&quot;GetCACert&quot;)) {</span>
+                // The response has the content type tagged as application/x-x509-ca-cert. 
+                // The body of the response is a DER encoded binary X.509 certificate. 
+                // For example: &quot;Content-Type:application/x-x509-ca-cert\n\n&quot;&lt;BER-encoded X509&gt;
+<span class="nc bnc" id="L245" title="All 2 branches missed.">                if (dispatchResponse != null) {</span>
+<span class="nc" id="L246">                    log.debug(&quot;Sent CA certificate to SCEP client.&quot;);</span>
+<span class="nc" id="L247">                    RequestHelper.sendNewX509CaCert(dispatchResponse, response);</span>
+<span class="nc" id="L248">            		iMsg = intres.getLocalizedMessage(&quot;scep.sentresponsemsg&quot;, &quot;GetCACert&quot;, remoteAddr);</span>
+<span class="nc" id="L249">        			log.info(iMsg);</span>
+                } else {
+<span class="nc" id="L251">            		String errMsg = intres.getLocalizedMessage(&quot;scep.errorunknownca&quot;, &quot;cert&quot;);</span>
+<span class="nc" id="L252">                    log.error(errMsg);</span>
+<span class="nc" id="L253">                    response.sendError(HttpServletResponse.SC_NOT_FOUND, &quot;No CA certificates found.&quot;);</span>
+<span class="nc" id="L254">                }</span>
+<span class="nc bnc" id="L255" title="All 2 branches missed.">            } else if (operation.equals(&quot;GetCACertChain&quot;)) {</span>
+                // GetCACertChain was included in SCEP draft 18, &quot;5.6.  Get Certificate Authority Certificate Chain&quot;
+                // This dissapeared on SCEP draft 19 however, so we should not expect any clients to use this method.
+                
+                // The response for GetCACertChain is a certificates-only PKCS#7 
+                // SignedData to carry the certificates to the end entity, with a 
+                // Content-Type of application/x-x509-ca-ra-cert-chain.
+<span class="nc bnc" id="L262" title="All 2 branches missed.">                if (dispatchResponse != null) {</span>
+<span class="nc" id="L263">                    log.debug(&quot;Sent PKCS7 for CA to SCEP client.&quot;);</span>
+<span class="nc" id="L264">                    RequestHelper.sendBinaryBytes(dispatchResponse, response, &quot;application/x-x509-ca-ra-cert-chain&quot;, null);</span>
+<span class="nc" id="L265">            		iMsg = intres.getLocalizedMessage(&quot;scep.sentresponsemsg&quot;, &quot;GetCACertChain&quot;, remoteAddr);</span>
+<span class="nc" id="L266">        			log.info(iMsg);</span>
+                } else {
+<span class="nc" id="L268">            		String errMsg = intres.getLocalizedMessage(&quot;scep.errorunknownca&quot;, &quot;pkcs7&quot;);</span>
+<span class="nc" id="L269">                    log.error(errMsg);</span>
+<span class="nc" id="L270">                    response.sendError(HttpServletResponse.SC_NOT_FOUND,&quot;No CA certificates found.&quot;);</span>
+<span class="nc" id="L271">                }</span>
+<span class="nc bnc" id="L272" title="All 2 branches missed.">            } else if (operation.equals(&quot;GetNextCACert&quot;)) {</span>
+                // Like GetCACert, but returns the next certificate during certificate rollover
+<span class="nc bnc" id="L274" title="All 2 branches missed.">                    if (dispatchResponse != null) {</span>
+<span class="nc" id="L275">                        RequestHelper.sendBinaryBytes(dispatchResponse, response, &quot;application/x-x509-next-ca-cert&quot;, null);</span>
+<span class="nc" id="L276">                        iMsg = intres.getLocalizedMessage(&quot;scep.sentresponsemsg&quot;, &quot;GetNextCACert&quot;, remoteAddr);</span>
+<span class="nc" id="L277">                        log.info(iMsg);</span>
+                    } else {
+<span class="nc" id="L279">                        String errMsg = intres.getLocalizedMessage(&quot;scep.errornorollovercert&quot;, caname);</span>
+<span class="nc" id="L280">                        log.info(errMsg);</span>
+<span class="nc" id="L281">                        response.sendError(HttpServletResponse.SC_FORBIDDEN, &quot;No rollover certificate found for this CA.&quot;);</span>
+<span class="nc" id="L282">                    }</span>
+<span class="nc bnc" id="L283" title="All 2 branches missed.">            } else if (operation.equals(&quot;GetCACaps&quot;)) {</span>
+                // The response for GetCACaps is a &lt;lf&gt; separated list of capabilities
+
+                /*
+                 &quot;GetNextCACert&quot;       CA Supports the GetNextCACert message.
+                 &quot;POSTPKIOperation&quot;    PKIOPeration messages may be sent via HTTP POST.
+                 &quot;SHA-1&quot;               CA Supports the SHA-1 hashing algorithm in 
+                                       signatures and fingerprints.  If present, the
+                                       client SHOULD use SHA-1.  If absent, the client
+                                       MUST use MD5 to maintain backward compatability.
+                 &quot;Renewal&quot;             Clients may use current certificate and key to
+                                       authenticate an enrollment request for a new
+                                       certificate.  
+                 */
+<span class="nc" id="L297">                log.debug(&quot;Got SCEP GetCACaps request&quot;);</span>
+<span class="nc" id="L298">                response.setContentType(&quot;text/plain&quot;);</span>
+<span class="nc" id="L299">                response.getOutputStream().print(new String(dispatchResponse));</span>
+            } else {
+<span class="nc" id="L301">                log.error(&quot;Invalid parameter '&quot; + operation);</span>
+                // Send back proper Failure Response
+<span class="nc" id="L303">                response.sendError(HttpServletResponse.SC_BAD_REQUEST, &quot;Invalid parameter: &quot; + HTMLTools.htmlescape(operation));</span>
+            }
+<span class="nc" id="L305">        } catch (CADoesntExistsException cae) {</span>
+<span class="nc" id="L306">    		String errMsg = intres.getLocalizedMessage(&quot;scep.errorunknownca&quot;, &quot;cert&quot;);</span>
+<span class="nc" id="L307">            log.info(errMsg);</span>
+            // TODO: Send back proper Failure Response
+<span class="nc" id="L309">            response.sendError(HttpServletResponse.SC_NOT_FOUND, cae.getMessage());</span>
+<span class="nc" id="L310">        } catch (DecoderException de) {</span>
+<span class="nc" id="L311">    		String errMsg = intres.getLocalizedMessage(&quot;scep.errorinvalidreq&quot;);</span>
+<span class="nc" id="L312">            log.info(errMsg, de);</span>
+            // TODO: Send back proper Failure Response
+<span class="nc" id="L314">            response.sendError(HttpServletResponse.SC_BAD_REQUEST, de.getMessage());</span>
+<span class="nc" id="L315">        } catch (AuthorizationDeniedException ae) {</span>
+<span class="nc" id="L316">    		String errMsg = intres.getLocalizedMessage(&quot;scep.errorauth&quot;);</span>
+<span class="nc" id="L317">            log.info(errMsg, ae);</span>
+            // TODO: Send back proper Failure Response
+<span class="nc" id="L319">            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ae.getMessage());</span>
+<span class="nc" id="L320">        } catch (AuthLoginException ae) {</span>
+<span class="nc bnc" id="L321" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+                // AuthLogin is logged as a security event already by inner layers, not need to log the exception at info level
+                // this is seens clearly in the info log already, more details is inly needed in debug level
+<span class="nc" id="L324">                final String errMsg = intres.getLocalizedMessage(&quot;scep.errorauth&quot;);</span>
+<span class="nc" id="L325">                log.debug(errMsg, ae);</span>
+            }
+            // TODO: Send back proper Failure Response
+<span class="nc" id="L328">            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ae.getMessage());</span>
+<span class="nc" id="L329">        } catch (AuthStatusException ae) {</span>
+<span class="nc" id="L330">    		String errMsg = intres.getLocalizedMessage(&quot;scep.errorclientstatus&quot;);</span>
+<span class="nc" id="L331">            log.info(errMsg, ae);</span>
+            // TODO: Send back proper Failure Response
+<span class="nc" id="L333">            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ae.getMessage());</span>
+<span class="nc" id="L334">        } catch (CryptoTokenOfflineException ee) {</span>
+<span class="nc" id="L335">    		String errMsg = intres.getLocalizedMessage(&quot;scep.errorgeneral&quot;);</span>
+<span class="nc" id="L336">            log.info(errMsg, ee);</span>
+            // TODO: Send back proper Failure Response
+<span class="nc" id="L338">            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ee.getMessage());</span>
+<span class="nc" id="L339">        } catch (NoSuchEndEntityException ee) {</span>
+<span class="nc" id="L340">            String errMsg = intres.getLocalizedMessage(&quot;scep.errorgeneral&quot;);</span>
+<span class="nc" id="L341">            errMsg += &quot; Registering new EndEntities is only allowed in RA mode.&quot;;</span>
+<span class="nc" id="L342">            log.info(errMsg, ee);</span>
+<span class="nc" id="L343">            response.sendError(HttpServletResponse.SC_FORBIDDEN, ee.getMessage());    </span>
+<span class="nc" id="L344">        } catch(IllegalKeyException e) {</span>
+<span class="nc" id="L345">            String errMsg = intres.getLocalizedMessage(&quot;scep.errorclientcertificaterenewal&quot;);</span>
+<span class="nc" id="L346">            errMsg += &quot; Reusing the old keys was attempted, but this action is prohibited by configuration.&quot;;</span>
+<span class="nc" id="L347">            log.info(errMsg, e);</span>
+<span class="nc" id="L348">            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());    </span>
+<span class="nc" id="L349">        } catch(SignatureException e) {</span>
+<span class="nc" id="L350">            String errMsg = intres.getLocalizedMessage(&quot;scep.errorclientcertificaterenewal&quot;);</span>
+<span class="nc" id="L351">            errMsg += &quot; Request was not signed with previous certificate's public key.&quot;;</span>
+<span class="nc" id="L352">            log.info(errMsg, e);</span>
+<span class="nc" id="L353">            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());</span>
+<span class="nc" id="L354">        } catch(CertificateRenewalException e) {</span>
+<span class="nc" id="L355">            String errMsg = intres.getLocalizedMessage(&quot;scep.errorclientcertificaterenewal&quot;);</span>
+<span class="nc" id="L356">            log.info(errMsg, e);</span>
+<span class="nc" id="L357">            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());</span>
+<span class="nc" id="L358">        } catch (NoSuchAliasException e) {</span>
+<span class="nc" id="L359">            String msg = intres.getLocalizedMessage(&quot;protocol.nosuchalias&quot;, &quot;SCEP&quot;, alias);</span>
+<span class="nc" id="L360">            log.info(msg);</span>
+<span class="nc" id="L361">            response.sendError(HttpServletResponse.SC_BAD_REQUEST, msg);</span>
+<span class="nc" id="L362">        } catch (Exception e) {             </span>
+<span class="nc" id="L363">    		String errMsg = intres.getLocalizedMessage(&quot;scep.errorgeneral&quot;);</span>
+<span class="nc" id="L364">            log.info(errMsg, e);</span>
+<span class="nc" id="L365">            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());</span>
+<span class="nc" id="L366">        }</span>
+<span class="nc" id="L367">    }</span>
+    
+    /** Later SCEP draft say that for GetCACert message is optional. If message is there, it is the CA name
+     * but if message is not provided by the client, some default CA should be used.
+     * @param message the message part for the SCEP get request, can be null or empty string
+     * @return the message parameter or the default CA from ALIAS.defaultca property if message is null or empty.
+     */
+    private String getCAName(final String message) {
+        // If message is a string, return it, but if message is empty return default CA
+<span class="nc bnc" id="L376" title="All 2 branches missed.">        if (StringUtils.isEmpty(message)) {</span>
+<span class="nc" id="L377">            return EjbcaConfiguration.getScepDefaultCA();</span>
+        }
+<span class="nc" id="L379">        return message;</span>
+    }
+    
+    public static String getAlias(String pathInfo) {
+        // PathInfo contains the alias used for SCEP configuration. 
+        // The SCEP URL for custom configuration looks like: http://HOST:PORT/ejbca/publicweb/apply/scep/*
+        // pathInfo contains what * is and should have the form &quot;/&lt;SOME IDENTIFYING TEXT&gt;/pkiclient.exe&quot;. We extract the &quot;SOME IDENTIFYING 
+        // TEXT&quot; and that will be the SCEP configuration alias.
+        
+<span class="nc" id="L388">        String alias = null;</span>
+<span class="nc" id="L389">        Pattern pattern = Pattern.compile(&quot;/?([A-Za-z0-9]*)/pkiclient.exe&quot;);</span>
+<span class="nc" id="L390">        Matcher matcher = pattern.matcher(pathInfo);</span>
+        
+<span class="nc bnc" id="L392" title="All 2 branches missed.">        if(matcher.find()) {</span>
+<span class="nc" id="L393">            alias = matcher.group(1);</span>
+<span class="nc bnc" id="L394" title="All 2 branches missed.">            if(alias.length() == 0) {</span>
+<span class="nc" id="L395">                log.info(&quot;No SCEP alias specified in the URL. Using the default alias: &quot; + DEFAULT_SCEP_ALIAS);</span>
+<span class="nc" id="L396">                alias = DEFAULT_SCEP_ALIAS;</span>
+            } else {
+<span class="nc bnc" id="L398" title="All 2 branches missed.">                if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L399">                    log.debug(&quot;Found SCEP configuration alias: &quot; + alias);</span>
+                }
+            }
+        }
+<span class="nc" id="L403">        return alias;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

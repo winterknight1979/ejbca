@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ClearCacheServlet.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">clearcache-war</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.pub</a> &gt; <span class="el_source">ClearCacheServlet.java</span></div><h1>ClearCacheServlet.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.ui.web.pub;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import javax.ejb.EJB;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
+import org.cesecore.certificates.certificate.certextensions.AvailableCustomCertificateExtensionsConfiguration;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.certificates.certificatetransparency.CertificateTransparencyFactory;
+import org.cesecore.certificates.ocsp.OcspResponseGeneratorSessionLocal;
+import org.cesecore.config.AvailableExtendedKeyUsagesConfiguration;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.keybind.InternalKeyBindingDataSessionLocal;
+import org.cesecore.keys.token.CryptoToken;
+import org.cesecore.keys.token.CryptoTokenSessionLocal;
+import org.cesecore.keys.validation.KeyValidatorSessionLocal;
+import org.cesecore.roles.management.RoleDataSessionLocal;
+import org.cesecore.roles.member.RoleMemberDataSessionLocal;
+import org.ejbca.config.CmpConfiguration;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.config.ScepConfiguration;
+import org.ejbca.core.ejb.approval.ApprovalProfileSessionLocal;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionLocal;
+import org.ejbca.core.ejb.ca.publisher.PublisherSessionLocal;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal;
+
+/**
+ * Servlet used to clear all caches (Global Configuration Cache, End Entity Profile Cache, 
+ * Certificate Profile Cache, Log Configuration Cache, Authorization Cache and CA Cache).
+ *
+ * @version $Id: ClearCacheServlet.java 26451 2017-08-28 23:28:44Z anatom $
+ */
+<span class="nc" id="L61">public class ClearCacheServlet extends HttpServlet {</span>
+
+	private static final long serialVersionUID = -8563174167843989458L;
+<span class="nc" id="L64">	private static final Logger log = Logger.getLogger(ClearCacheServlet.class);</span>
+	
+	@EJB
+	private ApprovalProfileSessionLocal approvalprofilesession;
+	@EJB
+	private AuthorizationSessionLocal authorizationSession;
+	@EJB
+	private CaSessionLocal caSession;
+	@EJB
+	private CAAdminSessionLocal caAdminSession;
+	@EJB
+	private CertificateProfileSessionLocal certificateprofilesession;
+	@EJB
+	private CertificateStoreSessionLocal certificateStoreSession;
+    @EJB
+    private CryptoTokenSessionLocal cryptoTokenSession;
+    @EJB
+    private EndEntityProfileSessionLocal endentitysession;
+    @EJB
+    private GlobalConfigurationSessionLocal globalconfigurationsession;
+    @EJB
+    private InternalKeyBindingDataSessionLocal internalKeyBindingDataSession;
+    @EJB
+    private KeyValidatorSessionLocal keyValidatorSession;
+    @EJB
+    private PublisherSessionLocal publisherSession;
+    @EJB
+    private OcspResponseGeneratorSessionLocal ocspResponseGeneratorSession;
+    @EJB
+    private RoleDataSessionLocal roleDataSession;
+    @EJB
+    private RoleMemberDataSessionLocal roleMemberDataSession;
+	
+    public void doPost(HttpServletRequest req, HttpServletResponse res)	throws IOException, ServletException {
+<span class="nc" id="L98">    	doGet(req,res);</span>
+<span class="nc" id="L99">    }</span>
+
+	public void doGet(HttpServletRequest req, HttpServletResponse res)
+        throws IOException, ServletException {
+<span class="nc bnc" id="L103" title="All 2 branches missed.">		if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L104">			log.trace(&quot;&gt;doGet()&quot;);</span>
+		}
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (StringUtils.equals(req.getParameter(&quot;command&quot;), &quot;clearcaches&quot;)) {</span>
+<span class="nc" id="L107">            boolean excludeActiveCryptoTokens = StringUtils.equalsIgnoreCase(&quot;true&quot;, req.getParameter(&quot;excludeactivects&quot;));</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">            if(!acceptedHost(req.getRemoteHost())) {</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">        		if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L110">        			log.debug(&quot;Clear cache request denied from host &quot;+req.getRemoteHost());</span>
+        		}
+<span class="nc" id="L112">        		res.sendError(HttpServletResponse.SC_UNAUTHORIZED, &quot;The remote host &quot;+req.getRemoteHost()+&quot; is unknown&quot;);</span>
+        	} else {
+        	    // Clear all known global configuration caches
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        	    for (final String globalConfigurationId : globalconfigurationsession.getIds()) {</span>
+<span class="nc" id="L116">                    globalconfigurationsession.flushConfigurationCache(globalConfigurationId);</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">                    if(log.isDebugEnabled()){</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">                        if (GlobalConfiguration.GLOBAL_CONFIGURATION_ID.equals(globalConfigurationId)) {</span>
+<span class="nc" id="L119">                            log.debug(&quot;Global Configuration cache cleared.&quot;);</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">                        } else if (CmpConfiguration.CMP_CONFIGURATION_ID.equals(globalConfigurationId)) {</span>
+<span class="nc" id="L121">                            log.debug(&quot;CMP Configuration cache cleared.&quot;);</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">                        } else if (ScepConfiguration.SCEP_CONFIGURATION_ID.equals(globalConfigurationId)) {</span>
+<span class="nc" id="L123">                            log.debug(&quot;SCEP Configuration cache cleared.&quot;);</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">                        } else if (AvailableExtendedKeyUsagesConfiguration.CONFIGURATION_ID.equals(globalConfigurationId)) {</span>
+<span class="nc" id="L125">                            log.debug(&quot;Available Extended Key Usages Configuration cache cleared.&quot;);</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">                        } else if (AvailableCustomCertificateExtensionsConfiguration.CONFIGURATION_ID.equals(globalConfigurationId)) {</span>
+<span class="nc" id="L127">                            log.debug(&quot;Available Custom Certificate Extensions Configuration cache cleared.&quot;);</span>
+                        } else {
+<span class="nc" id="L129">                            log.debug(globalConfigurationId + &quot; Configuration cache cleared.&quot;);</span>
+                        }
+                    }
+<span class="nc" id="L132">        	    }</span>
+<span class="nc" id="L133">        		endentitysession.flushProfileCache();</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        		if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L135">        			log.debug(&quot;RA Profile cache cleared&quot;);</span>
+        		}
+        		
+<span class="nc" id="L138">        		certificateprofilesession.flushProfileCache();</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        		if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L140">        			log.debug(&quot;Certificate Profile cache cleared&quot;);</span>
+        		}
+        		
+<span class="nc" id="L143">        		approvalprofilesession.forceProfileCacheRebuild();</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">        		if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L145">                    log.debug(&quot;Approval Profile cache cleared&quot;);</span>
+                }
+        		
+<span class="nc" id="L148">                authorizationSession.forceCacheExpire();</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">        		if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L150">        			log.debug(&quot;Authorization Rule cache cleared&quot;);</span>
+        		}
+<span class="nc" id="L152">        		caSession.flushCACache();</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">        		if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L154">        			log.debug(&quot;CA cache cleared&quot;);</span>
+        		}
+
+<span class="nc" id="L157">        		flushCryptoTokenCache(excludeActiveCryptoTokens);</span>
+        		
+<span class="nc" id="L159">                publisherSession.flushPublisherCache();</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">                if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L161">                    log.debug(&quot;Publisher cache cleared&quot;);</span>
+                }
+<span class="nc" id="L163">                keyValidatorSession.flushKeyValidatorCache();</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">                if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L165">                    log.debug(&quot;Key Validator cache cleared&quot;);</span>
+                }
+<span class="nc" id="L167">                internalKeyBindingDataSession.flushCache();</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">                if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L169">                    log.debug(&quot;InternalKeyBinding cache cleared&quot;);</span>
+                }
+<span class="nc" id="L171">                ocspResponseGeneratorSession.reloadOcspSigningCache();</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">                if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L173">                    log.debug(&quot;OCSP signing cache cleared.&quot;);</span>
+                }
+<span class="nc" id="L175">                ocspResponseGeneratorSession.reloadOcspExtensionsCache(); // clear CT OCSP response extension cache</span>
+<span class="nc" id="L176">                log.debug(&quot;OCSP extensions cache cleared.&quot;);</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">                if (CertificateTransparencyFactory.isCTAvailable()) {</span>
+<span class="nc" id="L178">                    ocspResponseGeneratorSession.clearCTFailFastCache();</span>
+<span class="nc" id="L179">                    log.debug(&quot;CT caches cleared&quot;);</span>
+                }
+<span class="nc" id="L181">                ocspResponseGeneratorSession.clearOcspRequestSignerRevocationStatusCache();</span>
+<span class="nc bnc" id="L182" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L183">                    log.debug(&quot;OCSP request signer revocation status cache cleared.&quot;);</span>
+                }
+<span class="nc" id="L185">                certificateStoreSession.reloadCaCertificateCache(); </span>
+<span class="nc bnc" id="L186" title="All 2 branches missed.">                if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L187">                    log.debug(&quot;Certificate Store cache cleared and reloaded.&quot;);</span>
+                }
+<span class="nc" id="L189">                roleDataSession.forceCacheExpire();</span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">                if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L191">                    log.debug(&quot;Role cache cleared.&quot;);</span>
+                }
+<span class="nc" id="L193">                roleMemberDataSession.forceCacheExpire();</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">                if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L195">                    log.debug(&quot;Role member cache cleared.&quot;);</span>
+                }
+        	}
+<span class="nc" id="L198">        } else {</span>
+<span class="nc bnc" id="L199" title="All 2 branches missed.">    		if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L200">    			log.debug(&quot;No clearcaches command (?command=clearcaches) received, returning bad request.&quot;);</span>
+    		}
+<span class="nc" id="L202">			res.sendError(HttpServletResponse.SC_BAD_REQUEST, &quot;No command.&quot;);</span>
+        }
+<span class="nc bnc" id="L204" title="All 2 branches missed.">		if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L205">			log.trace(&quot;&lt;doGet()&quot;);</span>
+		}
+<span class="nc" id="L207">    }</span>
+	
+	private void flushCryptoTokenCache(boolean withExclusion) {
+<span class="nc bnc" id="L210" title="All 2 branches missed.">        if(withExclusion) {</span>
+<span class="nc" id="L211">            List&lt;Integer&gt; excludeIDs = new ArrayList&lt;Integer&gt;();</span>
+<span class="nc" id="L212">            List&lt;Integer&gt; ctIDs = cryptoTokenSession.getCryptoTokenIds();</span>
+<span class="nc" id="L213">            Iterator&lt;Integer&gt; itr = ctIDs.iterator();</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">            while(itr.hasNext()) {</span>
+<span class="nc" id="L215">                Integer ctid = itr.next();</span>
+<span class="nc" id="L216">                CryptoToken ct = cryptoTokenSession.getCryptoToken(ctid);</span>
+<span class="nc bnc" id="L217" title="All 4 branches missed.">                if(ct.getTokenStatus()==CryptoToken.STATUS_ACTIVE &amp;&amp; !ct.isAutoActivationPinPresent()) {</span>
+<span class="nc" id="L218">                    excludeIDs.add(ctid);</span>
+                }
+<span class="nc" id="L220">            }</span>
+<span class="nc" id="L221">            cryptoTokenSession.flushExcludingIDs(excludeIDs);</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">            if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L223">                log.debug(&quot;CryptoToken cache cleared except for &quot; + excludeIDs.size() + &quot; specific entries.&quot;);</span>
+            }
+<span class="nc" id="L225">        } else {</span>
+<span class="nc" id="L226">            cryptoTokenSession.flushCache();</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">            if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L228">                log.debug(&quot;CryptoToken cache cleared&quot;);</span>
+            }
+        }
+<span class="nc" id="L231">	}</span>
+
+	private boolean acceptedHost(String remotehost) {
+<span class="nc bnc" id="L234" title="All 2 branches missed.">		if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L235">			log.trace(&quot;&gt;acceptedHost: &quot;+remotehost);</span>
+		}    	
+<span class="nc" id="L237">		boolean ret = false;</span>
+<span class="nc" id="L238">		GlobalConfiguration gc = (GlobalConfiguration) globalconfigurationsession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID);</span>
+<span class="nc" id="L239">		Set&lt;String&gt; nodes = gc.getNodesInCluster();</span>
+<span class="nc" id="L240">		Iterator&lt;String&gt; itr = nodes.iterator();</span>
+<span class="nc" id="L241">		String nodename = null;</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">		while (itr.hasNext()) {</span>
+<span class="nc" id="L243">			nodename = itr.next();</span>
+			try {
+<span class="nc" id="L245">				String nodeip = InetAddress.getByName(nodename).getHostAddress();</span>
+<span class="nc bnc" id="L246" title="All 2 branches missed.">				if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L247">					log.debug(&quot;Checking remote host against host in list: &quot;+nodename+&quot;, &quot;+nodeip);</span>
+				}
+<span class="nc bnc" id="L249" title="All 2 branches missed.">				if (StringUtils.equals(remotehost, nodeip)) {</span>
+<span class="nc" id="L250">					ret = true;</span>
+<span class="nc bnc" id="L251" title="All 2 branches missed.">				} else if (StringUtils.equals(remotehost, &quot;127.0.0.1&quot;)) {</span>
+					// Always allow requests from localhost, 127.0.0.1 may not be added in the list
+<span class="nc bnc" id="L253" title="All 2 branches missed.">					if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L254">						log.debug(&quot;Always allowing request from 127.0.0.1&quot;);</span>
+					}
+<span class="nc" id="L256">					ret = true;</span>
+				}
+<span class="nc" id="L258">			} catch (UnknownHostException e) {</span>
+<span class="nc bnc" id="L259" title="All 2 branches missed.">				if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L260">					log.debug(&quot;Unknown host '&quot;+nodename+&quot;': &quot;+e.getMessage());</span>
+				}
+<span class="nc" id="L262">			}</span>
+		}
+<span class="nc bnc" id="L264" title="All 2 branches missed.">		if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L265">			log.trace(&quot;&lt;acceptedHost: &quot;+ret);</span>
+		}
+<span class="nc" id="L267">		return ret;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

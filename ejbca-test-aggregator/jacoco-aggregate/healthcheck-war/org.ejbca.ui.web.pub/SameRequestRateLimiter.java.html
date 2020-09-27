@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>SameRequestRateLimiter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">healthcheck-war</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.ui.web.pub</a> &gt; <span class="el_source">SameRequestRateLimiter.java</span></div><h1>SameRequestRateLimiter.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.ui.web.pub;
+
+import java.util.concurrent.locks.ReentrantLock;
+
+/**
+ * Helper class for use when multiple threads a requesting something that will end up with the same result.
+ * 
+ * Instead of allowing each request to proceed, only the first will return a ticket where isFirst() is false.
+ * Example use:
+ * 
+ * final static SameRequestRateLimiter&amp;lt;Object&amp;gt; srrl = new SameRequestRateLimiter&amp;lt;Object&amp;gt;();
+ * ...
+ * SameRequestRateLimiter&amp;lt;Object&amp;gt;.Result result = srrl.getResult();
+ * if (result.isFirst()) {
+ *   try {
+ *     // Perform common action
+ *     result.setValue(...);
+ *   } catch (Throwable t) {
+ *     result.setError(t);
+ *   }
+ * }
+ * Object resultValue = result.getValue();
+ * ...
+ * 
+ * @version $Id: SameRequestRateLimiter.java 20084 2014-10-27 13:00:50Z jeklund $
+ * @param &lt;T&gt; Type
+ */
+<span class="fc" id="L40">public class SameRequestRateLimiter&lt;T&gt; {</span>
+    
+    /** Lock for keeping all but the first thread hanging and waiting for the first thread to calculate the result. */
+<span class="fc" id="L43">    private final ReentrantLock rateLimiterLock = new ReentrantLock(false);</span>
+    /** Lock for modifying the current shared Result object. */
+<span class="fc" id="L45">    private final ReentrantLock resultObjectLock = new ReentrantLock(false);</span>
+    /** Shared Result object between all the threads that asks for the result while the first calling thread is calculating the result. */
+<span class="fc" id="L47">    private Result result = null;</span>
+    
+<span class="fc" id="L49">    public class Result {</span>
+<span class="fc" id="L50">        private boolean isFirst = true;</span>
+        private T value;
+<span class="fc" id="L52">        private Throwable throwable = null;</span>
+        
+        /** @return true if the setValue should be called. */
+        public boolean isFirst() {
+<span class="fc" id="L56">            return isFirst;</span>
+        }
+        
+        /** @return the result if isFirst returns false or setValue has been called. */
+        public T getValue() {
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">            if (isFirst) {</span>
+                // Programming/meatware problem..
+<span class="nc" id="L63">                throw new IllegalStateException(&quot;Current thread should have called setValue first!&quot;);</span>
+            }
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">            if (throwable != null) {</span>
+<span class="nc" id="L66">                throw new RuntimeException(throwable);</span>
+            }
+<span class="fc" id="L68">            return value;</span>
+        }
+        
+        /** Store result of operation and release all pending threads 
+         * @param value Value*/
+        public void setValue(final T value) {
+            // Acquire a lock for modifying the class level result reference (we will reset it)
+<span class="fc" id="L75">            resultObjectLock.lock();</span>
+            try {
+<span class="fc" id="L77">                this.isFirst = false;   // Allow getValue() method to be called.</span>
+<span class="fc" id="L78">                this.value = value;</span>
+<span class="fc" id="L79">                result = null;  // First new thread entering getResult() will start working on a new Result.</span>
+                /*
+                 * At this point we have a result of the operation and other threads waiting in the getResult() method
+                 * are allowed to proceed and return the shared Result object.
+                 */
+<span class="fc" id="L84">                rateLimiterLock.unlock();</span>
+            } finally {
+<span class="fc" id="L86">                resultObjectLock.unlock();</span>
+            }
+<span class="fc" id="L88">        }</span>
+        
+        /** Store resulting exception and release all pending threads 
+         * @param throwable Exception*/
+        public void setError(final Throwable throwable) {
+            // Acquire a lock for modifying the class level result reference (we will reset it)
+<span class="nc" id="L94">            resultObjectLock.lock();</span>
+            try {
+<span class="nc" id="L96">                this.isFirst = false;   // Allow getValue() method to be called.</span>
+<span class="nc" id="L97">                this.throwable = throwable;</span>
+<span class="nc" id="L98">                result = null;  // First new thread entering getResult() will start working on a new Result.</span>
+                /*
+                 * At this point we have a result of the operation and other threads waiting in the getResult() method
+                 * are allowed to proceed and return the shared Result object.
+                 */
+<span class="nc" id="L103">                rateLimiterLock.unlock();</span>
+            } finally {
+<span class="nc" id="L105">                resultObjectLock.unlock();</span>
+            }
+<span class="nc" id="L107">        }</span>
+    }
+    
+    /** @return a result object that is shared by multiple threads. */
+    public Result getResult() {
+        /*
+         * Create a new shared Result object, if no such exist. This will only happen during:
+         * 1. First call to this method after this class has been instantiated.
+         * 2. First call to this method after the previous Result object has been assigned a value and is no longer
+         *    referenced by this instance.
+         */
+<span class="fc" id="L118">        resultObjectLock.lock();</span>
+        // Declared as a method local reference, so we can return the value even if the class level reference has been reset.
+        final Result result;
+        try {
+<span class="fc bfc" id="L122" title="All 2 branches covered.">            if (this.result == null) {</span>
+<span class="fc" id="L123">                this.result = new Result();</span>
+            }
+<span class="fc" id="L125">            result = this.result;</span>
+        } finally {
+<span class="fc" id="L127">            resultObjectLock.unlock();</span>
+        }
+        /*
+         * Acquire a lock on this instance. The first thread passed this point will not release the lock, leaving all
+         * other threads waiting here.
+         * 
+         * Once the first thread has a result and set it on the Result object, the lock will be releases and the other
+         * threads will be able to return the same result object
+         */
+<span class="fc" id="L136">        rateLimiterLock.lock();</span>
+        try {
+<span class="fc" id="L138">            return result;</span>
+        } finally {
+<span class="fc bfc" id="L140" title="All 2 branches covered.">            if (!result.isFirst()) {</span>
+<span class="fc" id="L141">                rateLimiterLock.unlock();</span>
+            }
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

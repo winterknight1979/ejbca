@@ -47,6 +47,7 @@ org.ejbca.core.protocol.cmp
 org.ejbca.core.protocol.scep
 org.ejbca.database
 org.ejbca.ui.web
+org.ejbca.ui.web.pub
 org.ejbca.util
 org.ejbca.util.crypto
 org.ejbca.util.query
