@@ -101,6 +101,20 @@
 			<version>${project.version}</version>
 			<classifier>classes</classifier>
 		</dependency>
+		
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>healthcheck-war</artifactId>
+			<version>${project.version}</version>
+			<classifier>classes</classifier>
+		</dependency>
+		
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>clearcache-war</artifactId>
+			<version>${project.version}</version>
+			<classifier>classes</classifier>
+		</dependency>
 
 
 		<!-- Shared Resource bundle and Service Manifest generator -->

@@ -398,6 +398,8 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<module>ejbca-scep-war</module>
 		<module>ejbca-webdist-war</module>
 		<module>ejbca-cmp-war</module>
+		<module>healthcheck-war</module>
+		<module>clearcache-war</module>
 	</modules>
 	<build>
 
