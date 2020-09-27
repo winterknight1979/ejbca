@@ -100,7 +100,7 @@ public interface AcmeRaMasterApiSessionLocal {
      * @param orderId ID*/
     void removeAcmeOrder(String orderId);
     
-	/** see org.ejbca.ui.web.protocol.acme.storage.AcmeOrderDataSessionBean#removeAll(List<String>) 
+	/** see org.ejbca.ui.web.protocol.acme.storage.AcmeOrderDataSessionBean#removeAll(List&lt;String&gt;) 
 	 * @param orderId IDs*/
     void removeAcmeOrders(List<String> orderId);
     
