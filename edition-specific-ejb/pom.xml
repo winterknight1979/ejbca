@@ -5,10 +5,11 @@
     <artifactId>ejbca</artifactId>
     <version>1.0</version>
   </parent>
-  <artifactId>ejbca-ejb</artifactId>
+  <artifactId>edition-specific-ejb</artifactId>
+  <name>Edition Specific EJB</name>
+  <description>Edition specific module</description>
   
   <dependencies>
-
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>ejbca-ejb-interface</artifactId>
@@ -17,15 +18,10 @@
 		
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>ejbca-common-web</artifactId>
+			<artifactId>edition-specific-interface</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>ejbca-ws</artifactId>
-			<version>${project.version}</version>
-		</dependency>
 
 		<dependency>
 			<groupId>${project.groupId}</groupId>
@@ -33,9 +29,9 @@
 			<version>${project.version}</version>
 			<scope>compile</scope>
 		</dependency>
-	</dependencies>
-
-	<build>
+		</dependencies>
+		
+		<build>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -73,6 +69,36 @@
 					</execution>
 				</executions>
 			</plugin>
-			</plugins>
-			</build>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-report-plugin</artifactId>
+				<version>3.0.0-M4</version>
+				
+			</plugin>
+		</plugins>
+	</build>
+
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>3.1.1</version>
+				<reportSets>
+					<reportSet>
+						<reports>
+							<report>dependencies</report>
+							<report>dependency-info</report>
+							<report>summary</report>
+							<report>index</report>
+							<report>plugins</report>
+							<report>dependency-convergence</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+		</plugins>
+	</reporting>
+  
 </project>

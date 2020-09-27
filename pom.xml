@@ -41,6 +41,13 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 			<version>1.2</version>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+    <groupId>javax.jws</groupId>
+    <artifactId>javax.jws-api</artifactId>
+    <version>1.1</version>
+    <scope>provided</scope>
+</dependency>
+		
 		<!-- test -->
 
 		<dependency>
@@ -392,6 +399,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<module>ejbca-entity</module>
 		<module>ejbca-ws-common</module>
 		<module>ejbca-ejb-interface</module>
+<!-- 		<module>ejbca-ejb</module> -->
 		<module>ejbca-common-web</module>
 		<module>publicweb-gui</module>
 		<module>ejbca-renew-war</module>
@@ -400,6 +408,9 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<module>ejbca-cmp-war</module>
 		<module>healthcheck-war</module>
 		<module>clearcache-war</module>
+		<module>ejbca-ws</module>
+		<module>edition-specific-ejb</module>
+		<module>edition-specific-interface</module>
 	</modules>
 	<build>
 
