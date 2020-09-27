@@ -78,6 +78,20 @@
 							<goal>process</goal>
 						</goals>
 					</execution>
+				
+					<execution>
+						<id>create-resource-bundle</id>
+						<goals>
+							<goal>bundle</goal>
+						</goals>
+						<phase>prepare-package</phase>
+						<configuration>
+							<resourcesDirectory>${project.build.directory}/generated-sources/wsdl/</resourcesDirectory>
+							<includes>
+								<include>*.wsdl</include>
+							</includes>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 
@@ -120,27 +134,7 @@
 				</executions>
 			</plugin>
 
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-remote-resources-plugin</artifactId>
-				<version>1.7.0</version>
-
-				<executions>
-					<execution>
-						<id>create-resource-bundle</id>
-						<goals>
-							<goal>bundle</goal>
-						</goals>
-						<phase>prepare-package</phase>
-						<configuration>
-							<resourcesDirectory>${project.build.directory}/generated-sources/wsdl/</resourcesDirectory>
-							<includes>
-								<include>*.wsdl</include>
-							</includes>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+			
 
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
