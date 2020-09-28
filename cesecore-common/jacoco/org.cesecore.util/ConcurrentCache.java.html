@@ -228,7 +228,7 @@ public final class ConcurrentCache&lt;K,V&gt; {
 <span class="fc" id="L228">            cleanupIfNeeded();</span>
 <span class="fc" id="L229">            return new Entry(key, entry);</span>
 <span class="fc bfc" id="L230" title="All 2 branches covered.">        } else if (entry != null) {</span>
-<span class="fc bfc" id="L231" title="All 2 branches covered.">            if (log.isDebugEnabled()) {</span>
+<span class="pc bpc" id="L231" title="1 of 2 branches missed.">            if (log.isDebugEnabled()) {</span>
 <span class="fc" id="L232">                log.debug(&quot;Cache entry has expired &quot;+key+&quot;, expiry=&quot;+entry.expire);</span>
             }
 <span class="fc" id="L234">            numEntries.decrementAndGet();</span>
@@ -262,11 +262,11 @@ public final class ConcurrentCache&lt;K,V&gt; {
         // Wait for a fresh entry to be created
         try {
 <span class="fc" id="L264">            synchronized (theirSemaphore) {</span>
-<span class="fc bfc" id="L265" title="All 2 branches covered.">                if (!cache.containsKey(key)) {</span>
+<span class="pc bpc" id="L265" title="1 of 2 branches missed.">                if (!cache.containsKey(key)) {</span>
 <span class="fc" id="L266">                    cleanupIfNeeded();</span>
 <span class="fc" id="L267">                    theirSemaphore.wait(timeout);</span>
-<span class="pc bpc" id="L268" title="3 of 4 branches missed.">                    while (!cache.containsKey(key) &amp;&amp; System.currentTimeMillis() &lt; timeAtEntry+timeout) {</span>
-<span class="nc" id="L269">                        theirSemaphore.wait(timeout/10L+1L);</span>
+<span class="pc bpc" id="L268" title="1 of 4 branches missed.">                    while (!cache.containsKey(key) &amp;&amp; System.currentTimeMillis() &lt; timeAtEntry+timeout) {</span>
+<span class="fc" id="L269">                        theirSemaphore.wait(timeout/10L+1L);</span>
                     }
                 }
 <span class="fc" id="L272">            }</span>
@@ -434,9 +434,9 @@ public final class ConcurrentCache&lt;K,V&gt; {
 <span class="fc" id="L434">            final Iterator&lt;Map.Entry&lt;K,InternalEntry&lt;V&gt;&gt;&gt; iter = cache.entrySet().iterator();</span>
 <span class="fc bfc" id="L435" title="All 2 branches covered.">            while (iter.hasNext()) {</span>
 <span class="fc" id="L436">                final Map.Entry&lt;K,InternalEntry&lt;V&gt;&gt; mapEntry = iter.next();</span>
-<span class="fc bfc" id="L437" title="All 2 branches covered.">                if (mapEntry.getValue().expire &lt;= now) {</span>
-<span class="fc" id="L438">                    iter.remove();</span>
-<span class="fc" id="L439">                    numEntries.decrementAndGet();</span>
+<span class="pc bpc" id="L437" title="1 of 2 branches missed.">                if (mapEntry.getValue().expire &lt;= now) {</span>
+<span class="nc" id="L438">                    iter.remove();</span>
+<span class="nc" id="L439">                    numEntries.decrementAndGet();</span>
 <span class="pc bpc" id="L440" title="1 of 4 branches missed.">                } else if (maxEntries != NO_LIMIT &amp;&amp; random.nextFloat() &lt; ratioToRemove) {</span>
 <span class="fc" id="L441">                    pendingRemoval.add(mapEntry.getKey());</span>
                 }
