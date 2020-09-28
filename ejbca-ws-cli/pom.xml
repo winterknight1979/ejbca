@@ -152,7 +152,111 @@
 					<excludePackageNames>org.ejbca.core.protocol.ws.client.gen</excludePackageNames>
 				</configuration>
 			</plugin>
+			
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<phase>test-compile</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/target/test-classes</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.build.directory}/maven-shared-archive-resource/conf</directory>
+									<filtering>true</filtering>
+									<includes>
+										<include>systemtests.properties</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					
+					<execution>
+						<id>default-testResources</id>
+						<goals>
+							<goal>testResources</goal>
+						</goals>
+						<phase>generate-test-resources</phase>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			
 </plugins>
 </build>
 
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>3.1.1</version>
+				<reportSets>
+					<reportSet>
+						<reports>
+							<report>dependencies</report>
+							<report>dependency-info</report>
+							<report>summary</report>
+							<report>index</report>
+							<report>plugins</report>
+							<report>dependency-convergence</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+		</plugins>
+	</reporting>
+	<profiles>
+		<profile>
+			<id>coverage</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<version>0.8.6</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>prepare-agent</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>report</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>report</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+			<reporting>
+				<plugins>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<reportSets>
+							<reportSet>
+								<reports>
+									<!-- select non-aggregate reports -->
+									<report>report</report>
+
+								</reports>
+							</reportSet>
+						</reportSets>
+					</plugin>
+				</plugins>
+			</reporting>
+		</profile>
+	</profiles>
 </project>
