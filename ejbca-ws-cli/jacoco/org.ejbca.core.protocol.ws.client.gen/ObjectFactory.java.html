@@ -1,0 +1,3307 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ObjectFactory.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA Webservices CLI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.client.gen</a> &gt; <span class="el_source">ObjectFactory.java</span></div><h1>ObjectFactory.java</h1><pre class="source lang-java linenums">
+package org.ejbca.core.protocol.ws.client.gen;
+
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.annotation.XmlElementDecl;
+import javax.xml.bind.annotation.XmlRegistry;
+import javax.xml.namespace.QName;
+
+
+/**
+ * This object contains factory methods for each 
+ * Java content interface and Java element interface 
+ * generated in the org.ejbca.core.protocol.ws.client.gen package. 
+ * &lt;p&gt;An ObjectFactory allows you to programatically 
+ * construct new instances of the Java representation 
+ * for XML content. The Java representation of XML 
+ * content can consist of schema derived interfaces 
+ * and classes representing the binding of schema 
+ * type definitions, element declarations and model 
+ * groups.  Factory methods for each of these are 
+ * provided in this class.
+ * 
+ */
+@XmlRegistry
+public class ObjectFactory {
+
+<span class="nc" id="L27">    private final static QName _AlreadyRevokedException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;AlreadyRevokedException&quot;);</span>
+<span class="nc" id="L28">    private final static QName _ApprovalException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;ApprovalException&quot;);</span>
+<span class="nc" id="L29">    private final static QName _ApprovalRequestExecutionException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;ApprovalRequestExecutionException&quot;);</span>
+<span class="nc" id="L30">    private final static QName _ApprovalRequestExpiredException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;ApprovalRequestExpiredException&quot;);</span>
+<span class="nc" id="L31">    private final static QName _AuthorizationDeniedException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;AuthorizationDeniedException&quot;);</span>
+<span class="nc" id="L32">    private final static QName _CADoesntExistsException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;CADoesntExistsException&quot;);</span>
+<span class="nc" id="L33">    private final static QName _CAExistsException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;CAExistsException&quot;);</span>
+<span class="nc" id="L34">    private final static QName _CAOfflineException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;CAOfflineException&quot;);</span>
+<span class="nc" id="L35">    private final static QName _CertificateExpiredException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;CertificateExpiredException&quot;);</span>
+<span class="nc" id="L36">    private final static QName _CertificateProfileDoesNotExistException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;CertificateProfileDoesNotExistException&quot;);</span>
+<span class="nc" id="L37">    private final static QName _CesecoreException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;CesecoreException&quot;);</span>
+<span class="nc" id="L38">    private final static QName _CryptoTokenOfflineException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;CryptoTokenOfflineException&quot;);</span>
+<span class="nc" id="L39">    private final static QName _DateNotValidException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;DateNotValidException&quot;);</span>
+<span class="nc" id="L40">    private final static QName _EjbcaException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;EjbcaException&quot;);</span>
+<span class="nc" id="L41">    private final static QName _EndEntityProfileNotFoundException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;EndEntityProfileNotFoundException&quot;);</span>
+<span class="nc" id="L42">    private final static QName _HardTokenDoesntExistsException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;HardTokenDoesntExistsException&quot;);</span>
+<span class="nc" id="L43">    private final static QName _HardTokenExistsException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;HardTokenExistsException&quot;);</span>
+<span class="nc" id="L44">    private final static QName _IllegalQueryException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;IllegalQueryException&quot;);</span>
+<span class="nc" id="L45">    private final static QName _MultipleMatchException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;MultipleMatchException&quot;);</span>
+<span class="nc" id="L46">    private final static QName _NotFoundException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;NotFoundException&quot;);</span>
+<span class="nc" id="L47">    private final static QName _PublisherException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;PublisherException&quot;);</span>
+<span class="nc" id="L48">    private final static QName _RevokeBackDateNotAllowedForProfileException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;RevokeBackDateNotAllowedForProfileException&quot;);</span>
+<span class="nc" id="L49">    private final static QName _SignRequestException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;SignRequestException&quot;);</span>
+<span class="nc" id="L50">    private final static QName _UnknownProfileTypeException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;UnknownProfileTypeException&quot;);</span>
+<span class="nc" id="L51">    private final static QName _UserDataSourceException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;UserDataSourceException&quot;);</span>
+<span class="nc" id="L52">    private final static QName _UserDoesntFullfillEndEntityProfile_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;UserDoesntFullfillEndEntityProfile&quot;);</span>
+<span class="nc" id="L53">    private final static QName _WaitingForApprovalException_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;WaitingForApprovalException&quot;);</span>
+<span class="nc" id="L54">    private final static QName _AddSubjectToRole_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;addSubjectToRole&quot;);</span>
+<span class="nc" id="L55">    private final static QName _AddSubjectToRoleResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;addSubjectToRoleResponse&quot;);</span>
+<span class="nc" id="L56">    private final static QName _CaCertResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;caCertResponse&quot;);</span>
+<span class="nc" id="L57">    private final static QName _CaCertResponseForRollover_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;caCertResponseForRollover&quot;);</span>
+<span class="nc" id="L58">    private final static QName _CaCertResponseForRolloverResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;caCertResponseForRolloverResponse&quot;);</span>
+<span class="nc" id="L59">    private final static QName _CaCertResponseResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;caCertResponseResponse&quot;);</span>
+<span class="nc" id="L60">    private final static QName _CaRenewCertRequest_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;caRenewCertRequest&quot;);</span>
+<span class="nc" id="L61">    private final static QName _CaRenewCertRequestResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;caRenewCertRequestResponse&quot;);</span>
+<span class="nc" id="L62">    private final static QName _CertificateRequest_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;certificateRequest&quot;);</span>
+<span class="nc" id="L63">    private final static QName _CertificateRequestResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;certificateRequestResponse&quot;);</span>
+<span class="nc" id="L64">    private final static QName _CheckRevokationStatus_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;checkRevokationStatus&quot;);</span>
+<span class="nc" id="L65">    private final static QName _CheckRevokationStatusResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;checkRevokationStatusResponse&quot;);</span>
+<span class="nc" id="L66">    private final static QName _CreateCA_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;createCA&quot;);</span>
+<span class="nc" id="L67">    private final static QName _CreateCAResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;createCAResponse&quot;);</span>
+<span class="nc" id="L68">    private final static QName _CreateCRL_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;createCRL&quot;);</span>
+<span class="nc" id="L69">    private final static QName _CreateCRLResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;createCRLResponse&quot;);</span>
+<span class="nc" id="L70">    private final static QName _CreateCryptoToken_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;createCryptoToken&quot;);</span>
+<span class="nc" id="L71">    private final static QName _CreateCryptoTokenResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;createCryptoTokenResponse&quot;);</span>
+<span class="nc" id="L72">    private final static QName _CrmfRequest_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;crmfRequest&quot;);</span>
+<span class="nc" id="L73">    private final static QName _CrmfRequestResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;crmfRequestResponse&quot;);</span>
+<span class="nc" id="L74">    private final static QName _CustomLog_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;customLog&quot;);</span>
+<span class="nc" id="L75">    private final static QName _CustomLogResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;customLogResponse&quot;);</span>
+<span class="nc" id="L76">    private final static QName _CvcRequest_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;cvcRequest&quot;);</span>
+<span class="nc" id="L77">    private final static QName _CvcRequestResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;cvcRequestResponse&quot;);</span>
+<span class="nc" id="L78">    private final static QName _DeleteUserDataFromSource_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;deleteUserDataFromSource&quot;);</span>
+<span class="nc" id="L79">    private final static QName _DeleteUserDataFromSourceResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;deleteUserDataFromSourceResponse&quot;);</span>
+<span class="nc" id="L80">    private final static QName _EditUser_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;editUser&quot;);</span>
+<span class="nc" id="L81">    private final static QName _EditUserResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;editUserResponse&quot;);</span>
+<span class="nc" id="L82">    private final static QName _ExistsHardToken_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;existsHardToken&quot;);</span>
+<span class="nc" id="L83">    private final static QName _ExistsHardTokenResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;existsHardTokenResponse&quot;);</span>
+<span class="nc" id="L84">    private final static QName _FetchUserData_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;fetchUserData&quot;);</span>
+<span class="nc" id="L85">    private final static QName _FetchUserDataResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;fetchUserDataResponse&quot;);</span>
+<span class="nc" id="L86">    private final static QName _FindCerts_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;findCerts&quot;);</span>
+<span class="nc" id="L87">    private final static QName _FindCertsResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;findCertsResponse&quot;);</span>
+<span class="nc" id="L88">    private final static QName _FindUser_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;findUser&quot;);</span>
+<span class="nc" id="L89">    private final static QName _FindUserResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;findUserResponse&quot;);</span>
+<span class="nc" id="L90">    private final static QName _GenTokenCertificates_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;genTokenCertificates&quot;);</span>
+<span class="nc" id="L91">    private final static QName _GenTokenCertificatesResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;genTokenCertificatesResponse&quot;);</span>
+<span class="nc" id="L92">    private final static QName _GenerateCryptoTokenKeys_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;generateCryptoTokenKeys&quot;);</span>
+<span class="nc" id="L93">    private final static QName _GenerateCryptoTokenKeysResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;generateCryptoTokenKeysResponse&quot;);</span>
+<span class="nc" id="L94">    private final static QName _GetAuthorizedEndEntityProfiles_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getAuthorizedEndEntityProfiles&quot;);</span>
+<span class="nc" id="L95">    private final static QName _GetAuthorizedEndEntityProfilesResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getAuthorizedEndEntityProfilesResponse&quot;);</span>
+<span class="nc" id="L96">    private final static QName _GetAvailableCAs_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getAvailableCAs&quot;);</span>
+<span class="nc" id="L97">    private final static QName _GetAvailableCAsInProfile_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getAvailableCAsInProfile&quot;);</span>
+<span class="nc" id="L98">    private final static QName _GetAvailableCAsInProfileResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getAvailableCAsInProfileResponse&quot;);</span>
+<span class="nc" id="L99">    private final static QName _GetAvailableCAsResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getAvailableCAsResponse&quot;);</span>
+<span class="nc" id="L100">    private final static QName _GetAvailableCertificateProfiles_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getAvailableCertificateProfiles&quot;);</span>
+<span class="nc" id="L101">    private final static QName _GetAvailableCertificateProfilesResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getAvailableCertificateProfilesResponse&quot;);</span>
+<span class="nc" id="L102">    private final static QName _GetCertificate_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getCertificate&quot;);</span>
+<span class="nc" id="L103">    private final static QName _GetCertificateResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getCertificateResponse&quot;);</span>
+<span class="nc" id="L104">    private final static QName _GetCertificatesByExpirationTime_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getCertificatesByExpirationTime&quot;);</span>
+<span class="nc" id="L105">    private final static QName _GetCertificatesByExpirationTimeAndIssuer_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getCertificatesByExpirationTimeAndIssuer&quot;);</span>
+<span class="nc" id="L106">    private final static QName _GetCertificatesByExpirationTimeAndIssuerResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getCertificatesByExpirationTimeAndIssuerResponse&quot;);</span>
+<span class="nc" id="L107">    private final static QName _GetCertificatesByExpirationTimeAndType_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getCertificatesByExpirationTimeAndType&quot;);</span>
+<span class="nc" id="L108">    private final static QName _GetCertificatesByExpirationTimeAndTypeResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getCertificatesByExpirationTimeAndTypeResponse&quot;);</span>
+<span class="nc" id="L109">    private final static QName _GetCertificatesByExpirationTimeResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getCertificatesByExpirationTimeResponse&quot;);</span>
+<span class="nc" id="L110">    private final static QName _GetEjbcaVersion_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getEjbcaVersion&quot;);</span>
+<span class="nc" id="L111">    private final static QName _GetEjbcaVersionResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getEjbcaVersionResponse&quot;);</span>
+<span class="nc" id="L112">    private final static QName _GetHardTokenData_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getHardTokenData&quot;);</span>
+<span class="nc" id="L113">    private final static QName _GetHardTokenDataResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getHardTokenDataResponse&quot;);</span>
+<span class="nc" id="L114">    private final static QName _GetHardTokenDatas_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getHardTokenDatas&quot;);</span>
+<span class="nc" id="L115">    private final static QName _GetHardTokenDatasResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getHardTokenDatasResponse&quot;);</span>
+<span class="nc" id="L116">    private final static QName _GetLastCAChain_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getLastCAChain&quot;);</span>
+<span class="nc" id="L117">    private final static QName _GetLastCAChainResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getLastCAChainResponse&quot;);</span>
+<span class="nc" id="L118">    private final static QName _GetLastCertChain_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getLastCertChain&quot;);</span>
+<span class="nc" id="L119">    private final static QName _GetLastCertChainResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getLastCertChainResponse&quot;);</span>
+<span class="nc" id="L120">    private final static QName _GetLatestCRL_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getLatestCRL&quot;);</span>
+<span class="nc" id="L121">    private final static QName _GetLatestCRLResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getLatestCRLResponse&quot;);</span>
+<span class="nc" id="L122">    private final static QName _GetProfile_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getProfile&quot;);</span>
+<span class="nc" id="L123">    private final static QName _GetProfileResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getProfileResponse&quot;);</span>
+<span class="nc" id="L124">    private final static QName _GetPublisherQueueLength_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getPublisherQueueLength&quot;);</span>
+<span class="nc" id="L125">    private final static QName _GetPublisherQueueLengthResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getPublisherQueueLengthResponse&quot;);</span>
+<span class="nc" id="L126">    private final static QName _GetRemainingNumberOfApprovals_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getRemainingNumberOfApprovals&quot;);</span>
+<span class="nc" id="L127">    private final static QName _GetRemainingNumberOfApprovalsResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;getRemainingNumberOfApprovalsResponse&quot;);</span>
+<span class="nc" id="L128">    private final static QName _ImportCaCert_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;importCaCert&quot;);</span>
+<span class="nc" id="L129">    private final static QName _ImportCaCertResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;importCaCertResponse&quot;);</span>
+<span class="nc" id="L130">    private final static QName _IsApproved_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;isApproved&quot;);</span>
+<span class="nc" id="L131">    private final static QName _IsApprovedResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;isApprovedResponse&quot;);</span>
+<span class="nc" id="L132">    private final static QName _IsAuthorized_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;isAuthorized&quot;);</span>
+<span class="nc" id="L133">    private final static QName _IsAuthorizedResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;isAuthorizedResponse&quot;);</span>
+<span class="nc" id="L134">    private final static QName _KeyRecover_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;keyRecover&quot;);</span>
+<span class="nc" id="L135">    private final static QName _KeyRecoverEnroll_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;keyRecoverEnroll&quot;);</span>
+<span class="nc" id="L136">    private final static QName _KeyRecoverEnrollResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;keyRecoverEnrollResponse&quot;);</span>
+<span class="nc" id="L137">    private final static QName _KeyRecoverNewest_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;keyRecoverNewest&quot;);</span>
+<span class="nc" id="L138">    private final static QName _KeyRecoverNewestResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;keyRecoverNewestResponse&quot;);</span>
+<span class="nc" id="L139">    private final static QName _KeyRecoverResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;keyRecoverResponse&quot;);</span>
+<span class="nc" id="L140">    private final static QName _Pkcs10Request_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;pkcs10Request&quot;);</span>
+<span class="nc" id="L141">    private final static QName _Pkcs10RequestResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;pkcs10RequestResponse&quot;);</span>
+<span class="nc" id="L142">    private final static QName _Pkcs12Req_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;pkcs12Req&quot;);</span>
+<span class="nc" id="L143">    private final static QName _Pkcs12ReqResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;pkcs12ReqResponse&quot;);</span>
+<span class="nc" id="L144">    private final static QName _RemoveSubjectFromRole_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;removeSubjectFromRole&quot;);</span>
+<span class="nc" id="L145">    private final static QName _RemoveSubjectFromRoleResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;removeSubjectFromRoleResponse&quot;);</span>
+<span class="nc" id="L146">    private final static QName _RepublishCertificate_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;republishCertificate&quot;);</span>
+<span class="nc" id="L147">    private final static QName _RepublishCertificateResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;republishCertificateResponse&quot;);</span>
+<span class="nc" id="L148">    private final static QName _RevokeCert_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;revokeCert&quot;);</span>
+<span class="nc" id="L149">    private final static QName _RevokeCertBackdated_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;revokeCertBackdated&quot;);</span>
+<span class="nc" id="L150">    private final static QName _RevokeCertBackdatedResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;revokeCertBackdatedResponse&quot;);</span>
+<span class="nc" id="L151">    private final static QName _RevokeCertResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;revokeCertResponse&quot;);</span>
+<span class="nc" id="L152">    private final static QName _RevokeCertWithMetadata_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;revokeCertWithMetadata&quot;);</span>
+<span class="nc" id="L153">    private final static QName _RevokeCertWithMetadataResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;revokeCertWithMetadataResponse&quot;);</span>
+<span class="nc" id="L154">    private final static QName _RevokeToken_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;revokeToken&quot;);</span>
+<span class="nc" id="L155">    private final static QName _RevokeTokenResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;revokeTokenResponse&quot;);</span>
+<span class="nc" id="L156">    private final static QName _RevokeUser_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;revokeUser&quot;);</span>
+<span class="nc" id="L157">    private final static QName _RevokeUserResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;revokeUserResponse&quot;);</span>
+<span class="nc" id="L158">    private final static QName _RolloverCACert_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;rolloverCACert&quot;);</span>
+<span class="nc" id="L159">    private final static QName _RolloverCACertResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;rolloverCACertResponse&quot;);</span>
+<span class="nc" id="L160">    private final static QName _SoftTokenRequest_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;softTokenRequest&quot;);</span>
+<span class="nc" id="L161">    private final static QName _SoftTokenRequestResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;softTokenRequestResponse&quot;);</span>
+<span class="nc" id="L162">    private final static QName _SpkacRequest_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;spkacRequest&quot;);</span>
+<span class="nc" id="L163">    private final static QName _SpkacRequestResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;spkacRequestResponse&quot;);</span>
+<span class="nc" id="L164">    private final static QName _UpdateCaCert_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;updateCaCert&quot;);</span>
+<span class="nc" id="L165">    private final static QName _UpdateCaCertResponse_QNAME = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;updateCaCertResponse&quot;);</span>
+<span class="nc" id="L166">    private final static QName _UpdateCaCertArg1_QNAME = new QName(&quot;&quot;, &quot;arg1&quot;);</span>
+<span class="nc" id="L167">    private final static QName _GetProfileResponseReturn_QNAME = new QName(&quot;&quot;, &quot;return&quot;);</span>
+
+    /**
+     * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: org.ejbca.core.protocol.ws.client.gen
+     * 
+     */
+<span class="nc" id="L173">    public ObjectFactory() {</span>
+<span class="nc" id="L174">    }</span>
+
+    /**
+     * Create an instance of {@link AlreadyRevokedException }
+     * 
+     */
+    public AlreadyRevokedException createAlreadyRevokedException() {
+<span class="nc" id="L181">        return new AlreadyRevokedException();</span>
+    }
+
+    /**
+     * Create an instance of {@link ApprovalException }
+     * 
+     */
+    public ApprovalException createApprovalException() {
+<span class="nc" id="L189">        return new ApprovalException();</span>
+    }
+
+    /**
+     * Create an instance of {@link ApprovalRequestExecutionException }
+     * 
+     */
+    public ApprovalRequestExecutionException createApprovalRequestExecutionException() {
+<span class="nc" id="L197">        return new ApprovalRequestExecutionException();</span>
+    }
+
+    /**
+     * Create an instance of {@link ApprovalRequestExpiredException }
+     * 
+     */
+    public ApprovalRequestExpiredException createApprovalRequestExpiredException() {
+<span class="nc" id="L205">        return new ApprovalRequestExpiredException();</span>
+    }
+
+    /**
+     * Create an instance of {@link AuthorizationDeniedException }
+     * 
+     */
+    public AuthorizationDeniedException createAuthorizationDeniedException() {
+<span class="nc" id="L213">        return new AuthorizationDeniedException();</span>
+    }
+
+    /**
+     * Create an instance of {@link CADoesntExistsException }
+     * 
+     */
+    public CADoesntExistsException createCADoesntExistsException() {
+<span class="nc" id="L221">        return new CADoesntExistsException();</span>
+    }
+
+    /**
+     * Create an instance of {@link CAExistsException }
+     * 
+     */
+    public CAExistsException createCAExistsException() {
+<span class="nc" id="L229">        return new CAExistsException();</span>
+    }
+
+    /**
+     * Create an instance of {@link CAOfflineException }
+     * 
+     */
+    public CAOfflineException createCAOfflineException() {
+<span class="nc" id="L237">        return new CAOfflineException();</span>
+    }
+
+    /**
+     * Create an instance of {@link CertificateExpiredException }
+     * 
+     */
+    public CertificateExpiredException createCertificateExpiredException() {
+<span class="nc" id="L245">        return new CertificateExpiredException();</span>
+    }
+
+    /**
+     * Create an instance of {@link CertificateProfileDoesNotExistException }
+     * 
+     */
+    public CertificateProfileDoesNotExistException createCertificateProfileDoesNotExistException() {
+<span class="nc" id="L253">        return new CertificateProfileDoesNotExistException();</span>
+    }
+
+    /**
+     * Create an instance of {@link CesecoreException }
+     * 
+     */
+    public CesecoreException createCesecoreException() {
+<span class="nc" id="L261">        return new CesecoreException();</span>
+    }
+
+    /**
+     * Create an instance of {@link CryptoTokenOfflineException }
+     * 
+     */
+    public CryptoTokenOfflineException createCryptoTokenOfflineException() {
+<span class="nc" id="L269">        return new CryptoTokenOfflineException();</span>
+    }
+
+    /**
+     * Create an instance of {@link DateNotValidException }
+     * 
+     */
+    public DateNotValidException createDateNotValidException() {
+<span class="nc" id="L277">        return new DateNotValidException();</span>
+    }
+
+    /**
+     * Create an instance of {@link EjbcaException }
+     * 
+     */
+    public EjbcaException createEjbcaException() {
+<span class="nc" id="L285">        return new EjbcaException();</span>
+    }
+
+    /**
+     * Create an instance of {@link EndEntityProfileNotFoundException }
+     * 
+     */
+    public EndEntityProfileNotFoundException createEndEntityProfileNotFoundException() {
+<span class="nc" id="L293">        return new EndEntityProfileNotFoundException();</span>
+    }
+
+    /**
+     * Create an instance of {@link HardTokenDoesntExistsException }
+     * 
+     */
+    public HardTokenDoesntExistsException createHardTokenDoesntExistsException() {
+<span class="nc" id="L301">        return new HardTokenDoesntExistsException();</span>
+    }
+
+    /**
+     * Create an instance of {@link HardTokenExistsException }
+     * 
+     */
+    public HardTokenExistsException createHardTokenExistsException() {
+<span class="nc" id="L309">        return new HardTokenExistsException();</span>
+    }
+
+    /**
+     * Create an instance of {@link IllegalQueryException }
+     * 
+     */
+    public IllegalQueryException createIllegalQueryException() {
+<span class="nc" id="L317">        return new IllegalQueryException();</span>
+    }
+
+    /**
+     * Create an instance of {@link MultipleMatchException }
+     * 
+     */
+    public MultipleMatchException createMultipleMatchException() {
+<span class="nc" id="L325">        return new MultipleMatchException();</span>
+    }
+
+    /**
+     * Create an instance of {@link NotFoundException }
+     * 
+     */
+    public NotFoundException createNotFoundException() {
+<span class="nc" id="L333">        return new NotFoundException();</span>
+    }
+
+    /**
+     * Create an instance of {@link PublisherException }
+     * 
+     */
+    public PublisherException createPublisherException() {
+<span class="nc" id="L341">        return new PublisherException();</span>
+    }
+
+    /**
+     * Create an instance of {@link RevokeBackDateNotAllowedForProfileException }
+     * 
+     */
+    public RevokeBackDateNotAllowedForProfileException createRevokeBackDateNotAllowedForProfileException() {
+<span class="nc" id="L349">        return new RevokeBackDateNotAllowedForProfileException();</span>
+    }
+
+    /**
+     * Create an instance of {@link SignRequestException }
+     * 
+     */
+    public SignRequestException createSignRequestException() {
+<span class="nc" id="L357">        return new SignRequestException();</span>
+    }
+
+    /**
+     * Create an instance of {@link UnknownProfileTypeException }
+     * 
+     */
+    public UnknownProfileTypeException createUnknownProfileTypeException() {
+<span class="nc" id="L365">        return new UnknownProfileTypeException();</span>
+    }
+
+    /**
+     * Create an instance of {@link UserDataSourceException }
+     * 
+     */
+    public UserDataSourceException createUserDataSourceException() {
+<span class="nc" id="L373">        return new UserDataSourceException();</span>
+    }
+
+    /**
+     * Create an instance of {@link UserDoesntFullfillEndEntityProfile }
+     * 
+     */
+    public UserDoesntFullfillEndEntityProfile createUserDoesntFullfillEndEntityProfile() {
+<span class="nc" id="L381">        return new UserDoesntFullfillEndEntityProfile();</span>
+    }
+
+    /**
+     * Create an instance of {@link WaitingForApprovalException }
+     * 
+     */
+    public WaitingForApprovalException createWaitingForApprovalException() {
+<span class="nc" id="L389">        return new WaitingForApprovalException();</span>
+    }
+
+    /**
+     * Create an instance of {@link AddSubjectToRole }
+     * 
+     */
+    public AddSubjectToRole createAddSubjectToRole() {
+<span class="nc" id="L397">        return new AddSubjectToRole();</span>
+    }
+
+    /**
+     * Create an instance of {@link AddSubjectToRoleResponse }
+     * 
+     */
+    public AddSubjectToRoleResponse createAddSubjectToRoleResponse() {
+<span class="nc" id="L405">        return new AddSubjectToRoleResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link CaCertResponse }
+     * 
+     */
+    public CaCertResponse createCaCertResponse() {
+<span class="nc" id="L413">        return new CaCertResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link CaCertResponseForRollover }
+     * 
+     */
+    public CaCertResponseForRollover createCaCertResponseForRollover() {
+<span class="nc" id="L421">        return new CaCertResponseForRollover();</span>
+    }
+
+    /**
+     * Create an instance of {@link CaCertResponseForRolloverResponse }
+     * 
+     */
+    public CaCertResponseForRolloverResponse createCaCertResponseForRolloverResponse() {
+<span class="nc" id="L429">        return new CaCertResponseForRolloverResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link CaCertResponseResponse }
+     * 
+     */
+    public CaCertResponseResponse createCaCertResponseResponse() {
+<span class="nc" id="L437">        return new CaCertResponseResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link CaRenewCertRequest }
+     * 
+     */
+    public CaRenewCertRequest createCaRenewCertRequest() {
+<span class="nc" id="L445">        return new CaRenewCertRequest();</span>
+    }
+
+    /**
+     * Create an instance of {@link CaRenewCertRequestResponse }
+     * 
+     */
+    public CaRenewCertRequestResponse createCaRenewCertRequestResponse() {
+<span class="nc" id="L453">        return new CaRenewCertRequestResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link CertificateRequest }
+     * 
+     */
+    public CertificateRequest createCertificateRequest() {
+<span class="nc" id="L461">        return new CertificateRequest();</span>
+    }
+
+    /**
+     * Create an instance of {@link CertificateRequestResponse }
+     * 
+     */
+    public CertificateRequestResponse createCertificateRequestResponse() {
+<span class="nc" id="L469">        return new CertificateRequestResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link CheckRevokationStatus }
+     * 
+     */
+    public CheckRevokationStatus createCheckRevokationStatus() {
+<span class="nc" id="L477">        return new CheckRevokationStatus();</span>
+    }
+
+    /**
+     * Create an instance of {@link CheckRevokationStatusResponse }
+     * 
+     */
+    public CheckRevokationStatusResponse createCheckRevokationStatusResponse() {
+<span class="nc" id="L485">        return new CheckRevokationStatusResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link CreateCA }
+     * 
+     */
+    public CreateCA createCreateCA() {
+<span class="nc" id="L493">        return new CreateCA();</span>
+    }
+
+    /**
+     * Create an instance of {@link CreateCAResponse }
+     * 
+     */
+    public CreateCAResponse createCreateCAResponse() {
+<span class="nc" id="L501">        return new CreateCAResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link CreateCRL }
+     * 
+     */
+    public CreateCRL createCreateCRL() {
+<span class="nc" id="L509">        return new CreateCRL();</span>
+    }
+
+    /**
+     * Create an instance of {@link CreateCRLResponse }
+     * 
+     */
+    public CreateCRLResponse createCreateCRLResponse() {
+<span class="nc" id="L517">        return new CreateCRLResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link CreateCryptoToken }
+     * 
+     */
+    public CreateCryptoToken createCreateCryptoToken() {
+<span class="nc" id="L525">        return new CreateCryptoToken();</span>
+    }
+
+    /**
+     * Create an instance of {@link CreateCryptoTokenResponse }
+     * 
+     */
+    public CreateCryptoTokenResponse createCreateCryptoTokenResponse() {
+<span class="nc" id="L533">        return new CreateCryptoTokenResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link CrmfRequest }
+     * 
+     */
+    public CrmfRequest createCrmfRequest() {
+<span class="nc" id="L541">        return new CrmfRequest();</span>
+    }
+
+    /**
+     * Create an instance of {@link CrmfRequestResponse }
+     * 
+     */
+    public CrmfRequestResponse createCrmfRequestResponse() {
+<span class="nc" id="L549">        return new CrmfRequestResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link CustomLog }
+     * 
+     */
+    public CustomLog createCustomLog() {
+<span class="nc" id="L557">        return new CustomLog();</span>
+    }
+
+    /**
+     * Create an instance of {@link CustomLogResponse }
+     * 
+     */
+    public CustomLogResponse createCustomLogResponse() {
+<span class="nc" id="L565">        return new CustomLogResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link CvcRequest }
+     * 
+     */
+    public CvcRequest createCvcRequest() {
+<span class="nc" id="L573">        return new CvcRequest();</span>
+    }
+
+    /**
+     * Create an instance of {@link CvcRequestResponse }
+     * 
+     */
+    public CvcRequestResponse createCvcRequestResponse() {
+<span class="nc" id="L581">        return new CvcRequestResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link DeleteUserDataFromSource }
+     * 
+     */
+    public DeleteUserDataFromSource createDeleteUserDataFromSource() {
+<span class="nc" id="L589">        return new DeleteUserDataFromSource();</span>
+    }
+
+    /**
+     * Create an instance of {@link DeleteUserDataFromSourceResponse }
+     * 
+     */
+    public DeleteUserDataFromSourceResponse createDeleteUserDataFromSourceResponse() {
+<span class="nc" id="L597">        return new DeleteUserDataFromSourceResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link EditUser }
+     * 
+     */
+    public EditUser createEditUser() {
+<span class="nc" id="L605">        return new EditUser();</span>
+    }
+
+    /**
+     * Create an instance of {@link EditUserResponse }
+     * 
+     */
+    public EditUserResponse createEditUserResponse() {
+<span class="nc" id="L613">        return new EditUserResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link ExistsHardToken }
+     * 
+     */
+    public ExistsHardToken createExistsHardToken() {
+<span class="nc" id="L621">        return new ExistsHardToken();</span>
+    }
+
+    /**
+     * Create an instance of {@link ExistsHardTokenResponse }
+     * 
+     */
+    public ExistsHardTokenResponse createExistsHardTokenResponse() {
+<span class="nc" id="L629">        return new ExistsHardTokenResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link FetchUserData }
+     * 
+     */
+    public FetchUserData createFetchUserData() {
+<span class="nc" id="L637">        return new FetchUserData();</span>
+    }
+
+    /**
+     * Create an instance of {@link FetchUserDataResponse }
+     * 
+     */
+    public FetchUserDataResponse createFetchUserDataResponse() {
+<span class="nc" id="L645">        return new FetchUserDataResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link FindCerts }
+     * 
+     */
+    public FindCerts createFindCerts() {
+<span class="nc" id="L653">        return new FindCerts();</span>
+    }
+
+    /**
+     * Create an instance of {@link FindCertsResponse }
+     * 
+     */
+    public FindCertsResponse createFindCertsResponse() {
+<span class="nc" id="L661">        return new FindCertsResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link FindUser }
+     * 
+     */
+    public FindUser createFindUser() {
+<span class="nc" id="L669">        return new FindUser();</span>
+    }
+
+    /**
+     * Create an instance of {@link FindUserResponse }
+     * 
+     */
+    public FindUserResponse createFindUserResponse() {
+<span class="nc" id="L677">        return new FindUserResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link GenTokenCertificates }
+     * 
+     */
+    public GenTokenCertificates createGenTokenCertificates() {
+<span class="nc" id="L685">        return new GenTokenCertificates();</span>
+    }
+
+    /**
+     * Create an instance of {@link GenTokenCertificatesResponse }
+     * 
+     */
+    public GenTokenCertificatesResponse createGenTokenCertificatesResponse() {
+<span class="nc" id="L693">        return new GenTokenCertificatesResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link GenerateCryptoTokenKeys }
+     * 
+     */
+    public GenerateCryptoTokenKeys createGenerateCryptoTokenKeys() {
+<span class="nc" id="L701">        return new GenerateCryptoTokenKeys();</span>
+    }
+
+    /**
+     * Create an instance of {@link GenerateCryptoTokenKeysResponse }
+     * 
+     */
+    public GenerateCryptoTokenKeysResponse createGenerateCryptoTokenKeysResponse() {
+<span class="nc" id="L709">        return new GenerateCryptoTokenKeysResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetAuthorizedEndEntityProfiles }
+     * 
+     */
+    public GetAuthorizedEndEntityProfiles createGetAuthorizedEndEntityProfiles() {
+<span class="nc" id="L717">        return new GetAuthorizedEndEntityProfiles();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetAuthorizedEndEntityProfilesResponse }
+     * 
+     */
+    public GetAuthorizedEndEntityProfilesResponse createGetAuthorizedEndEntityProfilesResponse() {
+<span class="nc" id="L725">        return new GetAuthorizedEndEntityProfilesResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetAvailableCAs }
+     * 
+     */
+    public GetAvailableCAs createGetAvailableCAs() {
+<span class="nc" id="L733">        return new GetAvailableCAs();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetAvailableCAsInProfile }
+     * 
+     */
+    public GetAvailableCAsInProfile createGetAvailableCAsInProfile() {
+<span class="nc" id="L741">        return new GetAvailableCAsInProfile();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetAvailableCAsInProfileResponse }
+     * 
+     */
+    public GetAvailableCAsInProfileResponse createGetAvailableCAsInProfileResponse() {
+<span class="nc" id="L749">        return new GetAvailableCAsInProfileResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetAvailableCAsResponse }
+     * 
+     */
+    public GetAvailableCAsResponse createGetAvailableCAsResponse() {
+<span class="nc" id="L757">        return new GetAvailableCAsResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetAvailableCertificateProfiles }
+     * 
+     */
+    public GetAvailableCertificateProfiles createGetAvailableCertificateProfiles() {
+<span class="nc" id="L765">        return new GetAvailableCertificateProfiles();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetAvailableCertificateProfilesResponse }
+     * 
+     */
+    public GetAvailableCertificateProfilesResponse createGetAvailableCertificateProfilesResponse() {
+<span class="nc" id="L773">        return new GetAvailableCertificateProfilesResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetCertificate }
+     * 
+     */
+    public GetCertificate createGetCertificate() {
+<span class="nc" id="L781">        return new GetCertificate();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetCertificateResponse }
+     * 
+     */
+    public GetCertificateResponse createGetCertificateResponse() {
+<span class="nc" id="L789">        return new GetCertificateResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetCertificatesByExpirationTime }
+     * 
+     */
+    public GetCertificatesByExpirationTime createGetCertificatesByExpirationTime() {
+<span class="nc" id="L797">        return new GetCertificatesByExpirationTime();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetCertificatesByExpirationTimeAndIssuer }
+     * 
+     */
+    public GetCertificatesByExpirationTimeAndIssuer createGetCertificatesByExpirationTimeAndIssuer() {
+<span class="nc" id="L805">        return new GetCertificatesByExpirationTimeAndIssuer();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetCertificatesByExpirationTimeAndIssuerResponse }
+     * 
+     */
+    public GetCertificatesByExpirationTimeAndIssuerResponse createGetCertificatesByExpirationTimeAndIssuerResponse() {
+<span class="nc" id="L813">        return new GetCertificatesByExpirationTimeAndIssuerResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetCertificatesByExpirationTimeAndType }
+     * 
+     */
+    public GetCertificatesByExpirationTimeAndType createGetCertificatesByExpirationTimeAndType() {
+<span class="nc" id="L821">        return new GetCertificatesByExpirationTimeAndType();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetCertificatesByExpirationTimeAndTypeResponse }
+     * 
+     */
+    public GetCertificatesByExpirationTimeAndTypeResponse createGetCertificatesByExpirationTimeAndTypeResponse() {
+<span class="nc" id="L829">        return new GetCertificatesByExpirationTimeAndTypeResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetCertificatesByExpirationTimeResponse }
+     * 
+     */
+    public GetCertificatesByExpirationTimeResponse createGetCertificatesByExpirationTimeResponse() {
+<span class="nc" id="L837">        return new GetCertificatesByExpirationTimeResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetEjbcaVersion }
+     * 
+     */
+    public GetEjbcaVersion createGetEjbcaVersion() {
+<span class="nc" id="L845">        return new GetEjbcaVersion();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetEjbcaVersionResponse }
+     * 
+     */
+    public GetEjbcaVersionResponse createGetEjbcaVersionResponse() {
+<span class="nc" id="L853">        return new GetEjbcaVersionResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetHardTokenData }
+     * 
+     */
+    public GetHardTokenData createGetHardTokenData() {
+<span class="nc" id="L861">        return new GetHardTokenData();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetHardTokenDataResponse }
+     * 
+     */
+    public GetHardTokenDataResponse createGetHardTokenDataResponse() {
+<span class="nc" id="L869">        return new GetHardTokenDataResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetHardTokenDatas }
+     * 
+     */
+    public GetHardTokenDatas createGetHardTokenDatas() {
+<span class="nc" id="L877">        return new GetHardTokenDatas();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetHardTokenDatasResponse }
+     * 
+     */
+    public GetHardTokenDatasResponse createGetHardTokenDatasResponse() {
+<span class="nc" id="L885">        return new GetHardTokenDatasResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetLastCAChain }
+     * 
+     */
+    public GetLastCAChain createGetLastCAChain() {
+<span class="nc" id="L893">        return new GetLastCAChain();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetLastCAChainResponse }
+     * 
+     */
+    public GetLastCAChainResponse createGetLastCAChainResponse() {
+<span class="nc" id="L901">        return new GetLastCAChainResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetLastCertChain }
+     * 
+     */
+    public GetLastCertChain createGetLastCertChain() {
+<span class="nc" id="L909">        return new GetLastCertChain();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetLastCertChainResponse }
+     * 
+     */
+    public GetLastCertChainResponse createGetLastCertChainResponse() {
+<span class="nc" id="L917">        return new GetLastCertChainResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetLatestCRL }
+     * 
+     */
+    public GetLatestCRL createGetLatestCRL() {
+<span class="nc" id="L925">        return new GetLatestCRL();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetLatestCRLResponse }
+     * 
+     */
+    public GetLatestCRLResponse createGetLatestCRLResponse() {
+<span class="nc" id="L933">        return new GetLatestCRLResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetProfile }
+     * 
+     */
+    public GetProfile createGetProfile() {
+<span class="nc" id="L941">        return new GetProfile();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetProfileResponse }
+     * 
+     */
+    public GetProfileResponse createGetProfileResponse() {
+<span class="nc" id="L949">        return new GetProfileResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetPublisherQueueLength }
+     * 
+     */
+    public GetPublisherQueueLength createGetPublisherQueueLength() {
+<span class="nc" id="L957">        return new GetPublisherQueueLength();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetPublisherQueueLengthResponse }
+     * 
+     */
+    public GetPublisherQueueLengthResponse createGetPublisherQueueLengthResponse() {
+<span class="nc" id="L965">        return new GetPublisherQueueLengthResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetRemainingNumberOfApprovals }
+     * 
+     */
+    public GetRemainingNumberOfApprovals createGetRemainingNumberOfApprovals() {
+<span class="nc" id="L973">        return new GetRemainingNumberOfApprovals();</span>
+    }
+
+    /**
+     * Create an instance of {@link GetRemainingNumberOfApprovalsResponse }
+     * 
+     */
+    public GetRemainingNumberOfApprovalsResponse createGetRemainingNumberOfApprovalsResponse() {
+<span class="nc" id="L981">        return new GetRemainingNumberOfApprovalsResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link ImportCaCert }
+     * 
+     */
+    public ImportCaCert createImportCaCert() {
+<span class="nc" id="L989">        return new ImportCaCert();</span>
+    }
+
+    /**
+     * Create an instance of {@link ImportCaCertResponse }
+     * 
+     */
+    public ImportCaCertResponse createImportCaCertResponse() {
+<span class="nc" id="L997">        return new ImportCaCertResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link IsApproved }
+     * 
+     */
+    public IsApproved createIsApproved() {
+<span class="nc" id="L1005">        return new IsApproved();</span>
+    }
+
+    /**
+     * Create an instance of {@link IsApprovedResponse }
+     * 
+     */
+    public IsApprovedResponse createIsApprovedResponse() {
+<span class="nc" id="L1013">        return new IsApprovedResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link IsAuthorized }
+     * 
+     */
+    public IsAuthorized createIsAuthorized() {
+<span class="nc" id="L1021">        return new IsAuthorized();</span>
+    }
+
+    /**
+     * Create an instance of {@link IsAuthorizedResponse }
+     * 
+     */
+    public IsAuthorizedResponse createIsAuthorizedResponse() {
+<span class="nc" id="L1029">        return new IsAuthorizedResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link KeyRecover }
+     * 
+     */
+    public KeyRecover createKeyRecover() {
+<span class="nc" id="L1037">        return new KeyRecover();</span>
+    }
+
+    /**
+     * Create an instance of {@link KeyRecoverEnroll }
+     * 
+     */
+    public KeyRecoverEnroll createKeyRecoverEnroll() {
+<span class="nc" id="L1045">        return new KeyRecoverEnroll();</span>
+    }
+
+    /**
+     * Create an instance of {@link KeyRecoverEnrollResponse }
+     * 
+     */
+    public KeyRecoverEnrollResponse createKeyRecoverEnrollResponse() {
+<span class="nc" id="L1053">        return new KeyRecoverEnrollResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link KeyRecoverNewest }
+     * 
+     */
+    public KeyRecoverNewest createKeyRecoverNewest() {
+<span class="nc" id="L1061">        return new KeyRecoverNewest();</span>
+    }
+
+    /**
+     * Create an instance of {@link KeyRecoverNewestResponse }
+     * 
+     */
+    public KeyRecoverNewestResponse createKeyRecoverNewestResponse() {
+<span class="nc" id="L1069">        return new KeyRecoverNewestResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link KeyRecoverResponse }
+     * 
+     */
+    public KeyRecoverResponse createKeyRecoverResponse() {
+<span class="nc" id="L1077">        return new KeyRecoverResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link Pkcs10Request }
+     * 
+     */
+    public Pkcs10Request createPkcs10Request() {
+<span class="nc" id="L1085">        return new Pkcs10Request();</span>
+    }
+
+    /**
+     * Create an instance of {@link Pkcs10RequestResponse }
+     * 
+     */
+    public Pkcs10RequestResponse createPkcs10RequestResponse() {
+<span class="nc" id="L1093">        return new Pkcs10RequestResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link Pkcs12Req }
+     * 
+     */
+    public Pkcs12Req createPkcs12Req() {
+<span class="nc" id="L1101">        return new Pkcs12Req();</span>
+    }
+
+    /**
+     * Create an instance of {@link Pkcs12ReqResponse }
+     * 
+     */
+    public Pkcs12ReqResponse createPkcs12ReqResponse() {
+<span class="nc" id="L1109">        return new Pkcs12ReqResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link RemoveSubjectFromRole }
+     * 
+     */
+    public RemoveSubjectFromRole createRemoveSubjectFromRole() {
+<span class="nc" id="L1117">        return new RemoveSubjectFromRole();</span>
+    }
+
+    /**
+     * Create an instance of {@link RemoveSubjectFromRoleResponse }
+     * 
+     */
+    public RemoveSubjectFromRoleResponse createRemoveSubjectFromRoleResponse() {
+<span class="nc" id="L1125">        return new RemoveSubjectFromRoleResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link RepublishCertificate }
+     * 
+     */
+    public RepublishCertificate createRepublishCertificate() {
+<span class="nc" id="L1133">        return new RepublishCertificate();</span>
+    }
+
+    /**
+     * Create an instance of {@link RepublishCertificateResponse }
+     * 
+     */
+    public RepublishCertificateResponse createRepublishCertificateResponse() {
+<span class="nc" id="L1141">        return new RepublishCertificateResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link RevokeCert }
+     * 
+     */
+    public RevokeCert createRevokeCert() {
+<span class="nc" id="L1149">        return new RevokeCert();</span>
+    }
+
+    /**
+     * Create an instance of {@link RevokeCertBackdated }
+     * 
+     */
+    public RevokeCertBackdated createRevokeCertBackdated() {
+<span class="nc" id="L1157">        return new RevokeCertBackdated();</span>
+    }
+
+    /**
+     * Create an instance of {@link RevokeCertBackdatedResponse }
+     * 
+     */
+    public RevokeCertBackdatedResponse createRevokeCertBackdatedResponse() {
+<span class="nc" id="L1165">        return new RevokeCertBackdatedResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link RevokeCertResponse }
+     * 
+     */
+    public RevokeCertResponse createRevokeCertResponse() {
+<span class="nc" id="L1173">        return new RevokeCertResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link RevokeCertWithMetadata }
+     * 
+     */
+    public RevokeCertWithMetadata createRevokeCertWithMetadata() {
+<span class="nc" id="L1181">        return new RevokeCertWithMetadata();</span>
+    }
+
+    /**
+     * Create an instance of {@link RevokeCertWithMetadataResponse }
+     * 
+     */
+    public RevokeCertWithMetadataResponse createRevokeCertWithMetadataResponse() {
+<span class="nc" id="L1189">        return new RevokeCertWithMetadataResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link RevokeToken }
+     * 
+     */
+    public RevokeToken createRevokeToken() {
+<span class="nc" id="L1197">        return new RevokeToken();</span>
+    }
+
+    /**
+     * Create an instance of {@link RevokeTokenResponse }
+     * 
+     */
+    public RevokeTokenResponse createRevokeTokenResponse() {
+<span class="nc" id="L1205">        return new RevokeTokenResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link RevokeUser }
+     * 
+     */
+    public RevokeUser createRevokeUser() {
+<span class="nc" id="L1213">        return new RevokeUser();</span>
+    }
+
+    /**
+     * Create an instance of {@link RevokeUserResponse }
+     * 
+     */
+    public RevokeUserResponse createRevokeUserResponse() {
+<span class="nc" id="L1221">        return new RevokeUserResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link RolloverCACert }
+     * 
+     */
+    public RolloverCACert createRolloverCACert() {
+<span class="nc" id="L1229">        return new RolloverCACert();</span>
+    }
+
+    /**
+     * Create an instance of {@link RolloverCACertResponse }
+     * 
+     */
+    public RolloverCACertResponse createRolloverCACertResponse() {
+<span class="nc" id="L1237">        return new RolloverCACertResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link SoftTokenRequest }
+     * 
+     */
+    public SoftTokenRequest createSoftTokenRequest() {
+<span class="nc" id="L1245">        return new SoftTokenRequest();</span>
+    }
+
+    /**
+     * Create an instance of {@link SoftTokenRequestResponse }
+     * 
+     */
+    public SoftTokenRequestResponse createSoftTokenRequestResponse() {
+<span class="nc" id="L1253">        return new SoftTokenRequestResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link SpkacRequest }
+     * 
+     */
+    public SpkacRequest createSpkacRequest() {
+<span class="nc" id="L1261">        return new SpkacRequest();</span>
+    }
+
+    /**
+     * Create an instance of {@link SpkacRequestResponse }
+     * 
+     */
+    public SpkacRequestResponse createSpkacRequestResponse() {
+<span class="nc" id="L1269">        return new SpkacRequestResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link UpdateCaCert }
+     * 
+     */
+    public UpdateCaCert createUpdateCaCert() {
+<span class="nc" id="L1277">        return new UpdateCaCert();</span>
+    }
+
+    /**
+     * Create an instance of {@link UpdateCaCertResponse }
+     * 
+     */
+    public UpdateCaCertResponse createUpdateCaCertResponse() {
+<span class="nc" id="L1285">        return new UpdateCaCertResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link HardTokenDataWS }
+     * 
+     */
+    public HardTokenDataWS createHardTokenDataWS() {
+<span class="nc" id="L1293">        return new HardTokenDataWS();</span>
+    }
+
+    /**
+     * Create an instance of {@link Certificate }
+     * 
+     */
+    public Certificate createCertificate() {
+<span class="nc" id="L1301">        return new Certificate();</span>
+    }
+
+    /**
+     * Create an instance of {@link TokenCertificateResponseWS }
+     * 
+     */
+    public TokenCertificateResponseWS createTokenCertificateResponseWS() {
+<span class="nc" id="L1309">        return new TokenCertificateResponseWS();</span>
+    }
+
+    /**
+     * Create an instance of {@link KeyStore }
+     * 
+     */
+    public KeyStore createKeyStore() {
+<span class="nc" id="L1317">        return new KeyStore();</span>
+    }
+
+    /**
+     * Create an instance of {@link PinDataWS }
+     * 
+     */
+    public PinDataWS createPinDataWS() {
+<span class="nc" id="L1325">        return new PinDataWS();</span>
+    }
+
+    /**
+     * Create an instance of {@link ErrorCode }
+     * 
+     */
+    public ErrorCode createErrorCode() {
+<span class="nc" id="L1333">        return new ErrorCode();</span>
+    }
+
+    /**
+     * Create an instance of {@link CertificateResponse }
+     * 
+     */
+    public CertificateResponse createCertificateResponse() {
+<span class="nc" id="L1341">        return new CertificateResponse();</span>
+    }
+
+    /**
+     * Create an instance of {@link KeyValuePair }
+     * 
+     */
+    public KeyValuePair createKeyValuePair() {
+<span class="nc" id="L1349">        return new KeyValuePair();</span>
+    }
+
+    /**
+     * Create an instance of {@link UserMatch }
+     * 
+     */
+    public UserMatch createUserMatch() {
+<span class="nc" id="L1357">        return new UserMatch();</span>
+    }
+
+    /**
+     * Create an instance of {@link UserDataVOWS }
+     * 
+     */
+    public UserDataVOWS createUserDataVOWS() {
+<span class="nc" id="L1365">        return new UserDataVOWS();</span>
+    }
+
+    /**
+     * Create an instance of {@link ExtendedInformationWS }
+     * 
+     */
+    public ExtendedInformationWS createExtendedInformationWS() {
+<span class="nc" id="L1373">        return new ExtendedInformationWS();</span>
+    }
+
+    /**
+     * Create an instance of {@link TokenCertificateRequestWS }
+     * 
+     */
+    public TokenCertificateRequestWS createTokenCertificateRequestWS() {
+<span class="nc" id="L1381">        return new TokenCertificateRequestWS();</span>
+    }
+
+    /**
+     * Create an instance of {@link RevokeStatus }
+     * 
+     */
+    public RevokeStatus createRevokeStatus() {
+<span class="nc" id="L1389">        return new RevokeStatus();</span>
+    }
+
+    /**
+     * Create an instance of {@link NameAndId }
+     * 
+     */
+    public NameAndId createNameAndId() {
+<span class="nc" id="L1397">        return new NameAndId();</span>
+    }
+
+    /**
+     * Create an instance of {@link UserDataSourceVOWS }
+     * 
+     */
+    public UserDataSourceVOWS createUserDataSourceVOWS() {
+<span class="nc" id="L1405">        return new UserDataSourceVOWS();</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link AlreadyRevokedException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link AlreadyRevokedException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;AlreadyRevokedException&quot;)
+    public JAXBElement&lt;AlreadyRevokedException&gt; createAlreadyRevokedException(AlreadyRevokedException value) {
+<span class="nc" id="L1418">        return new JAXBElement&lt;AlreadyRevokedException&gt;(_AlreadyRevokedException_QNAME, AlreadyRevokedException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link ApprovalException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link ApprovalException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;ApprovalException&quot;)
+    public JAXBElement&lt;ApprovalException&gt; createApprovalException(ApprovalException value) {
+<span class="nc" id="L1431">        return new JAXBElement&lt;ApprovalException&gt;(_ApprovalException_QNAME, ApprovalException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link ApprovalRequestExecutionException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link ApprovalRequestExecutionException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;ApprovalRequestExecutionException&quot;)
+    public JAXBElement&lt;ApprovalRequestExecutionException&gt; createApprovalRequestExecutionException(ApprovalRequestExecutionException value) {
+<span class="nc" id="L1444">        return new JAXBElement&lt;ApprovalRequestExecutionException&gt;(_ApprovalRequestExecutionException_QNAME, ApprovalRequestExecutionException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link ApprovalRequestExpiredException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link ApprovalRequestExpiredException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;ApprovalRequestExpiredException&quot;)
+    public JAXBElement&lt;ApprovalRequestExpiredException&gt; createApprovalRequestExpiredException(ApprovalRequestExpiredException value) {
+<span class="nc" id="L1457">        return new JAXBElement&lt;ApprovalRequestExpiredException&gt;(_ApprovalRequestExpiredException_QNAME, ApprovalRequestExpiredException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link AuthorizationDeniedException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link AuthorizationDeniedException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;AuthorizationDeniedException&quot;)
+    public JAXBElement&lt;AuthorizationDeniedException&gt; createAuthorizationDeniedException(AuthorizationDeniedException value) {
+<span class="nc" id="L1470">        return new JAXBElement&lt;AuthorizationDeniedException&gt;(_AuthorizationDeniedException_QNAME, AuthorizationDeniedException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CADoesntExistsException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CADoesntExistsException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;CADoesntExistsException&quot;)
+    public JAXBElement&lt;CADoesntExistsException&gt; createCADoesntExistsException(CADoesntExistsException value) {
+<span class="nc" id="L1483">        return new JAXBElement&lt;CADoesntExistsException&gt;(_CADoesntExistsException_QNAME, CADoesntExistsException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CAExistsException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CAExistsException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;CAExistsException&quot;)
+    public JAXBElement&lt;CAExistsException&gt; createCAExistsException(CAExistsException value) {
+<span class="nc" id="L1496">        return new JAXBElement&lt;CAExistsException&gt;(_CAExistsException_QNAME, CAExistsException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CAOfflineException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CAOfflineException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;CAOfflineException&quot;)
+    public JAXBElement&lt;CAOfflineException&gt; createCAOfflineException(CAOfflineException value) {
+<span class="nc" id="L1509">        return new JAXBElement&lt;CAOfflineException&gt;(_CAOfflineException_QNAME, CAOfflineException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CertificateExpiredException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CertificateExpiredException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;CertificateExpiredException&quot;)
+    public JAXBElement&lt;CertificateExpiredException&gt; createCertificateExpiredException(CertificateExpiredException value) {
+<span class="nc" id="L1522">        return new JAXBElement&lt;CertificateExpiredException&gt;(_CertificateExpiredException_QNAME, CertificateExpiredException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CertificateProfileDoesNotExistException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CertificateProfileDoesNotExistException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;CertificateProfileDoesNotExistException&quot;)
+    public JAXBElement&lt;CertificateProfileDoesNotExistException&gt; createCertificateProfileDoesNotExistException(CertificateProfileDoesNotExistException value) {
+<span class="nc" id="L1535">        return new JAXBElement&lt;CertificateProfileDoesNotExistException&gt;(_CertificateProfileDoesNotExistException_QNAME, CertificateProfileDoesNotExistException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CesecoreException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CesecoreException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;CesecoreException&quot;)
+    public JAXBElement&lt;CesecoreException&gt; createCesecoreException(CesecoreException value) {
+<span class="nc" id="L1548">        return new JAXBElement&lt;CesecoreException&gt;(_CesecoreException_QNAME, CesecoreException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CryptoTokenOfflineException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CryptoTokenOfflineException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;CryptoTokenOfflineException&quot;)
+    public JAXBElement&lt;CryptoTokenOfflineException&gt; createCryptoTokenOfflineException(CryptoTokenOfflineException value) {
+<span class="nc" id="L1561">        return new JAXBElement&lt;CryptoTokenOfflineException&gt;(_CryptoTokenOfflineException_QNAME, CryptoTokenOfflineException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link DateNotValidException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link DateNotValidException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;DateNotValidException&quot;)
+    public JAXBElement&lt;DateNotValidException&gt; createDateNotValidException(DateNotValidException value) {
+<span class="nc" id="L1574">        return new JAXBElement&lt;DateNotValidException&gt;(_DateNotValidException_QNAME, DateNotValidException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link EjbcaException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link EjbcaException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;EjbcaException&quot;)
+    public JAXBElement&lt;EjbcaException&gt; createEjbcaException(EjbcaException value) {
+<span class="nc" id="L1587">        return new JAXBElement&lt;EjbcaException&gt;(_EjbcaException_QNAME, EjbcaException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link EndEntityProfileNotFoundException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link EndEntityProfileNotFoundException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;EndEntityProfileNotFoundException&quot;)
+    public JAXBElement&lt;EndEntityProfileNotFoundException&gt; createEndEntityProfileNotFoundException(EndEntityProfileNotFoundException value) {
+<span class="nc" id="L1600">        return new JAXBElement&lt;EndEntityProfileNotFoundException&gt;(_EndEntityProfileNotFoundException_QNAME, EndEntityProfileNotFoundException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link HardTokenDoesntExistsException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link HardTokenDoesntExistsException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;HardTokenDoesntExistsException&quot;)
+    public JAXBElement&lt;HardTokenDoesntExistsException&gt; createHardTokenDoesntExistsException(HardTokenDoesntExistsException value) {
+<span class="nc" id="L1613">        return new JAXBElement&lt;HardTokenDoesntExistsException&gt;(_HardTokenDoesntExistsException_QNAME, HardTokenDoesntExistsException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link HardTokenExistsException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link HardTokenExistsException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;HardTokenExistsException&quot;)
+    public JAXBElement&lt;HardTokenExistsException&gt; createHardTokenExistsException(HardTokenExistsException value) {
+<span class="nc" id="L1626">        return new JAXBElement&lt;HardTokenExistsException&gt;(_HardTokenExistsException_QNAME, HardTokenExistsException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link IllegalQueryException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link IllegalQueryException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;IllegalQueryException&quot;)
+    public JAXBElement&lt;IllegalQueryException&gt; createIllegalQueryException(IllegalQueryException value) {
+<span class="nc" id="L1639">        return new JAXBElement&lt;IllegalQueryException&gt;(_IllegalQueryException_QNAME, IllegalQueryException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link MultipleMatchException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link MultipleMatchException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;MultipleMatchException&quot;)
+    public JAXBElement&lt;MultipleMatchException&gt; createMultipleMatchException(MultipleMatchException value) {
+<span class="nc" id="L1652">        return new JAXBElement&lt;MultipleMatchException&gt;(_MultipleMatchException_QNAME, MultipleMatchException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link NotFoundException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link NotFoundException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;NotFoundException&quot;)
+    public JAXBElement&lt;NotFoundException&gt; createNotFoundException(NotFoundException value) {
+<span class="nc" id="L1665">        return new JAXBElement&lt;NotFoundException&gt;(_NotFoundException_QNAME, NotFoundException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link PublisherException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link PublisherException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;PublisherException&quot;)
+    public JAXBElement&lt;PublisherException&gt; createPublisherException(PublisherException value) {
+<span class="nc" id="L1678">        return new JAXBElement&lt;PublisherException&gt;(_PublisherException_QNAME, PublisherException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link RevokeBackDateNotAllowedForProfileException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link RevokeBackDateNotAllowedForProfileException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;RevokeBackDateNotAllowedForProfileException&quot;)
+    public JAXBElement&lt;RevokeBackDateNotAllowedForProfileException&gt; createRevokeBackDateNotAllowedForProfileException(RevokeBackDateNotAllowedForProfileException value) {
+<span class="nc" id="L1691">        return new JAXBElement&lt;RevokeBackDateNotAllowedForProfileException&gt;(_RevokeBackDateNotAllowedForProfileException_QNAME, RevokeBackDateNotAllowedForProfileException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link SignRequestException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link SignRequestException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;SignRequestException&quot;)
+    public JAXBElement&lt;SignRequestException&gt; createSignRequestException(SignRequestException value) {
+<span class="nc" id="L1704">        return new JAXBElement&lt;SignRequestException&gt;(_SignRequestException_QNAME, SignRequestException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link UnknownProfileTypeException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link UnknownProfileTypeException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;UnknownProfileTypeException&quot;)
+    public JAXBElement&lt;UnknownProfileTypeException&gt; createUnknownProfileTypeException(UnknownProfileTypeException value) {
+<span class="nc" id="L1717">        return new JAXBElement&lt;UnknownProfileTypeException&gt;(_UnknownProfileTypeException_QNAME, UnknownProfileTypeException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link UserDataSourceException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link UserDataSourceException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;UserDataSourceException&quot;)
+    public JAXBElement&lt;UserDataSourceException&gt; createUserDataSourceException(UserDataSourceException value) {
+<span class="nc" id="L1730">        return new JAXBElement&lt;UserDataSourceException&gt;(_UserDataSourceException_QNAME, UserDataSourceException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link UserDoesntFullfillEndEntityProfile }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link UserDoesntFullfillEndEntityProfile }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;UserDoesntFullfillEndEntityProfile&quot;)
+    public JAXBElement&lt;UserDoesntFullfillEndEntityProfile&gt; createUserDoesntFullfillEndEntityProfile(UserDoesntFullfillEndEntityProfile value) {
+<span class="nc" id="L1743">        return new JAXBElement&lt;UserDoesntFullfillEndEntityProfile&gt;(_UserDoesntFullfillEndEntityProfile_QNAME, UserDoesntFullfillEndEntityProfile.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link WaitingForApprovalException }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link WaitingForApprovalException }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;WaitingForApprovalException&quot;)
+    public JAXBElement&lt;WaitingForApprovalException&gt; createWaitingForApprovalException(WaitingForApprovalException value) {
+<span class="nc" id="L1756">        return new JAXBElement&lt;WaitingForApprovalException&gt;(_WaitingForApprovalException_QNAME, WaitingForApprovalException.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link AddSubjectToRole }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link AddSubjectToRole }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;addSubjectToRole&quot;)
+    public JAXBElement&lt;AddSubjectToRole&gt; createAddSubjectToRole(AddSubjectToRole value) {
+<span class="nc" id="L1769">        return new JAXBElement&lt;AddSubjectToRole&gt;(_AddSubjectToRole_QNAME, AddSubjectToRole.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link AddSubjectToRoleResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link AddSubjectToRoleResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;addSubjectToRoleResponse&quot;)
+    public JAXBElement&lt;AddSubjectToRoleResponse&gt; createAddSubjectToRoleResponse(AddSubjectToRoleResponse value) {
+<span class="nc" id="L1782">        return new JAXBElement&lt;AddSubjectToRoleResponse&gt;(_AddSubjectToRoleResponse_QNAME, AddSubjectToRoleResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CaCertResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CaCertResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;caCertResponse&quot;)
+    public JAXBElement&lt;CaCertResponse&gt; createCaCertResponse(CaCertResponse value) {
+<span class="nc" id="L1795">        return new JAXBElement&lt;CaCertResponse&gt;(_CaCertResponse_QNAME, CaCertResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CaCertResponseForRollover }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CaCertResponseForRollover }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;caCertResponseForRollover&quot;)
+    public JAXBElement&lt;CaCertResponseForRollover&gt; createCaCertResponseForRollover(CaCertResponseForRollover value) {
+<span class="nc" id="L1808">        return new JAXBElement&lt;CaCertResponseForRollover&gt;(_CaCertResponseForRollover_QNAME, CaCertResponseForRollover.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CaCertResponseForRolloverResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CaCertResponseForRolloverResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;caCertResponseForRolloverResponse&quot;)
+    public JAXBElement&lt;CaCertResponseForRolloverResponse&gt; createCaCertResponseForRolloverResponse(CaCertResponseForRolloverResponse value) {
+<span class="nc" id="L1821">        return new JAXBElement&lt;CaCertResponseForRolloverResponse&gt;(_CaCertResponseForRolloverResponse_QNAME, CaCertResponseForRolloverResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CaCertResponseResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CaCertResponseResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;caCertResponseResponse&quot;)
+    public JAXBElement&lt;CaCertResponseResponse&gt; createCaCertResponseResponse(CaCertResponseResponse value) {
+<span class="nc" id="L1834">        return new JAXBElement&lt;CaCertResponseResponse&gt;(_CaCertResponseResponse_QNAME, CaCertResponseResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CaRenewCertRequest }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CaRenewCertRequest }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;caRenewCertRequest&quot;)
+    public JAXBElement&lt;CaRenewCertRequest&gt; createCaRenewCertRequest(CaRenewCertRequest value) {
+<span class="nc" id="L1847">        return new JAXBElement&lt;CaRenewCertRequest&gt;(_CaRenewCertRequest_QNAME, CaRenewCertRequest.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CaRenewCertRequestResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CaRenewCertRequestResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;caRenewCertRequestResponse&quot;)
+    public JAXBElement&lt;CaRenewCertRequestResponse&gt; createCaRenewCertRequestResponse(CaRenewCertRequestResponse value) {
+<span class="nc" id="L1860">        return new JAXBElement&lt;CaRenewCertRequestResponse&gt;(_CaRenewCertRequestResponse_QNAME, CaRenewCertRequestResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CertificateRequest }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CertificateRequest }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;certificateRequest&quot;)
+    public JAXBElement&lt;CertificateRequest&gt; createCertificateRequest(CertificateRequest value) {
+<span class="nc" id="L1873">        return new JAXBElement&lt;CertificateRequest&gt;(_CertificateRequest_QNAME, CertificateRequest.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CertificateRequestResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CertificateRequestResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;certificateRequestResponse&quot;)
+    public JAXBElement&lt;CertificateRequestResponse&gt; createCertificateRequestResponse(CertificateRequestResponse value) {
+<span class="nc" id="L1886">        return new JAXBElement&lt;CertificateRequestResponse&gt;(_CertificateRequestResponse_QNAME, CertificateRequestResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CheckRevokationStatus }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CheckRevokationStatus }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;checkRevokationStatus&quot;)
+    public JAXBElement&lt;CheckRevokationStatus&gt; createCheckRevokationStatus(CheckRevokationStatus value) {
+<span class="nc" id="L1899">        return new JAXBElement&lt;CheckRevokationStatus&gt;(_CheckRevokationStatus_QNAME, CheckRevokationStatus.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CheckRevokationStatusResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CheckRevokationStatusResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;checkRevokationStatusResponse&quot;)
+    public JAXBElement&lt;CheckRevokationStatusResponse&gt; createCheckRevokationStatusResponse(CheckRevokationStatusResponse value) {
+<span class="nc" id="L1912">        return new JAXBElement&lt;CheckRevokationStatusResponse&gt;(_CheckRevokationStatusResponse_QNAME, CheckRevokationStatusResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CreateCA }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CreateCA }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;createCA&quot;)
+    public JAXBElement&lt;CreateCA&gt; createCreateCA(CreateCA value) {
+<span class="nc" id="L1925">        return new JAXBElement&lt;CreateCA&gt;(_CreateCA_QNAME, CreateCA.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CreateCAResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CreateCAResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;createCAResponse&quot;)
+    public JAXBElement&lt;CreateCAResponse&gt; createCreateCAResponse(CreateCAResponse value) {
+<span class="nc" id="L1938">        return new JAXBElement&lt;CreateCAResponse&gt;(_CreateCAResponse_QNAME, CreateCAResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CreateCRL }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CreateCRL }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;createCRL&quot;)
+    public JAXBElement&lt;CreateCRL&gt; createCreateCRL(CreateCRL value) {
+<span class="nc" id="L1951">        return new JAXBElement&lt;CreateCRL&gt;(_CreateCRL_QNAME, CreateCRL.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CreateCRLResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CreateCRLResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;createCRLResponse&quot;)
+    public JAXBElement&lt;CreateCRLResponse&gt; createCreateCRLResponse(CreateCRLResponse value) {
+<span class="nc" id="L1964">        return new JAXBElement&lt;CreateCRLResponse&gt;(_CreateCRLResponse_QNAME, CreateCRLResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CreateCryptoToken }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CreateCryptoToken }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;createCryptoToken&quot;)
+    public JAXBElement&lt;CreateCryptoToken&gt; createCreateCryptoToken(CreateCryptoToken value) {
+<span class="nc" id="L1977">        return new JAXBElement&lt;CreateCryptoToken&gt;(_CreateCryptoToken_QNAME, CreateCryptoToken.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CreateCryptoTokenResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CreateCryptoTokenResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;createCryptoTokenResponse&quot;)
+    public JAXBElement&lt;CreateCryptoTokenResponse&gt; createCreateCryptoTokenResponse(CreateCryptoTokenResponse value) {
+<span class="nc" id="L1990">        return new JAXBElement&lt;CreateCryptoTokenResponse&gt;(_CreateCryptoTokenResponse_QNAME, CreateCryptoTokenResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CrmfRequest }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CrmfRequest }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;crmfRequest&quot;)
+    public JAXBElement&lt;CrmfRequest&gt; createCrmfRequest(CrmfRequest value) {
+<span class="nc" id="L2003">        return new JAXBElement&lt;CrmfRequest&gt;(_CrmfRequest_QNAME, CrmfRequest.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CrmfRequestResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CrmfRequestResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;crmfRequestResponse&quot;)
+    public JAXBElement&lt;CrmfRequestResponse&gt; createCrmfRequestResponse(CrmfRequestResponse value) {
+<span class="nc" id="L2016">        return new JAXBElement&lt;CrmfRequestResponse&gt;(_CrmfRequestResponse_QNAME, CrmfRequestResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CustomLog }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CustomLog }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;customLog&quot;)
+    public JAXBElement&lt;CustomLog&gt; createCustomLog(CustomLog value) {
+<span class="nc" id="L2029">        return new JAXBElement&lt;CustomLog&gt;(_CustomLog_QNAME, CustomLog.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CustomLogResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CustomLogResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;customLogResponse&quot;)
+    public JAXBElement&lt;CustomLogResponse&gt; createCustomLogResponse(CustomLogResponse value) {
+<span class="nc" id="L2042">        return new JAXBElement&lt;CustomLogResponse&gt;(_CustomLogResponse_QNAME, CustomLogResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CvcRequest }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CvcRequest }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;cvcRequest&quot;)
+    public JAXBElement&lt;CvcRequest&gt; createCvcRequest(CvcRequest value) {
+<span class="nc" id="L2055">        return new JAXBElement&lt;CvcRequest&gt;(_CvcRequest_QNAME, CvcRequest.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link CvcRequestResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link CvcRequestResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;cvcRequestResponse&quot;)
+    public JAXBElement&lt;CvcRequestResponse&gt; createCvcRequestResponse(CvcRequestResponse value) {
+<span class="nc" id="L2068">        return new JAXBElement&lt;CvcRequestResponse&gt;(_CvcRequestResponse_QNAME, CvcRequestResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link DeleteUserDataFromSource }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link DeleteUserDataFromSource }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;deleteUserDataFromSource&quot;)
+    public JAXBElement&lt;DeleteUserDataFromSource&gt; createDeleteUserDataFromSource(DeleteUserDataFromSource value) {
+<span class="nc" id="L2081">        return new JAXBElement&lt;DeleteUserDataFromSource&gt;(_DeleteUserDataFromSource_QNAME, DeleteUserDataFromSource.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link DeleteUserDataFromSourceResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link DeleteUserDataFromSourceResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;deleteUserDataFromSourceResponse&quot;)
+    public JAXBElement&lt;DeleteUserDataFromSourceResponse&gt; createDeleteUserDataFromSourceResponse(DeleteUserDataFromSourceResponse value) {
+<span class="nc" id="L2094">        return new JAXBElement&lt;DeleteUserDataFromSourceResponse&gt;(_DeleteUserDataFromSourceResponse_QNAME, DeleteUserDataFromSourceResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link EditUser }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link EditUser }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;editUser&quot;)
+    public JAXBElement&lt;EditUser&gt; createEditUser(EditUser value) {
+<span class="nc" id="L2107">        return new JAXBElement&lt;EditUser&gt;(_EditUser_QNAME, EditUser.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link EditUserResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link EditUserResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;editUserResponse&quot;)
+    public JAXBElement&lt;EditUserResponse&gt; createEditUserResponse(EditUserResponse value) {
+<span class="nc" id="L2120">        return new JAXBElement&lt;EditUserResponse&gt;(_EditUserResponse_QNAME, EditUserResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link ExistsHardToken }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link ExistsHardToken }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;existsHardToken&quot;)
+    public JAXBElement&lt;ExistsHardToken&gt; createExistsHardToken(ExistsHardToken value) {
+<span class="nc" id="L2133">        return new JAXBElement&lt;ExistsHardToken&gt;(_ExistsHardToken_QNAME, ExistsHardToken.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link ExistsHardTokenResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link ExistsHardTokenResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;existsHardTokenResponse&quot;)
+    public JAXBElement&lt;ExistsHardTokenResponse&gt; createExistsHardTokenResponse(ExistsHardTokenResponse value) {
+<span class="nc" id="L2146">        return new JAXBElement&lt;ExistsHardTokenResponse&gt;(_ExistsHardTokenResponse_QNAME, ExistsHardTokenResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link FetchUserData }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link FetchUserData }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;fetchUserData&quot;)
+    public JAXBElement&lt;FetchUserData&gt; createFetchUserData(FetchUserData value) {
+<span class="nc" id="L2159">        return new JAXBElement&lt;FetchUserData&gt;(_FetchUserData_QNAME, FetchUserData.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link FetchUserDataResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link FetchUserDataResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;fetchUserDataResponse&quot;)
+    public JAXBElement&lt;FetchUserDataResponse&gt; createFetchUserDataResponse(FetchUserDataResponse value) {
+<span class="nc" id="L2172">        return new JAXBElement&lt;FetchUserDataResponse&gt;(_FetchUserDataResponse_QNAME, FetchUserDataResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link FindCerts }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link FindCerts }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;findCerts&quot;)
+    public JAXBElement&lt;FindCerts&gt; createFindCerts(FindCerts value) {
+<span class="nc" id="L2185">        return new JAXBElement&lt;FindCerts&gt;(_FindCerts_QNAME, FindCerts.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link FindCertsResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link FindCertsResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;findCertsResponse&quot;)
+    public JAXBElement&lt;FindCertsResponse&gt; createFindCertsResponse(FindCertsResponse value) {
+<span class="nc" id="L2198">        return new JAXBElement&lt;FindCertsResponse&gt;(_FindCertsResponse_QNAME, FindCertsResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link FindUser }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link FindUser }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;findUser&quot;)
+    public JAXBElement&lt;FindUser&gt; createFindUser(FindUser value) {
+<span class="nc" id="L2211">        return new JAXBElement&lt;FindUser&gt;(_FindUser_QNAME, FindUser.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link FindUserResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link FindUserResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;findUserResponse&quot;)
+    public JAXBElement&lt;FindUserResponse&gt; createFindUserResponse(FindUserResponse value) {
+<span class="nc" id="L2224">        return new JAXBElement&lt;FindUserResponse&gt;(_FindUserResponse_QNAME, FindUserResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GenTokenCertificates }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GenTokenCertificates }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;genTokenCertificates&quot;)
+    public JAXBElement&lt;GenTokenCertificates&gt; createGenTokenCertificates(GenTokenCertificates value) {
+<span class="nc" id="L2237">        return new JAXBElement&lt;GenTokenCertificates&gt;(_GenTokenCertificates_QNAME, GenTokenCertificates.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GenTokenCertificatesResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GenTokenCertificatesResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;genTokenCertificatesResponse&quot;)
+    public JAXBElement&lt;GenTokenCertificatesResponse&gt; createGenTokenCertificatesResponse(GenTokenCertificatesResponse value) {
+<span class="nc" id="L2250">        return new JAXBElement&lt;GenTokenCertificatesResponse&gt;(_GenTokenCertificatesResponse_QNAME, GenTokenCertificatesResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GenerateCryptoTokenKeys }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GenerateCryptoTokenKeys }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;generateCryptoTokenKeys&quot;)
+    public JAXBElement&lt;GenerateCryptoTokenKeys&gt; createGenerateCryptoTokenKeys(GenerateCryptoTokenKeys value) {
+<span class="nc" id="L2263">        return new JAXBElement&lt;GenerateCryptoTokenKeys&gt;(_GenerateCryptoTokenKeys_QNAME, GenerateCryptoTokenKeys.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GenerateCryptoTokenKeysResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GenerateCryptoTokenKeysResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;generateCryptoTokenKeysResponse&quot;)
+    public JAXBElement&lt;GenerateCryptoTokenKeysResponse&gt; createGenerateCryptoTokenKeysResponse(GenerateCryptoTokenKeysResponse value) {
+<span class="nc" id="L2276">        return new JAXBElement&lt;GenerateCryptoTokenKeysResponse&gt;(_GenerateCryptoTokenKeysResponse_QNAME, GenerateCryptoTokenKeysResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetAuthorizedEndEntityProfiles }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetAuthorizedEndEntityProfiles }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getAuthorizedEndEntityProfiles&quot;)
+    public JAXBElement&lt;GetAuthorizedEndEntityProfiles&gt; createGetAuthorizedEndEntityProfiles(GetAuthorizedEndEntityProfiles value) {
+<span class="nc" id="L2289">        return new JAXBElement&lt;GetAuthorizedEndEntityProfiles&gt;(_GetAuthorizedEndEntityProfiles_QNAME, GetAuthorizedEndEntityProfiles.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetAuthorizedEndEntityProfilesResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetAuthorizedEndEntityProfilesResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getAuthorizedEndEntityProfilesResponse&quot;)
+    public JAXBElement&lt;GetAuthorizedEndEntityProfilesResponse&gt; createGetAuthorizedEndEntityProfilesResponse(GetAuthorizedEndEntityProfilesResponse value) {
+<span class="nc" id="L2302">        return new JAXBElement&lt;GetAuthorizedEndEntityProfilesResponse&gt;(_GetAuthorizedEndEntityProfilesResponse_QNAME, GetAuthorizedEndEntityProfilesResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetAvailableCAs }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetAvailableCAs }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getAvailableCAs&quot;)
+    public JAXBElement&lt;GetAvailableCAs&gt; createGetAvailableCAs(GetAvailableCAs value) {
+<span class="nc" id="L2315">        return new JAXBElement&lt;GetAvailableCAs&gt;(_GetAvailableCAs_QNAME, GetAvailableCAs.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetAvailableCAsInProfile }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetAvailableCAsInProfile }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getAvailableCAsInProfile&quot;)
+    public JAXBElement&lt;GetAvailableCAsInProfile&gt; createGetAvailableCAsInProfile(GetAvailableCAsInProfile value) {
+<span class="nc" id="L2328">        return new JAXBElement&lt;GetAvailableCAsInProfile&gt;(_GetAvailableCAsInProfile_QNAME, GetAvailableCAsInProfile.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetAvailableCAsInProfileResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetAvailableCAsInProfileResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getAvailableCAsInProfileResponse&quot;)
+    public JAXBElement&lt;GetAvailableCAsInProfileResponse&gt; createGetAvailableCAsInProfileResponse(GetAvailableCAsInProfileResponse value) {
+<span class="nc" id="L2341">        return new JAXBElement&lt;GetAvailableCAsInProfileResponse&gt;(_GetAvailableCAsInProfileResponse_QNAME, GetAvailableCAsInProfileResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetAvailableCAsResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetAvailableCAsResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getAvailableCAsResponse&quot;)
+    public JAXBElement&lt;GetAvailableCAsResponse&gt; createGetAvailableCAsResponse(GetAvailableCAsResponse value) {
+<span class="nc" id="L2354">        return new JAXBElement&lt;GetAvailableCAsResponse&gt;(_GetAvailableCAsResponse_QNAME, GetAvailableCAsResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetAvailableCertificateProfiles }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetAvailableCertificateProfiles }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getAvailableCertificateProfiles&quot;)
+    public JAXBElement&lt;GetAvailableCertificateProfiles&gt; createGetAvailableCertificateProfiles(GetAvailableCertificateProfiles value) {
+<span class="nc" id="L2367">        return new JAXBElement&lt;GetAvailableCertificateProfiles&gt;(_GetAvailableCertificateProfiles_QNAME, GetAvailableCertificateProfiles.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetAvailableCertificateProfilesResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetAvailableCertificateProfilesResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getAvailableCertificateProfilesResponse&quot;)
+    public JAXBElement&lt;GetAvailableCertificateProfilesResponse&gt; createGetAvailableCertificateProfilesResponse(GetAvailableCertificateProfilesResponse value) {
+<span class="nc" id="L2380">        return new JAXBElement&lt;GetAvailableCertificateProfilesResponse&gt;(_GetAvailableCertificateProfilesResponse_QNAME, GetAvailableCertificateProfilesResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetCertificate }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetCertificate }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getCertificate&quot;)
+    public JAXBElement&lt;GetCertificate&gt; createGetCertificate(GetCertificate value) {
+<span class="nc" id="L2393">        return new JAXBElement&lt;GetCertificate&gt;(_GetCertificate_QNAME, GetCertificate.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetCertificateResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetCertificateResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getCertificateResponse&quot;)
+    public JAXBElement&lt;GetCertificateResponse&gt; createGetCertificateResponse(GetCertificateResponse value) {
+<span class="nc" id="L2406">        return new JAXBElement&lt;GetCertificateResponse&gt;(_GetCertificateResponse_QNAME, GetCertificateResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetCertificatesByExpirationTime }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetCertificatesByExpirationTime }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getCertificatesByExpirationTime&quot;)
+    public JAXBElement&lt;GetCertificatesByExpirationTime&gt; createGetCertificatesByExpirationTime(GetCertificatesByExpirationTime value) {
+<span class="nc" id="L2419">        return new JAXBElement&lt;GetCertificatesByExpirationTime&gt;(_GetCertificatesByExpirationTime_QNAME, GetCertificatesByExpirationTime.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetCertificatesByExpirationTimeAndIssuer }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetCertificatesByExpirationTimeAndIssuer }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getCertificatesByExpirationTimeAndIssuer&quot;)
+    public JAXBElement&lt;GetCertificatesByExpirationTimeAndIssuer&gt; createGetCertificatesByExpirationTimeAndIssuer(GetCertificatesByExpirationTimeAndIssuer value) {
+<span class="nc" id="L2432">        return new JAXBElement&lt;GetCertificatesByExpirationTimeAndIssuer&gt;(_GetCertificatesByExpirationTimeAndIssuer_QNAME, GetCertificatesByExpirationTimeAndIssuer.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetCertificatesByExpirationTimeAndIssuerResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetCertificatesByExpirationTimeAndIssuerResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getCertificatesByExpirationTimeAndIssuerResponse&quot;)
+    public JAXBElement&lt;GetCertificatesByExpirationTimeAndIssuerResponse&gt; createGetCertificatesByExpirationTimeAndIssuerResponse(GetCertificatesByExpirationTimeAndIssuerResponse value) {
+<span class="nc" id="L2445">        return new JAXBElement&lt;GetCertificatesByExpirationTimeAndIssuerResponse&gt;(_GetCertificatesByExpirationTimeAndIssuerResponse_QNAME, GetCertificatesByExpirationTimeAndIssuerResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetCertificatesByExpirationTimeAndType }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetCertificatesByExpirationTimeAndType }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getCertificatesByExpirationTimeAndType&quot;)
+    public JAXBElement&lt;GetCertificatesByExpirationTimeAndType&gt; createGetCertificatesByExpirationTimeAndType(GetCertificatesByExpirationTimeAndType value) {
+<span class="nc" id="L2458">        return new JAXBElement&lt;GetCertificatesByExpirationTimeAndType&gt;(_GetCertificatesByExpirationTimeAndType_QNAME, GetCertificatesByExpirationTimeAndType.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetCertificatesByExpirationTimeAndTypeResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetCertificatesByExpirationTimeAndTypeResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getCertificatesByExpirationTimeAndTypeResponse&quot;)
+    public JAXBElement&lt;GetCertificatesByExpirationTimeAndTypeResponse&gt; createGetCertificatesByExpirationTimeAndTypeResponse(GetCertificatesByExpirationTimeAndTypeResponse value) {
+<span class="nc" id="L2471">        return new JAXBElement&lt;GetCertificatesByExpirationTimeAndTypeResponse&gt;(_GetCertificatesByExpirationTimeAndTypeResponse_QNAME, GetCertificatesByExpirationTimeAndTypeResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetCertificatesByExpirationTimeResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetCertificatesByExpirationTimeResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getCertificatesByExpirationTimeResponse&quot;)
+    public JAXBElement&lt;GetCertificatesByExpirationTimeResponse&gt; createGetCertificatesByExpirationTimeResponse(GetCertificatesByExpirationTimeResponse value) {
+<span class="nc" id="L2484">        return new JAXBElement&lt;GetCertificatesByExpirationTimeResponse&gt;(_GetCertificatesByExpirationTimeResponse_QNAME, GetCertificatesByExpirationTimeResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetEjbcaVersion }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetEjbcaVersion }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getEjbcaVersion&quot;)
+    public JAXBElement&lt;GetEjbcaVersion&gt; createGetEjbcaVersion(GetEjbcaVersion value) {
+<span class="nc" id="L2497">        return new JAXBElement&lt;GetEjbcaVersion&gt;(_GetEjbcaVersion_QNAME, GetEjbcaVersion.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetEjbcaVersionResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetEjbcaVersionResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getEjbcaVersionResponse&quot;)
+    public JAXBElement&lt;GetEjbcaVersionResponse&gt; createGetEjbcaVersionResponse(GetEjbcaVersionResponse value) {
+<span class="nc" id="L2510">        return new JAXBElement&lt;GetEjbcaVersionResponse&gt;(_GetEjbcaVersionResponse_QNAME, GetEjbcaVersionResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetHardTokenData }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetHardTokenData }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getHardTokenData&quot;)
+    public JAXBElement&lt;GetHardTokenData&gt; createGetHardTokenData(GetHardTokenData value) {
+<span class="nc" id="L2523">        return new JAXBElement&lt;GetHardTokenData&gt;(_GetHardTokenData_QNAME, GetHardTokenData.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetHardTokenDataResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetHardTokenDataResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getHardTokenDataResponse&quot;)
+    public JAXBElement&lt;GetHardTokenDataResponse&gt; createGetHardTokenDataResponse(GetHardTokenDataResponse value) {
+<span class="nc" id="L2536">        return new JAXBElement&lt;GetHardTokenDataResponse&gt;(_GetHardTokenDataResponse_QNAME, GetHardTokenDataResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetHardTokenDatas }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetHardTokenDatas }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getHardTokenDatas&quot;)
+    public JAXBElement&lt;GetHardTokenDatas&gt; createGetHardTokenDatas(GetHardTokenDatas value) {
+<span class="nc" id="L2549">        return new JAXBElement&lt;GetHardTokenDatas&gt;(_GetHardTokenDatas_QNAME, GetHardTokenDatas.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetHardTokenDatasResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetHardTokenDatasResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getHardTokenDatasResponse&quot;)
+    public JAXBElement&lt;GetHardTokenDatasResponse&gt; createGetHardTokenDatasResponse(GetHardTokenDatasResponse value) {
+<span class="nc" id="L2562">        return new JAXBElement&lt;GetHardTokenDatasResponse&gt;(_GetHardTokenDatasResponse_QNAME, GetHardTokenDatasResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetLastCAChain }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetLastCAChain }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getLastCAChain&quot;)
+    public JAXBElement&lt;GetLastCAChain&gt; createGetLastCAChain(GetLastCAChain value) {
+<span class="nc" id="L2575">        return new JAXBElement&lt;GetLastCAChain&gt;(_GetLastCAChain_QNAME, GetLastCAChain.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetLastCAChainResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetLastCAChainResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getLastCAChainResponse&quot;)
+    public JAXBElement&lt;GetLastCAChainResponse&gt; createGetLastCAChainResponse(GetLastCAChainResponse value) {
+<span class="nc" id="L2588">        return new JAXBElement&lt;GetLastCAChainResponse&gt;(_GetLastCAChainResponse_QNAME, GetLastCAChainResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetLastCertChain }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetLastCertChain }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getLastCertChain&quot;)
+    public JAXBElement&lt;GetLastCertChain&gt; createGetLastCertChain(GetLastCertChain value) {
+<span class="nc" id="L2601">        return new JAXBElement&lt;GetLastCertChain&gt;(_GetLastCertChain_QNAME, GetLastCertChain.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetLastCertChainResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetLastCertChainResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getLastCertChainResponse&quot;)
+    public JAXBElement&lt;GetLastCertChainResponse&gt; createGetLastCertChainResponse(GetLastCertChainResponse value) {
+<span class="nc" id="L2614">        return new JAXBElement&lt;GetLastCertChainResponse&gt;(_GetLastCertChainResponse_QNAME, GetLastCertChainResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetLatestCRL }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetLatestCRL }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getLatestCRL&quot;)
+    public JAXBElement&lt;GetLatestCRL&gt; createGetLatestCRL(GetLatestCRL value) {
+<span class="nc" id="L2627">        return new JAXBElement&lt;GetLatestCRL&gt;(_GetLatestCRL_QNAME, GetLatestCRL.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetLatestCRLResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetLatestCRLResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getLatestCRLResponse&quot;)
+    public JAXBElement&lt;GetLatestCRLResponse&gt; createGetLatestCRLResponse(GetLatestCRLResponse value) {
+<span class="nc" id="L2640">        return new JAXBElement&lt;GetLatestCRLResponse&gt;(_GetLatestCRLResponse_QNAME, GetLatestCRLResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetProfile }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetProfile }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getProfile&quot;)
+    public JAXBElement&lt;GetProfile&gt; createGetProfile(GetProfile value) {
+<span class="nc" id="L2653">        return new JAXBElement&lt;GetProfile&gt;(_GetProfile_QNAME, GetProfile.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetProfileResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetProfileResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getProfileResponse&quot;)
+    public JAXBElement&lt;GetProfileResponse&gt; createGetProfileResponse(GetProfileResponse value) {
+<span class="nc" id="L2666">        return new JAXBElement&lt;GetProfileResponse&gt;(_GetProfileResponse_QNAME, GetProfileResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetPublisherQueueLength }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetPublisherQueueLength }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getPublisherQueueLength&quot;)
+    public JAXBElement&lt;GetPublisherQueueLength&gt; createGetPublisherQueueLength(GetPublisherQueueLength value) {
+<span class="nc" id="L2679">        return new JAXBElement&lt;GetPublisherQueueLength&gt;(_GetPublisherQueueLength_QNAME, GetPublisherQueueLength.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetPublisherQueueLengthResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetPublisherQueueLengthResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getPublisherQueueLengthResponse&quot;)
+    public JAXBElement&lt;GetPublisherQueueLengthResponse&gt; createGetPublisherQueueLengthResponse(GetPublisherQueueLengthResponse value) {
+<span class="nc" id="L2692">        return new JAXBElement&lt;GetPublisherQueueLengthResponse&gt;(_GetPublisherQueueLengthResponse_QNAME, GetPublisherQueueLengthResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetRemainingNumberOfApprovals }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetRemainingNumberOfApprovals }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getRemainingNumberOfApprovals&quot;)
+    public JAXBElement&lt;GetRemainingNumberOfApprovals&gt; createGetRemainingNumberOfApprovals(GetRemainingNumberOfApprovals value) {
+<span class="nc" id="L2705">        return new JAXBElement&lt;GetRemainingNumberOfApprovals&gt;(_GetRemainingNumberOfApprovals_QNAME, GetRemainingNumberOfApprovals.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link GetRemainingNumberOfApprovalsResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link GetRemainingNumberOfApprovalsResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;getRemainingNumberOfApprovalsResponse&quot;)
+    public JAXBElement&lt;GetRemainingNumberOfApprovalsResponse&gt; createGetRemainingNumberOfApprovalsResponse(GetRemainingNumberOfApprovalsResponse value) {
+<span class="nc" id="L2718">        return new JAXBElement&lt;GetRemainingNumberOfApprovalsResponse&gt;(_GetRemainingNumberOfApprovalsResponse_QNAME, GetRemainingNumberOfApprovalsResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link ImportCaCert }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link ImportCaCert }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;importCaCert&quot;)
+    public JAXBElement&lt;ImportCaCert&gt; createImportCaCert(ImportCaCert value) {
+<span class="nc" id="L2731">        return new JAXBElement&lt;ImportCaCert&gt;(_ImportCaCert_QNAME, ImportCaCert.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link ImportCaCertResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link ImportCaCertResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;importCaCertResponse&quot;)
+    public JAXBElement&lt;ImportCaCertResponse&gt; createImportCaCertResponse(ImportCaCertResponse value) {
+<span class="nc" id="L2744">        return new JAXBElement&lt;ImportCaCertResponse&gt;(_ImportCaCertResponse_QNAME, ImportCaCertResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link IsApproved }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link IsApproved }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;isApproved&quot;)
+    public JAXBElement&lt;IsApproved&gt; createIsApproved(IsApproved value) {
+<span class="nc" id="L2757">        return new JAXBElement&lt;IsApproved&gt;(_IsApproved_QNAME, IsApproved.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link IsApprovedResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link IsApprovedResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;isApprovedResponse&quot;)
+    public JAXBElement&lt;IsApprovedResponse&gt; createIsApprovedResponse(IsApprovedResponse value) {
+<span class="nc" id="L2770">        return new JAXBElement&lt;IsApprovedResponse&gt;(_IsApprovedResponse_QNAME, IsApprovedResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link IsAuthorized }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link IsAuthorized }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;isAuthorized&quot;)
+    public JAXBElement&lt;IsAuthorized&gt; createIsAuthorized(IsAuthorized value) {
+<span class="nc" id="L2783">        return new JAXBElement&lt;IsAuthorized&gt;(_IsAuthorized_QNAME, IsAuthorized.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link IsAuthorizedResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link IsAuthorizedResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;isAuthorizedResponse&quot;)
+    public JAXBElement&lt;IsAuthorizedResponse&gt; createIsAuthorizedResponse(IsAuthorizedResponse value) {
+<span class="nc" id="L2796">        return new JAXBElement&lt;IsAuthorizedResponse&gt;(_IsAuthorizedResponse_QNAME, IsAuthorizedResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link KeyRecover }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link KeyRecover }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;keyRecover&quot;)
+    public JAXBElement&lt;KeyRecover&gt; createKeyRecover(KeyRecover value) {
+<span class="nc" id="L2809">        return new JAXBElement&lt;KeyRecover&gt;(_KeyRecover_QNAME, KeyRecover.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link KeyRecoverEnroll }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link KeyRecoverEnroll }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;keyRecoverEnroll&quot;)
+    public JAXBElement&lt;KeyRecoverEnroll&gt; createKeyRecoverEnroll(KeyRecoverEnroll value) {
+<span class="nc" id="L2822">        return new JAXBElement&lt;KeyRecoverEnroll&gt;(_KeyRecoverEnroll_QNAME, KeyRecoverEnroll.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link KeyRecoverEnrollResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link KeyRecoverEnrollResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;keyRecoverEnrollResponse&quot;)
+    public JAXBElement&lt;KeyRecoverEnrollResponse&gt; createKeyRecoverEnrollResponse(KeyRecoverEnrollResponse value) {
+<span class="nc" id="L2835">        return new JAXBElement&lt;KeyRecoverEnrollResponse&gt;(_KeyRecoverEnrollResponse_QNAME, KeyRecoverEnrollResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link KeyRecoverNewest }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link KeyRecoverNewest }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;keyRecoverNewest&quot;)
+    public JAXBElement&lt;KeyRecoverNewest&gt; createKeyRecoverNewest(KeyRecoverNewest value) {
+<span class="nc" id="L2848">        return new JAXBElement&lt;KeyRecoverNewest&gt;(_KeyRecoverNewest_QNAME, KeyRecoverNewest.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link KeyRecoverNewestResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link KeyRecoverNewestResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;keyRecoverNewestResponse&quot;)
+    public JAXBElement&lt;KeyRecoverNewestResponse&gt; createKeyRecoverNewestResponse(KeyRecoverNewestResponse value) {
+<span class="nc" id="L2861">        return new JAXBElement&lt;KeyRecoverNewestResponse&gt;(_KeyRecoverNewestResponse_QNAME, KeyRecoverNewestResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link KeyRecoverResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link KeyRecoverResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;keyRecoverResponse&quot;)
+    public JAXBElement&lt;KeyRecoverResponse&gt; createKeyRecoverResponse(KeyRecoverResponse value) {
+<span class="nc" id="L2874">        return new JAXBElement&lt;KeyRecoverResponse&gt;(_KeyRecoverResponse_QNAME, KeyRecoverResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link Pkcs10Request }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link Pkcs10Request }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;pkcs10Request&quot;)
+    public JAXBElement&lt;Pkcs10Request&gt; createPkcs10Request(Pkcs10Request value) {
+<span class="nc" id="L2887">        return new JAXBElement&lt;Pkcs10Request&gt;(_Pkcs10Request_QNAME, Pkcs10Request.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link Pkcs10RequestResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link Pkcs10RequestResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;pkcs10RequestResponse&quot;)
+    public JAXBElement&lt;Pkcs10RequestResponse&gt; createPkcs10RequestResponse(Pkcs10RequestResponse value) {
+<span class="nc" id="L2900">        return new JAXBElement&lt;Pkcs10RequestResponse&gt;(_Pkcs10RequestResponse_QNAME, Pkcs10RequestResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link Pkcs12Req }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link Pkcs12Req }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;pkcs12Req&quot;)
+    public JAXBElement&lt;Pkcs12Req&gt; createPkcs12Req(Pkcs12Req value) {
+<span class="nc" id="L2913">        return new JAXBElement&lt;Pkcs12Req&gt;(_Pkcs12Req_QNAME, Pkcs12Req.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link Pkcs12ReqResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link Pkcs12ReqResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;pkcs12ReqResponse&quot;)
+    public JAXBElement&lt;Pkcs12ReqResponse&gt; createPkcs12ReqResponse(Pkcs12ReqResponse value) {
+<span class="nc" id="L2926">        return new JAXBElement&lt;Pkcs12ReqResponse&gt;(_Pkcs12ReqResponse_QNAME, Pkcs12ReqResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link RemoveSubjectFromRole }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link RemoveSubjectFromRole }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;removeSubjectFromRole&quot;)
+    public JAXBElement&lt;RemoveSubjectFromRole&gt; createRemoveSubjectFromRole(RemoveSubjectFromRole value) {
+<span class="nc" id="L2939">        return new JAXBElement&lt;RemoveSubjectFromRole&gt;(_RemoveSubjectFromRole_QNAME, RemoveSubjectFromRole.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link RemoveSubjectFromRoleResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link RemoveSubjectFromRoleResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;removeSubjectFromRoleResponse&quot;)
+    public JAXBElement&lt;RemoveSubjectFromRoleResponse&gt; createRemoveSubjectFromRoleResponse(RemoveSubjectFromRoleResponse value) {
+<span class="nc" id="L2952">        return new JAXBElement&lt;RemoveSubjectFromRoleResponse&gt;(_RemoveSubjectFromRoleResponse_QNAME, RemoveSubjectFromRoleResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link RepublishCertificate }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link RepublishCertificate }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;republishCertificate&quot;)
+    public JAXBElement&lt;RepublishCertificate&gt; createRepublishCertificate(RepublishCertificate value) {
+<span class="nc" id="L2965">        return new JAXBElement&lt;RepublishCertificate&gt;(_RepublishCertificate_QNAME, RepublishCertificate.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link RepublishCertificateResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link RepublishCertificateResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;republishCertificateResponse&quot;)
+    public JAXBElement&lt;RepublishCertificateResponse&gt; createRepublishCertificateResponse(RepublishCertificateResponse value) {
+<span class="nc" id="L2978">        return new JAXBElement&lt;RepublishCertificateResponse&gt;(_RepublishCertificateResponse_QNAME, RepublishCertificateResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link RevokeCert }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link RevokeCert }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;revokeCert&quot;)
+    public JAXBElement&lt;RevokeCert&gt; createRevokeCert(RevokeCert value) {
+<span class="nc" id="L2991">        return new JAXBElement&lt;RevokeCert&gt;(_RevokeCert_QNAME, RevokeCert.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link RevokeCertBackdated }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link RevokeCertBackdated }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;revokeCertBackdated&quot;)
+    public JAXBElement&lt;RevokeCertBackdated&gt; createRevokeCertBackdated(RevokeCertBackdated value) {
+<span class="nc" id="L3004">        return new JAXBElement&lt;RevokeCertBackdated&gt;(_RevokeCertBackdated_QNAME, RevokeCertBackdated.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link RevokeCertBackdatedResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link RevokeCertBackdatedResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;revokeCertBackdatedResponse&quot;)
+    public JAXBElement&lt;RevokeCertBackdatedResponse&gt; createRevokeCertBackdatedResponse(RevokeCertBackdatedResponse value) {
+<span class="nc" id="L3017">        return new JAXBElement&lt;RevokeCertBackdatedResponse&gt;(_RevokeCertBackdatedResponse_QNAME, RevokeCertBackdatedResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link RevokeCertResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link RevokeCertResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;revokeCertResponse&quot;)
+    public JAXBElement&lt;RevokeCertResponse&gt; createRevokeCertResponse(RevokeCertResponse value) {
+<span class="nc" id="L3030">        return new JAXBElement&lt;RevokeCertResponse&gt;(_RevokeCertResponse_QNAME, RevokeCertResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link RevokeCertWithMetadata }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link RevokeCertWithMetadata }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;revokeCertWithMetadata&quot;)
+    public JAXBElement&lt;RevokeCertWithMetadata&gt; createRevokeCertWithMetadata(RevokeCertWithMetadata value) {
+<span class="nc" id="L3043">        return new JAXBElement&lt;RevokeCertWithMetadata&gt;(_RevokeCertWithMetadata_QNAME, RevokeCertWithMetadata.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link RevokeCertWithMetadataResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link RevokeCertWithMetadataResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;revokeCertWithMetadataResponse&quot;)
+    public JAXBElement&lt;RevokeCertWithMetadataResponse&gt; createRevokeCertWithMetadataResponse(RevokeCertWithMetadataResponse value) {
+<span class="nc" id="L3056">        return new JAXBElement&lt;RevokeCertWithMetadataResponse&gt;(_RevokeCertWithMetadataResponse_QNAME, RevokeCertWithMetadataResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link RevokeToken }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link RevokeToken }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;revokeToken&quot;)
+    public JAXBElement&lt;RevokeToken&gt; createRevokeToken(RevokeToken value) {
+<span class="nc" id="L3069">        return new JAXBElement&lt;RevokeToken&gt;(_RevokeToken_QNAME, RevokeToken.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link RevokeTokenResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link RevokeTokenResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;revokeTokenResponse&quot;)
+    public JAXBElement&lt;RevokeTokenResponse&gt; createRevokeTokenResponse(RevokeTokenResponse value) {
+<span class="nc" id="L3082">        return new JAXBElement&lt;RevokeTokenResponse&gt;(_RevokeTokenResponse_QNAME, RevokeTokenResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link RevokeUser }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link RevokeUser }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;revokeUser&quot;)
+    public JAXBElement&lt;RevokeUser&gt; createRevokeUser(RevokeUser value) {
+<span class="nc" id="L3095">        return new JAXBElement&lt;RevokeUser&gt;(_RevokeUser_QNAME, RevokeUser.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link RevokeUserResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link RevokeUserResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;revokeUserResponse&quot;)
+    public JAXBElement&lt;RevokeUserResponse&gt; createRevokeUserResponse(RevokeUserResponse value) {
+<span class="nc" id="L3108">        return new JAXBElement&lt;RevokeUserResponse&gt;(_RevokeUserResponse_QNAME, RevokeUserResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link RolloverCACert }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link RolloverCACert }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;rolloverCACert&quot;)
+    public JAXBElement&lt;RolloverCACert&gt; createRolloverCACert(RolloverCACert value) {
+<span class="nc" id="L3121">        return new JAXBElement&lt;RolloverCACert&gt;(_RolloverCACert_QNAME, RolloverCACert.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link RolloverCACertResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link RolloverCACertResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;rolloverCACertResponse&quot;)
+    public JAXBElement&lt;RolloverCACertResponse&gt; createRolloverCACertResponse(RolloverCACertResponse value) {
+<span class="nc" id="L3134">        return new JAXBElement&lt;RolloverCACertResponse&gt;(_RolloverCACertResponse_QNAME, RolloverCACertResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link SoftTokenRequest }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link SoftTokenRequest }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;softTokenRequest&quot;)
+    public JAXBElement&lt;SoftTokenRequest&gt; createSoftTokenRequest(SoftTokenRequest value) {
+<span class="nc" id="L3147">        return new JAXBElement&lt;SoftTokenRequest&gt;(_SoftTokenRequest_QNAME, SoftTokenRequest.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link SoftTokenRequestResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link SoftTokenRequestResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;softTokenRequestResponse&quot;)
+    public JAXBElement&lt;SoftTokenRequestResponse&gt; createSoftTokenRequestResponse(SoftTokenRequestResponse value) {
+<span class="nc" id="L3160">        return new JAXBElement&lt;SoftTokenRequestResponse&gt;(_SoftTokenRequestResponse_QNAME, SoftTokenRequestResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link SpkacRequest }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link SpkacRequest }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;spkacRequest&quot;)
+    public JAXBElement&lt;SpkacRequest&gt; createSpkacRequest(SpkacRequest value) {
+<span class="nc" id="L3173">        return new JAXBElement&lt;SpkacRequest&gt;(_SpkacRequest_QNAME, SpkacRequest.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link SpkacRequestResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link SpkacRequestResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;spkacRequestResponse&quot;)
+    public JAXBElement&lt;SpkacRequestResponse&gt; createSpkacRequestResponse(SpkacRequestResponse value) {
+<span class="nc" id="L3186">        return new JAXBElement&lt;SpkacRequestResponse&gt;(_SpkacRequestResponse_QNAME, SpkacRequestResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link UpdateCaCert }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link UpdateCaCert }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;updateCaCert&quot;)
+    public JAXBElement&lt;UpdateCaCert&gt; createUpdateCaCert(UpdateCaCert value) {
+<span class="nc" id="L3199">        return new JAXBElement&lt;UpdateCaCert&gt;(_UpdateCaCert_QNAME, UpdateCaCert.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link UpdateCaCertResponse }{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link UpdateCaCertResponse }{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;, name = &quot;updateCaCertResponse&quot;)
+    public JAXBElement&lt;UpdateCaCertResponse&gt; createUpdateCaCertResponse(UpdateCaCertResponse value) {
+<span class="nc" id="L3212">        return new JAXBElement&lt;UpdateCaCertResponse&gt;(_UpdateCaCertResponse_QNAME, UpdateCaCertResponse.class, null, value);</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link byte[]}{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link byte[]}{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;&quot;, name = &quot;arg1&quot;, scope = UpdateCaCert.class)
+    public JAXBElement&lt;byte[]&gt; createUpdateCaCertArg1(byte[] value) {
+<span class="nc" id="L3225">        return new JAXBElement&lt;byte[]&gt;(_UpdateCaCertArg1_QNAME, byte[].class, UpdateCaCert.class, ((byte[]) value));</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link byte[]}{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link byte[]}{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;&quot;, name = &quot;arg1&quot;, scope = ImportCaCert.class)
+    public JAXBElement&lt;byte[]&gt; createImportCaCertArg1(byte[] value) {
+<span class="nc" id="L3238">        return new JAXBElement&lt;byte[]&gt;(_UpdateCaCertArg1_QNAME, byte[].class, ImportCaCert.class, ((byte[]) value));</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link byte[]}{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link byte[]}{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;&quot;, name = &quot;return&quot;, scope = GetProfileResponse.class)
+    public JAXBElement&lt;byte[]&gt; createGetProfileResponseReturn(byte[] value) {
+<span class="nc" id="L3251">        return new JAXBElement&lt;byte[]&gt;(_GetProfileResponseReturn_QNAME, byte[].class, GetProfileResponse.class, ((byte[]) value));</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link byte[]}{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link byte[]}{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;&quot;, name = &quot;return&quot;, scope = GetLatestCRLResponse.class)
+    public JAXBElement&lt;byte[]&gt; createGetLatestCRLResponseReturn(byte[] value) {
+<span class="nc" id="L3264">        return new JAXBElement&lt;byte[]&gt;(_GetProfileResponseReturn_QNAME, byte[].class, GetLatestCRLResponse.class, ((byte[]) value));</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link byte[]}{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link byte[]}{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;&quot;, name = &quot;return&quot;, scope = CaRenewCertRequestResponse.class)
+    public JAXBElement&lt;byte[]&gt; createCaRenewCertRequestResponseReturn(byte[] value) {
+<span class="nc" id="L3277">        return new JAXBElement&lt;byte[]&gt;(_GetProfileResponseReturn_QNAME, byte[].class, CaRenewCertRequestResponse.class, ((byte[]) value));</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link byte[]}{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link byte[]}{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;&quot;, name = &quot;arg1&quot;, scope = CaCertResponseForRollover.class)
+    public JAXBElement&lt;byte[]&gt; createCaCertResponseForRolloverArg1(byte[] value) {
+<span class="nc" id="L3290">        return new JAXBElement&lt;byte[]&gt;(_UpdateCaCertArg1_QNAME, byte[].class, CaCertResponseForRollover.class, ((byte[]) value));</span>
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code &lt;}{@link byte[]}{@code &gt;}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code &lt;}{@link byte[]}{@code &gt;}
+     */
+    @XmlElementDecl(namespace = &quot;&quot;, name = &quot;arg1&quot;, scope = CaCertResponse.class)
+    public JAXBElement&lt;byte[]&gt; createCaCertResponseArg1(byte[] value) {
+<span class="nc" id="L3303">        return new JAXBElement&lt;byte[]&gt;(_UpdateCaCertArg1_QNAME, byte[].class, CaCertResponse.class, ((byte[]) value));</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ejbcawsracli.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA Webservices CLI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.client</a> &gt; <span class="el_source">ejbcawsracli.java</span></div><h1>ejbcawsracli.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.protocol.ws.client;
+
+import org.ejbca.core.protocol.ws.client.gen.EjbcaException;
+import org.ejbca.core.protocol.ws.client.gen.EjbcaException_Exception;
+import org.ejbca.ui.cli.ErrorAdminCommandException;
+import org.ejbca.ui.cli.IAdminCommand;
+import org.ejbca.ui.cli.IllegalAdminCommandException;
+
+/**
+ * Implements the EJBCA RA WS command line interface
+ *
+ * @version $Id: ejbcawsracli.java 28822 2018-05-03 06:37:20Z tarmo_r_helmes $
+ */
+<span class="nc" id="L27">public class ejbcawsracli  {</span>
+    /**
+     * main Client
+     *
+     * @param args command line arguments
+     */
+    public static void main(String[] args) {
+        try {
+<span class="nc" id="L35">            IAdminCommand cmd = EJBCAWSRACommandFactory.getCommand(args);</span>
+
+<span class="nc bnc" id="L37" title="All 2 branches missed.">            if (cmd != null) {</span>
+<span class="nc" id="L38">                cmd.execute();</span>
+            } else {
+<span class="nc" id="L40">                System.out.println(</span>
+                    &quot;Usage: edituser | finduser | findcerts | pkcs10req | pkcs12req | certreq | revokecert | revokecertwithmetadata | &quot; +
+                    &quot;getpublisherqueuelength | revoketoken | revokeuser | checkrevocationstatus | generatenewuser | &quot; +
+                    &quot;createcrl | cacertrequest | cacertresponse | customlog | getprofile | createcryptotoken | &quot; + 
+                    &quot;generatectkeys | createca | importcacert | updatecacert | addadmintorole | removeadminfromrole | getexpiredcerts | &quot; +
+                    &quot;getexpiredcertsbyissuer | getexpiredcertsbytype | stress | keyrecover | keyrecoverenroll&quot;);
+            }
+<span class="nc" id="L47">        } catch (ErrorAdminCommandException e) {</span>
+<span class="nc" id="L48">            final Throwable cause = e.getCause();</span>
+<span class="nc bnc" id="L49" title="All 4 branches missed.">            if ( Thread.currentThread().getStackTrace().length &gt; 12 &amp;&amp; cause instanceof SecurityException ) {</span>
+<span class="nc" id="L50">                throw (SecurityException)cause; // throw it if called by clientToolBoxTest and exit exception. clientToolBox call has a length of 8. 12 gives some margin for code changes.</span>
+            }
+<span class="nc bnc" id="L52" title="All 2 branches missed.">            if (cause instanceof EjbcaException_Exception) {</span>
+<span class="nc" id="L53">                final EjbcaException_Exception ejbcaex = (EjbcaException_Exception)cause;</span>
+<span class="nc" id="L54">                final EjbcaException ee = ejbcaex.getFaultInfo();</span>
+<span class="nc" id="L55">                System.out.println(&quot;Error: &quot;+ee.getErrorCode().getInternalErrorCode()+&quot;: &quot;+ee.getMessage());</span>
+<span class="nc" id="L56">            } else {</span>
+<span class="nc" id="L57">                System.out.println(e.getMessage());</span>
+            }
+<span class="nc" id="L59">            e.printStackTrace(System.err);</span>
+<span class="nc" id="L60">            System.exit(-1); // NOPMD, this is not a JEE app</span>
+<span class="nc" id="L61">        } catch (IllegalAdminCommandException e) {</span>
+<span class="nc" id="L62">            System.out.println(e.getMessage());</span>
+<span class="nc" id="L63">            System.exit(-2); // NOPMD, this is not a JEE app</span>
+<span class="nc" id="L64">        }</span>
+<span class="nc" id="L65">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

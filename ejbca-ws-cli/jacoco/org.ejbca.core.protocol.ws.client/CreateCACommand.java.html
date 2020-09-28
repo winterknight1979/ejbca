@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CreateCACommand.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA Webservices CLI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.client</a> &gt; <span class="el_source">CreateCACommand.java</span></div><h1>CreateCACommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.ws.client;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Properties;
+
+import org.apache.commons.lang.StringUtils;
+import org.cesecore.certificates.util.AlgorithmConstants;
+import org.ejbca.core.protocol.ws.client.gen.EjbcaException_Exception;
+import org.ejbca.ui.cli.ErrorAdminCommandException;
+import org.ejbca.ui.cli.IAdminCommand;
+import org.ejbca.ui.cli.IllegalAdminCommandException;
+import org.ejbca.core.protocol.ws.client.gen.KeyValuePair;
+
+
+/**
+ * Creates new CA
+ *
+ * @version $Id: CreateCACommand.java 26057 2017-06-22 08:08:34Z anatom $
+ */
+public class CreateCACommand extends EJBCAWSRABaseCommand implements IAdminCommand{
+
+    private static final int ARG_CANAME                     = 1;
+    private static final int ARG_CADN                       = 2;
+    private static final int ARG_CATYPE                     = 3;
+    private static final int ARG_VALIDITY_IN_DAYS           = 4;
+    private static final int ARG_CERT_PROFILE               = 5;
+    private static final int ARG_SIGN_ALG                   = 6;
+    private static final int ARG_SIGNED_BY_CAID             = 7;
+    private static final int ARG_CRYPTOTOKEN_NAME           = 8;
+    private static final int ARG_PURPOSE_KEY_MAPPING_PATH   = 9;
+    private static final int ARG_CA_PROPERTIES_PATH         = 10;
+    
+    /**
+     * Creates a new instance of Command
+     *
+     * @param args command line arguments
+     */
+    public CreateCACommand(String[] args) {
+<span class="nc" id="L55">        super(args);</span>
+<span class="nc" id="L56">    }</span>
+
+    /**
+     * Runs the command
+     *
+     * @throws IllegalAdminCommandException Error in command args
+     * @throws ErrorAdminCommandException Error running command
+     */
+    public void execute() throws IllegalAdminCommandException, ErrorAdminCommandException {
+        try {   
+<span class="nc bnc" id="L66" title="All 2 branches missed.">            if (args.length &lt; 10 ) {</span>
+<span class="nc" id="L67">                getPrintStream().println(&quot;Error. Too few arguments: &quot;+args.length);</span>
+<span class="nc" id="L68">                usage();</span>
+<span class="nc" id="L69">                System.exit(-1); // NOPMD, this is not a JEE app</span>
+            }
+
+<span class="nc" id="L72">            String caname = args[ARG_CANAME];</span>
+<span class="nc" id="L73">            String cadn = args[ARG_CADN];</span>
+<span class="nc" id="L74">            String catype = args[ARG_CATYPE];</span>
+<span class="nc" id="L75">            String validityString = args[ARG_VALIDITY_IN_DAYS];</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">            String certprofile = StringUtils.equalsIgnoreCase(args[ARG_CERT_PROFILE], &quot;null&quot;)? null : args[ARG_CERT_PROFILE];</span>
+<span class="nc" id="L77">            String signalg = args[ARG_SIGN_ALG];</span>
+<span class="nc" id="L78">            int signedByCAId = Integer.parseInt(args[ARG_SIGNED_BY_CAID]);</span>
+<span class="nc" id="L79">            String cryptotokenName = args[ARG_CRYPTOTOKEN_NAME];</span>
+
+<span class="nc" id="L81">            Properties mapping = new Properties();</span>
+<span class="nc" id="L82">            mapping.load(new FileInputStream(new File(args[ARG_PURPOSE_KEY_MAPPING_PATH])));</span>
+<span class="nc" id="L83">            ArrayList&lt;KeyValuePair&gt; purposeKeyMapping = getKeyValuePairListFromProperties(mapping);</span>
+            
+<span class="nc" id="L85">            ArrayList&lt;KeyValuePair&gt; caproperties = new ArrayList&lt;KeyValuePair&gt;();</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">            if(args.length &gt; 10) {</span>
+<span class="nc" id="L87">                Properties props = new Properties();</span>
+<span class="nc" id="L88">                props.load(new FileInputStream(new File(args[ARG_CA_PROPERTIES_PATH])));</span>
+<span class="nc" id="L89">                caproperties = getKeyValuePairListFromProperties(props);</span>
+            }
+                        
+<span class="nc" id="L92">            final long validityInDays = Long.valueOf(validityString);</span>
+<span class="nc" id="L93">            getEjbcaRAWS().createCA(caname, cadn, catype, validityInDays, certprofile, signalg, signedByCAId, cryptotokenName, </span>
+                    purposeKeyMapping, caproperties);
+<span class="nc" id="L95">            getPrintStream().println(&quot;Create new CA: &quot; + caname);</span>
+<span class="nc" id="L96">        } catch (Exception e) {</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">            if (e instanceof EjbcaException_Exception) {</span>
+<span class="nc" id="L98">                EjbcaException_Exception e1 = (EjbcaException_Exception)e;</span>
+<span class="nc" id="L99">                getPrintStream().println(&quot;Error code: &quot; + e1.getFaultInfo().getErrorCode().getInternalErrorCode());</span>
+            }
+<span class="nc" id="L101">            ErrorAdminCommandException adminexp = new ErrorAdminCommandException(e);</span>
+<span class="nc" id="L102">            getPrintStream().println(&quot;Error message: &quot; + adminexp.getLocalizedMessage());</span>
+<span class="nc" id="L103">        }</span>
+        
+<span class="nc" id="L105">    }</span>
+
+    protected void usage() {
+<span class="nc" id="L108">        getPrintStream().println(&quot;Command used to create a new CA with a specific existing cryptotoken&quot;);</span>
+<span class="nc" id="L109">        getPrintStream().println(&quot;Usage : createca &lt;caname&gt; &lt;cadn&gt; &lt;catype&gt; &lt;validity&gt; &lt;certprofile&gt; &lt;signalg&gt; &lt;signedByCAID&gt; &quot; +</span>
+        		&quot;&lt;cryptotokenName&gt; &lt;pathToKeyPurposeMappingFile&gt; [&lt;pathToCAPropertiesFile&gt;]&quot;);
+<span class="nc" id="L111">        getPrintStream().println();</span>
+<span class="nc" id="L112">        getPrintStream().println(&quot;'caname' is the name of the CA&quot;);</span>
+<span class="nc" id="L113">        getPrintStream().println(&quot;'cadn' is the subjectDN av the CA&quot;);</span>
+<span class="nc" id="L114">        getPrintStream().println(&quot;'catype' can be either 'x509' or 'cvc'.&quot;);</span>
+<span class="nc" id="L115">        getPrintStream().println(&quot;'validity' is the validity of the CA in days&quot;);</span>
+<span class="nc" id="L116">        getPrintStream().println(&quot;'certprofile' the certificate profile that should be used when issueing the CA certificate instead of the default profiles ROOTCA or SUBCA. Use 'null' for default profiles.&quot;);</span>
+        
+<span class="nc" id="L118">        StringBuilder availableSignAlgs = new StringBuilder();</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        for (String algorithm : AlgorithmConstants.AVAILABLE_SIGALGS) {</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">            availableSignAlgs.append((availableSignAlgs.length() == 0 ? &quot;&quot; : &quot;, &quot;) + algorithm);</span>
+        }
+<span class="nc" id="L122">        getPrintStream().println(&quot;'signalg' can be any of: &quot; + availableSignAlgs);</span>
+<span class="nc" id="L123">        getPrintStream().println(&quot;'signedByCAID' is the ID of a CA that will sign this CA. Use '1' for self signed CA (i.e. a root CA). CAs created using the WS cannot be signed by external CAs&quot;);</span>
+<span class="nc" id="L124">        getPrintStream().println(&quot;'cryptotokenName' is the name of the cryptotoken associated with the CA&quot;);</span>
+<span class="nc" id="L125">        getPrintStream().println(&quot;'pathToKeyPurposeMappingFile' is the path to a .properties file containing the mapping of the cryptotoken keys and their purpose&quot;);</span>
+<span class="nc" id="L126">        getPrintStream().println(&quot;'pathToCAPropertiesFile' is the path to a .properties file containing additional CA properties. Optional&quot;);</span>
+<span class="nc" id="L127">        getPrintStream().println();</span>
+<span class="nc" id="L128">        getPrintStream().println(&quot;Please note that the policy ID is specified in the properties file containing additional properties with the property key 'policyid'.&quot;);</span>
+<span class="nc" id="L129">        getPrintStream().println(&quot;The policy ID can be 'null' if no Certificate Policy extension should be present, or\nobjectID as '2.5.29.32.0' or objectID and cpsurl &quot;</span>
+                + &quot;as \&quot;2.5.29.32.0 http://foo.bar.com/mycps.txt\&quot;. You can add multiple policies such as &quot;
+                + &quot;\&quot;2.5.29.32.0 http://foo.bar.com/mycps.txt 1.1.1.1.1 http://foo.bar.com/111cps.txt\&quot;.&quot;);
+<span class="nc" id="L132">    }</span>
+    
+    private ArrayList&lt;KeyValuePair&gt; getKeyValuePairListFromProperties(Properties properties) {
+<span class="nc" id="L135">        ArrayList&lt;KeyValuePair&gt; kvlist = new ArrayList&lt;KeyValuePair&gt;();</span>
+<span class="nc" id="L136">        Iterator&lt;Object&gt; itr = properties.keySet().iterator();</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">        while(itr.hasNext()) {</span>
+<span class="nc" id="L138">            String key = (String) itr.next();</span>
+<span class="nc" id="L139">            KeyValuePair kvp = new KeyValuePair();</span>
+<span class="nc" id="L140">            kvp.setKey(key);</span>
+<span class="nc" id="L141">            kvp.setValue(properties.getProperty(key));</span>
+<span class="nc" id="L142">            kvlist.add(kvp);</span>
+<span class="nc" id="L143">        }</span>
+<span class="nc" id="L144">        return kvlist;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

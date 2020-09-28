@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EJBCAWSRACommandFactory.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA Webservices CLI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.client</a> &gt; <span class="el_source">EJBCAWSRACommandFactory.java</span></div><h1>EJBCAWSRACommandFactory.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.protocol.ws.client;
+
+import org.ejbca.ui.cli.IAdminCommand;
+
+/**
+ * Factory for EJBCA WS RA Admin Commands.
+ *
+ * @version $Id: EJBCAWSRACommandFactory.java 28786 2018-04-27 10:06:36Z tarmo_r_helmes $
+ */
+public class EJBCAWSRACommandFactory {
+    /**
+     * Cannot create an instance of this class, only use static methods.
+     */
+    private EJBCAWSRACommandFactory() {
+    }
+
+    /**
+     * Returns an Admin Command object based on contents in args[0].
+     *
+     * @param args array of arguments typically passed from main().
+     *
+     * @return Command object or null if args[0] does not specify a valid command.
+     */
+    public static IAdminCommand getCommand(String[] args) {
+<span class="nc bnc" id="L38" title="All 2 branches missed.">        if (args.length &lt; 1) {</span>
+<span class="nc" id="L39">            return null;</span>
+        }        
+        
+<span class="nc bnc" id="L42" title="All 2 branches missed.">        if (args[0].equals(&quot;edituser&quot;)) {</span>
+<span class="nc" id="L43">            return new EditUserCommand(args);</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        }else if (args[0].equals(&quot;finduser&quot;)) {</span>
+<span class="nc" id="L45">            return new FindUserCommand(args);</span>
+<span class="nc bnc" id="L46" title="All 2 branches missed.">        }else if (args[0].equals(&quot;findcerts&quot;)) {</span>
+<span class="nc" id="L47">            return new FindCertsCommand(args);</span>
+<span class="nc bnc" id="L48" title="All 2 branches missed.">        }else if (args[0].equals(&quot;getprofile&quot;)) {</span>
+<span class="nc" id="L49">            return new GetProfileCommand(args);</span>
+<span class="nc bnc" id="L50" title="All 2 branches missed.">        }else if (args[0].equals(&quot;pkcs10req&quot;)) {</span>
+<span class="nc" id="L51">            return new PKCS10ReqCommand(args);</span>
+<span class="nc bnc" id="L52" title="All 2 branches missed.">        } else if (args[0].equals(&quot;pkcs12req&quot;)) {</span>
+<span class="nc" id="L53">            return new PKCS12ReqCommand(args);</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        } else if (args[0].equals(&quot;certreq&quot;)) {</span>
+<span class="nc" id="L55">            return new CertificateRequestCommand(args);</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">        } else if (args[0].equals(&quot;revokecert&quot;)) {</span>
+<span class="nc" id="L57">            return new RevokeCertCommand(args);</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">        } else if (args[0].equals(&quot;revokecertwithmetadata&quot;)) {</span>
+<span class="nc" id="L59">            return new RevokeCertWithMetadataCommand(args);</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        } else if (args[0].equals(&quot;getpublisherqueuelength&quot;)) {</span>
+<span class="nc" id="L61">            return new GetPublisherQueueLength(args);</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        } else if (args[0].equals(&quot;revoketoken&quot;)) {</span>
+<span class="nc" id="L63">            return new RevokeTokenCommand(args);</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">        } else if (args[0].equals(&quot;revokeuser&quot;)) {</span>
+<span class="nc" id="L65">            return new RevokeUserCommand(args);</span>
+<span class="nc bnc" id="L66" title="All 4 branches missed.">        } else if (args[0].equals(&quot;checkrevokationstatus&quot;) || args[0].equals(&quot;checkrevocationstatus&quot;)) {</span>
+<span class="nc" id="L67">            return new CheckRevokeStatusCommand(args);</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">        }else if (args[0].equals(&quot;generatenewuser&quot;)) {</span>
+<span class="nc" id="L69">            return new GenerateNewUserCommand(args);        </span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        }else if (args[0].equals(&quot;createcrl&quot;)) {</span>
+<span class="nc" id="L71">            return new CreateCRLCommand(args);        </span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">        } else if (args[0].equals(&quot;cacertrequest&quot;)) {</span>
+<span class="nc" id="L73">            return new CaCertRequestCommand(args);</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        } else if (args[0].equals(&quot;cacertresponse&quot;)) {</span>
+<span class="nc" id="L75">            return new CaCertResponseCommand(args);</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        } else if (args[0].equals(&quot;customlog&quot;)) {</span>
+<span class="nc" id="L77">            return new CustomLogCommand(args);</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        } else if (args[0].equals(&quot;stress&quot;)) {</span>
+<span class="nc" id="L79">            return new StressTestCommand(args);</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        } else if (args[0].equals(&quot;cvcgetchain&quot;)) {</span>
+<span class="nc" id="L81">            return new CvcGetChainCommand(args);</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">        } else if (args[0].equals(&quot;cvcrequest&quot;)) {</span>
+<span class="nc" id="L83">            return new CvcRequestCommand(args);</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        } else if (args[0].equals(&quot;cvcprint&quot;)) {</span>
+<span class="nc" id="L85">            return new CvcPrintCommand(args);</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        } else if (args[0].equals(&quot;cvcpem&quot;)) {</span>
+<span class="nc" id="L87">            return new CvcPemCommand(args);</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        } else if (args[0].equals(&quot;createcryptotoken&quot;)) {</span>
+<span class="nc" id="L89">            return new CreateCryptoTokenCommand(args);</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        } else if (args[0].equals(&quot;generatectkeys&quot;)) {</span>
+<span class="nc" id="L91">            return new GenerateCryptoTokenKeysCommand(args);</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        } else if (args[0].equals(&quot;createca&quot;)) {</span>
+<span class="nc" id="L93">            return new CreateCACommand(args);</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">        } else if (args[0].equals(&quot;importcacert&quot;)) {</span>
+<span class="nc" id="L95">           return new ImportCaCertCommand(args);</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">        }  else if (args[0].equals(&quot;updatecacert&quot;)) {</span>
+<span class="nc" id="L97">            return new UpdateCaCertCommand(args);</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        } else if (args[0].equals(&quot;addadmintorole&quot;)) {</span>
+<span class="nc" id="L99">            return new AddSubjectToRoleCommand(args);</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        } else if (args[0].equals(&quot;removeadminfromrole&quot;)) {</span>
+<span class="nc" id="L101">            return new RemoveSubjectFromRoleCommand(args);</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">        } else if (args[0].equals(&quot;getexpiredcerts&quot;)) {</span>
+<span class="nc" id="L103">            return new GetExpiredCertificatesCommand(args);</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        } else if (args[0].equals(&quot;getexpiredcertsbyissuer&quot;)) {</span>
+<span class="nc" id="L105">            return new GetExpiredCertificatesByIssuerCommand(args);</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        } else if (args[0].equals(&quot;getexpiredcertsbytype&quot;)) {</span>
+<span class="nc" id="L107">            return new GetExpiredCertificatesByTypeCommand(args);</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        } else if (args[0].equals(&quot;keyrecover&quot;)) {</span>
+<span class="nc" id="L109">            return new KeyRecoverCommand(args);</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        } else if (args[0].equals(&quot;keyrecoverenroll&quot;)) {</span>
+<span class="nc" id="L111">            return new KeyRecoverEnrollCommand(args);</span>
+        }
+        
+        else {
+<span class="nc" id="L115">            return null;</span>
+        }
+    }
+
+    // getCommand
+}
+
+
+// RaAdminCommandFactory
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

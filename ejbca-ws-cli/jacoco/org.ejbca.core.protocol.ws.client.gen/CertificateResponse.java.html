@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CertificateResponse.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA Webservices CLI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.client.gen</a> &gt; <span class="el_source">CertificateResponse.java</span></div><h1>CertificateResponse.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.protocol.ws.client.gen;
+
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+
+/**
+ * Holds certificate WS response data 
+ *
+ * @version $Id: CertificateResponse.java 22553 2016-01-11 13:06:46Z mikekushner $
+ */
+public class CertificateResponse  {
+	
+	private String responseType;
+<span class="nc" id="L29">	private byte[] data = null;</span>
+	
+	/**
+	 * WS Constructor
+	 */
+<span class="nc" id="L34">	public CertificateResponse(){</span>
+		
+<span class="nc" id="L36">	}</span>
+
+	/**
+	 * Main constructor.
+	 * @param responseType one of the CertificateHelper.RESPONSETYPE_ constants
+	 * @param data non-base64 encoded 
+	 */
+<span class="nc" id="L43">	public CertificateResponse(String responseType, byte[] data) {</span>
+<span class="nc" id="L44">		this.data = Base64.encode(data);</span>
+<span class="nc" id="L45">		this.responseType = responseType;</span>
+<span class="nc" id="L46">	}</span>
+	
+	/**
+	 * @return responseType one of CertificateHelper.RESPONSETYPE_ constants
+	 */
+	public String getResponseType() {
+<span class="nc" id="L52">		return responseType;</span>
+	}
+
+	/**
+	 * @param responseType one of CertificateHelper.RESPONSETYPE_ constants
+	 */
+	public void setResponseType(String responseType) {
+<span class="nc" id="L59">		this.responseType = responseType;</span>
+<span class="nc" id="L60">	}</span>
+	
+    /**
+     * Returns Base64 encoded data
+     * @return the data, Base64 encoded
+     * 
+     */
+	public byte[] getData() {
+<span class="nc" id="L68">		return data;</span>
+	}
+
+    /**
+     * Sets Base64 encode data
+     * @param data of the type set in responseType, should be Base64 encoded
+     * 
+     */	
+	public void setData(byte[] data) {
+<span class="nc" id="L77">		this.data = data;</span>
+<span class="nc" id="L78">	}</span>
+
+	/**
+	 * Returns a certificate from the data in the WS response.
+	 * @return X.509
+	 * @throws CertificateException fail
+	 */
+	public X509Certificate getCertificate() throws CertificateException{
+<span class="nc" id="L86">        return CertTools.getCertfromByteArray(getRawData(), X509Certificate.class); </span>
+	}
+	
+	/**
+	 * Returns raw PKCS #7 or X509 data instead of the Base64 contained in
+	 * the WS response
+	 * @return fail
+	 */
+	public byte[] getRawData() {
+<span class="nc" id="L95">		return Base64.decode(data);</span>
+	}
+	
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

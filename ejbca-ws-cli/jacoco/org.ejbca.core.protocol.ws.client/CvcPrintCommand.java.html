@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CvcPrintCommand.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA Webservices CLI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.client</a> &gt; <span class="el_source">CvcPrintCommand.java</span></div><h1>CvcPrintCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.ws.client;
+
+import java.io.IOException;
+import java.security.PublicKey;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.util.Collection;
+
+import org.cesecore.certificates.certificate.request.RequestMessageUtils;
+import org.cesecore.keys.util.KeyTools;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.FileTools;
+import org.ejbca.cvc.CVCAuthenticatedRequest;
+import org.ejbca.cvc.CVCObject;
+import org.ejbca.cvc.CVCertificate;
+import org.ejbca.cvc.CardVerifiableCertificate;
+import org.ejbca.cvc.CertificateParser;
+import org.ejbca.cvc.exception.CvcException;
+import org.ejbca.ui.cli.ErrorAdminCommandException;
+import org.ejbca.ui.cli.IAdminCommand;
+import org.ejbca.ui.cli.IllegalAdminCommandException;
+
+
+/**
+ * Pretty prints a CV Certificate or certificate request
+ *
+ * @version $Id: CvcPrintCommand.java 22553 2016-01-11 13:06:46Z mikekushner $
+ */
+public class CvcPrintCommand extends EJBCAWSRABaseCommand implements IAdminCommand{
+
+
+	/**
+	 * @param args command line arguments
+	 */
+	public CvcPrintCommand(String[] args) {
+<span class="nc" id="L50">		super(args);</span>
+<span class="nc" id="L51">	}</span>
+
+	/**
+	 * Runs the command
+	 *
+	 * @throws IllegalAdminCommandException Error in command args
+	 * @throws ErrorAdminCommandException Error running command
+	 */
+	public void execute() throws IllegalAdminCommandException, ErrorAdminCommandException {
+
+		try {   
+<span class="nc bnc" id="L62" title="All 4 branches missed.">			if(args.length &lt; 2 || args.length &gt; 4){</span>
+<span class="nc" id="L63">				usage();</span>
+<span class="nc" id="L64">				System.exit(-1); // NOPMD, this is not a JEE app</span>
+			}
+<span class="nc" id="L66">			CryptoProviderTools.installBCProvider();</span>
+<span class="nc" id="L67">			String filename = args[1];</span>
+<span class="nc" id="L68">			getPrintStream().println(&quot;Printing CV Certificate: &quot;+filename);</span>
+			// Read file to a buffer and use the toString functions in the cvc-lib
+<span class="nc" id="L70">			CVCObject parsedObject = getCVCObject(filename);</span>
+<span class="nc" id="L71">			getPrintStream().println(parsedObject.getAsText(&quot;&quot;));</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">			if (args.length &gt; 2) {</span>
+<span class="nc" id="L73">				String verifycert = args[2];</span>
+<span class="nc" id="L74">				String type = &quot;certificate&quot;;</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">				if (parsedObject instanceof CVCAuthenticatedRequest) {</span>
+<span class="nc" id="L76">					type = &quot;authenticated request&quot;;</span>
+				}
+<span class="nc" id="L78">				getPrintStream().println(&quot;Verifying &quot;+type+&quot; &quot;+filename+&quot; with certificate &quot;+verifycert);</span>
+<span class="nc" id="L79">				CVCObject parsedVerifyObject = getCVCObject(verifycert);</span>
+<span class="nc" id="L80">				CVCertificate cert2 = (CVCertificate)parsedVerifyObject;</span>
+<span class="nc" id="L81">				PublicKey pk = cert2.getCertificateBody().getPublicKey();</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">				if (args.length &gt; 3) {</span>
+					// we have an additional curve name
+<span class="nc" id="L84">					String cvcacert = args[3];</span>
+<span class="nc" id="L85">					getPrintStream().println(&quot;Using CVCA certificate &quot;+cvcacert+&quot; for EC parameters.&quot;);</span>
+<span class="nc" id="L86">					CVCObject parsedCvcaObject = getCVCObject(cvcacert);</span>
+<span class="nc" id="L87">					CVCertificate cvca = (CVCertificate)parsedCvcaObject;</span>
+<span class="nc" id="L88">					pk = KeyTools.getECPublicKeyWithParams(pk, cvca.getCertificateBody().getPublicKey());</span>
+				}
+				try {
+<span class="nc bnc" id="L91" title="All 2 branches missed.">					if (parsedObject instanceof CVCAuthenticatedRequest) {</span>
+<span class="nc" id="L92">						CVCAuthenticatedRequest authreq = (CVCAuthenticatedRequest)parsedObject;</span>
+<span class="nc" id="L93">						authreq.verify(pk);											</span>
+<span class="nc" id="L94">					} else {</span>
+<span class="nc" id="L95">						CVCertificate cert1 = (CVCertificate)parsedObject;</span>
+<span class="nc" id="L96">						CardVerifiableCertificate cvcert = new CardVerifiableCertificate(cert1);</span>
+<span class="nc" id="L97">						cvcert.verify(pk);											</span>
+					}
+<span class="nc" id="L99">					getPrintStream().println(&quot;Verification of certificate was successful&quot;);</span>
+<span class="nc" id="L100">				} catch (Exception e) {</span>
+<span class="nc" id="L101">					getPrintStream().println(&quot;Verification of certificate failed: &quot;+e.getMessage());</span>
+<span class="nc" id="L102">				}</span>
+			}
+<span class="nc" id="L104">		} catch (Exception e) {</span>
+<span class="nc" id="L105">			throw new ErrorAdminCommandException(e);</span>
+<span class="nc" id="L106">		}</span>
+<span class="nc" id="L107">	}</span>
+
+	protected static CVCObject getCVCObject(String filename) throws IOException, CvcException, CertificateException {
+<span class="nc" id="L110">		CVCObject ret = null;</span>
+		try {
+<span class="nc" id="L112">			byte[] cvcdata = FileTools.readFiletoBuffer(filename);				</span>
+<span class="nc" id="L113">			ret = CertificateParser.parseCVCObject(cvcdata);</span>
+<span class="nc" id="L114">		} catch (Exception e) {</span>
+			try {
+				// this was not parseable, try to see it it was a PEM certificate
+<span class="nc" id="L117">				Collection&lt;Certificate&gt; col = CertTools.getCertsFromPEM(filename, Certificate.class);</span>
+<span class="nc" id="L118">				Certificate cert = (Certificate)col.iterator().next();</span>
+<span class="nc" id="L119">	        	ret = CertificateParser.parseCVCObject(cert.getEncoded());			</span>
+<span class="nc" id="L120">			} catch (Exception ie) {</span>
+				// this was not a PEM cert, try to see it it was a PEM certificate req
+<span class="nc" id="L122">				byte[] cvcdata = FileTools.readFiletoBuffer(filename);				</span>
+<span class="nc" id="L123">				byte[] req = RequestMessageUtils.getRequestBytes(cvcdata);</span>
+<span class="nc" id="L124">				ret = CertificateParser.parseCVCObject(req);</span>
+<span class="nc" id="L125">			}</span>
+<span class="nc" id="L126">		}</span>
+<span class="nc" id="L127">		return ret;</span>
+	}
+
+	protected void usage() {
+<span class="nc" id="L131">		getPrintStream().println(&quot;Command used to pretty print a CVC certificate or request.&quot;);</span>
+<span class="nc" id="L132">		getPrintStream().println(&quot;Usage : cvcprint &lt;filename&gt; [verifycert] [CVCA-certificate for EC params]\n\n&quot;);</span>
+<span class="nc" id="L133">		getPrintStream().println(&quot;If adding the optional parameter verifycert the program tries to verify a certifcate given as filename with the certificate given as verifycert.&quot;);</span>
+<span class="nc" id="L134">		getPrintStream().println(&quot;If verifying an IS cert with a DV cert no curve parameters exist in the public key in the certificate, you can therefore add the CVCA certificate to complete the public key.&quot;);</span>
+<span class="nc" id="L135">	}</span>
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

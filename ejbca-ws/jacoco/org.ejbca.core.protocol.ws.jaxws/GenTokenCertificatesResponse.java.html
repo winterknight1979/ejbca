@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GenTokenCertificatesResponse.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA Webservices Webapp</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.jaxws</a> &gt; <span class="el_source">GenTokenCertificatesResponse.java</span></div><h1>GenTokenCertificatesResponse.java</h1><pre class="source lang-java linenums">
+package org.ejbca.core.protocol.ws.jaxws;
+
+import java.util.List;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+import org.ejbca.core.protocol.ws.objects.TokenCertificateResponseWS;
+
+@XmlRootElement(name = &quot;genTokenCertificatesResponse&quot;, namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;)
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(name = &quot;genTokenCertificatesResponse&quot;, namespace = &quot;http://ws.protocol.core.ejbca.org/&quot;)
+<span class="nc" id="L15">public class GenTokenCertificatesResponse {</span>
+
+    @XmlElement(name = &quot;return&quot;, namespace = &quot;&quot;)
+    private List&lt;TokenCertificateResponseWS&gt; _return;
+
+    /**
+     * 
+     * @return
+     *     returns List&amp;lt;TokenCertificateResponseWS&amp;gt;
+     */
+    public List&lt;TokenCertificateResponseWS&gt; getReturn() {
+<span class="nc" id="L26">        return this._return;</span>
+    }
+
+    /**
+     * 
+     * @param _return
+     *     the value for the _return property
+     */
+    public void setReturn(List&lt;TokenCertificateResponseWS&gt; _return) {
+<span class="nc" id="L35">        this._return = _return;</span>
+<span class="nc" id="L36">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

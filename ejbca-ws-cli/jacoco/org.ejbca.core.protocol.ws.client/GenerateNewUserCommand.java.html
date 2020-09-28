@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GenerateNewUserCommand.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA Webservices CLI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.client</a> &gt; <span class="el_source">GenerateNewUserCommand.java</span></div><h1>GenerateNewUserCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.protocol.ws.client;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityType;
+import org.cesecore.certificates.endentity.EndEntityTypes;
+import org.cesecore.util.CertTools;
+import org.ejbca.core.protocol.ws.client.gen.AuthorizationDeniedException_Exception;
+import org.ejbca.core.protocol.ws.client.gen.CertificateResponse;
+import org.ejbca.core.protocol.ws.client.gen.ExtendedInformationWS;
+import org.ejbca.core.protocol.ws.client.gen.UserDataVOWS;
+import org.ejbca.core.protocol.ws.client.gen.UserDoesntFullfillEndEntityProfile_Exception;
+import org.ejbca.core.protocol.ws.common.CertificateHelper;
+import org.ejbca.ui.cli.ErrorAdminCommandException;
+import org.ejbca.ui.cli.IAdminCommand;
+import org.ejbca.ui.cli.IllegalAdminCommandException;
+
+/**
+ * Adds a user to the database.
+ *
+ * @version $Id: GenerateNewUserCommand.java 28409 2018-03-01 10:31:05Z anatom $
+ */
+public class GenerateNewUserCommand extends EJBCAWSRABaseCommand implements IAdminCommand{
+
+	
+	private static final int ARG_USERNAME           = 1;
+	private static final int ARG_PASSWORD           = 2;
+	private static final int ARG_CLEARPWD           = 3;
+	private static final int ARG_SUBJECTDN          = 4;
+	private static final int ARG_SUBJECTALTNAME     = 5;
+	private static final int ARG_EMAIL              = 6;
+	private static final int ARG_CA                 = 7;
+	private static final int ARG_TYPE               = 8;
+	private static final int ARG_TOKEN              = 9;
+	private static final int ARG_STATUS             = 10;
+	private static final int ARG_ENDENTITYPROFILE   = 11;
+	private static final int ARG_CERTIFICATEPROFILE = 12;
+	private static final int ARG_ISSUERALIAS        = 13;
+	private static final int ARG_PKCS10             = 14;
+	private static final int ARG_ENCODING           = 15;
+	private static final int ARG_HARDTOKENSN        = 16;
+	private static final int ARG_OUTPUTPATH         = 17;
+
+	private static final int NR_OF_MANDATORY_ARGS = ARG_HARDTOKENSN+1;
+	private static final int MAX_NR_OF_ARGS = ARG_OUTPUTPATH+1;
+
+    public GenerateNewUserCommand(String[] args) {
+<span class="nc" id="L69">        super(args);</span>
+<span class="nc" id="L70">    }</span>
+
+    /**
+     * Runs the command
+     *
+     * @throws IllegalAdminCommandException Error in command args
+     * @throws ErrorAdminCommandException Error running command
+     */
+    public void execute() throws IllegalAdminCommandException, ErrorAdminCommandException {
+
+<span class="nc" id="L80">    	final UserDataVOWS userdata = new UserDataVOWS();</span>
+<span class="nc" id="L81">    	final String[] myArgs = ParseUserData.getDataFromArgs(this.args, userdata, getPrintStream());</span>
+<span class="nc bnc" id="L82" title="All 4 branches missed.">    	if(myArgs.length &lt; NR_OF_MANDATORY_ARGS || myArgs.length &gt; MAX_NR_OF_ARGS){</span>
+<span class="nc" id="L83">    		usage();</span>
+<span class="nc" id="L84">    		System.exit(-1); // NOPMD, it's not a JEE app</span>
+    	}
+
+    	try {
+<span class="nc" id="L88">            userdata.setUsername(myArgs[ARG_USERNAME]);</span>
+<span class="nc" id="L89">            userdata.setPassword(myArgs[ARG_PASSWORD]);</span>
+<span class="nc" id="L90">            userdata.setClearPwd(myArgs[ARG_CLEARPWD].equalsIgnoreCase(&quot;true&quot;));</span>
+<span class="nc" id="L91">            userdata.setSubjectDN(myArgs[ARG_SUBJECTDN]);</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">            if(!myArgs[ARG_SUBJECTALTNAME].equalsIgnoreCase(&quot;NULL&quot;)){                        </span>
+<span class="nc" id="L93">            	userdata.setSubjectAltName(myArgs[ARG_SUBJECTALTNAME]);</span>
+            }
+<span class="nc bnc" id="L95" title="All 2 branches missed.">            if(!myArgs[ARG_EMAIL].equalsIgnoreCase(&quot;NULL&quot;)){</span>
+<span class="nc" id="L96">            	userdata.setEmail(myArgs[ARG_EMAIL]);</span>
+            }
+<span class="nc" id="L98">            userdata.setCaName(myArgs[ARG_CA]);</span>
+<span class="nc" id="L99">            userdata.setTokenType(myArgs[ARG_TOKEN]);</span>
+<span class="nc" id="L100">            userdata.setStatus(getStatus(myArgs[ARG_STATUS]));</span>
+<span class="nc" id="L101">            userdata.setEndEntityProfileName(myArgs[ARG_ENDENTITYPROFILE]);</span>
+<span class="nc" id="L102">            userdata.setCertificateProfileName(myArgs[ARG_CERTIFICATEPROFILE]);</span>
+            
+<span class="nc" id="L104">            EndEntityType type = new EndEntityType(EndEntityTypes.getTypesFromHexCode(Integer.parseInt(myArgs[ARG_TYPE])));</span>
+            
+<span class="nc bnc" id="L106" title="All 2 branches missed.">            if(type.contains(EndEntityTypes.SENDNOTIFICATION)){</span>
+<span class="nc" id="L107">            	userdata.setSendNotification(true);</span>
+            }
+<span class="nc bnc" id="L109" title="All 2 branches missed.">            if(type.contains(EndEntityTypes.KEYRECOVERABLE)){</span>
+<span class="nc" id="L110">            	userdata.setKeyRecoverable(true);</span>
+            }
+
+<span class="nc bnc" id="L113" title="All 2 branches missed.">            if(!myArgs[ARG_ISSUERALIAS].equalsIgnoreCase(&quot;NONE&quot;)){</span>
+<span class="nc" id="L114">            	userdata.setEmail(myArgs[ARG_ISSUERALIAS]);</span>
+            }
+            
+<span class="nc" id="L117">            final String username = myArgs[ARG_USERNAME];</span>
+<span class="nc" id="L118">            final String password = myArgs[ARG_PASSWORD];</span>
+<span class="nc" id="L119">            final String pkcs10 = getPKCS10(myArgs[ARG_PKCS10]);</span>
+<span class="nc" id="L120">            final String encoding = getEncoding(myArgs[ARG_ENCODING]);</span>
+<span class="nc" id="L121">            final String hardtokensn = getHardTokenSN(myArgs[ARG_HARDTOKENSN]);</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">            final String outputPath = myArgs.length&gt;ARG_OUTPUTPATH ? getOutputPath(myArgs[ARG_OUTPUTPATH]) : null;</span>
+            
+<span class="nc" id="L124">            getPrintStream().println(&quot;Trying to add user:&quot;);</span>
+<span class="nc" id="L125">            getPrintStream().println(&quot;Username: &quot;+userdata.getUsername());</span>
+<span class="nc" id="L126">            getPrintStream().println(&quot;Subject DN: &quot;+userdata.getSubjectDN());</span>
+<span class="nc" id="L127">            getPrintStream().println(&quot;Subject Altname: &quot;+userdata.getSubjectAltName());</span>
+<span class="nc" id="L128">            getPrintStream().println(&quot;Email: &quot;+userdata.getEmail());</span>
+<span class="nc" id="L129">            getPrintStream().println(&quot;CA Name: &quot;+userdata.getCaName());                        </span>
+<span class="nc" id="L130">            getPrintStream().println(&quot;Type: &quot;+type.getHexValue());</span>
+<span class="nc" id="L131">            getPrintStream().println(&quot;Token: &quot;+userdata.getTokenType());</span>
+<span class="nc" id="L132">            getPrintStream().println(&quot;Status: &quot;+userdata.getStatus());</span>
+<span class="nc" id="L133">            getPrintStream().println(&quot;End entity profile: &quot;+userdata.getEndEntityProfileName());</span>
+<span class="nc" id="L134">            getPrintStream().println(&quot;Certificate profile: &quot;+userdata.getCertificateProfileName());</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">            getPrintStream().println(&quot;Hard Token Issuer Alias: &quot;+(userdata.getHardTokenIssuerName()!=null ? userdata.getHardTokenIssuerName() :&quot;NONE&quot;));</span>
+            {
+<span class="nc" id="L137">            	final List&lt;ExtendedInformationWS&gt; eil = userdata.getExtendedInformation();</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">            	if ( eil!=null ) {</span>
+<span class="nc" id="L139">            		getPrintStream().println(&quot;Extended information:&quot;);</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">            		for ( ExtendedInformationWS ei : eil ) {</span>
+<span class="nc" id="L141">            			getPrintStream().println(&quot;	'&quot;+ei.getName()+&quot;' = '&quot;+ei.getValue()+&quot;'&quot;);</span>
+<span class="nc" id="L142">            		}</span>
+            	}
+            }
+            {
+<span class="nc" id="L146">            	final BigInteger bi = userdata.getCertificateSerialNumber();</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">            	if ( bi!=null ) {</span>
+<span class="nc" id="L148">            		getPrintStream().println(ParseUserData.certificateSerialNumber+&quot;=0x&quot;+bi.toString(16));</span>
+            	}
+            }
+            
+            
+            try{
+<span class="nc" id="L154">            	getEjbcaRAWS().editUser(userdata);            	</span>
+<span class="nc" id="L155">            	getPrintStream().println(&quot;User '&quot;+userdata.getUsername()+&quot;' has been added/edited.&quot;);</span>
+<span class="nc" id="L156">            	getPrintStream().println();       </span>
+            	
+<span class="nc" id="L158">             	CertificateResponse result = getEjbcaRAWS().pkcs10Request(username,password,pkcs10,hardtokensn,CertificateHelper.RESPONSETYPE_CERTIFICATE);</span>
+            	
+<span class="nc bnc" id="L160" title="All 2 branches missed.">            	if(result==null){</span>
+<span class="nc" id="L161">            		getPrintStream().println(&quot;No certificate could be generated for user, check server logs for error.&quot;);</span>
+            	}else{
+<span class="nc" id="L163">            		String filepath = username;</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">            		if(encoding.equals(&quot;DER&quot;)){</span>
+<span class="nc" id="L165">            			filepath += &quot;.cer&quot;;</span>
+            		}else{
+<span class="nc" id="L167">            			filepath += &quot;.pem&quot;;</span>
+            		}
+<span class="nc bnc" id="L169" title="All 2 branches missed.">            		if(outputPath != null){</span>
+<span class="nc" id="L170">            			filepath = outputPath + &quot;/&quot; + filepath;</span>
+            		}
+            		
+            		
+<span class="nc bnc" id="L174" title="All 2 branches missed.">            		if(encoding.equals(&quot;DER&quot;)){</span>
+<span class="nc" id="L175">            			FileOutputStream fos = new FileOutputStream(filepath);</span>
+<span class="nc" id="L176">            			fos.write(CertificateHelper.getCertificate(result.getData()).getEncoded());</span>
+<span class="nc" id="L177">            			fos.close();</span>
+<span class="nc" id="L178">            		}else{</span>
+<span class="nc" id="L179">            			FileOutputStream fos = new FileOutputStream(filepath);</span>
+<span class="nc" id="L180">            			ArrayList&lt;java.security.cert.Certificate&gt; list = new ArrayList&lt;java.security.cert.Certificate&gt;();</span>
+<span class="nc" id="L181">            			list.add(CertificateHelper.getCertificate(result.getData()));</span>
+<span class="nc" id="L182">            			fos.write(CertTools.getPemFromCertificateChain(list));</span>
+<span class="nc" id="L183">            			fos.close();            				            				</span>
+            		}
+<span class="nc" id="L185">            		getPrintStream().println(&quot;Certificate generated, written to &quot; + filepath);</span>
+            	}
+<span class="nc" id="L187">            }catch(AuthorizationDeniedException_Exception e){</span>
+<span class="nc" id="L188">            	getPrintStream().println(&quot;Error : &quot; + e.getMessage());</span>
+<span class="nc" id="L189">            }catch(UserDoesntFullfillEndEntityProfile_Exception e){</span>
+<span class="nc" id="L190">            	getPrintStream().println(&quot;Error : Given userdata doesn't fulfill end entity profile. : &quot; +  e.getMessage());</span>
+<span class="nc" id="L191">            }            </span>
+<span class="nc" id="L192">        } catch (Exception e) {</span>
+<span class="nc" id="L193">            throw new ErrorAdminCommandException(e);</span>
+<span class="nc" id="L194">        }</span>
+<span class="nc" id="L195">    }</span>
+
+	private int getStatus(String status) {
+<span class="nc bnc" id="L198" title="All 2 branches missed.">		if(status.equalsIgnoreCase(&quot;NEW&quot;)){</span>
+<span class="nc" id="L199">			return EndEntityConstants.STATUS_NEW;</span>
+		}
+<span class="nc bnc" id="L201" title="All 2 branches missed.">		if(status.equalsIgnoreCase(&quot;INPROCESS&quot;)){</span>
+<span class="nc" id="L202">			return EndEntityConstants.STATUS_INPROCESS;</span>
+		}
+<span class="nc bnc" id="L204" title="All 2 branches missed.">		if(status.equalsIgnoreCase(&quot;FAILED&quot;)){</span>
+<span class="nc" id="L205">			return EndEntityConstants.STATUS_FAILED;</span>
+		}
+<span class="nc bnc" id="L207" title="All 2 branches missed.">		if(status.equalsIgnoreCase(&quot;HISTORICAL&quot;)){</span>
+<span class="nc" id="L208">			return EndEntityConstants.STATUS_HISTORICAL;</span>
+		}		
+		
+<span class="nc" id="L211">		getPrintStream().println(&quot;Error in status string : &quot; + status );</span>
+<span class="nc" id="L212">		usage();</span>
+<span class="nc" id="L213">		System.exit(-1); // NOPMD, it's not a JEE app</span>
+<span class="nc" id="L214">		return 0;</span>
+	}
+	
+	private String getHardTokenSN(String hardtokensn) {
+<span class="nc bnc" id="L218" title="All 2 branches missed.">		if(hardtokensn.equalsIgnoreCase(&quot;NONE&quot;)){</span>
+<span class="nc" id="L219">		  return null;</span>
+		}
+		
+<span class="nc" id="L222">		return hardtokensn;</span>
+	}
+	
+	private String getPKCS10(String pkcs10Path) {
+<span class="nc" id="L226">		String retval=null;</span>
+		try {
+<span class="nc" id="L228">			FileInputStream fis = new FileInputStream(pkcs10Path);</span>
+<span class="nc" id="L229">			byte[] contents = new byte[fis.available()];</span>
+<span class="nc" id="L230">			fis.read(contents);			</span>
+<span class="nc" id="L231">			fis.close();</span>
+<span class="nc" id="L232">			retval = new String(contents);</span>
+<span class="nc" id="L233">		} catch (FileNotFoundException e) {</span>
+<span class="nc" id="L234">			getPrintStream().println(&quot;Error : PKCS10 file could not found.&quot;);</span>
+<span class="nc" id="L235">			System.exit(-1); // NOPMD, it's not a JEE app		</span>
+<span class="nc" id="L236">		} catch (IOException e) {</span>
+<span class="nc" id="L237">			getPrintStream().println(&quot;Error reading content of PKCS10 file.&quot;);</span>
+<span class="nc" id="L238">			System.exit(-1); // NOPMD, it's not a JEE app	</span>
+<span class="nc" id="L239">		}</span>
+		
+		
+<span class="nc" id="L242">		return retval;</span>
+	}
+
+	private String getOutputPath(String outputpath) {
+<span class="nc" id="L246">		File dir = new File(outputpath);</span>
+<span class="nc bnc" id="L247" title="All 2 branches missed.">		if(!dir.exists()){</span>
+<span class="nc" id="L248">			getPrintStream().println(&quot;Error : Output directory doesn't seem to exist.&quot;);</span>
+<span class="nc" id="L249">			System.exit(-1); // NOPMD, it's not a JEE app</span>
+		}
+<span class="nc bnc" id="L251" title="All 2 branches missed.">		if(!dir.isDirectory()){</span>
+<span class="nc" id="L252">			getPrintStream().println(&quot;Error : Output directory doesn't seem to be a directory.&quot;);</span>
+<span class="nc" id="L253">			System.exit(-1); // NOPMD, it's not a JEE app			</span>
+		}
+<span class="nc bnc" id="L255" title="All 2 branches missed.">		if(!dir.canWrite()){</span>
+<span class="nc" id="L256">			getPrintStream().println(&quot;Error : Output directory isn't writeable.&quot;);</span>
+<span class="nc" id="L257">			System.exit(-1); // NOPMD, it's not a JEE app</span>
+
+		}
+<span class="nc" id="L260">		return outputpath;</span>
+	}
+
+	private String getEncoding(String encoding) {
+<span class="nc bnc" id="L264" title="All 4 branches missed.">		if(!encoding.equalsIgnoreCase(&quot;PEM&quot;) &amp;&amp; !encoding.equalsIgnoreCase(&quot;DER&quot;)){</span>
+<span class="nc" id="L265">			usage();</span>
+<span class="nc" id="L266">			System.exit(-1); // NOPMD, it's not a JEE app</span>
+		}
+		
+<span class="nc" id="L269">		return encoding.toUpperCase();</span>
+	}
+
+
+	protected void usage() {
+<span class="nc" id="L274">		getPrintStream().println(&quot;Command used to add or edit userdata and to generate the certificate for the user. This command performs these two steps in a single command, but uses two WS calls to do it, editUser and pkcs10Request.&quot;);</span>
+<span class="nc" id="L275">        getPrintStream().println(&quot;You can perform the same in a single WS call with the 'certreq' command.&quot;);</span>
+<span class="nc" id="L276">		getPrintStream().println(&quot;Usage : generatenewuser &lt;username&gt; &lt;password&gt; &lt;clearpwd (true|false)&gt; &lt;subjectdn&gt; &lt;subjectaltname or NULL&gt; &lt;email or NULL&gt; &lt;caname&gt; &lt;type&gt; &lt;token&gt; &lt;status&gt; &lt;endentityprofilename&gt; &lt;certificateprofilename&gt; &lt;issueralias (or NONE)&gt; &lt;pkcs10path&gt; &lt;encoding (DER|PEM)&gt; &lt;hardtokensn (or NONE)&gt; &lt;outputpath (optional)&gt;\n\n&quot;);</span>
+<span class="nc" id="L277">        getPrintStream().println(&quot;DN is of form \&quot;C=SE, O=MyOrg, OU=MyOrgUnit, CN=MyName\&quot; etc.&quot;);</span>
+<span class="nc" id="L278">        getPrintStream().println(</span>
+            &quot;SubjectAltName is of form \&quot;rfc822Name=&lt;email&gt;, dNSName=&lt;host name&gt;, uri=&lt;http://host.com/&gt;, ipaddress=&lt;address&gt;, guid=&lt;globally unique id&gt;\&quot;&quot;);
+
+<span class="nc" id="L281">        getPrintStream().println(&quot;Type (mask): INVALID=0; END-USER=1; KEYRECOVERABLE=128; SENDNOTIFICATION=256&quot;);</span>
+		
+<span class="nc" id="L283">        getPrintStream().println(&quot;Existing tokens : &quot; + &quot;USERGENERATED&quot; + &quot;, &quot; +</span>
+        		&quot;P12&quot; + &quot;, &quot;+ &quot;JKS&quot; + &quot;, &quot;  + &quot;PEM&quot;);
+<span class="nc" id="L285">        getPrintStream().println(&quot;Existing statuses (new users will always be set as NEW) : NEW, INPROCESS, FAILED, HISTORICAL&quot;);</span>
+<span class="nc" id="L286">        getPrintStream().println(&quot;outputpath : directory where certificate is written in form username+.cer|.pem &quot;);</span>
+<span class="nc" id="L287">        getPrintStream().println();</span>
+<span class="nc" id="L288">        ParseUserData.printCliHelp(getPrintStream());</span>
+<span class="nc" id="L289">	}</span>
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

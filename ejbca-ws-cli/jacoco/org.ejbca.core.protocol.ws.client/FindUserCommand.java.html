@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FindUserCommand.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA Webservices CLI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.client</a> &gt; <span class="el_source">FindUserCommand.java</span></div><h1>FindUserCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.protocol.ws.client;
+
+
+import java.util.Iterator;
+import java.util.List;
+
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityType;
+import org.cesecore.certificates.endentity.EndEntityTypes;
+import org.ejbca.core.protocol.ws.client.gen.AuthorizationDeniedException_Exception;
+import org.ejbca.core.protocol.ws.client.gen.UserDataVOWS;
+import org.ejbca.core.protocol.ws.client.gen.UserMatch;
+import org.ejbca.ui.cli.ErrorAdminCommandException;
+import org.ejbca.ui.cli.IAdminCommand;
+import org.ejbca.ui.cli.IllegalAdminCommandException;
+
+/**
+ * Finds a user in the database
+ *
+ * @version $Id: FindUserCommand.java 19902 2014-09-30 14:32:24Z anatom $
+ */
+public class FindUserCommand extends EJBCAWSRABaseCommand implements IAdminCommand{
+
+	
+	private static final int ARG_MATCHWITH                = 1;
+	private static final int ARG_MATCHTYPE                = 2;
+	private static final int ARG_MATCHVALUE               = 3;
+	
+	
+
+    
+<span class="nc" id="L45">    private static final String[] MATCHWITHTEXTS = {&quot;USERNAME&quot;, &quot;EMAIL&quot;, &quot;STATUS&quot;, &quot;ENDENTITYPROFILE&quot;,</span>
+    	                                            &quot;CERTIFICATEPROFILE&quot;, &quot;CA&quot;, &quot;TOKEN&quot;, &quot;DN&quot;,
+    	                                            &quot;DN_PKIX_UID&quot;,				&quot;DN_PKIX_COMMONNAME&quot;,
+    	                                            &quot;DN_PKIX_SERIALNUMBER&quot;,		&quot;DN_PKIX_GIVENNAME&quot;,
+    	                                            &quot;DN_PKIX_INITIALS&quot;,			&quot;DN_PKIX_SURNAME&quot;,
+    	                                            &quot;DN_PKIX_TITLE&quot;,			&quot;DN_PKIX_ORGANIZATIONALUNIT&quot;,
+    	                                            &quot;DN_PKIX_ORGANIZATION&quot;,		&quot;DN_PKIX_LOCALITY&quot;,
+    	                                            &quot;DN_PKIX_STATEORPROVINCE&quot;,	&quot;DN_PKIX_DOMAINCOMPONENT&quot;,
+    	                                            &quot;DN_PKIX_COUNTRY&quot;};
+
+<span class="nc" id="L55">    private static final int[] MATCHWITHVALUES = { org.ejbca.util.query.UserMatch.MATCH_WITH_USERNAME, </span>
+    	                                           org.ejbca.util.query.UserMatch.MATCH_WITH_EMAIL, 
+    	                                           org.ejbca.util.query.UserMatch.MATCH_WITH_STATUS, 
+    	                                           org.ejbca.util.query.UserMatch.MATCH_WITH_ENDENTITYPROFILE,
+    	                                           org.ejbca.util.query.UserMatch.MATCH_WITH_CERTIFICATEPROFILE, 
+    	                                           org.ejbca.util.query.UserMatch.MATCH_WITH_CA, 
+    	                                           org.ejbca.util.query.UserMatch.MATCH_WITH_TOKEN, 
+    	                                           org.ejbca.util.query.UserMatch.MATCH_WITH_DN, 
+    	                                           org.ejbca.util.query.UserMatch.MATCH_WITH_UID,
+    	                                           org.ejbca.util.query.UserMatch.MATCH_WITH_COMMONNAME,
+    	                                           org.ejbca.util.query.UserMatch.MATCH_WITH_DNSERIALNUMBER, 
+    	                                           org.ejbca.util.query.UserMatch.MATCH_WITH_GIVENNAME, 
+    	                                           org.ejbca.util.query.UserMatch.MATCH_WITH_INITIALS,
+    	                                           org.ejbca.util.query.UserMatch.MATCH_WITH_SURNAME,
+    	                                           org.ejbca.util.query.UserMatch.MATCH_WITH_TITLE, 
+    	                                           org.ejbca.util.query.UserMatch.MATCH_WITH_ORGANIZATIONALUNIT, 
+    	                                           org.ejbca.util.query.UserMatch.MATCH_WITH_ORGANIZATION,
+    	                                           org.ejbca.util.query.UserMatch.MATCH_WITH_LOCALITY,
+    	                                           org.ejbca.util.query.UserMatch.MATCH_WITH_STATEORPROVINCE,
+    	                                           org.ejbca.util.query.UserMatch.MATCH_WITH_DOMAINCOMPONENT,
+    	                                           org.ejbca.util.query.UserMatch.MATCH_WITH_COUNTRY};
+    
+<span class="nc" id="L77">    private static final String[] STATUS_TEXTS = {&quot;NEW&quot;, &quot;FAILED&quot;,&quot;INITIALIZED&quot;,</span>
+    	                                          &quot;INPROCESS&quot;,&quot;GENERATED&quot;,&quot;REVOKED&quot;,
+    	                                          &quot;HISTORICAL&quot;,&quot;KEYRECOVERY&quot;}; 
+<span class="nc" id="L80">    private static final int[] STATUS_VALUES = {EndEntityConstants.STATUS_NEW, EndEntityConstants.STATUS_FAILED, EndEntityConstants.STATUS_INITIALIZED,</span>
+    	                                        EndEntityConstants.STATUS_INPROCESS, EndEntityConstants.STATUS_GENERATED,  
+    	                                        EndEntityConstants.STATUS_REVOKED, EndEntityConstants.STATUS_HISTORICAL,
+    	                                        EndEntityConstants.STATUS_KEYRECOVERY};
+	
+    public FindUserCommand(String[] args) {
+<span class="nc" id="L86">        super(args);</span>
+<span class="nc" id="L87">    }</span>
+
+    /**
+     * Runs the command
+     *
+     * @throws IllegalAdminCommandException Error in command args
+     * @throws ErrorAdminCommandException Error running command
+     */
+    public void execute() throws IllegalAdminCommandException, ErrorAdminCommandException {
+
+        try {   
+           
+<span class="nc bnc" id="L99" title="All 2 branches missed.">            if(args.length !=  4){</span>
+<span class="nc" id="L100">            	usage();</span>
+<span class="nc" id="L101">            	System.exit(-1); // NOPMD, it's not a JEE app</span>
+            }
+            
+<span class="nc" id="L104">            int matchwith = getMatchWith(args[ARG_MATCHWITH]);</span>
+<span class="nc" id="L105">            int matchtype = getMatchType(args[ARG_MATCHTYPE], matchwith);</span>
+<span class="nc" id="L106">            String matchvalue = args[ARG_MATCHVALUE];</span>
+            
+            
+            try{
+<span class="nc" id="L110">            	UserMatch match = new UserMatch();</span>
+<span class="nc" id="L111">            	match.setMatchtype(matchtype);</span>
+<span class="nc" id="L112">            	match.setMatchvalue(matchvalue);</span>
+<span class="nc" id="L113">            	match.setMatchwith(matchwith);</span>
+            	
+<span class="nc" id="L115">            	List&lt;UserDataVOWS&gt; result = getEjbcaRAWS().findUser(match);</span>
+            	
+<span class="nc" id="L117">            	Iterator&lt;UserDataVOWS&gt; iter = result.iterator();</span>
+<span class="nc bnc" id="L118" title="All 4 branches missed.">            	if(result==null || result.size() == 0){</span>
+<span class="nc" id="L119">            		getPrintStream().println(&quot;No matching users could be found in database&quot;);</span>
+            	}else{
+<span class="nc" id="L121">            		getPrintStream().println(&quot;The following users found in database :&quot;);</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">            		for(int i=0;i&lt;result.size();i++){</span>
+<span class="nc" id="L123">        			    UserDataVOWS next = iter.next();</span>
+<span class="nc" id="L124">                        getPrintStream().println(&quot;\nUser : &quot; + (i +1));</span>
+<span class="nc" id="L125">                        getPrintStream().println(&quot;  Username: &quot;+next.getUsername());</span>
+<span class="nc" id="L126">                        getPrintStream().println(&quot;  Subject DN: &quot;+next.getSubjectDN());</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">                        if(next.getSubjectAltName() == null){</span>
+<span class="nc" id="L128">                            getPrintStream().println(&quot;  Subject Altname: NONE&quot;);	</span>
+                        }else{
+<span class="nc" id="L130">                            getPrintStream().println(&quot;  Subject Altname: &quot;+next.getSubjectAltName());</span>
+                        }
+<span class="nc bnc" id="L132" title="All 2 branches missed.">                        if(next.getEmail() == null){</span>
+<span class="nc" id="L133">                        	getPrintStream().println(&quot;  Email: NONE&quot;);	</span>
+                        }else{
+<span class="nc" id="L135">                        	getPrintStream().println(&quot;  Email: &quot;+next.getEmail());</span>
+                        }                        
+<span class="nc" id="L137">                        getPrintStream().println(&quot;  CA Name: &quot;+next.getCaName());                        </span>
+<span class="nc" id="L138">                        getPrintStream().println(&quot;  Type: &quot;+getType(next).getHexValue());</span>
+<span class="nc" id="L139">                        getPrintStream().println(&quot;  Token: &quot;+next.getTokenType());</span>
+<span class="nc" id="L140">                        getPrintStream().println(&quot;  Status: &quot;+ getStatus(next.getStatus()));</span>
+<span class="nc" id="L141">                        getPrintStream().println(&quot;  Certificate profile: &quot;+next.getCertificateProfileName());</span>
+<span class="nc" id="L142">                        getPrintStream().println(&quot;  End entity profile: &quot;+next.getEndEntityProfileName());</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">                        if(next.getHardTokenIssuerName() == null){</span>
+<span class="nc" id="L144">                        	getPrintStream().println(&quot;  Hard Token Issuer Alias: NONE&quot;);</span>
+                        }else{
+<span class="nc" id="L146">                        	getPrintStream().println(&quot;  Hard Token Issuer Alias: &quot; + next.getHardTokenIssuerName());</span>
+                        }
+            		}
+            	}
+            	             
+<span class="nc" id="L151">            }catch(AuthorizationDeniedException_Exception e){</span>
+<span class="nc" id="L152">            	getPrintStream().println(&quot;Error : &quot; + e.getMessage());</span>
+<span class="nc" id="L153">            }           </span>
+<span class="nc" id="L154">        } catch (Exception e) {</span>
+<span class="nc" id="L155">            throw new ErrorAdminCommandException(e);</span>
+<span class="nc" id="L156">        }</span>
+<span class="nc" id="L157">    }</span>
+
+	private int getMatchType(String matchtype, int matchwith) {
+<span class="nc bnc" id="L160" title="All 2 branches missed.">		if(matchtype.equalsIgnoreCase(&quot;EQUALS&quot;)){</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">			if(matchwith &gt;= org.ejbca.util.query.UserMatch.MATCH_WITH_UID){</span>
+<span class="nc" id="L162">				getPrintStream().println(&quot;Error: Matchtype 'EQUALS' cannot be used with DN fields, only 'BEGINSWITH' can be used.&quot;);</span>
+<span class="nc" id="L163">				usage();				</span>
+<span class="nc" id="L164">				System.exit(-1); // NOPMD, it's not a JEE app</span>
+			}else{
+<span class="nc" id="L166">				return org.ejbca.util.query.UserMatch.MATCH_TYPE_EQUALS;</span>
+			}		
+		}
+<span class="nc bnc" id="L169" title="All 2 branches missed.">		if(matchtype.equalsIgnoreCase(&quot;BEGINSWITH&quot;)){</span>
+<span class="nc bnc" id="L170" title="All 6 branches missed.">			if(matchwith &gt; org.ejbca.util.query.UserMatch.MATCH_WITH_UID || matchwith == org.ejbca.util.query.UserMatch.MATCH_WITH_DN</span>
+					|| matchwith == org.ejbca.util.query.UserMatch.MATCH_WITH_EMAIL){
+<span class="nc" id="L172">			    return org.ejbca.util.query.UserMatch.MATCH_TYPE_BEGINSWITH;</span>
+			}else{
+<span class="nc" id="L174">				getPrintStream().println(&quot;Error: Matchtype 'BEGINSWITH' can only be used with DN fields, full DN and EMAIL, use EQUALS&quot;);</span>
+<span class="nc" id="L175">				usage();				</span>
+<span class="nc" id="L176">				System.exit(-1); // NOPMD, it's not a JEE app</span>
+			}
+		}		
+<span class="nc bnc" id="L179" title="All 2 branches missed.">		if(matchtype.equalsIgnoreCase(&quot;CONTAINS&quot;)){</span>
+<span class="nc bnc" id="L180" title="All 4 branches missed.">			if ( (matchwith == org.ejbca.util.query.UserMatch.MATCH_WITH_DN) || (matchwith == org.ejbca.util.query.UserMatch.MATCH_WITH_USERNAME) ) {</span>
+<span class="nc" id="L181">			  return org.ejbca.util.query.UserMatch.MATCH_TYPE_CONTAINS;</span>
+			}else{
+<span class="nc" id="L183">			  getPrintStream().println(&quot;Error: Matchtype 'CONTAINS' can only be used with matchwith 'DN' or 'USERNAME'.&quot;);</span>
+<span class="nc" id="L184">			  usage();				</span>
+<span class="nc" id="L185">			  System.exit(-1); // NOPMD, it's not a JEE app</span>
+			}
+	}		
+<span class="nc" id="L188">		usage();				</span>
+<span class="nc" id="L189">		System.exit(-1); // NOPMD, it's not a JEE app				</span>
+<span class="nc" id="L190">		return 0; // will never happen</span>
+	}
+
+	private int getMatchWith(String matchwith) {
+<span class="nc bnc" id="L194" title="All 2 branches missed.">		for(int i=0;i&lt; MATCHWITHTEXTS.length; i++){</span>
+<span class="nc bnc" id="L195" title="All 2 branches missed.">			if(MATCHWITHTEXTS[i].equalsIgnoreCase(matchwith)){</span>
+<span class="nc" id="L196">				return MATCHWITHVALUES[i];</span>
+			}
+		}
+<span class="nc" id="L199">		usage();</span>
+		
+<span class="nc" id="L201">		System.exit(-1); // NOPMD, it's not a JEE app</span>
+<span class="nc" id="L202">		return 0; // Will never happen</span>
+	}
+
+	private String getStatus(int status){
+<span class="nc bnc" id="L206" title="All 2 branches missed.">		for(int i=0;i&lt;STATUS_VALUES.length;i++){</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">			if(STATUS_VALUES[i] == status){</span>
+<span class="nc" id="L208">				return STATUS_TEXTS[i];</span>
+			}
+		}
+<span class="nc" id="L211">		return &quot;ERROR : Status text not found&quot;;</span>
+	}
+	
+	private EndEntityType getType(UserDataVOWS userData) {
+<span class="nc" id="L215">		EndEntityType type = EndEntityTypes.ENDUSER.toEndEntityType();</span>
+		
+<span class="nc bnc" id="L217" title="All 2 branches missed.">    	if(userData.isSendNotification()) {</span>
+<span class="nc" id="L218">    		type.addType(EndEntityTypes.SENDNOTIFICATION);</span>
+    	} else {
+<span class="nc" id="L220">    		type.removeType(EndEntityTypes.SENDNOTIFICATION);</span>
+    	}
+<span class="nc bnc" id="L222" title="All 2 branches missed.">    	if(userData.isKeyRecoverable()) {</span>
+<span class="nc" id="L223">    		type.addType(EndEntityTypes.KEYRECOVERABLE);</span>
+    	} else {
+<span class="nc" id="L225">    		type.removeType(EndEntityTypes.KEYRECOVERABLE);</span>
+    	}
+<span class="nc" id="L227">		return type;</span>
+	}
+	
+	protected void usage() {
+<span class="nc" id="L231">		getPrintStream().println(&quot;Command used to find userdata, maximum of 100 users will be returned &quot;);</span>
+<span class="nc" id="L232">		getPrintStream().println(&quot;Usage : finduser &lt;matchwith&gt; &lt;matchtype&gt; &lt;value&gt; \n\n&quot;);</span>
+<span class="nc" id="L233">        getPrintStream().print(&quot;Matchwith can be : &quot;);</span>
+<span class="nc bnc" id="L234" title="All 2 branches missed.">        for(int i=0;i&lt;MATCHWITHTEXTS.length-1;i++){</span>
+<span class="nc" id="L235">        	getPrintStream().print(MATCHWITHTEXTS[i] +&quot;, &quot;);</span>
+        }
+<span class="nc" id="L237">        getPrintStream().println(MATCHWITHTEXTS[MATCHWITHTEXTS.length-1]);</span>
+<span class="nc" id="L238">        getPrintStream().println(&quot;Matchtype can be : EQUALS (not DN fields), BEGINSWITH (DN fields), CONTAINS (matchwith complete DN or USERNAME only)&quot;);</span>
+<span class="nc" id="L239">    }</span>
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

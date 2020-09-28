@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CertificateRequestCommand.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA Webservices CLI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.client</a> &gt; <span class="el_source">CertificateRequestCommand.java</span></div><h1>CertificateRequestCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.protocol.ws.client;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+
+import org.cesecore.util.CertTools;
+import org.ejbca.core.protocol.ws.client.gen.AuthorizationDeniedException_Exception;
+import org.ejbca.core.protocol.ws.client.gen.CertificateResponse;
+import org.ejbca.core.protocol.ws.client.gen.UserDataVOWS;
+import org.ejbca.core.protocol.ws.common.CertificateHelper;
+import org.ejbca.ui.cli.ErrorAdminCommandException;
+import org.ejbca.ui.cli.IAdminCommand;
+import org.ejbca.ui.cli.IllegalAdminCommandException;
+
+/**
+ * Request a certificate given a pkcs10
+ *
+ * @version $Id: CertificateRequestCommand.java 28409 2018-03-01 10:31:05Z anatom $
+ */
+public class CertificateRequestCommand extends EJBCAWSRABaseCommand implements IAdminCommand{
+
+	
+	private static final int ARG_USERNAME                 = 1;
+	private static final int ARG_SUBJECTDN                = 2;
+	private static final int ARG_SUBJECTALTNAME           = 3;
+	private static final int ARG_CANAME                   = 4;
+	private static final int ARG_EEPROF                   = 5;
+	private static final int ARG_CERTPROF                 = 6;
+	private static final int ARG_REQPATH                  = 7;
+	private static final int ARG_REQTYPE                  = 8;
+	private static final int ARG_ENCODING                 = 9;
+	private static final int ARG_HARDTOKENSN              = 10;
+	private static final int ARG_OUTPUTPATH               = 11;
+	
+    /**
+     * Creates a new instance of CertificateRequestCommand
+     *
+     * @param args command line arguments
+     */
+    public CertificateRequestCommand(String[] args) {
+<span class="nc" id="L58">        super(args);</span>
+<span class="nc" id="L59">    }</span>
+
+    /**
+     * Runs the command
+     *
+     * @throws IllegalAdminCommandException Error in command args
+     * @throws ErrorAdminCommandException Error running command
+     */
+    public void execute() throws IllegalAdminCommandException, ErrorAdminCommandException {
+ 
+        try {   
+           
+<span class="nc bnc" id="L71" title="All 4 branches missed.">            if(args.length &lt;  11 || args.length &gt; 12){</span>
+<span class="nc" id="L72">            	usage();</span>
+<span class="nc" id="L73">            	System.exit(-1); // NOPMD, it's not a JEE app</span>
+            }
+            
+<span class="nc" id="L76">            UserDataVOWS userdata = new UserDataVOWS();</span>
+<span class="nc" id="L77">            userdata.setUsername(args[ARG_USERNAME]);</span>
+<span class="nc" id="L78">            userdata.setSubjectDN(args[ARG_SUBJECTDN]);</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">            if(!args[ARG_SUBJECTALTNAME].equalsIgnoreCase(&quot;NULL&quot;)){                        </span>
+<span class="nc" id="L80">            	userdata.setSubjectAltName(args[ARG_SUBJECTALTNAME]);</span>
+            }
+<span class="nc" id="L82">            userdata.setCaName(args[ARG_CANAME]);</span>
+<span class="nc" id="L83">            userdata.setEndEntityProfileName(args[ARG_EEPROF]);</span>
+<span class="nc" id="L84">            userdata.setCertificateProfileName(args[ARG_CERTPROF]);</span>
+<span class="nc" id="L85">            String requestdata = getRequestData(args[ARG_REQPATH]);</span>
+<span class="nc" id="L86">            int requesttype = getRequestType (args[ARG_REQTYPE]);</span>
+<span class="nc" id="L87">            String encoding = getEncoding(args[ARG_ENCODING]);</span>
+<span class="nc" id="L88">            String hardtokensn = getHardTokenSN(args[ARG_HARDTOKENSN]);</span>
+
+<span class="nc" id="L90">            String outputPath = null;</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">            if(args.length &gt; ARG_OUTPUTPATH){</span>
+<span class="nc" id="L92">              outputPath = getOutputPath(args[ARG_OUTPUTPATH]);</span>
+            }
+            
+<span class="nc" id="L95">            getPrintStream().println(&quot;Requesting certificate for end entity:&quot;);</span>
+<span class="nc" id="L96">            getPrintStream().println(&quot;Username: &quot;+userdata.getUsername());</span>
+<span class="nc" id="L97">            getPrintStream().println(&quot;Subject DN: &quot;+userdata.getSubjectDN());</span>
+<span class="nc" id="L98">            getPrintStream().println(&quot;Subject Altname: &quot;+userdata.getSubjectAltName());</span>
+<span class="nc" id="L99">            getPrintStream().println(&quot;Email: &quot;+userdata.getEmail());</span>
+<span class="nc" id="L100">            getPrintStream().println(&quot;CA Name: &quot;+userdata.getCaName());                        </span>
+<span class="nc" id="L101">            getPrintStream().println(&quot;Token: &quot;+userdata.getTokenType());</span>
+<span class="nc" id="L102">            getPrintStream().println(&quot;End entity profile: &quot;+userdata.getEndEntityProfileName());</span>
+<span class="nc" id="L103">            getPrintStream().println(&quot;Certificate profile: &quot;+userdata.getCertificateProfileName());</span>
+<span class="nc" id="L104">            getPrintStream().println(&quot;Hard token SN: &quot;+hardtokensn);</span>
+<span class="nc" id="L105">            getPrintStream().println(&quot;Request type: &quot;+requesttype);</span>
+<span class="nc" id="L106">            getPrintStream().println(&quot;Encoding: &quot;+encoding);</span>
+<span class="nc" id="L107">            getPrintStream().println(&quot;Output path: &quot;+outputPath);</span>
+
+            try{
+            	//UserDataVOWS userdata, String requestData, int requestType, String hardTokenSN, String responseType)
+<span class="nc" id="L111">            	CertificateResponse result = getEjbcaRAWS().certificateRequest(userdata,requestdata,requesttype, hardtokensn,CertificateHelper.RESPONSETYPE_CERTIFICATE);</span>
+            	
+<span class="nc bnc" id="L113" title="All 2 branches missed.">            	if(result==null){</span>
+<span class="nc" id="L114">            		getPrintStream().println(&quot;No certificate could be generated for user, check server logs for error.&quot;);</span>
+            	}else{
+<span class="nc" id="L116">            		String filepath = userdata.getUsername();</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">            		if(encoding.equals(&quot;DER&quot;)){</span>
+<span class="nc" id="L118">            			filepath += &quot;.cer&quot;;</span>
+            		}else{
+<span class="nc" id="L120">            			filepath += &quot;.pem&quot;;</span>
+            		}
+<span class="nc bnc" id="L122" title="All 2 branches missed.">            		if(outputPath != null){</span>
+<span class="nc" id="L123">            			filepath = outputPath + &quot;/&quot; + filepath;</span>
+            		}
+            		
+            		
+<span class="nc bnc" id="L127" title="All 2 branches missed.">            		if(encoding.equals(&quot;DER&quot;)){</span>
+<span class="nc" id="L128">            			FileOutputStream fos = new FileOutputStream(filepath);</span>
+<span class="nc" id="L129">            			fos.write(CertificateHelper.getCertificate(result.getData()).getEncoded());</span>
+<span class="nc" id="L130">            			fos.close();</span>
+<span class="nc" id="L131">            		}else{</span>
+<span class="nc" id="L132">            			FileOutputStream fos = new FileOutputStream(filepath);</span>
+<span class="nc" id="L133">            			ArrayList&lt;java.security.cert.Certificate&gt; list = new ArrayList&lt;java.security.cert.Certificate&gt;();</span>
+<span class="nc" id="L134">            			list.add(CertificateHelper.getCertificate(result.getData()));</span>
+<span class="nc" id="L135">            			fos.write(CertTools.getPemFromCertificateChain(list));</span>
+<span class="nc" id="L136">            			fos.close();            				            				</span>
+            		}
+<span class="nc" id="L138">            		getPrintStream().println(&quot;Certificate generated, written to &quot; + filepath);</span>
+            	}
+            	             
+
+<span class="nc" id="L142">            }catch(AuthorizationDeniedException_Exception e){</span>
+<span class="nc" id="L143">            	getPrintStream().println(&quot;Error : &quot; + e.getMessage());            </span>
+<span class="nc" id="L144">            }</span>
+<span class="nc" id="L145">        } catch (Exception e) {</span>
+<span class="nc" id="L146">            throw new ErrorAdminCommandException(e);</span>
+<span class="nc" id="L147">        }</span>
+<span class="nc" id="L148">    }</span>
+
+
+
+	
+
+	private String getHardTokenSN(String hardtokensn) {
+<span class="nc bnc" id="L155" title="All 2 branches missed.">		if(hardtokensn.equalsIgnoreCase(&quot;NONE&quot;)){</span>
+<span class="nc" id="L156">		  return null;</span>
+		}
+		
+<span class="nc" id="L159">		return hardtokensn;</span>
+	}
+
+	private String getRequestData(String regestDataPath) {
+<span class="nc" id="L163">		String retval=null;</span>
+		try {
+<span class="nc" id="L165">			FileInputStream fis = new FileInputStream(regestDataPath);</span>
+<span class="nc" id="L166">			byte[] contents = new byte[fis.available()];</span>
+<span class="nc" id="L167">			fis.read(contents);			</span>
+<span class="nc" id="L168">			fis.close();</span>
+<span class="nc" id="L169">			retval = new String(contents);</span>
+<span class="nc" id="L170">		} catch (FileNotFoundException e) {</span>
+<span class="nc" id="L171">			getPrintStream().println(&quot;Error : request data file could not be found.&quot;);</span>
+<span class="nc" id="L172">			System.exit(-1); // NOPMD, it's not a JEE app		</span>
+<span class="nc" id="L173">		} catch (IOException e) {</span>
+<span class="nc" id="L174">			getPrintStream().println(&quot;Error reading content of request data file.&quot;);</span>
+<span class="nc" id="L175">			System.exit(-1); // NOPMD, it's not a JEE app	</span>
+<span class="nc" id="L176">		}</span>
+		
+		
+<span class="nc" id="L179">		return retval;</span>
+	}
+
+	private String getOutputPath(String outputpath) {
+<span class="nc" id="L183">		File dir = new File(outputpath);</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">		if(!dir.exists()){</span>
+<span class="nc" id="L185">			getPrintStream().println(&quot;Error : Output directory doesn't seem to exist.&quot;);</span>
+<span class="nc" id="L186">			System.exit(-1); // NOPMD, it's not a JEE app</span>
+		}
+<span class="nc bnc" id="L188" title="All 2 branches missed.">		if(!dir.isDirectory()){</span>
+<span class="nc" id="L189">			getPrintStream().println(&quot;Error : Output directory doesn't seem to be a directory.&quot;);</span>
+<span class="nc" id="L190">			System.exit(-1); // NOPMD, it's not a JEE app			</span>
+		}
+<span class="nc bnc" id="L192" title="All 2 branches missed.">		if(!dir.canWrite()){</span>
+<span class="nc" id="L193">			getPrintStream().println(&quot;Error : Output directory isn't writeable.&quot;);</span>
+<span class="nc" id="L194">			System.exit(-1); // NOPMD, it's not a JEE app</span>
+
+		}
+<span class="nc" id="L197">		return outputpath;</span>
+	}
+
+	private String getEncoding(String encoding) {
+<span class="nc bnc" id="L201" title="All 4 branches missed.">		if(!encoding.equalsIgnoreCase(&quot;PEM&quot;) &amp;&amp; !encoding.equalsIgnoreCase(&quot;DER&quot;)){</span>
+<span class="nc" id="L202">			usage();</span>
+<span class="nc" id="L203">			System.exit(-1); // NOPMD, it's not a JEE app</span>
+		}
+		
+<span class="nc" id="L206">		return encoding.toUpperCase();</span>
+	}
+
+	private int getRequestType(String requestype) {
+<span class="nc bnc" id="L210" title="All 2 branches missed.">		if(requestype.equals(&quot;PKCS10&quot;)){</span>
+<span class="nc" id="L211">			return CertificateHelper.CERT_REQ_TYPE_PKCS10;</span>
+		}
+<span class="nc bnc" id="L213" title="All 2 branches missed.">		if(requestype.equals(&quot;CRMF&quot;)){</span>
+<span class="nc" id="L214">			return CertificateHelper.CERT_REQ_TYPE_CRMF;</span>
+		}
+<span class="nc bnc" id="L216" title="All 2 branches missed.">		if(requestype.equals(&quot;SPKAC&quot;)){</span>
+<span class="nc" id="L217">			return CertificateHelper.CERT_REQ_TYPE_SPKAC;</span>
+		}
+<span class="nc" id="L219">		usage();</span>
+<span class="nc" id="L220">		System.exit(-1); // NOPMD, it's not a JEE app</span>
+<span class="nc" id="L221">		return 0;</span>
+	}
+
+
+
+	protected void usage() {
+<span class="nc" id="L227">		getPrintStream().println(&quot;Command used to generate a users certificate. If the user does not exist it will be created, and if it exists it will be edited. This command uses a single WS call, certificateRequest.&quot;);</span>
+<span class="nc" id="L228">        getPrintStream().println(&quot;Usage : certreq &lt;username&gt; &lt;subjectdn&gt; &lt;subjectaltname or NULL&gt; &lt;caname&gt; &lt;endentityprofilename&gt; &lt;certificateprofilename&gt; &lt;reqpath&gt; &lt;reqtype (PKCS10|SPKAC|CRMF)&gt; &lt;encoding (DER|PEM)&gt; &lt;hardtokensn (or NONE)&gt; &lt;outputpath (optional)&gt; \n\n&quot;);       </span>
+<span class="nc" id="L229">        getPrintStream().println(&quot;outputpath : directory where certificate is written in form outputpath/username+.cer|.pem &quot;);</span>
+<span class="nc" id="L230">   }</span>
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

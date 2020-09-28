@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RevokeStatus.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA Webservices CLI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.client.gen</a> &gt; <span class="el_source">RevokeStatus.java</span></div><h1>RevokeStatus.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.protocol.ws.client.gen;
+
+import java.util.GregorianCalendar;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlSchemaType;
+import javax.xml.bind.annotation.XmlType;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.cesecore.certificates.certificate.CertificateStatus;
+import org.cesecore.certificates.crl.RevokedCertInfo;
+
+/**
+ * Class used when checking the revocation status of a certificate.
+ * 
+ * Contains the following data:
+ *   IssuerDN
+ *   CertificateSN (hex)
+ *   RevokationDate 
+ *   Reason (One of the REVOKATION_REASON constants)
+ *
+ * @author Philip Vendil
+ * @version $Id: RevokeStatus.java 19902 2014-09-30 14:32:24Z anatom $
+ */
+
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(name = &quot;revokeStatus&quot;, propOrder = {
+    &quot;certificateSN&quot;,
+    &quot;issuerDN&quot;,
+    &quot;reason&quot;,
+    &quot;revocationDate&quot;
+})
+public class RevokeStatus {
+	
+    /** Constants defining different revocation reasons. */
+<span class="fc" id="L51">    public static final int NOT_REVOKED                            = RevokedCertInfo.NOT_REVOKED;</span>
+<span class="fc" id="L52">    public static final int REVOKATION_REASON_UNSPECIFIED          = RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED;</span>
+<span class="fc" id="L53">    public static final int REVOKATION_REASON_KEYCOMPROMISE        = RevokedCertInfo.REVOCATION_REASON_KEYCOMPROMISE;</span>
+<span class="fc" id="L54">    public static final int REVOKATION_REASON_CACOMPROMISE         = RevokedCertInfo.REVOCATION_REASON_CACOMPROMISE;</span>
+<span class="fc" id="L55">    public static final int REVOKATION_REASON_AFFILIATIONCHANGED   = RevokedCertInfo.REVOCATION_REASON_AFFILIATIONCHANGED;</span>
+<span class="fc" id="L56">    public static final int REVOKATION_REASON_SUPERSEDED           = RevokedCertInfo.REVOCATION_REASON_SUPERSEDED;</span>
+<span class="fc" id="L57">    public static final int REVOKATION_REASON_CESSATIONOFOPERATION = RevokedCertInfo.REVOCATION_REASON_CESSATIONOFOPERATION;</span>
+<span class="fc" id="L58">    public static final int REVOKATION_REASON_CERTIFICATEHOLD      = RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD;</span>
+<span class="fc" id="L59">    public static final int REVOKATION_REASON_REMOVEFROMCRL        = RevokedCertInfo.REVOCATION_REASON_REMOVEFROMCRL;</span>
+<span class="fc" id="L60">    public static final int REVOKATION_REASON_PRIVILEGESWITHDRAWN  = RevokedCertInfo.REVOCATION_REASON_PRIVILEGESWITHDRAWN;</span>
+<span class="fc" id="L61">    public static final int REVOKATION_REASON_AACOMPROMISE         = RevokedCertInfo.REVOCATION_REASON_AACOMPROMISE;</span>
+    
+	private String               issuerDN;
+    private String               certificateSN;
+    @XmlSchemaType(name = &quot;dateTime&quot;)
+    private XMLGregorianCalendar revocationDate;
+    private int                  reason;
+	
+    
+    /** Default Web Service Constuctor */
+<span class="nc" id="L71">	public RevokeStatus(){}</span>
+	
+<span class="nc" id="L73">	public RevokeStatus(RevokedCertInfo info, String issuerDN) throws DatatypeConfigurationException{</span>
+<span class="nc" id="L74">		certificateSN = info.getUserCertificate().toString(16);</span>
+<span class="nc" id="L75">		this.issuerDN = issuerDN;</span>
+<span class="nc" id="L76">		GregorianCalendar cal = new GregorianCalendar ();</span>
+<span class="nc" id="L77">		cal.setTime(info.getRevocationDate());</span>
+<span class="nc" id="L78">		revocationDate = DatatypeFactory.newInstance ().newXMLGregorianCalendar(cal);</span>
+<span class="nc" id="L79">		reason = info.getReason();		</span>
+<span class="nc" id="L80">	}</span>
+
+<span class="nc" id="L82">	public RevokeStatus(CertificateStatus info, String issuerDN, String serno) throws DatatypeConfigurationException{</span>
+<span class="nc" id="L83">		certificateSN = serno;</span>
+<span class="nc" id="L84">		this.issuerDN = issuerDN;</span>
+<span class="nc" id="L85">		GregorianCalendar cal = new GregorianCalendar ();</span>
+<span class="nc" id="L86">		cal.setTime(info.revocationDate);</span>
+<span class="nc" id="L87">		revocationDate = DatatypeFactory.newInstance ().newXMLGregorianCalendar(cal);</span>
+<span class="nc" id="L88">		reason = info.revocationReason;		</span>
+<span class="nc" id="L89">	}</span>
+
+	/**
+	 * @return Returns the reason.
+	 */
+	public int getReason() {
+<span class="nc" id="L95">		return reason;</span>
+	}
+
+	/**
+	 * @param reason The reason to set.
+	 */
+	public void setReason(int reason) {
+<span class="nc" id="L102">		this.reason = reason;</span>
+<span class="nc" id="L103">	}</span>
+
+	/**
+	 * @return Returns the revocationDate.
+	 */
+	public XMLGregorianCalendar getRevocationDate() {
+<span class="nc" id="L109">		return revocationDate;</span>
+	}
+
+	/**
+	 * @param revocationDate The revocationDate to set.
+	 */
+	public void setRevocationDate(XMLGregorianCalendar revocationDate) {
+<span class="nc" id="L116">		this.revocationDate = revocationDate;</span>
+<span class="nc" id="L117">	}</span>
+
+	/**
+	 * @return Returns the certificateSN in hex format.
+	 */
+	public String getCertificateSN() {
+<span class="nc" id="L123">		return certificateSN;</span>
+	}
+
+	/**
+	 * @param certificateSN The certificateSN to set in hex format
+	 */
+	public void setCertificateSN(String certificateSN) {
+<span class="nc" id="L130">		this.certificateSN = certificateSN;</span>
+<span class="nc" id="L131">	}</span>
+
+	/**
+	 * @return Returns the issuerDN.
+	 */
+	public String getIssuerDN() {
+<span class="nc" id="L137">		return issuerDN;</span>
+	}
+
+	/**
+	 * @param issuerDN The issuerDN to set.
+	 */
+	public void setIssuerDN(String issuerDN) {
+<span class="nc" id="L144">		this.issuerDN = issuerDN;</span>
+<span class="nc" id="L145">	}</span>
+	
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EditUserCommand.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA Webservices CLI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.client</a> &gt; <span class="el_source">EditUserCommand.java</span></div><h1>EditUserCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.protocol.ws.client;
+
+import java.math.BigInteger;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityType;
+import org.cesecore.certificates.endentity.EndEntityTypes;
+import org.ejbca.core.protocol.ws.client.gen.AuthorizationDeniedException_Exception;
+import org.ejbca.core.protocol.ws.client.gen.ExtendedInformationWS;
+import org.ejbca.core.protocol.ws.client.gen.UserDataVOWS;
+import org.ejbca.core.protocol.ws.client.gen.UserDoesntFullfillEndEntityProfile_Exception;
+import org.ejbca.ui.cli.ErrorAdminCommandException;
+import org.ejbca.ui.cli.IAdminCommand;
+import org.ejbca.ui.cli.IllegalAdminCommandException;
+
+
+
+
+
+/**
+ * Adds a user to the database or edits an existing user.
+ *
+ * @version $Id: EditUserCommand.java 24940 2016-12-21 09:43:55Z mikekushner $
+ */
+public class EditUserCommand extends EJBCAWSRABaseCommand implements IAdminCommand{
+
+	
+	private static final int ARG_USERNAME           = 1;
+	private static final int ARG_PASSWORD           = 2;
+	private static final int ARG_CLEARPWD           = 3;
+	private static final int ARG_SUBJECTDN          = 4;
+	private static final int ARG_SUBJECTALTNAME     = 5;
+	private static final int ARG_EMAIL              = 6;
+	private static final int ARG_CA                 = 7;
+	private static final int ARG_TYPE               = 8;
+	private static final int ARG_TOKEN              = 9;
+	private static final int ARG_STATUS             = 10;
+	private static final int ARG_ENDENTITYPROFILE   = 11;
+	private static final int ARG_CERTIFICATEPROFILE = 12;
+	private static final int ARG_ISSUERALIAS        = 13;
+	private static final int ARG_STARTTIME          = 14;
+	private static final int ARG_ENDTIME            = 15;
+
+	private static final int NR_OF_MANDATORY_ARGS = ARG_CERTIFICATEPROFILE+1;
+	private static final int MAX_NR_OF_ARGS = ARG_ENDTIME+1;
+
+    public EditUserCommand(String[] args) {
+<span class="nc" id="L63">        super(args);</span>
+<span class="nc" id="L64">    }</span>
+
+    /**
+     * Runs the command
+     *
+     * @throws IllegalAdminCommandException Error in command args
+     * @throws ErrorAdminCommandException Error running command
+     */
+    public void execute() throws IllegalAdminCommandException, ErrorAdminCommandException {
+    	
+<span class="nc" id="L74">        final UserDataVOWS userdata = new UserDataVOWS();</span>
+<span class="nc" id="L75">        final String[] myArgs = ParseUserData.getDataFromArgs(this.args, userdata, getPrintStream());</span>
+<span class="nc bnc" id="L76" title="All 4 branches missed.">    	if(myArgs.length &lt; NR_OF_MANDATORY_ARGS || myArgs.length &gt; MAX_NR_OF_ARGS){</span>
+<span class="nc" id="L77">        	usage();</span>
+<span class="nc" id="L78">        	System.exit(-1); // NOPMD, this is not a JEE app</span>
+        }
+        try {
+<span class="nc" id="L81">            userdata.setUsername(myArgs[ARG_USERNAME]);</span>
+<span class="nc" id="L82">            String pwd = myArgs[ARG_PASSWORD];</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">            if (StringUtils.equalsIgnoreCase(&quot;null&quot;, pwd)) {</span>
+<span class="nc" id="L84">            	pwd = null;</span>
+            }
+<span class="nc" id="L86">            userdata.setPassword(pwd);</span>
+<span class="nc" id="L87">            userdata.setClearPwd(myArgs[ARG_CLEARPWD].equalsIgnoreCase(&quot;true&quot;));</span>
+<span class="nc" id="L88">            userdata.setSubjectDN(myArgs[ARG_SUBJECTDN]);</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">            if(!myArgs[ARG_SUBJECTALTNAME].equalsIgnoreCase(&quot;NULL&quot;)){                        </span>
+<span class="nc" id="L90">            	userdata.setSubjectAltName(myArgs[ARG_SUBJECTALTNAME]);</span>
+            }
+<span class="nc bnc" id="L92" title="All 2 branches missed.">            if(!myArgs[ARG_EMAIL].equalsIgnoreCase(&quot;NULL&quot;)){</span>
+<span class="nc" id="L93">            	userdata.setEmail(myArgs[ARG_EMAIL]);</span>
+            }
+<span class="nc" id="L95">            userdata.setCaName(myArgs[ARG_CA]);</span>
+<span class="nc" id="L96">            userdata.setTokenType(myArgs[ARG_TOKEN]);</span>
+<span class="nc" id="L97">            userdata.setStatus(getStatus(myArgs[ARG_STATUS]));</span>
+<span class="nc" id="L98">            userdata.setEndEntityProfileName(myArgs[ARG_ENDENTITYPROFILE]);</span>
+<span class="nc" id="L99">            userdata.setCertificateProfileName(myArgs[ARG_CERTIFICATEPROFILE]);</span>
+            
+<span class="nc" id="L101">            EndEntityType type = new EndEntityType(EndEntityTypes.getTypesFromHexCode(Integer.parseInt(myArgs[ARG_TYPE])));</span>
+            
+<span class="nc bnc" id="L103" title="All 2 branches missed.">            if(type.contains(EndEntityTypes.SENDNOTIFICATION)){</span>
+<span class="nc" id="L104">            	userdata.setSendNotification(true);</span>
+            }
+<span class="nc bnc" id="L106" title="All 2 branches missed.">            if(type.contains(EndEntityTypes.KEYRECOVERABLE)){</span>
+<span class="nc" id="L107">            	userdata.setKeyRecoverable(true);</span>
+            }
+
+<span class="nc bnc" id="L110" title="All 2 branches missed.">            if(myArgs.length &gt; ARG_ISSUERALIAS){</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">            	if(!myArgs[ARG_ISSUERALIAS].equalsIgnoreCase(&quot;NULL&quot;)){                        </span>
+<span class="nc" id="L112">            		userdata.setHardTokenIssuerName(myArgs[ARG_ISSUERALIAS]);</span>
+            	}
+            }
+<span class="nc bnc" id="L115" title="All 2 branches missed.">            if(myArgs.length &gt; ARG_STARTTIME){</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">            	if(!myArgs[ARG_STARTTIME].equalsIgnoreCase(&quot;NULL&quot;)){                        </span>
+<span class="nc" id="L117">            		userdata.setStartTime(myArgs[ARG_STARTTIME]);</span>
+            	}
+            }
+<span class="nc bnc" id="L120" title="All 2 branches missed.">            if(myArgs.length &gt; ARG_ENDTIME){</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">            	if(!myArgs[ARG_ENDTIME].equalsIgnoreCase(&quot;NULL&quot;)){                        </span>
+<span class="nc" id="L122">            		userdata.setEndTime(myArgs[ARG_ENDTIME]);</span>
+            	}
+            }
+   
+<span class="nc" id="L126">            getPrintStream().println(&quot;Trying to add user:&quot;);</span>
+<span class="nc" id="L127">            getPrintStream().println(&quot;Username: &quot;+userdata.getUsername());</span>
+<span class="nc" id="L128">            getPrintStream().println(&quot;Subject DN: &quot;+userdata.getSubjectDN());</span>
+<span class="nc" id="L129">            getPrintStream().println(&quot;Subject Altname: &quot;+userdata.getSubjectAltName());</span>
+<span class="nc" id="L130">            getPrintStream().println(&quot;Email: &quot;+userdata.getEmail());</span>
+<span class="nc" id="L131">            getPrintStream().println(&quot;CA Name: &quot;+userdata.getCaName());                        </span>
+<span class="nc" id="L132">            getPrintStream().println(&quot;Type: &quot;+type.getHexValue());</span>
+<span class="nc" id="L133">            getPrintStream().println(&quot;Token: &quot;+userdata.getTokenType());</span>
+<span class="nc" id="L134">            getPrintStream().println(&quot;Status: &quot;+userdata.getStatus());</span>
+<span class="nc" id="L135">            getPrintStream().println(&quot;End entity profile: &quot;+userdata.getEndEntityProfileName());</span>
+<span class="nc" id="L136">            getPrintStream().println(&quot;Certificate profile: &quot;+userdata.getCertificateProfileName());</span>
+
+<span class="nc bnc" id="L138" title="All 2 branches missed.">            if(userdata.getHardTokenIssuerName() == null){</span>
+<span class="nc" id="L139">            	getPrintStream().println(&quot;Hard Token Issuer Alias: NONE&quot;);</span>
+            }else{
+<span class="nc" id="L141">            	getPrintStream().println(&quot;Hard Token Issuer Alias: &quot; + userdata.getHardTokenIssuerName());</span>
+            }
+<span class="nc bnc" id="L143" title="All 2 branches missed.">            if(userdata.getStartTime() == null){</span>
+<span class="nc" id="L144">                getPrintStream().println(&quot;Start time: NONE&quot;);</span>
+            }else{
+<span class="nc" id="L146">                getPrintStream().println(&quot;Start time: &quot;+userdata.getStartTime());</span>
+            }
+<span class="nc bnc" id="L148" title="All 2 branches missed.">            if(userdata.getEndTime() == null){</span>
+<span class="nc" id="L149">                getPrintStream().println(&quot;End time: NONE&quot;);</span>
+            }else{
+<span class="nc" id="L151">                getPrintStream().println(&quot;End time: &quot;+userdata.getEndTime());</span>
+            }
+            {
+<span class="nc" id="L154">            	final List&lt;ExtendedInformationWS&gt; eil = userdata.getExtendedInformation();</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">            	if ( eil!=null ) {</span>
+<span class="nc" id="L156">            		getPrintStream().println(&quot;Extended information:&quot;);</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">            		for ( ExtendedInformationWS ei : eil ) {</span>
+<span class="nc" id="L158">            			getPrintStream().println(&quot;	'&quot;+ei.getName()+&quot;' = '&quot;+ei.getValue()+&quot;'&quot;);</span>
+<span class="nc" id="L159">            		}</span>
+            	}
+            }
+            {
+<span class="nc" id="L163">            	final BigInteger bi = userdata.getCertificateSerialNumber();</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">            	if ( bi!=null ) {</span>
+<span class="nc" id="L165">                    getPrintStream().println(ParseUserData.certificateSerialNumber+&quot;=0x&quot;+bi.toString(16));</span>
+            	}
+            }
+            
+           try{
+<span class="nc" id="L170">            	getEjbcaRAWS().editUser(userdata);</span>
+
+            	
+<span class="nc" id="L173">            	getPrintStream().println(&quot;User '&quot;+userdata.getUsername()+&quot;' has been added/edited.&quot;);</span>
+<span class="nc" id="L174">            	getPrintStream().println();              </span>
+<span class="nc" id="L175">            }catch(AuthorizationDeniedException_Exception e){</span>
+<span class="nc" id="L176">            	getPrintStream().println(&quot;Error : &quot; + e.getMessage());</span>
+<span class="nc" id="L177">            }catch(UserDoesntFullfillEndEntityProfile_Exception e){</span>
+<span class="nc" id="L178">            	getPrintStream().println(&quot;Error : Given userdata doesn't fulfill end entity profile. : &quot; +  e.getMessage());</span>
+<span class="nc" id="L179">            }</span>
+                      
+<span class="nc" id="L181">        } catch (Exception e) {</span>
+<span class="nc" id="L182">            throw new ErrorAdminCommandException(e);</span>
+<span class="nc" id="L183">        }</span>
+<span class="nc" id="L184">    }</span>
+    private int getStatus(String status) {
+<span class="nc bnc" id="L186" title="All 2 branches missed.">		if(status.equalsIgnoreCase(&quot;NEW&quot;)){</span>
+<span class="nc" id="L187">			return EndEntityConstants.STATUS_NEW;</span>
+		}
+<span class="nc bnc" id="L189" title="All 2 branches missed.">		if(status.equalsIgnoreCase(&quot;INPROCESS&quot;)){</span>
+<span class="nc" id="L190">			return EndEntityConstants.STATUS_INPROCESS;</span>
+		}
+<span class="nc bnc" id="L192" title="All 2 branches missed.">		if(status.equalsIgnoreCase(&quot;FAILED&quot;)){</span>
+<span class="nc" id="L193">			return EndEntityConstants.STATUS_FAILED;</span>
+		}
+<span class="nc bnc" id="L195" title="All 2 branches missed.">		if(status.equalsIgnoreCase(&quot;HISTORICAL&quot;)){</span>
+<span class="nc" id="L196">			return EndEntityConstants.STATUS_HISTORICAL;</span>
+		}		
+		
+<span class="nc" id="L199">		getPrintStream().println(&quot;Error in status string : &quot; + status );</span>
+<span class="nc" id="L200">		usage();</span>
+<span class="nc" id="L201">		System.exit(-1); // NOPMD, this is not a JEE app</span>
+<span class="nc" id="L202">		return 0;</span>
+	}
+
+	protected void usage() {
+<span class="nc" id="L206">		getPrintStream().println(&quot;Command used to add or edit userdata, if user exist will the data be overwritten.&quot;);</span>
+<span class="nc" id="L207">		getPrintStream().println(&quot;Usage : edituser &lt;username&gt; &lt;password|null&gt; &lt;clearpwd (true|false)&gt; &lt;subjectdn&gt; &lt;subjectaltname or NULL&gt; &lt;email or NULL&gt; &lt;caname&gt; &lt;type&gt; &lt;token&gt; &lt;status&gt; &lt;endentityprofilename&gt; &lt;certificateprofilename&gt; &lt;issueralias or NULL (optional)&gt; &lt;starttime or NULL (optional)&gt; &lt;endtime (starttime)&gt;\n\n&quot;);</span>
+<span class="nc" id="L208">        getPrintStream().println(&quot;DN is of form \&quot;C=SE, O=MyOrg, OU=MyOrgUnit, CN=MyName\&quot; etc.&quot;);</span>
+<span class="nc" id="L209">        getPrintStream().println(&quot;SubjectAltName is of form \&quot;rfc822Name=&lt;email&gt;, dNSName=&lt;host name&gt;, uri=&lt;http://host.com/&gt;, ipaddress=&lt;address&gt;, guid=&lt;globally unique id&gt;\&quot;&quot;);</span>
+<span class="nc" id="L210">        getPrintStream().println(&quot;Type (mask): INVALID=0; END-USER=1; KEYRECOVERABLE=128; SENDNOTIFICATION=256&quot;);</span>
+<span class="nc" id="L211">        getPrintStream().println(&quot;Existing tokens: USERGENERATED, P12, JKS, PEM&quot;);</span>
+<span class="nc" id="L212">        getPrintStream().println(&quot;Existing statuses (new users will always be set as NEW) : NEW, INPROCESS, FAILED, HISTORICAL&quot;);</span>
+<span class="nc" id="L213">        getPrintStream().println(&quot;Start time and end time is of form \&quot;May 26, 2009 9:52 AM\&quot; or \&quot;days:hours:minutes\&quot;&quot;);</span>
+<span class="nc" id="L214">        getPrintStream().println();</span>
+<span class="nc" id="L215">        ParseUserData.printCliHelp(getPrintStream());</span>
+<span class="nc" id="L216">	}</span>
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

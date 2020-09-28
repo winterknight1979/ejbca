@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserMatch.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA Webservices CLI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.client.gen</a> &gt; <span class="el_source">UserMatch.java</span></div><h1>UserMatch.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.protocol.ws.client.gen;
+
+import java.io.Serializable;
+
+import org.ejbca.util.query.BasicMatch;
+
+/**
+ * Holder of user match/search data.
+ * 
+ * @version $Id: UserMatch.java 28961 2018-05-18 06:53:27Z mikekushner $
+ */
+public class UserMatch implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    public static final int MATCH_WITH_USERNAME            = org.ejbca.util.query.UserMatch.MATCH_WITH_USERNAME;
+    public static final int MATCH_WITH_EMAIL               = org.ejbca.util.query.UserMatch.MATCH_WITH_EMAIL;
+    public static final int MATCH_WITH_STATUS              = org.ejbca.util.query.UserMatch.MATCH_WITH_STATUS; // Value must the number representation.
+    public static final int MATCH_WITH_ENDENTITYPROFILE    = org.ejbca.util.query.UserMatch.MATCH_WITH_ENDENTITYPROFILE; // Matches the end entity profile name.
+    public static final int MATCH_WITH_CERTIFICATEPROFILE  = org.ejbca.util.query.UserMatch.MATCH_WITH_CERTIFICATEPROFILE; // Matches the certificate profile name.
+    public static final int MATCH_WITH_CA                  = org.ejbca.util.query.UserMatch.MATCH_WITH_CA; // Matches the CA name.
+	public static final int MATCH_WITH_TOKEN               = org.ejbca.util.query.UserMatch.MATCH_WITH_TOKEN;
+	public static final int MATCH_WITH_DN                  = org.ejbca.util.query.UserMatch.MATCH_WITH_DN;
+    // Subject DN fields.
+    public static final int MATCH_WITH_UID                 = org.ejbca.util.query.UserMatch.MATCH_WITH_UID;
+    public static final int MATCH_WITH_COMMONNAME          = org.ejbca.util.query.UserMatch.MATCH_WITH_COMMONNAME;
+    public static final int MATCH_WITH_DNSERIALNUMBER      = org.ejbca.util.query.UserMatch.MATCH_WITH_DNSERIALNUMBER;
+    public static final int MATCH_WITH_GIVENNAME           = org.ejbca.util.query.UserMatch.MATCH_WITH_GIVENNAME;
+    public static final int MATCH_WITH_INITIALS            = org.ejbca.util.query.UserMatch.MATCH_WITH_INITIALS;
+    public static final int MATCH_WITH_SURNAME             = org.ejbca.util.query.UserMatch.MATCH_WITH_SURNAME;
+    public static final int MATCH_WITH_TITLE               = org.ejbca.util.query.UserMatch.MATCH_WITH_TITLE;
+    public static final int MATCH_WITH_ORGANIZATIONALUNIT  = org.ejbca.util.query.UserMatch.MATCH_WITH_ORGANIZATIONALUNIT;
+    public static final int MATCH_WITH_ORGANIZATION        = org.ejbca.util.query.UserMatch.MATCH_WITH_ORGANIZATION;
+    public static final int MATCH_WITH_LOCALITY            = org.ejbca.util.query.UserMatch.MATCH_WITH_LOCALITY;
+    public static final int MATCH_WITH_STATEORPROVINCE     = org.ejbca.util.query.UserMatch.MATCH_WITH_STATEORPROVINCE;
+    public static final int MATCH_WITH_DOMAINCOMPONENT     = org.ejbca.util.query.UserMatch.MATCH_WITH_DOMAINCOMPONENT;
+    public static final int MATCH_WITH_COUNTRY             = org.ejbca.util.query.UserMatch.MATCH_WITH_COUNTRY;
+	
+    public static final int MATCH_TYPE_EQUALS     = BasicMatch.MATCH_TYPE_EQUALS;
+    public static final int MATCH_TYPE_BEGINSWITH = BasicMatch.MATCH_TYPE_BEGINSWITH;
+    public static final int MATCH_TYPE_CONTAINS   = BasicMatch.MATCH_TYPE_CONTAINS;
+    
+    private int matchwith;
+    private int matchtype;
+    private String matchvalue;
+    
+    /** Default Web Service Constructor */
+<span class="nc" id="L59">    public UserMatch(){}</span>
+    
+    /**
+     * Constuctor to use to create a UserMatch.
+     * 
+     * @param matchwith  one of MATCH_WITH_ constants.
+     * @param matchtype  one of MATCH_TYPE_ constants.
+     * @param matchvalue a string to search for.
+     */
+<span class="nc" id="L68">    public UserMatch(int matchwith, int matchtype, String matchvalue){</span>
+<span class="nc" id="L69">    	this.matchwith  = matchwith;</span>
+<span class="nc" id="L70">    	this.matchtype  = matchtype;</span>
+<span class="nc" id="L71">    	this.matchvalue = matchvalue;    	</span>
+<span class="nc" id="L72">    }</span>
+
+	/**
+	 * @return Returns the matchtype, one of MATCH_TYPE_ constants.
+	 */
+	public int getMatchtype() {
+<span class="nc" id="L78">		return matchtype;</span>
+	}
+
+	/**
+	 * @param matchtype The matchtype to set, one of MATCH_TYPE_ constants.
+	 */
+	public void setMatchtype(int matchtype) {
+<span class="nc" id="L85">		this.matchtype = matchtype;</span>
+<span class="nc" id="L86">	}</span>
+
+	/**
+	 * @return Returns the matchvalue.
+	 */
+	public String getMatchvalue() {
+<span class="nc" id="L92">		return matchvalue;</span>
+	}
+
+	/**
+	 * @param matchvalue The matchvalue to set.
+	 */
+	public void setMatchvalue(String matchvalue) {
+<span class="nc" id="L99">		this.matchvalue = matchvalue;</span>
+<span class="nc" id="L100">	}</span>
+
+	/**
+	 * @return Returns the matchwith, one of MATCH_WITH_ constants.
+	 */
+	public int getMatchwith() {
+<span class="nc" id="L106">		return matchwith;</span>
+	}
+
+	/**
+	 * @param matchwith The matchwith to set, one of MATCH_WITH_ constants.
+	 */
+	public void setMatchwith(int matchwith) {
+<span class="nc" id="L113">		this.matchwith = matchwith;</span>
+<span class="nc" id="L114">	}</span>
+	
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GenerateCryptoTokenKeysCommand.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA Webservices CLI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.client</a> &gt; <span class="el_source">GenerateCryptoTokenKeysCommand.java</span></div><h1>GenerateCryptoTokenKeysCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.ws.client;
+
+import org.ejbca.core.protocol.ws.client.gen.EjbcaException_Exception;
+import org.ejbca.ui.cli.ErrorAdminCommandException;
+import org.ejbca.ui.cli.IAdminCommand;
+import org.ejbca.ui.cli.IllegalAdminCommandException;
+
+
+/**
+ * Adds an administrator to an existing Administrator role
+ *
+ * @version $Id: GenerateCryptoTokenKeysCommand.java 26057 2017-06-22 08:08:34Z anatom $
+ */
+public class GenerateCryptoTokenKeysCommand extends EJBCAWSRABaseCommand implements IAdminCommand{
+
+
+    private static final int ARG_CRYPTOTOKEN_NAME    = 1;
+    private static final int ARG_KEY_PAIR_ALIAS      = 2;
+    private static final int ARG_KEY_SPECIFICATION   = 3;
+
+    /**
+     * Creates a new instance of Command
+     *
+     * @param args command line arguments
+     */
+    public GenerateCryptoTokenKeysCommand(String[] args) {
+<span class="nc" id="L40">        super(args);</span>
+<span class="nc" id="L41">    }</span>
+
+    /**
+     * Runs the command
+     *
+     * @throws IllegalAdminCommandException Error in command args
+     * @throws ErrorAdminCommandException Error running command
+     */
+    public void execute() throws IllegalAdminCommandException, ErrorAdminCommandException {
+        try {   
+<span class="nc bnc" id="L51" title="All 2 branches missed.">            if (args.length &lt; 4 ) {</span>
+<span class="nc" id="L52">                getPrintStream().println(&quot;Error. Too few arguments: &quot;+args.length);</span>
+<span class="nc" id="L53">                usage();</span>
+<span class="nc" id="L54">                System.exit(-1); // NOPMD, this is not a JEE app</span>
+            }
+
+<span class="nc" id="L57">            String cryptotokenName = args[ARG_CRYPTOTOKEN_NAME];</span>
+<span class="nc" id="L58">            String keyAlias = args[ARG_KEY_PAIR_ALIAS];</span>
+<span class="nc" id="L59">            String keySpec = args[ARG_KEY_SPECIFICATION];</span>
+            
+<span class="nc" id="L61">            getEjbcaRAWS().generateCryptoTokenKeys(cryptotokenName, keyAlias, keySpec);</span>
+<span class="nc" id="L62">            getPrintStream().println(&quot;Generate key with alias '&quot; + keyAlias + &quot;' in cryptotoken '&quot; + cryptotokenName + &quot;'&quot;);</span>
+<span class="nc" id="L63">        } catch (Exception e) {</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">            if (e instanceof EjbcaException_Exception) {</span>
+<span class="nc" id="L65">                EjbcaException_Exception e1 = (EjbcaException_Exception)e;</span>
+<span class="nc" id="L66">                getPrintStream().println(&quot;Error code: &quot; + e1.getFaultInfo().getErrorCode().getInternalErrorCode());</span>
+            }
+<span class="nc" id="L68">            ErrorAdminCommandException adminexp = new ErrorAdminCommandException(e);</span>
+<span class="nc" id="L69">            getPrintStream().println(&quot;Error message: &quot; + adminexp.getLocalizedMessage());</span>
+<span class="nc" id="L70">        }</span>
+<span class="nc" id="L71">    }</span>
+
+    protected void usage() {
+<span class="nc" id="L74">        getPrintStream().println(&quot;Command used to generate a keypair for a specific cryptotoken&quot;);</span>
+<span class="nc" id="L75">        getPrintStream().println(&quot;Usage : generatectkeys &lt;cryptotokenName&gt; &lt;keypairAlias&gt; &lt;keySpecification&gt;&quot;);</span>
+<span class="nc" id="L76">        getPrintStream().println();</span>
+<span class="nc" id="L77">        getPrintStream().println(&quot;Examples of key specifications: RSA2048, secp256r1, DSA1024, gost3410, dstu4145&quot;);</span>
+<span class="nc" id="L78">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

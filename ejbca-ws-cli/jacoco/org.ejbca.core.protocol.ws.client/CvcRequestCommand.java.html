@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CvcRequestCommand.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA Webservices CLI</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.client</a> &gt; <span class="el_source">CvcRequestCommand.java</span></div><h1>CvcRequestCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.ws.client;
+
+import java.io.FileOutputStream;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.List;
+
+import org.apache.commons.lang.RandomStringUtils;
+import org.cesecore.keys.util.KeyTools;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.FileTools;
+import org.ejbca.core.protocol.ws.client.gen.AuthorizationDeniedException_Exception;
+import org.ejbca.core.protocol.ws.client.gen.Certificate;
+import org.ejbca.core.protocol.ws.client.gen.EjbcaException_Exception;
+import org.ejbca.core.protocol.ws.client.gen.UserDoesntFullfillEndEntityProfile_Exception;
+import org.ejbca.cvc.CAReferenceField;
+import org.ejbca.cvc.CVCAuthenticatedRequest;
+import org.ejbca.cvc.CVCObject;
+import org.ejbca.cvc.CVCertificate;
+import org.ejbca.cvc.CertificateGenerator;
+import org.ejbca.cvc.CertificateParser;
+import org.ejbca.cvc.HolderReferenceField;
+import org.ejbca.ui.cli.ErrorAdminCommandException;
+import org.ejbca.ui.cli.IAdminCommand;
+import org.ejbca.ui.cli.IllegalAdminCommandException;
+
+
+/**
+ * Creates or edits a user and sends a CVC request. Writes the issues CV Certificate to file
+ *
+ * @version $Id: CvcRequestCommand.java 24940 2016-12-21 09:43:55Z mikekushner $
+ */
+public class CvcRequestCommand extends EJBCAWSRABaseCommand implements IAdminCommand{
+
+
+	private static final int ARG_USERNAME           = 1;
+	private static final int ARG_PASSWORD           = 2;
+	private static final int ARG_SUBJECTDN          = 3;
+	private static final int ARG_SEQUENCE           = 4;
+	private static final int ARG_SIGNALG            = 5;
+	private static final int ARG_KEYSPEC            = 6;
+	private static final int ARG_GENREQ             = 7;
+	private static final int ARG_BASEFILENAME       = 8;
+	private static final int ARG_AUTHSIGNKEY        = 9;
+	private static final int ARG_AUTHSIGNCERT       = 10;
+
+	/**
+	 * Creates a new instance of CvcRequestCommand
+	 *
+	 * @param args command line arguments
+	 */
+	public CvcRequestCommand(String[] args) {
+<span class="nc" id="L71">		super(args);</span>
+<span class="nc" id="L72">	}</span>
+
+	/**
+	 * Runs the command
+	 *
+	 * @throws IllegalAdminCommandException Error in command args
+	 * @throws ErrorAdminCommandException Error running command
+	 */
+	public void execute() throws IllegalAdminCommandException, ErrorAdminCommandException {
+
+		try {   
+<span class="nc bnc" id="L83" title="All 4 branches missed.">			if(args.length &lt; 9 || args.length &gt; 11){</span>
+<span class="nc" id="L84">				getPrintStream().println(&quot;Number of arguments: &quot;+args.length);</span>
+<span class="nc" id="L85">				usage();</span>
+<span class="nc" id="L86">				System.exit(-1); // NOPMD, this is not a JEE app</span>
+			}
+
+<span class="nc" id="L89">			String username = args[ARG_USERNAME];</span>
+<span class="nc" id="L90">			String userpassword = args[ARG_PASSWORD];</span>
+<span class="nc" id="L91">			String dn = args[ARG_SUBJECTDN];</span>
+<span class="nc" id="L92">			String sequence = args[ARG_SEQUENCE];</span>
+<span class="nc" id="L93">			String signatureAlg = args[ARG_SIGNALG];</span>
+<span class="nc" id="L94">			String keySpec = args[ARG_KEYSPEC];</span>
+<span class="nc" id="L95">			boolean genrequest = args[ARG_GENREQ].equalsIgnoreCase(&quot;true&quot;);</span>
+<span class="nc" id="L96">			String basefilename = args[ARG_BASEFILENAME];</span>
+<span class="nc" id="L97">			String authSignKeyFile = null;</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">			if (args.length &gt; (ARG_AUTHSIGNKEY)) {</span>
+<span class="nc" id="L99">				authSignKeyFile = args[ARG_AUTHSIGNKEY];				</span>
+			}
+<span class="nc" id="L101">			String authSignCertFile = null;</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">			if (args.length &gt; (ARG_AUTHSIGNCERT)) {</span>
+<span class="nc" id="L103">				authSignCertFile = args[ARG_AUTHSIGNCERT];				</span>
+			}
+
+<span class="nc" id="L106">			getPrintStream().println(&quot;Enrolling user:&quot;);</span>
+<span class="nc" id="L107">			getPrintStream().println(&quot;Username: &quot;+username);</span>
+<span class="nc" id="L108">			getPrintStream().println(&quot;Subject name: &quot;+dn);</span>
+<span class="nc" id="L109">			getPrintStream().println(&quot;Sequence: &quot;+sequence);</span>
+<span class="nc" id="L110">			getPrintStream().println(&quot;Signature algorithm: &quot;+signatureAlg);                        </span>
+<span class="nc" id="L111">			getPrintStream().println(&quot;Key spec: &quot;+keySpec);                        </span>
+
+			try{
+<span class="nc" id="L114">				CryptoProviderTools.installBCProvider();</span>
+				
+<span class="nc" id="L116">				String cvcreq = null;</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">				if (genrequest) {</span>
+<span class="nc" id="L118">					getPrintStream().println(&quot;Generating a new request with base filename: &quot;+basefilename);</span>
+					// Generate keys for the request
+<span class="nc" id="L120">					String keytype = &quot;RSA&quot;;</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">					if (signatureAlg.contains(&quot;ECDSA&quot;)) {</span>
+<span class="nc" id="L122">						keytype = &quot;ECDSA&quot;;</span>
+					}
+<span class="nc" id="L124">					KeyPair keyPair = KeyTools.genKeys(keySpec, keytype);</span>
+<span class="nc" id="L125">					String country = CertTools.getPartFromDN(dn, &quot;C&quot;);</span>
+<span class="nc" id="L126">					String mnemonic = CertTools.getPartFromDN(dn, &quot;CN&quot;);</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">					if (sequence.equalsIgnoreCase(&quot;null&quot;)) {</span>
+<span class="nc" id="L128">						sequence = RandomStringUtils.randomNumeric(5);</span>
+<span class="nc" id="L129">						getPrintStream().println(&quot;No sequence given, using random 5 number sequence: &quot;+sequence);</span>
+					}
+					//CAReferenceField caRef = new CAReferenceField(country,mnemonic,sequence);
+<span class="nc" id="L132">					CAReferenceField caRef = null; // Don't create a caRef in the self signed request</span>
+					// We are making a self signed request, so holder ref is same as ca ref
+<span class="nc" id="L134">					HolderReferenceField holderRef = new HolderReferenceField(country,mnemonic,sequence);</span>
+<span class="nc" id="L135">					CVCertificate request = CertificateGenerator.createRequest(keyPair, signatureAlg, caRef, holderRef);</span>
+<span class="nc" id="L136">					byte[] der = request.getDEREncoded();</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">					if (authSignKeyFile != null) {</span>
+<span class="nc" id="L138">						getPrintStream().println(&quot;Reading private key from pkcs8 file &quot;+authSignKeyFile+&quot; to create an authenticated request&quot;);</span>
+<span class="nc" id="L139">						byte[] keybytes = FileTools.readFiletoBuffer(authSignKeyFile);</span>
+<span class="nc" id="L140">				        KeyFactory keyfact = KeyFactory.getInstance(keytype, &quot;BC&quot;);</span>
+<span class="nc" id="L141">				        PrivateKey privKey = keyfact.generatePrivate(new PKCS8EncodedKeySpec(keybytes));</span>
+<span class="nc" id="L142">				        KeyPair authKeyPair = new KeyPair(null, privKey); // We don't need the public key</span>
+				        // Default caRef if we do not pass in a certificate to get caRef from
+<span class="nc" id="L144">						CAReferenceField authCaRef = new CAReferenceField(country,mnemonic,sequence);</span>
+<span class="nc" id="L145">						CVCertificate authCert = null;</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">						if (authSignCertFile != null) {</span>
+<span class="nc" id="L147">							getPrintStream().println(&quot;Reading cert from cvcert file &quot;+authSignCertFile+&quot; to create an authenticated request&quot;);							</span>
+<span class="nc" id="L148">							CVCObject parsedObject = CvcPrintCommand.getCVCObject(authSignCertFile);</span>
+<span class="nc" id="L149">							authCert = (CVCertificate)parsedObject;</span>
+<span class="nc" id="L150">							String c = authCert.getCertificateBody().getHolderReference().getCountry();</span>
+<span class="nc" id="L151">							String m = authCert.getCertificateBody().getHolderReference().getMnemonic();</span>
+<span class="nc" id="L152">							String s = authCert.getCertificateBody().getHolderReference().getSequence();</span>
+<span class="nc" id="L153">							authCaRef = new CAReferenceField(c, m, s);</span>
+						}
+<span class="nc" id="L155">						CVCAuthenticatedRequest authRequest = CertificateGenerator.createAuthenticatedRequest(request, authKeyPair, signatureAlg, authCaRef);</span>
+						// Test to verify it yourself first
+<span class="nc bnc" id="L157" title="All 2 branches missed.">						if (authCert != null) {</span>
+<span class="nc" id="L158">							getPrintStream().println(&quot;Verifying the request before sending it...&quot;);</span>
+<span class="nc" id="L159">							PublicKey pk = KeyTools.getECPublicKeyWithParams(authCert.getCertificateBody().getPublicKey(), keySpec);</span>
+<span class="nc" id="L160">							authRequest.verify(pk);							</span>
+						}
+<span class="nc" id="L162">						der = authRequest.getDEREncoded();						</span>
+					}
+<span class="nc" id="L164">					cvcreq = new String(Base64.encode(der));</span>
+					// Print the generated request to file
+<span class="nc" id="L166">					FileOutputStream fos = new FileOutputStream(basefilename+&quot;.cvreq&quot;);</span>
+<span class="nc" id="L167">					fos.write(der);</span>
+<span class="nc" id="L168">					fos.close();					</span>
+<span class="nc" id="L169">					getPrintStream().println(&quot;Wrote binary request to: &quot;+basefilename+&quot;.cvreq&quot;);</span>
+<span class="nc" id="L170">					fos = new FileOutputStream(basefilename+&quot;.pkcs8&quot;);</span>
+<span class="nc" id="L171">					fos.write(keyPair.getPrivate().getEncoded());</span>
+<span class="nc" id="L172">					fos.close();					</span>
+<span class="nc" id="L173">					getPrintStream().println(&quot;Wrote private key in &quot;+keyPair.getPrivate().getFormat()+&quot; format to to: &quot;+basefilename+&quot;.pkcs8&quot;);</span>
+<span class="nc" id="L174">				} else {</span>
+					// Read request from file
+<span class="nc" id="L176">					getPrintStream().println(&quot;Reading request from filename: &quot;+basefilename+&quot;.cvreq&quot;);</span>
+<span class="nc" id="L177">					byte[] der = FileTools.readFiletoBuffer(basefilename+&quot;.cvreq&quot;);</span>
+<span class="nc" id="L178">					cvcreq = new String(Base64.encode(der));</span>
+				}
+				
+				// Edit a user, creating it if it does not exist
+				// Actually don't do that, leverage the existing commands and force to use the editUser command instead.
+				// This also makes this CLI exactly represent the actual WS-API call 
+				// getEjbcaRAWS().editUser(userdata);
+				
+<span class="nc" id="L186">				getPrintStream().println(&quot;Submitting CVC request for user '&quot;+username+&quot;'.&quot;);</span>
+<span class="nc" id="L187">				getPrintStream().println();              </span>
+				// Use the request and request a certificate
+<span class="nc" id="L189">				List&lt;Certificate&gt; resp = getEjbcaRAWS().cvcRequest(username, userpassword, cvcreq);</span>
+
+				// Handle the response
+<span class="nc" id="L192">				Certificate cert = resp.get(0);</span>
+<span class="nc" id="L193">				byte[] b64cert = cert.getCertificateData();</span>
+<span class="nc" id="L194">				CVCObject parsedObject = CertificateParser.parseCertificate(Base64.decode(b64cert));</span>
+<span class="nc" id="L195">				CVCertificate cvcert = (CVCertificate)parsedObject;</span>
+<span class="nc" id="L196">				FileOutputStream fos = new FileOutputStream(basefilename+&quot;.cvcert&quot;);</span>
+<span class="nc" id="L197">				fos.write(cvcert.getDEREncoded());</span>
+<span class="nc" id="L198">				fos.close();</span>
+<span class="nc" id="L199">				getPrintStream().println(&quot;Wrote binary certificate to: &quot;+basefilename+&quot;.cvcert&quot;);</span>
+<span class="nc" id="L200">				getPrintStream().println(&quot;You can look at the certificate with the command cvcwscli.sh cvcprint &quot;+basefilename+&quot;.cvcert&quot;);</span>
+<span class="nc" id="L201">			}catch(AuthorizationDeniedException_Exception e){</span>
+<span class="nc" id="L202">				getPrintStream().println(&quot;Error : &quot; + e.getMessage());</span>
+<span class="nc" id="L203">			}catch(UserDoesntFullfillEndEntityProfile_Exception e){</span>
+<span class="nc" id="L204">				getPrintStream().println(&quot;Error : Given userdata doesn't fulfill end entity profile. : &quot; +  e.getMessage());</span>
+<span class="nc" id="L205">			}</span>
+
+<span class="nc" id="L207">		} catch (Exception e) {</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">			if (e instanceof EjbcaException_Exception) {</span>
+<span class="nc" id="L209">				EjbcaException_Exception e1 = (EjbcaException_Exception)e;</span>
+<span class="nc" id="L210">				getPrintStream().println(&quot;Error code is: &quot;+e1.getFaultInfo().getErrorCode().getInternalErrorCode());</span>
+			}
+<span class="nc" id="L212">			throw new ErrorAdminCommandException(e);</span>
+<span class="nc" id="L213">		}</span>
+<span class="nc" id="L214">	}</span>
+
+	protected void usage() {
+<span class="nc" id="L217">		getPrintStream().println(&quot;Command used to make a CVC request. A user must exist, add one with 'ejbcawsracli.sh edituser'.&quot;);</span>
+<span class="nc" id="L218">		getPrintStream().println(&quot;Usage : cvcrequest &lt;username&gt; &lt;password&gt; &lt;subjectdn&gt; &lt;sequence&gt; &lt;signatureAlg&gt; &lt;keyspec (1024|1536|2048|curve)&gt;&lt;genreq=true|false&gt; &lt;basefilename&gt; [&lt;auth-sign-key&gt;] [&lt;auth-sign-cert&gt;]\n\n&quot;);</span>
+<span class="nc" id="L219">		getPrintStream().println(&quot;SignatureAlg is used when generating a request and can be SHA1WithRSA, SHA256WithRSA, SHA256WithRSAAndMGF1, SHA1WithECDSA, SHA224WithECDSA, SHA256WithECDSA&quot;);</span>
+<span class="nc" id="L220">		getPrintStream().println(&quot;Keyspec is used when generating a request and is 1024, 1536, 2048, etc. for RSA keys and the name of a named curve for ECDSA, see User Guide for supported curves.&quot;);</span>
+<span class="nc" id="L221">		getPrintStream().println(&quot;DN is used when generating a request and is of form \&quot;C=SE, CN=ISTEST2\&quot;, where SE is the country and ISTEST2 the mnemonic.&quot;);</span>
+<span class="nc" id="L222">		getPrintStream().println(&quot;Sequence is used when generating a request and is a sequence number for the public key, recomended form 00001 etc. If 'null' a random 5 number sequence will be generated.&quot;);</span>
+<span class="nc" id="L223">		getPrintStream().println(&quot;If genreq is true a new request is generated and the generated request is written to &lt;basefilename&gt;.cvreq, and the private key to &lt;basefilename&gt;.pkcs8.&quot;);</span>
+<span class="nc" id="L224">		getPrintStream().println(&quot;If genreq is false a request is read from &lt;reqfilename&gt;.cvreq and sent to the CA, the sequence from the command line is ignored.&quot;);</span>
+<span class="nc" id="L225">		getPrintStream().println(&quot;The issued certificate is written to &lt;basefilename&gt;.cvcert\n&quot;);</span>
+<span class="nc" id="L226">		getPrintStream().println(&quot;auth-sign-key is optional and if given the CVC request is signed by this key to create an authenticated CVC request.&quot;);</span>
+<span class="nc" id="L227">		getPrintStream().println(&quot;auth-sign-cert is optional and if given the caRef of the authenticated CVC request is taken from this CVC certificate.&quot;);</span>
+<span class="nc" id="L228">	}</span>
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>
