@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ParseUserData.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ws-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.client</a> &gt; <span class="el_source">ParseUserData.java</span></div><h1>ParseUserData.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.ws.client;
+
+import java.io.PrintStream;
+import java.math.BigInteger;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.ejbca.core.protocol.ws.client.gen.ExtendedInformationWS;
+import org.ejbca.core.protocol.ws.client.gen.UserDataVOWS;
+import org.ejbca.util.cert.OID;
+
+/**
+ * Utility for parsing optional user data from the command arguments.
+ *  
+ * @author Lars Silvén
+ * $Id: ParseUserData.java 19902 2014-09-30 14:32:24Z anatom $
+ */
+<span class="nc" id="L31">class ParseUserData {</span>
+	static final String certificateSerialNumber=&quot;CERTIFICATESERIALNUMBER&quot;;
+	private static final String hexPrefix = &quot;0x&quot;;
+
+	/**
+	 * Updates the user data from optional properties defined by &quot;&lt;key&gt;=&lt;value&gt;&quot; on the command line.
+	 * @param args input from the command line
+	 * @param userData data to modify.
+	 * @param ps stream to print info for the user
+	 * @return args with optional arguments removed
+	 */
+	static String[] getDataFromArgs(String args[], UserDataVOWS userData, PrintStream ps) {
+<span class="nc" id="L43">		final List&lt;ExtendedInformationWS&gt; lei = new LinkedList&lt;ExtendedInformationWS&gt;();</span>
+<span class="nc" id="L44">		final List&lt;String&gt; lArgs = new LinkedList&lt;String&gt;();</span>
+<span class="nc bnc" id="L45" title="All 2 branches missed.">		for ( int i=0; i&lt;args.length; i++ ) {</span>
+<span class="nc" id="L46">			final String arg = args[i];</span>
+<span class="nc" id="L47">			final int equalPos = arg.indexOf('=');</span>
+<span class="nc bnc" id="L48" title="All 4 branches missed.">			if ( equalPos&lt;0 || equalPos+1&gt;arg.length() ) {</span>
+<span class="nc" id="L49">				lArgs.add(arg);</span>
+<span class="nc" id="L50">				continue;</span>
+			}
+<span class="nc" id="L52">			final String key = arg.substring(0, equalPos).trim();</span>
+<span class="nc" id="L53">			final String value = arg.substring(equalPos+1,arg.length()).trim();</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">			if ( key.equalsIgnoreCase(certificateSerialNumber) ) {</span>
+<span class="nc" id="L55">				final boolean isHex = value.substring(0, hexPrefix.length()).equalsIgnoreCase(hexPrefix);</span>
+				final BigInteger nr;
+				try {
+<span class="nc bnc" id="L58" title="All 2 branches missed.">					nr = isHex ? new BigInteger(value.substring(hexPrefix.length()), 16) : new BigInteger(value);</span>
+<span class="nc" id="L59">				} catch( NumberFormatException e ) {</span>
+<span class="nc" id="L60">					ps.println(certificateSerialNumber+&quot; '&quot;+value+&quot;' is not a valid number&quot;);</span>
+<span class="nc" id="L61">					System.exit(-1);// problem with extension data. User info printed by ParseUserData.getDataFromArgs</span>
+<span class="nc" id="L62">					return null; // this line will never be executed but prevents compilation error.</span>
+<span class="nc" id="L63">				}</span>
+<span class="nc" id="L64">				userData.setCertificateSerialNumber(nr);</span>
+<span class="nc" id="L65">				continue;</span>
+			}
+<span class="nc bnc" id="L67" title="All 2 branches missed.">			if ( OID.isStartingWithValidOID(key) ) {</span>
+<span class="nc" id="L68">				lei.add(new ExtendedInformationWS(key, value));</span>
+<span class="nc" id="L69">				continue;				</span>
+			}
+<span class="nc" id="L71">			lArgs.add(arg);</span>
+		}
+<span class="nc bnc" id="L73" title="All 2 branches missed.">		if ( lei.size()&gt;0 ) {</span>
+<span class="nc" id="L74">			userData.setExtendedInformation(lei);</span>
+		}
+<span class="nc" id="L76">		return lArgs.toArray(new String[lArgs.size()]);</span>
+	}
+	/**
+	 * Prints info for the user about the optional user data arguments.
+	 * @param ps stream to print to.
+	 */
+	static void printCliHelp(PrintStream ps) {
+<span class="nc" id="L83">		ps.println(&quot;Certificate serial number and certificate extension may be added as extra parameters. These parameters may be inserted at any position since they are removed before the other parameters (above) are parsed.&quot;);</span>
+<span class="nc" id="L84">		ps.println(&quot;For certificate serial number the parameter looks like this '&quot;+certificateSerialNumber+&quot;=&lt;serial number&gt;'. Start the number with '&quot;+hexPrefix+&quot;' to indicated that it is hexadecimal. Example: &quot;+certificateSerialNumber+&quot;=8642378462375036 &quot;+certificateSerialNumber+&quot;=0x5a53875acdaf24&quot;);</span>
+<span class="nc" id="L85">		ps.println(&quot;For certificate extension the parameter look like this '&lt;oid&gt;[.&lt;type&gt;]=value'. The key '1.2.3.4' is same as '1.2.3.4.value'. Example: 1.2.840.113634.100.6.1.1=00aa00bb 1.2.3.4.value1=1234 1.2.3.4.value2=abcdef&quot;);</span>
+<span class="nc" id="L86">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

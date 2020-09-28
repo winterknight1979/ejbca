@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ImportCaCertCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ws-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.client</a> &gt; <span class="el_source">ImportCaCertCommand.java</span></div><h1>ImportCaCertCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.ws.client;
+
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.ejbca.core.protocol.ws.client.gen.EjbcaException_Exception;
+import org.ejbca.ui.cli.ErrorAdminCommandException;
+import org.ejbca.ui.cli.IAdminCommand;
+import org.ejbca.ui.cli.IllegalAdminCommandException;
+
+/**
+ * Imports an external CA certificate for X.509 CAs or CVC CAs and creates the CA in EJBCA with the given name.
+ *
+ * @version $Id: ImportCaCertCommand.java 26057 2017-06-22 08:08:34Z anatom $
+ */
+public class ImportCaCertCommand extends EJBCAWSRABaseCommand implements IAdminCommand {
+
+    private static final int ARG_CANAME = 1;
+    private static final int ARG_CACHAIN = 2;
+
+    /**
+     * Creates a new instance of Command
+     *
+     * @param args command line arguments
+     */
+    public ImportCaCertCommand(String[] args) {
+<span class="nc" id="L39">        super(args);</span>
+<span class="nc" id="L40">    }</span>
+
+    /**
+     * Runs the command
+     *
+     * @throws IllegalAdminCommandException Error in command args
+     * @throws ErrorAdminCommandException Error running command
+     */
+    public void execute() throws IllegalAdminCommandException, ErrorAdminCommandException {
+        try {
+<span class="nc bnc" id="L50" title="All 4 branches missed.">            if (args.length &lt; 3 || args.length &gt; 3) {</span>
+<span class="nc" id="L51">                getPrintStream().println(&quot;Number of arguments: &quot; + args.length);</span>
+<span class="nc" id="L52">                usage();</span>
+<span class="nc" id="L53">                System.exit(-1); // NOPMD, this is not a JEE app</span>
+            }
+
+<span class="nc" id="L56">            CryptoProviderTools.installBCProvider();</span>
+
+<span class="nc" id="L58">            final String caname = args[ARG_CANAME];</span>
+<span class="nc" id="L59">            final String file = args[ARG_CACHAIN];</span>
+<span class="nc" id="L60">            getPrintStream().println(&quot;Import external CA: &quot; + caname);</span>
+<span class="nc" id="L61">            getPrintStream().println(&quot;Import external CA chain file: &quot; + file);</span>
+
+<span class="nc" id="L63">            final byte[] cachain = CertTools.readCertificateChainAsArrayOrThrow(file);</span>
+<span class="nc" id="L64">            getEjbcaRAWS().importCaCert(caname, cachain);</span>
+
+<span class="nc" id="L66">            getPrintStream().println(&quot;CA imported sucessfully.&quot;);</span>
+<span class="nc" id="L67">        } catch (Exception e) {</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">            if (e instanceof EjbcaException_Exception) {</span>
+<span class="nc" id="L69">                EjbcaException_Exception e1 = (EjbcaException_Exception) e;</span>
+<span class="nc" id="L70">                getPrintStream().println(&quot;Error code is: &quot; + e1.getFaultInfo().getErrorCode().getInternalErrorCode());</span>
+            }
+<span class="nc" id="L72">            throw new ErrorAdminCommandException(e);</span>
+<span class="nc" id="L73">        }</span>
+<span class="nc" id="L74">    }</span>
+
+    protected void usage() {
+<span class="nc" id="L77">        getPrintStream().println(&quot;Command used to import an external CA certificate. Can be X.509 or CVC CA.&quot;);</span>
+<span class="nc" id="L78">        getPrintStream().println(&quot;Usage : importcacert &lt;caname&gt; &lt;cachainfile&gt;\n\n&quot;);</span>
+<span class="nc" id="L79">        getPrintStream().println(&quot;Caname is the name of the CA created.&quot;);</span>
+<span class="nc" id="L80">        getPrintStream().println(</span>
+                &quot;Cachainfile is a file with the certificate chain of the external CA. This can be a file with several PEM certificates in it, or a file with a single PEM or binary Root CA certificate.&quot;);
+<span class="nc" id="L82">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

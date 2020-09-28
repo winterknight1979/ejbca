@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>KeyRecoverCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ws-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.client</a> &gt; <span class="el_source">KeyRecoverCommand.java</span></div><h1>KeyRecoverCommand.java</h1><pre class="source lang-java linenums">package org.ejbca.core.protocol.ws.client;
+
+
+import org.ejbca.core.protocol.ws.client.gen.ApprovalException_Exception;
+import org.ejbca.core.protocol.ws.client.gen.AuthorizationDeniedException_Exception;
+import org.ejbca.core.protocol.ws.client.gen.CADoesntExistsException_Exception;
+import org.ejbca.core.protocol.ws.client.gen.NotFoundException_Exception;
+import org.ejbca.core.protocol.ws.client.gen.WaitingForApprovalException_Exception;
+import org.ejbca.ui.cli.ErrorAdminCommandException;
+import org.ejbca.ui.cli.IAdminCommand;
+import org.ejbca.ui.cli.IllegalAdminCommandException;
+
+/**
+* 
+* THIS COMMAND DOES WORK FROM EXTERNAL RA, HOWEVER, IT IS CURRENTLY NOT POSSIBLE TO SET A NEW
+* PASSWORD AND FINALIZE THE ENROLLMENT THORUGH AN EXTERNAL RA USING EJBCA-WS SINCE MOST WS OPERATIONS
+* ARE ONLY SUPPORTED LOCALLY (AGAINST THE CA).
+* 
+* TODO Could be useful to support keyRecoverNewest
+*  
+* Set status to key recovery for an end entity's certificate.
+*
+* @version $Id: KeyRecoverCommand.java 26316 2017-08-15 08:40:09Z henriks $
+*/
+public class KeyRecoverCommand extends EJBCAWSRABaseCommand implements IAdminCommand {
+
+    
+    private static final int ARG_USERNAME                 = 1;
+    private static final int ARG_CERTSNINHEX              = 2;
+    private static final int ARG_ISSUERDN                 = 3;
+    
+    /**
+     * Creates a new instance of KeyRecoverCommand
+     *
+     * @param args command line arguments
+     */
+    public KeyRecoverCommand(String[] args) {
+<span class="nc" id="L38">        super(args);</span>
+<span class="nc" id="L39">    }</span>
+
+    /**
+     * Runs the command
+     *
+     * @throws IllegalAdminCommandException Error in command args
+     * @throws ErrorAdminCommandException Error running command
+     */
+    @Override
+    public void execute() throws IllegalAdminCommandException, ErrorAdminCommandException {
+       try {
+<span class="nc bnc" id="L50" title="All 2 branches missed.">           if(args.length != 4){</span>
+<span class="nc" id="L51">               getPrintStream().println(&quot;Unexpected number of parameters&quot;);</span>
+<span class="nc" id="L52">               usage();</span>
+<span class="nc" id="L53">               System.exit(-1); // NOPMD, it's not a JEE app</span>
+           }
+           
+<span class="nc" id="L56">           String username = args[ARG_USERNAME];</span>
+<span class="nc" id="L57">           String certSn = args[ARG_CERTSNINHEX];</span>
+<span class="nc" id="L58">           String issuerDn = args[ARG_ISSUERDN];</span>
+           
+           try {
+<span class="nc" id="L61">               getEjbcaRAWS().keyRecover(username, certSn, issuerDn);</span>
+<span class="nc" id="L62">               getPrintStream().println(&quot;Key recovery sucessfull&quot;);</span>
+<span class="nc" id="L63">           } catch (AuthorizationDeniedException_Exception e) {</span>
+<span class="nc" id="L64">               getPrintStream().println(&quot;Authentication failed :\n&quot; + e.getMessage());</span>
+<span class="nc" id="L65">           } catch (WaitingForApprovalException_Exception e) {</span>
+<span class="nc" id="L66">               getPrintStream().println(e.getMessage());</span>
+<span class="nc" id="L67">           } catch (ApprovalException_Exception e) {</span>
+<span class="nc" id="L68">               getPrintStream().println(e.getMessage());</span>
+<span class="nc" id="L69">           } catch (CADoesntExistsException_Exception e) {</span>
+<span class="nc" id="L70">               getPrintStream().println(e.getMessage());</span>
+<span class="nc" id="L71">           } catch (NotFoundException_Exception e) {</span>
+<span class="nc" id="L72">               getPrintStream().println(e.getMessage());</span>
+<span class="nc" id="L73">           }</span>
+           
+<span class="nc" id="L75">       } catch (Exception e) {</span>
+<span class="nc" id="L76">           throw new ErrorAdminCommandException(e);</span>
+<span class="nc" id="L77">       }</span>
+        
+<span class="nc" id="L79">    }</span>
+
+    @Override
+    protected void usage() {
+<span class="nc" id="L83">        getPrintStream().println(&quot;Command used for key recovery&quot;);</span>
+<span class="nc" id="L84">        getPrintStream().println(&quot;Usage : keyrecover &lt;username&gt; &lt;certSerialNr&gt; &lt;issuerDN&gt;&quot;);       </span>
+<span class="nc" id="L85">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

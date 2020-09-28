@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CaCertRequestCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ws-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.client</a> &gt; <span class="el_source">CaCertRequestCommand.java</span></div><h1>CaCertRequestCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.ws.client;
+
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.security.cert.Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.FileTools;
+import org.ejbca.core.protocol.ws.client.gen.EjbcaException_Exception;
+import org.ejbca.ui.cli.ErrorAdminCommandException;
+import org.ejbca.ui.cli.IAdminCommand;
+import org.ejbca.ui.cli.IllegalAdminCommandException;
+
+
+/**
+ * Creates a certificate request from a CA, optionally also renews keys. The certificate request is sent to 
+ * an external CA for certification or cross-certification. the received certificate is imported with the CaCertResponseCommand.
+ *
+ * @version $Id: CaCertRequestCommand.java 22553 2016-01-11 13:06:46Z mikekushner $
+ */
+public class CaCertRequestCommand extends EJBCAWSRABaseCommand implements IAdminCommand{
+
+
+	private static final int ARG_CANAME           = 1;
+	private static final int ARG_CACHAIN          = 2;
+	private static final int ARG_REGENKEYS        = 3;
+	private static final int ARG_ACIVATEKEYS      = 4;
+	private static final int ARG_USENEXTKEY       = 5;
+	private static final int ARG_OUTFILE          = 6;
+	private static final int ARG_KEYSTOREPWD      = 7;
+
+	/**
+	 * Creates a new instance of Command
+	 *
+	 * @param args command line arguments
+	 */
+	public CaCertRequestCommand(String[] args) {
+<span class="nc" id="L57">		super(args);</span>
+<span class="nc" id="L58">	}</span>
+
+	/**
+	 * Runs the command
+	 *
+	 * @throws IllegalAdminCommandException Error in command args
+	 * @throws ErrorAdminCommandException Error running command
+	 */
+	public void execute() throws IllegalAdminCommandException, ErrorAdminCommandException {
+
+		try {   
+<span class="nc bnc" id="L69" title="All 4 branches missed.">			if (args.length &lt; 7 || args.length &gt; 8) {</span>
+<span class="nc" id="L70">				getPrintStream().println(&quot;Number of arguments: &quot;+args.length);</span>
+<span class="nc" id="L71">				usage();</span>
+<span class="nc" id="L72">				System.exit(-1); // NOPMD, this is not a JEE app</span>
+			}
+
+<span class="nc" id="L75">			CryptoProviderTools.installBCProvider();</span>
+			
+<span class="nc" id="L77">			String caname = args[ARG_CANAME];</span>
+<span class="nc" id="L78">			String cachainfile = args[ARG_CACHAIN];</span>
+<span class="nc" id="L79">			boolean regenkeys = args[ARG_REGENKEYS].equalsIgnoreCase(&quot;true&quot;);</span>
+<span class="nc" id="L80">			boolean activatekeys = args[ARG_ACIVATEKEYS].equalsIgnoreCase(&quot;true&quot;);</span>
+<span class="nc" id="L81">			boolean usenext = args[ARG_USENEXTKEY].equalsIgnoreCase(&quot;true&quot;);</span>
+<span class="nc" id="L82">			String outfile = args[ARG_OUTFILE];</span>
+<span class="nc" id="L83">			String keystorepwd = null;</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">			if (args.length &gt; 7) {</span>
+<span class="nc" id="L85">				keystorepwd = args[ARG_KEYSTOREPWD];				</span>
+			}
+<span class="nc bnc" id="L87" title="All 4 branches missed.">			if (regenkeys &amp;&amp; (keystorepwd == null)) {</span>
+				// prompt for keystore password
+<span class="nc" id="L89">				 System.out.print(&quot;Enter CA token password: &quot;);</span>
+<span class="nc" id="L90">				 keystorepwd = String.valueOf(System.console().readPassword());            	</span>
+			}
+
+<span class="nc" id="L93">			getPrintStream().println(&quot;Creating request for CA: &quot;+caname);</span>
+<span class="nc" id="L94">			getPrintStream().println(&quot;CA chain file: &quot;+cachainfile);</span>
+<span class="nc" id="L95">			getPrintStream().println(&quot;Regenerate keys: &quot;+regenkeys);</span>
+<span class="nc" id="L96">			getPrintStream().println(&quot;Activate keys: &quot;+activatekeys);                        </span>
+<span class="nc" id="L97">			getPrintStream().println(&quot;Use next key: &quot;+usenext);</span>
+<span class="nc" id="L98">			getPrintStream().println(&quot;Output file: &quot;+outfile);</span>
+			//getPrintStream().println(&quot;CA token password: &quot;+keystorepwd);                        
+
+<span class="nc" id="L101">			List&lt;byte[]&gt; cachain = new ArrayList&lt;byte[]&gt;();</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">			if (!cachainfile.equalsIgnoreCase(&quot;NULL&quot;)){</span>
+				try {
+<span class="nc" id="L104">					FileInputStream in = new FileInputStream(cachainfile);</span>
+<span class="nc" id="L105">					Collection&lt;Certificate&gt; certs = CertTools.getCertsFromPEM(in, Certificate.class);</span>
+<span class="nc" id="L106">					Iterator&lt;Certificate&gt; iter = certs.iterator();</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">					while (iter.hasNext()) {</span>
+<span class="nc" id="L108">						Certificate cert = iter.next();</span>
+<span class="nc" id="L109">						cachain.add(cert.getEncoded());</span>
+<span class="nc" id="L110">					}</span>
+<span class="nc" id="L111">				} catch (IOException e) {</span>
+					// It was perhaps not a PEM chain...see if it was a single binary CVC certificate
+<span class="nc" id="L113">					byte[] certbytes = FileTools.readFiletoBuffer(cachainfile);</span>
+<span class="nc" id="L114">					Certificate cert = CertTools.getCertfromByteArray(certbytes, Certificate.class); // check if it is a good cert, decode PEM if it is PEM, etc</span>
+<span class="nc" id="L115">					cachain.add(cert.getEncoded());</span>
+<span class="nc" id="L116">				}</span>
+			}
+<span class="nc" id="L118">	        byte[] request = getEjbcaRAWS().caRenewCertRequest(caname, cachain, regenkeys, usenext, activatekeys, keystorepwd);</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">	        if (request != null) {</span>
+<span class="nc" id="L120">				FileOutputStream fos = new FileOutputStream(outfile);</span>
+<span class="nc" id="L121">				fos.write(request);</span>
+<span class="nc" id="L122">				fos.close();</span>
+<span class="nc" id="L123">				getPrintStream().println(&quot;Wrote certificate request to file: &quot;+outfile);	        	</span>
+<span class="nc" id="L124">	        } else {</span>
+<span class="nc" id="L125">	        	getPrintStream().println(&quot;Received null reply. Does the CA exists and does the admin have renew privileges for this CA?&quot;);</span>
+	        }
+<span class="nc" id="L127">		} catch (Exception e) {</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">			if (e instanceof EjbcaException_Exception) {</span>
+<span class="nc" id="L129">				EjbcaException_Exception e1 = (EjbcaException_Exception)e;</span>
+<span class="nc" id="L130">				getPrintStream().println(&quot;Error code is: &quot;+e1.getFaultInfo().getErrorCode().getInternalErrorCode());</span>
+			}
+<span class="nc" id="L132">			throw new ErrorAdminCommandException(e);</span>
+<span class="nc" id="L133">		}</span>
+<span class="nc" id="L134">	}</span>
+
+	protected void usage() {
+<span class="nc" id="L137">		getPrintStream().println(&quot;Command used to make a certificate request from a CA to an external CA. Can be X.509 or CVC. Can be used for cross certification and for renewing a Sub CA.&quot;);</span>
+<span class="nc" id="L138">		getPrintStream().println(&quot;Usage : cacertrequest &lt;caname&gt; &lt;cachainfile | NULL&gt; &lt;regenkeys true/false&gt; &lt;activatekeys true/false&gt; &lt;usenextkey true/false&gt; &lt;outfile&gt; [&lt;CA token password&gt;]\n\n&quot;);</span>
+<span class="nc" id="L139">		getPrintStream().println(&quot;Caname is the name of the CA that will generate the request.&quot;);</span>
+<span class="nc" id="L140">		getPrintStream().println(&quot;Cachainfile is a file with the certificate chain of the external CA. This can be a file with several PEM certificates in it, or a file with a single PEM or binary Root CA certificate.&quot;);</span>
+<span class="nc" id="L141">		getPrintStream().println(&quot;  Specifying NULL means that no cachain is supplied.&quot;);</span>
+<span class="nc" id="L142">		getPrintStream().println(&quot;Regenkeys will generate new CA signing keys that will be used to sign the request.&quot;);</span>
+<span class="nc" id="L143">		getPrintStream().println(&quot;Activatekeys is valid if regenkeys=true. Activatekeys determins if the new keys will be activated by the CA immediately or not. If activated immediately the CA will be set in status \&quot;waiting for certificate response\&quot;. In this state the CA will not be able to issue certificates until the response from the external CA has been imported. If activatekeys=false the new keys will be used to generate the request, but the old keys will still be active until the response from the external CA is imported.&quot;);</span>
+<span class="nc" id="L144">		getPrintStream().println(&quot;Usenextkey is valid if regenkeys=false but there has already been a call with regenkeys=true and activatekeys=false. This will then generate a new request using the new, not yet activated keys. Useful if the original request got lost, or if the same key should be used to generate a request for several external CAs.&quot;);</span>
+<span class="nc" id="L145">		getPrintStream().println(&quot;Outfile is the filename where the resulting request will be written, in binary format.&quot;);</span>
+<span class="nc" id="L146">		getPrintStream().println(&quot;CA token password is needed if regenkeys=true. If not given this command will prompt for the input if regenkeys=true.&quot;);</span>
+<span class="nc" id="L147">	}</span>
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

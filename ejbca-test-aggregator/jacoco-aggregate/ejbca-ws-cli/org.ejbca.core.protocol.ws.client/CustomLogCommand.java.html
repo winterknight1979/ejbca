@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CustomLogCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ws-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.client</a> &gt; <span class="el_source">CustomLogCommand.java</span></div><h1>CustomLogCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.ws.client;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.security.cert.Certificate;
+import java.util.Collection;
+import java.util.Iterator;
+
+import org.apache.commons.lang.StringUtils;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.FileTools;
+import org.ejbca.core.protocol.ws.client.gen.EjbcaException_Exception;
+import org.ejbca.core.protocol.ws.common.IEjbcaWS;
+import org.ejbca.ui.cli.ErrorAdminCommandException;
+import org.ejbca.ui.cli.IAdminCommand;
+import org.ejbca.ui.cli.IllegalAdminCommandException;
+
+
+/**
+ * Logs a custom log entry in EJBCA log.
+ *
+ * @author Tomas Gustavsson
+ * @version $Id: CustomLogCommand.java 22553 2016-01-11 13:06:46Z mikekushner $
+ */
+public class CustomLogCommand extends EJBCAWSRABaseCommand implements IAdminCommand{
+
+
+	private static final int ARG_LEVEL           = 1;
+	private static final int ARG_TYPE            = 2;
+	private static final int ARG_MSG             = 3;
+	private static final int ARG_CANAME          = 4;
+	private static final int ARG_USERNAME        = 5;
+	private static final int ARG_CERT            = 6;
+
+	/**
+	 * Creates a new instance Command
+	 *
+	 * @param args command line arguments
+	 */
+	public CustomLogCommand(String[] args) {
+<span class="nc" id="L55">		super(args);</span>
+<span class="nc" id="L56">	}</span>
+
+	/**
+	 * Runs the command
+	 *
+	 * @throws IllegalAdminCommandException Error in command args
+	 * @throws ErrorAdminCommandException Error running command
+	 */
+	public void execute() throws IllegalAdminCommandException, ErrorAdminCommandException {
+
+		try {   
+<span class="nc bnc" id="L67" title="All 4 branches missed.">			if(args.length &lt; 6 || args.length &gt; 7){</span>
+<span class="nc" id="L68">				getPrintStream().println(&quot;Number of arguments: &quot;+args.length);</span>
+<span class="nc" id="L69">				usage();</span>
+<span class="nc" id="L70">				System.exit(-1); // NOPMD, this is not a JEE app</span>
+			}
+
+<span class="nc" id="L73">			String level = args[ARG_LEVEL];</span>
+<span class="nc" id="L74">			String type = args[ARG_TYPE];</span>
+<span class="nc" id="L75">			String caname = args[ARG_CANAME];</span>
+<span class="nc" id="L76">			String username = args[ARG_USERNAME];</span>
+<span class="nc" id="L77">			String certfile = args[ARG_CERT];</span>
+<span class="nc" id="L78">			String msg = args[ARG_MSG];</span>
+
+<span class="nc" id="L80">			int logLevel = IEjbcaWS.CUSTOMLOG_LEVEL_INFO;</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">			if (StringUtils.equalsIgnoreCase(level, &quot;error&quot;)) {</span>
+<span class="nc" id="L82">				logLevel = IEjbcaWS.CUSTOMLOG_LEVEL_ERROR;</span>
+			}
+<span class="nc bnc" id="L84" title="All 2 branches missed.">			if (StringUtils.equalsIgnoreCase(caname, &quot;null&quot;)) {</span>
+<span class="nc" id="L85">				caname = null;</span>
+			}
+<span class="nc bnc" id="L87" title="All 2 branches missed.">			if (StringUtils.equalsIgnoreCase(username, &quot;null&quot;)) {</span>
+<span class="nc" id="L88">				username = null;</span>
+			}
+<span class="nc bnc" id="L90" title="All 2 branches missed.">			getPrintStream().println(&quot;Custom log level: &quot;+(logLevel == IEjbcaWS.CUSTOMLOG_LEVEL_ERROR ? &quot;ERROR&quot; : &quot;INFO&quot;));</span>
+<span class="nc" id="L91">			getPrintStream().println(&quot;Custom log type: &quot;+type);</span>
+<span class="nc" id="L92">			getPrintStream().println(&quot;Custom log message: &quot;+msg);</span>
+<span class="nc" id="L93">			getPrintStream().println(&quot;CA name: &quot;+caname);</span>
+<span class="nc" id="L94">			getPrintStream().println(&quot;Username: &quot;+username);</span>
+<span class="nc" id="L95">			getPrintStream().println(&quot;Certificate file: &quot;+certfile);</span>
+
+<span class="nc" id="L97">			CryptoProviderTools.installBCProvider();</span>
+
+<span class="nc" id="L99">			Certificate incert = null;</span>
+<span class="nc" id="L100">			org.ejbca.core.protocol.ws.client.gen.Certificate logcert = null;</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">			if (!StringUtils.equalsIgnoreCase(certfile, &quot;null&quot;)) {</span>
+				try {
+<span class="nc" id="L103">					FileInputStream in = new FileInputStream(certfile);</span>
+<span class="nc" id="L104">					Collection&lt;Certificate&gt; certs = CertTools.getCertsFromPEM(in, Certificate.class);</span>
+<span class="nc" id="L105">					Iterator&lt;Certificate&gt; iter = certs.iterator();</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">					if (iter.hasNext()) {</span>
+<span class="nc" id="L107">						incert = iter.next();</span>
+					}
+<span class="nc" id="L109">				} catch (IOException e) {</span>
+					// It was perhaps not a PEM chain...see if it was a single binary CVC certificate
+<span class="nc" id="L111">					byte[] bytes = FileTools.readFiletoBuffer(certfile);</span>
+<span class="nc" id="L112">					incert = CertTools.getCertfromByteArray(bytes, Certificate.class); // check if it is a good cert, decode PEM if it is PEM, etc</span>
+<span class="nc" id="L113">				}				</span>
+<span class="nc" id="L114">				getPrintStream().println(&quot;Using certificate with subjectDN '&quot;+CertTools.getSubjectDN(incert)+&quot;', and issuerDN '&quot;+CertTools.getIssuerDN(incert)+&quot;'.&quot;);</span>
+<span class="nc" id="L115">				logcert = new org.ejbca.core.protocol.ws.client.gen.Certificate(incert);</span>
+			}
+
+<span class="nc" id="L118">			getEjbcaRAWS().customLog(logLevel, type, caname, username, logcert, msg);</span>
+<span class="nc" id="L119">		} catch (Exception e) {</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">			if (e instanceof EjbcaException_Exception) {</span>
+<span class="nc" id="L121">				EjbcaException_Exception e1 = (EjbcaException_Exception)e;</span>
+<span class="nc" id="L122">				getPrintStream().println(&quot;Error code is: &quot;+e1.getFaultInfo().getErrorCode().getInternalErrorCode());</span>
+			}
+<span class="nc" id="L124">			throw new ErrorAdminCommandException(e);</span>
+<span class="nc" id="L125">		}</span>
+<span class="nc" id="L126">	}</span>
+
+	protected void usage() {
+<span class="nc" id="L129">		getPrintStream().println(&quot;Command used to log a custom log row in the EJBCA log.&quot;);</span>
+<span class="nc" id="L130">		getPrintStream().println(&quot;Usage : customlog logLevel logType logMsg caName username certificate\n\n&quot;);</span>
+<span class="nc" id="L131">		getPrintStream().println(&quot;level: log level of the event, INFO or ERROR&quot;);</span>
+<span class="nc" id="L132">		getPrintStream().println(&quot;type: user defined string used as a prefix in the log comment&quot;);</span>
+<span class="nc" id="L133">		getPrintStream().println(&quot;msg: message data used in the log comment. The log comment will have a syntax of 'type : msg'&quot;);</span>
+<span class="nc" id="L134">		getPrintStream().println(&quot;caName: of the ca related to the event, use null if no specific CA is related. Then will the ca of the administrator be used.&quot;);</span>
+<span class="nc" id="L135">		getPrintStream().println(&quot;username of the related user, use null if no related user exists.&quot;);</span>
+<span class="nc" id="L136">		getPrintStream().println(&quot;certificate: file path to the certificate that relates to the log event, use null if no certificate is related&quot;);</span>
+<span class="nc" id="L137">	}</span>
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

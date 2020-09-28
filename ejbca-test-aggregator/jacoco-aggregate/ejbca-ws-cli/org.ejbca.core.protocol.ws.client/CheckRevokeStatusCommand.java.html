@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CheckRevokeStatusCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ws-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.client</a> &gt; <span class="el_source">CheckRevokeStatusCommand.java</span></div><h1>CheckRevokeStatusCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.protocol.ws.client;
+
+import java.math.BigInteger;
+
+import org.cesecore.certificates.crl.RevokedCertInfo;
+import org.cesecore.util.CertTools;
+import org.ejbca.core.protocol.ws.client.gen.AuthorizationDeniedException_Exception;
+import org.ejbca.core.protocol.ws.client.gen.RevokeStatus;
+import org.ejbca.ui.cli.ErrorAdminCommandException;
+import org.ejbca.ui.cli.IAdminCommand;
+import org.ejbca.ui.cli.IllegalAdminCommandException;
+
+/**
+ * Revokes a given certificate
+ *
+ * @version $Id: CheckRevokeStatusCommand.java 22924 2016-03-03 21:59:59Z samuellb $
+ */
+public class CheckRevokeStatusCommand extends EJBCAWSRABaseCommand implements IAdminCommand{
+
+	private static final int ARG_ISSUERDN                 = 1;
+	private static final int ARG_CERTSN                   = 2;
+
+    /**
+     * Creates a new instance of RevokeCertCommand
+     *
+     * @param args command line arguments
+     */
+    public CheckRevokeStatusCommand(String[] args) {
+<span class="nc" id="L42">        super(args);</span>
+<span class="nc" id="L43">    }</span>
+
+    /**
+     * Runs the command
+     *
+     * @throws IllegalAdminCommandException Error in command args
+     * @throws ErrorAdminCommandException Error running command
+     */
+    @Override
+    public void execute() throws IllegalAdminCommandException, ErrorAdminCommandException {
+        try {   
+<span class="nc bnc" id="L54" title="All 2 branches missed.">            if(args.length != 3){</span>
+<span class="nc" id="L55">            	usage();</span>
+<span class="nc" id="L56">            	System.exit(-1); // NOPMD, this is not a JEE app</span>
+            }
+            
+<span class="nc" id="L59">            String issuerdn = CertTools.stringToBCDNString(args[ARG_ISSUERDN]);            </span>
+<span class="nc" id="L60">            String certsn = getCertSN(args[ARG_CERTSN]);                                   </span>
+                   
+            try{
+            	
+<span class="nc" id="L64">            	RevokeStatus status = getEjbcaRAWS().checkRevokationStatus(issuerdn,certsn);</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">            	if(status == null){</span>
+<span class="nc" id="L66">            		getPrintStream().println(&quot;Error, No certificate found in database.&quot;);</span>
+            	}else{
+<span class="nc" id="L68">            		getPrintStream().println(&quot;Revocation status :&quot;);</span>
+<span class="nc" id="L69">            		getPrintStream().println(&quot;  IssuerDN      : &quot; + status.getIssuerDN());</span>
+<span class="nc" id="L70">            		getPrintStream().println(&quot;  CertificateSN : &quot; + status.getCertificateSN());</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">            		if(status.getReason() == RevokedCertInfo.NOT_REVOKED){</span>
+<span class="nc" id="L72">            			getPrintStream().println(&quot;  Status        : NOT REVOKED&quot;);</span>
+            		}else{
+<span class="nc" id="L74">            			getPrintStream().println(&quot;  Status        : REVOKED&quot;);</span>
+<span class="nc" id="L75">            			getPrintStream().println(&quot;  Reason        : &quot; + getRevokeReason(status.getReason()));</span>
+<span class="nc" id="L76">            			getPrintStream().println(&quot;  Date          : &quot; + status.getRevocationDate().toString());</span>
+            		}
+            	}
+<span class="nc" id="L79">            }catch(AuthorizationDeniedException_Exception e){</span>
+<span class="nc" id="L80">            	getPrintStream().println(&quot;Error : &quot; + e.getMessage());            </span>
+<span class="nc" id="L81">            }</span>
+<span class="nc" id="L82">        } catch (Exception e) {</span>
+<span class="nc" id="L83">            throw new ErrorAdminCommandException(e);</span>
+<span class="nc" id="L84">        }</span>
+<span class="nc" id="L85">    }</span>
+
+	private String getCertSN(String certsn) {
+		try{
+<span class="nc" id="L89">			new BigInteger(certsn,16);</span>
+<span class="nc" id="L90">		}catch(NumberFormatException e){</span>
+<span class="nc" id="L91">			getPrintStream().println(&quot;Error in Certificate SN&quot;);</span>
+<span class="nc" id="L92">			usage();</span>
+<span class="nc" id="L93">			System.exit(-1); // NOPMD, this is not a JEE app</span>
+<span class="nc" id="L94">		}</span>
+<span class="nc" id="L95">		return certsn;</span>
+	}
+
+	@Override
+	protected void usage() {
+<span class="nc" id="L100">		getPrintStream().println(&quot;Command used check the status of certificate&quot;);</span>
+<span class="nc" id="L101">		getPrintStream().println(&quot;Usage : checkrevocationstatus &lt;issuerdn&gt; &lt;certificatesn (HEX)&gt;  \n\n&quot;);</span>
+
+<span class="nc" id="L103">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

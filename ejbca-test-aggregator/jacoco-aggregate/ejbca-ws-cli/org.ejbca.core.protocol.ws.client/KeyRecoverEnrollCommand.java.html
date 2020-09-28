@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>KeyRecoverEnrollCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ws-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.client</a> &gt; <span class="el_source">KeyRecoverEnrollCommand.java</span></div><h1>KeyRecoverEnrollCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.ws.client;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import org.cesecore.util.Base64;
+import org.ejbca.core.protocol.ws.client.gen.ApprovalException_Exception;
+import org.ejbca.core.protocol.ws.client.gen.AuthorizationDeniedException_Exception;
+import org.ejbca.core.protocol.ws.client.gen.CADoesntExistsException_Exception;
+import org.ejbca.core.protocol.ws.client.gen.EjbcaException_Exception;
+import org.ejbca.core.protocol.ws.client.gen.KeyStore;
+import org.ejbca.core.protocol.ws.client.gen.NotFoundException_Exception;
+import org.ejbca.core.protocol.ws.client.gen.WaitingForApprovalException_Exception;
+import org.ejbca.core.protocol.ws.common.KeyStoreHelper;
+import org.ejbca.ui.cli.ErrorAdminCommandException;
+import org.ejbca.ui.cli.IAdminCommand;
+import org.ejbca.ui.cli.IllegalAdminCommandException;
+
+/**
+ * 
+ * @version $Id: KeyRecoverEnrollCommand.java 28423 2018-03-06 14:43:12Z henriks $
+ *
+ */
+public class KeyRecoverEnrollCommand extends EJBCAWSRABaseCommand implements IAdminCommand {
+
+    private static final int ARG_USERNAME                 = 1;
+    private static final int ARG_CERTSNINHEX              = 2;
+    private static final int ARG_ISSUERDN                 = 3;
+    private static final int ARG_PASSWORD                 = 4;
+    private static final int ARG_HARDTOKENSN              = 5;
+    private static final int ARG_OUTPUTPATH               = 6;
+    
+    private static final byte PKCS12_MAGIC = (byte)48;
+    private static final byte JKS_MAGIC = (byte)(0xfe);
+    
+    KeyRecoverEnrollCommand(String[] args) {
+<span class="nc" id="L51">        super(args);</span>
+        
+<span class="nc" id="L53">    }</span>
+
+    @Override
+    public void execute() throws IllegalAdminCommandException, ErrorAdminCommandException {
+        try {
+<span class="nc bnc" id="L58" title="All 4 branches missed.">            if(args.length &lt; 6 || args.length &gt; 7) { // TODO</span>
+<span class="nc" id="L59">                getPrintStream().println(&quot;Unexpected number of parameters&quot;);</span>
+<span class="nc" id="L60">                usage();</span>
+<span class="nc" id="L61">                System.exit(-1); // NOPMD, it's not a JEE app</span>
+            }
+            
+<span class="nc" id="L64">            String username = args[ARG_USERNAME];</span>
+<span class="nc" id="L65">            String certSn = args[ARG_CERTSNINHEX];</span>
+<span class="nc" id="L66">            String issuerDn = args[ARG_ISSUERDN];</span>
+<span class="nc" id="L67">            String password = args[ARG_PASSWORD];</span>
+<span class="nc" id="L68">            String hardTokenSn = args[ARG_HARDTOKENSN];</span>
+            
+            try {
+<span class="nc" id="L71">                KeyStore result = getEjbcaRAWS().keyRecoverEnroll(username, certSn, issuerDn, password, hardTokenSn);</span>
+                
+<span class="nc bnc" id="L73" title="All 2 branches missed.">                if(result==null) {</span>
+<span class="nc" id="L74">                    getPrintStream().println(&quot;No keystore could be generated for user, check server logs for error.&quot;);</span>
+                } else {
+<span class="nc" id="L76">                    String filepath = username;</span>
+<span class="nc" id="L77">                    String outputPath = null;</span>
+                    
+<span class="nc bnc" id="L79" title="All 2 branches missed.">                    if (args.length == 7) {</span>
+<span class="nc" id="L80">                      outputPath = getOutputPath(args[ARG_OUTPUTPATH]);</span>
+                    }
+                    
+<span class="nc bnc" id="L83" title="All 2 branches missed.">                    if (outputPath != null) {</span>
+<span class="nc" id="L84">                        filepath = outputPath + &quot;/&quot; + filepath;</span>
+                    }
+<span class="nc" id="L86">                    final byte[] keyStoreBytes = Base64.decode(result.getKeystoreData());</span>
+                    String keyStoreType;
+<span class="nc bnc" id="L88" title="All 2 branches missed.">                    if (keyStoreBytes[0] == PKCS12_MAGIC) {</span>
+<span class="nc" id="L89">                        keyStoreType = &quot;PKCS12&quot;;</span>
+<span class="nc" id="L90">                        filepath = filepath + &quot;.p12&quot;;</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">                    } else if (keyStoreBytes[0] == JKS_MAGIC) {</span>
+<span class="nc" id="L92">                        keyStoreType = &quot;JKS&quot;;</span>
+<span class="nc" id="L93">                        filepath = filepath + &quot;.jks&quot;;</span>
+                    } else {
+<span class="nc" id="L95">                        throw new IOException(&quot;Unsupported keystore type. Must be PKCS12 or JKS&quot;);</span>
+                    }
+                    
+<span class="nc" id="L98">                    FileOutputStream fos = new FileOutputStream(filepath);</span>
+<span class="nc" id="L99">                    java.security.KeyStore ks = KeyStoreHelper.getKeyStore(result.getKeystoreData(), keyStoreType, password);</span>
+<span class="nc" id="L100">                    ks.store(fos, password.toCharArray());</span>
+<span class="nc" id="L101">                    fos.close();                    </span>
+<span class="nc" id="L102">                    getPrintStream().println(&quot;Key recovery sucessfull!\nKeystore generated, written to &quot; + filepath);</span>
+                }
+<span class="nc" id="L104">            } catch (AuthorizationDeniedException_Exception e) {</span>
+<span class="nc" id="L105">                getPrintStream().println(&quot;Authentication failed :\n&quot; + e.getMessage());</span>
+<span class="nc" id="L106">            } catch (WaitingForApprovalException_Exception e) {</span>
+<span class="nc" id="L107">                getPrintStream().println(e.getMessage());</span>
+<span class="nc" id="L108">            } catch (ApprovalException_Exception e) {</span>
+<span class="nc" id="L109">                getPrintStream().println(e.getMessage());</span>
+<span class="nc" id="L110">            } catch (CADoesntExistsException_Exception e) {</span>
+<span class="nc" id="L111">                getPrintStream().println(e.getMessage());</span>
+<span class="nc" id="L112">            } catch (NotFoundException_Exception e) {</span>
+<span class="nc" id="L113">                getPrintStream().println(e.getMessage());</span>
+<span class="nc" id="L114">            } catch (EjbcaException_Exception e) {</span>
+<span class="nc" id="L115">                getPrintStream().println(e.getMessage());</span>
+<span class="nc" id="L116">            }</span>
+            
+<span class="nc" id="L118">        } catch (Exception e) {</span>
+<span class="nc" id="L119">            throw new ErrorAdminCommandException(e);</span>
+<span class="nc" id="L120">        }</span>
+<span class="nc" id="L121">    }</span>
+
+    private String getOutputPath(String outputpath) {
+<span class="nc" id="L124">        File dir = new File(outputpath);</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">        if(!dir.exists()){</span>
+<span class="nc" id="L126">            getPrintStream().println(&quot;Error : Output directory doesn't seem to exist.&quot;);</span>
+<span class="nc" id="L127">            System.exit(-1); // NOPMD, it's not a JEE app</span>
+        }
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        if(!dir.isDirectory()){</span>
+<span class="nc" id="L130">            getPrintStream().println(&quot;Error : Output directory doesn't seem to be a directory.&quot;);</span>
+<span class="nc" id="L131">            System.exit(-1); // NOPMD, it's not a JEE app           </span>
+        }
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        if(!dir.canWrite()){</span>
+<span class="nc" id="L134">            getPrintStream().println(&quot;Error : Output directory isn't writeable.&quot;);</span>
+<span class="nc" id="L135">            System.exit(-1); // NOPMD, it's not a JEE app</span>
+
+        }
+<span class="nc" id="L138">        return outputpath;</span>
+    }
+    
+    @Override
+    protected void usage() {
+<span class="nc" id="L143">        getPrintStream().println(&quot;Command used for key recovery and enroll&quot;);</span>
+<span class="nc" id="L144">        getPrintStream().println(&quot;Usage : keyrecover &lt;username&gt; &lt;certSerialNr&gt; &lt;issuerDN&gt; &lt;password&gt; &lt;hardtokensn (or NONE)&gt; &lt;outputpath (optional)&gt;&quot;); </span>
+<span class="nc" id="L145">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

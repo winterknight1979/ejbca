@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>FindCertsCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ws-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.client</a> &gt; <span class="el_source">FindCertsCommand.java</span></div><h1>FindCertsCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.protocol.ws.client;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.cesecore.util.CertTools;
+import org.ejbca.core.protocol.ws.client.gen.AuthorizationDeniedException_Exception;
+import org.ejbca.core.protocol.ws.client.gen.Certificate;
+import org.ejbca.core.protocol.ws.common.CertificateHelper;
+import org.ejbca.ui.cli.ErrorAdminCommandException;
+import org.ejbca.ui.cli.IAdminCommand;
+import org.ejbca.ui.cli.IllegalAdminCommandException;
+
+/**
+ * Finds a certificates in the database
+ *
+ * @version $Id: FindCertsCommand.java 19902 2014-09-30 14:32:24Z anatom $
+ */
+public class FindCertsCommand extends EJBCAWSRABaseCommand implements IAdminCommand{
+
+	
+	private static final int ARG_USERNAME                 = 1;
+	private static final int ARG_ONLYVALID                = 2;  
+	private static final int ARG_ENCODING                 = 3;
+	private static final int ARG_OUTPUTPATH               = 4;
+	
+    public FindCertsCommand(String[] args) {
+<span class="nc" id="L44">        super(args);</span>
+<span class="nc" id="L45">    }</span>
+
+    /**
+     * Runs the command
+     *
+     * @throws IllegalAdminCommandException Error in command args
+     * @throws ErrorAdminCommandException Error running command
+     */
+    public void execute() throws IllegalAdminCommandException, ErrorAdminCommandException {
+
+        try {   
+           
+<span class="nc bnc" id="L57" title="All 2 branches missed.">            if(args.length !=  5){</span>
+<span class="nc" id="L58">            	usage();</span>
+<span class="nc" id="L59">            	System.exit(-1); // NOPMD, it's not a JEE app</span>
+            }
+            
+<span class="nc" id="L62">            String username = args[ARG_USERNAME];            </span>
+<span class="nc" id="L63">            boolean onlyValid = getOnlyValid(args[ARG_ONLYVALID]);</span>
+<span class="nc" id="L64">            String encoding = getEncoding(args[ARG_ENCODING]);</span>
+<span class="nc" id="L65">            String outputPath = getOutputPath(args[ARG_OUTPUTPATH]);</span>
+            
+            
+            try{
+<span class="nc" id="L69">            	List&lt;Certificate&gt; result = getEjbcaRAWS().findCerts(username, onlyValid);</span>
+            	
+<span class="nc bnc" id="L71" title="All 4 branches missed.">            	if(result==null || result.size() == 0){</span>
+<span class="nc" id="L72">            		getPrintStream().println(&quot;No certificate could be found for user&quot;);</span>
+            	}else{
+<span class="nc" id="L74">            		getPrintStream().println(result.size() + &quot; certificate found, written to &quot; + outputPath);</span>
+<span class="nc" id="L75">            		Iterator&lt;Certificate&gt; iter = result.iterator();</span>
+<span class="nc" id="L76">            		int i=0;</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">            		while(iter.hasNext()){</span>
+<span class="nc" id="L78">            			i++;</span>
+<span class="nc" id="L79">            			Certificate cert = iter.next();</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">            			if(encoding.equals(&quot;DER&quot;)){</span>
+<span class="nc" id="L81">            			    FileOutputStream fos = new FileOutputStream(outputPath + &quot;/&quot; + username + &quot;-&quot; + i +&quot;.cer&quot;);</span>
+<span class="nc" id="L82">            			    fos.write(CertificateHelper.getCertificate(cert.getCertificateData()).getEncoded());</span>
+<span class="nc" id="L83">            			    fos.close();</span>
+<span class="nc" id="L84">            			}else{</span>
+<span class="nc" id="L85">            				FileOutputStream fos = new FileOutputStream(outputPath + &quot;/&quot; + username + &quot;-&quot; + i +&quot;.pem&quot;);</span>
+<span class="nc" id="L86">            				ArrayList&lt;java.security.cert.Certificate&gt; list = new ArrayList&lt;java.security.cert.Certificate&gt;();</span>
+<span class="nc" id="L87">            				list.add(CertificateHelper.getCertificate(cert.getCertificateData()));</span>
+<span class="nc" id="L88">            				fos.write(CertTools.getPemFromCertificateChain(list));</span>
+<span class="nc" id="L89">            				fos.close();            				            				</span>
+            			}                        
+<span class="nc" id="L91">            		}</span>
+            	}
+            	             
+<span class="nc" id="L94">            }catch(AuthorizationDeniedException_Exception e){</span>
+<span class="nc" id="L95">            	getPrintStream().println(&quot;Error : &quot; + e.getMessage());</span>
+<span class="nc" id="L96">            }           </span>
+<span class="nc" id="L97">        } catch (Exception e) {</span>
+<span class="nc" id="L98">            throw new ErrorAdminCommandException(e);</span>
+<span class="nc" id="L99">        }</span>
+<span class="nc" id="L100">    }</span>
+
+
+
+	
+
+	private String getOutputPath(String outputpath) {
+<span class="nc" id="L107">		File dir = new File(outputpath);</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">		if(!dir.exists()){</span>
+<span class="nc" id="L109">			getPrintStream().println(&quot;Error : Output directory doesn't seem to exist.&quot;);</span>
+<span class="nc" id="L110">			System.exit(-1); // NOPMD, it's not a JEE app</span>
+		}
+<span class="nc bnc" id="L112" title="All 2 branches missed.">		if(!dir.isDirectory()){</span>
+<span class="nc" id="L113">			getPrintStream().println(&quot;Error : Output directory doesn't seem to be a directory.&quot;);</span>
+<span class="nc" id="L114">			System.exit(-1); // NOPMD, it's not a JEE app			</span>
+		}
+<span class="nc bnc" id="L116" title="All 2 branches missed.">		if(!dir.canWrite()){</span>
+<span class="nc" id="L117">			getPrintStream().println(&quot;Error : Output directory isn't writeable.&quot;);</span>
+<span class="nc" id="L118">			System.exit(-1); // NOPMD, it's not a JEE app</span>
+
+		}
+<span class="nc" id="L121">		return outputpath;</span>
+	}
+
+	private String getEncoding(String encoding) {
+<span class="nc bnc" id="L125" title="All 4 branches missed.">		if(!encoding.equalsIgnoreCase(&quot;PEM&quot;) &amp;&amp; !encoding.equalsIgnoreCase(&quot;DER&quot;)){</span>
+<span class="nc" id="L126">			usage();</span>
+<span class="nc" id="L127">			System.exit(-1); // NOPMD, it's not a JEE app</span>
+		}
+		
+<span class="nc" id="L130">		return encoding.toUpperCase();</span>
+	}
+
+	private boolean getOnlyValid(String onlyValid) {
+<span class="nc bnc" id="L134" title="All 2 branches missed.">		if(onlyValid.equalsIgnoreCase(&quot;true&quot;)){</span>
+<span class="nc" id="L135">			return true;</span>
+		}
+<span class="nc bnc" id="L137" title="All 2 branches missed.">		if(onlyValid.equalsIgnoreCase(&quot;false&quot;)){</span>
+<span class="nc" id="L138">			return false;</span>
+		}
+<span class="nc" id="L140">		usage();</span>
+<span class="nc" id="L141">		System.exit(-1); // NOPMD, it's not a JEE app				</span>
+<span class="nc" id="L142">		return false; // Should never happen</span>
+	}
+
+	protected void usage() {
+<span class="nc" id="L146">		getPrintStream().println(&quot;Command used to find a users certificates&quot;);</span>
+<span class="nc" id="L147">		getPrintStream().println(&quot;Usage : findcerts &lt;username&gt; &lt;onlyvalid (true|false)&gt; &lt;encoding (DER|PEM)&gt; &lt;outputpath&gt; \n\n&quot;);</span>
+<span class="nc" id="L148">        getPrintStream().println(&quot;onlyvalid = true only returns nonexired and unrevoked certificates &quot;);</span>
+<span class="nc" id="L149">        getPrintStream().println(&quot;outputpath : directory where certificates are written in form username+nn &quot;);</span>
+<span class="nc" id="L150">   }</span>
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

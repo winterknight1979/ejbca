@@ -46,6 +46,7 @@ org.ejbca.core.model.validation
 org.ejbca.core.protocol.cmp
 org.ejbca.core.protocol.scep
 org.ejbca.core.protocol.ws
+org.ejbca.core.protocol.ws.client
 org.ejbca.database
 org.ejbca.ui.web
 org.ejbca.ui.web.pub

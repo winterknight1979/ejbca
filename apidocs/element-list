@@ -142,6 +142,7 @@ org.ejbca.core.protocol.ocsp.extension.unid
 org.ejbca.core.protocol.rest
 org.ejbca.core.protocol.scep
 org.ejbca.core.protocol.ws
+org.ejbca.core.protocol.ws.client
 org.ejbca.core.protocol.ws.common
 org.ejbca.core.protocol.ws.jaxws
 org.ejbca.core.protocol.ws.logger

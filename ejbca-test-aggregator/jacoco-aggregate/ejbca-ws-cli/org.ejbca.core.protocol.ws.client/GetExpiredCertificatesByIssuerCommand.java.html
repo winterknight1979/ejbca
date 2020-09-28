@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>GetExpiredCertificatesByIssuerCommand.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ws-cli</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ws.client</a> &gt; <span class="el_source">GetExpiredCertificatesByIssuerCommand.java</span></div><h1>GetExpiredCertificatesByIssuerCommand.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.core.protocol.ws.client;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.cesecore.util.CertTools;
+import org.ejbca.core.protocol.ws.client.gen.AuthorizationDeniedException_Exception;
+import org.ejbca.core.protocol.ws.client.gen.Certificate;
+import org.ejbca.core.protocol.ws.common.CertificateHelper;
+import org.ejbca.ui.cli.ErrorAdminCommandException;
+import org.ejbca.ui.cli.IAdminCommand;
+import org.ejbca.ui.cli.IllegalAdminCommandException;
+
+/**
+ * Finds a certificates in the database
+ *
+ * @version $Id: GetExpiredCertificatesByIssuerCommand.java 26057 2017-06-22 08:08:34Z anatom $
+ */
+public class GetExpiredCertificatesByIssuerCommand extends EJBCAWSRABaseCommand implements IAdminCommand{
+
+    
+    private static final int ARG_DAYS                  = 1;
+    private static final int ARG_ISSUER                = 2;
+    private static final int ARG_MAX_NUMBER_OF_RESULTS = 3;  
+    private static final int ARG_ENCODING              = 4;
+    private static final int ARG_OUTPUTPATH            = 5;
+    
+    public GetExpiredCertificatesByIssuerCommand(String[] args) {
+<span class="nc" id="L45">        super(args);</span>
+<span class="nc" id="L46">    }</span>
+
+    /**
+     * Runs the command
+     *
+     * @throws IllegalAdminCommandException Error in command args
+     * @throws ErrorAdminCommandException Error running command
+     */
+    public void execute() throws IllegalAdminCommandException, ErrorAdminCommandException {
+
+        try {   
+           
+<span class="nc bnc" id="L58" title="All 2 branches missed.">            if(args.length &lt;  6){</span>
+<span class="nc" id="L59">                usage();</span>
+<span class="nc" id="L60">                System.exit(-1); // NOPMD, it's not a JEE app</span>
+            }
+            
+<span class="nc" id="L63">            long days = Long.parseLong(args[ARG_DAYS]);</span>
+<span class="nc" id="L64">            String issuerDN = args[ARG_ISSUER];</span>
+<span class="nc" id="L65">            int maxNumberOfResults = Integer.parseInt(args[ARG_MAX_NUMBER_OF_RESULTS]);</span>
+<span class="nc" id="L66">            String encoding = getEncoding(args[ARG_ENCODING]);</span>
+<span class="nc" id="L67">            String outputPath = getOutputPath(args[ARG_OUTPUTPATH]);</span>
+            
+            
+            try{
+<span class="nc" id="L71">                List&lt;Certificate&gt; result = getEjbcaRAWS().getCertificatesByExpirationTimeAndIssuer(days, issuerDN, maxNumberOfResults);</span>
+                
+<span class="nc bnc" id="L73" title="All 4 branches missed.">                if(result==null || result.size() == 0){</span>
+<span class="nc" id="L74">                    getPrintStream().println(&quot;No certificate will expire within &quot; + days + &quot; days and are issued by &quot; + issuerDN);</span>
+                }else{
+<span class="nc" id="L76">                    getPrintStream().println(result.size() + &quot; certificate found, written to &quot; + outputPath);</span>
+<span class="nc" id="L77">                    Iterator&lt;Certificate&gt; iter = result.iterator();</span>
+<span class="nc" id="L78">                    int i=0;</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">                    while(iter.hasNext()){</span>
+<span class="nc" id="L80">                        i++;</span>
+<span class="nc" id="L81">                        Certificate cert = iter.next();</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">                        if(encoding.equals(&quot;DER&quot;)){</span>
+<span class="nc" id="L83">                            FileOutputStream fos = new FileOutputStream(outputPath + &quot;/&quot; + &quot;cert-&quot; + i +&quot;.cer&quot;);</span>
+<span class="nc" id="L84">                            fos.write(CertificateHelper.getCertificate(cert.getCertificateData()).getEncoded());</span>
+<span class="nc" id="L85">                            fos.close();</span>
+<span class="nc" id="L86">                        }else{</span>
+<span class="nc" id="L87">                            FileOutputStream fos = new FileOutputStream(outputPath + &quot;/&quot; + &quot;cert-&quot; + i +&quot;.pem&quot;);</span>
+<span class="nc" id="L88">                            ArrayList&lt;java.security.cert.Certificate&gt; list = new ArrayList&lt;java.security.cert.Certificate&gt;();</span>
+<span class="nc" id="L89">                            list.add(CertificateHelper.getCertificate(cert.getCertificateData()));</span>
+<span class="nc" id="L90">                            fos.write(CertTools.getPemFromCertificateChain(list));</span>
+<span class="nc" id="L91">                            fos.close();                                                        </span>
+                        }                        
+<span class="nc" id="L93">                    }</span>
+                }
+                             
+<span class="nc" id="L96">            }catch(AuthorizationDeniedException_Exception e){</span>
+<span class="nc" id="L97">                getPrintStream().println(&quot;Error : &quot; + e.getMessage());</span>
+<span class="nc" id="L98">            }           </span>
+<span class="nc" id="L99">        } catch (Exception e) {</span>
+<span class="nc" id="L100">            ErrorAdminCommandException adminexp = new ErrorAdminCommandException(e);</span>
+<span class="nc" id="L101">            getPrintStream().println(&quot;Error: &quot; + adminexp.getLocalizedMessage());</span>
+<span class="nc" id="L102">        }</span>
+<span class="nc" id="L103">    }</span>
+
+    private String getOutputPath(String outputpath) {
+<span class="nc" id="L106">        File dir = new File(outputpath);</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        if(!dir.exists()){</span>
+<span class="nc" id="L108">            getPrintStream().println(&quot;Error : Output directory doesn't seem to exist.&quot;);</span>
+<span class="nc" id="L109">            System.exit(-1); // NOPMD, it's not a JEE app</span>
+        }
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        if(!dir.isDirectory()){</span>
+<span class="nc" id="L112">            getPrintStream().println(&quot;Error : Output directory doesn't seem to be a directory.&quot;);</span>
+<span class="nc" id="L113">            System.exit(-1); // NOPMD, it's not a JEE app           </span>
+        }
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        if(!dir.canWrite()){</span>
+<span class="nc" id="L116">            getPrintStream().println(&quot;Error : Output directory isn't writeable.&quot;);</span>
+<span class="nc" id="L117">            System.exit(-1); // NOPMD, it's not a JEE app</span>
+
+        }
+<span class="nc" id="L120">        return outputpath;</span>
+    }
+
+    private String getEncoding(String encoding) {
+<span class="nc bnc" id="L124" title="All 4 branches missed.">        if(!encoding.equalsIgnoreCase(&quot;PEM&quot;) &amp;&amp; !encoding.equalsIgnoreCase(&quot;DER&quot;)){</span>
+<span class="nc" id="L125">            usage();</span>
+<span class="nc" id="L126">            System.exit(-1); // NOPMD, it's not a JEE app</span>
+        }
+        
+<span class="nc" id="L129">        return encoding.toUpperCase();</span>
+    }
+
+    protected void usage() {
+<span class="nc" id="L133">        getPrintStream().println(&quot;Command used to find certificates that will expire within a specified number of days and are issued by a specific CA&quot;);</span>
+<span class="nc" id="L134">        getPrintStream().println(&quot;Usage : getexpiredcertsbyissuer &lt;numberOfDays&gt; &lt;issuerDN&gt; &lt;maxNumberOfResults&gt; &lt;encoding (DER|PEM)&gt; &lt;outputpath&gt;&quot;);</span>
+<span class="nc" id="L135">        getPrintStream().println();</span>
+<span class="nc" id="L136">        getPrintStream().println(&quot;maxNumberOfResults: the maximum number of returned certificates&quot;);</span>
+<span class="nc" id="L137">        getPrintStream().println(&quot;outputpath : directory where certificates are written&quot;);</span>
+<span class="nc" id="L138">        getPrintStream().println(&quot;Note that all returned certificates are of status active or notified about expiration&quot;);</span>
+<span class="nc" id="L139">   }</span>
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>
