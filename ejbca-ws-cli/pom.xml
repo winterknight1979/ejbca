@@ -145,6 +145,13 @@
 					</execution>
 				</executions>
 			</plugin>
+			
+			<plugin>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<excludePackageNames>org.ejbca.core.protocol.ws.client.gen</excludePackageNames>
+				</configuration>
+			</plugin>
 </plugins>
 </build>
 

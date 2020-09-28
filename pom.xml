@@ -627,6 +627,8 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 							<head>Implementation Note:</head>
 						</tag>
 					</tags>
+					<!-- the autogen code crashes jdoc -->
+					<excludePackageNames>org.ejbca.core.protocol.ws.client.gen</excludePackageNames>
 				</configuration>
 			</plugin>
 		</plugins>
