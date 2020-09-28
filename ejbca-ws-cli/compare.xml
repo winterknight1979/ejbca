@@ -1,0 +1,66 @@
+<!DOCTYPE project>
+<project name="ejbca-ws-cli">
+
+<target name="overwritegenerated">
+		<!-- Verify that the generated class is a true subset of the handwritten class -->
+	  	<java classname="org.ejbca.util.JAXWSDocAndConvTools" 
+	  		classpath="${gen_classpath}"
+	  		  failonerror="yes"
+	  		  fork="true">
+	  	    <arg value="${inpath}/org/ejbca/core/protocol/ws/objects/${class}.java"/>
+	  	    <arg value="${outpath}/org/ejbca/core/protocol/ws/client/gen/${class}.java"/>
+	  	</java>
+		<!-- It was, overwrite the generated class to get constants, JavaDoc and additional methods -->
+		<copy overwrite="true" 
+			  file="${inpath}/org/ejbca/core/protocol/ws/objects/${class}.java" 
+			  todir="${outpath}/org/ejbca/core/protocol/ws/client/gen"/>
+		<!-- Fix the package name -->
+		<replace file="${outpath}/org/ejbca/core/protocol/ws/client/gen/${class}.java"
+			     token="package org.ejbca.core.protocol.ws.objects;"
+			     value="package org.ejbca.core.protocol.ws.client.gen;"/>
+	</target>
+	
+	<target name="generate" description="Generate WS client stubs from implementation">
+		
+        <antcall target="overwritegenerated">
+           <param name="class" value="Certificate"/>
+    	</antcall>
+        <antcall target="overwritegenerated">
+           <param name="class" value="CertificateResponse"/>
+    	</antcall>
+        <antcall target="overwritegenerated">
+           <param name="class" value="HardTokenDataWS"/>
+    	</antcall>
+        <antcall target="overwritegenerated">
+           <param name="class" value="KeyStore"/>
+    	</antcall>
+        <antcall target="overwritegenerated">
+           <param name="class" value="NameAndId"/>
+    	</antcall>
+        <antcall target="overwritegenerated">
+           <param name="class" value="PinDataWS"/>
+    	</antcall>
+        <antcall target="overwritegenerated">
+          <param name="class" value="RevokeStatus"/>
+        </antcall>
+        <antcall target="overwritegenerated">
+           <param name="class" value="TokenCertificateRequestWS"/>
+    	</antcall>
+        <antcall target="overwritegenerated">
+           <param name="class" value="TokenCertificateResponseWS"/>
+    	</antcall>
+    	<antcall target="overwritegenerated">
+           <param name="class" value="UserDataSourceVOWS"/>
+    	</antcall>
+        <antcall target="overwritegenerated">
+           <param name="class" value="UserDataVOWS"/>
+    	</antcall>
+        <antcall target="overwritegenerated">
+           <param name="class" value="UserMatch"/>
+    	</antcall>
+    	<antcall target="overwritegenerated">
+           <param name="class" value="ExtendedInformationWS"/>
+    	</antcall>
+    </target>
+
+</project>

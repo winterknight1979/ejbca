@@ -74,6 +74,12 @@
 		
 		<dependency>
 			<groupId>${project.groupId}</groupId>
+			<artifactId>ejbca-ws-cli</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>${project.groupId}</groupId>
 			<artifactId>edition-specific-ejb</artifactId>
 			<version>${project.version}</version>
 		</dependency>

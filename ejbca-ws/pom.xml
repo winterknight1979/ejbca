@@ -90,6 +90,7 @@
 							<resourcesDirectory>${project.build.directory}/generated-sources/wsdl/</resourcesDirectory>
 							<includes>
 								<include>*.wsdl</include>
+								<include>*.xsd</include>
 							</includes>
 						</configuration>
 					</execution>
@@ -173,6 +174,7 @@
 									<filtering>true</filtering>
 									<includes>
 										<include>*.wsdl</include>
+										<include>*.xsd</include>
 									</includes>
 								</resource>
 							</resources>

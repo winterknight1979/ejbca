@@ -420,6 +420,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<module>ejbca-ws</module>
 		<module>edition-specific-ejb</module>
 		<module>edition-specific-interface</module>
+		<module>ejbca-ws-cli</module>
 	</modules>
 	<build>
 
