@@ -6,7 +6,7 @@
     <version>1.0</version>
   </parent>
   <artifactId>edition-specific-interface</artifactId>
-  <name>Edition-specific interface</name>
+  <name>EJBCA Edition specific interface</name>
   <description>Edition specific module Interface</description>
   
   <dependencies>

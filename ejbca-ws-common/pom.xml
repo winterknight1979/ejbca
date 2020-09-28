@@ -94,7 +94,7 @@
 		</plugins>
 	</reporting>
 
-	<name>EJBCA Webservices - common code</name>
+	<name>EJBCA Webservices Common Code</name>
 	<description>Common code for EJBCA webservices.
 
 Note: Upstream combines ejbca-ws-common and ejbcs-ws-ejb into a single jar. They've been split here to avoid a circular dependency on ejbca-entity.</description>

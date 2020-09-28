@@ -298,6 +298,6 @@
 		</profile>
 	</profiles>
 
-	<name>EJB-CA Common code</name>
+	<name>EJBCA Common code</name>
 	<description>Common code for all EJB-CA modules</description>
 </project>

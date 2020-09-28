@@ -262,6 +262,6 @@
 		</profile>
 	</profiles>
 
-	<name>CeSeCore Security - EJB Implementation</name>
+	<name>CeSeCore Security EJB Implementation</name>
 	<description>Implementation of CeSeCore Enterprise JavaBeans</description>
 </project>

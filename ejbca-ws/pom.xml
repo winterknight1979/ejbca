@@ -8,7 +8,7 @@
 		<version>1.0</version>
 	</parent>
 	<artifactId>ejbca-ws</artifactId>
-	<name>EJBCA WS</name>
+	<name>EJBCA Webservices Webapp</name>
 	<description>The EJBCA Web Services web application.</description>
 
 	<dependencies>
@@ -127,7 +127,6 @@
 							<goal>wsgen</goal>
 						</goals>
 						<configuration>
-							<verbose>true</verbose>
 							<genWsdl>true</genWsdl>
 							<sei>org.ejbca.core.protocol.ws.EjbcaWS</sei>
 						</configuration>

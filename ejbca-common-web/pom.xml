@@ -214,6 +214,6 @@
 		</profile>
 	</profiles>
 
-	<name>EJB-CA Common Web code</name>
+	<name>EJBCA Common Web code</name>
 	<description>Common code for EJB-CA web interfaces</description>
 </project>

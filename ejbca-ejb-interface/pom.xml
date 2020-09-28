@@ -147,6 +147,6 @@
 			</reporting>
 		</profile>
 	</profiles>
-	<name>EJB-CA EJB Interfaces</name>
+	<name>EJBCA EJB Interfaces</name>
 	<description>Public interfaces for EJB-CA EJB's</description>
 </project>

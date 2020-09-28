@@ -317,6 +317,6 @@
 		</profile>
 	</profiles>
 
-	<name>CeSeCore Security - Common Code</name>
+	<name>CeSeCore Security Common Code</name>
 	<description>Common code from CeSeCore</description>
 </project>

@@ -6,7 +6,7 @@
     <version>1.0</version>
   </parent>
   <artifactId>edition-specific-ejb</artifactId>
-  <name>Edition Specific EJB</name>
+  <name>EJBCA Edition Specific EJB</name>
   <description>Edition specific module</description>
   
   <dependencies>
