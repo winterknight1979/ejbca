@@ -472,9 +472,6 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-report-plugin</artifactId>
 					<version>3.0.0-M4</version>
-					<configuration>
-						<linkXRef>false</linkXRef>
-					</configuration>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -541,9 +538,6 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>3.8.1</version>
 				</plugin>
-
-
-
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>properties-maven-plugin</artifactId>
@@ -565,12 +559,10 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 						</execution>
 					</executions>
 				</plugin>
-
-
 			</plugins>
 		</pluginManagement>
+		
 		<plugins>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
@@ -591,7 +583,6 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 					<username>winterknight1979</username>
 				</configuration>
 			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-enforcer-plugin</artifactId>
@@ -619,7 +610,6 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 					</execution>
 				</executions>
 			</plugin>
-
 		</plugins>
 	</build>
 
@@ -630,6 +620,20 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 				<artifactId>maven-project-info-reports-plugin</artifactId>
 				<version>3.1.1</version>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jxr-plugin</artifactId>
+				<version>3.0.0</version>
+				<reportSets>
+					<reportSet>
+						<reports>
+							<report>jxr</report>
+							<report>test-jxr</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+			
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-report-plugin</artifactId>
@@ -646,12 +650,6 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 					<aggregate>true</aggregate>
 					<linkXRef>true</linkXRef>
 				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jxr-plugin</artifactId>
-				<version>3.0.0</version>
-				<inherited>false</inherited>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -692,9 +690,6 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
 				<version>3.1.1</version>
-				<configuration>
-					<linkXRef>false</linkXRef>
-				</configuration>
 				<reportSets>
 					<reportSet>
 						<reports>
@@ -712,9 +707,6 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
 				<version>3.13.0</version>
-				<configuration>
-					<linkXRef>false</linkXRef>
-				</configuration>
 			</plugin>
 		</plugins>
 	</reporting>
