@@ -822,6 +822,11 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 			<id>Github pages site</id>
 			<url>scm:git:https://github.com/winterknight1979/ejbca.git</url>
 		</site>
+		<repository>
+      <id>github</id>
+      <name>GitHub Packages</name>
+      <url>https://maven.pkg.github.com/winterknight1979/ejbca</url>
+    </repository>
 	</distributionManagement>
 
 	<ciManagement>
