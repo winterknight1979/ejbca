@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>goldeneyes.ejbca</groupId>
 	<artifactId>ejbca</artifactId>
-	<version>1.0-SNAPSHOT</version>
+	<version>${revision}</version>
 	<packaging>pom</packaging>
 	<name>EJB-CA</name>
 	<description>&quot;New&quot; EJB CA for Java 11 and modern app servers
@@ -15,6 +15,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<maven.compiler.source>11</maven.compiler.source>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<ejbca.home>${project.basedir}</ejbca.home>
+		<revision>1.0.0-SNAPSHOT</revision>
 		<maven.build.timestamp.format>yyyyMMdd-HHmmss</maven.build.timestamp.format>
 	</properties>
 	<dependencies>
@@ -429,6 +430,14 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 			<plugins>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-report-plugin</artifactId>
+					<version>3.0.0-M4</version>
+					<configuration>
+						<linkXRef>false</linkXRef>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-resources-plugin</artifactId>
 					<version>3.2.0</version>
 					<configuration>
@@ -544,35 +553,35 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 					<username>winterknight1979</username>
 				</configuration>
 			</plugin>
-			
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.0.0-M3</version>
-        <executions>
-          <execution>
-            <id>enforce-versions</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <rules>
-              <dependencyConvergence/>
-              <requireEnvironmentVariable>
-              	<variableName>APPSRV_HOME</variableName>
-              </requireEnvironmentVariable>
-              <requireJavaVersion>
-              	<version>11</version>
-            </requireJavaVersion>
-            <requireMavenVersion>
-            	<version>3.6</version>
-            </requireMavenVersion>
-              </rules>
-              </configuration>
-          </execution>
-          </executions>
-          </plugin>
-			
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>3.0.0-M3</version>
+				<executions>
+					<execution>
+						<id>enforce-versions</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<dependencyConvergence />
+								<requireEnvironmentVariable>
+									<variableName>APPSRV_HOME</variableName>
+								</requireEnvironmentVariable>
+								<requireJavaVersion>
+									<version>11</version>
+								</requireJavaVersion>
+								<requireMavenVersion>
+									<version>3.6</version>
+								</requireMavenVersion>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
 		</plugins>
 
 	</build>
@@ -597,6 +606,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 				</reportSets>
 				<configuration>
 					<aggregate>true</aggregate>
+					<linkXRef>true</linkXRef>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -644,6 +654,9 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
 				<version>3.1.1</version>
+				<configuration>
+					<linkXRef>false</linkXRef>
+				</configuration>
 				<reportSets>
 					<reportSet>
 						<reports>
@@ -653,11 +666,19 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 				</reportSets>
 			</plugin>
 			<plugin>
-        <groupId>com.github.spotbugs</groupId>
-        <artifactId>spotbugs-maven-plugin</artifactId>
-        <version>4.0.4</version>
-      </plugin>
-			
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-maven-plugin</artifactId>
+				<version>4.0.4</version>
+
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>3.13.0</version>
+				<configuration>
+					<linkXRef>false</linkXRef>
+				</configuration>
+			</plugin>
 		</plugins>
 	</reporting>
 	<profiles>
