@@ -1,15 +1,79 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<groupId>goldeneyes.ejbca</groupId>
 	<artifactId>ejbca</artifactId>
 	<version>${revision}</version>
 	<packaging>pom</packaging>
+
 	<name>EJB-CA</name>
 	<description>&quot;New&quot; EJB CA for Java 11 and modern app servers
 
 Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
+	<url>https://github.com/winterknight1979/ejbca</url>
+
+	<developers>
+		<developer>
+			<id>Dave Crisp</id>
+			<email>dave@goldeneyes.org.uk</email>
+			<name>Dave Crisp</name>
+			<timezone>GMT</timezone>
+		</developer>
+		<developer>
+			<id>Origin</id>
+			<name>Original code from</name>
+			<url>https://www.primekey.com</url>
+		</developer>
+	</developers>
+
+	<modules>
+		<module>cesecore-common</module>
+		<module>shared-resources</module>
+		<module>cesecore-entity</module>
+		<module>ejbca-test-aggregator</module>
+		<module>cesecore-ejb-interface</module>
+		<module>cesecore-ejb</module>
+		<module>ejbca-common</module>
+		<module>ejbca-entity</module>
+		<module>ejbca-ws-common</module>
+		<module>ejbca-ejb-interface</module>
+		<!-- <module>ejbca-ejb</module> -->
+		<module>ejbca-common-web</module>
+		<module>publicweb-gui</module>
+		<module>ejbca-renew-war</module>
+		<module>ejbca-scep-war</module>
+		<module>ejbca-webdist-war</module>
+		<module>ejbca-cmp-war</module>
+		<module>healthcheck-war</module>
+		<module>clearcache-war</module>
+		<module>ejbca-ws</module>
+		<module>edition-specific-ejb</module>
+		<module>edition-specific-interface</module>
+		<module>ejbca-ws-cli</module>
+	</modules>
+
+	<scm>
+		<connection>scm:git:https://github.com/winterknight1979/ejbca.git</connection>
+		<developerConnection>scm:git:git@github.com:winterknight1979/ejbca.git</developerConnection>
+		<url>https://github.com/winterknight1979/ejbca</url>
+	</scm>
+	<ciManagement>
+		<system>Github Actions</system>
+		<url>https://github.com/winterknight1979/ejbca/actions</url>
+	</ciManagement>
+	<distributionManagement>
+		<site>
+			<id>Github pages site</id>
+			<url>scm:git:https://github.com/winterknight1979/ejbca.git</url>
+		</site>
+		<repository>
+      <id>github</id>
+      <name>GitHub Packages</name>
+      <url>https://maven.pkg.github.com/winterknight1979/ejbca</url>
+    </repository>
+	</distributionManagement>
+
 	<properties>
 		<maven.compiler.target>11</maven.compiler.target>
 		<maven.compiler.source>11</maven.compiler.source>
@@ -18,51 +82,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<revision>1.0.0-SNAPSHOT</revision>
 		<maven.build.timestamp.format>yyyyMMdd-HHmmss</maven.build.timestamp.format>
 	</properties>
-	<dependencies>
-		<dependency>
-			<groupId>javax</groupId>
-			<artifactId>javaee-api</artifactId>
-			<version>8.0.1</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.xml.bind</groupId>
-			<artifactId>jaxb-api</artifactId>
-			<version>2.3.1</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.xml.ws</groupId>
-			<artifactId>jaxws-api</artifactId>
-			<version>2.3.1</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>jstl</artifactId>
-			<version>1.2</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.jws</groupId>
-			<artifactId>javax.jws-api</artifactId>
-			<version>1.1</version>
-			<scope>provided</scope>
-		</dependency>
 
-		<!-- test -->
-
-		<dependency>
-			<groupId>org.easymock</groupId>
-			<artifactId>easymock</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<artifactId>junit</artifactId>
-			<groupId>junit</groupId>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
 	<dependencyManagement>
 		<dependencies>
 			<!-- Bouncycastle Crypto -->
@@ -399,33 +419,53 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 
 		</dependencies>
 	</dependencyManagement>
-	<modules>
-		<module>cesecore-common</module>
-		<module>shared-resources</module>
-		<module>cesecore-entity</module>
-		<module>ejbca-test-aggregator</module>
-		<module>cesecore-ejb-interface</module>
-		<module>cesecore-ejb</module>
-		<module>ejbca-common</module>
-		<module>ejbca-entity</module>
-		<module>ejbca-ws-common</module>
-		<module>ejbca-ejb-interface</module>
-		<!-- <module>ejbca-ejb</module> -->
-		<module>ejbca-common-web</module>
-		<module>publicweb-gui</module>
-		<module>ejbca-renew-war</module>
-		<module>ejbca-scep-war</module>
-		<module>ejbca-webdist-war</module>
-		<module>ejbca-cmp-war</module>
-		<module>healthcheck-war</module>
-		<module>clearcache-war</module>
-		<module>ejbca-ws</module>
-		<module>edition-specific-ejb</module>
-		<module>edition-specific-interface</module>
-		<module>ejbca-ws-cli</module>
-	</modules>
-	<build>
+	<dependencies>
+		<dependency>
+			<groupId>javax</groupId>
+			<artifactId>javaee-api</artifactId>
+			<version>8.0.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+			<version>2.3.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.xml.ws</groupId>
+			<artifactId>jaxws-api</artifactId>
+			<version>2.3.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>jstl</artifactId>
+			<version>1.2</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.jws</groupId>
+			<artifactId>javax.jws-api</artifactId>
+			<version>1.1</version>
+			<scope>provided</scope>
+		</dependency>
 
+		<!-- test -->
+
+		<dependency>
+			<groupId>org.easymock</groupId>
+			<artifactId>easymock</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
 		<pluginManagement>
 			<plugins>
 				<plugin>
@@ -529,13 +569,11 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 
 			</plugins>
 		</pluginManagement>
-
 		<plugins>
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
-
 				<executions>
 					<execution>
 						<goals>
@@ -583,8 +621,8 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 			</plugin>
 
 		</plugins>
-
 	</build>
+
 	<reporting>
 		<plugins>
 			<plugin>
@@ -669,7 +707,6 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 				<groupId>com.github.spotbugs</groupId>
 				<artifactId>spotbugs-maven-plugin</artifactId>
 				<version>4.0.4</version>
-
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -681,6 +718,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 			</plugin>
 		</plugins>
 	</reporting>
+
 	<profiles>
 		<profile>
 			<id>coverage</id>
@@ -810,43 +848,4 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 			</build>
 		</profile>
 	</profiles>
-	<scm>
-		<connection>scm:git:https://github.com/winterknight1979/ejbca.git</connection>
-		<developerConnection>scm:git:git@github.com:winterknight1979/ejbca.git</developerConnection>
-		<url>https://github.com/winterknight1979/ejbca</url>
-	</scm>
-	<url>https://github.com/winterknight1979/ejbca</url>
-
-	<distributionManagement>
-		<site>
-			<id>Github pages site</id>
-			<url>scm:git:https://github.com/winterknight1979/ejbca.git</url>
-		</site>
-		<repository>
-      <id>github</id>
-      <name>GitHub Packages</name>
-      <url>https://maven.pkg.github.com/winterknight1979/ejbca</url>
-    </repository>
-	</distributionManagement>
-
-	<ciManagement>
-		<system>Github Actions</system>
-		<url>https://github.com/winterknight1979/ejbca/actions</url>
-	</ciManagement>
-
-	<developers>
-		<developer>
-			<id>Dave Crisp</id>
-			<email>dave@goldeneyes.org.uk</email>
-			<name>Dave Crisp</name>
-			<timezone>GMT</timezone>
-		</developer>
-		<developer>
-			<id>Origin</id>
-			<name>Original code from</name>
-			<url>https://www.primekey.com</url>
-		</developer>
-	</developers>
-
-
 </project>

@@ -1,13 +1,15 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<parent>
 		<groupId>goldeneyes.ejbca</groupId>
 		<artifactId>ejbca</artifactId>
 		<version>${revision}</version>
 	</parent>
+
 	<artifactId>ejbca-ws</artifactId>
+
 	<name>EJBCA Webservices Webapp</name>
 	<description>The EJBCA Web Services web application.</description>
 
@@ -37,8 +39,8 @@
 			<groupId>com.sun.xml.ws</groupId>
 			<artifactId>jaxws-ri</artifactId>
 			<version>2.3.3</version>
-			<scope>compile</scope>
 			<type>pom</type>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
@@ -55,15 +57,12 @@
 		</dependency>
 	</dependencies>
 
-
 	<build>
-
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-remote-resources-plugin</artifactId>
 				<version>1.7.0</version>
-
 				<executions>
 					<execution>
 						<id>unpack-resource-bundle</id>
@@ -115,7 +114,6 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-report-plugin</artifactId>
 				<version>3.0.0-M4</version>
-
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -139,7 +137,6 @@
 
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
-
 				<executions>
 					<execution>
 						<id>copy-resources</id>
@@ -205,7 +202,6 @@
 		</plugins>
 	</build>
 
-
 	<reporting>
 		<plugins>
 			<plugin>
@@ -239,6 +235,7 @@
 			</plugin>
 		</plugins>
 	</reporting>
+
 	<profiles>
 		<profile>
 			<id>coverage</id>
@@ -284,5 +281,4 @@
 			</reporting>
 		</profile>
 	</profiles>
-
 </project>

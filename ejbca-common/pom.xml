@@ -1,19 +1,21 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<parent>
 		<groupId>goldeneyes.ejbca</groupId>
 		<artifactId>ejbca</artifactId>
 		<version>${revision}</version>
 	</parent>
 
+	<artifactId>ejbca-common</artifactId>
+
+	<name>EJBCA Common code</name>
+	<description>Common code for all EJB-CA modules</description>
+
 	<properties>
 		<config.needed>true</config.needed>
 	</properties>
-
-
-	<artifactId>ejbca-common</artifactId>
 
 	<dependencies>
 		<dependency>
@@ -93,8 +95,8 @@
 
 
 	</dependencies>
-	<build>
 
+	<build>
 		<resources>
 			<resource>
 				<filtering>true</filtering>
@@ -108,11 +110,9 @@
 				</includes>
 			</resource>
 		</resources>
-
 		<plugins>
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
-
 				<executions>
 					<execution>
 						<id>copy-resources</id>
@@ -223,7 +223,6 @@
 		</plugins>
 	</build>
 
-
 	<reporting>
 		<plugins>
 			<plugin>
@@ -303,7 +302,4 @@
 			</reporting>
 		</profile>
 	</profiles>
-
-	<name>EJBCA Common code</name>
-	<description>Common code for all EJB-CA modules</description>
 </project>

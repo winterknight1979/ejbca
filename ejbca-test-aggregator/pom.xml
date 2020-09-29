@@ -1,18 +1,23 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<parent>
 		<groupId>goldeneyes.ejbca</groupId>
 		<artifactId>ejbca</artifactId>
 		<version>${revision}</version>
 	</parent>
+
 	<artifactId>ejbca-test-aggregator</artifactId>
+
+	<name>Unit Test Aggregator</name>
+	<description>This module is used as an aggregator for (a) test coverage and (b) any tests that would create circular deps.
+
+It should explicitly depend on all other modules.</description>
 
 	<properties>
 		<config.needed>true</config.needed>
 	</properties>
-
 
 	<dependencies>
 		<dependency>
@@ -152,9 +157,6 @@
 
 	</dependencies>
 
-	<description>This module is used as an aggregator for (a) test coverage and (b) any tests that would create circular deps.
-
-It should explicitly depend on all other modules.</description>
 	<build>
 		<plugins>
 
@@ -162,7 +164,6 @@ It should explicitly depend on all other modules.</description>
 
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
-
 				<executions>
 					<execution>
 						<id>copy-resources</id>
@@ -234,7 +235,6 @@ It should explicitly depend on all other modules.</description>
 			</plugin>
 		</plugins>
 	</build>
-
 
 	<reporting>
 		<plugins>
@@ -316,5 +316,4 @@ It should explicitly depend on all other modules.</description>
 			</reporting>
 		</profile>
 	</profiles>
-	<name>Unit Test Aggregator</name>
 </project>

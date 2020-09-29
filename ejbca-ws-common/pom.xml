@@ -1,13 +1,19 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<parent>
 		<groupId>goldeneyes.ejbca</groupId>
 		<artifactId>ejbca</artifactId>
 		<version>${revision}</version>
 	</parent>
+
 	<artifactId>ejbca-ws-common</artifactId>
+
+	<name>EJBCA Webservices Common Code</name>
+	<description>Common code for EJBCA webservices.
+
+Note: Upstream combines ejbca-ws-common and ejbcs-ws-ejb into a single jar. They've been split here to avoid a circular dependency on ejbca-entity.</description>
 
 	<dependencies>
 		<dependency>
@@ -66,7 +72,6 @@
 		</plugins>
 	</build>
 
-
 	<reporting>
 		<plugins>
 		<plugin>
@@ -100,9 +105,4 @@
 			</plugin>
 		</plugins>
 	</reporting>
-
-	<name>EJBCA Webservices Common Code</name>
-	<description>Common code for EJBCA webservices.
-
-Note: Upstream combines ejbca-ws-common and ejbcs-ws-ejb into a single jar. They've been split here to avoid a circular dependency on ejbca-entity.</description>
 </project>

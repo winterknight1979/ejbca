@@ -1,13 +1,17 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<parent>
 		<groupId>goldeneyes.ejbca</groupId>
 		<artifactId>ejbca</artifactId>
 		<version>${revision}</version>
 	</parent>
+
 	<artifactId>ejbca-entity</artifactId>
+
+	<name>EJBCA JPA Entities</name>
+	<description>Java Persistence API entities and descriptor for EJBCA</description>
 
 	<dependencies>
 
@@ -42,10 +46,7 @@
 		</dependency>
 	</dependencies>
 
-
-
 	<build>
-
 		<resources>
 			<resource>
 				<filtering>true</filtering>
@@ -57,7 +58,6 @@
 				<targetPath>META-INF/</targetPath>
 			</resource>
 		</resources>
-
 		<testResources>
 			<testResource>
 				<filtering>true</filtering>
@@ -85,7 +85,6 @@
 				</includes>
 			</testResource>
 		</testResources>
-
 		<plugins>
 
 			<plugin>
@@ -162,7 +161,6 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
-
 				<executions>
 					<execution>
 						<id>copy-resources</id>
@@ -187,7 +185,6 @@
 			</plugin>
 		</plugins>
 	</build>
-
 
 	<reporting>
 		<plugins>
@@ -269,7 +266,4 @@
 			</reporting>
 		</profile>
 	</profiles>
-
-	<name>EJBCA JPA Entities</name>
-	<description>Java Persistence API entities and descriptor for EJBCA</description>
 </project>
