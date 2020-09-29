@@ -146,12 +146,7 @@
 				</executions>
 			</plugin>
 			
-			<plugin>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<configuration>
-					<excludePackageNames>org.ejbca.core.protocol.ws.client.gen</excludePackageNames>
-				</configuration>
-			</plugin>
+		
 			
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
@@ -194,7 +189,14 @@
 </build>
 
 	<reporting>
+	
 		<plugins>
+		<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-report-plugin</artifactId>
+				<version>3.0.0-M4</version>
+				
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-project-info-reports-plugin</artifactId>
@@ -208,6 +210,18 @@
 							<report>index</report>
 							<report>plugins</report>
 							<report>dependency-convergence</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-report-plugin</artifactId>
+				<version>3.0.0-M4</version>
+				<reportSets>
+					<reportSet>
+						<reports>
+							<report>report-only</report>
 						</reports>
 					</reportSet>
 				</reportSets>
