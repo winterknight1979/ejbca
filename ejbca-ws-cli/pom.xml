@@ -21,8 +21,8 @@
 			<version>${project.version}</version>
 			<exclusions>
 				<exclusion>
-				<groupId>org.ogce</groupId>
-				<artifactId>xpp3</artifactId>
+					<groupId>org.ogce</groupId>
+					<artifactId>xpp3</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -60,7 +60,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>properties-maven-plugin</artifactId>
@@ -75,7 +75,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>jaxws-maven-plugin</artifactId>
@@ -95,31 +95,35 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>
 				<version>1.8</version>
 				<executions>
-				<execution>
-				<id>Fix WSImports</id>
-				<phase>generate-sources</phase>
-				<goals>
-					<goal>run</goal>
-				</goals>
-				
-				<configuration>
-					<target>
-						<property name="gen_classpath" refid="maven.compile.classpath"/>
-						<property name="inpath" value="${project.basedir}/objects"/>
-						<property name="outpath" value="${project.build.directory}/generated-sources/wsimport"/>
-						<ant antfile="${project.basedir}/compare.xml" target="generate"/>
-					</target>
-				</configuration>
-				</execution>
+					<execution>
+						<id>Fix WSImports</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+
+						<configuration>
+							<target>
+								<property name="gen_classpath"
+									refid="maven.compile.classpath" />
+								<property name="inpath"
+									value="${project.basedir}/objects" />
+								<property name="outpath"
+									value="${project.build.directory}/generated-sources/wsimport" />
+								<ant antfile="${project.basedir}/compare.xml"
+									target="generate" />
+							</target>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
@@ -144,52 +148,51 @@
 					</execution>
 				</executions>
 			</plugin>
-			
-		
-			
-			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy-resources</id>
-						<phase>test-compile</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${basedir}/target/test-classes</outputDirectory>
-							<resources>
-								<resource>
-									<directory>${project.build.directory}/maven-shared-archive-resource/conf</directory>
-									<filtering>true</filtering>
-									<includes>
-										<include>systemtests.properties</include>
-									</includes>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-					
-					<execution>
-						<id>default-testResources</id>
-						<goals>
-							<goal>testResources</goal>
-						</goals>
-						<phase>generate-test-resources</phase>
-						<configuration>
-							<skip>true</skip>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			
-</plugins>
-</build>
+
+
+		<plugin>
+			<artifactId>maven-resources-plugin</artifactId>
+			<executions>
+				<execution>
+					<id>copy-resources</id>
+					<phase>test-compile</phase>
+					<goals>
+						<goal>copy-resources</goal>
+					</goals>
+					<configuration>
+						<outputDirectory>${basedir}/target/test-classes</outputDirectory>
+						<resources>
+							<resource>
+								<directory>${project.build.directory}/maven-shared-archive-resource/conf</directory>
+								<filtering>true</filtering>
+								<includes>
+									<include>systemtests.properties</include>
+								</includes>
+							</resource>
+						</resources>
+					</configuration>
+				</execution>
+
+				<execution>
+					<id>default-testResources</id>
+					<goals>
+						<goal>testResources</goal>
+					</goals>
+					<phase>generate-test-resources</phase>
+					<configuration>
+						<skip>true</skip>
+					</configuration>
+				</execution>
+			</executions>
+		</plugin>
+
+	</plugins>
+	</build>
 
 	<reporting>
-	
+
 		<plugins>
-		<plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-report-plugin</artifactId>
 				<version>3.0.0-M4</version>

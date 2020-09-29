@@ -561,7 +561,6 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 				</plugin>
 			</plugins>
 		</pluginManagement>
-		
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
