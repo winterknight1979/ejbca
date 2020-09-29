@@ -167,29 +167,31 @@ public class StressTestCommand extends EJBCAWSRABaseCommand implements IAdminCom
 	}
 
 	/**
-	 * @param certificateResponse
-	 * @throws CertificateException
+	 * @param certificateResponse Response
+	 * @param jobData Data
+	 * @return bool
+	 * @throws CertificateException Fail
 	 */
 	private boolean checkAndLogCertificateResponse(
 			final CertificateResponse certificateResponse, final JobData jobData)
 					throws CertificateException {
-<span class="nc" id="L176">		X509Certificate cert = null;</span>
-<span class="nc bnc" id="L177" title="All 2 branches missed.">		for ( final java.security.cert.Certificate tmp : CertificateFactory.getInstance(&quot;X.509&quot;).generateCertificates(new ByteArrayInputStream(Base64.decode(certificateResponse.getData()))) ) {</span>
-<span class="nc" id="L178">			cert = (X509Certificate)tmp;</span>
-<span class="nc" id="L179">		}</span>
-<span class="nc bnc" id="L180" title="All 2 branches missed.">		if ( cert==null ) {</span>
-<span class="nc" id="L181">			StressTestCommand.this.performanceTest.getLog().error(&quot;no certificate generated for user &quot;+jobData.userName);</span>
-<span class="nc" id="L182">			return false;</span>
+<span class="nc" id="L178">		X509Certificate cert = null;</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">		for ( final java.security.cert.Certificate tmp : CertificateFactory.getInstance(&quot;X.509&quot;).generateCertificates(new ByteArrayInputStream(Base64.decode(certificateResponse.getData()))) ) {</span>
+<span class="nc" id="L180">			cert = (X509Certificate)tmp;</span>
+<span class="nc" id="L181">		}</span>
+<span class="nc bnc" id="L182" title="All 2 branches missed.">		if ( cert==null ) {</span>
+<span class="nc" id="L183">			StressTestCommand.this.performanceTest.getLog().error(&quot;no certificate generated for user &quot;+jobData.userName);</span>
+<span class="nc" id="L184">			return false;</span>
 		}
-<span class="nc" id="L184">		final String commonName = CertTools.getPartFromDN(cert.getSubjectDN().getName(), &quot;CN&quot;);</span>
-<span class="nc bnc" id="L185" title="All 2 branches missed.">		if ( !commonName.equals(jobData.userName) ) {</span>
-<span class="nc" id="L186">			StressTestCommand.this.performanceTest.getLog().error(&quot;Cert not created for right user. Username: \&quot;&quot;+jobData.userName+&quot;\&quot; Subject DN: \&quot;&quot;+cert.getSubjectDN()+&quot;\&quot;.&quot;);</span>
-<span class="nc" id="L187">			return false;</span>
+<span class="nc" id="L186">		final String commonName = CertTools.getPartFromDN(cert.getSubjectDN().getName(), &quot;CN&quot;);</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">		if ( !commonName.equals(jobData.userName) ) {</span>
+<span class="nc" id="L188">			StressTestCommand.this.performanceTest.getLog().error(&quot;Cert not created for right user. Username: \&quot;&quot;+jobData.userName+&quot;\&quot; Subject DN: \&quot;&quot;+cert.getSubjectDN()+&quot;\&quot;.&quot;);</span>
+<span class="nc" id="L189">			return false;</span>
 		}
-<span class="nc" id="L189">		jobData.userCertsGenerated.add(cert);</span>
-<span class="nc" id="L190">		StressTestCommand.this.performanceTest.getLog().info(&quot;Cert created. Subject DN: \&quot;&quot;+cert.getSubjectDN()+&quot;\&quot;.&quot;);</span>
-<span class="nc" id="L191">		StressTestCommand.this.performanceTest.getLog().result(CertTools.getSerialNumber(cert));</span>
-<span class="nc" id="L192">		return true;</span>
+<span class="nc" id="L191">		jobData.userCertsGenerated.add(cert);</span>
+<span class="nc" id="L192">		StressTestCommand.this.performanceTest.getLog().info(&quot;Cert created. Subject DN: \&quot;&quot;+cert.getSubjectDN()+&quot;\&quot;.&quot;);</span>
+<span class="nc" id="L193">		StressTestCommand.this.performanceTest.getLog().result(CertTools.getSerialNumber(cert));</span>
+<span class="nc" id="L194">		return true;</span>
 	}
 
 	private class MultipleCertsRequestsForAUserCommand extends BaseCommand implements Command {
@@ -198,160 +200,160 @@ public class StressTestCommand extends EJBCAWSRABaseCommand implements IAdminCom
 		final String endEntityProfileName;
 		final String certificateProfileName;
 		final KeyPairGenerator kpg;
-<span class="nc" id="L201">		MultipleCertsRequestsForAUserCommand(EjbcaWS _ejbcaWS, String _caName, String _endEntityProfileName, String _certificateProfileName, JobData _jobData, KeyPairGenerator _kpg) throws Exception {</span>
-<span class="nc" id="L202">			super(_jobData);</span>
-<span class="nc" id="L203">			this.caName = _caName;</span>
-<span class="nc" id="L204">			this.endEntityProfileName = _endEntityProfileName;</span>
-<span class="nc" id="L205">			this.certificateProfileName = _certificateProfileName;</span>
-<span class="nc" id="L206">			this.kpg = _kpg;</span>
-<span class="nc" id="L207">			this.ejbcaWS = _ejbcaWS;</span>
-<span class="nc" id="L208">		}</span>
+<span class="nc" id="L203">		MultipleCertsRequestsForAUserCommand(EjbcaWS _ejbcaWS, String _caName, String _endEntityProfileName, String _certificateProfileName, JobData _jobData, KeyPairGenerator _kpg) throws Exception {</span>
+<span class="nc" id="L204">			super(_jobData);</span>
+<span class="nc" id="L205">			this.caName = _caName;</span>
+<span class="nc" id="L206">			this.endEntityProfileName = _endEntityProfileName;</span>
+<span class="nc" id="L207">			this.certificateProfileName = _certificateProfileName;</span>
+<span class="nc" id="L208">			this.kpg = _kpg;</span>
+<span class="nc" id="L209">			this.ejbcaWS = _ejbcaWS;</span>
+<span class="nc" id="L210">		}</span>
 		@Override
 		public boolean doIt() throws Exception {
-<span class="nc" id="L211">			boolean createUser = true;</span>
-<span class="nc bnc" id="L212" title="All 2 branches missed.">			for (int i=0; i&lt;50; i++) {</span>
-<span class="nc" id="L213">				EditUserCommand editUserCommand = new EditUserCommand(this.ejbcaWS, this.caName, this.endEntityProfileName, this.certificateProfileName, this.jobData, createUser, -1);</span>
-<span class="nc bnc" id="L214" title="All 2 branches missed.">				if (!editUserCommand.doIt()) {</span>
-<span class="nc" id="L215">					StressTestCommand.this.performanceTest.getLog().error(&quot;MultiplePkcs10RequestsCommand failed for &quot;+this.jobData.userName);</span>
-<span class="nc" id="L216">					return false;</span>
+<span class="nc" id="L213">			boolean createUser = true;</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">			for (int i=0; i&lt;50; i++) {</span>
+<span class="nc" id="L215">				EditUserCommand editUserCommand = new EditUserCommand(this.ejbcaWS, this.caName, this.endEntityProfileName, this.certificateProfileName, this.jobData, createUser, -1);</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">				if (!editUserCommand.doIt()) {</span>
+<span class="nc" id="L217">					StressTestCommand.this.performanceTest.getLog().error(&quot;MultiplePkcs10RequestsCommand failed for &quot;+this.jobData.userName);</span>
+<span class="nc" id="L218">					return false;</span>
 				}
-<span class="nc" id="L218">				createUser = false;</span>
-<span class="nc" id="L219">				Pkcs10RequestCommand pkcs10RequestCommand = new Pkcs10RequestCommand(this.ejbcaWS, this.kpg.generateKeyPair(), this.jobData);</span>
-<span class="nc bnc" id="L220" title="All 2 branches missed.">				if (!pkcs10RequestCommand.doIt()) {</span>
-<span class="nc" id="L221">					StressTestCommand.this.performanceTest.getLog().error(&quot;MultiplePkcs10RequestsCommand failed for &quot;+this.jobData.userName);</span>
-<span class="nc" id="L222">					return false;</span>
+<span class="nc" id="L220">				createUser = false;</span>
+<span class="nc" id="L221">				Pkcs10RequestCommand pkcs10RequestCommand = new Pkcs10RequestCommand(this.ejbcaWS, this.kpg.generateKeyPair(), this.jobData);</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">				if (!pkcs10RequestCommand.doIt()) {</span>
+<span class="nc" id="L223">					StressTestCommand.this.performanceTest.getLog().error(&quot;MultiplePkcs10RequestsCommand failed for &quot;+this.jobData.userName);</span>
+<span class="nc" id="L224">					return false;</span>
 				}
 			}
-<span class="nc" id="L225">			return true;</span>
+<span class="nc" id="L227">			return true;</span>
 		}
 		@Override
 		public String getJobTimeDescription() {
-<span class="nc" id="L229">			return &quot;Relative time spent creating a lot of certificates&quot;;</span>
+<span class="nc" id="L231">			return &quot;Relative time spent creating a lot of certificates&quot;;</span>
 		}
 	}
 	private class FindUserCommand extends BaseCommand implements Command {
 		final private EjbcaWS ejbcaWS;
-<span class="nc" id="L234">		FindUserCommand(EjbcaWS _ejbcaWS, JobData _jobData) throws Exception {</span>
-<span class="nc" id="L235">			super(_jobData);</span>
-<span class="nc" id="L236">			this.ejbcaWS = _ejbcaWS;</span>
-<span class="nc" id="L237">		}</span>
+<span class="nc" id="L236">		FindUserCommand(EjbcaWS _ejbcaWS, JobData _jobData) throws Exception {</span>
+<span class="nc" id="L237">			super(_jobData);</span>
+<span class="nc" id="L238">			this.ejbcaWS = _ejbcaWS;</span>
+<span class="nc" id="L239">		}</span>
 		@Override
 		public boolean doIt() throws Exception {
-<span class="nc" id="L240">			final org.ejbca.core.protocol.ws.client.gen.UserMatch match = new org.ejbca.core.protocol.ws.client.gen.UserMatch();</span>
-<span class="nc" id="L241">			match.setMatchtype(BasicMatch.MATCH_TYPE_EQUALS);</span>
-<span class="nc" id="L242">			match.setMatchvalue(this.jobData.getDN());</span>
-<span class="nc" id="L243">			match.setMatchwith(org.ejbca.util.query.UserMatch.MATCH_WITH_DN);</span>
-<span class="nc" id="L244">			final List&lt;UserDataVOWS&gt; result = this.ejbcaWS.findUser(match);</span>
-<span class="nc bnc" id="L245" title="All 2 branches missed.">			if (result.size()&lt;1) {</span>
-<span class="nc" id="L246">				StressTestCommand.this.performanceTest.getLog().error(&quot;No users found for DN \&quot;&quot;+this.jobData.getDN()+&quot;\&quot;&quot;);</span>
-<span class="nc" id="L247">				return false;</span>
+<span class="nc" id="L242">			final org.ejbca.core.protocol.ws.client.gen.UserMatch match = new org.ejbca.core.protocol.ws.client.gen.UserMatch();</span>
+<span class="nc" id="L243">			match.setMatchtype(BasicMatch.MATCH_TYPE_EQUALS);</span>
+<span class="nc" id="L244">			match.setMatchvalue(this.jobData.getDN());</span>
+<span class="nc" id="L245">			match.setMatchwith(org.ejbca.util.query.UserMatch.MATCH_WITH_DN);</span>
+<span class="nc" id="L246">			final List&lt;UserDataVOWS&gt; result = this.ejbcaWS.findUser(match);</span>
+<span class="nc bnc" id="L247" title="All 2 branches missed.">			if (result.size()&lt;1) {</span>
+<span class="nc" id="L248">				StressTestCommand.this.performanceTest.getLog().error(&quot;No users found for DN \&quot;&quot;+this.jobData.getDN()+&quot;\&quot;&quot;);</span>
+<span class="nc" id="L249">				return false;</span>
 			}
-<span class="nc" id="L249">			final Iterator&lt;UserDataVOWS&gt; i = result.iterator();</span>
-<span class="nc bnc" id="L250" title="All 2 branches missed.">			while ( i.hasNext() ) {</span>
-<span class="nc" id="L251">				final String userName = i.next().getUsername();</span>
-<span class="nc bnc" id="L252" title="All 2 branches missed.">				if( !userName.equals(this.jobData.userName) ) {</span>
-<span class="nc" id="L253">					StressTestCommand.this.performanceTest.getLog().error(&quot;wrong user name \&quot;&quot;+userName+&quot;\&quot; for certificate with DN \&quot;&quot;+this.jobData.getDN()+&quot;\&quot;&quot;);</span>
-<span class="nc" id="L254">					return false;</span>
+<span class="nc" id="L251">			final Iterator&lt;UserDataVOWS&gt; i = result.iterator();</span>
+<span class="nc bnc" id="L252" title="All 2 branches missed.">			while ( i.hasNext() ) {</span>
+<span class="nc" id="L253">				final String userName = i.next().getUsername();</span>
+<span class="nc bnc" id="L254" title="All 2 branches missed.">				if( !userName.equals(this.jobData.userName) ) {</span>
+<span class="nc" id="L255">					StressTestCommand.this.performanceTest.getLog().error(&quot;wrong user name \&quot;&quot;+userName+&quot;\&quot; for certificate with DN \&quot;&quot;+this.jobData.getDN()+&quot;\&quot;&quot;);</span>
+<span class="nc" id="L256">					return false;</span>
 				}
-<span class="nc" id="L256">			}</span>
-<span class="nc" id="L257">			return true;</span>
+<span class="nc" id="L258">			}</span>
+<span class="nc" id="L259">			return true;</span>
 		}
 		@Override
 		public String getJobTimeDescription() {
-<span class="nc" id="L261">			return &quot;Relative time spent looking for user&quot;;</span>
+<span class="nc" id="L263">			return &quot;Relative time spent looking for user&quot;;</span>
 		}
 	}
 	private class ListCertsCommand extends BaseCommand implements Command {
 		final private EjbcaWS ejbcaWS;
-<span class="nc" id="L266">		ListCertsCommand(EjbcaWS _ejbcaWS, JobData _jobData) throws Exception {</span>
-<span class="nc" id="L267">			super(_jobData);</span>
-<span class="nc" id="L268">			this.ejbcaWS = _ejbcaWS;</span>
-<span class="nc" id="L269">		}</span>
+<span class="nc" id="L268">		ListCertsCommand(EjbcaWS _ejbcaWS, JobData _jobData) throws Exception {</span>
+<span class="nc" id="L269">			super(_jobData);</span>
+<span class="nc" id="L270">			this.ejbcaWS = _ejbcaWS;</span>
+<span class="nc" id="L271">		}</span>
 		@Override
 		public boolean doIt() throws Exception {
-<span class="nc" id="L272">			final List&lt;Certificate&gt; result = this.ejbcaWS.findCerts(this.jobData.userName, true);</span>
-<span class="nc" id="L273">			final Iterator&lt;Certificate&gt; i = result.iterator();</span>
-<span class="nc" id="L274">			this.jobData.userCertsToBeRevoked = new X509Certificate[result.size()];</span>
-<span class="nc bnc" id="L275" title="All 2 branches missed.">			for( int j=0; i.hasNext(); j++ ) {</span>
-<span class="nc" id="L276">				this.jobData.userCertsToBeRevoked[j] = (X509Certificate)CertificateFactory.getInstance(&quot;X.509&quot;).generateCertificate(new ByteArrayInputStream(Base64.decode(i.next().getCertificateData())));</span>
+<span class="nc" id="L274">			final List&lt;Certificate&gt; result = this.ejbcaWS.findCerts(this.jobData.userName, true);</span>
+<span class="nc" id="L275">			final Iterator&lt;Certificate&gt; i = result.iterator();</span>
+<span class="nc" id="L276">			this.jobData.userCertsToBeRevoked = new X509Certificate[result.size()];</span>
+<span class="nc bnc" id="L277" title="All 2 branches missed.">			for( int j=0; i.hasNext(); j++ ) {</span>
+<span class="nc" id="L278">				this.jobData.userCertsToBeRevoked[j] = (X509Certificate)CertificateFactory.getInstance(&quot;X.509&quot;).generateCertificate(new ByteArrayInputStream(Base64.decode(i.next().getCertificateData())));</span>
 			}
-<span class="nc bnc" id="L278" title="All 2 branches missed.">			if ( this.jobData.userCertsToBeRevoked.length &lt; 1 ) {</span>
-<span class="nc" id="L279">				this.jobData.userCertsToBeRevoked = this.jobData.userCertsGenerated.toArray(new X509Certificate[this.jobData.userCertsGenerated.size()]);</span>
+<span class="nc bnc" id="L280" title="All 2 branches missed.">			if ( this.jobData.userCertsToBeRevoked.length &lt; 1 ) {</span>
+<span class="nc" id="L281">				this.jobData.userCertsToBeRevoked = this.jobData.userCertsGenerated.toArray(new X509Certificate[this.jobData.userCertsGenerated.size()]);</span>
 			}
-<span class="nc" id="L281">			this.jobData.userCertsGenerated.clear();</span>
-<span class="nc bnc" id="L282" title="All 2 branches missed.">			if ( this.jobData.userCertsToBeRevoked.length &lt; 1 ) {</span>
-<span class="nc" id="L283">				StressTestCommand.this.performanceTest.getLog().error(&quot;no cert found for user &quot;+this.jobData.userName);</span>
-<span class="nc" id="L284">				return false;</span>
+<span class="nc" id="L283">			this.jobData.userCertsGenerated.clear();</span>
+<span class="nc bnc" id="L284" title="All 2 branches missed.">			if ( this.jobData.userCertsToBeRevoked.length &lt; 1 ) {</span>
+<span class="nc" id="L285">				StressTestCommand.this.performanceTest.getLog().error(&quot;no cert found for user &quot;+this.jobData.userName);</span>
+<span class="nc" id="L286">				return false;</span>
 			}
 
-<span class="nc" id="L287">			return true;</span>
+<span class="nc" id="L289">			return true;</span>
 		}
 		@Override
 		public String getJobTimeDescription() {
-<span class="nc" id="L291">			return &quot;Relative time spent finding certs for user.&quot;;</span>
+<span class="nc" id="L293">			return &quot;Relative time spent finding certs for user.&quot;;</span>
 		}
 	}
 	private class RevokeCertCommand extends BaseCommand implements Command {
 		final private EjbcaWS ejbcaWS;
-<span class="nc" id="L296">		RevokeCertCommand(EjbcaWS _ejbcaWS, JobData _jobData) throws Exception {</span>
-<span class="nc" id="L297">			super(_jobData);</span>
-<span class="nc" id="L298">			this.ejbcaWS = _ejbcaWS;</span>
-<span class="nc" id="L299">		}</span>
+<span class="nc" id="L298">		RevokeCertCommand(EjbcaWS _ejbcaWS, JobData _jobData) throws Exception {</span>
+<span class="nc" id="L299">			super(_jobData);</span>
+<span class="nc" id="L300">			this.ejbcaWS = _ejbcaWS;</span>
+<span class="nc" id="L301">		}</span>
 		@Override
 		public boolean doIt() throws Exception {
-<span class="nc bnc" id="L302" title="All 2 branches missed.">			for (int i=0; i&lt;this.jobData.userCertsToBeRevoked.length; i++) {</span>
-<span class="nc" id="L303">				this.ejbcaWS.revokeCert(this.jobData.userCertsToBeRevoked[i].getIssuerDN().getName(),</span>
-<span class="nc" id="L304">										this.jobData.userCertsToBeRevoked[i].getSerialNumber().toString(16),</span>
+<span class="nc bnc" id="L304" title="All 2 branches missed.">			for (int i=0; i&lt;this.jobData.userCertsToBeRevoked.length; i++) {</span>
+<span class="nc" id="L305">				this.ejbcaWS.revokeCert(this.jobData.userCertsToBeRevoked[i].getIssuerDN().getName(),</span>
+<span class="nc" id="L306">										this.jobData.userCertsToBeRevoked[i].getSerialNumber().toString(16),</span>
 										REVOKATION_REASON_UNSPECIFIED);
 			}
-<span class="nc" id="L307">			return true;</span>
+<span class="nc" id="L309">			return true;</span>
 		}
 		@Override
 		public String getJobTimeDescription() {
-<span class="nc" id="L311">			return &quot;Relative time spent revoking certificates.&quot;;</span>
+<span class="nc" id="L313">			return &quot;Relative time spent revoking certificates.&quot;;</span>
 		}
 	}
 
 	private class RevokeCertBackdatedCommand extends BaseCommand implements Command {
 		final private EjbcaWS ejbcaWS;
 		final String revoceTime;
-<span class="nc" id="L318">		RevokeCertBackdatedCommand(EjbcaWS _ejbcaWS, JobData _jobData) throws Exception {</span>
-<span class="nc" id="L319">			super(_jobData);</span>
-<span class="nc" id="L320">			this.ejbcaWS = _ejbcaWS;</span>
-<span class="nc" id="L321">			final Calendar c = Calendar.getInstance();</span>
-<span class="nc" id="L322">			c.setTime(new Date(new Date().getTime()-1000*60*60*24));</span>
-<span class="nc" id="L323">			this.revoceTime = DatatypeConverter.printDateTime(c);</span>
-<span class="nc" id="L324">			StressTestCommand.this.performanceTest.getLog().info(&quot;Revoke time: &quot;+this.revoceTime);</span>
-<span class="nc" id="L325">		}</span>
+<span class="nc" id="L320">		RevokeCertBackdatedCommand(EjbcaWS _ejbcaWS, JobData _jobData) throws Exception {</span>
+<span class="nc" id="L321">			super(_jobData);</span>
+<span class="nc" id="L322">			this.ejbcaWS = _ejbcaWS;</span>
+<span class="nc" id="L323">			final Calendar c = Calendar.getInstance();</span>
+<span class="nc" id="L324">			c.setTime(new Date(new Date().getTime()-1000*60*60*24));</span>
+<span class="nc" id="L325">			this.revoceTime = DatatypeConverter.printDateTime(c);</span>
+<span class="nc" id="L326">			StressTestCommand.this.performanceTest.getLog().info(&quot;Revoke time: &quot;+this.revoceTime);</span>
+<span class="nc" id="L327">		}</span>
 		private void revokeBackdated( int i ) throws Exception {
-<span class="nc" id="L327">			this.ejbcaWS.revokeCertBackdated(</span>
-<span class="nc" id="L328">					this.jobData.userCertsToBeRevoked[i].getIssuerDN().getName(),</span>
-<span class="nc" id="L329">					this.jobData.userCertsToBeRevoked[i].getSerialNumber().toString(16),</span>
+<span class="nc" id="L329">			this.ejbcaWS.revokeCertBackdated(</span>
+<span class="nc" id="L330">					this.jobData.userCertsToBeRevoked[i].getIssuerDN().getName(),</span>
+<span class="nc" id="L331">					this.jobData.userCertsToBeRevoked[i].getSerialNumber().toString(16),</span>
 					REVOKATION_REASON_UNSPECIFIED,
 					this.revoceTime);
-<span class="nc" id="L332">		}</span>
+<span class="nc" id="L334">		}</span>
 		private void revoke( int i ) throws Exception {
-<span class="nc" id="L334">			this.ejbcaWS.revokeCert(</span>
-<span class="nc" id="L335">					this.jobData.userCertsToBeRevoked[i].getIssuerDN().getName(),</span>
-<span class="nc" id="L336">					this.jobData.userCertsToBeRevoked[i].getSerialNumber().toString(16),</span>
+<span class="nc" id="L336">			this.ejbcaWS.revokeCert(</span>
+<span class="nc" id="L337">					this.jobData.userCertsToBeRevoked[i].getIssuerDN().getName(),</span>
+<span class="nc" id="L338">					this.jobData.userCertsToBeRevoked[i].getSerialNumber().toString(16),</span>
 					REVOKATION_REASON_UNSPECIFIED);
-<span class="nc" id="L338">		}</span>
+<span class="nc" id="L340">		}</span>
 		@Override
 		public boolean doIt() throws Exception {
-<span class="nc bnc" id="L341" title="All 2 branches missed.">			for (int i=0; i&lt;this.jobData.userCertsToBeRevoked.length; i++) {</span>
+<span class="nc bnc" id="L343" title="All 2 branches missed.">			for (int i=0; i&lt;this.jobData.userCertsToBeRevoked.length; i++) {</span>
 				try {
-<span class="nc" id="L343">					revokeBackdated(i);</span>
-<span class="nc" id="L344">				} catch (RevokeBackDateNotAllowedForProfileException_Exception e) {</span>
-<span class="nc" id="L345">					revoke(i);</span>
-<span class="nc" id="L346">					StressTestCommand.this.performanceTest.getLog().info(&quot;No back dating since not allowed for the profile.&quot;);</span>
-<span class="nc" id="L347">					continue;</span>
-<span class="nc" id="L348">				}</span>
+<span class="nc" id="L345">					revokeBackdated(i);</span>
+<span class="nc" id="L346">				} catch (RevokeBackDateNotAllowedForProfileException_Exception e) {</span>
+<span class="nc" id="L347">					revoke(i);</span>
+<span class="nc" id="L348">					StressTestCommand.this.performanceTest.getLog().info(&quot;No back dating since not allowed for the profile.&quot;);</span>
+<span class="nc" id="L349">					continue;</span>
+<span class="nc" id="L350">				}</span>
 			}
-<span class="nc" id="L350">			return true;</span>
+<span class="nc" id="L352">			return true;</span>
 		}
 		@Override
 		public String getJobTimeDescription() {
-<span class="nc" id="L354">			return &quot;Relative time spent revoking certificates.&quot;;</span>
+<span class="nc" id="L356">			return &quot;Relative time spent revoking certificates.&quot;;</span>
 		}
 	}
 	private class EditUserCommand extends BaseCommand implements Command {
@@ -360,42 +362,42 @@ public class StressTestCommand extends EJBCAWSRABaseCommand implements IAdminCom
 		final private boolean doCreateNewUser;
 		final private int bitsInCertificateSN;
 		EditUserCommand(EjbcaWS _ejbcaWS, String caName, String endEntityProfileName, String certificateProfileName,
-<span class="nc" id="L363">						JobData _jobData, boolean _doCreateNewUser, int _bitsInCertificateSN) {</span>
-<span class="nc" id="L364">			super(_jobData);</span>
-<span class="nc" id="L365">			this.doCreateNewUser = _doCreateNewUser;</span>
-<span class="nc" id="L366">			this.ejbcaWS = _ejbcaWS;</span>
-<span class="nc" id="L367">			this.user = new UserDataVOWS();</span>
-<span class="nc" id="L368">			this.user.setClearPwd(true);</span>
-<span class="nc" id="L369">			this.user.setCaName(caName);</span>
-<span class="nc" id="L370">			this.user.setEmail(null);</span>
-<span class="nc" id="L371">			this.user.setSubjectAltName(null);</span>
-<span class="nc" id="L372">			this.user.setStatus(EndEntityConstants.STATUS_NEW);</span>
-<span class="nc" id="L373">			this.user.setTokenType(org.ejbca.core.protocol.ws.objects.UserDataVOWS.TOKEN_TYPE_USERGENERATED);</span>
-<span class="nc" id="L374">			this.user.setEndEntityProfileName(endEntityProfileName);</span>
-<span class="nc" id="L375">			this.user.setCertificateProfileName(certificateProfileName);</span>
-<span class="nc" id="L376">			this.bitsInCertificateSN = _bitsInCertificateSN;</span>
-<span class="nc" id="L377">		}</span>
+<span class="nc" id="L365">						JobData _jobData, boolean _doCreateNewUser, int _bitsInCertificateSN) {</span>
+<span class="nc" id="L366">			super(_jobData);</span>
+<span class="nc" id="L367">			this.doCreateNewUser = _doCreateNewUser;</span>
+<span class="nc" id="L368">			this.ejbcaWS = _ejbcaWS;</span>
+<span class="nc" id="L369">			this.user = new UserDataVOWS();</span>
+<span class="nc" id="L370">			this.user.setClearPwd(true);</span>
+<span class="nc" id="L371">			this.user.setCaName(caName);</span>
+<span class="nc" id="L372">			this.user.setEmail(null);</span>
+<span class="nc" id="L373">			this.user.setSubjectAltName(null);</span>
+<span class="nc" id="L374">			this.user.setStatus(EndEntityConstants.STATUS_NEW);</span>
+<span class="nc" id="L375">			this.user.setTokenType(org.ejbca.core.protocol.ws.objects.UserDataVOWS.TOKEN_TYPE_USERGENERATED);</span>
+<span class="nc" id="L376">			this.user.setEndEntityProfileName(endEntityProfileName);</span>
+<span class="nc" id="L377">			this.user.setCertificateProfileName(certificateProfileName);</span>
+<span class="nc" id="L378">			this.bitsInCertificateSN = _bitsInCertificateSN;</span>
+<span class="nc" id="L379">		}</span>
 		@Override
 		public boolean doIt() throws Exception {
-<span class="nc bnc" id="L380" title="All 2 branches missed.">			if ( this.doCreateNewUser ) {</span>
-<span class="nc" id="L381">				this.jobData.passWord = &quot;foo123&quot;;</span>
-<span class="nc" id="L382">				this.jobData.userName = &quot;WSTESTUSER&quot;+StressTestCommand.this.performanceTest.nextLong();</span>
+<span class="nc bnc" id="L382" title="All 2 branches missed.">			if ( this.doCreateNewUser ) {</span>
+<span class="nc" id="L383">				this.jobData.passWord = &quot;foo123&quot;;</span>
+<span class="nc" id="L384">				this.jobData.userName = &quot;WSTESTUSER&quot;+StressTestCommand.this.performanceTest.nextLong();</span>
 			}
-<span class="nc bnc" id="L384" title="All 4 branches missed.">			if ( this.bitsInCertificateSN&gt;0 &amp;&amp; this.doCreateNewUser ) {</span>
-<span class="nc" id="L385">				this.user.setCertificateSerialNumber(new BigInteger(this.bitsInCertificateSN, StressTestCommand.this.performanceTest.getRandom()));</span>
+<span class="nc bnc" id="L386" title="All 4 branches missed.">			if ( this.bitsInCertificateSN&gt;0 &amp;&amp; this.doCreateNewUser ) {</span>
+<span class="nc" id="L387">				this.user.setCertificateSerialNumber(new BigInteger(this.bitsInCertificateSN, StressTestCommand.this.performanceTest.getRandom()));</span>
 			}
-<span class="nc" id="L387">			this.user.setSubjectDN(this.jobData.getDN());</span>
-<span class="nc" id="L388">			this.user.setUsername(this.jobData.userName);</span>
-<span class="nc" id="L389">			this.user.setPassword(this.jobData.passWord);</span>
-<span class="nc" id="L390">			this.ejbcaWS.editUser(this.user);</span>
-<span class="nc" id="L391">			return true;</span>
+<span class="nc" id="L389">			this.user.setSubjectDN(this.jobData.getDN());</span>
+<span class="nc" id="L390">			this.user.setUsername(this.jobData.userName);</span>
+<span class="nc" id="L391">			this.user.setPassword(this.jobData.passWord);</span>
+<span class="nc" id="L392">			this.ejbcaWS.editUser(this.user);</span>
+<span class="nc" id="L393">			return true;</span>
 		}
 		@Override
 		public String getJobTimeDescription() {
-<span class="nc bnc" id="L395" title="All 2 branches missed.">			if ( this.doCreateNewUser ) {</span>
-<span class="nc" id="L396">				return &quot;Relative time spent registering new users&quot;;</span>
+<span class="nc bnc" id="L397" title="All 2 branches missed.">			if ( this.doCreateNewUser ) {</span>
+<span class="nc" id="L398">				return &quot;Relative time spent registering new users&quot;;</span>
 			}
-<span class="nc" id="L398">			return &quot;Relative time spent setting status of user to NEW&quot;;</span>
+<span class="nc" id="L400">			return &quot;Relative time spent setting status of user to NEW&quot;;</span>
 		}
 	} // EditUserCommand
 	
@@ -409,130 +411,130 @@ public class StressTestCommand extends EJBCAWSRABaseCommand implements IAdminCom
 		final private int bitsInCertificateSN;
 		private PKCS10CertificationRequest pkcs10;
 		CertificateRequestCommand(EjbcaWS _ejbcaWS, String caName, String endEntityProfileName, String certificateProfileName,
-<span class="nc" id="L412">						JobData _jobData, boolean _doCreateNewUser, int _bitsInCertificateSN, KeyPair keys) throws SignatureException, InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException {</span>
-<span class="nc" id="L413">			super(_jobData);</span>
-<span class="nc" id="L414">			this.doCreateNewUser = _doCreateNewUser;</span>
-<span class="nc" id="L415">			this.ejbcaWS = _ejbcaWS;</span>
-<span class="nc" id="L416">			this.user = new UserDataVOWS();</span>
-<span class="nc" id="L417">			this.user.setClearPwd(true);</span>
-<span class="nc" id="L418">			this.user.setCaName(caName);</span>
-<span class="nc" id="L419">			this.user.setEmail(null);</span>
-<span class="nc" id="L420">			this.user.setSubjectAltName(null);</span>
-<span class="nc" id="L421">			this.user.setStatus(EndEntityConstants.STATUS_NEW);</span>
-<span class="nc" id="L422">			this.user.setTokenType(org.ejbca.core.protocol.ws.objects.UserDataVOWS.TOKEN_TYPE_USERGENERATED);</span>
-<span class="nc" id="L423">			this.user.setEndEntityProfileName(endEntityProfileName);</span>
-<span class="nc" id="L424">			this.user.setCertificateProfileName(certificateProfileName);</span>
-<span class="nc" id="L425">			this.bitsInCertificateSN = _bitsInCertificateSN;</span>
+<span class="nc" id="L414">						JobData _jobData, boolean _doCreateNewUser, int _bitsInCertificateSN, KeyPair keys) throws SignatureException, InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException {</span>
+<span class="nc" id="L415">			super(_jobData);</span>
+<span class="nc" id="L416">			this.doCreateNewUser = _doCreateNewUser;</span>
+<span class="nc" id="L417">			this.ejbcaWS = _ejbcaWS;</span>
+<span class="nc" id="L418">			this.user = new UserDataVOWS();</span>
+<span class="nc" id="L419">			this.user.setClearPwd(true);</span>
+<span class="nc" id="L420">			this.user.setCaName(caName);</span>
+<span class="nc" id="L421">			this.user.setEmail(null);</span>
+<span class="nc" id="L422">			this.user.setSubjectAltName(null);</span>
+<span class="nc" id="L423">			this.user.setStatus(EndEntityConstants.STATUS_NEW);</span>
+<span class="nc" id="L424">			this.user.setTokenType(org.ejbca.core.protocol.ws.objects.UserDataVOWS.TOKEN_TYPE_USERGENERATED);</span>
+<span class="nc" id="L425">			this.user.setEndEntityProfileName(endEntityProfileName);</span>
+<span class="nc" id="L426">			this.user.setCertificateProfileName(certificateProfileName);</span>
+<span class="nc" id="L427">			this.bitsInCertificateSN = _bitsInCertificateSN;</span>
 			try {
-<span class="nc" id="L427">                this.pkcs10 = CertTools.genPKCS10CertificationRequest(&quot;SHA1WithRSA&quot;, CertTools.stringToBcX500Name(&quot;CN=NOUSED&quot;), keys.getPublic(), new DERSet(), keys.getPrivate(), null);</span>
-<span class="nc" id="L428">            } catch (OperatorCreationException e) {</span>
-<span class="nc" id="L429">                getPrintStream().println(e.getLocalizedMessage());</span>
-<span class="nc" id="L430">                e.printStackTrace(getPrintStream());</span>
-<span class="nc" id="L431">            }</span>
-<span class="nc" id="L432">		}</span>
+<span class="nc" id="L429">                this.pkcs10 = CertTools.genPKCS10CertificationRequest(&quot;SHA1WithRSA&quot;, CertTools.stringToBcX500Name(&quot;CN=NOUSED&quot;), keys.getPublic(), new DERSet(), keys.getPrivate(), null);</span>
+<span class="nc" id="L430">            } catch (OperatorCreationException e) {</span>
+<span class="nc" id="L431">                getPrintStream().println(e.getLocalizedMessage());</span>
+<span class="nc" id="L432">                e.printStackTrace(getPrintStream());</span>
+<span class="nc" id="L433">            }</span>
+<span class="nc" id="L434">		}</span>
 		@Override
 		public boolean doIt() throws Exception {
-<span class="nc bnc" id="L435" title="All 2 branches missed.">			if ( this.doCreateNewUser ) {</span>
-<span class="nc" id="L436">				this.jobData.passWord = &quot;foo123&quot;;</span>
-<span class="nc" id="L437">				this.jobData.userName = &quot;WSTESTUSER&quot;+StressTestCommand.this.performanceTest.nextLong();</span>
+<span class="nc bnc" id="L437" title="All 2 branches missed.">			if ( this.doCreateNewUser ) {</span>
+<span class="nc" id="L438">				this.jobData.passWord = &quot;foo123&quot;;</span>
+<span class="nc" id="L439">				this.jobData.userName = &quot;WSTESTUSER&quot;+StressTestCommand.this.performanceTest.nextLong();</span>
 			}
-<span class="nc bnc" id="L439" title="All 4 branches missed.">			if ( this.bitsInCertificateSN&gt;0 &amp;&amp; this.doCreateNewUser ) {</span>
-<span class="nc" id="L440">				this.user.setCertificateSerialNumber(new BigInteger(this.bitsInCertificateSN, StressTestCommand.this.performanceTest.getRandom()));</span>
+<span class="nc bnc" id="L441" title="All 4 branches missed.">			if ( this.bitsInCertificateSN&gt;0 &amp;&amp; this.doCreateNewUser ) {</span>
+<span class="nc" id="L442">				this.user.setCertificateSerialNumber(new BigInteger(this.bitsInCertificateSN, StressTestCommand.this.performanceTest.getRandom()));</span>
 			}
-<span class="nc" id="L442">			this.user.setSubjectDN(this.jobData.getDN());</span>
-<span class="nc" id="L443">			this.user.setUsername(this.jobData.userName);</span>
-<span class="nc" id="L444">			this.user.setPassword(this.jobData.passWord);</span>
-<span class="nc" id="L445">			int requestType = CertificateHelper.CERT_REQ_TYPE_PKCS10;</span>
-<span class="nc" id="L446">			String responseType = CertificateHelper.RESPONSETYPE_CERTIFICATE;</span>
-<span class="nc" id="L447">			String hardTokenSN = null; // not used</span>
-<span class="nc" id="L448">			String requestData = new String(Base64.encode(this.pkcs10.getEncoded()));</span>
-<span class="nc" id="L449">			final CertificateResponse certificateResponse = this.ejbcaWS.certificateRequest(this.user, requestData, requestType, hardTokenSN, responseType);</span>
-<span class="nc" id="L450">			return checkAndLogCertificateResponse(certificateResponse, this.jobData);</span>
+<span class="nc" id="L444">			this.user.setSubjectDN(this.jobData.getDN());</span>
+<span class="nc" id="L445">			this.user.setUsername(this.jobData.userName);</span>
+<span class="nc" id="L446">			this.user.setPassword(this.jobData.passWord);</span>
+<span class="nc" id="L447">			int requestType = CertificateHelper.CERT_REQ_TYPE_PKCS10;</span>
+<span class="nc" id="L448">			String responseType = CertificateHelper.RESPONSETYPE_CERTIFICATE;</span>
+<span class="nc" id="L449">			String hardTokenSN = null; // not used</span>
+<span class="nc" id="L450">			String requestData = new String(Base64.encode(this.pkcs10.getEncoded()));</span>
+<span class="nc" id="L451">			final CertificateResponse certificateResponse = this.ejbcaWS.certificateRequest(this.user, requestData, requestType, hardTokenSN, responseType);</span>
+<span class="nc" id="L452">			return checkAndLogCertificateResponse(certificateResponse, this.jobData);</span>
 		}
 		@Override
 		public String getJobTimeDescription() {
-<span class="nc bnc" id="L454" title="All 2 branches missed.">			if ( this.doCreateNewUser ) {</span>
-<span class="nc" id="L455">				return &quot;Relative time spent registering new users&quot;;</span>
+<span class="nc bnc" id="L456" title="All 2 branches missed.">			if ( this.doCreateNewUser ) {</span>
+<span class="nc" id="L457">				return &quot;Relative time spent registering new users&quot;;</span>
 			}
-<span class="nc" id="L457">			return &quot;Relative time spent setting status of user to NEW&quot;;</span>
+<span class="nc" id="L459">			return &quot;Relative time spent setting status of user to NEW&quot;;</span>
 		}
 	} // CertificateRequestCommand
 	
 	/**
-	 * @param _args
+	 * @param _args args
 	 */
 	public StressTestCommand(String[] _args) {
-<span class="nc" id="L465">		super(_args);</span>
-<span class="nc" id="L466">		this.performanceTest = new PerformanceTest();</span>
-<span class="nc" id="L467">	}</span>
+<span class="nc" id="L467">		super(_args);</span>
+<span class="nc" id="L468">		this.performanceTest = new PerformanceTest();</span>
+<span class="nc" id="L469">	}</span>
 
 	/* (non-Javadoc)
 	 * @see org.ejbca.core.protocol.ws.client.EJBCAWSRABaseCommand#usage()
 	 */
 	@Override
 	protected void usage() {
-<span class="nc" id="L474">		getPrintStream().println(&quot;Command used to perform a \&quot;stress\&quot; test of EJBCA.&quot;);</span>
-<span class="nc" id="L475">		getPrintStream().println(&quot;The command will start up a number of threads.&quot;);</span>
-<span class="nc" id="L476">		getPrintStream().println(&quot;Each thread will continuously add new users to EJBCA. After adding a new user the thread will fetch a certificate for it.&quot;);</span>
-<span class="nc" id="L477">		getPrintStream().println();</span>
-<span class="nc" id="L478">		getPrintStream().println(&quot;Usage : stress &lt;caname&gt; &lt;nr of threads&gt; &lt;max wait time in ms to fetch cert after adding user&gt; [&lt;end entity profile name&gt;] [&lt;certificate profile name&gt;] [&lt;type of test&gt;]&quot;);</span>
+<span class="nc" id="L476">		getPrintStream().println(&quot;Command used to perform a \&quot;stress\&quot; test of EJBCA.&quot;);</span>
+<span class="nc" id="L477">		getPrintStream().println(&quot;The command will start up a number of threads.&quot;);</span>
+<span class="nc" id="L478">		getPrintStream().println(&quot;Each thread will continuously add new users to EJBCA. After adding a new user the thread will fetch a certificate for it.&quot;);</span>
 <span class="nc" id="L479">		getPrintStream().println();</span>
-<span class="nc" id="L480">		getPrintStream().println(&quot;Here is an example of how the test could be started:&quot;);</span>
-<span class="nc" id="L481">		getPrintStream().println(&quot;./ejbcawsracli.sh stress ManagementCA 20 5000&quot;);</span>
-<span class="nc" id="L482">		getPrintStream().println(&quot;20 threads is started. After adding a user the thread waits between 0-500 ms before requesting a certificate for it. The certificates will all be signed by the CA ManagementCA.&quot;);</span>
-<span class="nc" id="L483">		getPrintStream().println(&quot;You should use the CA with 'Enforce unique public keys' unchecked to avoid 'User ... is not allowed to use same key as another user is using.' error&quot;);</span>
-<span class="nc" id="L484">		getPrintStream().println();</span>
-<span class="nc" id="L485">		getPrintStream().println(&quot;To define a template for the subject DN of each new user use the java system property 'subjectDN'.&quot;);</span>
-<span class="nc" id="L486">		getPrintStream().println(&quot;If the property value contains one or several '&lt;userName&gt;' string these strings will be substituted with the user name.&quot;);</span>
-<span class="nc" id="L487">		getPrintStream().println(&quot;Example: JAVA_OPT=\&quot;-DsubjectDN=CN=&lt;userName&gt;,O=Acme,UID=hej&lt;userName&gt;,OU=,OU=First Fixed,OU=sfsdf,OU=Middle Fixed,OU=fsfsd,OU=Last Fixed\&quot; ../../PWE/ejbca_3_11/dist/clientToolBox/ejbcaClientToolBox.sh EjbcaWsRaCli stress ldapDirect 1 1000 ldapClientOUTest ldapClientDirect&quot;);</span>
-<span class="nc" id="L488">		getPrintStream().print(&quot;Types of stress tests:&quot;);</span>
-<span class="nc" id="L489">		TestType testTypes[] = TestType.values();</span>
-<span class="nc bnc" id="L490" title="All 2 branches missed.">		for ( TestType testType : testTypes ) {</span>
-<span class="nc" id="L491">			getPrintStream().print(&quot; &quot; + testType);</span>
+<span class="nc" id="L480">		getPrintStream().println(&quot;Usage : stress &lt;caname&gt; &lt;nr of threads&gt; &lt;max wait time in ms to fetch cert after adding user&gt; [&lt;end entity profile name&gt;] [&lt;certificate profile name&gt;] [&lt;type of test&gt;]&quot;);</span>
+<span class="nc" id="L481">		getPrintStream().println();</span>
+<span class="nc" id="L482">		getPrintStream().println(&quot;Here is an example of how the test could be started:&quot;);</span>
+<span class="nc" id="L483">		getPrintStream().println(&quot;./ejbcawsracli.sh stress ManagementCA 20 5000&quot;);</span>
+<span class="nc" id="L484">		getPrintStream().println(&quot;20 threads is started. After adding a user the thread waits between 0-500 ms before requesting a certificate for it. The certificates will all be signed by the CA ManagementCA.&quot;);</span>
+<span class="nc" id="L485">		getPrintStream().println(&quot;You should use the CA with 'Enforce unique public keys' unchecked to avoid 'User ... is not allowed to use same key as another user is using.' error&quot;);</span>
+<span class="nc" id="L486">		getPrintStream().println();</span>
+<span class="nc" id="L487">		getPrintStream().println(&quot;To define a template for the subject DN of each new user use the java system property 'subjectDN'.&quot;);</span>
+<span class="nc" id="L488">		getPrintStream().println(&quot;If the property value contains one or several '&lt;userName&gt;' string these strings will be substituted with the user name.&quot;);</span>
+<span class="nc" id="L489">		getPrintStream().println(&quot;Example: JAVA_OPT=\&quot;-DsubjectDN=CN=&lt;userName&gt;,O=Acme,UID=hej&lt;userName&gt;,OU=,OU=First Fixed,OU=sfsdf,OU=Middle Fixed,OU=fsfsd,OU=Last Fixed\&quot; ../../PWE/ejbca_3_11/dist/clientToolBox/ejbcaClientToolBox.sh EjbcaWsRaCli stress ldapDirect 1 1000 ldapClientOUTest ldapClientDirect&quot;);</span>
+<span class="nc" id="L490">		getPrintStream().print(&quot;Types of stress tests:&quot;);</span>
+<span class="nc" id="L491">		TestType testTypes[] = TestType.values();</span>
+<span class="nc bnc" id="L492" title="All 2 branches missed.">		for ( TestType testType : testTypes ) {</span>
+<span class="nc" id="L493">			getPrintStream().print(&quot; &quot; + testType);</span>
 		}
-<span class="nc" id="L493">		getPrintStream().println();</span>
-<span class="nc" id="L494">	}</span>
+<span class="nc" id="L495">		getPrintStream().println();</span>
+<span class="nc" id="L496">	}</span>
 
 	@Override
 	public void execute() throws IllegalAdminCommandException, ErrorAdminCommandException {
 
 		try {
-<span class="nc bnc" id="L500" title="All 2 branches missed.">			if(this.args.length &lt;  2){</span>
-<span class="nc" id="L501">				usage();</span>
-<span class="nc" id="L502">				System.exit(-1); // NOPMD, this is not a JEE app</span>
+<span class="nc bnc" id="L502" title="All 2 branches missed.">			if(this.args.length &lt;  2){</span>
+<span class="nc" id="L503">				usage();</span>
+<span class="nc" id="L504">				System.exit(-1); // NOPMD, this is not a JEE app</span>
 			}
-<span class="nc bnc" id="L504" title="All 2 branches missed.">            final NrOfThreadsAndNrOfTests notanot = new NrOfThreadsAndNrOfTests(this.args.length&gt;2 ? this.args[2] : null);</span>
-<span class="nc bnc" id="L505" title="All 2 branches missed.">			final int waitTime = this.args.length&gt;3 ? Integer.parseInt(this.args[3]) : -1;</span>
-<span class="nc" id="L506">			final String caName = this.args[1];</span>
-<span class="nc bnc" id="L507" title="All 2 branches missed.">			final String endEntityProfileName = this.args.length&gt;4 ? this.args[4] : &quot;EMPTY&quot;;</span>
-<span class="nc bnc" id="L508" title="All 2 branches missed.">			final String certificateProfileName = this.args.length&gt;5 ? this.args[5] : &quot;ENDUSER&quot;;</span>
-<span class="nc bnc" id="L509" title="All 2 branches missed.">			final TestType testType = this.args.length&gt;6 ? TestType.valueOf(this.args[6]) : TestType.BASIC;</span>
+<span class="nc bnc" id="L506" title="All 2 branches missed.">            final NrOfThreadsAndNrOfTests notanot = new NrOfThreadsAndNrOfTests(this.args.length&gt;2 ? this.args[2] : null);</span>
+<span class="nc bnc" id="L507" title="All 2 branches missed.">			final int waitTime = this.args.length&gt;3 ? Integer.parseInt(this.args[3]) : -1;</span>
+<span class="nc" id="L508">			final String caName = this.args[1];</span>
+<span class="nc bnc" id="L509" title="All 2 branches missed.">			final String endEntityProfileName = this.args.length&gt;4 ? this.args[4] : &quot;EMPTY&quot;;</span>
+<span class="nc bnc" id="L510" title="All 2 branches missed.">			final String certificateProfileName = this.args.length&gt;5 ? this.args[5] : &quot;ENDUSER&quot;;</span>
+<span class="nc bnc" id="L511" title="All 2 branches missed.">			final TestType testType = this.args.length&gt;6 ? TestType.valueOf(this.args[6]) : TestType.BASIC;</span>
 			final int maxCertificateSN;
-<span class="nc" id="L511">			final String subjectDN = System.getProperty(&quot;subjectDN&quot;, &quot;CN=&quot;+USER_NAME_TAG);</span>
+<span class="nc" id="L513">			final String subjectDN = System.getProperty(&quot;subjectDN&quot;, &quot;CN=&quot;+USER_NAME_TAG);</span>
 			{
-<span class="nc" id="L513">				final String sTmp = System.getProperty(&quot;maxCertSN&quot;);</span>
+<span class="nc" id="L515">				final String sTmp = System.getProperty(&quot;maxCertSN&quot;);</span>
 				int iTmp;
 				try {
-<span class="nc bnc" id="L516" title="All 4 branches missed.">					iTmp = sTmp!=null &amp;&amp; sTmp.length()&gt;0 ? Integer.parseInt(sTmp) : -1;</span>
-<span class="nc" id="L517">				} catch ( NumberFormatException e ) {</span>
-<span class="nc" id="L518">					iTmp = -1;</span>
-<span class="nc" id="L519">				}</span>
-<span class="nc" id="L520">				maxCertificateSN = iTmp;</span>
+<span class="nc bnc" id="L518" title="All 4 branches missed.">					iTmp = sTmp!=null &amp;&amp; sTmp.length()&gt;0 ? Integer.parseInt(sTmp) : -1;</span>
+<span class="nc" id="L519">				} catch ( NumberFormatException e ) {</span>
+<span class="nc" id="L520">					iTmp = -1;</span>
+<span class="nc" id="L521">				}</span>
+<span class="nc" id="L522">				maxCertificateSN = iTmp;</span>
 			}
-<span class="nc" id="L522">			this.performanceTest.execute(new MyCommandFactory(</span>
+<span class="nc" id="L524">			this.performanceTest.execute(new MyCommandFactory(</span>
 			        caName, endEntityProfileName, certificateProfileName, testType, maxCertificateSN, subjectDN),
-<span class="nc" id="L524">			        notanot.threads, notanot.tests, waitTime, getPrintStream());</span>
-<span class="nc" id="L525">			getPrintStream().println(&quot;A test key for each thread is generated. This could take some time if you have specified many threads and long keys.&quot;);</span>
-<span class="nc" id="L526">			synchronized(this) {</span>
-<span class="nc" id="L527">				wait();</span>
-<span class="nc" id="L528">			}</span>
-<span class="nc" id="L529">		} catch( InterruptedException e) {</span>
+<span class="nc" id="L526">			        notanot.threads, notanot.tests, waitTime, getPrintStream());</span>
+<span class="nc" id="L527">			getPrintStream().println(&quot;A test key for each thread is generated. This could take some time if you have specified many threads and long keys.&quot;);</span>
+<span class="nc" id="L528">			synchronized(this) {</span>
+<span class="nc" id="L529">				wait();</span>
+<span class="nc" id="L530">			}</span>
+<span class="nc" id="L531">		} catch( InterruptedException e) {</span>
 			// do nothing since user wants to exit.
-<span class="nc" id="L531">		} catch( Exception e) {</span>
-<span class="nc" id="L532">			throw new ErrorAdminCommandException(e);</span>
+<span class="nc" id="L533">		} catch( Exception e) {</span>
+<span class="nc" id="L534">			throw new ErrorAdminCommandException(e);</span>
 		}finally{
-<span class="nc" id="L534">			this.performanceTest.getLog().close();</span>
+<span class="nc" id="L536">			this.performanceTest.getLog().close();</span>
 		}
-<span class="nc" id="L536">	}</span>
+<span class="nc" id="L538">	}</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

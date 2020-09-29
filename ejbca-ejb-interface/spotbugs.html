@@ -41,6 +41,7 @@
     <li><a href="project-info.html" title="Project Information"><span class="icon-chevron-right"></span>Project Information</a></li>
     <li><a href="project-reports.html" title="Project Reports"><span class="icon-chevron-down"></span>Project Reports</a>
      <ul class="nav nav-list">
+      <li><a href="xref/index.html" title="Source Xref"><span class="none"></span>Source Xref</a></li>
       <li><a href="checkstyle.html" title="Checkstyle"><span class="none"></span>Checkstyle</a></li>
       <li class="active"><a href="#"><span class="none"></span>SpotBugs</a></li>
       <li><a href="cpd.html" title="CPD"><span class="none"></span>CPD</a></li>
@@ -118,13 +119,13 @@
 <td>org.ejbca.core.ejb.dto.CertRevocationDto.getRevocationDate() may expose internal representation by returning CertRevocationDto.revocationDate</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>69</td>
+<td><a href="./xref/org/ejbca/core/ejb/dto/CertRevocationDto.html#L69">69</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.ejb.dto.CertRevocationDto.setRevocationDate(Date) may expose internal representation by storing an externally mutable object into CertRevocationDto.revocationDate</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP2">EI_EXPOSE_REP2</a></td>
-<td>73</td>
+<td><a href="./xref/org/ejbca/core/ejb/dto/CertRevocationDto.html#L73">73</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.model.ca.publisher.MultiGroupPublisher"></a><section>
 <h3><a name="org.ejbca.core.model.ca.publisher.MultiGroupPublisher"></a>org.ejbca.core.model.ca.publisher.MultiGroupPublisher</h3>
 <table border="0" class="table table-striped">
@@ -138,7 +139,7 @@
 <td>org.ejbca.core.model.ca.publisher.MultiGroupPublisher.clone() does not call super.clone()</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#CN_IDIOM_NO_SUPER_CALL">CN_IDIOM_NO_SUPER_CALL</a></td>
-<td>234</td>
+<td><a href="./xref/org/ejbca/core/model/ca/publisher/MultiGroupPublisher.html#L234">234-243</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.model.era.RaAcmeRequest"></a><section>
 <h3><a name="org.ejbca.core.model.era.RaAcmeRequest"></a>org.ejbca.core.model.era.RaAcmeRequest</h3>
 <table border="0" class="table table-striped">
@@ -152,13 +153,13 @@
 <td>org.ejbca.core.model.era.RaAcmeRequest.getCsr() may expose internal representation by returning RaAcmeRequest.csr</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>83</td>
+<td><a href="./xref/org/ejbca/core/model/era/RaAcmeRequest.html#L83">83</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.model.era.RaAcmeRequest.setCsr(byte[]) may expose internal representation by storing an externally mutable object into RaAcmeRequest.csr</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP2">EI_EXPOSE_REP2</a></td>
-<td>84</td>
+<td><a href="./xref/org/ejbca/core/model/era/RaAcmeRequest.html#L84">84</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.model.era.RaAcmeResponse"></a><section>
 <h3><a name="org.ejbca.core.model.era.RaAcmeResponse"></a>org.ejbca.core.model.era.RaAcmeResponse</h3>
 <table border="0" class="table table-striped">
@@ -172,13 +173,13 @@
 <td>org.ejbca.core.model.era.RaAcmeResponse.getCertificate() may expose internal representation by returning RaAcmeResponse.certificate</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>35</td>
+<td><a href="./xref/org/ejbca/core/model/era/RaAcmeResponse.html#L35">35</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.model.era.RaAcmeResponse.setCertificate(byte[]) may expose internal representation by storing an externally mutable object into RaAcmeResponse.certificate</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP2">EI_EXPOSE_REP2</a></td>
-<td>36</td>
+<td><a href="./xref/org/ejbca/core/model/era/RaAcmeResponse.html#L36">36</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.model.era.RaEndEntitySearchRequest"></a><section>
 <h3><a name="org.ejbca.core.model.era.RaEndEntitySearchRequest"></a>org.ejbca.core.model.era.RaEndEntitySearchRequest</h3>
 <table border="0" class="table table-striped">
@@ -192,7 +193,7 @@
 <td>org.ejbca.core.model.era.RaEndEntitySearchRequest.DEFAULT_MAX_RESULTS isn't final but should be</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#MS_SHOULD_BE_FINAL">MS_SHOULD_BE_FINAL</a></td>
-<td>30</td>
+<td><a href="./xref/org/ejbca/core/model/era/RaEndEntitySearchRequest.html#L30">30</a></td>
 <td>High</td></tr></table></section><a name="org.ejbca.core.model.era.RaRequestsSearchRequest"></a><section>
 <h3><a name="org.ejbca.core.model.era.RaRequestsSearchRequest"></a>org.ejbca.core.model.era.RaRequestsSearchRequest</h3>
 <table border="0" class="table table-striped">
@@ -206,37 +207,37 @@
 <td>org.ejbca.core.model.era.RaRequestsSearchRequest.getEndDate() may expose internal representation by returning RaRequestsSearchRequest.endDate</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>78</td>
+<td><a href="./xref/org/ejbca/core/model/era/RaRequestsSearchRequest.html#L78">78</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.model.era.RaRequestsSearchRequest.getExpiresBefore() may expose internal representation by returning RaRequestsSearchRequest.expiresBefore</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>86</td>
+<td><a href="./xref/org/ejbca/core/model/era/RaRequestsSearchRequest.html#L86">86</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.model.era.RaRequestsSearchRequest.getStartDate() may expose internal representation by returning RaRequestsSearchRequest.startDate</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>70</td>
+<td><a href="./xref/org/ejbca/core/model/era/RaRequestsSearchRequest.html#L70">70</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.model.era.RaRequestsSearchRequest.setEndDate(Date) may expose internal representation by storing an externally mutable object into RaRequestsSearchRequest.endDate</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP2">EI_EXPOSE_REP2</a></td>
-<td>82</td>
+<td><a href="./xref/org/ejbca/core/model/era/RaRequestsSearchRequest.html#L82">82</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.model.era.RaRequestsSearchRequest.setExpiresBefore(Date) may expose internal representation by storing an externally mutable object into RaRequestsSearchRequest.expiresBefore</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP2">EI_EXPOSE_REP2</a></td>
-<td>90</td>
+<td><a href="./xref/org/ejbca/core/model/era/RaRequestsSearchRequest.html#L90">90</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.model.era.RaRequestsSearchRequest.setStartDate(Date) may expose internal representation by storing an externally mutable object into RaRequestsSearchRequest.startDate</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP2">EI_EXPOSE_REP2</a></td>
-<td>74</td>
+<td><a href="./xref/org/ejbca/core/model/era/RaRequestsSearchRequest.html#L74">74</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.statedump.ejb.StatedumpImportOptions"></a><section>
 <h3><a name="org.ejbca.statedump.ejb.StatedumpImportOptions"></a>org.ejbca.statedump.ejb.StatedumpImportOptions</h3>
 <table border="0" class="table table-striped">
@@ -250,13 +251,13 @@
 <td>Class org.ejbca.statedump.ejb.StatedumpImportOptions defines non-transient non-serializable instance field caIdChanges</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#SE_BAD_FIELD">SE_BAD_FIELD</a></td>
-<td></td>
+<td>Not available</td>
 <td>High</td></tr>
 <tr class="a">
 <td>Class org.ejbca.statedump.ejb.StatedumpImportOptions defines non-transient non-serializable instance field overrides</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#SE_BAD_FIELD">SE_BAD_FIELD</a></td>
-<td></td>
+<td>Not available</td>
 <td>High</td></tr></table></section>
         </main>
       </div>

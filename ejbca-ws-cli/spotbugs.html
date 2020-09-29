@@ -41,6 +41,8 @@
     <li><a href="project-info.html" title="Project Information"><span class="icon-chevron-right"></span>Project Information</a></li>
     <li><a href="project-reports.html" title="Project Reports"><span class="icon-chevron-down"></span>Project Reports</a>
      <ul class="nav nav-list">
+      <li><a href="xref/index.html" title="Source Xref"><span class="none"></span>Source Xref</a></li>
+      <li><a href="xref-test/index.html" title="Test Source Xref"><span class="none"></span>Test Source Xref</a></li>
       <li><a href="checkstyle.html" title="Checkstyle"><span class="none"></span>Checkstyle</a></li>
       <li class="active"><a href="#"><span class="none"></span>SpotBugs</a></li>
       <li><a href="cpd.html" title="CPD"><span class="none"></span>CPD</a></li>
@@ -78,7 +80,7 @@
 <th>Missing Classes</th></tr>
 <tr class="b">
 <td>239</td>
-<td>147</td>
+<td>146</td>
 <td>0</td>
 <td>0</td></tr></table></section><section>
 <h2><a name="Files"></a>Files</h2>
@@ -184,7 +186,7 @@
 <td>2</td></tr>
 <tr class="b">
 <td><a href="#org.ejbca.core.protocol.ws.client.RevokeCertWithMetadataCommand">org.ejbca.core.protocol.ws.client.RevokeCertWithMetadataCommand</a></td>
-<td>4</td></tr>
+<td>3</td></tr>
 <tr class="a">
 <td><a href="#org.ejbca.core.protocol.ws.client.RevokeTokenCommand">org.ejbca.core.protocol.ws.client.RevokeTokenCommand</a></td>
 <td>1</td></tr>
@@ -314,7 +316,7 @@
 <td>org.ejbca.core.protocol.ws.client.AddSubjectToRoleCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>59</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/AddSubjectToRoleCommand.html#L59">59</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.CaCertRequestCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.CaCertRequestCommand"></a>org.ejbca.core.protocol.ws.client.CaCertRequestCommand</h3>
 <table border="0" class="table table-striped">
@@ -328,13 +330,13 @@
 <td>org.ejbca.core.protocol.ws.client.CaCertRequestCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>72</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CaCertRequestCommand.html#L72">72</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.CaCertRequestCommand.execute() may fail to clean up java.io.OutputStream on checked exception</td>
 <td>EXPERIMENTAL</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE">OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE</a></td>
-<td>120</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CaCertRequestCommand.html#L120">120</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.CaCertResponseCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.CaCertResponseCommand"></a>org.ejbca.core.protocol.ws.client.CaCertResponseCommand</h3>
 <table border="0" class="table table-striped">
@@ -348,19 +350,19 @@
 <td>org.ejbca.core.protocol.ws.client.CaCertResponseCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>67</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CaCertResponseCommand.html#L67">67</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>Possible null pointer dereference of incert in org.ejbca.core.protocol.ws.client.CaCertResponseCommand.execute()</td>
 <td>CORRECTNESS</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NP_NULL_ON_SOME_PATH">NP_NULL_ON_SOME_PATH</a></td>
-<td>122</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CaCertResponseCommand.html#L122">122</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>Useless condition: it's known that this.args.length &lt;= 5 at this point</td>
 <td>STYLE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#UC_USELESS_CONDITION">UC_USELESS_CONDITION</a></td>
-<td>75</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CaCertResponseCommand.html#L75">75</a></td>
 <td>High</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.CertificateRequestCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.CertificateRequestCommand"></a>org.ejbca.core.protocol.ws.client.CertificateRequestCommand</h3>
 <table border="0" class="table table-striped">
@@ -374,49 +376,49 @@
 <td>Found reliance on default encoding in org.ejbca.core.protocol.ws.client.CertificateRequestCommand.getRequestData(String): new String(byte[])</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>169</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CertificateRequestCommand.html#L169">169</a></td>
 <td>High</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.CertificateRequestCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>73</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CertificateRequestCommand.html#L73">73</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.CertificateRequestCommand.getEncoding(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>203</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CertificateRequestCommand.html#L203">203</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.CertificateRequestCommand.getOutputPath(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>186</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CertificateRequestCommand.html#L186">186</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.CertificateRequestCommand.getRequestData(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>172</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CertificateRequestCommand.html#L172">172</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.CertificateRequestCommand.getRequestType(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>220</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CertificateRequestCommand.html#L220">220</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.CertificateRequestCommand.execute() may fail to clean up java.io.OutputStream on checked exception</td>
 <td>EXPERIMENTAL</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE">OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE</a></td>
-<td>128</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CertificateRequestCommand.html#L128">128</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.CertificateRequestCommand.getRequestData(String) may fail to clean up java.io.InputStream on checked exception</td>
 <td>EXPERIMENTAL</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE">OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE</a></td>
-<td>165</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CertificateRequestCommand.html#L165">165</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.CheckRevokeStatusCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.CheckRevokeStatusCommand"></a>org.ejbca.core.protocol.ws.client.CheckRevokeStatusCommand</h3>
 <table border="0" class="table table-striped">
@@ -430,13 +432,13 @@
 <td>org.ejbca.core.protocol.ws.client.CheckRevokeStatusCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>56</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CheckRevokeStatusCommand.html#L56">56</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.CheckRevokeStatusCommand.getCertSN(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>93</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CheckRevokeStatusCommand.html#L93">93</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.CreateCACommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.CreateCACommand"></a>org.ejbca.core.protocol.ws.client.CreateCACommand</h3>
 <table border="0" class="table table-striped">
@@ -450,25 +452,25 @@
 <td>Boxing/unboxing to parse a primitive org.ejbca.core.protocol.ws.client.CreateCACommand.execute()</td>
 <td>PERFORMANCE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_BOXED_PRIMITIVE_FOR_PARSING">DM_BOXED_PRIMITIVE_FOR_PARSING</a></td>
-<td>92</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CreateCACommand.html#L92">92</a></td>
 <td>High</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.CreateCACommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>69</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CreateCACommand.html#L69">69</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.CreateCACommand.execute() may fail to clean up java.io.InputStream</td>
 <td>EXPERIMENTAL</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#OBL_UNSATISFIED_OBLIGATION">OBL_UNSATISFIED_OBLIGATION</a></td>
-<td>82</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CreateCACommand.html#L82">82</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.CreateCACommand.execute() may fail to close stream</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#OS_OPEN_STREAM">OS_OPEN_STREAM</a></td>
-<td>82</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CreateCACommand.html#L82">82</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.CreateCRLCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.CreateCRLCommand"></a>org.ejbca.core.protocol.ws.client.CreateCRLCommand</h3>
 <table border="0" class="table table-striped">
@@ -482,7 +484,7 @@
 <td>org.ejbca.core.protocol.ws.client.CreateCRLCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>47</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CreateCRLCommand.html#L47">47</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.CreateCryptoTokenCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.CreateCryptoTokenCommand"></a>org.ejbca.core.protocol.ws.client.CreateCryptoTokenCommand</h3>
 <table border="0" class="table table-striped">
@@ -496,19 +498,19 @@
 <td>org.ejbca.core.protocol.ws.client.CreateCryptoTokenCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>64</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CreateCryptoTokenCommand.html#L64">64</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.CreateCryptoTokenCommand.execute() may fail to clean up java.io.InputStream</td>
 <td>EXPERIMENTAL</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#OBL_UNSATISFIED_OBLIGATION">OBL_UNSATISFIED_OBLIGATION</a></td>
-<td>74</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CreateCryptoTokenCommand.html#L74">74</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.CreateCryptoTokenCommand.execute() may fail to close stream</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#OS_OPEN_STREAM">OS_OPEN_STREAM</a></td>
-<td>74</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CreateCryptoTokenCommand.html#L74">74</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.CustomLogCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.CustomLogCommand"></a>org.ejbca.core.protocol.ws.client.CustomLogCommand</h3>
 <table border="0" class="table table-striped">
@@ -522,13 +524,13 @@
 <td>org.ejbca.core.protocol.ws.client.CustomLogCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>70</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CustomLogCommand.html#L70">70</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>Null passed for non-null parameter of new org.ejbca.core.protocol.ws.client.gen.Certificate(Certificate) in org.ejbca.core.protocol.ws.client.CustomLogCommand.execute()</td>
 <td>CORRECTNESS</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NP_NULL_PARAM_DEREF">NP_NULL_PARAM_DEREF</a></td>
-<td>115</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CustomLogCommand.html#L115">115</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.CvcGetChainCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.CvcGetChainCommand"></a>org.ejbca.core.protocol.ws.client.CvcGetChainCommand</h3>
 <table border="0" class="table table-striped">
@@ -542,13 +544,13 @@
 <td>org.ejbca.core.protocol.ws.client.CvcGetChainCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>62</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CvcGetChainCommand.html#L62">62</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.CvcGetChainCommand.execute() may fail to clean up java.io.OutputStream on checked exception</td>
 <td>EXPERIMENTAL</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE">OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE</a></td>
-<td>81</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CvcGetChainCommand.html#L81">81</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.CvcPemCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.CvcPemCommand"></a>org.ejbca.core.protocol.ws.client.CvcPemCommand</h3>
 <table border="0" class="table table-striped">
@@ -562,25 +564,25 @@
 <td>Found reliance on default encoding in org.ejbca.core.protocol.ws.client.CvcPemCommand.execute(): String.getBytes()</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>97</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CvcPemCommand.html#L97">97</a></td>
 <td>High</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.CvcPemCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>64</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CvcPemCommand.html#L64">64</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.CvcPemCommand.execute() may fail to clean up java.io.OutputStream on checked exception</td>
 <td>EXPERIMENTAL</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE">OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE</a></td>
-<td>102</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CvcPemCommand.html#L102">102</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>Exception is caught when Exception is not thrown in org.ejbca.core.protocol.ws.client.CvcPemCommand.getCVCObject(String)</td>
 <td>STYLE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#REC_CATCH_EXCEPTION">REC_CATCH_EXCEPTION</a></td>
-<td>123</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CvcPemCommand.html#L123">123</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.CvcPrintCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.CvcPrintCommand"></a>org.ejbca.core.protocol.ws.client.CvcPrintCommand</h3>
 <table border="0" class="table table-striped">
@@ -594,13 +596,13 @@
 <td>org.ejbca.core.protocol.ws.client.CvcPrintCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>64</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CvcPrintCommand.html#L64">64</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>Exception is caught when Exception is not thrown in org.ejbca.core.protocol.ws.client.CvcPrintCommand.getCVCObject(String)</td>
 <td>STYLE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#REC_CATCH_EXCEPTION">REC_CATCH_EXCEPTION</a></td>
-<td>120</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CvcPrintCommand.html#L120">120</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.CvcRequestCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.CvcRequestCommand"></a>org.ejbca.core.protocol.ws.client.CvcRequestCommand</h3>
 <table border="0" class="table table-striped">
@@ -614,19 +616,19 @@
 <td>Found reliance on default encoding in org.ejbca.core.protocol.ws.client.CvcRequestCommand.execute(): new String(byte[])</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>164</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CvcRequestCommand.html#L164">164</a></td>
 <td>High</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.CvcRequestCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>86</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CvcRequestCommand.html#L86">86</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.CvcRequestCommand.execute() may fail to clean up java.io.OutputStream on checked exception</td>
 <td>EXPERIMENTAL</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE">OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE</a></td>
-<td>166</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/CvcRequestCommand.html#L166">166</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.EJBCAWSRABaseCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.EJBCAWSRABaseCommand"></a>org.ejbca.core.protocol.ws.client.EJBCAWSRABaseCommand</h3>
 <table border="0" class="table table-striped">
@@ -640,37 +642,37 @@
 <td>org.ejbca.core.protocol.ws.client.EJBCAWSRABaseCommand.getRevokeReason(int) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>237</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/EJBCAWSRABaseCommand.html#L239">239</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.EJBCAWSRABaseCommand.getRevokeReason(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>225</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/EJBCAWSRABaseCommand.html#L227">227</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.EJBCAWSRABaseCommand.REASON_TEXTS should be package protected</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#MS_PKGPROTECT">MS_PKGPROTECT</a></td>
-<td>46</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/EJBCAWSRABaseCommand.html#L46">46</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.EJBCAWSRABaseCommand.REASON_VALUES should be package protected</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#MS_PKGPROTECT">MS_PKGPROTECT</a></td>
-<td>64</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/EJBCAWSRABaseCommand.html#L64">64</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>new org.ejbca.core.protocol.ws.client.EJBCAWSRABaseCommand(String[]) may fail to clean up java.io.InputStream</td>
 <td>EXPERIMENTAL</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#OBL_UNSATISFIED_OBLIGATION">OBL_UNSATISFIED_OBLIGATION</a></td>
-<td>78</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/EJBCAWSRABaseCommand.html#L78">78</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>new org.ejbca.core.protocol.ws.client.EJBCAWSRABaseCommand(String[]) may fail to close stream</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#OS_OPEN_STREAM">OS_OPEN_STREAM</a></td>
-<td>78</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/EJBCAWSRABaseCommand.html#L78">78</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.EJBCAWSRABaseCommandPasswordHandler"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.EJBCAWSRABaseCommand.24PasswordHandler"></a>org.ejbca.core.protocol.ws.client.EJBCAWSRABaseCommand$PasswordHandler</h3>
 <table border="0" class="table table-striped">
@@ -684,7 +686,7 @@
 <td>Should org.ejbca.core.protocol.ws.client.EJBCAWSRABaseCommand$PasswordHandler be a _static_ inner class?</td>
 <td>PERFORMANCE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#SIC_INNER_SHOULD_BE_STATIC">SIC_INNER_SHOULD_BE_STATIC</a></td>
-<td>152</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/EJBCAWSRABaseCommand.html#L152">152-169</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.EditUserCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.EditUserCommand"></a>org.ejbca.core.protocol.ws.client.EditUserCommand</h3>
 <table border="0" class="table table-striped">
@@ -698,13 +700,13 @@
 <td>org.ejbca.core.protocol.ws.client.EditUserCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>78</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/EditUserCommand.html#L78">78</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.EditUserCommand.getStatus(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>201</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/EditUserCommand.html#L201">201</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.FindCertsCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.FindCertsCommand"></a>org.ejbca.core.protocol.ws.client.FindCertsCommand</h3>
 <table border="0" class="table table-striped">
@@ -718,31 +720,31 @@
 <td>org.ejbca.core.protocol.ws.client.FindCertsCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>59</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/FindCertsCommand.html#L59">59</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.FindCertsCommand.getEncoding(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>127</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/FindCertsCommand.html#L127">127</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.FindCertsCommand.getOnlyValid(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>141</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/FindCertsCommand.html#L141">141</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.FindCertsCommand.getOutputPath(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>110</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/FindCertsCommand.html#L110">110</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.FindCertsCommand.execute() may fail to clean up java.io.OutputStream on checked exception</td>
 <td>EXPERIMENTAL</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE">OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE</a></td>
-<td>81</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/FindCertsCommand.html#L81">81</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.FindUserCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.FindUserCommand"></a>org.ejbca.core.protocol.ws.client.FindUserCommand</h3>
 <table border="0" class="table table-striped">
@@ -756,25 +758,25 @@
 <td>org.ejbca.core.protocol.ws.client.FindUserCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>101</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/FindUserCommand.html#L101">101</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.FindUserCommand.getMatchType(String, int) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>164</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/FindUserCommand.html#L164">164</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.FindUserCommand.getMatchWith(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>201</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/FindUserCommand.html#L201">201</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>Nullcheck of result at line 117 of value previously dereferenced in org.ejbca.core.protocol.ws.client.FindUserCommand.execute()</td>
 <td>CORRECTNESS</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE">RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE</a></td>
-<td>117</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/FindUserCommand.html#L117">117</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.GenerateCryptoTokenKeysCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.GenerateCryptoTokenKeysCommand"></a>org.ejbca.core.protocol.ws.client.GenerateCryptoTokenKeysCommand</h3>
 <table border="0" class="table table-striped">
@@ -788,7 +790,7 @@
 <td>org.ejbca.core.protocol.ws.client.GenerateCryptoTokenKeysCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>54</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/GenerateCryptoTokenKeysCommand.html#L54">54</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.GenerateNewUserCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.GenerateNewUserCommand"></a>org.ejbca.core.protocol.ws.client.GenerateNewUserCommand</h3>
 <table border="0" class="table table-striped">
@@ -802,49 +804,49 @@
 <td>Found reliance on default encoding in org.ejbca.core.protocol.ws.client.GenerateNewUserCommand.getPKCS10(String): new String(byte[])</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>232</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/GenerateNewUserCommand.html#L232">232</a></td>
 <td>High</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.GenerateNewUserCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>84</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/GenerateNewUserCommand.html#L84">84</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.GenerateNewUserCommand.getEncoding(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>266</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/GenerateNewUserCommand.html#L266">266</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.GenerateNewUserCommand.getOutputPath(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>249</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/GenerateNewUserCommand.html#L249">249</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.GenerateNewUserCommand.getPKCS10(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>235</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/GenerateNewUserCommand.html#L235">235</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.GenerateNewUserCommand.getStatus(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>213</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/GenerateNewUserCommand.html#L213">213</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.GenerateNewUserCommand.execute() may fail to clean up java.io.OutputStream on checked exception</td>
 <td>EXPERIMENTAL</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE">OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE</a></td>
-<td>175</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/GenerateNewUserCommand.html#L175">175</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.GenerateNewUserCommand.getPKCS10(String) may fail to clean up java.io.InputStream on checked exception</td>
 <td>EXPERIMENTAL</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE">OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE</a></td>
-<td>228</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/GenerateNewUserCommand.html#L228">228</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.GetExpiredCertificatesByIssuerCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.GetExpiredCertificatesByIssuerCommand"></a>org.ejbca.core.protocol.ws.client.GetExpiredCertificatesByIssuerCommand</h3>
 <table border="0" class="table table-striped">
@@ -858,25 +860,25 @@
 <td>org.ejbca.core.protocol.ws.client.GetExpiredCertificatesByIssuerCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>60</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/GetExpiredCertificatesByIssuerCommand.html#L60">60</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.GetExpiredCertificatesByIssuerCommand.getEncoding(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>126</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/GetExpiredCertificatesByIssuerCommand.html#L126">126</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.GetExpiredCertificatesByIssuerCommand.getOutputPath(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>109</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/GetExpiredCertificatesByIssuerCommand.html#L109">109</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.GetExpiredCertificatesByIssuerCommand.execute() may fail to clean up java.io.OutputStream on checked exception</td>
 <td>EXPERIMENTAL</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE">OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE</a></td>
-<td>83</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/GetExpiredCertificatesByIssuerCommand.html#L83">83</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.GetExpiredCertificatesByTypeCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.GetExpiredCertificatesByTypeCommand"></a>org.ejbca.core.protocol.ws.client.GetExpiredCertificatesByTypeCommand</h3>
 <table border="0" class="table table-striped">
@@ -890,25 +892,25 @@
 <td>org.ejbca.core.protocol.ws.client.GetExpiredCertificatesByTypeCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>60</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/GetExpiredCertificatesByTypeCommand.html#L60">60</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.GetExpiredCertificatesByTypeCommand.getEncoding(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>126</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/GetExpiredCertificatesByTypeCommand.html#L126">126</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.GetExpiredCertificatesByTypeCommand.getOutputPath(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>109</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/GetExpiredCertificatesByTypeCommand.html#L109">109</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.GetExpiredCertificatesByTypeCommand.execute() may fail to clean up java.io.OutputStream on checked exception</td>
 <td>EXPERIMENTAL</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE">OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE</a></td>
-<td>83</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/GetExpiredCertificatesByTypeCommand.html#L83">83</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.GetExpiredCertificatesCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.GetExpiredCertificatesCommand"></a>org.ejbca.core.protocol.ws.client.GetExpiredCertificatesCommand</h3>
 <table border="0" class="table table-striped">
@@ -922,25 +924,25 @@
 <td>org.ejbca.core.protocol.ws.client.GetExpiredCertificatesCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>59</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/GetExpiredCertificatesCommand.html#L59">59</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.GetExpiredCertificatesCommand.getEncoding(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>124</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/GetExpiredCertificatesCommand.html#L124">124</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.GetExpiredCertificatesCommand.getOutputPath(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>107</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/GetExpiredCertificatesCommand.html#L107">107</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.GetExpiredCertificatesCommand.execute() may fail to clean up java.io.OutputStream on checked exception</td>
 <td>EXPERIMENTAL</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE">OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE</a></td>
-<td>81</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/GetExpiredCertificatesCommand.html#L81">81</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.GetProfileCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.GetProfileCommand"></a>org.ejbca.core.protocol.ws.client.GetProfileCommand</h3>
 <table border="0" class="table table-striped">
@@ -954,13 +956,13 @@
 <td>org.ejbca.core.protocol.ws.client.GetProfileCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>41</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/GetProfileCommand.html#L41">41</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.GetProfileCommand.execute() may fail to clean up java.io.OutputStream on checked exception</td>
 <td>EXPERIMENTAL</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE">OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE</a></td>
-<td>67</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/GetProfileCommand.html#L67">67</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.GetPublisherQueueLength"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.GetPublisherQueueLength"></a>org.ejbca.core.protocol.ws.client.GetPublisherQueueLength</h3>
 <table border="0" class="table table-striped">
@@ -974,7 +976,7 @@
 <td>org.ejbca.core.protocol.ws.client.GetPublisherQueueLength.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>52</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/GetPublisherQueueLength.html#L52">52</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.ImportCaCertCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.ImportCaCertCommand"></a>org.ejbca.core.protocol.ws.client.ImportCaCertCommand</h3>
 <table border="0" class="table table-striped">
@@ -988,7 +990,7 @@
 <td>org.ejbca.core.protocol.ws.client.ImportCaCertCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>53</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/ImportCaCertCommand.html#L53">53</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.KeyRecoverCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.KeyRecoverCommand"></a>org.ejbca.core.protocol.ws.client.KeyRecoverCommand</h3>
 <table border="0" class="table table-striped">
@@ -1002,7 +1004,7 @@
 <td>org.ejbca.core.protocol.ws.client.KeyRecoverCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>53</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/KeyRecoverCommand.html#L53">53</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.KeyRecoverEnrollCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.KeyRecoverEnrollCommand"></a>org.ejbca.core.protocol.ws.client.KeyRecoverEnrollCommand</h3>
 <table border="0" class="table table-striped">
@@ -1016,19 +1018,19 @@
 <td>org.ejbca.core.protocol.ws.client.KeyRecoverEnrollCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>61</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/KeyRecoverEnrollCommand.html#L61">61</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.KeyRecoverEnrollCommand.getOutputPath(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>127</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/KeyRecoverEnrollCommand.html#L127">127</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.KeyRecoverEnrollCommand.execute() may fail to clean up java.io.OutputStream on checked exception</td>
 <td>EXPERIMENTAL</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE">OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE</a></td>
-<td>98</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/KeyRecoverEnrollCommand.html#L98">98</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.PKCS10ReqCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.PKCS10ReqCommand"></a>org.ejbca.core.protocol.ws.client.PKCS10ReqCommand</h3>
 <table border="0" class="table table-striped">
@@ -1042,43 +1044,43 @@
 <td>Found reliance on default encoding in org.ejbca.core.protocol.ws.client.PKCS10ReqCommand.getPKCS10(String): new String(byte[])</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>139</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/PKCS10ReqCommand.html#L139">139</a></td>
 <td>High</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.PKCS10ReqCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>67</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/PKCS10ReqCommand.html#L67">67</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.PKCS10ReqCommand.getEncoding(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>173</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/PKCS10ReqCommand.html#L173">173</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.PKCS10ReqCommand.getOutputPath(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>156</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/PKCS10ReqCommand.html#L156">156</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.PKCS10ReqCommand.getPKCS10(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>142</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/PKCS10ReqCommand.html#L142">142</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.PKCS10ReqCommand.execute() may fail to clean up java.io.OutputStream on checked exception</td>
 <td>EXPERIMENTAL</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE">OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE</a></td>
-<td>99</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/PKCS10ReqCommand.html#L99">99</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.PKCS10ReqCommand.getPKCS10(String) may fail to clean up java.io.InputStream on checked exception</td>
 <td>EXPERIMENTAL</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE">OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE</a></td>
-<td>135</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/PKCS10ReqCommand.html#L135">135</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.PKCS12ReqCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.PKCS12ReqCommand"></a>org.ejbca.core.protocol.ws.client.PKCS12ReqCommand</h3>
 <table border="0" class="table table-striped">
@@ -1092,19 +1094,19 @@
 <td>org.ejbca.core.protocol.ws.client.PKCS12ReqCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>62</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/PKCS12ReqCommand.html#L62">62</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.PKCS12ReqCommand.getOutputPath(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>117</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/PKCS12ReqCommand.html#L117">117</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.PKCS12ReqCommand.execute() may fail to clean up java.io.OutputStream on checked exception</td>
 <td>EXPERIMENTAL</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE">OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE</a></td>
-<td>88</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/PKCS12ReqCommand.html#L88">88</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.RemoveSubjectFromRoleCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.RemoveSubjectFromRoleCommand"></a>org.ejbca.core.protocol.ws.client.RemoveSubjectFromRoleCommand</h3>
 <table border="0" class="table table-striped">
@@ -1118,7 +1120,7 @@
 <td>org.ejbca.core.protocol.ws.client.RemoveSubjectFromRoleCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>59</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/RemoveSubjectFromRoleCommand.html#L59">59</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.RevokeCertCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.RevokeCertCommand"></a>org.ejbca.core.protocol.ws.client.RevokeCertCommand</h3>
 <table border="0" class="table table-striped">
@@ -1132,13 +1134,13 @@
 <td>org.ejbca.core.protocol.ws.client.RevokeCertCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>60</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/RevokeCertCommand.html#L60">60</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.RevokeCertCommand.getCertSN(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>104</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/RevokeCertCommand.html#L104">104</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.RevokeCertWithMetadataCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.RevokeCertWithMetadataCommand"></a>org.ejbca.core.protocol.ws.client.RevokeCertWithMetadataCommand</h3>
 <table border="0" class="table table-striped">
@@ -1152,613 +1154,607 @@
 <td>Primitive boxed just to call toString in org.ejbca.core.protocol.ws.client.RevokeCertWithMetadataCommand.parseInputArgs()</td>
 <td>PERFORMANCE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_BOXED_PRIMITIVE_TOSTRING">DM_BOXED_PRIMITIVE_TOSTRING</a></td>
-<td>119</td>
-<td>Medium</td></tr>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/RevokeCertWithMetadataCommand.html#L119">119</a></td>
+<td>High</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.client.RevokeCertWithMetadataCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>63</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/RevokeCertWithMetadataCommand.html#L63">63</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.client.RevokeCertWithMetadataCommand.getCertSN(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>136</td>
-<td>Medium</td></tr>
-<tr class="a">
-<td>org.ejbca.core.protocol.ws.client.RevokeCertWithMetadataCommand.parseInputArgs() invokes inefficient new Integer(int) constructor; use Integer.valueOf(int) instead</td>
-<td>PERFORMANCE</td>
-<td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_NUMBER_CTOR">DM_NUMBER_CTOR</a></td>
-<td>119</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/RevokeCertWithMetadataCommand.html#L136">136</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.RevokeTokenCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.RevokeTokenCommand"></a>org.ejbca.core.protocol.ws.client.RevokeTokenCommand</h3>
 <table border="0" class="table table-striped">
-<tr class="b">
+<tr class="a">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="a">
+<tr class="b">
 <td>org.ejbca.core.protocol.ws.client.RevokeTokenCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>57</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/RevokeTokenCommand.html#L57">57</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.RevokeUserCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.RevokeUserCommand"></a>org.ejbca.core.protocol.ws.client.RevokeUserCommand</h3>
 <table border="0" class="table table-striped">
-<tr class="b">
+<tr class="a">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="a">
+<tr class="b">
 <td>org.ejbca.core.protocol.ws.client.RevokeUserCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>64</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/RevokeUserCommand.html#L64">64</a></td>
 <td>Medium</td></tr>
-<tr class="b">
+<tr class="a">
 <td>org.ejbca.core.protocol.ws.client.RevokeUserCommand.getDelete(String) invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>120</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/RevokeUserCommand.html#L120">120</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.StressTestCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.StressTestCommand"></a>org.ejbca.core.protocol.ws.client.StressTestCommand</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>org.ejbca.core.protocol.ws.client.StressTestCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>502</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/StressTestCommand.html#L504">504</a></td>
 <td>Medium</td></tr>
-<tr class="a">
+<tr class="b">
 <td>Unconditional wait in org.ejbca.core.protocol.ws.client.StressTestCommand.execute()</td>
 <td>MT_CORRECTNESS</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#UW_UNCOND_WAIT">UW_UNCOND_WAIT</a></td>
-<td>527</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/StressTestCommand.html#L529">529</a></td>
 <td>Medium</td></tr>
-<tr class="b">
+<tr class="a">
 <td>Wait not in loop in org.ejbca.core.protocol.ws.client.StressTestCommand.execute()</td>
 <td>MT_CORRECTNESS</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#WA_NOT_IN_LOOP">WA_NOT_IN_LOOP</a></td>
-<td>527</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/StressTestCommand.html#L529">529</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.StressTestCommandCertificateRequestCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.StressTestCommand.24CertificateRequestCommand"></a>org.ejbca.core.protocol.ws.client.StressTestCommand$CertificateRequestCommand</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>Found reliance on default encoding in org.ejbca.core.protocol.ws.client.StressTestCommand$CertificateRequestCommand.doIt(): new String(byte[])</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>448</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/StressTestCommand.html#L450">450</a></td>
 <td>High</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.StressTestCommandJobData"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.StressTestCommand.24JobData"></a>org.ejbca.core.protocol.ws.client.StressTestCommand$JobData</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>Should org.ejbca.core.protocol.ws.client.StressTestCommand$JobData be a _static_ inner class?</td>
 <td>PERFORMANCE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#SIC_INNER_SHOULD_BE_STATIC">SIC_INNER_SHOULD_BE_STATIC</a></td>
-<td>126</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/StressTestCommand.html#L126">126-135</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.StressTestCommandPkcs10RequestCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.StressTestCommand.24Pkcs10RequestCommand"></a>org.ejbca.core.protocol.ws.client.StressTestCommand$Pkcs10RequestCommand</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>Found reliance on default encoding in org.ejbca.core.protocol.ws.client.StressTestCommand$Pkcs10RequestCommand.doIt(): new String(byte[])</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>160</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/StressTestCommand.html#L160">160</a></td>
 <td>High</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.UpdateCaCertCommand"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.UpdateCaCertCommand"></a>org.ejbca.core.protocol.ws.client.UpdateCaCertCommand</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>org.ejbca.core.protocol.ws.client.UpdateCaCertCommand.execute() invokes System.exit(...), which shuts down the entire virtual machine</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_EXIT">DM_EXIT</a></td>
-<td>53</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/UpdateCaCertCommand.html#L53">53</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.cvcwscli"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.cvcwscli"></a>org.ejbca.core.protocol.ws.client.cvcwscli</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>The class name org.ejbca.core.protocol.ws.client.cvcwscli doesn't start with an upper case letter</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NAMING_CONVENTION">NM_CLASS_NAMING_CONVENTION</a></td>
-<td>23</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/cvcwscli.html#L23">23-40</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.ejbcawsracli"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.ejbcawsracli"></a>org.ejbca.core.protocol.ws.client.ejbcawsracli</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>The class name org.ejbca.core.protocol.ws.client.ejbcawsracli doesn't start with an upper case letter</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NAMING_CONVENTION">NM_CLASS_NAMING_CONVENTION</a></td>
-<td>27</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/client/ejbcawsracli.html#L27">27-65</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.AlreadyRevokedException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.AlreadyRevokedException"></a>org.ejbca.core.protocol.ws.client.gen.AlreadyRevokedException</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>Class org.ejbca.core.protocol.ws.client.gen.AlreadyRevokedException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>34</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/AlreadyRevokedException.html#L34">34-85</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.ApprovalException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.ApprovalException"></a>org.ejbca.core.protocol.ws.client.gen.ApprovalException</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>Class org.ejbca.core.protocol.ws.client.gen.ApprovalException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>34</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/ApprovalException.html#L34">34-85</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.ApprovalRequestExecutionException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.ApprovalRequestExecutionException"></a>org.ejbca.core.protocol.ws.client.gen.ApprovalRequestExecutionException</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>Class org.ejbca.core.protocol.ws.client.gen.ApprovalRequestExecutionException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>32</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/ApprovalRequestExecutionException.html#L32">32-58</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.ApprovalRequestExpiredException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.ApprovalRequestExpiredException"></a>org.ejbca.core.protocol.ws.client.gen.ApprovalRequestExpiredException</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>Class org.ejbca.core.protocol.ws.client.gen.ApprovalRequestExpiredException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>32</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/ApprovalRequestExpiredException.html#L32">32-58</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.AuthorizationDeniedException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.AuthorizationDeniedException"></a>org.ejbca.core.protocol.ws.client.gen.AuthorizationDeniedException</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>Class org.ejbca.core.protocol.ws.client.gen.AuthorizationDeniedException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>32</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/AuthorizationDeniedException.html#L32">32-58</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.CADoesntExistsException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.CADoesntExistsException"></a>org.ejbca.core.protocol.ws.client.gen.CADoesntExistsException</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>Class org.ejbca.core.protocol.ws.client.gen.CADoesntExistsException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>34</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/CADoesntExistsException.html#L34">34-85</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.CAExistsException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.CAExistsException"></a>org.ejbca.core.protocol.ws.client.gen.CAExistsException</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>Class org.ejbca.core.protocol.ws.client.gen.CAExistsException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>34</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/CAExistsException.html#L34">34-85</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.CAOfflineException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.CAOfflineException"></a>org.ejbca.core.protocol.ws.client.gen.CAOfflineException</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>Class org.ejbca.core.protocol.ws.client.gen.CAOfflineException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>34</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/CAOfflineException.html#L34">34-85</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.Certificate"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.Certificate"></a>org.ejbca.core.protocol.ws.client.gen.Certificate</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>org.ejbca.core.protocol.ws.client.gen.Certificate.getCertificateData() may expose internal representation by returning Certificate.certificateData</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>56</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/Certificate.html#L56">56</a></td>
 <td>Medium</td></tr>
-<tr class="a">
+<tr class="b">
 <td>org.ejbca.core.protocol.ws.client.gen.Certificate.setCertificateData(byte[]) may expose internal representation by storing an externally mutable object into Certificate.certificateData</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP2">EI_EXPOSE_REP2</a></td>
-<td>64</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/Certificate.html#L64">64</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.CertificateExpiredException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.CertificateExpiredException"></a>org.ejbca.core.protocol.ws.client.gen.CertificateExpiredException</h3>
 <table border="0" class="table table-striped">
-<tr class="b">
+<tr class="a">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="a">
+<tr class="b">
 <td>Class org.ejbca.core.protocol.ws.client.gen.CertificateExpiredException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>32</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/CertificateExpiredException.html#L32">32-58</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.CertificateProfileDoesNotExistException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.CertificateProfileDoesNotExistException"></a>org.ejbca.core.protocol.ws.client.gen.CertificateProfileDoesNotExistException</h3>
 <table border="0" class="table table-striped">
-<tr class="b">
+<tr class="a">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="a">
+<tr class="b">
 <td>Class org.ejbca.core.protocol.ws.client.gen.CertificateProfileDoesNotExistException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>34</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/CertificateProfileDoesNotExistException.html#L34">34-85</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.CertificateResponse"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.CertificateResponse"></a>org.ejbca.core.protocol.ws.client.gen.CertificateResponse</h3>
 <table border="0" class="table table-striped">
-<tr class="b">
+<tr class="a">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="a">
+<tr class="b">
 <td>org.ejbca.core.protocol.ws.client.gen.CertificateResponse.getData() may expose internal representation by returning CertificateResponse.data</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>68</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/CertificateResponse.html#L68">68</a></td>
 <td>Medium</td></tr>
-<tr class="b">
+<tr class="a">
 <td>org.ejbca.core.protocol.ws.client.gen.CertificateResponse.setData(byte[]) may expose internal representation by storing an externally mutable object into CertificateResponse.data</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP2">EI_EXPOSE_REP2</a></td>
-<td>77</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/CertificateResponse.html#L77">77</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.CesecoreException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.CesecoreException"></a>org.ejbca.core.protocol.ws.client.gen.CesecoreException</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>Class org.ejbca.core.protocol.ws.client.gen.CesecoreException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>34</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/CesecoreException.html#L34">34-85</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.CryptoTokenOfflineException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.CryptoTokenOfflineException"></a>org.ejbca.core.protocol.ws.client.gen.CryptoTokenOfflineException</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>Class org.ejbca.core.protocol.ws.client.gen.CryptoTokenOfflineException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>34</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/CryptoTokenOfflineException.html#L34">34-85</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.DateNotValidException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.DateNotValidException"></a>org.ejbca.core.protocol.ws.client.gen.DateNotValidException</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>Class org.ejbca.core.protocol.ws.client.gen.DateNotValidException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>34</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/DateNotValidException.html#L34">34-85</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.EjbcaException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.EjbcaException"></a>org.ejbca.core.protocol.ws.client.gen.EjbcaException</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>Class org.ejbca.core.protocol.ws.client.gen.EjbcaException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>34</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/EjbcaException.html#L34">34-85</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.EndEntityProfileNotFoundException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.EndEntityProfileNotFoundException"></a>org.ejbca.core.protocol.ws.client.gen.EndEntityProfileNotFoundException</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>Class org.ejbca.core.protocol.ws.client.gen.EndEntityProfileNotFoundException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>34</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/EndEntityProfileNotFoundException.html#L34">34-85</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.HardTokenDoesntExistsException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.HardTokenDoesntExistsException"></a>org.ejbca.core.protocol.ws.client.gen.HardTokenDoesntExistsException</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>Class org.ejbca.core.protocol.ws.client.gen.HardTokenDoesntExistsException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>32</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/HardTokenDoesntExistsException.html#L32">32-58</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.HardTokenExistsException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.HardTokenExistsException"></a>org.ejbca.core.protocol.ws.client.gen.HardTokenExistsException</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>Class org.ejbca.core.protocol.ws.client.gen.HardTokenExistsException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>32</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/HardTokenExistsException.html#L32">32-58</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.IllegalQueryException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.IllegalQueryException"></a>org.ejbca.core.protocol.ws.client.gen.IllegalQueryException</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>Class org.ejbca.core.protocol.ws.client.gen.IllegalQueryException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>32</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/IllegalQueryException.html#L32">32-58</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.KeyStore"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.KeyStore"></a>org.ejbca.core.protocol.ws.client.gen.KeyStore</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>org.ejbca.core.protocol.ws.client.gen.KeyStore.getKeystoreData() may expose internal representation by returning KeyStore.keystoreData</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>61</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/KeyStore.html#L61">61</a></td>
 <td>Medium</td></tr>
-<tr class="a">
+<tr class="b">
 <td>org.ejbca.core.protocol.ws.client.gen.KeyStore.setKeystoreData(byte[]) may expose internal representation by storing an externally mutable object into KeyStore.keystoreData</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP2">EI_EXPOSE_REP2</a></td>
-<td>77</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/KeyStore.html#L77">77</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.MultipleMatchException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.MultipleMatchException"></a>org.ejbca.core.protocol.ws.client.gen.MultipleMatchException</h3>
 <table border="0" class="table table-striped">
-<tr class="b">
+<tr class="a">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="a">
+<tr class="b">
 <td>Class org.ejbca.core.protocol.ws.client.gen.MultipleMatchException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>34</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/MultipleMatchException.html#L34">34-85</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.NotFoundException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.NotFoundException"></a>org.ejbca.core.protocol.ws.client.gen.NotFoundException</h3>
 <table border="0" class="table table-striped">
-<tr class="b">
+<tr class="a">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="a">
+<tr class="b">
 <td>Class org.ejbca.core.protocol.ws.client.gen.NotFoundException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>34</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/NotFoundException.html#L34">34-85</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.PublisherException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.PublisherException"></a>org.ejbca.core.protocol.ws.client.gen.PublisherException</h3>
 <table border="0" class="table table-striped">
-<tr class="b">
+<tr class="a">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="a">
+<tr class="b">
 <td>Class org.ejbca.core.protocol.ws.client.gen.PublisherException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>34</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/PublisherException.html#L34">34-85</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.RevokeBackDateNotAllowedForProfileException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.RevokeBackDateNotAllowedForProfileException"></a>org.ejbca.core.protocol.ws.client.gen.RevokeBackDateNotAllowedForProfileException</h3>
 <table border="0" class="table table-striped">
-<tr class="b">
+<tr class="a">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="a">
+<tr class="b">
 <td>Class org.ejbca.core.protocol.ws.client.gen.RevokeBackDateNotAllowedForProfileException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>34</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/RevokeBackDateNotAllowedForProfileException.html#L34">34-85</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.SignRequestException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.SignRequestException"></a>org.ejbca.core.protocol.ws.client.gen.SignRequestException</h3>
 <table border="0" class="table table-striped">
-<tr class="b">
+<tr class="a">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="a">
+<tr class="b">
 <td>Class org.ejbca.core.protocol.ws.client.gen.SignRequestException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>34</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/SignRequestException.html#L34">34-85</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.TokenCertificateRequestWS"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.TokenCertificateRequestWS"></a>org.ejbca.core.protocol.ws.client.gen.TokenCertificateRequestWS</h3>
 <table border="0" class="table table-striped">
-<tr class="b">
+<tr class="a">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="a">
+<tr class="b">
 <td>org.ejbca.core.protocol.ws.client.gen.TokenCertificateRequestWS.getPkcs10Data() may expose internal representation by returning TokenCertificateRequestWS.pkcs10Data</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>95</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/TokenCertificateRequestWS.html#L95">95</a></td>
 <td>Medium</td></tr>
-<tr class="b">
+<tr class="a">
 <td>org.ejbca.core.protocol.ws.client.gen.TokenCertificateRequestWS.setPkcs10Data(byte[]) may expose internal representation by storing an externally mutable object into TokenCertificateRequestWS.pkcs10Data</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP2">EI_EXPOSE_REP2</a></td>
-<td>98</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/TokenCertificateRequestWS.html#L98">98</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.UnknownProfileTypeException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.UnknownProfileTypeException"></a>org.ejbca.core.protocol.ws.client.gen.UnknownProfileTypeException</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>Class org.ejbca.core.protocol.ws.client.gen.UnknownProfileTypeException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>34</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/UnknownProfileTypeException.html#L34">34-85</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.UserDataSourceException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.UserDataSourceException"></a>org.ejbca.core.protocol.ws.client.gen.UserDataSourceException</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>Class org.ejbca.core.protocol.ws.client.gen.UserDataSourceException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>34</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/UserDataSourceException.html#L34">34-85</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.client.gen.WaitingForApprovalException"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.client.gen.WaitingForApprovalException"></a>org.ejbca.core.protocol.ws.client.gen.WaitingForApprovalException</h3>
 <table border="0" class="table table-striped">
-<tr class="a">
+<tr class="b">
 <th>Bug</th>
 <th>Category</th>
 <th>Details</th>
 <th>Line</th>
 <th>Priority</th></tr>
-<tr class="b">
+<tr class="a">
 <td>Class org.ejbca.core.protocol.ws.client.gen.WaitingForApprovalException is not derived from an Exception, even though it is named as such</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NM_CLASS_NOT_EXCEPTION">NM_CLASS_NOT_EXCEPTION</a></td>
-<td>34</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/client/gen/WaitingForApprovalException.html#L34">34-77</a></td>
 <td>Medium</td></tr></table></section>
         </main>
       </div>

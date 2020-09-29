@@ -181,61 +181,63 @@ public abstract class EJBCAWSRABaseCommand implements P11SlotUser {
      * Method creating a connection to the webservice
      * using the information stored in the property files.
      * If a connection already is established this connection will be used
-     * @throws Exception 
+     * @return WS
+     * @throws Exception Fail
      */
     protected EjbcaWS getEjbcaRAWS() throws Exception{
-<span class="nc" id="L187">        return getEjbcaRAWS(false);</span>
+<span class="nc" id="L188">        return getEjbcaRAWS(false);</span>
     }
     /**
      * Method creating a connection to the webservice
      * using the information stored in the property files.
      * A new connection will be created for each call.
-     * @throws Exception 
+     * @return WS
+     * @throws Exception Fail
      */
     protected EjbcaWS getEjbcaRAWSFNewReference() throws  Exception {
-<span class="nc" id="L196">        return getEjbcaRAWS(true);</span>
+<span class="nc" id="L198">        return getEjbcaRAWS(true);</span>
     }
     private EjbcaWS getEjbcaRAWS(boolean bForceNewReference) throws Exception {       
-<span class="nc bnc" id="L199" title="All 2 branches missed.">        if ( this.exception!=null ) {</span>
-<span class="nc" id="L200">            throw this.exception;</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">        if ( this.exception!=null ) {</span>
+<span class="nc" id="L202">            throw this.exception;</span>
         }
-<span class="nc bnc" id="L202" title="All 4 branches missed.">        if(this.ejbcaraws==null || bForceNewReference){</span>
-<span class="nc" id="L203">            final QName qname = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;EjbcaWSService&quot;);</span>
-<span class="nc" id="L204">            final EjbcaWSService service = new EjbcaWSService(this.webServiceURL,qname);</span>
-<span class="nc bnc" id="L205" title="All 2 branches missed.">            if ( bForceNewReference ) {</span>
-<span class="nc" id="L206">                return service.getEjbcaWSPort();</span>
+<span class="nc bnc" id="L204" title="All 4 branches missed.">        if(this.ejbcaraws==null || bForceNewReference){</span>
+<span class="nc" id="L205">            final QName qname = new QName(&quot;http://ws.protocol.core.ejbca.org/&quot;, &quot;EjbcaWSService&quot;);</span>
+<span class="nc" id="L206">            final EjbcaWSService service = new EjbcaWSService(this.webServiceURL,qname);</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">            if ( bForceNewReference ) {</span>
+<span class="nc" id="L208">                return service.getEjbcaWSPort();</span>
             }
-<span class="nc" id="L208">            this.ejbcaraws = service.getEjbcaWSPort();</span>
+<span class="nc" id="L210">            this.ejbcaraws = service.getEjbcaWSPort();</span>
         }
-<span class="nc" id="L210">        return this.ejbcaraws;</span>
+<span class="nc" id="L212">        return this.ejbcaraws;</span>
     }
 
     protected PrintStream getPrintStream(){
-<span class="nc" id="L214">        return System.out;</span>
+<span class="nc" id="L216">        return System.out;</span>
     }
     
     protected int getRevokeReason(String reason) throws Exception{
-<span class="pc bpc" id="L218" title="1 of 2 branches missed.">        for(int i=0;i&lt;REASON_TEXTS.length;i++){</span>
-<span class="fc bfc" id="L219" title="All 2 branches covered.">           if(REASON_TEXTS[i].equalsIgnoreCase(reason)){</span>
-<span class="fc" id="L220">               return REASON_VALUES[i];</span>
+<span class="pc bpc" id="L220" title="1 of 2 branches missed.">        for(int i=0;i&lt;REASON_TEXTS.length;i++){</span>
+<span class="fc bfc" id="L221" title="All 2 branches covered.">           if(REASON_TEXTS[i].equalsIgnoreCase(reason)){</span>
+<span class="fc" id="L222">               return REASON_VALUES[i];</span>
            }
         }        
-<span class="nc" id="L223">        getPrintStream().println(&quot;Error : Unsupported reason &quot; + reason);</span>
-<span class="nc" id="L224">        usage();</span>
-<span class="nc" id="L225">        System.exit(-1); // NOPMD, this is not a JEE app</span>
-<span class="nc" id="L226">        return 0;</span>
+<span class="nc" id="L225">        getPrintStream().println(&quot;Error : Unsupported reason &quot; + reason);</span>
+<span class="nc" id="L226">        usage();</span>
+<span class="nc" id="L227">        System.exit(-1); // NOPMD, this is not a JEE app</span>
+<span class="nc" id="L228">        return 0;</span>
     }
     
     protected String getRevokeReason(int reason) {
-<span class="nc bnc" id="L230" title="All 2 branches missed.">        for(int i=0;i&lt;REASON_VALUES.length;i++){</span>
-<span class="nc bnc" id="L231" title="All 2 branches missed.">               if(REASON_VALUES[i]==reason){</span>
-<span class="nc" id="L232">                   return REASON_TEXTS[i];</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">        for(int i=0;i&lt;REASON_VALUES.length;i++){</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">               if(REASON_VALUES[i]==reason){</span>
+<span class="nc" id="L234">                   return REASON_TEXTS[i];</span>
                }
             }        
-<span class="nc" id="L235">        getPrintStream().println(&quot;Error : Unsupported reason &quot; + reason);</span>
-<span class="nc" id="L236">        usage();</span>
-<span class="nc" id="L237">        System.exit(-1); // NOPMD, this is not a JEE app</span>
-<span class="nc" id="L238">        return null;        </span>
+<span class="nc" id="L237">        getPrintStream().println(&quot;Error : Unsupported reason &quot; + reason);</span>
+<span class="nc" id="L238">        usage();</span>
+<span class="nc" id="L239">        System.exit(-1); // NOPMD, this is not a JEE app</span>
+<span class="nc" id="L240">        return null;        </span>
     }
     
     /**
@@ -245,10 +247,10 @@ public abstract class EJBCAWSRABaseCommand implements P11SlotUser {
 
     @Override
     public void deactivate() {
-<span class="nc" id="L248">    }</span>
+<span class="nc" id="L250">    }</span>
     @Override
     public boolean isActive() {
-<span class="nc" id="L251">        return true;</span>
+<span class="nc" id="L253">        return true;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

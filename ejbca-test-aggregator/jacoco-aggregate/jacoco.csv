@@ -31,7 +31,7 @@ Unit Test Aggregator/cesecore-common,org.cesecore.util,PKIXCertRevocationStatusC
 Unit Test Aggregator/cesecore-common,org.cesecore.util,SimpleTime,33,407,6,4,12,78,5,25,1,23
 Unit Test Aggregator/cesecore-common,org.cesecore.util,ValueExtractor,122,88,8,6,16,17,6,6,1,4
 Unit Test Aggregator/cesecore-common,org.cesecore.util,ValidityDate,99,300,13,31,23,70,16,23,4,13
-Unit Test Aggregator/cesecore-common,org.cesecore.util,ConcurrentCache,160,541,28,66,42,116,29,36,6,12
+Unit Test Aggregator/cesecore-common,org.cesecore.util,ConcurrentCache,167,534,30,64,44,114,31,34,6,12
 Unit Test Aggregator/cesecore-common,org.cesecore.util,StreamSizeLimitExceededException,12,4,0,0,6,2,3,1,3,1
 Unit Test Aggregator/cesecore-common,org.cesecore.util,PrintableStringNameStyle,32,48,8,8,7,9,8,4,0,4
 Unit Test Aggregator/cesecore-common,org.cesecore.util,CertificateSerializableWrapper,45,14,7,1,14,6,6,1,2,1
@@ -80,7 +80,7 @@ Unit Test Aggregator/cesecore-common,org.cesecore.keys,KeyCreationException,16,0
 Unit Test Aggregator/cesecore-common,org.cesecore.internal,UpgradeableDataHashMap,81,221,16,24,20,52,13,20,2,11
 Unit Test Aggregator/cesecore-common,org.cesecore.internal,CommonCacheBase,117,285,14,32,20,71,12,26,3,12
 Unit Test Aggregator/cesecore-common,org.cesecore.internal,CommonCacheBase.CacheEntry,0,18,0,0,0,6,0,1,0,1
-Unit Test Aggregator/cesecore-common,org.cesecore.internal,InternalResources,62,365,15,43,21,87,15,26,0,12
+Unit Test Aggregator/cesecore-common,org.cesecore.internal,InternalResources,76,351,17,41,23,85,17,24,0,12
 Unit Test Aggregator/cesecore-common,org.cesecore.certificates.ocsp,SHA1DigestCalculator,8,32,0,0,3,9,1,4,1,4
 Unit Test Aggregator/cesecore-common,org.cesecore.util.ui,RadioButton,76,0,12,0,22,0,13,0,7,0
 Unit Test Aggregator/cesecore-common,org.cesecore.util.ui,PositiveIntegerValidator,16,13,1,1,2,6,2,4,1,4
@@ -1090,7 +1090,7 @@ Unit Test Aggregator/ejbca-ws-cli,org.ejbca.core.protocol.ws.client,StressTestCo
 Unit Test Aggregator/ejbca-ws-cli,org.ejbca.core.protocol.ws.client,RevokeTokenCommand,119,0,6,0,33,0,6,0,3,0
 Unit Test Aggregator/ejbca-ws-cli,org.ejbca.core.protocol.ws.client,GetExpiredCertificatesCommand,215,0,20,0,59,0,15,0,5,0
 Unit Test Aggregator/ejbca-ws-cli,org.ejbca.core.protocol.ws.client,RevokeUserCommand,190,0,16,0,53,0,12,0,4,0
-Unit Test Aggregator/ejbca-ws-cli,org.ejbca.core.protocol.ws.client,RevokeCertWithMetadataCommand,200,76,7,7,55,18,7,5,3,2
+Unit Test Aggregator/ejbca-ws-cli,org.ejbca.core.protocol.ws.client,RevokeCertWithMetadataCommand,200,74,7,7,55,18,7,5,3,2
 Unit Test Aggregator/ejbca-ws-cli,org.ejbca.core.protocol.ws.client,AddSubjectToRoleCommand,167,0,12,0,34,0,9,0,3,0
 Unit Test Aggregator/ejbca-ws-cli,org.ejbca.core.protocol.ws.client,cvcwscli,25,0,2,0,11,0,3,0,2,0
 Unit Test Aggregator/ejbca-ws-cli,org.ejbca.core.protocol.ws.client,StressTestCommand.TestType,54,0,0,0,6,0,1,0,1,0

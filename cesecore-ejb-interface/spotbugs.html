@@ -41,6 +41,8 @@
     <li><a href="project-info.html" title="Project Information"><span class="icon-chevron-right"></span>Project Information</a></li>
     <li><a href="project-reports.html" title="Project Reports"><span class="icon-chevron-down"></span>Project Reports</a>
      <ul class="nav nav-list">
+      <li><a href="xref/index.html" title="Source Xref"><span class="none"></span>Source Xref</a></li>
+      <li><a href="xref-test/index.html" title="Test Source Xref"><span class="none"></span>Test Source Xref</a></li>
       <li><a href="checkstyle.html" title="Checkstyle"><span class="none"></span>Checkstyle</a></li>
       <li class="active"><a href="#"><span class="none"></span>SpotBugs</a></li>
       <li><a href="cpd.html" title="CPD"><span class="none"></span>CPD</a></li>
@@ -122,7 +124,7 @@
 <td>Boxing/unboxing to parse a primitive org.cesecore.audit.AuditDevicesConfig.getInt(Properties, String, int)</td>
 <td>PERFORMANCE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_BOXED_PRIMITIVE_FOR_PARSING">DM_BOXED_PRIMITIVE_FOR_PARSING</a></td>
-<td>221</td>
+<td><a href="./xref/org/cesecore/audit/AuditDevicesConfig.html#L221">221</a></td>
 <td>High</td></tr></table></section><a name="org.cesecore.audit.audit.SigningFileOutputStream"></a><section>
 <h3><a name="org.cesecore.audit.audit.SigningFileOutputStream"></a>org.cesecore.audit.audit.SigningFileOutputStream</h3>
 <table border="0" class="table table-striped">
@@ -136,7 +138,7 @@
 <td>Found reliance on default encoding in org.cesecore.audit.audit.SigningFileOutputStream.writeSignature(): new String(byte[])</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>130</td>
+<td><a href="./xref/org/cesecore/audit/audit/SigningFileOutputStream.html#L130">130</a></td>
 <td>High</td></tr></table></section><a name="org.cesecore.audit.impl.log4j.Log4jDevice"></a><section>
 <h3><a name="org.cesecore.audit.impl.log4j.Log4jDevice"></a>org.cesecore.audit.impl.log4j.Log4jDevice</h3>
 <table border="0" class="table table-striped">
@@ -150,7 +152,7 @@
 <td>org.cesecore.audit.impl.log4j.Log4jDevice.log(TrustedTime, EventType, EventStatus, ModuleType, ServiceType, String, String, String, String, Map, Properties) makes inefficient use of keySet iterator instead of entrySet iterator</td>
 <td>PERFORMANCE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#WMI_WRONG_MAP_ITERATOR">WMI_WRONG_MAP_ITERATOR</a></td>
-<td>129</td>
+<td><a href="./xref/org/cesecore/audit/impl/log4j/Log4jDevice.html#L129">129</a></td>
 <td>Medium</td></tr></table></section><a name="org.cesecore.certificates.certificate.CertificateDataWrapper"></a><section>
 <h3><a name="org.cesecore.certificates.certificate.CertificateDataWrapper"></a>org.cesecore.certificates.certificate.CertificateDataWrapper</h3>
 <table border="0" class="table table-striped">
@@ -164,7 +166,7 @@
 <td>Primitive is boxed to call Long.compareTo(Long): use Long.compare(long, long) instead</td>
 <td>PERFORMANCE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_BOXED_PRIMITIVE_FOR_COMPARE">DM_BOXED_PRIMITIVE_FOR_COMPARE</a></td>
-<td>139</td>
+<td><a href="./xref/org/cesecore/certificates/certificate/CertificateDataWrapper.html#L139">139</a></td>
 <td>High</td></tr></table></section><a name="org.cesecore.certificates.certificate.request.ResponseMessageUtils"></a><section>
 <h3><a name="org.cesecore.certificates.certificate.request.ResponseMessageUtils"></a>org.cesecore.certificates.certificate.request.ResponseMessageUtils</h3>
 <table border="0" class="table table-striped">
@@ -178,7 +180,7 @@
 <td>Found reliance on default encoding in org.cesecore.certificates.certificate.request.ResponseMessageUtils.createResponseMessage(Class, RequestMessage, Collection, PrivateKey, String): new String(byte[])</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>62</td>
+<td><a href="./xref/org/cesecore/certificates/certificate/request/ResponseMessageUtils.html#L62">62</a></td>
 <td>High</td></tr></table></section><a name="org.cesecore.certificates.certificate.request.X509ResponseMessage"></a><section>
 <h3><a name="org.cesecore.certificates.certificate.request.X509ResponseMessage"></a>org.cesecore.certificates.certificate.request.X509ResponseMessage</h3>
 <table border="0" class="table table-striped">
@@ -192,7 +194,7 @@
 <td>org.cesecore.certificates.certificate.request.X509ResponseMessage.getResponseMessage() may expose internal representation by returning X509ResponseMessage.certbytes</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>135</td>
+<td><a href="./xref/org/cesecore/certificates/certificate/request/X509ResponseMessage.html#L135">135</a></td>
 <td>Medium</td></tr></table></section><a name="org.cesecore.certificates.crl.CRLInfo"></a><section>
 <h3><a name="org.cesecore.certificates.crl.CRLInfo"></a>org.cesecore.certificates.crl.CRLInfo</h3>
 <table border="0" class="table table-striped">
@@ -206,13 +208,13 @@
 <td>org.cesecore.certificates.crl.CRLInfo.getCreateDate() may expose internal representation by returning CRLInfo.thisupdate</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>40</td>
+<td><a href="./xref/org/cesecore/certificates/crl/CRLInfo.html#L40">40</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.cesecore.certificates.crl.CRLInfo.getExpireDate() may expose internal representation by returning CRLInfo.nextupdate</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>41</td>
+<td><a href="./xref/org/cesecore/certificates/crl/CRLInfo.html#L41">41</a></td>
 <td>Medium</td></tr></table></section><a name="org.cesecore.certificates.ocsp.OcspResponseInformation"></a><section>
 <h3><a name="org.cesecore.certificates.ocsp.OcspResponseInformation"></a>org.cesecore.certificates.ocsp.OcspResponseInformation</h3>
 <table border="0" class="table table-striped">
@@ -226,13 +228,13 @@
 <td>Found reliance on default encoding in new org.cesecore.certificates.ocsp.OcspResponseInformation(OCSPResp, long, X509Certificate): new String(byte[])</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>95</td>
+<td><a href="./xref/org/cesecore/certificates/ocsp/OcspResponseInformation.html#L95">95</a></td>
 <td>High</td></tr>
 <tr class="a">
 <td>org.cesecore.certificates.ocsp.OcspResponseInformation.getOcspResponse() may expose internal representation by returning OcspResponseInformation.ocspResponse</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>109</td>
+<td><a href="./xref/org/cesecore/certificates/ocsp/OcspResponseInformation.html#L109">109</a></td>
 <td>Medium</td></tr></table></section>
         </main>
       </div>

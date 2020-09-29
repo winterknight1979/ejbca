@@ -41,6 +41,8 @@
     <li><a href="project-info.html" title="Project Information"><span class="icon-chevron-right"></span>Project Information</a></li>
     <li><a href="project-reports.html" title="Project Reports"><span class="icon-chevron-down"></span>Project Reports</a>
      <ul class="nav nav-list">
+      <li><a href="xref/index.html" title="Source Xref"><span class="none"></span>Source Xref</a></li>
+      <li><a href="xref-test/index.html" title="Test Source Xref"><span class="none"></span>Test Source Xref</a></li>
       <li><a href="checkstyle.html" title="Checkstyle"><span class="none"></span>Checkstyle</a></li>
       <li class="active"><a href="#"><span class="none"></span>SpotBugs</a></li>
       <li><a href="cpd.html" title="CPD"><span class="none"></span>CPD</a></li>
@@ -114,13 +116,13 @@
 <td>Found reliance on default encoding in org.ejbca.core.ejb.approval.ApprovalData.getApprovalRequest(): String.getBytes()</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>364</td>
+<td><a href="./xref/org/ejbca/core/ejb/approval/ApprovalData.html#L364">364</a></td>
 <td>High</td></tr>
 <tr class="a">
 <td>Found reliance on default encoding in org.ejbca.core.ejb.approval.ApprovalData.getApprovals(): String.getBytes()</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>380</td>
+<td><a href="./xref/org/ejbca/core/ejb/approval/ApprovalData.html#L380">380</a></td>
 <td>High</td></tr></table></section><a name="org.ejbca.core.ejb.ca.store.CertReqHistoryDataNotPossibleToFixXML"></a><section>
 <h3><a name="org.ejbca.core.ejb.ca.store.CertReqHistoryData.24NotPossibleToFixXML"></a>org.ejbca.core.ejb.ca.store.CertReqHistoryData$NotPossibleToFixXML</h3>
 <table border="0" class="table table-striped">
@@ -134,7 +136,7 @@
 <td>Should org.ejbca.core.ejb.ca.store.CertReqHistoryData$NotPossibleToFixXML be a _static_ inner class?</td>
 <td>PERFORMANCE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#SIC_INNER_SHOULD_BE_STATIC">SIC_INNER_SHOULD_BE_STATIC</a></td>
-<td>240</td>
+<td><a href="./xref/org/ejbca/core/ejb/ca/store/CertReqHistoryData.html#L240">240-242</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.ejb.hardtoken.HardTokenData"></a><section>
 <h3><a name="org.ejbca.core.ejb.hardtoken.HardTokenData"></a>org.ejbca.core.ejb.hardtoken.HardTokenData</h3>
 <table border="0" class="table table-striped">
@@ -148,7 +150,7 @@
 <td>Found reliance on default encoding in org.ejbca.core.ejb.hardtoken.HardTokenData.getProtectString(int): new String(byte[])</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>161</td>
+<td><a href="./xref/org/ejbca/core/ejb/hardtoken/HardTokenData.html#L161">161</a></td>
 <td>High</td></tr></table></section><a name="org.ejbca.core.ejb.keyrecovery.KeyRecoveryData"></a><section>
 <h3><a name="org.ejbca.core.ejb.keyrecovery.KeyRecoveryData"></a>org.ejbca.core.ejb.keyrecovery.KeyRecoveryData</h3>
 <table border="0" class="table table-striped">
@@ -162,13 +164,13 @@
 <td>Found reliance on default encoding in org.ejbca.core.ejb.keyrecovery.KeyRecoveryData.getKeyDataAsByteArray(): String.getBytes()</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>166</td>
+<td><a href="./xref/org/ejbca/core/ejb/keyrecovery/KeyRecoveryData.html#L166">166</a></td>
 <td>High</td></tr>
 <tr class="b">
 <td>Found reliance on default encoding in org.ejbca.core.ejb.keyrecovery.KeyRecoveryData.setKeyDataFromByteArray(byte[]): new String(byte[])</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>170</td>
+<td><a href="./xref/org/ejbca/core/ejb/keyrecovery/KeyRecoveryData.html#L170">170</a></td>
 <td>High</td></tr></table></section><a name="org.ejbca.core.ejb.ra.UserData"></a><section>
 <h3><a name="org.ejbca.core.ejb.ra.UserData"></a>org.ejbca.core.ejb.ra.UserData</h3>
 <table border="0" class="table table-striped">
@@ -182,13 +184,13 @@
 <td>org.ejbca.core.ejb.ra.UserData defines clone() but doesn't implement Cloneable</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#CN_IMPLEMENTS_CLONE_BUT_NOT_CLONEABLE">CN_IMPLEMENTS_CLONE_BUT_NOT_CLONEABLE</a></td>
-<td>561</td>
+<td><a href="./xref/org/ejbca/core/ejb/ra/UserData.html#L561">561-582</a></td>
 <td>High</td></tr>
 <tr class="a">
 <td>The field org.ejbca.core.ejb.ra.UserData.transientPwd is transient but isn't set by deserialization</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#SE_TRANSIENT_FIELD_NOT_RESTORED">SE_TRANSIENT_FIELD_NOT_RESTORED</a></td>
-<td></td>
+<td>Not available</td>
 <td>Medium</td></tr></table></section>
         </main>
       </div>

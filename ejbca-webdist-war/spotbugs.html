@@ -41,6 +41,7 @@
     <li><a href="project-info.html" title="Project Information"><span class="icon-chevron-right"></span>Project Information</a></li>
     <li><a href="project-reports.html" title="Project Reports"><span class="icon-chevron-down"></span>Project Reports</a>
      <ul class="nav nav-list">
+      <li><a href="xref/index.html" title="Source Xref"><span class="none"></span>Source Xref</a></li>
       <li><a href="checkstyle.html" title="Checkstyle"><span class="none"></span>Checkstyle</a></li>
       <li class="active"><a href="#"><span class="none"></span>SpotBugs</a></li>
       <li><a href="cpd.html" title="CPD"><span class="none"></span>CPD</a></li>
@@ -100,67 +101,67 @@
 <td>Boxing/unboxing to parse a primitive org.ejbca.ui.web.pub.CertDistServlet.doGet(HttpServletRequest, HttpServletResponse)</td>
 <td>PERFORMANCE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_BOXED_PRIMITIVE_FOR_PARSING">DM_BOXED_PRIMITIVE_FOR_PARSING</a></td>
-<td>194</td>
+<td><a href="./xref/org/ejbca/ui/web/pub/CertDistServlet.html#L194">194</a></td>
 <td>High</td></tr>
 <tr class="a">
 <td>Found reliance on default encoding in org.ejbca.ui.web.pub.CertDistServlet.doGet(HttpServletRequest, HttpServletResponse): new java.io.PrintStream(OutputStream)</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>394</td>
+<td><a href="./xref/org/ejbca/ui/web/pub/CertDistServlet.html#L394">394</a></td>
 <td>High</td></tr>
 <tr class="b">
 <td>Found reliance on default encoding in org.ejbca.ui.web.pub.CertDistServlet.doGet(HttpServletRequest, HttpServletResponse): new java.io.PrintWriter(OutputStream)</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>352</td>
+<td><a href="./xref/org/ejbca/ui/web/pub/CertDistServlet.html#L352">352</a></td>
 <td>High</td></tr>
 <tr class="a">
 <td>Found reliance on default encoding in org.ejbca.ui.web.pub.CertDistServlet.doGet(HttpServletRequest, HttpServletResponse): new String(byte[])</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>437</td>
+<td><a href="./xref/org/ejbca/ui/web/pub/CertDistServlet.html#L437">437</a></td>
 <td>High</td></tr>
 <tr class="b">
 <td>Found reliance on default encoding in org.ejbca.ui.web.pub.CertDistServlet.doGet(HttpServletRequest, HttpServletResponse): String.getBytes()</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>448</td>
+<td><a href="./xref/org/ejbca/ui/web/pub/CertDistServlet.html#L448">448</a></td>
 <td>High</td></tr>
 <tr class="a">
 <td>Nullcheck of format at line 611 of value previously dereferenced in org.ejbca.ui.web.pub.CertDistServlet.handleCaChainCommands(String, int, String, HttpServletResponse)</td>
 <td>CORRECTNESS</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE">RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE</a></td>
-<td>605</td>
+<td><a href="./xref/org/ejbca/ui/web/pub/CertDistServlet.html#L605">605</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>Exception is caught when Exception is not thrown in org.ejbca.ui.web.pub.CertDistServlet.doGet(HttpServletRequest, HttpServletResponse)</td>
 <td>STYLE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#REC_CATCH_EXCEPTION">REC_CATCH_EXCEPTION</a></td>
-<td>376</td>
+<td><a href="./xref/org/ejbca/ui/web/pub/CertDistServlet.html#L376">376</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>Class org.ejbca.ui.web.pub.CertDistServlet defines non-transient non-serializable instance field crlSession</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#SE_BAD_FIELD">SE_BAD_FIELD</a></td>
-<td></td>
+<td>Not available</td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>Class org.ejbca.ui.web.pub.CertDistServlet defines non-transient non-serializable instance field globalConfigurationSession</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#SE_BAD_FIELD">SE_BAD_FIELD</a></td>
-<td></td>
+<td>Not available</td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>Class org.ejbca.ui.web.pub.CertDistServlet defines non-transient non-serializable instance field signSession</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#SE_BAD_FIELD">SE_BAD_FIELD</a></td>
-<td></td>
+<td>Not available</td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>Class org.ejbca.ui.web.pub.CertDistServlet defines non-transient non-serializable instance field storesession</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#SE_BAD_FIELD">SE_BAD_FIELD</a></td>
-<td></td>
+<td>Not available</td>
 <td>Medium</td></tr></table></section>
         </main>
       </div>

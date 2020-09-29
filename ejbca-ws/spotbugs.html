@@ -41,6 +41,8 @@
     <li><a href="project-info.html" title="Project Information"><span class="icon-chevron-right"></span>Project Information</a></li>
     <li><a href="project-reports.html" title="Project Reports"><span class="icon-chevron-down"></span>Project Reports</a>
      <ul class="nav nav-list">
+      <li><a href="xref/index.html" title="Source Xref"><span class="none"></span>Source Xref</a></li>
+      <li><a href="xref-test/index.html" title="Test Source Xref"><span class="none"></span>Test Source Xref</a></li>
       <li><a href="checkstyle.html" title="Checkstyle"><span class="none"></span>Checkstyle</a></li>
       <li class="active"><a href="#"><span class="none"></span>SpotBugs</a></li>
       <li><a href="cpd.html" title="CPD"><span class="none"></span>CPD</a></li>
@@ -137,7 +139,7 @@
 <td>Boxing/unboxing to parse a primitive org.ejbca.config.WebServiceConfiguration.getApprovalProfileId()</td>
 <td>PERFORMANCE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_BOXED_PRIMITIVE_FOR_PARSING">DM_BOXED_PRIMITIVE_FOR_PARSING</a></td>
-<td>36</td>
+<td><a href="./xref/org/ejbca/config/WebServiceConfiguration.html#L36">36</a></td>
 <td>High</td></tr></table></section><a name="org.ejbca.core.protocol.ws.EjbcaWS"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.EjbcaWS"></a>org.ejbca.core.protocol.ws.EjbcaWS</h3>
 <table border="0" class="table table-striped">
@@ -151,31 +153,31 @@
 <td>Possible null pointer dereference of hardTokenData in org.ejbca.core.protocol.ws.EjbcaWS.getHardTokenData(String, boolean, boolean) on exception path</td>
 <td>CORRECTNESS</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NP_NULL_ON_SOME_PATH_EXCEPTION">NP_NULL_ON_SOME_PATH_EXCEPTION</a></td>
-<td>1817</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/EjbcaWS.html#L1817">1817</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>Possible null pointer dereference of hardTokenData in org.ejbca.core.protocol.ws.EjbcaWS.getHardTokenData(String, boolean, boolean) on exception path</td>
 <td>CORRECTNESS</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NP_NULL_ON_SOME_PATH_EXCEPTION">NP_NULL_ON_SOME_PATH_EXCEPTION</a></td>
-<td>1817</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/EjbcaWS.html#L1817">1817</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>Exception is caught when Exception is not thrown in org.ejbca.core.protocol.ws.EjbcaWS.genTokenCertificates(UserDataVOWS, List, HardTokenDataWS, boolean, boolean)</td>
 <td>STYLE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#REC_CATCH_EXCEPTION">REC_CATCH_EXCEPTION</a></td>
-<td>1688</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/EjbcaWS.html#L1688">1688</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>Switch statement found in org.ejbca.core.protocol.ws.EjbcaWS.parseRevocationMetadata(CertRevocationDto, List) where default case is missing</td>
 <td>STYLE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#SF_SWITCH_NO_DEFAULT">SF_SWITCH_NO_DEFAULT</a></td>
-<td>1020</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/EjbcaWS.html#L1020">1020-1031</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.EjbcaWS.convertTreeMapToArray(Map) makes inefficient use of keySet iterator instead of entrySet iterator</td>
 <td>PERFORMANCE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#WMI_WRONG_MAP_ITERATOR">WMI_WRONG_MAP_ITERATOR</a></td>
-<td>2485</td>
+<td><a href="./xref/org/ejbca/core/protocol/ws/EjbcaWS.html#L2485">2485</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.jaxws.CaCertResponse"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.jaxws.CaCertResponse"></a>org.ejbca.core.protocol.ws.jaxws.CaCertResponse</h3>
 <table border="0" class="table table-striped">
@@ -189,13 +191,13 @@
 <td>org.ejbca.core.protocol.ws.jaxws.CaCertResponse.getArg1() may expose internal representation by returning CaCertResponse.arg1</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>54</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/jaxws/CaCertResponse.html#L54">54</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.jaxws.CaCertResponse.setArg1(byte[]) may expose internal representation by storing an externally mutable object into CaCertResponse.arg1</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP2">EI_EXPOSE_REP2</a></td>
-<td>63</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/jaxws/CaCertResponse.html#L63">63</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.jaxws.CaCertResponseForRollover"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.jaxws.CaCertResponseForRollover"></a>org.ejbca.core.protocol.ws.jaxws.CaCertResponseForRollover</h3>
 <table border="0" class="table table-striped">
@@ -209,13 +211,13 @@
 <td>org.ejbca.core.protocol.ws.jaxws.CaCertResponseForRollover.getArg1() may expose internal representation by returning CaCertResponseForRollover.arg1</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>54</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/jaxws/CaCertResponseForRollover.html#L54">54</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.jaxws.CaCertResponseForRollover.setArg1(byte[]) may expose internal representation by storing an externally mutable object into CaCertResponseForRollover.arg1</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP2">EI_EXPOSE_REP2</a></td>
-<td>63</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/jaxws/CaCertResponseForRollover.html#L63">63</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.jaxws.CaRenewCertRequestResponse"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.jaxws.CaRenewCertRequestResponse"></a>org.ejbca.core.protocol.ws.jaxws.CaRenewCertRequestResponse</h3>
 <table border="0" class="table table-striped">
@@ -229,13 +231,13 @@
 <td>org.ejbca.core.protocol.ws.jaxws.CaRenewCertRequestResponse.getReturn() may expose internal representation by returning CaRenewCertRequestResponse._return</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>24</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/jaxws/CaRenewCertRequestResponse.html#L24">24</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.jaxws.CaRenewCertRequestResponse.setReturn(byte[]) may expose internal representation by storing an externally mutable object into CaRenewCertRequestResponse._return</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP2">EI_EXPOSE_REP2</a></td>
-<td>33</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/jaxws/CaRenewCertRequestResponse.html#L33">33</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.jaxws.GetAuthorizedEndEntityProfilesResponse"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.jaxws.GetAuthorizedEndEntityProfilesResponse"></a>org.ejbca.core.protocol.ws.jaxws.GetAuthorizedEndEntityProfilesResponse</h3>
 <table border="0" class="table table-striped">
@@ -249,13 +251,13 @@
 <td>org.ejbca.core.protocol.ws.jaxws.GetAuthorizedEndEntityProfilesResponse.getReturn() may expose internal representation by returning GetAuthorizedEndEntityProfilesResponse._return</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>25</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/jaxws/GetAuthorizedEndEntityProfilesResponse.html#L25">25</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.jaxws.GetAuthorizedEndEntityProfilesResponse.setReturn(NameAndId[]) may expose internal representation by storing an externally mutable object into GetAuthorizedEndEntityProfilesResponse._return</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP2">EI_EXPOSE_REP2</a></td>
-<td>34</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/jaxws/GetAuthorizedEndEntityProfilesResponse.html#L34">34</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.jaxws.GetAvailableCAsInProfileResponse"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.jaxws.GetAvailableCAsInProfileResponse"></a>org.ejbca.core.protocol.ws.jaxws.GetAvailableCAsInProfileResponse</h3>
 <table border="0" class="table table-striped">
@@ -269,13 +271,13 @@
 <td>org.ejbca.core.protocol.ws.jaxws.GetAvailableCAsInProfileResponse.getReturn() may expose internal representation by returning GetAvailableCAsInProfileResponse._return</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>25</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/jaxws/GetAvailableCAsInProfileResponse.html#L25">25</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.jaxws.GetAvailableCAsInProfileResponse.setReturn(NameAndId[]) may expose internal representation by storing an externally mutable object into GetAvailableCAsInProfileResponse._return</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP2">EI_EXPOSE_REP2</a></td>
-<td>34</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/jaxws/GetAvailableCAsInProfileResponse.html#L34">34</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.jaxws.GetAvailableCAsResponse"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.jaxws.GetAvailableCAsResponse"></a>org.ejbca.core.protocol.ws.jaxws.GetAvailableCAsResponse</h3>
 <table border="0" class="table table-striped">
@@ -289,13 +291,13 @@
 <td>org.ejbca.core.protocol.ws.jaxws.GetAvailableCAsResponse.getReturn() may expose internal representation by returning GetAvailableCAsResponse._return</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>25</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/jaxws/GetAvailableCAsResponse.html#L25">25</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.jaxws.GetAvailableCAsResponse.setReturn(NameAndId[]) may expose internal representation by storing an externally mutable object into GetAvailableCAsResponse._return</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP2">EI_EXPOSE_REP2</a></td>
-<td>34</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/jaxws/GetAvailableCAsResponse.html#L34">34</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.jaxws.GetAvailableCertificateProfilesResponse"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.jaxws.GetAvailableCertificateProfilesResponse"></a>org.ejbca.core.protocol.ws.jaxws.GetAvailableCertificateProfilesResponse</h3>
 <table border="0" class="table table-striped">
@@ -309,13 +311,13 @@
 <td>org.ejbca.core.protocol.ws.jaxws.GetAvailableCertificateProfilesResponse.getReturn() may expose internal representation by returning GetAvailableCertificateProfilesResponse._return</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>25</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/jaxws/GetAvailableCertificateProfilesResponse.html#L25">25</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.jaxws.GetAvailableCertificateProfilesResponse.setReturn(NameAndId[]) may expose internal representation by storing an externally mutable object into GetAvailableCertificateProfilesResponse._return</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP2">EI_EXPOSE_REP2</a></td>
-<td>34</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/jaxws/GetAvailableCertificateProfilesResponse.html#L34">34</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.jaxws.GetLatestCRLResponse"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.jaxws.GetLatestCRLResponse"></a>org.ejbca.core.protocol.ws.jaxws.GetLatestCRLResponse</h3>
 <table border="0" class="table table-striped">
@@ -329,13 +331,13 @@
 <td>org.ejbca.core.protocol.ws.jaxws.GetLatestCRLResponse.getReturn() may expose internal representation by returning GetLatestCRLResponse._return</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>24</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/jaxws/GetLatestCRLResponse.html#L24">24</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.jaxws.GetLatestCRLResponse.setReturn(byte[]) may expose internal representation by storing an externally mutable object into GetLatestCRLResponse._return</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP2">EI_EXPOSE_REP2</a></td>
-<td>33</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/jaxws/GetLatestCRLResponse.html#L33">33</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.jaxws.GetProfileResponse"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.jaxws.GetProfileResponse"></a>org.ejbca.core.protocol.ws.jaxws.GetProfileResponse</h3>
 <table border="0" class="table table-striped">
@@ -349,13 +351,13 @@
 <td>org.ejbca.core.protocol.ws.jaxws.GetProfileResponse.getReturn() may expose internal representation by returning GetProfileResponse._return</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>24</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/jaxws/GetProfileResponse.html#L24">24</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.jaxws.GetProfileResponse.setReturn(byte[]) may expose internal representation by storing an externally mutable object into GetProfileResponse._return</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP2">EI_EXPOSE_REP2</a></td>
-<td>33</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/jaxws/GetProfileResponse.html#L33">33</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.jaxws.ImportCaCert"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.jaxws.ImportCaCert"></a>org.ejbca.core.protocol.ws.jaxws.ImportCaCert</h3>
 <table border="0" class="table table-striped">
@@ -369,13 +371,13 @@
 <td>org.ejbca.core.protocol.ws.jaxws.ImportCaCert.getArg1() may expose internal representation by returning ImportCaCert.arg1</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>47</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/jaxws/ImportCaCert.html#L47">47</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.ejbca.core.protocol.ws.jaxws.ImportCaCert.setArg1(byte[]) may expose internal representation by storing an externally mutable object into ImportCaCert.arg1</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP2">EI_EXPOSE_REP2</a></td>
-<td>56</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/jaxws/ImportCaCert.html#L56">56</a></td>
 <td>Medium</td></tr></table></section><a name="org.ejbca.core.protocol.ws.jaxws.UpdateCaCert"></a><section>
 <h3><a name="org.ejbca.core.protocol.ws.jaxws.UpdateCaCert"></a>org.ejbca.core.protocol.ws.jaxws.UpdateCaCert</h3>
 <table border="0" class="table table-striped">
@@ -389,13 +391,13 @@
 <td>org.ejbca.core.protocol.ws.jaxws.UpdateCaCert.getArg1() may expose internal representation by returning UpdateCaCert.arg1</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>47</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/jaxws/UpdateCaCert.html#L47">47</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>org.ejbca.core.protocol.ws.jaxws.UpdateCaCert.setArg1(byte[]) may expose internal representation by storing an externally mutable object into UpdateCaCert.arg1</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP2">EI_EXPOSE_REP2</a></td>
-<td>56</td>
+<td><a href="nullorg/ejbca/core/protocol/ws/jaxws/UpdateCaCert.html#L56">56</a></td>
 <td>Medium</td></tr></table></section>
         </main>
       </div>

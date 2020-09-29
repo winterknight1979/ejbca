@@ -41,6 +41,8 @@
     <li><a href="project-info.html" title="Project Information"><span class="icon-chevron-right"></span>Project Information</a></li>
     <li><a href="project-reports.html" title="Project Reports"><span class="icon-chevron-down"></span>Project Reports</a>
      <ul class="nav nav-list">
+      <li><a href="xref/index.html" title="Source Xref"><span class="none"></span>Source Xref</a></li>
+      <li><a href="xref-test/index.html" title="Test Source Xref"><span class="none"></span>Test Source Xref</a></li>
       <li><a href="checkstyle.html" title="Checkstyle"><span class="none"></span>Checkstyle</a></li>
       <li class="active"><a href="#"><span class="none"></span>SpotBugs</a></li>
       <li><a href="cpd.html" title="CPD"><span class="none"></span>CPD</a></li>
@@ -128,7 +130,7 @@
 <td>Switch statement found in org.cesecore.certificates.ca.CAData.getCA() where default case is missing</td>
 <td>STYLE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#SF_SWITCH_NO_DEFAULT">SF_SWITCH_NO_DEFAULT</a></td>
-<td>142</td>
+<td><a href="./xref/org/cesecore/certificates/ca/CAData.html#L142">142-147</a></td>
 <td>Medium</td></tr></table></section><a name="org.cesecore.certificates.certificate.Base64CertData"></a><section>
 <h3><a name="org.cesecore.certificates.certificate.Base64CertData"></a>org.cesecore.certificates.certificate.Base64CertData</h3>
 <table border="0" class="table table-striped">
@@ -142,7 +144,7 @@
 <td>Found reliance on default encoding in new org.cesecore.certificates.certificate.Base64CertData(Certificate): new String(byte[])</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>65</td>
+<td><a href="./xref/org/cesecore/certificates/certificate/Base64CertData.html#L65">65</a></td>
 <td>High</td></tr></table></section><a name="org.cesecore.certificates.certificate.BaseCertificateData"></a><section>
 <h3><a name="org.cesecore.certificates.certificate.BaseCertificateData"></a>org.cesecore.certificates.certificate.BaseCertificateData</h3>
 <table border="0" class="table table-striped">
@@ -156,13 +158,13 @@
 <td>Found reliance on default encoding in org.cesecore.certificates.certificate.BaseCertificateData.getCertificate(EntityManager): String.getBytes()</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>352</td>
+<td><a href="./xref/org/cesecore/certificates/certificate/BaseCertificateData.html#L352">352</a></td>
 <td>High</td></tr>
 <tr class="b">
 <td>Found reliance on default encoding in org.cesecore.certificates.certificate.BaseCertificateData.getCertificate(Base64CertData): String.getBytes()</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>381</td>
+<td><a href="./xref/org/cesecore/certificates/certificate/BaseCertificateData.html#L381">381</a></td>
 <td>High</td></tr></table></section><a name="org.cesecore.certificates.certificate.CertificateData"></a><section>
 <h3><a name="org.cesecore.certificates.certificate.CertificateData"></a>org.cesecore.certificates.certificate.CertificateData</h3>
 <table border="0" class="table table-striped">
@@ -176,7 +178,7 @@
 <td>Found reliance on default encoding in new org.cesecore.certificates.certificate.CertificateData(Certificate, PublicKey, String, String, int, int, int, int, String, long, boolean, boolean): new String(byte[])</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>121</td>
+<td><a href="./xref/org/cesecore/certificates/certificate/CertificateData.html#L121">121</a></td>
 <td>High</td></tr></table></section><a name="org.cesecore.certificates.crl.CRLData"></a><section>
 <h3><a name="org.cesecore.certificates.crl.CRLData"></a>org.cesecore.certificates.crl.CRLData</h3>
 <table border="0" class="table table-striped">
@@ -190,37 +192,37 @@
 <td>Found reliance on default encoding in new org.cesecore.certificates.crl.CRLData(byte[], int, String, Date, Date, String, int): new String(byte[])</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>77</td>
+<td><a href="./xref/org/cesecore/certificates/crl/CRLData.html#L77">77</a></td>
 <td>High</td></tr>
 <tr class="a">
 <td>Found reliance on default encoding in org.cesecore.certificates.crl.CRLData.getCRL(): String.getBytes()</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>211</td>
+<td><a href="./xref/org/cesecore/certificates/crl/CRLData.html#L211">211</a></td>
 <td>High</td></tr>
 <tr class="b">
 <td>Found reliance on default encoding in org.cesecore.certificates.crl.CRLData.getCRLBytes(): String.getBytes()</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>232</td>
+<td><a href="./xref/org/cesecore/certificates/crl/CRLData.html#L232">232</a></td>
 <td>High</td></tr>
 <tr class="a">
 <td>Found reliance on default encoding in org.cesecore.certificates.crl.CRLData.setCRL(X509CRL): new String(byte[])</td>
 <td>I18N</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#DM_DEFAULT_ENCODING">DM_DEFAULT_ENCODING</a></td>
-<td>221</td>
+<td><a href="./xref/org/cesecore/certificates/crl/CRLData.html#L221">221</a></td>
 <td>High</td></tr>
 <tr class="b">
 <td>Possible null pointer dereference of nextUpdate in org.cesecore.certificates.crl.CRLData.setNextUpdate(Date)</td>
 <td>CORRECTNESS</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NP_NULL_ON_SOME_PATH">NP_NULL_ON_SOME_PATH</a></td>
-<td>251</td>
+<td><a href="./xref/org/cesecore/certificates/crl/CRLData.html#L251">251</a></td>
 <td>High</td></tr>
 <tr class="a">
 <td>Possible null pointer dereference of thisUpdate in org.cesecore.certificates.crl.CRLData.setThisUpdate(Date)</td>
 <td>CORRECTNESS</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#NP_NULL_ON_SOME_PATH">NP_NULL_ON_SOME_PATH</a></td>
-<td>244</td>
+<td><a href="./xref/org/cesecore/certificates/crl/CRLData.html#L244">244</a></td>
 <td>High</td></tr></table></section><a name="org.cesecore.configuration.GlobalConfigurationData"></a><section>
 <h3><a name="org.cesecore.configuration.GlobalConfigurationData"></a>org.cesecore.configuration.GlobalConfigurationData</h3>
 <table border="0" class="table table-striped">
@@ -234,13 +236,13 @@
 <td>org.cesecore.configuration.GlobalConfigurationData.getDataUnsafe() may expose internal representation by returning GlobalConfigurationData.data</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP">EI_EXPOSE_REP</a></td>
-<td>110</td>
+<td><a href="./xref/org/cesecore/configuration/GlobalConfigurationData.html#L110">110</a></td>
 <td>Medium</td></tr>
 <tr class="b">
 <td>org.cesecore.configuration.GlobalConfigurationData.setDataUnsafe(byte[]) may expose internal representation by storing an externally mutable object into GlobalConfigurationData.data</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EI_EXPOSE_REP2">EI_EXPOSE_REP2</a></td>
-<td>113</td>
+<td><a href="./xref/org/cesecore/configuration/GlobalConfigurationData.html#L113">113</a></td>
 <td>Medium</td></tr></table></section><a name="org.cesecore.dbprotection.ProtectedData"></a><section>
 <h3><a name="org.cesecore.dbprotection.ProtectedData"></a>org.cesecore.dbprotection.ProtectedData</h3>
 <table border="0" class="table table-striped">
@@ -254,7 +256,7 @@
 <td>Write to static field org.cesecore.dbprotection.ProtectedData.integrityExists from instance method new org.cesecore.dbprotection.ProtectedData()</td>
 <td>STYLE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD">ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD</a></td>
-<td>97</td>
+<td><a href="./xref/org/cesecore/dbprotection/ProtectedData.html#L97">97</a></td>
 <td>Medium</td></tr></table></section><a name="org.cesecore.roles.Role"></a><section>
 <h3><a name="org.cesecore.roles.Role"></a>org.cesecore.roles.Role</h3>
 <table border="0" class="table table-striped">
@@ -268,13 +270,13 @@
 <td>Redundant nullcheck of accessRules, which is known to be non-null in org.cesecore.roles.Role.equals(Object)</td>
 <td>STYLE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE">RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE</a></td>
-<td>182</td>
+<td><a href="./xref/org/cesecore/roles/Role.html#L182">182</a></td>
 <td>Medium</td></tr>
 <tr class="a">
 <td>Redundant nullcheck of accessRules, which is known to be non-null in org.cesecore.roles.Role.hashCode()</td>
 <td>STYLE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE">RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE</a></td>
-<td>156</td>
+<td><a href="./xref/org/cesecore/roles/Role.html#L156">156</a></td>
 <td>Medium</td></tr></table></section><a name="org.cesecore.roles.member.RoleMember"></a><section>
 <h3><a name="org.cesecore.roles.member.RoleMember"></a>org.cesecore.roles.member.RoleMember</h3>
 <table border="0" class="table table-striped">
@@ -288,7 +290,7 @@
 <td>org.cesecore.roles.member.RoleMember.ROLE_MEMBER_ID_UNASSIGNED isn't final but should be</td>
 <td>MALICIOUS_CODE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#MS_SHOULD_BE_FINAL">MS_SHOULD_BE_FINAL</a></td>
-<td>27</td>
+<td><a href="./xref/org/cesecore/roles/member/RoleMember.html#L27">27</a></td>
 <td>High</td></tr></table></section><a name="org.cesecore.roles.member.RoleMemberData"></a><section>
 <h3><a name="org.cesecore.roles.member.RoleMemberData"></a>org.cesecore.roles.member.RoleMemberData</h3>
 <table border="0" class="table table-striped">
@@ -302,7 +304,7 @@
 <td>org.cesecore.roles.member.RoleMemberData defines compareTo(RoleMemberData) and uses Object.equals()</td>
 <td>BAD_PRACTICE</td>
 <td><a class="externalLink" href="https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html#EQ_COMPARETO_USE_OBJECT_EQUALS">EQ_COMPARETO_USE_OBJECT_EQUALS</a></td>
-<td>270</td>
+<td><a href="./xref/org/cesecore/roles/member/RoleMemberData.html#L270">270</a></td>
 <td>Medium</td></tr></table></section>
         </main>
       </div>
