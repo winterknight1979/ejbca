@@ -181,7 +181,8 @@ public abstract class EJBCAWSRABaseCommand implements P11SlotUser {
      * Method creating a connection to the webservice
      * using the information stored in the property files.
      * If a connection already is established this connection will be used
-     * @throws Exception 
+     * @return WS
+     * @throws Exception Fail
      */
     protected EjbcaWS getEjbcaRAWS() throws Exception{
         return getEjbcaRAWS(false);
@@ -190,7 +191,8 @@ public abstract class EJBCAWSRABaseCommand implements P11SlotUser {
      * Method creating a connection to the webservice
      * using the information stored in the property files.
      * A new connection will be created for each call.
-     * @throws Exception 
+     * @return WS
+     * @throws Exception Fail
      */
     protected EjbcaWS getEjbcaRAWSFNewReference() throws  Exception {
         return getEjbcaRAWS(true);

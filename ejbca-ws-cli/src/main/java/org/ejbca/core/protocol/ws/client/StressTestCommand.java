@@ -167,8 +167,10 @@ public class StressTestCommand extends EJBCAWSRABaseCommand implements IAdminCom
 	}
 
 	/**
-	 * @param certificateResponse
-	 * @throws CertificateException
+	 * @param certificateResponse Response
+	 * @param jobData Data
+	 * @return bool
+	 * @throws CertificateException Fail
 	 */
 	private boolean checkAndLogCertificateResponse(
 			final CertificateResponse certificateResponse, final JobData jobData)
@@ -459,7 +461,7 @@ public class StressTestCommand extends EJBCAWSRABaseCommand implements IAdminCom
 	} // CertificateRequestCommand
 	
 	/**
-	 * @param _args
+	 * @param _args args
 	 */
 	public StressTestCommand(String[] _args) {
 		super(_args);
