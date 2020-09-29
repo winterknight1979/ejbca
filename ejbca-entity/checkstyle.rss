@@ -1,0 +1,404 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+<rss version="0.91">
+  <channel>
+    <title>EJBCA JPA Entities - Checkstyle report</title>
+    <link>https://github.com/winterknight1979/ejbca/ejbca-entity</link>
+    <description>EJBCA JPA Entities - Checkstyle report</description>
+    <language>en-us</language>
+    <copyright>&#169;2020</copyright>
+    <item>
+      <title>File: 25,
+             Errors: 2572,
+             Warnings: 0,
+             Infos: 0
+      </title>
+            <link>https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html</link>
+      <description>
+        <p>Click <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html">here</a> for the full Checkstyle report.</p>
+
+        <table summary="Files" boder="1">
+          <thead>
+            <tr>
+              <th>Files</th>
+              <th style="width:30px;"><abbr title="Info">I</abbr></th>
+              <th style="width:30px;"><abbr title="Warning">W</abbr></th>
+              <th style="width:30px;"><abbr title="Error">E</abbr></th>
+            </tr>
+          </thead>
+          <tbody>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.acme.AcmeAccountData.java">org/ejbca/acme/AcmeAccountData.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  66
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.core.ejb.ra.UserData.java">org/ejbca/core/ejb/ra/UserData.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  222
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.core.ejb.hardtoken.HardTokenProfileData.java">org/ejbca/core/ejb/hardtoken/HardTokenProfileData.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  95
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.core.ejb.ca.store.CertReqHistoryData.java">org/ejbca/core/ejb/ca/store/CertReqHistoryData.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  202
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.core.ejb.approval.ApprovalData.java">org/ejbca/core/ejb/approval/ApprovalData.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  223
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.core.ejb.hardtoken.HardTokenPropertyDataPK.java">org/ejbca/core/ejb/hardtoken/HardTokenPropertyDataPK.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  47
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.acme.AcmeOrderData.java">org/ejbca/acme/AcmeOrderData.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  90
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.acme.AcmeAuthorizationData.java">org/ejbca/acme/AcmeAuthorizationData.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  69
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.core.ejb.hardtoken.HardTokenIssuerData.java">org/ejbca/core/ejb/hardtoken/HardTokenIssuerData.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  96
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.core.ejb.services.ServiceData.java">org/ejbca/core/ejb/services/ServiceData.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  115
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.core.ejb.ra.raadmin.AdminPreferencesData.java">org/ejbca/core/ejb/ra/raadmin/AdminPreferencesData.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  63
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.core.ejb.hardtoken.HardTokenData.java">org/ejbca/core/ejb/hardtoken/HardTokenData.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  143
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.core.ejb.ca.publisher.PublisherQueueData.java">org/ejbca/core/ejb/ca/publisher/PublisherQueueData.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  161
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.core.ejb.hardtoken.HardTokenPropertyData.java">org/ejbca/core/ejb/hardtoken/HardTokenPropertyData.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  72
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.core.ejb.hardtoken.HardTokenCertificateMap.java">org/ejbca/core/ejb/hardtoken/HardTokenCertificateMap.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  68
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.core.ejb.ca.publisher.PublisherData.java">org/ejbca/core/ejb/ca/publisher/PublisherData.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  92
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.acme.AcmeNonceData.java">org/ejbca/acme/AcmeNonceData.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  44
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.core.ejb.ra.userdatasource.UserDataSourceData.java">org/ejbca/core/ejb/ra/userdatasource/UserDataSourceData.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  90
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.peerconnector.PeerData.java">org/ejbca/peerconnector/PeerData.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  87
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.core.ejb.keyrecovery.KeyRecoveryData.java">org/ejbca/core/ejb/keyrecovery/KeyRecoveryData.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  151
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.core.ejb.ca.validation.BlacklistData.java">org/ejbca/core/ejb/ca/validation/BlacklistData.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  78
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.util.FixEndOfBrokenXML.java">org/ejbca/util/FixEndOfBrokenXML.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  77
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.core.ejb.ra.raadmin.EndEntityProfileData.java">org/ejbca/core/ejb/ra/raadmin/EndEntityProfileData.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  102
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.core.ejb.keyrecovery.KeyRecoveryDataPK.java">org/ejbca/core/ejb/keyrecovery/KeyRecoveryDataPK.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  47
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-entity/checkstyle.html#org.ejbca.acme.AcmeChallengeData.java">org/ejbca/acme/AcmeChallengeData.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  72
+                </td>
+              </tr>
+                      </tbody>
+        </table>
+        
+      </description>
+    </item>
+  </channel>
+</rss>
+

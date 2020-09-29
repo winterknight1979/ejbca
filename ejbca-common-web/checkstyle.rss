@@ -1,0 +1,1048 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+<rss version="0.91">
+  <channel>
+    <title>EJBCA Common Web code - Checkstyle report</title>
+    <link>https://github.com/winterknight1979/ejbca/ejbca-common-web</link>
+    <description>EJBCA Common Web code - Checkstyle report</description>
+    <language>en-us</language>
+    <copyright>&#169;2020</copyright>
+    <item>
+      <title>File: 71,
+             Errors: 4929,
+             Warnings: 0,
+             Infos: 0
+      </title>
+            <link>https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html</link>
+      <description>
+        <p>Click <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html">here</a> for the full Checkstyle report.</p>
+
+        <table summary="Files" boder="1">
+          <thead>
+            <tr>
+              <th>Files</th>
+              <th style="width:30px;"><abbr title="Info">I</abbr></th>
+              <th style="width:30px;"><abbr title="Warning">W</abbr></th>
+              <th style="width:30px;"><abbr title="Error">E</abbr></th>
+            </tr>
+          </thead>
+          <tbody>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.approval.approvalrequests.GenerateTokenApprovalRequest.java">org/ejbca/core/model/approval/approvalrequests/GenerateTokenApprovalRequest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  77
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.services.workers.UserPasswordExpireWorker.java">org/ejbca/core/model/services/workers/UserPasswordExpireWorker.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  36
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.services.ActionInfo.java">org/ejbca/core/model/services/ActionInfo.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  2
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.services.BaseWorker.java">org/ejbca/core/model/services/BaseWorker.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  112
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.services.workers.RolloverWorker.java">org/ejbca/core/model/services/workers/RolloverWorker.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  27
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.util.IPatternLogger.java">org/ejbca/util/IPatternLogger.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  29
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.protocol.cmp.CmpErrorResponseMessage.java">org/ejbca/core/protocol/cmp/CmpErrorResponseMessage.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  74
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.ui.web.protocol.StoreServletBase.java">org/ejbca/ui/web/protocol/StoreServletBase.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  174
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.util.DummyPatternLogger.java">org/ejbca/util/DummyPatternLogger.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  15
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.ra.RAAuthorization.java">org/ejbca/core/model/ra/RAAuthorization.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  95
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.services.intervals.DummyInterval.java">org/ejbca/core/model/services/intervals/DummyInterval.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  6
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.services.workers.EmailSendingWorker.java">org/ejbca/core/model/services/workers/EmailSendingWorker.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  70
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.services.workers.CRLUpdateWorker.java">org/ejbca/core/model/services/workers/CRLUpdateWorker.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  28
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.util.PatternLogger.java">org/ejbca/util/PatternLogger.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  78
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.approval.approvalrequests.KeyRecoveryApprovalRequest.java">org/ejbca/core/model/approval/approvalrequests/KeyRecoveryApprovalRequest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  98
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.services.actions.MailActionInfo.java">org/ejbca/core/model/services/actions/MailActionInfo.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  27
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.util.ServiceControlFilter.java">org/ejbca/util/ServiceControlFilter.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  28
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.ui.web.RevokedInfoView.java">org/ejbca/ui/web/RevokedInfoView.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  22
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.ui.web.protocol.RFC4387URL.java">org/ejbca/ui/web/protocol/RFC4387URL.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  50
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.services.IAction.java">org/ejbca/core/model/services/IAction.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  13
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.services.workers.CRLDownloadWorker.java">org/ejbca/core/model/services/workers/CRLDownloadWorker.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  83
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.services.BaseAction.java">org/ejbca/core/model/services/BaseAction.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  14
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.services.workers.HsmKeepAliveWorker.java">org/ejbca/core/model/services/workers/HsmKeepAliveWorker.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  49
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.owasp.filters.ContentSecurityPolicyFilter.java">org/owasp/filters/ContentSecurityPolicyFilter.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  78
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.protocol.cmp.EncryptedValueBuilder.java">org/ejbca/core/protocol/cmp/EncryptedValueBuilder.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  65
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.approval.approvalrequests.ChangeStatusEndEntityApprovalRequest.java">org/ejbca/core/model/approval/approvalrequests/ChangeStatusEndEntityApprovalRequest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  111
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.protocol.cmp.CmpMessageHelper.java">org/ejbca/core/protocol/cmp/CmpMessageHelper.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  248
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.protocol.cmp.ICrmfRequestMessage.java">org/ejbca/core/protocol/cmp/ICrmfRequestMessage.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  25
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.services.actions.MailAction.java">org/ejbca/core/model/services/actions/MailAction.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  26
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.approval.approvalrequests.AddEndEntityApprovalRequest.java">org/ejbca/core/model/approval/approvalrequests/AddEndEntityApprovalRequest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  168
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.protocol.cmp.InvalidCmpProtectionException.java">org/ejbca/core/protocol/cmp/InvalidCmpProtectionException.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  7
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.protocol.cmp.CmpPbeVerifyer.java">org/ejbca/core/protocol/cmp/CmpPbeVerifyer.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  80
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.util.mail.MailAttachment.java">org/ejbca/util/mail/MailAttachment.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  34
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.services.workers.RenewCAWorker.java">org/ejbca/core/model/services/workers/RenewCAWorker.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  45
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.ra.UsernameGenerator.java">org/ejbca/core/model/ra/UsernameGenerator.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  65
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.protocol.cmp.BaseCmpMessage.java">org/ejbca/core/protocol/cmp/BaseCmpMessage.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  89
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.ra.userdatasource.CustomUserDataSourceContainer.java">org/ejbca/core/model/ra/userdatasource/CustomUserDataSourceContainer.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  116
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.protocol.cmp.JcaEncryptedValueBuilder.java">org/ejbca/core/protocol/cmp/JcaEncryptedValueBuilder.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  15
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.protocol.cmp.CrmfRequestMessage.java">org/ejbca/core/protocol/cmp/CrmfRequestMessage.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  168
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.services.actions.NoAction.java">org/ejbca/core/model/services/actions/NoAction.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  8
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.config.MailConfiguration.java">org/ejbca/config/MailConfiguration.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  7
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.services.workers.CertificateExpirationNotifierWorker.java">org/ejbca/core/model/services/workers/CertificateExpirationNotifierWorker.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  100
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.config.VAConfiguration.java">org/ejbca/config/VAConfiguration.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  16
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.validation.PublicKeyBlacklistKeyValidator.java">org/ejbca/core/model/validation/PublicKeyBlacklistKeyValidator.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  67
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.ui.web.pub.ServletUtils.java">org/ejbca/ui/web/pub/ServletUtils.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  22
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.services.ActionException.java">org/ejbca/core/model/services/ActionException.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  8
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.approval.approvalrequests.EditEndEntityApprovalRequest.java">org/ejbca/core/model/approval/approvalrequests/EditEndEntityApprovalRequest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  252
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.ui.web.pub.ServletDebug.java">org/ejbca/ui/web/pub/ServletDebug.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  49
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.approval.approvalrequests.RevocationApprovalRequest.java">org/ejbca/core/model/approval/approvalrequests/RevocationApprovalRequest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  151
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.ui.web.CertificateRequestResponse.java">org/ejbca/ui/web/CertificateRequestResponse.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  17
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.hardtoken.HardTokenIssuerDoesntExistsException.java">org/ejbca/core/model/hardtoken/HardTokenIssuerDoesntExistsException.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  11
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.ra.UsernameGeneratorParams.java">org/ejbca/core/model/ra/UsernameGeneratorParams.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  75
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.protocol.cmp.CmpResponseMessage.java">org/ejbca/core/protocol/cmp/CmpResponseMessage.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  191
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.util.mail.MailException.java">org/ejbca/util/mail/MailException.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  6
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.protocol.cmp.authentication.ICMPAuthenticationModule.java">org/ejbca/core/protocol/cmp/authentication/ICMPAuthenticationModule.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  16
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.util.mail.MailSender.java">org/ejbca/util/mail/MailSender.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  58
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.ui.web.RequestHelper.java">org/ejbca/ui/web/RequestHelper.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  320
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.services.BaseInterval.java">org/ejbca/core/model/services/BaseInterval.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  15
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.approval.ApprovalRequestHelper.java">org/ejbca/core/model/approval/ApprovalRequestHelper.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  11
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.ra.UserNotificationParamGen.java">org/ejbca/core/model/ra/UserNotificationParamGen.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  112
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.approval.approvalrequests.ActivateCATokenApprovalRequest.java">org/ejbca/core/model/approval/approvalrequests/ActivateCATokenApprovalRequest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  79
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.services.intervals.PeriodicalInterval.java">org/ejbca/core/model/services/intervals/PeriodicalInterval.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  68
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.ui.web.CertificateView.java">org/ejbca/ui/web/CertificateView.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  289
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.hardtoken.HardTokenIssuerExistsException.java">org/ejbca/core/model/hardtoken/HardTokenIssuerExistsException.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  10
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.services.workers.PublishQueueProcessWorker.java">org/ejbca/core/model/services/workers/PublishQueueProcessWorker.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  22
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.protocol.cmp.authentication.RegTokenPasswordExtractor.java">org/ejbca/core/protocol/cmp/authentication/RegTokenPasswordExtractor.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  54
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.util.HTMLTools.java">org/ejbca/util/HTMLTools.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  138
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.protocol.cmp.CmpPKIBodyConstants.java">org/ejbca/core/protocol/cmp/CmpPKIBodyConstants.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  79
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.services.IInterval.java">org/ejbca/core/model/services/IInterval.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  11
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.ui.web.CertificateResponseType.java">org/ejbca/ui/web/CertificateResponseType.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  25
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-common-web/checkstyle.html#org.ejbca.core.model.approval.approvalrequests.ViewHardTokenDataApprovalRequest.java">org/ejbca/core/model/approval/approvalrequests/ViewHardTokenDataApprovalRequest.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  95
+                </td>
+              </tr>
+                      </tbody>
+        </table>
+        
+      </description>
+    </item>
+  </channel>
+</rss>
+

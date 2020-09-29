@@ -265,8 +265,8 @@ public final class ConcurrentCache&lt;K,V&gt; {
 <span class="fc bfc" id="L265" title="All 2 branches covered.">                if (!cache.containsKey(key)) {</span>
 <span class="fc" id="L266">                    cleanupIfNeeded();</span>
 <span class="fc" id="L267">                    theirSemaphore.wait(timeout);</span>
-<span class="pc bpc" id="L268" title="3 of 4 branches missed.">                    while (!cache.containsKey(key) &amp;&amp; System.currentTimeMillis() &lt; timeAtEntry+timeout) {</span>
-<span class="nc" id="L269">                        theirSemaphore.wait(timeout/10L+1L);</span>
+<span class="pc bpc" id="L268" title="1 of 4 branches missed.">                    while (!cache.containsKey(key) &amp;&amp; System.currentTimeMillis() &lt; timeAtEntry+timeout) {</span>
+<span class="fc" id="L269">                        theirSemaphore.wait(timeout/10L+1L);</span>
                     }
                 }
 <span class="fc" id="L272">            }</span>

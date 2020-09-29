@@ -1,0 +1,628 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+<rss version="0.91">
+  <channel>
+    <title>EJBCA Webservices CLI - Checkstyle report</title>
+    <link>https://github.com/winterknight1979/ejbca/ejbca-ws-cli</link>
+    <description>EJBCA Webservices CLI - Checkstyle report</description>
+    <language>en-us</language>
+    <copyright>&#169;2020</copyright>
+    <item>
+      <title>File: 41,
+             Errors: 3504,
+             Warnings: 0,
+             Infos: 0
+      </title>
+            <link>https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html</link>
+      <description>
+        <p>Click <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html">here</a> for the full Checkstyle report.</p>
+
+        <table summary="Files" boder="1">
+          <thead>
+            <tr>
+              <th>Files</th>
+              <th style="width:30px;"><abbr title="Info">I</abbr></th>
+              <th style="width:30px;"><abbr title="Warning">W</abbr></th>
+              <th style="width:30px;"><abbr title="Error">E</abbr></th>
+            </tr>
+          </thead>
+          <tbody>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.CreateCryptoTokenCommand.java">org/ejbca/core/protocol/ws/client/CreateCryptoTokenCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  44
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.CertificateRequestCommand.java">org/ejbca/core/protocol/ws/client/CertificateRequestCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  162
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.GenerateCryptoTokenKeysCommand.java">org/ejbca/core/protocol/ws/client/GenerateCryptoTokenKeysCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  28
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.UpdateCaCertCommand.java">org/ejbca/core/protocol/ws/client/UpdateCaCertCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  16
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.EJBCAWSRABaseCommand.java">org/ejbca/core/protocol/ws/client/EJBCAWSRABaseCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  179
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.KeyRecoverCommand.java">org/ejbca/core/protocol/ws/client/KeyRecoverCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  26
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.PKCS12ReqCommand.java">org/ejbca/core/protocol/ws/client/PKCS12ReqCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  80
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.CvcPemCommand.java">org/ejbca/core/protocol/ws/client/CvcPemCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  72
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.EJBCAWSRACommandFactory.java">org/ejbca/core/protocol/ws/client/EJBCAWSRACommandFactory.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  24
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.FindCertsCommand.java">org/ejbca/core/protocol/ws/client/FindCertsCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  96
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.cvcwscli.java">org/ejbca/core/protocol/ws/client/cvcwscli.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  7
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.CheckRevokeStatusCommand.java">org/ejbca/core/protocol/ws/client/CheckRevokeStatusCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  64
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.StressTestCommand.java">org/ejbca/core/protocol/ws/client/StressTestCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  452
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.ParseUserData.java">org/ejbca/core/protocol/ws/client/ParseUserData.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  79
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.CaCertRequestCommand.java">org/ejbca/core/protocol/ws/client/CaCertRequestCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  80
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.GetProfileCommand.java">org/ejbca/core/protocol/ws/client/GetProfileCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  24
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.RevokeUserCommand.java">org/ejbca/core/protocol/ws/client/RevokeUserCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  74
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.KeyRecoverEnrollCommand.java">org/ejbca/core/protocol/ws/client/KeyRecoverEnrollCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  56
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.ejbcawsracli.java">org/ejbca/core/protocol/ws/client/ejbcawsracli.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  32
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.ImportCaCertCommand.java">org/ejbca/core/protocol/ws/client/ImportCaCertCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  16
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.GetExpiredCertificatesCommand.java">org/ejbca/core/protocol/ws/client/GetExpiredCertificatesCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  92
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.CreateCRLCommand.java">org/ejbca/core/protocol/ws/client/CreateCRLCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  22
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.PKCS10ReqCommand.java">org/ejbca/core/protocol/ws/client/PKCS10ReqCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  117
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.EditUserCommand.java">org/ejbca/core/protocol/ws/client/EditUserCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  187
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.FindUserCommand.java">org/ejbca/core/protocol/ws/client/FindUserCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  255
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.CvcGetChainCommand.java">org/ejbca/core/protocol/ws/client/CvcGetChainCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  60
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.RevokeCertWithMetadataCommand.java">org/ejbca/core/protocol/ws/client/RevokeCertWithMetadataCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  52
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.AddSubjectToRoleCommand.java">org/ejbca/core/protocol/ws/client/AddSubjectToRoleCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  34
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.CaCertResponseCommand.java">org/ejbca/core/protocol/ws/client/CaCertResponseCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  73
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#ejbcawsracli.properties">ejbcawsracli.properties</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  3
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.RemoveSubjectFromRoleCommand.java">org/ejbca/core/protocol/ws/client/RemoveSubjectFromRoleCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  34
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.CreateCACommand.java">org/ejbca/core/protocol/ws/client/CreateCACommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  64
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.GetExpiredCertificatesByIssuerCommand.java">org/ejbca/core/protocol/ws/client/GetExpiredCertificatesByIssuerCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  91
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.GetPublisherQueueLength.java">org/ejbca/core/protocol/ws/client/GetPublisherQueueLength.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  36
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.RevokeCertCommand.java">org/ejbca/core/protocol/ws/client/RevokeCertCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  60
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.CustomLogCommand.java">org/ejbca/core/protocol/ws/client/CustomLogCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  67
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.GenerateNewUserCommand.java">org/ejbca/core/protocol/ws/client/GenerateNewUserCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  234
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.GetExpiredCertificatesByTypeCommand.java">org/ejbca/core/protocol/ws/client/GetExpiredCertificatesByTypeCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  92
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.CvcRequestCommand.java">org/ejbca/core/protocol/ws/client/CvcRequestCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  188
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.RevokeTokenCommand.java">org/ejbca/core/protocol/ws/client/RevokeTokenCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  57
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/ejbca-ws-cli/checkstyle.html#org.ejbca.core.protocol.ws.client.CvcPrintCommand.java">org/ejbca/core/protocol/ws/client/CvcPrintCommand.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  75
+                </td>
+              </tr>
+                      </tbody>
+        </table>
+        
+      </description>
+    </item>
+  </channel>
+</rss>
+

@@ -1,0 +1,670 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+<rss version="0.91">
+  <channel>
+    <title>CeSeCore Security EJB Implementation - Checkstyle report</title>
+    <link>https://github.com/winterknight1979/ejbca/cesecore-ejb</link>
+    <description>CeSeCore Security EJB Implementation - Checkstyle report</description>
+    <language>en-us</language>
+    <copyright>&#169;2020</copyright>
+    <item>
+      <title>File: 44,
+             Errors: 6314,
+             Warnings: 0,
+             Infos: 0
+      </title>
+            <link>https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html</link>
+      <description>
+        <p>Click <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html">here</a> for the full Checkstyle report.</p>
+
+        <table summary="Files" boder="1">
+          <thead>
+            <tr>
+              <th>Files</th>
+              <th style="width:30px;"><abbr title="Info">I</abbr></th>
+              <th style="width:30px;"><abbr title="Warning">W</abbr></th>
+              <th style="width:30px;"><abbr title="Error">E</abbr></th>
+            </tr>
+          </thead>
+          <tbody>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.audit.impl.integrityprotected.IntegrityProtectedAuditorSessionBean.java">org/cesecore/audit/impl/integrityprotected/IntegrityProtectedAuditorSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  146
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.roles.member.RoleMemberSessionBean.java">org/cesecore/roles/member/RoleMemberSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  134
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.audit.log.InternalSecurityEventsLoggerSessionBean.java">org/cesecore/audit/log/InternalSecurityEventsLoggerSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  42
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.roles.member.AuthenticationTokenCache.java">org/cesecore/roles/member/AuthenticationTokenCache.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  49
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.authorization.cache.AuthorizationCacheReloadListeners.java">org/cesecore/authorization/cache/AuthorizationCacheReloadListeners.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  19
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.certificates.certificate.NoConflictCertificateDataSessionBean.java">org/cesecore/certificates/certificate/NoConflictCertificateDataSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  35
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.certificates.certificate.BaseCertificateDataSessionBean.java">org/cesecore/certificates/certificate/BaseCertificateDataSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  44
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.certificates.certificate.UniqueSernoHelper.java">org/cesecore/certificates/certificate/UniqueSernoHelper.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  72
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.certificates.crl.CrlCreateSessionBean.java">org/cesecore/certificates/crl/CrlCreateSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  70
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.certificates.ca.CaSessionBean.java">org/cesecore/certificates/ca/CaSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  359
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.authorization.cache.AccessTreeUpdateSessionBean.java">org/cesecore/authorization/cache/AccessTreeUpdateSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  35
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.roles.management.RoleDataSessionBean.java">org/cesecore/roles/management/RoleDataSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  56
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.audit.log.SecurityEventsLoggerSessionBean.java">org/cesecore/audit/log/SecurityEventsLoggerSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  53
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.keys.token.CryptoTokenCache.java">org/cesecore/keys/token/CryptoTokenCache.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  24
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.profiles.ProfileSessionBean.java">org/cesecore/profiles/ProfileSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  49
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.certificates.certificateprofile.CertificateProfileSessionBean.java">org/cesecore/certificates/certificateprofile/CertificateProfileSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  187
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.certificates.ocsp.keys.CardKeys.java">org/cesecore/certificates/ocsp/keys/CardKeys.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  3
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.keybind.InternalKeyBindingDataSessionBean.java">org/cesecore/keybind/InternalKeyBindingDataSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  109
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.certificates.certificate.CertificateStoreSessionBean.java">org/cesecore/certificates/certificate/CertificateStoreSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  825
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.certificates.ocsp.OcspResponseGeneratorSessionBean.java">org/cesecore/certificates/ocsp/OcspResponseGeneratorSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  1083
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.keys.token.CryptoTokenSessionBean.java">org/cesecore/keys/token/CryptoTokenSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  76
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.certificates.crl.CrlStoreSessionBean.java">org/cesecore/certificates/crl/CrlStoreSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  67
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.roles.member.RoleMemberDataSessionBean.java">org/cesecore/roles/member/RoleMemberDataSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  105
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.certificates.certificate.NoConflictCertificateStoreSessionBean.java">org/cesecore/certificates/certificate/NoConflictCertificateStoreSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  140
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.certificates.ca.internal.CaIDCacheBean.java">org/cesecore/certificates/ca/internal/CaIDCacheBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  34
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.certificates.ca.internal.CaCache.java">org/cesecore/certificates/ca/internal/CaCache.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  22
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.keybind.InternalKeyBindingMgmtSessionBean.java">org/cesecore/keybind/InternalKeyBindingMgmtSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  563
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.keys.validation.KeyValidatorSessionBean.java">org/cesecore/keys/validation/KeyValidatorSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  275
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.audit.audit.SecurityEventsAuditorSessionBean.java">org/cesecore/audit/audit/SecurityEventsAuditorSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  56
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.roles.member.RoleMemberCache.java">org/cesecore/roles/member/RoleMemberCache.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  21
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.audit.impl.integrityprotected.IntegrityProtectedLoggerSessionBean.java">org/cesecore/audit/impl/integrityprotected/IntegrityProtectedLoggerSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  33
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.certificates.certificateprofile.CertificateProfileCache.java">org/cesecore/certificates/certificateprofile/CertificateProfileCache.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  65
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.roles.management.RoleSessionBean.java">org/cesecore/roles/management/RoleSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  249
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.certificates.certificate.CertificateCreateSessionBean.java">org/cesecore/certificates/certificate/CertificateCreateSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  297
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.certificates.certificate.CertificateDataSessionBean.java">org/cesecore/certificates/certificate/CertificateDataSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  176
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.roles.management.RoleCache.java">org/cesecore/roles/management/RoleCache.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  16
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.keys.token.CryptoTokenManagementSessionBean.java">org/cesecore/keys/token/CryptoTokenManagementSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  386
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.certificates.ocsp.HsmResponseThread.java">org/cesecore/certificates/ocsp/HsmResponseThread.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  30
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.authorization.AuthorizationSessionBean.java">org/cesecore/authorization/AuthorizationSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  100
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.certificates.ca.internal.CACacheHelper.java">org/cesecore/certificates/ca/internal/CACacheHelper.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  12
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.roles.member.AuthenticationTokenCacheKey.java">org/cesecore/roles/member/AuthenticationTokenCacheKey.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  30
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.configuration.GlobalConfigurationSessionBean.java">org/cesecore/configuration/GlobalConfigurationSessionBean.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  105
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.keys.validation.ValidatorCache.java">org/cesecore/keys/validation/ValidatorCache.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  18
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/winterknight1979/ejbca/cesecore-ejb/checkstyle.html#org.cesecore.certificates.ocsp.OCSPResponseItem.java">org/cesecore/certificates/ocsp/OCSPResponseItem.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  44
+                </td>
+              </tr>
+                      </tbody>
+        </table>
+        
+      </description>
+    </item>
+  </channel>
+</rss>
+
