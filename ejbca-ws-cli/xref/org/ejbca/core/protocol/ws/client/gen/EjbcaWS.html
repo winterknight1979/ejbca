@@ -37,12 +37,12 @@
 <a class="jxr_linenumber" name="L29" href="#L29">29</a>      <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment">     * </em>
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment">     * @param arg0</em>
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment">     * @throws UserDoesntFullfillEndEntityProfile_Exception</em>
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment">     * @throws UserDoesntFullfillEndEntityProfile_Exception</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
 <a class="jxr_linenumber" name="L38" href="#L38">38</a>  <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L39" href="#L39">39</a>      @WebMethod
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>      @RequestWrapper(localName = <span class="jxr_string">"editUser"</span>, targetNamespace = <span class="jxr_string">"http://ws.protocol.core.ejbca.org/"</span>, className = <span class="jxr_string">"org.ejbca.core.protocol.ws.client.gen.EditUser"</span>)
@@ -66,8 +66,8 @@
 <a class="jxr_linenumber" name="L58" href="#L58">58</a>  <em class="jxr_javadoccomment">     * @param arg0</em>
 <a class="jxr_linenumber" name="L59" href="#L59">59</a>  <em class="jxr_javadoccomment">     * @return</em>
 <a class="jxr_linenumber" name="L60" href="#L60">60</a>  <em class="jxr_javadoccomment">     *     returns java.util.List&lt;org.ejbca.core.protocol.ws.client.gen.UserDataVOWS&gt;</em>
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>  <em class="jxr_javadoccomment">     * @throws IllegalQueryException_Exception</em>
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>  <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>  <em class="jxr_javadoccomment">     * @throws IllegalQueryException_Exception</em>
 <a class="jxr_linenumber" name="L63" href="#L63">63</a>  <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
 <a class="jxr_linenumber" name="L64" href="#L64">64</a>  <em class="jxr_javadoccomment">     * @throws EndEntityProfileNotFoundException_Exception</em>
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>  <em class="jxr_javadoccomment">     */</em>
@@ -382,11 +382,11 @@
 <a class="jxr_linenumber" name="L374" href="#L374">374</a> <em class="jxr_javadoccomment">     * @param arg0</em>
 <a class="jxr_linenumber" name="L375" href="#L375">375</a> <em class="jxr_javadoccomment">     * @return</em>
 <a class="jxr_linenumber" name="L376" href="#L376">376</a> <em class="jxr_javadoccomment">     *     returns org.ejbca.core.protocol.ws.client.gen.CertificateResponse</em>
-<a class="jxr_linenumber" name="L377" href="#L377">377</a> <em class="jxr_javadoccomment">     * @throws CesecoreException_Exception</em>
-<a class="jxr_linenumber" name="L378" href="#L378">378</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L379" href="#L379">379</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L380" href="#L380">380</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
-<a class="jxr_linenumber" name="L381" href="#L381">381</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
+<a class="jxr_linenumber" name="L377" href="#L377">377</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L378" href="#L378">378</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L379" href="#L379">379</a> <em class="jxr_javadoccomment">     * @throws CesecoreException_Exception</em>
+<a class="jxr_linenumber" name="L380" href="#L380">380</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
+<a class="jxr_linenumber" name="L381" href="#L381">381</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
 <a class="jxr_linenumber" name="L382" href="#L382">382</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L383" href="#L383">383</a>     @WebMethod
 <a class="jxr_linenumber" name="L384" href="#L384">384</a>     @WebResult(targetNamespace = <span class="jxr_string">""</span>)
@@ -422,11 +422,11 @@
 <a class="jxr_linenumber" name="L414" href="#L414">414</a> <em class="jxr_javadoccomment">     * @param arg0</em>
 <a class="jxr_linenumber" name="L415" href="#L415">415</a> <em class="jxr_javadoccomment">     * @return</em>
 <a class="jxr_linenumber" name="L416" href="#L416">416</a> <em class="jxr_javadoccomment">     *     returns org.ejbca.core.protocol.ws.client.gen.CertificateResponse</em>
-<a class="jxr_linenumber" name="L417" href="#L417">417</a> <em class="jxr_javadoccomment">     * @throws CesecoreException_Exception</em>
-<a class="jxr_linenumber" name="L418" href="#L418">418</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L419" href="#L419">419</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L420" href="#L420">420</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
-<a class="jxr_linenumber" name="L421" href="#L421">421</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
+<a class="jxr_linenumber" name="L417" href="#L417">417</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L418" href="#L418">418</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L419" href="#L419">419</a> <em class="jxr_javadoccomment">     * @throws CesecoreException_Exception</em>
+<a class="jxr_linenumber" name="L420" href="#L420">420</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
+<a class="jxr_linenumber" name="L421" href="#L421">421</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
 <a class="jxr_linenumber" name="L422" href="#L422">422</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L423" href="#L423">423</a>     @WebMethod
 <a class="jxr_linenumber" name="L424" href="#L424">424</a>     @WebResult(targetNamespace = <span class="jxr_string">""</span>)
@@ -460,16 +460,16 @@
 <a class="jxr_linenumber" name="L452" href="#L452">452</a> <em class="jxr_javadoccomment">     * @param arg0</em>
 <a class="jxr_linenumber" name="L453" href="#L453">453</a> <em class="jxr_javadoccomment">     * @return</em>
 <a class="jxr_linenumber" name="L454" href="#L454">454</a> <em class="jxr_javadoccomment">     *     returns java.util.List&lt;org.ejbca.core.protocol.ws.client.gen.Certificate&gt;</em>
-<a class="jxr_linenumber" name="L455" href="#L455">455</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L456" href="#L456">456</a> <em class="jxr_javadoccomment">     * @throws CesecoreException_Exception</em>
-<a class="jxr_linenumber" name="L457" href="#L457">457</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L458" href="#L458">458</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L459" href="#L459">459</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
-<a class="jxr_linenumber" name="L460" href="#L460">460</a> <em class="jxr_javadoccomment">     * @throws UserDoesntFullfillEndEntityProfile_Exception</em>
-<a class="jxr_linenumber" name="L461" href="#L461">461</a> <em class="jxr_javadoccomment">     * @throws CertificateExpiredException_Exception</em>
-<a class="jxr_linenumber" name="L462" href="#L462">462</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
-<a class="jxr_linenumber" name="L463" href="#L463">463</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L464" href="#L464">464</a> <em class="jxr_javadoccomment">     * @throws SignRequestException_Exception</em>
+<a class="jxr_linenumber" name="L455" href="#L455">455</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L456" href="#L456">456</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L457" href="#L457">457</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L458" href="#L458">458</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L459" href="#L459">459</a> <em class="jxr_javadoccomment">     * @throws SignRequestException_Exception</em>
+<a class="jxr_linenumber" name="L460" href="#L460">460</a> <em class="jxr_javadoccomment">     * @throws CesecoreException_Exception</em>
+<a class="jxr_linenumber" name="L461" href="#L461">461</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
+<a class="jxr_linenumber" name="L462" href="#L462">462</a> <em class="jxr_javadoccomment">     * @throws UserDoesntFullfillEndEntityProfile_Exception</em>
+<a class="jxr_linenumber" name="L463" href="#L463">463</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
+<a class="jxr_linenumber" name="L464" href="#L464">464</a> <em class="jxr_javadoccomment">     * @throws CertificateExpiredException_Exception</em>
 <a class="jxr_linenumber" name="L465" href="#L465">465</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L466" href="#L466">466</a>     @WebMethod
 <a class="jxr_linenumber" name="L467" href="#L467">467</a>     @WebResult(targetNamespace = <span class="jxr_string">""</span>)
@@ -507,11 +507,11 @@
 <a class="jxr_linenumber" name="L499" href="#L499">499</a> <em class="jxr_javadoccomment">     * @param arg0</em>
 <a class="jxr_linenumber" name="L500" href="#L500">500</a> <em class="jxr_javadoccomment">     * @return</em>
 <a class="jxr_linenumber" name="L501" href="#L501">501</a> <em class="jxr_javadoccomment">     *     returns byte[]</em>
-<a class="jxr_linenumber" name="L502" href="#L502">502</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L503" href="#L503">503</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L504" href="#L504">504</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
+<a class="jxr_linenumber" name="L502" href="#L502">502</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L503" href="#L503">503</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L504" href="#L504">504</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
 <a class="jxr_linenumber" name="L505" href="#L505">505</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
-<a class="jxr_linenumber" name="L506" href="#L506">506</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L506" href="#L506">506</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
 <a class="jxr_linenumber" name="L507" href="#L507">507</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L508" href="#L508">508</a>     @WebMethod
 <a class="jxr_linenumber" name="L509" href="#L509">509</a>     @WebResult(targetNamespace = <span class="jxr_string">""</span>)
@@ -568,9 +568,9 @@
 <a class="jxr_linenumber" name="L560" href="#L560">560</a> <em class="jxr_javadoccomment">     * </em>
 <a class="jxr_linenumber" name="L561" href="#L561">561</a> <em class="jxr_javadoccomment">     * @param arg1</em>
 <a class="jxr_linenumber" name="L562" href="#L562">562</a> <em class="jxr_javadoccomment">     * @param arg0</em>
-<a class="jxr_linenumber" name="L563" href="#L563">563</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L564" href="#L564">564</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L565" href="#L565">565</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L563" href="#L563">563</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L564" href="#L564">564</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L565" href="#L565">565</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
 <a class="jxr_linenumber" name="L566" href="#L566">566</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L567" href="#L567">567</a>     @WebMethod
 <a class="jxr_linenumber" name="L568" href="#L568">568</a>     @RequestWrapper(localName = <span class="jxr_string">"updateCaCert"</span>, targetNamespace = <span class="jxr_string">"http://ws.protocol.core.ejbca.org/"</span>, className = <span class="jxr_string">"org.ejbca.core.protocol.ws.client.gen.UpdateCaCert"</span>)
@@ -594,11 +594,11 @@
 <a class="jxr_linenumber" name="L586" href="#L586">586</a> <em class="jxr_javadoccomment">     * @param arg2</em>
 <a class="jxr_linenumber" name="L587" href="#L587">587</a> <em class="jxr_javadoccomment">     * @param arg1</em>
 <a class="jxr_linenumber" name="L588" href="#L588">588</a> <em class="jxr_javadoccomment">     * @param arg0</em>
-<a class="jxr_linenumber" name="L589" href="#L589">589</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L590" href="#L590">590</a> <em class="jxr_javadoccomment">     * @throws CesecoreException_Exception</em>
-<a class="jxr_linenumber" name="L591" href="#L591">591</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L589" href="#L589">589</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L590" href="#L590">590</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L591" href="#L591">591</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
 <a class="jxr_linenumber" name="L592" href="#L592">592</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
-<a class="jxr_linenumber" name="L593" href="#L593">593</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L593" href="#L593">593</a> <em class="jxr_javadoccomment">     * @throws CesecoreException_Exception</em>
 <a class="jxr_linenumber" name="L594" href="#L594">594</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L595" href="#L595">595</a>     @WebMethod
 <a class="jxr_linenumber" name="L596" href="#L596">596</a>     @RequestWrapper(localName = <span class="jxr_string">"caCertResponse"</span>, targetNamespace = <span class="jxr_string">"http://ws.protocol.core.ejbca.org/"</span>, className = <span class="jxr_string">"org.ejbca.core.protocol.ws.client.gen.CaCertResponse"</span>)
@@ -628,11 +628,11 @@
 <a class="jxr_linenumber" name="L620" href="#L620">620</a> <em class="jxr_javadoccomment">     * @param arg2</em>
 <a class="jxr_linenumber" name="L621" href="#L621">621</a> <em class="jxr_javadoccomment">     * @param arg1</em>
 <a class="jxr_linenumber" name="L622" href="#L622">622</a> <em class="jxr_javadoccomment">     * @param arg0</em>
-<a class="jxr_linenumber" name="L623" href="#L623">623</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L624" href="#L624">624</a> <em class="jxr_javadoccomment">     * @throws CesecoreException_Exception</em>
-<a class="jxr_linenumber" name="L625" href="#L625">625</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L623" href="#L623">623</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L624" href="#L624">624</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L625" href="#L625">625</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
 <a class="jxr_linenumber" name="L626" href="#L626">626</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
-<a class="jxr_linenumber" name="L627" href="#L627">627</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L627" href="#L627">627</a> <em class="jxr_javadoccomment">     * @throws CesecoreException_Exception</em>
 <a class="jxr_linenumber" name="L628" href="#L628">628</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L629" href="#L629">629</a>     @WebMethod
 <a class="jxr_linenumber" name="L630" href="#L630">630</a>     @RequestWrapper(localName = <span class="jxr_string">"caCertResponseForRollover"</span>, targetNamespace = <span class="jxr_string">"http://ws.protocol.core.ejbca.org/"</span>, className = <span class="jxr_string">"org.ejbca.core.protocol.ws.client.gen.CaCertResponseForRollover"</span>)
@@ -660,8 +660,8 @@
 <a class="jxr_linenumber" name="L652" href="#L652">652</a> <em class="jxr_javadoccomment">     * </em>
 <a class="jxr_linenumber" name="L653" href="#L653">653</a> <em class="jxr_javadoccomment">     * @param arg0</em>
 <a class="jxr_linenumber" name="L654" href="#L654">654</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L655" href="#L655">655</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L656" href="#L656">656</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L655" href="#L655">655</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L656" href="#L656">656</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
 <a class="jxr_linenumber" name="L657" href="#L657">657</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L658" href="#L658">658</a>     @WebMethod
 <a class="jxr_linenumber" name="L659" href="#L659">659</a>     @RequestWrapper(localName = <span class="jxr_string">"rolloverCACert"</span>, targetNamespace = <span class="jxr_string">"http://ws.protocol.core.ejbca.org/"</span>, className = <span class="jxr_string">"org.ejbca.core.protocol.ws.client.gen.RolloverCACert"</span>)
@@ -686,11 +686,11 @@
 <a class="jxr_linenumber" name="L678" href="#L678">678</a> <em class="jxr_javadoccomment">     * @param arg0</em>
 <a class="jxr_linenumber" name="L679" href="#L679">679</a> <em class="jxr_javadoccomment">     * @return</em>
 <a class="jxr_linenumber" name="L680" href="#L680">680</a> <em class="jxr_javadoccomment">     *     returns org.ejbca.core.protocol.ws.client.gen.CertificateResponse</em>
-<a class="jxr_linenumber" name="L681" href="#L681">681</a> <em class="jxr_javadoccomment">     * @throws CesecoreException_Exception</em>
-<a class="jxr_linenumber" name="L682" href="#L682">682</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L683" href="#L683">683</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L684" href="#L684">684</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
-<a class="jxr_linenumber" name="L685" href="#L685">685</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
+<a class="jxr_linenumber" name="L681" href="#L681">681</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L682" href="#L682">682</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L683" href="#L683">683</a> <em class="jxr_javadoccomment">     * @throws CesecoreException_Exception</em>
+<a class="jxr_linenumber" name="L684" href="#L684">684</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
+<a class="jxr_linenumber" name="L685" href="#L685">685</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
 <a class="jxr_linenumber" name="L686" href="#L686">686</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L687" href="#L687">687</a>     @WebMethod
 <a class="jxr_linenumber" name="L688" href="#L688">688</a>     @WebResult(targetNamespace = <span class="jxr_string">""</span>)
@@ -727,9 +727,9 @@
 <a class="jxr_linenumber" name="L719" href="#L719">719</a> <em class="jxr_javadoccomment">     * @return</em>
 <a class="jxr_linenumber" name="L720" href="#L720">720</a> <em class="jxr_javadoccomment">     *     returns org.ejbca.core.protocol.ws.client.gen.KeyStore</em>
 <a class="jxr_linenumber" name="L721" href="#L721">721</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L722" href="#L722">722</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L723" href="#L723">723</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
-<a class="jxr_linenumber" name="L724" href="#L724">724</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
+<a class="jxr_linenumber" name="L722" href="#L722">722</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L723" href="#L723">723</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
+<a class="jxr_linenumber" name="L724" href="#L724">724</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
 <a class="jxr_linenumber" name="L725" href="#L725">725</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L726" href="#L726">726</a>     @WebMethod
 <a class="jxr_linenumber" name="L727" href="#L727">727</a>     @WebResult(targetNamespace = <span class="jxr_string">""</span>)
@@ -760,13 +760,13 @@
 <a class="jxr_linenumber" name="L752" href="#L752">752</a> <em class="jxr_javadoccomment">     * @param arg2</em>
 <a class="jxr_linenumber" name="L753" href="#L753">753</a> <em class="jxr_javadoccomment">     * @param arg1</em>
 <a class="jxr_linenumber" name="L754" href="#L754">754</a> <em class="jxr_javadoccomment">     * @param arg0</em>
-<a class="jxr_linenumber" name="L755" href="#L755">755</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L756" href="#L756">756</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L757" href="#L757">757</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L758" href="#L758">758</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
-<a class="jxr_linenumber" name="L759" href="#L759">759</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
-<a class="jxr_linenumber" name="L760" href="#L760">760</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L761" href="#L761">761</a> <em class="jxr_javadoccomment">     * @throws AlreadyRevokedException_Exception</em>
+<a class="jxr_linenumber" name="L755" href="#L755">755</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L756" href="#L756">756</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L757" href="#L757">757</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L758" href="#L758">758</a> <em class="jxr_javadoccomment">     * @throws AlreadyRevokedException_Exception</em>
+<a class="jxr_linenumber" name="L759" href="#L759">759</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L760" href="#L760">760</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
+<a class="jxr_linenumber" name="L761" href="#L761">761</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
 <a class="jxr_linenumber" name="L762" href="#L762">762</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L763" href="#L763">763</a>     @WebMethod
 <a class="jxr_linenumber" name="L764" href="#L764">764</a>     @RequestWrapper(localName = <span class="jxr_string">"revokeCert"</span>, targetNamespace = <span class="jxr_string">"http://ws.protocol.core.ejbca.org/"</span>, className = <span class="jxr_string">"org.ejbca.core.protocol.ws.client.gen.RevokeCert"</span>)
@@ -796,15 +796,15 @@
 <a class="jxr_linenumber" name="L788" href="#L788">788</a> <em class="jxr_javadoccomment">     * @param arg2</em>
 <a class="jxr_linenumber" name="L789" href="#L789">789</a> <em class="jxr_javadoccomment">     * @param arg1</em>
 <a class="jxr_linenumber" name="L790" href="#L790">790</a> <em class="jxr_javadoccomment">     * @param arg0</em>
-<a class="jxr_linenumber" name="L791" href="#L791">791</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L792" href="#L792">792</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L793" href="#L793">793</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L794" href="#L794">794</a> <em class="jxr_javadoccomment">     * @throws RevokeBackDateNotAllowedForProfileException_Exception</em>
+<a class="jxr_linenumber" name="L791" href="#L791">791</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L792" href="#L792">792</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L793" href="#L793">793</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L794" href="#L794">794</a> <em class="jxr_javadoccomment">     * @throws AlreadyRevokedException_Exception</em>
 <a class="jxr_linenumber" name="L795" href="#L795">795</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
-<a class="jxr_linenumber" name="L796" href="#L796">796</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
-<a class="jxr_linenumber" name="L797" href="#L797">797</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L798" href="#L798">798</a> <em class="jxr_javadoccomment">     * @throws DateNotValidException_Exception</em>
-<a class="jxr_linenumber" name="L799" href="#L799">799</a> <em class="jxr_javadoccomment">     * @throws AlreadyRevokedException_Exception</em>
+<a class="jxr_linenumber" name="L796" href="#L796">796</a> <em class="jxr_javadoccomment">     * @throws RevokeBackDateNotAllowedForProfileException_Exception</em>
+<a class="jxr_linenumber" name="L797" href="#L797">797</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
+<a class="jxr_linenumber" name="L798" href="#L798">798</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
+<a class="jxr_linenumber" name="L799" href="#L799">799</a> <em class="jxr_javadoccomment">     * @throws DateNotValidException_Exception</em>
 <a class="jxr_linenumber" name="L800" href="#L800">800</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L801" href="#L801">801</a>     @WebMethod
 <a class="jxr_linenumber" name="L802" href="#L802">802</a>     @RequestWrapper(localName = <span class="jxr_string">"revokeCertBackdated"</span>, targetNamespace = <span class="jxr_string">"http://ws.protocol.core.ejbca.org/"</span>, className = <span class="jxr_string">"org.ejbca.core.protocol.ws.client.gen.RevokeCertBackdated"</span>)
@@ -837,16 +837,16 @@
 <a class="jxr_linenumber" name="L829" href="#L829">829</a> <em class="jxr_javadoccomment">     * @param arg2</em>
 <a class="jxr_linenumber" name="L830" href="#L830">830</a> <em class="jxr_javadoccomment">     * @param arg1</em>
 <a class="jxr_linenumber" name="L831" href="#L831">831</a> <em class="jxr_javadoccomment">     * @param arg0</em>
-<a class="jxr_linenumber" name="L832" href="#L832">832</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L833" href="#L833">833</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L834" href="#L834">834</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L835" href="#L835">835</a> <em class="jxr_javadoccomment">     * @throws RevokeBackDateNotAllowedForProfileException_Exception</em>
+<a class="jxr_linenumber" name="L832" href="#L832">832</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L833" href="#L833">833</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L834" href="#L834">834</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L835" href="#L835">835</a> <em class="jxr_javadoccomment">     * @throws AlreadyRevokedException_Exception</em>
 <a class="jxr_linenumber" name="L836" href="#L836">836</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
-<a class="jxr_linenumber" name="L837" href="#L837">837</a> <em class="jxr_javadoccomment">     * @throws CertificateProfileDoesNotExistException_Exception</em>
+<a class="jxr_linenumber" name="L837" href="#L837">837</a> <em class="jxr_javadoccomment">     * @throws RevokeBackDateNotAllowedForProfileException_Exception</em>
 <a class="jxr_linenumber" name="L838" href="#L838">838</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
-<a class="jxr_linenumber" name="L839" href="#L839">839</a> <em class="jxr_javadoccomment">     * @throws DateNotValidException_Exception</em>
-<a class="jxr_linenumber" name="L840" href="#L840">840</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L841" href="#L841">841</a> <em class="jxr_javadoccomment">     * @throws AlreadyRevokedException_Exception</em>
+<a class="jxr_linenumber" name="L839" href="#L839">839</a> <em class="jxr_javadoccomment">     * @throws CertificateProfileDoesNotExistException_Exception</em>
+<a class="jxr_linenumber" name="L840" href="#L840">840</a> <em class="jxr_javadoccomment">     * @throws DateNotValidException_Exception</em>
+<a class="jxr_linenumber" name="L841" href="#L841">841</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
 <a class="jxr_linenumber" name="L842" href="#L842">842</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L843" href="#L843">843</a>     @WebMethod
 <a class="jxr_linenumber" name="L844" href="#L844">844</a>     @RequestWrapper(localName = <span class="jxr_string">"revokeCertWithMetadata"</span>, targetNamespace = <span class="jxr_string">"http://ws.protocol.core.ejbca.org/"</span>, className = <span class="jxr_string">"org.ejbca.core.protocol.ws.client.gen.RevokeCertWithMetadata"</span>)
@@ -878,13 +878,13 @@
 <a class="jxr_linenumber" name="L870" href="#L870">870</a> <em class="jxr_javadoccomment">     * @param arg2</em>
 <a class="jxr_linenumber" name="L871" href="#L871">871</a> <em class="jxr_javadoccomment">     * @param arg1</em>
 <a class="jxr_linenumber" name="L872" href="#L872">872</a> <em class="jxr_javadoccomment">     * @param arg0</em>
-<a class="jxr_linenumber" name="L873" href="#L873">873</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L874" href="#L874">874</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L875" href="#L875">875</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L876" href="#L876">876</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
-<a class="jxr_linenumber" name="L877" href="#L877">877</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
-<a class="jxr_linenumber" name="L878" href="#L878">878</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L879" href="#L879">879</a> <em class="jxr_javadoccomment">     * @throws AlreadyRevokedException_Exception</em>
+<a class="jxr_linenumber" name="L873" href="#L873">873</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L874" href="#L874">874</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L875" href="#L875">875</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L876" href="#L876">876</a> <em class="jxr_javadoccomment">     * @throws AlreadyRevokedException_Exception</em>
+<a class="jxr_linenumber" name="L877" href="#L877">877</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L878" href="#L878">878</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
+<a class="jxr_linenumber" name="L879" href="#L879">879</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
 <a class="jxr_linenumber" name="L880" href="#L880">880</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L881" href="#L881">881</a>     @WebMethod
 <a class="jxr_linenumber" name="L882" href="#L882">882</a>     @RequestWrapper(localName = <span class="jxr_string">"revokeUser"</span>, targetNamespace = <span class="jxr_string">"http://ws.protocol.core.ejbca.org/"</span>, className = <span class="jxr_string">"org.ejbca.core.protocol.ws.client.gen.RevokeUser"</span>)
@@ -911,12 +911,12 @@
 <a class="jxr_linenumber" name="L903" href="#L903">903</a>     <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L904" href="#L904">904</a> <em class="jxr_javadoccomment">     * </em>
 <a class="jxr_linenumber" name="L905" href="#L905">905</a> <em class="jxr_javadoccomment">     * @param arg0</em>
-<a class="jxr_linenumber" name="L906" href="#L906">906</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L907" href="#L907">907</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L908" href="#L908">908</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L906" href="#L906">906</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L907" href="#L907">907</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L908" href="#L908">908</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
 <a class="jxr_linenumber" name="L909" href="#L909">909</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
 <a class="jxr_linenumber" name="L910" href="#L910">910</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
-<a class="jxr_linenumber" name="L911" href="#L911">911</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L911" href="#L911">911</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
 <a class="jxr_linenumber" name="L912" href="#L912">912</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L913" href="#L913">913</a>     @WebMethod
 <a class="jxr_linenumber" name="L914" href="#L914">914</a>     @RequestWrapper(localName = <span class="jxr_string">"keyRecoverNewest"</span>, targetNamespace = <span class="jxr_string">"http://ws.protocol.core.ejbca.org/"</span>, className = <span class="jxr_string">"org.ejbca.core.protocol.ws.client.gen.KeyRecoverNewest"</span>)
@@ -940,12 +940,12 @@
 <a class="jxr_linenumber" name="L932" href="#L932">932</a> <em class="jxr_javadoccomment">     * @param arg2</em>
 <a class="jxr_linenumber" name="L933" href="#L933">933</a> <em class="jxr_javadoccomment">     * @param arg1</em>
 <a class="jxr_linenumber" name="L934" href="#L934">934</a> <em class="jxr_javadoccomment">     * @param arg0</em>
-<a class="jxr_linenumber" name="L935" href="#L935">935</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L936" href="#L936">936</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L937" href="#L937">937</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
+<a class="jxr_linenumber" name="L935" href="#L935">935</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L936" href="#L936">936</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L937" href="#L937">937</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
 <a class="jxr_linenumber" name="L938" href="#L938">938</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
 <a class="jxr_linenumber" name="L939" href="#L939">939</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
-<a class="jxr_linenumber" name="L940" href="#L940">940</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L940" href="#L940">940</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
 <a class="jxr_linenumber" name="L941" href="#L941">941</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L942" href="#L942">942</a>     @WebMethod
 <a class="jxr_linenumber" name="L943" href="#L943">943</a>     @RequestWrapper(localName = <span class="jxr_string">"keyRecover"</span>, targetNamespace = <span class="jxr_string">"http://ws.protocol.core.ejbca.org/"</span>, className = <span class="jxr_string">"org.ejbca.core.protocol.ws.client.gen.KeyRecover"</span>)
@@ -977,11 +977,11 @@
 <a class="jxr_linenumber" name="L969" href="#L969">969</a> <em class="jxr_javadoccomment">     * @param arg0</em>
 <a class="jxr_linenumber" name="L970" href="#L970">970</a> <em class="jxr_javadoccomment">     * @return</em>
 <a class="jxr_linenumber" name="L971" href="#L971">971</a> <em class="jxr_javadoccomment">     *     returns org.ejbca.core.protocol.ws.client.gen.KeyStore</em>
-<a class="jxr_linenumber" name="L972" href="#L972">972</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L973" href="#L973">973</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L974" href="#L974">974</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L975" href="#L975">975</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
-<a class="jxr_linenumber" name="L976" href="#L976">976</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
+<a class="jxr_linenumber" name="L972" href="#L972">972</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L973" href="#L973">973</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L974" href="#L974">974</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L975" href="#L975">975</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
+<a class="jxr_linenumber" name="L976" href="#L976">976</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
 <a class="jxr_linenumber" name="L977" href="#L977">977</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L978" href="#L978">978</a>     @WebMethod
 <a class="jxr_linenumber" name="L979" href="#L979">979</a>     @WebResult(targetNamespace = <span class="jxr_string">""</span>)
@@ -1012,13 +1012,13 @@
 <a class="jxr_linenumber" name="L1004" href="#L1004">1004</a> <em class="jxr_javadoccomment">     * </em>
 <a class="jxr_linenumber" name="L1005" href="#L1005">1005</a> <em class="jxr_javadoccomment">     * @param arg1</em>
 <a class="jxr_linenumber" name="L1006" href="#L1006">1006</a> <em class="jxr_javadoccomment">     * @param arg0</em>
-<a class="jxr_linenumber" name="L1007" href="#L1007">1007</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L1008" href="#L1008">1008</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L1009" href="#L1009">1009</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L1010" href="#L1010">1010</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
-<a class="jxr_linenumber" name="L1011" href="#L1011">1011</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
-<a class="jxr_linenumber" name="L1012" href="#L1012">1012</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L1013" href="#L1013">1013</a> <em class="jxr_javadoccomment">     * @throws AlreadyRevokedException_Exception</em>
+<a class="jxr_linenumber" name="L1007" href="#L1007">1007</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L1008" href="#L1008">1008</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L1009" href="#L1009">1009</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L1010" href="#L1010">1010</a> <em class="jxr_javadoccomment">     * @throws AlreadyRevokedException_Exception</em>
+<a class="jxr_linenumber" name="L1011" href="#L1011">1011</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L1012" href="#L1012">1012</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
+<a class="jxr_linenumber" name="L1013" href="#L1013">1013</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
 <a class="jxr_linenumber" name="L1014" href="#L1014">1014</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L1015" href="#L1015">1015</a>     @WebMethod
 <a class="jxr_linenumber" name="L1016" href="#L1016">1016</a>     @RequestWrapper(localName = <span class="jxr_string">"revokeToken"</span>, targetNamespace = <span class="jxr_string">"http://ws.protocol.core.ejbca.org/"</span>, className = <span class="jxr_string">"org.ejbca.core.protocol.ws.client.gen.RevokeToken"</span>)
@@ -1047,8 +1047,8 @@
 <a class="jxr_linenumber" name="L1039" href="#L1039">1039</a> <em class="jxr_javadoccomment">     * @return</em>
 <a class="jxr_linenumber" name="L1040" href="#L1040">1040</a> <em class="jxr_javadoccomment">     *     returns org.ejbca.core.protocol.ws.client.gen.RevokeStatus</em>
 <a class="jxr_linenumber" name="L1041" href="#L1041">1041</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L1042" href="#L1042">1042</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L1043" href="#L1043">1043</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L1042" href="#L1042">1042</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L1043" href="#L1043">1043</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
 <a class="jxr_linenumber" name="L1044" href="#L1044">1044</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L1045" href="#L1045">1045</a>     @WebMethod
 <a class="jxr_linenumber" name="L1046" href="#L1046">1046</a>     @WebResult(targetNamespace = <span class="jxr_string">""</span>)
@@ -1103,15 +1103,15 @@
 <a class="jxr_linenumber" name="L1095" href="#L1095">1095</a> <em class="jxr_javadoccomment">     * @param arg0</em>
 <a class="jxr_linenumber" name="L1096" href="#L1096">1096</a> <em class="jxr_javadoccomment">     * @return</em>
 <a class="jxr_linenumber" name="L1097" href="#L1097">1097</a> <em class="jxr_javadoccomment">     *     returns java.util.List&lt;org.ejbca.core.protocol.ws.client.gen.TokenCertificateResponseWS&gt;</em>
-<a class="jxr_linenumber" name="L1098" href="#L1098">1098</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L1099" href="#L1099">1099</a> <em class="jxr_javadoccomment">     * @throws HardTokenExistsException_Exception</em>
-<a class="jxr_linenumber" name="L1100" href="#L1100">1100</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L1101" href="#L1101">1101</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L1102" href="#L1102">1102</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
-<a class="jxr_linenumber" name="L1103" href="#L1103">1103</a> <em class="jxr_javadoccomment">     * @throws UserDoesntFullfillEndEntityProfile_Exception</em>
-<a class="jxr_linenumber" name="L1104" href="#L1104">1104</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L1105" href="#L1105">1105</a> <em class="jxr_javadoccomment">     * @throws ApprovalRequestExecutionException_Exception</em>
-<a class="jxr_linenumber" name="L1106" href="#L1106">1106</a> <em class="jxr_javadoccomment">     * @throws ApprovalRequestExpiredException_Exception</em>
+<a class="jxr_linenumber" name="L1098" href="#L1098">1098</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L1099" href="#L1099">1099</a> <em class="jxr_javadoccomment">     * @throws ApprovalRequestExecutionException_Exception</em>
+<a class="jxr_linenumber" name="L1100" href="#L1100">1100</a> <em class="jxr_javadoccomment">     * @throws ApprovalRequestExpiredException_Exception</em>
+<a class="jxr_linenumber" name="L1101" href="#L1101">1101</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L1102" href="#L1102">1102</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L1103" href="#L1103">1103</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L1104" href="#L1104">1104</a> <em class="jxr_javadoccomment">     * @throws UserDoesntFullfillEndEntityProfile_Exception</em>
+<a class="jxr_linenumber" name="L1105" href="#L1105">1105</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
+<a class="jxr_linenumber" name="L1106" href="#L1106">1106</a> <em class="jxr_javadoccomment">     * @throws HardTokenExistsException_Exception</em>
 <a class="jxr_linenumber" name="L1107" href="#L1107">1107</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L1108" href="#L1108">1108</a>     @WebMethod
 <a class="jxr_linenumber" name="L1109" href="#L1109">1109</a>     @WebResult(targetNamespace = <span class="jxr_string">""</span>)
@@ -1169,14 +1169,14 @@
 <a class="jxr_linenumber" name="L1161" href="#L1161">1161</a> <em class="jxr_javadoccomment">     * @param arg0</em>
 <a class="jxr_linenumber" name="L1162" href="#L1162">1162</a> <em class="jxr_javadoccomment">     * @return</em>
 <a class="jxr_linenumber" name="L1163" href="#L1163">1163</a> <em class="jxr_javadoccomment">     *     returns org.ejbca.core.protocol.ws.client.gen.HardTokenDataWS</em>
-<a class="jxr_linenumber" name="L1164" href="#L1164">1164</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L1165" href="#L1165">1165</a> <em class="jxr_javadoccomment">     * @throws HardTokenDoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L1166" href="#L1166">1166</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L1167" href="#L1167">1167</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L1168" href="#L1168">1168</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
-<a class="jxr_linenumber" name="L1169" href="#L1169">1169</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
-<a class="jxr_linenumber" name="L1170" href="#L1170">1170</a> <em class="jxr_javadoccomment">     * @throws ApprovalRequestExecutionException_Exception</em>
-<a class="jxr_linenumber" name="L1171" href="#L1171">1171</a> <em class="jxr_javadoccomment">     * @throws ApprovalRequestExpiredException_Exception</em>
+<a class="jxr_linenumber" name="L1164" href="#L1164">1164</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L1165" href="#L1165">1165</a> <em class="jxr_javadoccomment">     * @throws ApprovalRequestExpiredException_Exception</em>
+<a class="jxr_linenumber" name="L1166" href="#L1166">1166</a> <em class="jxr_javadoccomment">     * @throws ApprovalRequestExecutionException_Exception</em>
+<a class="jxr_linenumber" name="L1167" href="#L1167">1167</a> <em class="jxr_javadoccomment">     * @throws HardTokenDoesntExistsException_Exception</em>
+<a class="jxr_linenumber" name="L1168" href="#L1168">1168</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L1169" href="#L1169">1169</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L1170" href="#L1170">1170</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
+<a class="jxr_linenumber" name="L1171" href="#L1171">1171</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
 <a class="jxr_linenumber" name="L1172" href="#L1172">1172</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L1173" href="#L1173">1173</a>     @WebMethod
 <a class="jxr_linenumber" name="L1174" href="#L1174">1174</a>     @WebResult(targetNamespace = <span class="jxr_string">""</span>)
@@ -1209,9 +1209,9 @@
 <a class="jxr_linenumber" name="L1201" href="#L1201">1201</a> <em class="jxr_javadoccomment">     * @param arg0</em>
 <a class="jxr_linenumber" name="L1202" href="#L1202">1202</a> <em class="jxr_javadoccomment">     * @return</em>
 <a class="jxr_linenumber" name="L1203" href="#L1203">1203</a> <em class="jxr_javadoccomment">     *     returns java.util.List&lt;org.ejbca.core.protocol.ws.client.gen.HardTokenDataWS&gt;</em>
-<a class="jxr_linenumber" name="L1204" href="#L1204">1204</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L1205" href="#L1205">1205</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L1206" href="#L1206">1206</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L1204" href="#L1204">1204</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L1205" href="#L1205">1205</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L1206" href="#L1206">1206</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
 <a class="jxr_linenumber" name="L1207" href="#L1207">1207</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L1208" href="#L1208">1208</a>     @WebMethod
 <a class="jxr_linenumber" name="L1209" href="#L1209">1209</a>     @WebResult(targetNamespace = <span class="jxr_string">""</span>)
@@ -1236,10 +1236,10 @@
 <a class="jxr_linenumber" name="L1228" href="#L1228">1228</a> <em class="jxr_javadoccomment">     * </em>
 <a class="jxr_linenumber" name="L1229" href="#L1229">1229</a> <em class="jxr_javadoccomment">     * @param arg1</em>
 <a class="jxr_linenumber" name="L1230" href="#L1230">1230</a> <em class="jxr_javadoccomment">     * @param arg0</em>
-<a class="jxr_linenumber" name="L1231" href="#L1231">1231</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L1232" href="#L1232">1232</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L1233" href="#L1233">1233</a> <em class="jxr_javadoccomment">     * @throws PublisherException_Exception</em>
-<a class="jxr_linenumber" name="L1234" href="#L1234">1234</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L1231" href="#L1231">1231</a> <em class="jxr_javadoccomment">     * @throws PublisherException_Exception</em>
+<a class="jxr_linenumber" name="L1232" href="#L1232">1232</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L1233" href="#L1233">1233</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L1234" href="#L1234">1234</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
 <a class="jxr_linenumber" name="L1235" href="#L1235">1235</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L1236" href="#L1236">1236</a>     @WebMethod
 <a class="jxr_linenumber" name="L1237" href="#L1237">1237</a>     @RequestWrapper(localName = <span class="jxr_string">"republishCertificate"</span>, targetNamespace = <span class="jxr_string">"http://ws.protocol.core.ejbca.org/"</span>, className = <span class="jxr_string">"org.ejbca.core.protocol.ws.client.gen.RepublishCertificate"</span>)
@@ -1266,9 +1266,9 @@
 <a class="jxr_linenumber" name="L1258" href="#L1258">1258</a> <em class="jxr_javadoccomment">     * @param arg4</em>
 <a class="jxr_linenumber" name="L1259" href="#L1259">1259</a> <em class="jxr_javadoccomment">     * @param arg1</em>
 <a class="jxr_linenumber" name="L1260" href="#L1260">1260</a> <em class="jxr_javadoccomment">     * @param arg0</em>
-<a class="jxr_linenumber" name="L1261" href="#L1261">1261</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L1262" href="#L1262">1262</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L1263" href="#L1263">1263</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L1261" href="#L1261">1261</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L1262" href="#L1262">1262</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L1263" href="#L1263">1263</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
 <a class="jxr_linenumber" name="L1264" href="#L1264">1264</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L1265" href="#L1265">1265</a>     @WebMethod
 <a class="jxr_linenumber" name="L1266" href="#L1266">1266</a>     @RequestWrapper(localName = <span class="jxr_string">"customLog"</span>, targetNamespace = <span class="jxr_string">"http://ws.protocol.core.ejbca.org/"</span>, className = <span class="jxr_string">"org.ejbca.core.protocol.ws.client.gen.CustomLog"</span>)
@@ -1301,8 +1301,8 @@
 <a class="jxr_linenumber" name="L1293" href="#L1293">1293</a> <em class="jxr_javadoccomment">     * @param arg0</em>
 <a class="jxr_linenumber" name="L1294" href="#L1294">1294</a> <em class="jxr_javadoccomment">     * @return</em>
 <a class="jxr_linenumber" name="L1295" href="#L1295">1295</a> <em class="jxr_javadoccomment">     *     returns boolean</em>
-<a class="jxr_linenumber" name="L1296" href="#L1296">1296</a> <em class="jxr_javadoccomment">     * @throws MultipleMatchException_Exception</em>
-<a class="jxr_linenumber" name="L1297" href="#L1297">1297</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L1296" href="#L1296">1296</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L1297" href="#L1297">1297</a> <em class="jxr_javadoccomment">     * @throws MultipleMatchException_Exception</em>
 <a class="jxr_linenumber" name="L1298" href="#L1298">1298</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
 <a class="jxr_linenumber" name="L1299" href="#L1299">1299</a> <em class="jxr_javadoccomment">     * @throws UserDataSourceException_Exception</em>
 <a class="jxr_linenumber" name="L1300" href="#L1300">1300</a> <em class="jxr_javadoccomment">     */</em>
@@ -1332,8 +1332,8 @@
 <a class="jxr_linenumber" name="L1324" href="#L1324">1324</a> <em class="jxr_javadoccomment">     * @return</em>
 <a class="jxr_linenumber" name="L1325" href="#L1325">1325</a> <em class="jxr_javadoccomment">     *     returns int</em>
 <a class="jxr_linenumber" name="L1326" href="#L1326">1326</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L1327" href="#L1327">1327</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L1328" href="#L1328">1328</a> <em class="jxr_javadoccomment">     * @throws ApprovalRequestExpiredException_Exception</em>
+<a class="jxr_linenumber" name="L1327" href="#L1327">1327</a> <em class="jxr_javadoccomment">     * @throws ApprovalRequestExpiredException_Exception</em>
+<a class="jxr_linenumber" name="L1328" href="#L1328">1328</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
 <a class="jxr_linenumber" name="L1329" href="#L1329">1329</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L1330" href="#L1330">1330</a>     @WebMethod
 <a class="jxr_linenumber" name="L1331" href="#L1331">1331</a>     @WebResult(targetNamespace = <span class="jxr_string">""</span>)
@@ -1355,9 +1355,9 @@
 <a class="jxr_linenumber" name="L1347" href="#L1347">1347</a> <em class="jxr_javadoccomment">     * @param arg0</em>
 <a class="jxr_linenumber" name="L1348" href="#L1348">1348</a> <em class="jxr_javadoccomment">     * @return</em>
 <a class="jxr_linenumber" name="L1349" href="#L1349">1349</a> <em class="jxr_javadoccomment">     *     returns int</em>
-<a class="jxr_linenumber" name="L1350" href="#L1350">1350</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L1350" href="#L1350">1350</a> <em class="jxr_javadoccomment">     * @throws ApprovalRequestExpiredException_Exception</em>
 <a class="jxr_linenumber" name="L1351" href="#L1351">1351</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L1352" href="#L1352">1352</a> <em class="jxr_javadoccomment">     * @throws ApprovalRequestExpiredException_Exception</em>
+<a class="jxr_linenumber" name="L1352" href="#L1352">1352</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
 <a class="jxr_linenumber" name="L1353" href="#L1353">1353</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L1354" href="#L1354">1354</a>     @WebMethod
 <a class="jxr_linenumber" name="L1355" href="#L1355">1355</a>     @WebResult(targetNamespace = <span class="jxr_string">""</span>)
@@ -1380,9 +1380,9 @@
 <a class="jxr_linenumber" name="L1372" href="#L1372">1372</a> <em class="jxr_javadoccomment">     * @param arg0</em>
 <a class="jxr_linenumber" name="L1373" href="#L1373">1373</a> <em class="jxr_javadoccomment">     * @return</em>
 <a class="jxr_linenumber" name="L1374" href="#L1374">1374</a> <em class="jxr_javadoccomment">     *     returns org.ejbca.core.protocol.ws.client.gen.Certificate</em>
-<a class="jxr_linenumber" name="L1375" href="#L1375">1375</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L1376" href="#L1376">1376</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L1377" href="#L1377">1377</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L1375" href="#L1375">1375</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L1376" href="#L1376">1376</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L1377" href="#L1377">1377</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
 <a class="jxr_linenumber" name="L1378" href="#L1378">1378</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L1379" href="#L1379">1379</a>     @WebMethod
 <a class="jxr_linenumber" name="L1380" href="#L1380">1380</a>     @WebResult(targetNamespace = <span class="jxr_string">""</span>)
@@ -1490,8 +1490,8 @@
 <a class="jxr_linenumber" name="L1482" href="#L1482">1482</a> <em class="jxr_javadoccomment">     * @return</em>
 <a class="jxr_linenumber" name="L1483" href="#L1483">1483</a> <em class="jxr_javadoccomment">     *     returns byte[]</em>
 <a class="jxr_linenumber" name="L1484" href="#L1484">1484</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L1485" href="#L1485">1485</a> <em class="jxr_javadoccomment">     * @throws UnknownProfileTypeException_Exception</em>
-<a class="jxr_linenumber" name="L1486" href="#L1486">1486</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L1485" href="#L1485">1485</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L1486" href="#L1486">1486</a> <em class="jxr_javadoccomment">     * @throws UnknownProfileTypeException_Exception</em>
 <a class="jxr_linenumber" name="L1487" href="#L1487">1487</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L1488" href="#L1488">1488</a>     @WebMethod
 <a class="jxr_linenumber" name="L1489" href="#L1489">1489</a>     @WebResult(targetNamespace = <span class="jxr_string">""</span>)
@@ -1513,12 +1513,12 @@
 <a class="jxr_linenumber" name="L1505" href="#L1505">1505</a>     <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L1506" href="#L1506">1506</a> <em class="jxr_javadoccomment">     * </em>
 <a class="jxr_linenumber" name="L1507" href="#L1507">1507</a> <em class="jxr_javadoccomment">     * @param arg0</em>
-<a class="jxr_linenumber" name="L1508" href="#L1508">1508</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L1509" href="#L1509">1509</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L1508" href="#L1508">1508</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L1509" href="#L1509">1509</a> <em class="jxr_javadoccomment">     * @throws ApprovalRequestExpiredException_Exception</em>
 <a class="jxr_linenumber" name="L1510" href="#L1510">1510</a> <em class="jxr_javadoccomment">     * @throws CAOfflineException_Exception</em>
-<a class="jxr_linenumber" name="L1511" href="#L1511">1511</a> <em class="jxr_javadoccomment">     * @throws CryptoTokenOfflineException_Exception</em>
-<a class="jxr_linenumber" name="L1512" href="#L1512">1512</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L1513" href="#L1513">1513</a> <em class="jxr_javadoccomment">     * @throws ApprovalRequestExpiredException_Exception</em>
+<a class="jxr_linenumber" name="L1511" href="#L1511">1511</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L1512" href="#L1512">1512</a> <em class="jxr_javadoccomment">     * @throws CryptoTokenOfflineException_Exception</em>
+<a class="jxr_linenumber" name="L1513" href="#L1513">1513</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
 <a class="jxr_linenumber" name="L1514" href="#L1514">1514</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L1515" href="#L1515">1515</a>     @WebMethod
 <a class="jxr_linenumber" name="L1516" href="#L1516">1516</a>     @RequestWrapper(localName = <span class="jxr_string">"createCRL"</span>, targetNamespace = <span class="jxr_string">"http://ws.protocol.core.ejbca.org/"</span>, className = <span class="jxr_string">"org.ejbca.core.protocol.ws.client.gen.CreateCRL"</span>)
@@ -1603,12 +1603,12 @@
 <a class="jxr_linenumber" name="L1595" href="#L1595">1595</a> <em class="jxr_javadoccomment">     * @param arg0</em>
 <a class="jxr_linenumber" name="L1596" href="#L1596">1596</a> <em class="jxr_javadoccomment">     * @return</em>
 <a class="jxr_linenumber" name="L1597" href="#L1597">1597</a> <em class="jxr_javadoccomment">     *     returns org.ejbca.core.protocol.ws.client.gen.CertificateResponse</em>
-<a class="jxr_linenumber" name="L1598" href="#L1598">1598</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L1599" href="#L1599">1599</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L1600" href="#L1600">1600</a> <em class="jxr_javadoccomment">     * @throws UserDoesntFullfillEndEntityProfile_Exception</em>
+<a class="jxr_linenumber" name="L1598" href="#L1598">1598</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L1599" href="#L1599">1599</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L1600" href="#L1600">1600</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
 <a class="jxr_linenumber" name="L1601" href="#L1601">1601</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
-<a class="jxr_linenumber" name="L1602" href="#L1602">1602</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
-<a class="jxr_linenumber" name="L1603" href="#L1603">1603</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L1602" href="#L1602">1602</a> <em class="jxr_javadoccomment">     * @throws UserDoesntFullfillEndEntityProfile_Exception</em>
+<a class="jxr_linenumber" name="L1603" href="#L1603">1603</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
 <a class="jxr_linenumber" name="L1604" href="#L1604">1604</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L1605" href="#L1605">1605</a>     @WebMethod
 <a class="jxr_linenumber" name="L1606" href="#L1606">1606</a>     @WebResult(targetNamespace = <span class="jxr_string">""</span>)
@@ -1644,13 +1644,13 @@
 <a class="jxr_linenumber" name="L1636" href="#L1636">1636</a> <em class="jxr_javadoccomment">     * @param arg0</em>
 <a class="jxr_linenumber" name="L1637" href="#L1637">1637</a> <em class="jxr_javadoccomment">     * @return</em>
 <a class="jxr_linenumber" name="L1638" href="#L1638">1638</a> <em class="jxr_javadoccomment">     *     returns org.ejbca.core.protocol.ws.client.gen.KeyStore</em>
-<a class="jxr_linenumber" name="L1639" href="#L1639">1639</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
-<a class="jxr_linenumber" name="L1640" href="#L1640">1640</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L1641" href="#L1641">1641</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L1639" href="#L1639">1639</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L1640" href="#L1640">1640</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L1641" href="#L1641">1641</a> <em class="jxr_javadoccomment">     * @throws WaitingForApprovalException_Exception</em>
 <a class="jxr_linenumber" name="L1642" href="#L1642">1642</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
 <a class="jxr_linenumber" name="L1643" href="#L1643">1643</a> <em class="jxr_javadoccomment">     * @throws UserDoesntFullfillEndEntityProfile_Exception</em>
 <a class="jxr_linenumber" name="L1644" href="#L1644">1644</a> <em class="jxr_javadoccomment">     * @throws NotFoundException_Exception</em>
-<a class="jxr_linenumber" name="L1645" href="#L1645">1645</a> <em class="jxr_javadoccomment">     * @throws ApprovalException_Exception</em>
+<a class="jxr_linenumber" name="L1645" href="#L1645">1645</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
 <a class="jxr_linenumber" name="L1646" href="#L1646">1646</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L1647" href="#L1647">1647</a>     @WebMethod
 <a class="jxr_linenumber" name="L1648" href="#L1648">1648</a>     @WebResult(targetNamespace = <span class="jxr_string">""</span>)
@@ -1682,9 +1682,9 @@
 <a class="jxr_linenumber" name="L1674" href="#L1674">1674</a> <em class="jxr_javadoccomment">     * @param arg0</em>
 <a class="jxr_linenumber" name="L1675" href="#L1675">1675</a> <em class="jxr_javadoccomment">     * @return</em>
 <a class="jxr_linenumber" name="L1676" href="#L1676">1676</a> <em class="jxr_javadoccomment">     *     returns java.util.List&lt;org.ejbca.core.protocol.ws.client.gen.Certificate&gt;</em>
-<a class="jxr_linenumber" name="L1677" href="#L1677">1677</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
-<a class="jxr_linenumber" name="L1678" href="#L1678">1678</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
-<a class="jxr_linenumber" name="L1679" href="#L1679">1679</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L1677" href="#L1677">1677</a> <em class="jxr_javadoccomment">     * @throws EjbcaException_Exception</em>
+<a class="jxr_linenumber" name="L1678" href="#L1678">1678</a> <em class="jxr_javadoccomment">     * @throws AuthorizationDeniedException_Exception</em>
+<a class="jxr_linenumber" name="L1679" href="#L1679">1679</a> <em class="jxr_javadoccomment">     * @throws CADoesntExistsException_Exception</em>
 <a class="jxr_linenumber" name="L1680" href="#L1680">1680</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L1681" href="#L1681">1681</a>     @WebMethod
 <a class="jxr_linenumber" name="L1682" href="#L1682">1682</a>     @WebResult(targetNamespace = <span class="jxr_string">""</span>)
