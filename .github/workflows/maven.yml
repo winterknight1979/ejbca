@@ -41,3 +41,13 @@ jobs:
       run: mvn -B deploy -DskipTests=true -s $GITHUB_WORKSPACE/settings.xml
       env:
         GITHUB_TOKEN: ${{ github.token }}
+        
+    - name: Publish test results
+      uses: EnricoMi/publish-unit-test-result-action@v1.2
+      if: always()
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        check_name: Unit Test Results
+        files: /**/target/surefire-reports/*.xml
+        report_individual_runs: true
+        deduplicate_classes_by_file_name: false
