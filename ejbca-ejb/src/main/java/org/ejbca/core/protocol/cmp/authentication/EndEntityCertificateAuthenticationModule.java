@@ -13,6 +13,7 @@
 
 package org.ejbca.core.protocol.cmp.authentication;
 
+import java.lang.reflect.InvocationTargetException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -166,15 +167,15 @@ public class EndEntityCertificateAuthenticationModule implements ICMPAuthenticat
                     implClass = Class.forName(implClassName);
                     log.debug("CmpVendorModeImpl is available, and used, in this version of EJBCA.");
                 }
-                impl = (CmpVendorMode)implClass.newInstance();
+                impl = (CmpVendorMode)implClass.getConstructor().newInstance();
                 impl.setCaSession(caSession);
                 impl.setCmpConfiguration(cmpConfiguration);
-            } catch (ClassNotFoundException e) {
+            } catch (ClassNotFoundException | NoSuchMethodException e) {
                 // We only end up here once, if the class does not exist, we will never end up here again
                 implExists = false;
                 log.info("CMP Vendor mode is not available in the version of EJBCA.");
                 impl = new CmpVendorModeNoopImpl();
-            } catch (InstantiationException e) {
+            } catch (InstantiationException | InvocationTargetException e) {
                 log.error("Error intitilizing CmpVendorMode: ", e);
             } catch (IllegalAccessException e) {
                 log.error("Error intitilizing CmpVendorMode: ", e);
@@ -212,6 +213,7 @@ public class EndEntityCertificateAuthenticationModule implements ICMPAuthenticat
     /**
      * Get the end entity certificate that was attached to the CMP request in it's extreCert filed.
      * If the extraCerts field contains multiple certificates, these are ordered in a CertPath and the leaf certificate is returned.
+     * @param msg Message
      *
      * @return The end entity certificate that was attached to the CMP request in it's extraCert field, or null, as an ordered certificate path with leaf certificate in first position
      */
@@ -586,8 +588,8 @@ public class EndEntityCertificateAuthenticationModule implements ICMPAuthenticat
     /**
      * Checks if cert belongs to an administrator who is authorized to process the request.
      *
-     * @param certInfo
-     * @param msg
+     * @param certInfo Info
+     * @param msg Message
      * @param endentity Only used when the message received is a KeyUpdateRequest in RA mode. The administrator is authorized to handle a KeyUpdateRequest in RA mode if
      *                  it is authorized to the EndEntityProfile, CertificateProfile and the CA specified in this end entity.
      * @return true if the administrator is authorized to process the request and false otherwise.
@@ -755,9 +757,9 @@ public class EndEntityCertificateAuthenticationModule implements ICMPAuthenticat
     /**
      * Checks whether admin is authorized to access the EndEntityProfile with the ID profileid
      *
-     * @param admin
-     * @param profileid
-     * @param rights
+     * @param admin Admin
+     * @param profileid ID
+     * @param rights Rights
      * @return true if admin is authorized and false otherwise.
      */
     private boolean authorizedToEndEntityProfile(AuthenticationToken admin, int profileid, String rights) {
@@ -773,7 +775,7 @@ public class EndEntityCertificateAuthenticationModule implements ICMPAuthenticat
 
     /**
      * Returns the IssuerDN specified in the CMP revocation request
-     * @param revReq
+     * @param revReq Request
      * @return the IssuerDN
      */
     private String getIssuerDNFromRevRequest(final RevReqContent revReq) {
@@ -795,7 +797,8 @@ public class EndEntityCertificateAuthenticationModule implements ICMPAuthenticat
 
     /**
      * Return the ID of the CA that is used for CMP purposes.
-     * @param keyId
+     * @param keyId ID
+     * @param eep Profile
      * @return the ID of CA used for CMP purposes.
      */
     private int getRaCaId(final DEROctetString keyId, final EndEntityProfile eep) {
@@ -945,6 +948,8 @@ public class EndEntityCertificateAuthenticationModule implements ICMPAuthenticat
     
     /**
      * Returns the message from a CertPathValidatorException. For the common cases, this method is locale independent.
+     * @param e Exception
+     * @return Message
      */
     private String getCertPathValidatorExceptionMessage(final CertPathValidatorException e) {
         Certificate endEntityCert = null;

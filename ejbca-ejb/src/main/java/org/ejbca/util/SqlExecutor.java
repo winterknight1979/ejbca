@@ -49,8 +49,8 @@ public class SqlExecutor {
         return this.errors;
     }
     /** Creates a new SqlExecutor. Caller is responsible for releasing the connection
-     * @param connection
-     * @param continueOnSQLError
+     * @param connection Connection
+     * @param continueOnSQLError bool
      */
     public SqlExecutor(Connection connection, boolean continueOnSQLError) {
     	if (log.isTraceEnabled()) {
@@ -68,7 +68,7 @@ public class SqlExecutor {
      * 
      * @param command the sql command to execute
      * @return the result returned from executeUpdate
-     * @throws SQLException
+     * @throws SQLException fail
      */
     public int runCommand(String command) throws SQLException {
     	if (log.isTraceEnabled()) {
@@ -148,9 +148,9 @@ public class SqlExecutor {
     /** Executes an sql update. 
      * SQL INSERT, UPDATE or DELETE statement; or an SQL statement that returns nothing, such as a DDL statement. 
      * 
-     * @param command String holding the SQL.
+     * @param sql String holding the SQL.
      * @return number of rows updates (returned by executeUpdate)
-     * @throws SQLException
+     * @throws SQLException fail
      */
     private int executeCommand(String sql) throws SQLException {
     	if (log.isTraceEnabled()) {

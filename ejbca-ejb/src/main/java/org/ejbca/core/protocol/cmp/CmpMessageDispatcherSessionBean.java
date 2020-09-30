@@ -58,15 +58,15 @@ import org.ejbca.core.protocol.NoSuchAliasException;
  * 4. send back the response received from the handler
  * -----
  *
- * Messages supported (see <a href=https://tools.ietf.org/html/rfc4210#section-5.3">RFC4210 5.3 Operation-Specific Data Structures</a>):
+ * Messages supported (@see <a href="https://tools.ietf.org/html/rfc4210#section-5.3">RFC4210 5.3 Operation-Specific Data Structures</a>):
  * 
  * Implemented:
- * - 5.3.1 Initialization Request - will return an Initialization Response (-> CertRepMessage).
- * - 5.3.9 Revocation Request / Response (-> RevRepContent)
- * - 5.3.17 PKI Confirmation - same as certificate confirmation accept - will return a PKI Confirmation Content (-> PKIConfirmContent)
- * - 5.3.18 Certificate Confirmation - accept or reject by client - will return a PKI Confirmation Content (-> PKIConfirmContent)
- * - 5.3.3 Certificate Request / Response (-> CertRepMessage)
- * - 5.3.5 Key Update Request / Response (-> CertRepMessage)
+ * - 5.3.1 Initialization Request - will return an Initialization Response (-&gt; CertRepMessage).
+ * - 5.3.9 Revocation Request / Response (-&gt; RevRepContent)
+ * - 5.3.17 PKI Confirmation - same as certificate confirmation accept - will return a PKI Confirmation Content (-&gt; PKIConfirmContent)
+ * - 5.3.18 Certificate Confirmation - accept or reject by client - will return a PKI Confirmation Content (-&gt; PKIConfirmContent)
+ * - 5.3.3 Certificate Request / Response (-&gt; CertRepMessage)
+ * - 5.3.5 Key Update Request / Response (-&gt; CertRepMessage)
  * 
  *  Responses of type 'CertRepMessage' may contain additional CA certificates in its 'caPubs' field 
  *  which can be configured in the CMP configuration ({@link CmpConfiguration#getResponseCaPubsCA(String)}.
@@ -123,6 +123,7 @@ public class CmpMessageDispatcherSessionBean implements CmpMessageDispatcherSess
      * @param authenticationToken the authentication token.
      * @param pkiMessage DER encoded CMP message received from the client.
      * @param pkiHeader DER encoded PKI header of the original CMP message received from the client.
+     * @param cmpConfiguration Config
      * @param cmpConfigurationAlias the CMP alias we want to use for this request.
     *  @param levelOfNesting the level of nesting depth.
      * @return A response message containing the CMP response message or null if there is no message to send back or some internal error has occurred

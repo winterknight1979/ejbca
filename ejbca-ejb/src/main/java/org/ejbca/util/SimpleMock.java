@@ -24,13 +24,13 @@ import java.util.Map;
 
 /**
  * Simple class for mocking an interface that can return pre-configured values
- * or throw defined Exceptions.<br/>
- * <br/>
+ * or throw defined Exceptions.<br>
+ * <br>
  * The mocked object will treat two methods with the same name, but different
  * signatures as the same. (E.g. getInt() and getInt(String x) will be treated
- * the same.)<br/>
- * <br/>
- * Example usage:<br/>
+ * the same.)<br>
+ * <br>
+ * Example usage:<br>
  * <pre>
  *  SomeInterface x = new SimpleMock(SomeInterface.class) {{
  *  	map("getInt", 1); // Override method getInt(...)
@@ -77,8 +77,8 @@ public class SimpleMock {
 	
 	/**
 	 * Adds a mapping between a method-name and return value
-	 * @param methodName
-	 * @param valueOrException
+	 * @param methodName Method
+	 * @param valueOrException Obj
 	 */
 	public void map(String methodName, Object valueOrException) {
 		if (!methodNames.contains(methodName)) {
@@ -96,6 +96,9 @@ public class SimpleMock {
 	/**
 	 * Injects "value" into a (private) field named "fieldName" of "target" or
 	 * the first one of "target"'s super classes where "fieldName" exists.
+	 * @param target Target
+	 * @param fieldName Name
+	 * @param value Value
 	 */
     public static void inject(Object target, String fieldName, Object value) {
 		try {

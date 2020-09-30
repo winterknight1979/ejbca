@@ -116,6 +116,7 @@ public class EjbcaAuditorSessionBean implements EjbcaAuditorSessionLocal {
     /**
      * Make sure that the SQL query doesn't contain illegal characters.
      * A-Z, a-z, 0-9, ' ' and '.' are always allowed.
+     * @param sql SQL
      * @param isWhere if true we also allow '?', '<', '>', '!' and '='
      * @throws IllegalArgumentException if an illegal character is found in the sql paramater
      */
@@ -139,7 +140,10 @@ public class EjbcaAuditorSessionBean implements EjbcaAuditorSessionLocal {
         }
     }
 
-    /** Assert that we are authorized to the requested resource. */
+    /** Assert that we are authorized to the requested resource. 
+     * @param token Token
+     * @param accessRule Rule
+     * @throws AuthorizationDeniedException Fail */
     private void assertAuthorization(final AuthenticationToken token, final String accessRule) throws AuthorizationDeniedException {
         if (!authorizationSession.isAuthorized(token, accessRule)) {
             throw new AuthorizationDeniedException("not authorized to: "+ token.toString());                

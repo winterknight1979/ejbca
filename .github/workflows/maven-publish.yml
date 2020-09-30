@@ -31,7 +31,7 @@ jobs:
     - name: Build packages with Maven
       run: mvn -B package -Pcoverage -fn --file pom.xml | tee build.log
     - name: Check for build fail
-      run: grep -L "There are test failures" build.xml
+      run: test `grep -L "There are test failures" build.log`
       
     - name: Publish test results
       uses: scacap/action-surefire-report@v1

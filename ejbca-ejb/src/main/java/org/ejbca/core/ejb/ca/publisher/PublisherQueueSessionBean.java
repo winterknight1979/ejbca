@@ -293,7 +293,11 @@ public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
         return doPublish(admin, publisherId, publisher, c);
     }
 
-    /** @return how many publishes that succeeded */
+    /** @param admin Admin
+     * @param publisherId ID
+     * @param publisher Pub
+     * @param c Data
+     * @return how many publishes that succeeded */
     private int doPublish(AuthenticationToken admin, int publisherId, BasePublisher publisher, Collection<PublisherQueueData> c) {
         if (log.isDebugEnabled()) {
             log.debug("Found " + c.size() + " certificates to republish for publisher " + publisherId);
@@ -452,7 +456,8 @@ public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
     public List<Object> storeCertificateNonTransactionalInternal(final List<BasePublisher> publishers, final AuthenticationToken admin,
             final CertificateDataWrapper certWrapper, final String password, final String userDN, final ExtendedInformation extendedinformation) {
         final List<Object> publisherResults = new ArrayList<Object>();
-        final boolean parallel = EjbcaConfiguration.isPublishParallelEnabled();
+        @SuppressWarnings("deprecation")
+		final boolean parallel = EjbcaConfiguration.isPublishParallelEnabled();
         // Are we doing parallel publishing (only meaningful if there is more than one publisher configured)?
         if (parallel && publishers.size() > 1) {
             final List<Future<Boolean>> futures = new ArrayList<Future<Boolean>>();
@@ -493,7 +498,7 @@ public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {
                 Object publisherResult;
                 try {
                     final long maxTimeToWait = Math.max(1000L, deadline - System.currentTimeMillis());
-                    publisherResult = new Boolean(future.get(maxTimeToWait, TimeUnit.MILLISECONDS));
+                    publisherResult = Boolean.valueOf(future.get(maxTimeToWait, TimeUnit.MILLISECONDS));
                 } catch (Exception e) {
                     publisherResult = getAsPublisherException(e);
                 }

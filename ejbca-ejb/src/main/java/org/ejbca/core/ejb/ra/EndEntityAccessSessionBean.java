@@ -276,6 +276,9 @@ public class EndEntityAccessSessionBean implements EndEntityAccessSessionLocal, 
     }
 
     /** 
+     * @param admin Admin
+     * @param data Data
+     * @param requestedUsername User 
      * @return the userdata value object if admin is authorized. Does not leak username if auth fails. 
      * 
      * @throws AuthorizationDeniedException if the admin was not authorized to the end entity profile or issuing CA
@@ -545,7 +548,8 @@ public class EndEntityAccessSessionBean implements EndEntityAccessSessionLocal, 
         return (GlobalCesecoreConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalCesecoreConfiguration.CESECORE_CONFIGURATION_ID);
     }
 
-    /** Gets the Global Configuration from ra admin session bean */
+    /** Gets the Global Configuration from ra admin session bean 
+     * @return Config*/
     private GlobalConfiguration getGlobalConfiguration() {
         return (GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID);
     }    

@@ -102,7 +102,6 @@ public class ApprovalProfileCacheBean {
     /**
      * Fetch all profiles from the database, unless cache is enabled, valid and we do not force an update.
      * 
-     * @param entityManager is required for reading the profiles from the database if we need to update the cache
      * @param force if true, this will force an update even if the cache is not yet invalid
      */
     public void updateProfileCache(final boolean force) {

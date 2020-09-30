@@ -126,7 +126,12 @@ public class VerifyPKIMessage {
         return null;
     }
     
-    /** @return The requested authentication module or null if no such module is implemented. */
+    /** @param raMode Mode
+     * @param module Module
+     * @param parameter Param
+     * @param pkiMessage PKI
+     * @param authenticated Auth
+     * @return The requested authentication module or null if no such module is implemented. */
     private ICMPAuthenticationModule getAuthModule(final boolean raMode, final String module, final String parameter, final PKIMessage pkiMessage, final boolean authenticated) {
         switch (module) {
         case CmpConfiguration.AUTHMODULE_HMAC:

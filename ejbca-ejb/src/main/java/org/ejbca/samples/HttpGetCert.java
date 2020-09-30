@@ -160,6 +160,7 @@ public class HttpGetCert {
      * @param url the URL (http:// or https://
      *
      * @return URLConnection
+     * @throws Exception Fail
      */
     private URLConnection getUrlConnection(URL url) throws Exception {
         URLConnection con = url.openConnection();

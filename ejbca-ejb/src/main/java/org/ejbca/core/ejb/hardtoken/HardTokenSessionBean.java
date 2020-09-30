@@ -1143,7 +1143,12 @@ public class HardTokenSessionBean implements HardTokenSessionLocal, HardTokenSes
         return ProfileID.getNotUsedID(db);
     }
 
-    /** Method that returns the hard token data from a hashmap and updates it if necessary. */
+    /** Method that returns the hard token data from a hashmap and updates it if necessary. 
+     * @param admin Admin
+     * @param encryptcaid ID 
+     * @param includePUK PUK
+     * @param data data
+     * @return token */
     private HardToken getHardToken(AuthenticationToken admin, int encryptcaid, boolean includePUK, Map<?, ?> data) {
         HardToken returnval = null;
 
@@ -1188,6 +1193,10 @@ public class HardTokenSessionBean implements HardTokenSessionLocal, HardTokenSes
     /**
      * Method that saves the hard token issuer data to a HashMap that can be
      * saved to database.
+     * @param admin Admin
+     * @param encryptcaid ID 
+     * @param tokendata Data
+     * @return Map
      */
 	@SuppressWarnings("unchecked")
     private LinkedHashMap<String,byte[]> setHardToken(AuthenticationToken admin, int encryptcaid, HardToken tokendata) {

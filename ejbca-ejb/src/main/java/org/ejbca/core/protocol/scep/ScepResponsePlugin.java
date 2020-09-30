@@ -53,7 +53,7 @@ public interface ScepResponsePlugin {
      * @param reqmsg the SCEP request message
      * @param scepConfig a copy of the SCEP configuration 
      * @param alias the particular SCEP configuration alias to check out
-     * @return
+     * @return Response
      * @throws NoSuchEndEntityException if the username specified in the request doesn't exist for any end entity
      * @throws CADoesntExistsException if the CA specified in the request doesn't exist
      * @throws AuthorizationDeniedException if the authentication token lacks access

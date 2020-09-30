@@ -31,17 +31,18 @@ import java.util.jar.JarInputStream;
 /**
  * Simple tool that
  * - expands all JARs in an EAR to a temporary directory
- * - looks for all <at>Stateless annotated classes
- * - finds out what <at>Local interfaces the SSBs implement
- * - looks through all SSBs' for <at>EJB annotated fields and builds a list of dependencies from that for each SSB
- * - traverses all dependencies to remove implied dependencies (if A->B,C and B->C we can just say A->B->C)
+ * - looks for all {@literal @}Stateless annotated classes
+ * - finds out what {@literal @}Local interfaces the SSBs implement
+ * - looks through all SSBs' for {@literal @}EJB annotated fields and builds a list of dependencies from that for each SSB
+ * - traverses all dependencies to remove implied dependencies (if A-&gt;B,C and B-&gt;C we can just say A-&gt;B-&gt;C)
  * - outputs dependency tree to console and a .dot-file that can be used to generate a graph.
  * 
  * @version $Id: EjbDependencyGraphTool.java 22142 2015-11-03 14:15:51Z mikekushner $
  */
 public class EjbDependencyGraphTool {
 
-	/** public entry point that spawns and runs a non-static version of this class */
+	/** public entry point that spawns and runs a non-static version of this class 
+	 * @param args Args*/
 	public static void main(String[] args) {
 		try {
 			new EjbDependencyGraphTool().run(args);
@@ -118,7 +119,7 @@ public class EjbDependencyGraphTool {
             for (BeanInfo currentBean : ejbs) {
                 log(currentBean.beanClass.getSimpleName());
                 for (BeanInfo dep : currentBean.beanDependencies) {
-                    log(" -> " + dep.beanClass.getSimpleName());
+                    log(" -&gt; " + dep.beanClass.getSimpleName());
                 }
             }
             // Create .dot-file
@@ -131,7 +132,7 @@ public class EjbDependencyGraphTool {
                 sb.append("\"" + currentBean.beanClass.getSimpleName()
                         + "\" [fillcolor=\"yellow\",style=\"filled,bold\",fontname=\"Helvetica-Bold\"]\n");
                 for (BeanInfo dep : currentBean.beanDependencies) {
-                    sb.append("\"" + currentBean.beanClass.getSimpleName() + "\" -> \"" + dep.beanClass.getSimpleName() + "\" [color=\"#000068\"]\n");
+                    sb.append("\"" + currentBean.beanClass.getSimpleName() + "\" -&gt; \"" + dep.beanClass.getSimpleName() + "\" [color=\"#000068\"]\n");
                 }
             }
             sb.append("}\n");
@@ -148,7 +149,9 @@ public class EjbDependencyGraphTool {
         }
 	}
 	
-	/** @return a list of class-names that end with "SessionBean" (we don't want to load all classes from the EAR into the ClassLoader..) */
+	/** @param jarFile JAR
+	 * @return a list of class-names that end with "SessionBean" (we don't want to load all classes from the EAR into the ClassLoader..) 
+	 * @throws IOException Fail */
     private List<String> getInterestingClasses(File jarFile) throws IOException {
         final JarInputStream jarInputStream = new JarInputStream(new FileInputStream(jarFile));
         try {
@@ -159,7 +162,7 @@ public class EjbDependencyGraphTool {
                 final String jarEntryName = jarEntry.getName();
                 if (jarEntryName.endsWith("SessionBean.class")) {
                     final String className = jarEntryName.replaceAll(".class", "").replaceAll("/", ".");
-                    //log("  Matching filename: " + jarEntryName + " -> " + className);
+                    //log("  Matching filename: " + jarEntryName + " -&gt; " + className);
                     interestingClasses.add(className);
                 }
             }
@@ -169,7 +172,10 @@ public class EjbDependencyGraphTool {
         }
     }
 
-	/** Write JAR entry to temporary file and return a reference to this file. */
+	/** Write JAR entry to temporary file and return a reference to this file. 
+	 * @param jarInputStream Jar
+	 * @return File
+	 * @throws IOException fail */
 	private File getTempFileFromJar(InputStream jarInputStream) throws IOException {
 		final File tempFile = File.createTempFile("jee5deps-", ".jar");
 		final byte[] buffer = new byte[10*1024*1024];
@@ -185,7 +191,8 @@ public class EjbDependencyGraphTool {
 		return tempFile;
 	}
 
-	/** Avoids dependencies on other frameworks (like log4j) by using System.out */
+	/** Avoids dependencies on other frameworks (like log4j) by using System.out 
+	 * @param s String */
 	private void log(String s) { System.out.println(s); }
 
 	/** Class to represent a SSB and its dependencies. */
@@ -216,7 +223,12 @@ public class EjbDependencyGraphTool {
 			}
 		}
 
-		/** Recurses through all dependencies to find out if beanInfo is present in any dependency */
+		/** Recurses through all dependencies to find out if beanInfo is present in any dependency 
+		 * @param beanInfo Info
+		 * @param origReqBeanInfo Info 
+		 * @param steps Sterps
+		 * @param maxSteps Max
+		 * @return bool */
 		public boolean dependsOnBean(BeanInfo beanInfo, BeanInfo origReqBeanInfo, int steps, int maxSteps) {
 			if (steps>maxSteps) {
 				return false;	// Don't recurse in loops forever

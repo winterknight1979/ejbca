@@ -56,10 +56,23 @@ public class DistinguishedNameTest {
         assertEquals(dn.getRdn("email", 0), new Rdn("email", "david.galichet@fimasys.fr"));
         assertNull(dn.getRdn("email", 2));
     }
+    
+    /* from stack xchange, to work around the Java Versioning system change between Java 8 and Java 9 */
+    private static int getVersion() {
+    	String version = System.getProperty("java.version");
+    	if (version.startsWith("1.")) {
+    		version = version.substring(2,3);
+    	} else {
+    		int dot = version.indexOf(".");
+    		if (dot != -1) { version = version.substring(0, dot); }
+    	}
+    	return Integer.parseInt(version);
+    }
 
     /**
      * Test of mergeDN method, of class DistinguishedName.
      * This version tests the merge without override.
+     * @throws Exception Fail
      */
     @Test
     public void testMergeDnWithoutOverride() throws Exception {
@@ -71,9 +84,8 @@ public class DistinguishedNameTest {
         dn = createNewDN();
         DistinguishedName newDn = dn.mergeDN(otherDn, false, null);
 
-        // This returns slightly different between JDK 7 and JDK 8
-        String[] javaVersionElements = System.getProperty("java.version").split("\\.");
-        int major = Integer.parseInt(javaVersionElements[1]);
+        
+        int major = getVersion();
         if (major > 7) {
             assertEquals(EXPECTED_DN_JDK8, newDn.toString());
         } else {
@@ -84,6 +96,7 @@ public class DistinguishedNameTest {
     /**
      * Test of mergeDN method, of class DistinguishedName.
      * This version tests the merge with override.
+     * @throws Exception Fail
      */
     @Test
    public void testMergeDnWithOverride() throws Exception {
@@ -96,9 +109,7 @@ public class DistinguishedNameTest {
         dn = createNewDN();
         DistinguishedName newDn = dn.mergeDN(otherDn, true, null);
 
-        // This returns slightly different between JDK 7 and JDK 8
-        String[] javaVersionElements = System.getProperty("java.version").split("\\.");
-        int major = Integer.parseInt(javaVersionElements[1]);
+        int major = getVersion();
         if (major > 7) {
             assertEquals(EXPECTED_DN_JDK8, newDn.toString());
         } else {
@@ -109,9 +120,10 @@ public class DistinguishedNameTest {
     /**
      * Test of mergeDN method, of class DistinguishedName.
      * This version tests the merge without override.
+     * @throws Exception fail
      */
     @Test
-    public void testMergeSubjectAltNameWithoutOverrideNotUsingEntityEmail() throws Exception {
+    public void testMergeSubjectAltNameWithoutOverrideNotUsingEntityEmail() throws  Exception {
 
         final String EXPECTED = "RFC822NAME=vkn@linagora.com,IPADDRESS=208.77.188.166,UNIFORMRESOURCEID=other.uri";
         subjectAltName = createNewSubjectAltName();
@@ -127,6 +139,7 @@ public class DistinguishedNameTest {
     /**
      * Test of mergeDN method, of class DistinguishedName.
      * This version tests the merge without override.
+     * @throws Exception Fail
      */
     @Test
     public void testMergeSubjectAltNameWithoutOverrideUsingEntityEmail() throws Exception {
@@ -142,6 +155,7 @@ public class DistinguishedNameTest {
     /**
      * Test of mergeDN method, of class DistinguishedName.
      * This version tests the merge with override.
+     * @throws Exception Fail
      */
     @Test
     public void testMergeSubjectAltNameWithOverrideNotUsingEntityEmail() throws Exception {
@@ -156,9 +170,10 @@ public class DistinguishedNameTest {
     /**
      * Test of mergeDN method, of class DistinguishedName.
      * This version tests the merge with override.
+     * @throws Exception Fail
      */
     @Test
-    public void testMergeSubjectAltNameWithOverrideUsingEntityEmail() throws Exception {
+    public void testMergeSubjectAltNameWithOverrideUsingEntityEmail() throws Exception { 
         final String _OTHER_SUBJECT_ALT_NAME = "IPADDRESS=777.77.777.777,UNIFORMRESOURCEID=other.uri";
 
     	final String EXPECTED = "RFC822NAME=entitymail@linagora.com,IPADDRESS=777.77.777.777,UNIFORMRESOURCEID=other.uri";

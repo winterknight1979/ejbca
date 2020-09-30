@@ -171,6 +171,7 @@ public class PublisherCacheTest {
     /**
      * Verify that the objects we add to the cache is available even after the cache has expired,
      * but the caller is asked to fetch the data from the original source instead.
+     * @throws InterruptedException Fail
      */
     @Test
     public void cacheExpiration() throws InterruptedException {

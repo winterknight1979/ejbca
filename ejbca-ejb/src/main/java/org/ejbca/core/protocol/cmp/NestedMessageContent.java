@@ -156,6 +156,7 @@ public class NestedMessageContent extends BaseCmpMessage implements RequestMessa
      * Reads the files in cmpConfiguration.getRaCertificatePath() and returns them as a list of certificates.
      *  
      * The certificate files should be PEM encoded.
+     * @param raCertsPath Path
      * 
      * @return A list of the certificates in cmpConfiguration.getRaCertificatePath() that could be read and parsed. 
      */

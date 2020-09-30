@@ -20,6 +20,8 @@ import java.util.Map;
  * Uses synchronized collections.
  * 
  * @version $Id: ObjectCache.java 22142 2015-11-03 14:15:51Z mikekushner $
+ * @param <K> Key type
+ * @param <V> Value type
  */
 public class ObjectCache<K,V> {
 

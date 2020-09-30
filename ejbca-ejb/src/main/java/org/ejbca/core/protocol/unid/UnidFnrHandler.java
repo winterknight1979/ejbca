@@ -162,9 +162,9 @@ public class UnidFnrHandler implements ExtendedUserDataHandler {
 	 */
 	public interface Storage {
 		/**
-		 * @param unid
-		 * @param fnr
-		 * @throws HandlerException
+		 * @param unid ID
+		 * @param fnr FNR
+		 * @throws HandlerException Fail
 		 */
 		void storeIt(String unid, String fnr) throws HandlerException;
 	}

@@ -258,7 +258,12 @@ public class HMACAuthenticationModule implements ICMPAuthenticationModule {
      * 
      * Saves last error message on failure to validate.
      * Saves raAuthenticationSecret on successful validation (to be used later when creating response protection)
+     * @param raAuthenticationSecret Secret
+     * @param errorMessageKey Key
+     * @param errorMessageParameter Param 
      * @return true if the validation was successful.
+     * @throws InvalidKeyException Fail
+     * @throws NoSuchAlgorithmException Fail
      */
     private boolean performPbeVerification(final String raAuthenticationSecret, final String errorMessageKey, final String errorMessageParameter)
             throws InvalidKeyException, NoSuchAlgorithmException {
@@ -280,7 +285,7 @@ public class HMACAuthenticationModule implements ICMPAuthenticationModule {
     /**
      * Returns the certificate template specified in the request impeded in msg.
      * 
-     * @param msg
+     * @param msg message
      * @return the certificate template embedded in msg. Null if no such template was found.
      */
     private CertTemplate getCertTemplate(final PKIMessage msg) {

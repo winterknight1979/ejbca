@@ -13,6 +13,7 @@
 
 package org.ejbca.core.protocol.cmp;
 
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -119,7 +120,12 @@ public class CrmfMessageHandler extends BaseCmpMessageHandler implements ICmpMes
     private final WebAuthenticationProviderSessionLocal authenticationProviderSession;
     private final EndEntityManagementSession endEntityManagementSession;
 
-    /** Construct the message handler. */
+    /** Construct the message handler. 
+     * @param authenticationToken Token
+     * @param cmpConfiguration Confif
+     * @param configAlias Alias
+     * @param ejbBridgeSession Session
+     * @param certificateRequestSession Request */
     public CrmfMessageHandler(final AuthenticationToken authenticationToken, final CmpConfiguration cmpConfiguration, final String configAlias, final EjbBridgeSessionLocal ejbBridgeSession,
             CertificateRequestSessionLocal certificateRequestSession) {
         super(authenticationToken, cmpConfiguration, configAlias, ejbBridgeSession);
@@ -162,9 +168,9 @@ public class CrmfMessageHandler extends BaseCmpMessageHandler implements ICmpMes
                 LOG.debug("CertReqHandlerClass="+handlerClass);
             }
             try {
-                extendedUserDataHandler = (ExtendedUserDataHandler)Class.forName(handlerClass).newInstance();
-            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | RuntimeException e) {
-                LOG.warn("The configured unid class '"+handlerClass+"' is not existing.");
+                extendedUserDataHandler = (ExtendedUserDataHandler)Class.forName(handlerClass).getConstructor().newInstance();
+            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | InvocationTargetException |  RuntimeException e) {
+            	LOG.warn("The configured unid class '"+handlerClass+"' is not existing.");
             }
         }
         this.extendedUserDataHandler = extendedUserDataHandler;         
@@ -314,13 +320,12 @@ public class CrmfMessageHandler extends BaseCmpMessageHandler implements ICmpMes
 	/** Method that takes care of RA mode operations, i.e. when the message is authenticated with a common secret using password based encryption (pbe).
 	 * This method will verify the pbe and if ok  will automatically create/edit a user and issue the certificate. In RA mode we assume that the RA knows what it is doing.
 	 * 
-	 * @param crmfreq
+	 * @param crmfreq frequency
 	 * @param authenticated if the CMP message has already been authenticated in another way or not
 	 * @return IResponseMessage that can be sent back to the client
-	 * @throws AuthorizationDeniedException
-	 * @throws EjbcaException
-	 * @throws ClassNotFoundException
-	 * @throws CesecoreException 
+	 * @throws AuthorizationDeniedException fail
+	 * @throws EjbcaException fail
+	 * @throws CesecoreException fail
 	 */
 	private ResponseMessage handleRaMessage(final CrmfRequestMessage crmfreq, boolean authenticated) throws AuthorizationDeniedException, EjbcaException, CesecoreException {
         final int eeProfileId;        // The endEntityProfile to be used when adding users in RA mode.

@@ -688,6 +688,13 @@ public class CAAdminSessionBean implements CAAdminSessionLocal, CAAdminSessionRe
      *
      * It creates a certificate chain and publishes certificate, services, CRLs, etc.
      * This method also performs audit logging.
+     * @param admin Admin
+     * @param ca CA
+     * @param cainfo Info 
+     * @param cryptoToken Token 
+     * @param certprofile Profile
+     * @throws CryptoTokenOfflineException If offline 
+     * @throws AuthorizationDeniedException  If access denied
      */
     private void finalizeInitializedCA(final AuthenticationToken admin, final CA ca, final CAInfo cainfo, final CryptoToken cryptoToken,
             final CertificateProfile certprofile) throws CryptoTokenOfflineException, AuthorizationDeniedException {
@@ -1285,8 +1292,8 @@ public class CAAdminSessionBean implements CAAdminSessionLocal, CAAdminSessionRe
      * @param chain Certificate chain including the newly issued certificate.
      * @param caCertPublicKey Public key of CA. Must be fully usable, i.e. CVC DVCA keys must be have the full parameters from the CVCA.
      * @param nextKeyAlias Key alias to test, or null to test the current key alias given by the CA Token (or the next signing key as a fallback).
-     * @throws CryptoTokenOfflineException
-     * @throws IllegalKeyException
+     * @throws CryptoTokenOfflineException if offline
+     * @throws IllegalKeyException on key fail
      */
     private void testNextKey(AuthenticationToken authenticationToken, final CA ca, final Certificate cacert, final List<Certificate> chain,
             PublicKey caCertPublicKey, String nextKeyAlias) throws CryptoTokenOfflineException, IllegalKeyException {
@@ -2515,8 +2522,20 @@ public class CAAdminSessionBean implements CAAdminSessionLocal, CAAdminSessionRe
     /**
      * Method that import CA token keys from a P12 file. Was originally used when upgrading from old EJBCA versions. Only supports SHA1 and SHA256
      * with RSA or ECDSA and SHA1 with DSA.
-     * @throws OperatorCreationException
-     * @throws AuthorizationDeniedException
+     * @param authenticationToken Auth token
+     * @param authenticationCode Auth code
+     * @param caTokenProperties Token properties
+     * @param privatekey Private key
+     * @param publickey Public key
+     * @param privateEncryptionKey Encryption  
+     * @param publicEncryptionKey Encryption
+     * @param caSignatureCertChain Certificates
+     * @param caId CA
+     * @return CA Token
+     * @throws CryptoTokenAuthenticationFailedException Fail
+     * @throws IllegalCryptoTokenException Fail
+     * @throws OperatorCreationException Fail
+     * @throws AuthorizationDeniedException Fail
      */
     private CAToken importKeysToCAToken(AuthenticationToken authenticationToken, String authenticationCode, Properties caTokenProperties,
             PrivateKey privatekey, PublicKey publickey, PrivateKey privateEncryptionKey, PublicKey publicEncryptionKey,
@@ -2670,6 +2689,16 @@ public class CAAdminSessionBean implements CAAdminSessionLocal, CAAdminSessionRe
     }
 
     /** Wrapper for CryptoToken creation that tries to find a unique CryptoTokenName
+     * @param authenticationToken Auth token
+     * @param basename Base name
+     * @param className Class
+     * @param cryptoTokenProperties Properties 
+     * @param data Data
+     * @param authCode Code
+     * @return Int
+     * @throws CryptoTokenOfflineException Fail
+     * @throws CryptoTokenAuthenticationFailedException Fail
+     * @throws AuthorizationDeniedException Fail
      * @throws NoSuchSlotException if no slot with the given label could be found
      */
     private int createCryptoTokenWithUniqueName(AuthenticationToken authenticationToken, String basename, String className,
@@ -2697,10 +2726,15 @@ public class CAAdminSessionBean implements CAAdminSessionLocal, CAAdminSessionRe
     }
 
     /**
+     * @param admin Admin
+     * @param caname CA Name
+     * @param keystorepass Password
+     * @param signatureCertChain Cetificates
+     * @param catoken Token
      * @param keyAlgorithm keyalgorithm for extended CA services, OCSP, CMS. Example AlgorithmConstants.KEYALGORITHM_RSA
      * @param keySpecification keyspecification for extended CA services, OCSP, CMS. Example 2048
+     * @return CA
      * @throws AuthorizationDeniedException if imported CA was signed by a CA user does not have authorization to.
-     * @throws CADoesntExistsException if superCA does not exist
      * @throws CAExistsException if the CA already exists
      * @throws CAOfflineException if CRLs can not be generated because imported CA did not manage to get online
      * @throws CryptoTokenAuthenticationFailedException if authentication to crypto token failed
@@ -3192,7 +3226,8 @@ public class CAAdminSessionBean implements CAAdminSessionLocal, CAAdminSessionRe
         return result;
     }
 
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Set<Integer> getAuthorizedPublisherIds(final AuthenticationToken admin) {
         return getAuthorizedPublisherIds(admin, Collections.EMPTY_LIST);
@@ -3285,15 +3320,13 @@ public class CAAdminSessionBean implements CAAdminSessionLocal, CAAdminSessionRe
     //
 
     /**
-     * Check if subject certificate is signed by issuer certificate. Used in
-     *
-     * @see #upgradeFromOldCAKeyStore(Admin, String, byte[], char[], char[], String). This method does a lazy check: if signature verification failed
+     * Check if subject certificate is signed by issuer certificate. 
+     *		 This method does a lazy check: if signature verification failed
      *      for any reason that prevent verification, e.g. signature algorithm not supported, method returns false. Author: Marco Ferrante
      *
      * @param subject Subject certificate
      * @param issuer Issuer certificate
      * @return true if subject certificate is signed by issuer certificate
-     * @throws java.lang.Exception
      */
     private boolean verifyIssuer(Certificate subject, Certificate issuer) {
         try {
@@ -3339,8 +3372,11 @@ public class CAAdminSessionBean implements CAAdminSessionLocal, CAAdminSessionRe
 
     /**
      * Helper method that activates CA services and publisher their certificates, if the services are marked as active
+     * @param admin Admin
+     * @param extendedCAServiceInfos Service info 
+     * @param ca CA
      *
-     * @throws AuthorizationDeniedException
+     * @throws AuthorizationDeniedException Fail
      */
     private void activateAndPublishExternalCAServices(AuthenticationToken admin, Collection<ExtendedCAServiceInfo> extendedCAServiceInfos, CA ca)
             throws AuthorizationDeniedException {
