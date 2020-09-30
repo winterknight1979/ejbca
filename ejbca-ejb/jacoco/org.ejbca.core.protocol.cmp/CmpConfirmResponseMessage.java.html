@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CmpConfirmResponseMessage.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.cmp</a> &gt; <span class="el_source">CmpConfirmResponseMessage.java</span></div><h1>CmpConfirmResponseMessage.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.protocol.cmp;
+
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.SignatureException;
+import java.security.cert.CRL;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.util.Collection;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.DERNull;
+import org.bouncycastle.asn1.cmp.PKIBody;
+import org.bouncycastle.asn1.cmp.PKIHeaderBuilder;
+import org.bouncycastle.asn1.cmp.PKIMessage;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.cms.CMSSignedGenerator;
+import org.cesecore.certificates.certificate.request.FailInfo;
+import org.cesecore.certificates.certificate.request.RequestMessage;
+import org.cesecore.certificates.certificate.request.ResponseMessage;
+import org.cesecore.certificates.certificate.request.ResponseStatus;
+import org.cesecore.util.CertTools;
+
+/**
+ * A very simple confirmation message, no protection and a nullbody
+ * @author tomas
+ * @version $Id: CmpConfirmResponseMessage.java 28875 2018-05-08 13:44:40Z anatom $
+ */
+<span class="nc" id="L46">public class CmpConfirmResponseMessage extends BaseCmpMessage implements ResponseMessage {</span>
+
+	/**
+	 * Determines if a de-serialized file is compatible with this class.
+	 *
+	 * Maintainers must change this value if and only if the new version
+	 * of this class is not compatible with old versions. See Sun docs
+	 * for &lt;a href=http://java.sun.com/products/jdk/1.1/docs/guide
+	 * /serialization/spec/version.doc.html&gt; details. &lt;/a&gt;
+	 *
+	 */
+	static final long serialVersionUID = 10003L;
+
+<span class="nc" id="L59">	private static final Logger log = Logger.getLogger(CmpConfirmResponseMessage.class);</span>
+	
+    /** Default digest algorithm for CMP response message, can be overridden */
+<span class="nc" id="L62">	private String digestAlg = CMSSignedGenerator.DIGEST_SHA1;</span>
+	/** The default provider is BC, if nothing else is specified when setting SignKeyInfo */
+<span class="nc" id="L64">	private String provider = &quot;BC&quot;;</span>
+	/** Certificate for the signer of the response message (CA) */
+<span class="nc" id="L66">	private transient Collection&lt;Certificate&gt; signCertChain = null;</span>
+	/** Private key used to sign the response message */
+<span class="nc" id="L68">	private transient PrivateKey signKey = null;</span>
+
+	/** The encoded response message */
+<span class="nc" id="L71">    private byte[] responseMessage = null;</span>
+
+	@Override
+	public void setCrl(CRL crl) {
+<span class="nc" id="L75">	}</span>
+
+	@Override
+	public void setIncludeCACert(boolean incCACert) {
+<span class="nc" id="L79">	}</span>
+	
+	@Override
+	public void setCACert(Certificate cACert) {
+<span class="nc" id="L83">	}</span>
+
+	@Override
+	public byte[] getResponseMessage() {
+<span class="nc" id="L87">        return responseMessage;</span>
+	}
+
+	@Override
+	public void setStatus(ResponseStatus status) {
+<span class="nc" id="L92">	}</span>
+
+	@Override
+	public ResponseStatus getStatus() {
+<span class="nc" id="L96">		return ResponseStatus.SUCCESS;</span>
+	}
+
+	@Override
+	public void setFailInfo(FailInfo failInfo) {
+<span class="nc" id="L101">	}</span>
+
+	@Override
+	public FailInfo getFailInfo() {
+<span class="nc" id="L105">		return null;</span>
+	}
+
+	@Override
+	public void setFailText(String failText) {
+<span class="nc" id="L110">	}</span>
+
+	@Override
+	public String getFailText() {
+<span class="nc" id="L114">		return null;</span>
+	}
+
+    @Override
+    public boolean create() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException {
+<span class="nc" id="L119">		final PKIHeaderBuilder myPKIHeader = CmpMessageHelper.createPKIHeaderBuilder(getSender(), getRecipient(), getSenderNonce(), getRecipientNonce(), getTransactionId());</span>
+<span class="nc" id="L120">		final PKIBody myPKIBody = new PKIBody(19, DERNull.INSTANCE);</span>
+<span class="nc" id="L121">		PKIMessage myPKIMessage = null;</span>
+
+<span class="nc bnc" id="L123" title="All 8 branches missed.">		if ((getPbeDigestAlg() != null) &amp;&amp; (getPbeMacAlg() != null) &amp;&amp; (getPbeKeyId() != null) &amp;&amp; (getPbeKey() != null) ) {</span>
+<span class="nc" id="L124">		    myPKIHeader.setProtectionAlg(new AlgorithmIdentifier(new ASN1ObjectIdentifier(getPbeDigestAlg())));</span>
+<span class="nc" id="L125">		    myPKIMessage = new PKIMessage(myPKIHeader.build(), myPKIBody);</span>
+<span class="nc" id="L126">			responseMessage = CmpMessageHelper.protectPKIMessageWithPBE(myPKIMessage, getPbeKeyId(), getPbeKey(), getPbeDigestAlg(), getPbeMacAlg(), getPbeIterationCount());</span>
+		} else {
+<span class="nc bnc" id="L128" title="All 6 branches missed.">			if ((signCertChain != null) &amp;&amp; (signCertChain.size() &gt; 0) &amp;&amp; (signKey != null)) {</span>
+				try {
+<span class="nc" id="L130">				    myPKIHeader.setProtectionAlg(new AlgorithmIdentifier(new ASN1ObjectIdentifier(digestAlg)));</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">			        if (CollectionUtils.isNotEmpty(signCertChain)) {</span>
+	                    // set sender Key ID as well when the response is signed, so the signer (CA) can have multiple certificates out there
+	                    // with the same DN but different keys
+<span class="nc" id="L134">                        myPKIHeader.setSenderKID(CertTools.getSubjectKeyId(signCertChain.iterator().next()));</span>
+			        }
+<span class="nc" id="L136">				    myPKIMessage = new PKIMessage(myPKIHeader.build(), myPKIBody);</span>
+<span class="nc" id="L137">					responseMessage = CmpMessageHelper.signPKIMessage(myPKIMessage, signCertChain, signKey, digestAlg, provider);</span>
+<span class="nc" id="L138">				} catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L139">					log.error(&quot;Error creating CmpConfirmMessage: &quot;, e);</span>
+<span class="nc" id="L140">				} catch (SecurityException e) {</span>
+<span class="nc" id="L141">					log.error(&quot;Error creating CmpConfirmMessage: &quot;, e);</span>
+<span class="nc" id="L142">				} catch (SignatureException e) {</span>
+<span class="nc" id="L143">					log.error(&quot;Error creating CmpConfirmMessage: &quot;, e);</span>
+<span class="nc" id="L144">				}				</span>
+			} else {
+<span class="nc bnc" id="L146" title="All 2 branches missed.">				if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L147">					log.debug(&quot;Not signing CMP Confirm Response, because signCert or signKey is not set.&quot;);</span>
+				}
+			}
+			// If we could not create the signed response message, create a non-protected one instead.
+<span class="nc bnc" id="L151" title="All 2 branches missed.">			if (responseMessage == null) {</span>
+<span class="nc" id="L152">			    myPKIMessage = new PKIMessage(myPKIHeader.build(), myPKIBody);</span>
+<span class="nc" id="L153">				responseMessage = CmpMessageHelper.pkiMessageToByteArray(myPKIMessage);</span>
+			}
+		}
+<span class="nc" id="L156">		return true;</span>
+	}
+
+	@Override
+	public boolean requireSignKeyInfo() {
+<span class="nc" id="L161">		return false;</span>
+	}
+	
+	@Override
+	public void setSignKeyInfo(Collection&lt;Certificate&gt; certs, PrivateKey key, String provider) {
+<span class="nc" id="L166">		this.signCertChain = certs;</span>
+<span class="nc" id="L167">		this.signKey = key;</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">		if (provider != null) {</span>
+<span class="nc" id="L169">			this.provider = provider;</span>
+		}
+<span class="nc" id="L171">	}</span>
+
+	@Override
+	public void setRecipientKeyInfo(byte[] recipientKeyInfo) {
+<span class="nc" id="L175">	}</span>
+
+	@Override
+	public void setPreferredDigestAlg(String digest) {
+<span class="nc bnc" id="L179" title="All 2 branches missed.">	    if(StringUtils.isNotEmpty(digest)) {</span>
+<span class="nc" id="L180">	        this.digestAlg = digest;</span>
+	    }
+<span class="nc" id="L182">	}</span>
+
+	@Override
+	public void setRequestType(int reqtype) {
+<span class="nc" id="L186">	}</span>
+
+	@Override
+	public void setRequestId(int reqid) {
+<span class="nc" id="L190">	}</span>
+
+	@Override
+    public void setProtectionParamsFromRequest(RequestMessage reqMsg) {
+<span class="nc" id="L194">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

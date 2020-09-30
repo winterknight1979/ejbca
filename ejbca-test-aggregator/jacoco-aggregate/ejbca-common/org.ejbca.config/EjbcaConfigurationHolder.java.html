@@ -204,7 +204,7 @@ public final class EjbcaConfigurationHolder {
 <span class="fc" id="L204">		String ret = null;</span>
 <span class="fc" id="L205">		final StringBuilder str = new StringBuilder();</span>
 <span class="fc" id="L206">		String rets[] = instance().getStringArray(property);</span>
-<span class="pc bpc" id="L207" title="1 of 2 branches missed.">        if (rets.length == 0) {</span>
+<span class="fc bfc" id="L207" title="All 2 branches covered.">        if (rets.length == 0) {</span>
 <span class="fc" id="L208">            rets = ConfigurationHolder.getDefaultValueArray(property);</span>
         }
 <span class="fc bfc" id="L210" title="All 2 branches covered.">		for (int i=0; i&lt;rets.length; i++) {</span>
@@ -213,10 +213,10 @@ public final class EjbcaConfigurationHolder {
 			}
 <span class="fc" id="L214">			str.append(rets[i]);</span>
 		}
-<span class="pc bpc" id="L216" title="1 of 2 branches missed.">		if (str.length() != 0) {</span>
+<span class="fc bfc" id="L216" title="All 2 branches covered.">		if (str.length() != 0) {</span>
 <span class="fc" id="L217">			ret = str.toString();</span>
         } else {
-<span class="nc" id="L219">            ret = ConfigurationHolder.getDefaultValue(property);</span>
+<span class="fc" id="L219">            ret = ConfigurationHolder.getDefaultValue(property);</span>
         }
 <span class="fc" id="L221">		return ret;</span>
 	}
@@ -232,13 +232,13 @@ public final class EjbcaConfigurationHolder {
 	 */
 	@SuppressWarnings(&quot;el-syntax&quot;)
 	public static String getExpandedString(final String property) {
-<span class="nc" id="L235">		String ret = getString(property);</span>
-<span class="nc bnc" id="L236" title="All 2 branches missed.">		if (ret != null) {</span>
-<span class="nc bnc" id="L237" title="All 2 branches missed.">			while (ret.indexOf(&quot;${&quot;) != -1) {</span>
+<span class="fc" id="L235">		String ret = getString(property);</span>
+<span class="pc bpc" id="L236" title="1 of 2 branches missed.">		if (ret != null) {</span>
+<span class="pc bpc" id="L237" title="1 of 2 branches missed.">			while (ret.indexOf(&quot;${&quot;) != -1) {</span>
 <span class="nc" id="L238">				ret = interpolate(ret);</span>
 			}
 		}
-<span class="nc" id="L241">		return ret;</span>
+<span class="fc" id="L241">		return ret;</span>
 	}
 	
 	private static String interpolate(final String orderString) {
@@ -274,11 +274,11 @@ public final class EjbcaConfigurationHolder {
 	 * @return bool
 	 */
 	public static boolean backupConfiguration() {
-<span class="nc bnc" id="L277" title="All 2 branches missed.">		if (configBackup != null) {</span>
-<span class="nc" id="L278">			return false;</span>
+<span class="fc bfc" id="L277" title="All 2 branches covered.">		if (configBackup != null) {</span>
+<span class="fc" id="L278">			return false;</span>
 		}
-<span class="nc" id="L280">		configBackup = (CompositeConfiguration) config.clone();</span>
-<span class="nc" id="L281">		return true;</span>
+<span class="fc" id="L280">		configBackup = (CompositeConfiguration) config.clone();</span>
+<span class="fc" id="L281">		return true;</span>
 	}
 	
 	/**
@@ -323,9 +323,9 @@ public final class EjbcaConfigurationHolder {
 	 * @return bool
 	 */
 	public static boolean updateConfiguration(final String key, final String value) {
-<span class="nc" id="L326">		backupConfiguration();	// Only takes a backup if necessary.</span>
-<span class="nc" id="L327">		config.setProperty(key, value);</span>
-<span class="nc" id="L328">		return true;</span>
+<span class="fc" id="L326">		backupConfiguration();	// Only takes a backup if necessary.</span>
+<span class="fc" id="L327">		config.setProperty(key, value);</span>
+<span class="fc" id="L328">		return true;</span>
 	}
 
 }

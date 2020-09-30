@@ -1,0 +1,702 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CrmfMessageHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.cmp</a> &gt; <span class="el_source">CrmfMessageHandler.java</span></div><h1>CrmfMessageHandler.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.cmp;
+
+import java.lang.reflect.InvocationTargetException;
+import java.math.BigInteger;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.ejb.EJBException;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.asn1.x9.ECNamedCurveTable;
+import org.bouncycastle.asn1.x9.X962Parameters;
+import org.bouncycastle.asn1.x9.X9ObjectIdentifiers;
+import org.cesecore.CesecoreException;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSession;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.SignRequestException;
+import org.cesecore.certificates.ca.SignRequestSignatureException;
+import org.cesecore.certificates.certificate.CertificateStoreSession;
+import org.cesecore.certificates.certificate.certextensions.CertificateExtensionException;
+import org.cesecore.certificates.certificate.request.FailInfo;
+import org.cesecore.certificates.certificate.request.RequestMessage;
+import org.cesecore.certificates.certificate.request.ResponseMessage;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.EndEntityType;
+import org.cesecore.certificates.endentity.EndEntityTypes;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.certificates.util.AlgorithmConstants;
+import org.cesecore.certificates.util.AlgorithmTools;
+import org.cesecore.keys.util.KeyTools;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.StringTools;
+import org.ejbca.config.CmpConfiguration;
+import org.ejbca.core.EjbcaException;
+import org.ejbca.core.ejb.EjbBridgeSessionLocal;
+import org.ejbca.core.ejb.authentication.web.WebAuthenticationProviderSessionLocal;
+import org.ejbca.core.ejb.ca.sign.SignSession;
+import org.ejbca.core.ejb.ra.CertificateRequestSession;
+import org.ejbca.core.ejb.ra.CertificateRequestSessionLocal;
+import org.ejbca.core.ejb.ra.EndEntityAccessSession;
+import org.ejbca.core.ejb.ra.EndEntityExistsException;
+import org.ejbca.core.ejb.ra.EndEntityManagementSession;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.ca.AuthLoginException;
+import org.ejbca.core.model.ra.NotFoundException;
+import org.ejbca.core.model.ra.UsernameGenerator;
+import org.ejbca.core.model.ra.UsernameGeneratorParams;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileNotFoundException;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
+import org.ejbca.core.protocol.ExtendedUserDataHandler;
+import org.ejbca.core.protocol.ExtendedUserDataHandler.HandlerException;
+import org.ejbca.core.protocol.cmp.authentication.HMACAuthenticationModule;
+import org.ejbca.core.protocol.cmp.authentication.ICMPAuthenticationModule;
+import org.ejbca.core.protocol.cmp.authentication.VerifyPKIMessage;
+import org.ejbca.util.passgen.IPasswordGenerator;
+import org.ejbca.util.passgen.PasswordGeneratorFactory;
+
+/**
+ * Message handler for certificate request messages in the CRMF format
+ * 
+ * @version $Id: CrmfMessageHandler.java 28616 2018-04-03 11:51:50Z samuellb $
+ */
+public class CrmfMessageHandler extends BaseCmpMessageHandler implements ICmpMessageHandler {
+	
+<span class="nc" id="L96">	private static final Logger LOG = Logger.getLogger(CrmfMessageHandler.class);</span>
+    /** Internal localization of logs and errors */
+<span class="nc" id="L98">    private static final InternalEjbcaResources INTRES = InternalEjbcaResources.getInstance();</span>
+
+    /** strings for error messages defined in internal resources */
+	private static final String CMP_ERRORADDUSER = &quot;cmp.erroradduser&quot;;
+	private static final String CMP_ERRORGENERAL = &quot;cmp.errorgeneral&quot;;
+
+	/** Parameters used for username generation if we are using RA mode to create users */
+	private final UsernameGeneratorParams usernameGenParams;
+	/** Parameters used for temporary password generation */
+	private final String userPwdParams;
+	/** Parameter used to determine the type of protection for the response message */
+	private final String responseProt;
+	/** Determines if it the RA will look for requested custom certificate serial numbers, if false such data is ignored */
+	private final boolean allowCustomCertSerno;
+	/** Extra pre-processing of requests */ 
+	private final ExtendedUserDataHandler extendedUserDataHandler;
+	
+	private final SignSession signSession;
+	private final EndEntityAccessSession endEntityAccessSession;
+	private final CertificateRequestSession certificateRequestSession;
+    private final CertificateStoreSession certStoreSession;
+    private final AuthorizationSession authorizationSession;
+    private final WebAuthenticationProviderSessionLocal authenticationProviderSession;
+    private final EndEntityManagementSession endEntityManagementSession;
+
+    /** Construct the message handler. 
+     * @param authenticationToken Token
+     * @param cmpConfiguration Confif
+     * @param configAlias Alias
+     * @param ejbBridgeSession Session
+     * @param certificateRequestSession Request */
+    public CrmfMessageHandler(final AuthenticationToken authenticationToken, final CmpConfiguration cmpConfiguration, final String configAlias, final EjbBridgeSessionLocal ejbBridgeSession,
+            CertificateRequestSessionLocal certificateRequestSession) {
+<span class="nc" id="L131">        super(authenticationToken, cmpConfiguration, configAlias, ejbBridgeSession);</span>
+<span class="nc" id="L132">        this.ejbBridgeSession = ejbBridgeSession;</span>
+<span class="nc" id="L133">        this.signSession = ejbBridgeSession.getSignSession();</span>
+<span class="nc" id="L134">        this.certificateRequestSession = certificateRequestSession;</span>
+<span class="nc" id="L135">        this.endEntityAccessSession = ejbBridgeSession.getEndEntityAccessSession();</span>
+<span class="nc" id="L136">        this.certStoreSession = ejbBridgeSession.getCertificateStoreSession();</span>
+<span class="nc" id="L137">        this.authorizationSession = ejbBridgeSession.getAuthorizationSession();</span>
+<span class="nc" id="L138">        this.authenticationProviderSession = ejbBridgeSession.getWebAuthenticationProviderSession();</span>
+<span class="nc" id="L139">        this.endEntityManagementSession = ejbBridgeSession.getEndEntityManagementSession();</span>
+        
+<span class="nc bnc" id="L141" title="All 2 branches missed.">        if (this.cmpConfiguration.getRAMode(this.confAlias)) {</span>
+            // create UsernameGeneratorParams
+<span class="nc" id="L143">            this.usernameGenParams = new UsernameGeneratorParams();</span>
+<span class="nc" id="L144">            this.usernameGenParams.setMode(this.cmpConfiguration.getRANameGenScheme(this.confAlias));</span>
+<span class="nc" id="L145">            this.usernameGenParams.setDNGeneratorComponent(this.cmpConfiguration.getRANameGenParams(this.confAlias));</span>
+<span class="nc" id="L146">            this.usernameGenParams.setPrefix(this.cmpConfiguration.getRANameGenPrefix(this.confAlias));</span>
+<span class="nc" id="L147">            this.usernameGenParams.setPostfix(this.cmpConfiguration.getRANameGenPostfix(this.confAlias));</span>
+<span class="nc" id="L148">            this.userPwdParams =  this.cmpConfiguration.getRAPwdGenParams(this.confAlias);</span>
+<span class="nc" id="L149">            this.allowCustomCertSerno = this.cmpConfiguration.getAllowRACustomSerno(this.confAlias);</span>
+<span class="nc" id="L150">            this.responseProt = this.cmpConfiguration.getResponseProtection(this.confAlias);</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">            if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L152">                LOG.debug(&quot;cmp.operationmode=ra&quot;);</span>
+<span class="nc" id="L153">                LOG.debug(&quot;cmp.ra.allowcustomcertserno=&quot;+allowCustomCertSerno);</span>
+<span class="nc" id="L154">                LOG.debug(&quot;cmp.ra.passwordgenparams=&quot;+userPwdParams);</span>
+<span class="nc" id="L155">                LOG.debug(&quot;cmp.responseprotection=&quot;+responseProt);</span>
+            }
+        } else {
+<span class="nc" id="L158">            this.usernameGenParams = null;</span>
+<span class="nc" id="L159">            this.userPwdParams = &quot;random&quot;;</span>
+<span class="nc" id="L160">            this.responseProt = null;</span>
+<span class="nc" id="L161">            this.allowCustomCertSerno = false;</span>
+        }
+        // Checks if an extended user data hander is configured and if so, creates the handler class.
+<span class="nc" id="L164">        final String handlerClass = cmpConfiguration.getCertReqHandlerClass(this.confAlias);</span>
+<span class="nc" id="L165">        ExtendedUserDataHandler extendedUserDataHandler = null;</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(handlerClass)) {</span>
+<span class="nc bnc" id="L167" title="All 2 branches missed.">            if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L168">                LOG.debug(&quot;CertReqHandlerClass=&quot;+handlerClass);</span>
+            }
+            try {
+<span class="nc" id="L171">                extendedUserDataHandler = (ExtendedUserDataHandler)Class.forName(handlerClass).getConstructor().newInstance();</span>
+<span class="nc" id="L172">            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | InvocationTargetException |  RuntimeException e) {</span>
+<span class="nc" id="L173">            	LOG.warn(&quot;The configured unid class '&quot;+handlerClass+&quot;' is not existing.&quot;);</span>
+<span class="nc" id="L174">            }</span>
+        }
+<span class="nc" id="L176">        this.extendedUserDataHandler = extendedUserDataHandler;         </span>
+<span class="nc" id="L177">    }</span>
+    
+    /**
+     * Gets the end entity with that subject DN either 
+     * - by extracting the username by a DN component ({@link CmpConfiguration#getExtractUsernameComponent(String)}
+     * - or by matching its DN exactly.
+     * 
+     * @param dn the end entities DN (must match exactly).
+     * @return the end entity that either has a matching username extracted from the DN, or a subjectDN that matches the dn exactly, or null if no user found.
+     * @throws AuthorizationDeniedException if authorization was denied.
+     */
+    private EndEntityInformation getEndEntityFromCertReqRequest(final String dn) throws AuthorizationDeniedException {
+<span class="nc" id="L189">        String username = getUsernameByDnComponent(dn);</span>
+<span class="nc" id="L190">        EndEntityInformation result = null;</span>
+<span class="nc bnc" id="L191" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(username)) {</span>
+<span class="nc" id="L192">            result = endEntityAccessSession.findUser(admin, username);            </span>
+        }
+<span class="nc bnc" id="L194" title="All 2 branches missed.">        if (result == null) {</span>
+            // ECA-6435 Overwrite the EE DN with the request DN fails here, independent from CertificateProile.setAllowDnOverride, 
+            // if the request DN does not contain the VCs DN component to extract, but fails anyway (see VendorAuthenticationTest.test3GPPModeWithUserFromVendorCertUIDOrRequestFullDN()).
+<span class="nc" id="L197">            result = getEndEntityByDn(dn);</span>
+        }
+<span class="nc" id="L199">        return result;</span>
+    }
+    
+    @Override
+	public ResponseMessage handleMessage(final BaseCmpMessage cmpRequestMessage, final boolean authenticated) {
+<span class="nc bnc" id="L204" title="All 2 branches missed.">		if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L205">			LOG.trace(&quot;&gt;handleMessage&quot;);</span>
+		}
+<span class="nc" id="L207">		ResponseMessage resp = null;</span>
+		try {
+<span class="nc" id="L209">			CrmfRequestMessage crmfreq = null;</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">			if (cmpRequestMessage instanceof CrmfRequestMessage) {</span>
+<span class="nc" id="L211">				crmfreq = (CrmfRequestMessage) cmpRequestMessage;</span>
+
+                // If we have usernameGeneratorParams we want to generate usernames automagically for requests
+                // If we are not in RA mode, usernameGeneratorParams will be null
+<span class="nc bnc" id="L215" title="All 2 branches missed.">				if (usernameGenParams != null) {</span>
+<span class="nc" id="L216">					resp = handleRaMessage(crmfreq, authenticated);</span>
+				} else {
+					// Try to find the user that is the subject for the request
+					// if extractUsernameComponent is null, we have to find the user from the DN
+					// if not empty the message will find the username itself, in the getUsername method
+<span class="nc" id="L221">					final String dn = crmfreq.getSubjectDN();</span>
+<span class="nc" id="L222">					final EndEntityInformation endEntityInformation = getEndEntityFromCertReqRequest(crmfreq.getSubjectDN());</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">					if (endEntityInformation != null) {</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">						if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L225">							LOG.debug(&quot;Found username: &quot;+endEntityInformation.getUsername());</span>
+						}
+<span class="nc" id="L227">						final String username = endEntityInformation.getUsername();</span>
+<span class="nc" id="L228">						crmfreq.setUsername(username);</span>
+<span class="nc" id="L229">						final VerifyPKIMessage messageVerifyer = new VerifyPKIMessage(null, this.confAlias, admin, caSession, </span>
+						                endEntityAccessSession, certStoreSession, authorizationSession, endEntityProfileSession, certificateProfileSession,
+						                authenticationProviderSession, endEntityManagementSession, this.cmpConfiguration);
+<span class="nc" id="L232">						final ICMPAuthenticationModule authenticationModule = messageVerifyer.getUsedAuthenticationModule(crmfreq.getPKIMessage(), username,  authenticated);</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">						if(authenticationModule == null) {</span>
+<span class="nc" id="L234">						    String errmsg = messageVerifyer.getErrorMessage();</span>
+<span class="nc" id="L235">						    LOG.info(errmsg);</span>
+<span class="nc" id="L236">						    return CmpMessageHelper.createUnprotectedErrorMessage(cmpRequestMessage, FailInfo.BAD_REQUEST, errmsg);</span>
+						}
+						
+<span class="nc" id="L239">						crmfreq.setPassword(authenticationModule.getAuthenticationString());</span>
+<span class="nc bnc" id="L240" title="All 2 branches missed.">		                if(crmfreq.getHeader().getProtectionAlg() != null) {</span>
+<span class="nc" id="L241">		                    crmfreq.setPreferredDigestAlg(AlgorithmTools.getDigestFromSigAlg(crmfreq.getHeader().getProtectionAlg().getAlgorithm().getId()));</span>
+		                }
+		                // Do we have a public key in the request? If not we may be trying to do server generated keys
+<span class="nc" id="L244">		                enrichWithServerGeneratedKeyOrThrow(crmfreq, endEntityInformation.getCertificateProfileId());</span>
+<span class="nc" id="L245">		                resp = signSession.createCertificate(admin, crmfreq, org.ejbca.core.protocol.cmp.CmpResponseMessage.class, endEntityInformation);</span>
+<span class="nc" id="L246">					} else {</span>
+<span class="nc" id="L247">						final String errMsg = INTRES.getLocalizedMessage(&quot;cmp.infonouserfordn&quot;, dn);</span>
+<span class="nc" id="L248">						LOG.info(errMsg);						</span>
+		                // If we didn't find the entity return error message
+<span class="nc" id="L250">		                final String failText = INTRES.getLocalizedMessage(&quot;ra.wrongusernameorpassword&quot;);</span>
+<span class="nc" id="L251">		                LOG.info(failText);</span>
+<span class="nc" id="L252">                        resp = signSession.createRequestFailedResponse(admin, crmfreq, org.ejbca.core.protocol.cmp.CmpResponseMessage.class,</span>
+                                FailInfo.INCORRECT_DATA, failText);
+					}
+<span class="nc" id="L255">				}</span>
+			} else {
+<span class="nc" id="L257">				final String errMsg = INTRES.getLocalizedMessage(&quot;cmp.errornocmrfreq&quot;);</span>
+<span class="nc" id="L258">				LOG.error(errMsg);</span>
+			}
+			
+<span class="nc bnc" id="L261" title="All 2 branches missed.">			if (resp == null) {</span>
+<span class="nc" id="L262">                final String errMsg = INTRES.getLocalizedMessage(&quot;cmp.errornullresp&quot;);</span>
+<span class="nc" id="L263">                LOG.error(errMsg);</span>
+<span class="nc" id="L264">                throw new IllegalStateException(errMsg);</span>
+			}
+<span class="nc" id="L266">		} catch (InvalidKeyException | NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {</span>
+		    // Thrown checking for the public key in the request, if these are thrown there is something wrong with the key in the request 
+<span class="nc" id="L268">            final String errMsg = INTRES.getLocalizedMessage(CMP_ERRORGENERAL, e.getMessage());</span>
+<span class="nc" id="L269">            LOG.info(errMsg, e);    </span>
+<span class="nc" id="L270">            resp = CmpMessageHelper.createUnprotectedErrorMessage(cmpRequestMessage, FailInfo.BAD_REQUEST, e.getMessage());</span>
+<span class="nc" id="L271">		} catch (NoSuchProviderException e) {</span>
+		    // Thrown checking for the public key in the request, if this is thrown there is something missing in the system 
+<span class="nc" id="L273">            final String errMsg = INTRES.getLocalizedMessage(CMP_ERRORGENERAL, e.getMessage());</span>
+<span class="nc" id="L274">            LOG.error(errMsg, e);    </span>
+<span class="nc" id="L275">            resp = CmpMessageHelper.createUnprotectedErrorMessage(cmpRequestMessage, FailInfo.SYSTEM_UNAVAILABLE, e.getMessage());</span>
+<span class="nc" id="L276">		} catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L277">			final String errMsg = INTRES.getLocalizedMessage(CMP_ERRORGENERAL, e.getMessage());</span>
+<span class="nc" id="L278">			LOG.info(errMsg, e);	</span>
+<span class="nc" id="L279">			resp = CmpMessageHelper.createUnprotectedErrorMessage(cmpRequestMessage, FailInfo.NOT_AUTHORIZED, e.getMessage());</span>
+<span class="nc" id="L280">		} catch (CADoesntExistsException e) {</span>
+<span class="nc" id="L281">			final String errMsg = INTRES.getLocalizedMessage(CMP_ERRORGENERAL, e.getMessage());</span>
+<span class="nc" id="L282">			LOG.info(errMsg, e); // info because this is something we should expect and we handle it	</span>
+<span class="nc" id="L283">			resp = CmpMessageHelper.createUnprotectedErrorMessage(cmpRequestMessage, FailInfo.WRONG_AUTHORITY, e.getMessage());</span>
+<span class="nc" id="L284">		} catch (SignRequestException e) {</span>
+<span class="nc" id="L285">			final String errMsg = INTRES.getLocalizedMessage(CMP_ERRORGENERAL, e.getMessage());</span>
+<span class="nc" id="L286">			LOG.info(errMsg, e);			</span>
+<span class="nc" id="L287">			resp = CmpMessageHelper.createUnprotectedErrorMessage(cmpRequestMessage, FailInfo.BAD_REQUEST, e.getMessage());</span>
+<span class="nc" id="L288">		} catch (SignRequestSignatureException e) {</span>
+<span class="nc" id="L289">			final String errMsg = INTRES.getLocalizedMessage(CMP_ERRORGENERAL, e.getMessage());</span>
+<span class="nc" id="L290">			LOG.info(errMsg, e); // info because this is something we should expect and we handle it</span>
+<span class="nc" id="L291">			resp = CmpMessageHelper.createUnprotectedErrorMessage(cmpRequestMessage, FailInfo.BAD_POP, e.getMessage());</span>
+<span class="nc" id="L292">        } catch (CesecoreException e) {</span>
+<span class="nc" id="L293">            final String errMsg = INTRES.getLocalizedMessage(CMP_ERRORGENERAL, e.getMessage());</span>
+<span class="nc" id="L294">            LOG.info(errMsg, e);           </span>
+<span class="nc" id="L295">            resp = CmpMessageHelper.createUnprotectedErrorMessage(cmpRequestMessage, FailInfo.BAD_REQUEST, e.getMessage());</span>
+<span class="nc" id="L296">        } catch (AuthLoginException e) {</span>
+<span class="nc" id="L297">            final String errMsg = INTRES.getLocalizedMessage(CMP_ERRORGENERAL, e.getMessage());</span>
+<span class="nc" id="L298">            LOG.info(errMsg, e);           </span>
+<span class="nc" id="L299">            resp = CmpMessageHelper.createUnprotectedErrorMessage(cmpRequestMessage, FailInfo.NOT_AUTHORIZED, e.getMessage());</span>
+<span class="nc" id="L300">        } catch (EjbcaException e) {</span>
+<span class="nc" id="L301">            final String errMsg = INTRES.getLocalizedMessage(CMP_ERRORGENERAL, e.getMessage());</span>
+<span class="nc" id="L302">            LOG.info(errMsg, e);           </span>
+<span class="nc" id="L303">            resp = CmpMessageHelper.createUnprotectedErrorMessage(cmpRequestMessage, FailInfo.BAD_REQUEST, e.getMessage());			</span>
+<span class="nc" id="L304">		} catch (EJBException e) {</span>
+			// Fatal error
+<span class="nc" id="L306">			final String errMsg = INTRES.getLocalizedMessage(CMP_ERRORADDUSER);</span>
+<span class="nc" id="L307">			LOG.error(errMsg, e);			</span>
+<span class="nc" id="L308">			resp = null;</span>
+<span class="nc" id="L309">		} catch (CertificateExtensionException e) {</span>
+<span class="nc" id="L310">            final String errMsg = INTRES.getLocalizedMessage(CMP_ERRORGENERAL, e.getMessage());</span>
+<span class="nc" id="L311">            LOG.info(errMsg, e); // info because this is something we should expect and we handle it</span>
+<span class="nc" id="L312">            resp = CmpMessageHelper.createUnprotectedErrorMessage(cmpRequestMessage, FailInfo.BAD_REQUEST, e.getMessage());</span>
+<span class="nc" id="L313">        }							</span>
+<span class="nc bnc" id="L314" title="All 2 branches missed.">		if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L315">			LOG.trace(&quot;&lt;handleMessage&quot;);</span>
+		}
+<span class="nc" id="L317">		return resp;</span>
+	}
+
+	/** Method that takes care of RA mode operations, i.e. when the message is authenticated with a common secret using password based encryption (pbe).
+	 * This method will verify the pbe and if ok  will automatically create/edit a user and issue the certificate. In RA mode we assume that the RA knows what it is doing.
+	 * 
+	 * @param crmfreq frequency
+	 * @param authenticated if the CMP message has already been authenticated in another way or not
+	 * @return IResponseMessage that can be sent back to the client
+	 * @throws AuthorizationDeniedException fail
+	 * @throws EjbcaException fail
+	 * @throws CesecoreException fail
+	 */
+	private ResponseMessage handleRaMessage(final CrmfRequestMessage crmfreq, boolean authenticated) throws AuthorizationDeniedException, EjbcaException, CesecoreException {
+        final int eeProfileId;        // The endEntityProfile to be used when adding users in RA mode.
+        final String certProfileName;  // The certificate profile to use when adding users in RA mode.
+        final int certProfileId;
+<span class="nc" id="L334">	    final int requestId = crmfreq.getRequestId();</span>
+<span class="nc" id="L335">        final int requestType = crmfreq.getRequestType();</span>
+        // Try to find a HMAC/SHA1 protection key
+<span class="nc" id="L337">        final String keyId = CmpMessageHelper.getStringFromOctets(crmfreq.getHeader().getSenderKID());</span>
+<span class="nc" id="L338">        int caId = 0; // The CA to user when adding users in RA mode</span>
+        try {
+<span class="nc" id="L340">            eeProfileId = getUsedEndEntityProfileId(keyId);</span>
+<span class="nc" id="L341">            caId = getUsedCaId(keyId, eeProfileId);</span>
+<span class="nc" id="L342">            certProfileName = getUsedCertProfileName(keyId, eeProfileId);</span>
+<span class="nc" id="L343">            certProfileId = getUsedCertProfileId(certProfileName);</span>
+<span class="nc" id="L344">        } catch (CADoesntExistsException e) {</span>
+<span class="nc" id="L345">            LOG.info(INTRES.getLocalizedMessage(CMP_ERRORGENERAL, e.getMessage()), e);</span>
+<span class="nc" id="L346">            return CmpMessageHelper.createErrorMessage(crmfreq, FailInfo.INCORRECT_DATA, e.getMessage(), requestId, requestType, null, keyId, this.responseProt);</span>
+<span class="nc" id="L347">        }  catch (NotFoundException | EndEntityProfileNotFoundException e) {</span>
+<span class="nc" id="L348">            final String errMsg = INTRES.getLocalizedMessage(CMP_ERRORGENERAL, e.getMessage());</span>
+<span class="nc" id="L349">            LOG.info(errMsg, e);</span>
+            // In case an EE profile or a cert profiles, or a CA can not be found, this is a bad configuration or database is down. 
+            // In either case the system is unavailable due to CMP server, so client should try again at some later point
+<span class="nc" id="L352">            return CmpMessageHelper.createErrorMessage(crmfreq, FailInfo.SYSTEM_UNAVAILABLE, e.getMessage(), requestId, requestType, null, keyId, this.responseProt);           </span>
+<span class="nc" id="L353">        }</span>
+
+<span class="nc" id="L355">        ResponseMessage resp = null;</span>
+        //Check the request's authenticity
+<span class="nc" id="L357">        CAInfo cainfo = this.caSession.getCAInfoInternal(caId, null, true);</span>
+<span class="nc" id="L358">        final VerifyPKIMessage messageVerifyer = new VerifyPKIMessage(cainfo, this.confAlias, admin, caSession, </span>
+                endEntityAccessSession, certStoreSession, authorizationSession, endEntityProfileSession, certificateProfileSession,
+                authenticationProviderSession, endEntityManagementSession, this.cmpConfiguration);
+<span class="nc" id="L361">        ICMPAuthenticationModule authenticationModule = messageVerifyer.getUsedAuthenticationModule(crmfreq.getPKIMessage(),  null,  authenticated);</span>
+<span class="nc bnc" id="L362" title="All 2 branches missed.">        if(authenticationModule == null) {</span>
+<span class="nc" id="L363">            String errmsg = messageVerifyer.getErrorMessage();</span>
+<span class="nc" id="L364">            LOG.info(errmsg);</span>
+<span class="nc" id="L365">            return CmpMessageHelper.createUnprotectedErrorMessage(crmfreq, FailInfo.BAD_REQUEST, errmsg);</span>
+        }
+        
+        try {
+			// Create a username and password and register the new user in EJBCA
+<span class="nc" id="L370">			final UsernameGenerator gen = UsernameGenerator.getInstance(this.usernameGenParams);</span>
+			// Don't convert this DN to an ordered EJBCA DN string with CertTools.stringToBCDNString because we don't want double escaping of some characters
+<span class="nc bnc" id="L372" title="All 2 branches missed.">			final RequestMessage req =  this.extendedUserDataHandler!=null ? this.extendedUserDataHandler.processRequestMessage(crmfreq, certProfileName) : crmfreq;</span>
+
+<span class="nc" id="L374">			final X500Name dnname = req.getRequestX500Name();</span>
+<span class="nc bnc" id="L375" title="All 2 branches missed.">			if (dnname == null) {</span>
+<span class="nc" id="L376">			    final String nullMsg = &quot;Request DN Name can not be null&quot;;</span>
+<span class="nc bnc" id="L377" title="All 2 branches missed.">			    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L378">			        LOG.debug(INTRES.getLocalizedMessage(CMP_ERRORGENERAL, nullMsg));</span>
+			    }
+<span class="nc" id="L380">			    return CmpMessageHelper.createErrorMessage(crmfreq, FailInfo.INCORRECT_DATA, nullMsg, requestId, requestType, null, keyId, this.responseProt);</span>
+			}
+<span class="nc bnc" id="L382" title="All 2 branches missed.">			if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L383">				LOG.debug(&quot;Creating username from base dn: &quot;+dnname.toString());</span>
+			}
+<span class="nc" id="L385">			final String username = StringTools.stripUsername(gen.generateUsername(dnname.toString()));</span>
+			final String pwd;
+<span class="nc bnc" id="L387" title="All 2 branches missed.">            if(StringUtils.equals(authenticationModule.getName(), CmpConfiguration.AUTHMODULE_ENDENTITY_CERTIFICATE)) {</span>
+<span class="nc" id="L388">                pwd = authenticationModule.getAuthenticationString();</span>
+<span class="nc bnc" id="L389" title="All 2 branches missed.">            } else if(StringUtils.equals(authenticationModule.getName(), CmpConfiguration.AUTHMODULE_HMAC)) {</span>
+<span class="nc bnc" id="L390" title="All 2 branches missed.">                if (StringUtils.equals(this.userPwdParams, &quot;random&quot;)) {</span>
+<span class="nc bnc" id="L391" title="All 2 branches missed.">                    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L392">                        LOG.debug(&quot;Setting 12 char random user password.&quot;);</span>
+                    }
+<span class="nc" id="L394">                    final IPasswordGenerator pwdgen = PasswordGeneratorFactory.getInstance(PasswordGeneratorFactory.PASSWORDTYPE_ALLPRINTABLE);</span>
+<span class="nc" id="L395">                    pwd = pwdgen.getNewPassword(12, 12);                                                                    </span>
+<span class="nc" id="L396">                } else {</span>
+<span class="nc bnc" id="L397" title="All 2 branches missed.">                    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L398">					    LOG.debug(&quot;Setting fixed user password from config.&quot;);</span>
+				    }
+<span class="nc" id="L400">				    pwd = this.userPwdParams;</span>
+                }
+            } else {
+                //This should not run since an error would have occurred earlier if the authentication module was unknown 
+<span class="nc" id="L404">                final String errMsg = &quot;Unknown authentication module.&quot;;</span>
+<span class="nc" id="L405">                LOG.error(errMsg);</span>
+<span class="nc" id="L406">                return CmpMessageHelper.createUnprotectedErrorMessage(crmfreq, FailInfo.BAD_MESSAGE_CHECK, errMsg);</span>
+			}
+			// AltNames may be in the request template
+<span class="nc" id="L409">			final String altNames = req.getRequestAltNames();</span>
+<span class="nc" id="L410">			final List&lt;String&gt; emails = CertTools.getEmailFromDN(altNames);</span>
+<span class="nc" id="L411">			emails.addAll(CertTools.getEmailFromDN(dnname.toString()));</span>
+            // Use rfc822name or first SubjectDN email address as user email address if available
+<span class="nc bnc" id="L413" title="All 2 branches missed.">            final String email = emails.isEmpty() ? null : emails.get(0);</span>
+<span class="nc" id="L414">			ExtendedInformation ei = null;</span>
+<span class="nc bnc" id="L415" title="All 2 branches missed.">			if (this.allowCustomCertSerno) {</span>
+				// Don't even try to parse out the field if it is not allowed
+<span class="nc" id="L417">				final BigInteger customCertSerno = crmfreq.getSubjectCertSerialNo();</span>
+<span class="nc bnc" id="L418" title="All 2 branches missed.">				if (customCertSerno != null) {</span>
+					// If we have a custom certificate serial number in the request, we will pass it on to the UserData object
+<span class="nc" id="L420">					ei = new ExtendedInformation();</span>
+<span class="nc" id="L421">					ei.setCertificateSerialNumber(customCertSerno);</span>
+<span class="nc bnc" id="L422" title="All 2 branches missed.">					if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L423">						LOG.debug(&quot;Custom certificate serial number: &quot;+customCertSerno.toString(16));					</span>
+					}
+				}
+			}
+<span class="nc" id="L427">			final EndEntityInformation userdata = new EndEntityInformation(username, dnname.toString(), caId, altNames, email, EndEntityConstants.STATUS_NEW, new EndEntityType(EndEntityTypes.ENDUSER), eeProfileId, certProfileId, null, null, SecConst.TOKEN_SOFT_BROWSERGEN, 0, ei);</span>
+<span class="nc" id="L428">			userdata.setPassword(pwd);</span>
+			// Set so we have the right params in the call to processCertReq. 
+			// Username and pwd in the EndEntityInformation and the IRequestMessage must match
+<span class="nc" id="L431">			crmfreq.setUsername(username);</span>
+<span class="nc" id="L432">			crmfreq.setPassword(pwd);</span>
+<span class="nc bnc" id="L433" title="All 2 branches missed.">            if(crmfreq.getHeader().getProtectionAlg() != null) {			</span>
+<span class="nc" id="L434">                crmfreq.setPreferredDigestAlg(AlgorithmTools.getDigestFromSigAlg(crmfreq.getHeader().getProtectionAlg().getAlgorithm().getId()));</span>
+            }
+			// Set all protection parameters
+<span class="nc" id="L437">			CmpPbeVerifyer verifyer = null;</span>
+<span class="nc bnc" id="L438" title="All 2 branches missed.">			if(StringUtils.equals(authenticationModule.getName(), CmpConfiguration.AUTHMODULE_HMAC)) {</span>
+<span class="nc" id="L439">			    final HMACAuthenticationModule hmacmodule = (HMACAuthenticationModule) authenticationModule;</span>
+<span class="nc" id="L440">			    verifyer = hmacmodule.getCmpPbeVerifyer();</span>
+<span class="nc" id="L441">                final String pbeDigestAlg = verifyer.getOwfOid();</span>
+<span class="nc" id="L442">                final String pbeMacAlg = verifyer.getMacOid();</span>
+<span class="nc" id="L443">                final int pbeIterationCount = verifyer.getIterationCount();</span>
+<span class="nc" id="L444">                final String raSecret = verifyer.getLastUsedRaSecret();</span>
+<span class="nc bnc" id="L445" title="All 2 branches missed.">			    if (LOG.isDebugEnabled()) {</span>
+<span class="nc bnc" id="L446" title="All 2 branches missed.">				    LOG.debug(&quot;responseProt=&quot;+this.responseProt+&quot;, pbeDigestAlg=&quot;+pbeDigestAlg+&quot;, pbeMacAlg=&quot;+pbeMacAlg+&quot;, keyId=&quot;+keyId+&quot;, raSecret=&quot;+(raSecret == null ? &quot;null&quot;:&quot;not null&quot;));</span>
+			    }
+			    
+<span class="nc bnc" id="L449" title="All 2 branches missed.">			    if (StringUtils.equals(this.responseProt, &quot;pbe&quot;)) {</span>
+<span class="nc" id="L450">				    crmfreq.setPbeParameters(keyId, raSecret, pbeDigestAlg, pbeMacAlg, pbeIterationCount);</span>
+                }
+			}
+			try {
+	            // Do we have a public key in the request? If not we may be trying to do server generated keys
+<span class="nc" id="L455">                enrichWithServerGeneratedKeyOrThrow((ICrmfRequestMessage)req, certProfileId);</span>
+				try {
+<span class="nc bnc" id="L457" title="All 2 branches missed.">					if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L458">						LOG.debug(&quot;Creating new request with eeProfileId '&quot;+eeProfileId+&quot;', certProfileId '&quot;+certProfileId+&quot;', caId '&quot;+caId+&quot;'&quot;);                                                               </span>
+					}
+<span class="nc" id="L460">					resp = this.certificateRequestSession.processCertReq(this.admin, userdata, req, org.ejbca.core.protocol.cmp.CmpResponseMessage.class);</span>
+<span class="nc" id="L461">				} catch (EndEntityExistsException e) {</span>
+<span class="nc" id="L462">					final String updateMsg = INTRES.getLocalizedMessage(&quot;cmp.erroradduserupdate&quot;, username);</span>
+<span class="nc" id="L463">					LOG.info(updateMsg);</span>
+					// Try again
+<span class="nc" id="L465">					resp = this.certificateRequestSession.processCertReq(this.admin, userdata, req, org.ejbca.core.protocol.cmp.CmpResponseMessage.class);</span>
+<span class="nc" id="L466">				}</span>
+<span class="nc" id="L467">            } catch (InvalidKeyException | NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {</span>
+                // Thrown checking for the public key in the request, if these are thrown there is something wrong with the key in the request 
+<span class="nc" id="L469">                LOG.info(INTRES.getLocalizedMessage(CMP_ERRORGENERAL, username), e);</span>
+<span class="nc" id="L470">                resp = CmpMessageHelper.createErrorMessage(crmfreq, FailInfo.BAD_REQUEST, e.getMessage(), requestId, requestType, null, keyId, this.responseProt);</span>
+<span class="nc" id="L471">            } catch (NoSuchProviderException e) {</span>
+                // Thrown checking for the public key in the request, if this is thrown there is something missing in the system 
+<span class="nc" id="L473">                LOG.error(INTRES.getLocalizedMessage(CMP_ERRORGENERAL, username), e);</span>
+<span class="nc" id="L474">                resp = CmpMessageHelper.createErrorMessage(crmfreq, FailInfo.SYSTEM_UNAVAILABLE, e.getMessage(), requestId, requestType, null, keyId, this.responseProt);</span>
+<span class="nc" id="L475">			} catch (EndEntityProfileValidationException e) {</span>
+<span class="nc" id="L476">				LOG.info(INTRES.getLocalizedMessage(CMP_ERRORADDUSER, username), e);</span>
+<span class="nc" id="L477">				resp = CmpMessageHelper.createErrorMessage(crmfreq, FailInfo.INCORRECT_DATA, e.getMessage(), requestId, requestType, verifyer, keyId, this.responseProt);</span>
+<span class="nc" id="L478">			} catch (ApprovalException | EndEntityExistsException e) {</span>
+<span class="nc" id="L479">				LOG.info(INTRES.getLocalizedMessage(CMP_ERRORADDUSER, username), e);</span>
+<span class="nc" id="L480">				resp = CmpMessageHelper.createErrorMessage(crmfreq, FailInfo.NOT_AUTHORIZED, e.getMessage(), requestId, requestType, verifyer, keyId, this.responseProt);</span>
+<span class="nc" id="L481">			} catch (CertificateExtensionException e) {</span>
+<span class="nc" id="L482">			    LOG.info(INTRES.getLocalizedMessage(CMP_ERRORADDUSER, username), e);</span>
+<span class="nc" id="L483">                resp = CmpMessageHelper.createErrorMessage(crmfreq, FailInfo.BAD_REQUEST, e.getMessage(), requestId, requestType, verifyer, keyId, this.responseProt);</span>
+<span class="nc" id="L484">            }</span>
+<span class="nc" id="L485">		} catch (HandlerException e) {</span>
+<span class="nc" id="L486">			LOG.error(INTRES.getLocalizedMessage(&quot;cmp.errorexthandlerexec&quot;), e);</span>
+<span class="nc" id="L487">			resp = CmpMessageHelper.createUnprotectedErrorMessage(crmfreq, FailInfo.BAD_MESSAGE_CHECK, e.getMessage());</span>
+<span class="nc" id="L488">		} </span>
+<span class="nc" id="L489">		return resp;</span>
+	}
+	
+	private void enrichWithServerGeneratedKeyOrThrow(final ICrmfRequestMessage req, final int certProfileID) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+<span class="nc" id="L493">	    SubjectPublicKeyInfo pkInfo = req.getRequestSubjectPublicKeyInfo();</span>
+	    
+        // To trigger server generated keys, subjectPublicKeyInfo key could be null, but subjectPublicKeyInfo could also still be there
+        // with an AlgorithmIdentifier followed by a zero-length BIT STRING (RFC4210 Appendix D.4)
+<span class="nc bnc" id="L497" title="All 8 branches missed.">	    if ( pkInfo == null || (pkInfo.getAlgorithm() != null &amp;&amp; pkInfo.getPublicKeyData() != null &amp;&amp; pkInfo.getPublicKeyData().getBytes().length == 0) ) {</span>
+<span class="nc bnc" id="L498" title="All 2 branches missed.">	        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L499">	            LOG.debug(&quot;CRMF requests does not contain a request public key.&quot;);</span>
+<span class="nc bnc" id="L500" title="All 2 branches missed.">	            if (pkInfo != null) {</span>
+<span class="nc" id="L501">	                LOG.debug(&quot;CRMF requests contains a SubjectPublicKeyInfo without key bits and with algorithmId &quot;+pkInfo.getAlgorithm().getAlgorithm().getId());                </span>
+	            }
+	        }
+	        // Trying to request server generated keys? See if this is allowed, and then try to figure out key generation parameters
+<span class="nc bnc" id="L505" title="All 2 branches missed.">	        if (!this.cmpConfiguration.getAllowServerGeneratedKeys(this.confAlias)) {</span>
+                // Not possible to server generate key when there is no key to encrypt the response with
+<span class="nc" id="L507">                throw new InvalidKeyException(&quot;Server generated keys not allowed&quot;);	            </span>
+	        }
+
+	        // Only allow server generated keys if we have a key to encrypt the response with
+	        // Even though theoretically possible, we only support RSA key transport protection/wrapping
+<span class="nc bnc" id="L512" title="All 4 branches missed.">            if (req.getProtocolEncrKey() == null || !req.getProtocolEncrKey().getAlgorithm().equals(&quot;RSA&quot;)) {</span>
+                // Not possible to server generate key when there is no key to encrypt the response with
+<span class="nc" id="L514">                throw new InvalidKeyException(&quot;Request public key can not be empty without providing a suitable protocolEncrKey (RSA)&quot;);</span>
+            } else {
+<span class="nc" id="L516">                LOG.debug(&quot;Found id_regCtrl_protocolEncrKey with an RSA key in request, clear to generate keys.&quot;);</span>
+            }
+
+<span class="nc" id="L519">            KeyPair keys = null;</span>
+            // 2. If not, get key generation parameters from the certificate profile
+<span class="nc" id="L521">            final CertificateProfile profile = certificateProfileSession.getCertificateProfile(certProfileID);</span>
+<span class="nc bnc" id="L522" title="All 2 branches missed.">            if (profile == null) {</span>
+<span class="nc" id="L523">                final String msg = &quot;No certificate profile to get key specification for server generated keys&quot;;</span>
+<span class="nc" id="L524">                LOG.debug(msg);</span>
+<span class="nc" id="L525">                throw new InvalidKeyException(msg);</span>
+            }
+<span class="nc" id="L527">            List&lt;String&gt; algs = profile.getAvailableKeyAlgorithmsAsList();</span>
+<span class="nc" id="L528">            List&lt;String&gt; curves = profile.getAvailableEcCurvesAsList();</span>
+<span class="nc bnc" id="L529" title="All 2 branches missed.">            if (pkInfo != null) {</span>
+                // 1. Does the client specify algorithm OID in the request?
+                // If we come here we already know that there is an AlgorithmIdentifier, but no public key bits
+<span class="nc" id="L532">                AlgorithmIdentifier algId = pkInfo.getAlgorithm();</span>
+<span class="nc bnc" id="L533" title="All 2 branches missed.">                if (PKCSObjectIdentifiers.rsaEncryption.equals(algId.getAlgorithm())) {</span>
+<span class="nc bnc" id="L534" title="All 2 branches missed.">                    if (!algs.contains(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
+<span class="nc" id="L535">                        final String msg = &quot;RSA key generation requested, but certificate profile specified does not allow RSA&quot;;</span>
+<span class="nc bnc" id="L536" title="All 2 branches missed.">                        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L537">                            LOG.debug(msg+&quot;: &quot;+certProfileID+&quot;: &quot;+algs);</span>
+                        }
+<span class="nc" id="L539">                        throw new InvalidKeyException(msg);                        </span>
+                    }
+<span class="nc" id="L541">                    LOG.debug(&quot;RSA algorithm found in SubjectPublicKeyInfo, using as server key generation alg.&quot;);</span>
+<span class="nc" id="L542">                    algs.clear();</span>
+<span class="nc" id="L543">                    algs.add(AlgorithmConstants.KEYALGORITHM_RSA);</span>
+<span class="nc bnc" id="L544" title="All 2 branches missed.">                } else if (X9ObjectIdentifiers.id_ecPublicKey.equals(algId.getAlgorithm())) {</span>
+<span class="nc bnc" id="L545" title="All 2 branches missed.">                    if (!algs.contains(AlgorithmConstants.KEYALGORITHM_ECDSA)) {</span>
+<span class="nc" id="L546">                        final String msg = &quot;ECDSA key generation requested, but certificate profile specified does not allow ECDSA&quot;;</span>
+<span class="nc bnc" id="L547" title="All 2 branches missed.">                        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L548">                            LOG.debug(msg+&quot;: &quot;+certProfileID+&quot;: &quot;+algs);</span>
+                        }
+<span class="nc" id="L550">                        throw new InvalidKeyException(msg);                        </span>
+                    }
+<span class="nc" id="L552">                    LOG.debug(&quot;ECDSA algorithm found in SubjectPublicKeyInfo, using as server key generation alg.&quot;);</span>
+<span class="nc" id="L553">                    algs.clear();</span>
+<span class="nc" id="L554">                    algs.add(AlgorithmConstants.KEYALGORITHM_ECDSA);</span>
+                    // Looking for key gen parameters for EC
+<span class="nc bnc" id="L556" title="All 2 branches missed.">                    if (pkInfo.getAlgorithm().getParameters() == null) {</span>
+<span class="nc" id="L557">                        final String msg = &quot;ECDSA key generation requested, but no key parameters included&quot;;</span>
+<span class="nc" id="L558">                        throw new InvalidKeyException(msg);                                                </span>
+                    } else {
+                        try {
+<span class="nc" id="L561">                            X962Parameters params = X962Parameters.getInstance(pkInfo.getAlgorithm().getParameters());</span>
+<span class="nc bnc" id="L562" title="All 2 branches missed.">                            if (params.isImplicitlyCA()) {</span>
+<span class="nc" id="L563">                                LOG.debug(&quot;ECDSA key generation parameters is implicitlyCA, will try to use certificate profile parameters.&quot;);</span>
+<span class="nc bnc" id="L564" title="All 2 branches missed.">                            } else if (params.isNamedCurve()) {</span>
+<span class="nc" id="L565">                                ASN1ObjectIdentifier oid = ASN1ObjectIdentifier.getInstance(params.getParameters());</span>
+<span class="nc" id="L566">                                final String curveName = ECNamedCurveTable.getName(oid);</span>
+<span class="nc bnc" id="L567" title="All 2 branches missed.">                                if (curveName == null) {</span>
+<span class="nc" id="L568">                                    final String msg = &quot;ECDSA key generation requested, but X962Parameters is none of the supported named curves: &quot;+oid.getId();</span>
+<span class="nc" id="L569">                                    LOG.debug(msg);</span>
+<span class="nc" id="L570">                                    throw new InvalidKeyException(msg);                                                                                                                                                </span>
+                                }
+                                // Check that this curve is allowed in the Certificate Profile, 
+                                // compare oids, since names have many aliases...and first choice alias can change between different BC versions
+<span class="nc" id="L574">                                boolean found = false;</span>
+<span class="nc bnc" id="L575" title="All 2 branches missed.">                                for (String curve : curves) {</span>
+<span class="nc" id="L576">                                    final ASN1ObjectIdentifier id = ECNamedCurveTable.getOID(curve);</span>
+<span class="nc bnc" id="L577" title="All 4 branches missed.">                                    if (id != null &amp;&amp; oid.equals(id)) {</span>
+<span class="nc" id="L578">                                        found = true;</span>
+                                    }
+<span class="nc" id="L580">                                }</span>
+<span class="nc bnc" id="L581" title="All 2 branches missed.">                                if (!found) {</span>
+<span class="nc" id="L582">                                    final String msg = &quot;ECDSA key generation requested, but X962Parameters curve is none of the allowed named curves: &quot;+curveName;</span>
+<span class="nc" id="L583">                                    LOG.debug(msg);</span>
+<span class="nc" id="L584">                                    throw new InvalidKeyException(msg);                                                                                                                                                                                    </span>
+                                }
+<span class="nc bnc" id="L586" title="All 2 branches missed.">                                if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L587">                                    LOG.debug(&quot;ECDSA key generation parameters is namedCurve, will try to generate key with named curve &quot;+oid.getId()+&quot;, &quot;+curveName);</span>
+                                }
+<span class="nc" id="L589">                                curves.clear();</span>
+<span class="nc" id="L590">                                curves.add(curveName);</span>
+<span class="nc" id="L591">                            } else {</span>
+<span class="nc" id="L592">                                final String msg = &quot;ECDSA key generation requested, but X962Parameters is none of the supported options implicitlyCA or namedCurve&quot;;</span>
+<span class="nc" id="L593">                                throw new InvalidKeyException(msg);                                                                                                            </span>
+                            }
+<span class="nc" id="L595">                        } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L596">                            final String msg = &quot;ECDSA key generation requested, but X962Parameters can not be decoded&quot;;</span>
+<span class="nc" id="L597">                            throw new InvalidKeyException(msg, e);                                                                            </span>
+<span class="nc" id="L598">                        }</span>
+                    }
+                } else {
+<span class="nc" id="L601">                    final String msg = &quot;Server key generation requested, but SubjectPublicKeyInfo specifies unsupported algorithm &quot;+algId.getAlgorithm().getId();</span>
+<span class="nc bnc" id="L602" title="All 2 branches missed.">                    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L603">                        LOG.debug(msg+&quot;: &quot;+certProfileID+&quot;: &quot;+algs);</span>
+                    }
+<span class="nc" id="L605">                    throw new InvalidKeyException(msg);                    </span>
+                }
+            } // pkInfo != null
+            
+<span class="nc bnc" id="L609" title="All 2 branches missed.">            if (algs.size() &gt; 1) {</span>
+<span class="nc" id="L610">                final String msg = &quot;Certificate profile specified more than one key algoritm, not possible to server generate keys&quot;;</span>
+<span class="nc bnc" id="L611" title="All 2 branches missed.">                if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L612">                    LOG.debug(msg+&quot;: &quot;+certProfileID+&quot;: &quot;+algs);</span>
+                }
+<span class="nc" id="L614">                throw new InvalidKeyException(msg);</span>
+            }
+<span class="nc bnc" id="L616" title="All 2 branches missed.">            if (AlgorithmConstants.KEYALGORITHM_RSA.equals(algs.get(0))) {</span>
+<span class="nc" id="L617">                int[] sizes = profile.getAvailableBitLengths();</span>
+<span class="nc bnc" id="L618" title="All 4 branches missed.">                if (sizes == null || sizes.length &gt; 1) {</span>
+<span class="nc" id="L619">                    final String msg = &quot;Certificate profile specified more than one key size, not possible to server generate keys&quot;;</span>
+<span class="nc bnc" id="L620" title="All 2 branches missed.">                    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L621">                        LOG.debug(msg+&quot;: &quot;+certProfileID+&quot;: &quot;+Arrays.asList(sizes));</span>
+                    }
+<span class="nc" id="L623">                    throw new InvalidKeyException(msg);                        </span>
+                }
+<span class="nc bnc" id="L625" title="All 2 branches missed.">                if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L626">                    LOG.debug(&quot;Generating server generated keypair RSA &quot;+sizes[0]);</span>
+                }
+<span class="nc" id="L628">                keys = KeyTools.genKeys(String.valueOf(sizes[0]), AlgorithmConstants.KEYALGORITHM_RSA);                    </span>
+<span class="nc bnc" id="L629" title="All 2 branches missed.">            } else if (AlgorithmConstants.KEYALGORITHM_ECDSA.equals(algs.get(0))) {</span>
+<span class="nc bnc" id="L630" title="All 2 branches missed.">                if (curves.size() &gt; 1) {</span>
+<span class="nc" id="L631">                    final String msg = &quot;Certificate profile specified more than one EC curve, not possible to server generate keys&quot;;</span>
+<span class="nc bnc" id="L632" title="All 2 branches missed.">                    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L633">                        LOG.debug(msg+&quot;: &quot;+certProfileID+&quot;: &quot;+curves);</span>
+                    }
+<span class="nc" id="L635">                    throw new InvalidKeyException(msg);                        </span>
+                }
+<span class="nc" id="L637">                keys = KeyTools.genKeys(curves.get(0), AlgorithmConstants.KEYALGORITHM_ECDSA);  </span>
+                
+            } else {
+<span class="nc" id="L640">                final String msg = &quot;Certificate profile an algorithm not supported for server generated keys&quot;;</span>
+<span class="nc" id="L641">                LOG.debug(msg);</span>
+<span class="nc" id="L642">                throw new InvalidKeyException(msg);                    </span>
+            }
+            // We finally got our keys if we get all the way down here
+<span class="nc" id="L645">            req.setServerGenKeyPair(keys);</span>
+<span class="nc" id="L646">	    } else {</span>
+<span class="nc" id="L647">	        LOG.debug(&quot;CRMF requests contains a request public key.&quot;);</span>
+	    }
+
+<span class="nc" id="L650">	}</span>
+    
+    /**
+     * Gets the end entity by the its subject DN.
+     * @param dn the subject DN.
+     * @return the end entity with this DN.
+     * @throws AuthorizationDeniedException if authorization was denied.
+     */
+    private EndEntityInformation getEndEntityByDn(String dn) throws AuthorizationDeniedException {
+<span class="nc" id="L659">	    EndEntityInformation endEntityInformation = null;</span>
+<span class="nc bnc" id="L660" title="All 2 branches missed.">	    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L661">	        LOG.debug(&quot;looking for user with dn: &quot;+dn);</span>
+	    }
+<span class="nc" id="L663">	    List&lt;EndEntityInformation&gt; endEntityInformations = endEntityAccessSession.findUserBySubjectDN(admin, dn);</span>
+<span class="nc bnc" id="L664" title="All 2 branches missed.">	    if (!endEntityInformations.isEmpty()) {</span>
+<span class="nc" id="L665">	        endEntityInformation = endEntityInformations.get(0);</span>
+<span class="nc bnc" id="L666" title="All 2 branches missed.">	        if (endEntityInformations.size() &gt; 1) {</span>
+<span class="nc" id="L667">	            LOG.warn(&quot;Multiple end entities with subject DN &quot; + dn + &quot; were found. This may lead to unexpected behavior.&quot;);</span>
+	        }
+	    }
+<span class="nc" id="L670">        return endEntityInformation;</span>
+	}
+
+    /**
+     * Gets the username by the DN component specified in the CMP configuration 'extract username component' 
+     * and adds the RA name generation prefix and postfix.
+     * 
+     * @param dn the DN.
+     * @return the username with RA name generation prefix and postfix.
+     */
+    private String getUsernameByDnComponent(String dn) {
+<span class="nc" id="L681">        final String usernameComp = this.cmpConfiguration.getExtractUsernameComponent(this.confAlias);</span>
+<span class="nc bnc" id="L682" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L683">            LOG.debug(&quot;extractUsernameComponent: &quot;+usernameComp);</span>
+        }
+<span class="nc bnc" id="L685" title="All 2 branches missed.">        if(StringUtils.isNotEmpty(usernameComp)) {</span>
+<span class="nc" id="L686">            String username = CertTools.getPartFromDN(dn,usernameComp);</span>
+<span class="nc" id="L687">            String fix = cmpConfiguration.getRANameGenPrefix(this.confAlias);</span>
+<span class="nc bnc" id="L688" title="All 2 branches missed.">            if (StringUtils.isNotBlank(fix)) {</span>
+<span class="nc" id="L689">                LOG.info(&quot;Preceded RA name prefix '&quot; + fix + &quot;' to username '&quot; + username + &quot;' in CMP vendor mode.&quot;);</span>
+<span class="nc" id="L690">                username = fix + username;</span>
+            }
+<span class="nc" id="L692">            fix = cmpConfiguration.getRANameGenPostfix(this.confAlias);</span>
+<span class="nc bnc" id="L693" title="All 2 branches missed.">            if (StringUtils.isNotBlank( cmpConfiguration.getRANameGenPostfix(this.confAlias))) {</span>
+<span class="nc" id="L694">                LOG.info(&quot;Attached RA name postfix '&quot; + fix + &quot;' to username '&quot; + username + &quot;' in CMP vendor mode.&quot;);</span>
+<span class="nc" id="L695">                username += fix;</span>
+            }
+<span class="nc" id="L697">            return username;</span>
+        }    
+<span class="nc" id="L699">        return null;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

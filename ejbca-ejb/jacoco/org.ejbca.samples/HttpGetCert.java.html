@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HttpGetCert.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.samples</a> &gt; <span class="el_source">HttpGetCert.java</span></div><h1>HttpGetCert.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.samples;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLEncoder;
+import java.security.KeyPair;
+
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.DEROutputStream;
+import org.bouncycastle.asn1.DERSet;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.cesecore.certificates.util.AlgorithmConstants;
+import org.cesecore.keys.util.KeyTools;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+
+
+
+/**
+ * Example how a certificate can be fetched programmatically using HTTP/S. The sample generates a 
+ * certificate request and uses POST to the same servlet as used from a browser through
+ * http://127.0.0.1:8080/ejbca/publicweb/apply/apply_man.jsp.
+ * The servlet url used in the example is
+ * http://127.0.0.1:8080/ejbca/publicweb/apply/certreq.
+ * The certificate reply containing a PEM-formatted certificate is printed to the screen.
+ * 
+ * NOTE: Support for SSL has been commented out in this sample, since it requires JSSE. This sample
+ * class generates a PKCS10 request and POSTs to the CAs web interface. The reply is received and
+ * printed to stdout. Takes arguments:
+ * 
+ * &lt;ul&gt;
+ * &lt;li&gt;
+ * requesturl - URL to the CA web (servlet where requests are POSTed),
+ * http://127.0.0.1/apply/apply_man.jsp.
+ * &lt;/li&gt;
+ * &lt;li&gt;
+ * username - username of a user registered with the CA with status NEW.
+ * &lt;/li&gt;
+ * &lt;li&gt;
+ * password - password for the above user.
+ * &lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * @version $Id: HttpGetCert.java 19901 2014-09-30 14:29:38Z anatom $
+ */
+public class HttpGetCert {
+<span class="nc" id="L67">    private static Logger log = Logger.getLogger(HttpGetCert.class);</span>
+
+    /**
+     * Constructor
+     */
+<span class="nc" id="L72">    public HttpGetCert() {</span>
+<span class="nc" id="L73">        log.trace(&quot;&gt;HttpGetCert:&quot;);</span>
+
+        // Use for SSL connections
+        /*
+        System.setProperty(&quot;java.protocol.handler.pkgs&quot;,&quot;com.sun.net.ssl.internal.www.protocol&quot;);
+        java.security.Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider());
+        */
+<span class="nc" id="L80">        log.trace(&quot;&lt;HttpGetCert:&quot;);</span>
+<span class="nc" id="L81">    }</span>
+
+    // HttpGetCert
+
+    /**
+     * Sets the CA certificate used to verify the web server's certificate. We only support a
+     * single self-signed CA certificate here.
+     *
+     * @param url servercertificate
+     *
+     * @return DOCUMENT ME!
+     *
+     * @exception java.security.cert.CertificateException if the certificate is not correct.
+     * @throws IllegalArgumentException if webcert is not a self-signed certificate
+     */
+
+    // Use for SSL connections
+
+    /*
+    public void setSSLTrustedServerCert(byte[] cert) throws java.security.cert.CertificateException {
+    log.trace(&quot;&gt;setSSLTrustedServerCert:&quot;);
+    CertificateFactory cf = CertTools.getCertificateFactory();
+    webcert = (X509Certificate)cf.generateCertificate(new ByteArrayInputStream(cert));
+    if ( CertTools.isSelfSigned( webcert ) )
+        throw new IllegalArgumentException(&quot;Webcert certificate is not self signed (not a root CA certificate).&quot;);
+    log.trace(&quot;&lt;setSSLTrustedServerCert:&quot;);
+
+    } // setSSLTrustedServerCert
+    */
+
+    /**
+     * Creates a SSLSocketFactory to communicate with the server using HTTPS.
+     *
+     * @param url DOCUMENT ME!
+     *
+     * @return DOCUMENT ME!
+     *
+     * @throws IllegalArgumentException if webcert is not set.
+     * @throws Exception error in setting up SSLContext.
+     */
+
+    // Use for SSL connections
+
+    /*
+    private SSLSocketFactory getSSLFactory() throws IllegalArgumentException, Exception {
+        log.trace( &quot;&gt;getSSLFactory&quot; );
+        SSLContext ctx = SSLContext.getInstance( &quot;SSL&quot; );
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance( &quot;SunX509&quot; );
+        String proxyHost = null;
+        String proxyPort = null;
+
+        // if we are behind a proxy, there must be set
+        if (proxyHost != null)
+            System.setProperty(&quot;https.proxyHost&quot;, proxyHost);
+        if (proxyPort != null)
+            System.setProperty(&quot;https.proxyPort&quot;, proxyPort);
+
+        if (webcert == null)
+            throw new IllegalArgumentException(&quot;Server certificate must be set for SSL communication&quot;);
+
+        // If we must use client certificates here, we should read some certs and keys and create a keystore to put in the KeyManagerFactory
+
+        // Make a truststore to verify the server
+        KeyStore trustks = KeyStore.getInstance( &quot;jks&quot; );
+        trustks.load( null, new String(&quot;foo123&quot;).toCharArray() );
+        trustks.setCertificateEntry( &quot;trustedRootCA&quot;, webcert);
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance(&quot;SunX509&quot;);
+        tmf.init( trustks );
+
+        ctx.init( null, tmf.getTrustManagers(), null );
+
+        log.trace( &quot;&lt;getSSLFactory&quot; );
+        return ctx.getSocketFactory();
+    }
+    */
+
+    /**
+     * Creates a URLConnection either HTTP or HTTPS.
+     *
+     * @param url the URL (http:// or https://
+     *
+     * @return URLConnection
+     * @throws Exception Fail
+     */
+    private URLConnection getUrlConnection(URL url) throws Exception {
+<span class="nc" id="L166">        URLConnection con = url.openConnection();</span>
+
+        // Use for SSL connections
+
+        /*
+        if( con instanceof HttpsURLConnection ) {
+            HttpsURLConnection httpscon = (HttpsURLConnection) con;
+            httpscon.setSSLSocketFactory( getSSLFactory() );
+        }
+        */
+<span class="nc" id="L176">        return con;</span>
+    }
+
+    /**
+     * Sends a certificate request (PKCS10) to the CA and receives the reply.
+     *
+     * @param requestUrl DOCUMENT ME!
+     * @param request Base64 encoded PKCS10-request (PEM-format)
+     * @param username username
+     * @param password password
+     *
+     * @exception IllegalArgumentException if requesturl is not a vlid HTTP or HTTPS url.
+     * @exception Exception if the trusted webcert is not a correct certificate.
+     * @exception Exception if we get back a HTTP response code != 200 from the CA.
+     * @exception Exception if the reply is not a correct certificate.
+     */
+    public void sendHttpReq(String requestUrl, String request, String username, String password)
+        throws Exception {
+<span class="nc" id="L194">        log.trace(&quot;&gt;sendHttpReq: request=&quot; + request.toString() + &quot;, username=&quot; + username +</span>
+            &quot;, password=&quot; + password);
+
+<span class="nc bnc" id="L197" title="All 2 branches missed.">        if (requestUrl == null) {</span>
+<span class="nc" id="L198">            throw new IllegalArgumentException(&quot;requesturl can not be  null.&quot;);</span>
+        }
+
+<span class="nc" id="L201">        log.debug(&quot;Sending request to: &quot; + requestUrl);</span>
+
+<span class="nc" id="L203">        URL url = new URL(requestUrl);</span>
+<span class="nc" id="L204">        HttpURLConnection con = (HttpURLConnection) getUrlConnection(url);</span>
+
+        // we are going to do a POST
+<span class="nc" id="L207">        con.setDoOutput(true);</span>
+<span class="nc" id="L208">        con.setRequestMethod(&quot;POST&quot;);</span>
+
+        // POST it
+<span class="nc" id="L211">        PrintWriter out = new PrintWriter(con.getOutputStream());</span>
+<span class="nc" id="L212">        out.println(&quot;pkcs10req=&quot; + URLEncoder.encode(request,&quot;UTF-8&quot;) + &quot;&amp;user=&quot; +</span>
+<span class="nc" id="L213">            URLEncoder.encode(username,&quot;UTF-8&quot;) + &quot;&amp;password=&quot; + URLEncoder.encode(password,&quot;UTF-8&quot;) +</span>
+            &quot;&amp;submit=Submit+Query&quot;);
+<span class="nc" id="L215">        out.close();</span>
+
+        // Read the reqponse
+<span class="nc" id="L218">        BufferedReader in = null;</span>
+        try {
+<span class="nc" id="L220">            in = new BufferedReader(new InputStreamReader(con.getInputStream()));</span>
+            String inputLine;
+
+<span class="nc bnc" id="L223" title="All 2 branches missed.">            while ((inputLine = in.readLine()) != null) {</span>
+<span class="nc" id="L224">                System.out.println(inputLine);</span>
+            }        	
+        } finally {
+<span class="nc bnc" id="L227" title="All 2 branches missed.">        	if (in != null) {</span>
+<span class="nc" id="L228">        		in.close();</span>
+        	}
+        }
+
+<span class="nc bnc" id="L232" title="All 2 branches missed.">        if (con.getResponseCode() == 200) {</span>
+<span class="nc" id="L233">            log.debug(&quot;Received certificate reply.&quot;);</span>
+        } else {
+<span class="nc" id="L235">            throw new Exception(&quot;Error sending PKCS10-request.&quot;);</span>
+        }
+
+        // We are done, disconnect
+<span class="nc" id="L239">        con.disconnect();</span>
+
+<span class="nc" id="L241">        log.trace(&quot;&lt;sendHttpReq:&quot;);</span>
+<span class="nc" id="L242">    }</span>
+
+    // sendHttpReq
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @param args DOCUMENT ME!
+     *
+     * @throws Exception DOCUMENT ME!
+     */
+    public static void main(String[] args) throws Exception {
+        //Configure Log4j
+<span class="nc" id="L255">        BasicConfigurator.configure();</span>
+
+        // Install BouncyCastle provider
+<span class="nc" id="L258">        CryptoProviderTools.installBCProvider();</span>
+
+        // Generate keys (512 bit for sample purposes)
+<span class="nc" id="L261">        System.out.print(&quot;Generating 512 bit RSA keys.&quot;);</span>
+
+<span class="nc" id="L263">        KeyPair rsaKeys = KeyTools.genKeys(&quot;512&quot;, AlgorithmConstants.KEYALGORITHM_RSA);</span>
+<span class="nc" id="L264">        System.out.println(&quot;Keys generated.&quot;);</span>
+
+        // Generate PKCS10 certificate request
+<span class="nc" id="L267">        PKCS10CertificationRequest req = CertTools.genPKCS10CertificationRequest(&quot;SHA1WithRSA&quot;,</span>
+<span class="nc" id="L268">                CertTools.stringToBcX500Name(&quot;C=SE,O=AnaTom,CN=HttpTest&quot;), rsaKeys.getPublic(),</span>
+<span class="nc" id="L269">                new DERSet(), rsaKeys.getPrivate(), null);</span>
+<span class="nc" id="L270">        ByteArrayOutputStream bOut = new ByteArrayOutputStream();</span>
+<span class="nc" id="L271">        DEROutputStream dOut = new DEROutputStream(bOut);</span>
+<span class="nc" id="L272">        dOut.writeObject(req.toASN1Structure());</span>
+<span class="nc" id="L273">        dOut.close();</span>
+
+<span class="nc" id="L275">        ByteArrayOutputStream bos1 = new ByteArrayOutputStream();</span>
+<span class="nc" id="L276">        bos1.write(&quot;-----BEGIN CERTIFICATE REQUEST-----\n&quot;.getBytes());</span>
+<span class="nc" id="L277">        bos1.write(Base64.encode(bOut.toByteArray()));</span>
+<span class="nc" id="L278">        bos1.write(&quot;\n-----END CERTIFICATE REQUEST-----\n&quot;.getBytes());</span>
+<span class="nc" id="L279">        bos1.close();</span>
+<span class="nc" id="L280">        System.out.println(&quot;CertificationRequest generated:&quot;);</span>
+<span class="nc" id="L281">        System.out.println(new String(bos1.toByteArray()));</span>
+
+        // Now send the request
+<span class="nc" id="L284">        System.out.println(&quot;Trying to send request...&quot;);</span>
+
+<span class="nc" id="L286">        HttpGetCert getter = new HttpGetCert();</span>
+<span class="nc" id="L287">        getter.sendHttpReq(&quot;http://127.0.0.1:8080/apply/certreq&quot;, new String(bos1.toByteArray()),</span>
+            &quot;foo&quot;, &quot;foo123&quot;);
+<span class="nc" id="L289">    }</span>
+}
+
+
+// class CertRequest
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

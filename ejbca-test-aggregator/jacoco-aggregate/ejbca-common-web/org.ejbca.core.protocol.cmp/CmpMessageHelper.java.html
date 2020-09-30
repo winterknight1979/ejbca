@@ -149,70 +149,70 @@ import org.ejbca.core.model.InternalEjbcaResources;
     public static byte[] signPKIMessage(PKIMessage pkiMessage, Collection&lt;Certificate&gt; signCertChain, PrivateKey signKey, String digestAlg, 
     		String provider) throws InvalidKeyException, NoSuchProviderException, NoSuchAlgorithmException, SecurityException, SignatureException,
             CertificateEncodingException {
-<span class="nc bnc" id="L152" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="pc bpc" id="L152" title="1 of 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
 <span class="nc" id="L153">            LOG.trace(&quot;&gt;signPKIMessage()&quot;);</span>
         }
-<span class="nc" id="L155">        final List&lt;CMPCertificate&gt; extraCertsList = new ArrayList&lt;&gt;();</span>
-<span class="nc bnc" id="L156" title="All 2 branches missed.">        for (final Certificate certificate : signCertChain) {</span>
-<span class="nc" id="L157">            extraCertsList.add(CMPCertificate.getInstance(((X509Certificate)certificate).getEncoded()));</span>
-<span class="nc" id="L158">        }</span>
-<span class="nc" id="L159">        final CMPCertificate[] extraCerts = extraCertsList.toArray(new CMPCertificate[signCertChain.size()]);</span>
-<span class="nc" id="L160">        final PKIMessage signedPkiMessage = buildCertBasedPKIProtection(pkiMessage, extraCerts, signKey, digestAlg, provider);</span>
-<span class="nc bnc" id="L161" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="fc" id="L155">        final List&lt;CMPCertificate&gt; extraCertsList = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L156" title="All 2 branches covered.">        for (final Certificate certificate : signCertChain) {</span>
+<span class="fc" id="L157">            extraCertsList.add(CMPCertificate.getInstance(((X509Certificate)certificate).getEncoded()));</span>
+<span class="fc" id="L158">        }</span>
+<span class="fc" id="L159">        final CMPCertificate[] extraCerts = extraCertsList.toArray(new CMPCertificate[signCertChain.size()]);</span>
+<span class="fc" id="L160">        final PKIMessage signedPkiMessage = buildCertBasedPKIProtection(pkiMessage, extraCerts, signKey, digestAlg, provider);</span>
+<span class="pc bpc" id="L161" title="1 of 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
 <span class="nc" id="L162">            LOG.trace(&quot;&lt;signPKIMessage()&quot;);</span>
         }
         // Return response as byte array 
-<span class="nc" id="L165">        return pkiMessageToByteArray(signedPkiMessage);</span>
+<span class="fc" id="L165">        return pkiMessageToByteArray(signedPkiMessage);</span>
     }
 
     public static PKIMessage buildCertBasedPKIProtection(PKIMessage pkiMessage, CMPCertificate[] extraCerts, PrivateKey key, String digestAlg,
             String provider) throws NoSuchProviderException, NoSuchAlgorithmException, SecurityException, SignatureException, InvalidKeyException {
         // Select which signature algorithm we should use for the response, based on the digest algorithm and key type.
-<span class="nc" id="L171">        ASN1ObjectIdentifier oid = AlgorithmTools.getSignAlgOidFromDigestAndKey(digestAlg, key.getAlgorithm());</span>
-<span class="nc bnc" id="L172" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="fc" id="L171">        ASN1ObjectIdentifier oid = AlgorithmTools.getSignAlgOidFromDigestAndKey(digestAlg, key.getAlgorithm());</span>
+<span class="pc bpc" id="L172" title="1 of 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
 <span class="nc" id="L173">            LOG.debug(&quot;Selected signature alg oid: &quot; + oid.getId()+&quot;, key algorithm: &quot;+key.getAlgorithm());</span>
         }
         // According to PKCS#1 AlgorithmIdentifier for RSA-PKCS#1 has null Parameters, this means a DER Null (asn.1 encoding of null), not Java null.
         // For the RSA signature algorithms specified above RFC3447 states &quot;...the parameters MUST be present and MUST be NULL.&quot;
-<span class="nc" id="L177">        PKIHeaderBuilder headerBuilder = getHeaderBuilder(pkiMessage.getHeader());</span>
-<span class="nc" id="L178">        AlgorithmIdentifier pAlg = null;</span>
-<span class="nc bnc" id="L179" title="All 2 branches missed.">        if (&quot;RSA&quot;.equalsIgnoreCase(key.getAlgorithm())) {</span>
-<span class="nc" id="L180">            pAlg = new AlgorithmIdentifier(oid, DERNull.INSTANCE);</span>
+<span class="fc" id="L177">        PKIHeaderBuilder headerBuilder = getHeaderBuilder(pkiMessage.getHeader());</span>
+<span class="fc" id="L178">        AlgorithmIdentifier pAlg = null;</span>
+<span class="pc bpc" id="L179" title="1 of 2 branches missed.">        if (&quot;RSA&quot;.equalsIgnoreCase(key.getAlgorithm())) {</span>
+<span class="fc" id="L180">            pAlg = new AlgorithmIdentifier(oid, DERNull.INSTANCE);</span>
         } else {
 <span class="nc" id="L182">            pAlg = new AlgorithmIdentifier(oid);</span>
         }
-<span class="nc" id="L184">        headerBuilder.setProtectionAlg(pAlg);</span>
+<span class="fc" id="L184">        headerBuilder.setProtectionAlg(pAlg);</span>
         // Most PKCS#11 providers don't like to be fed an OID as signature algorithm, so 
         // we use BC classes to translate it into a signature algorithm name instead
-<span class="nc" id="L187">        PKIHeader head = headerBuilder.build();</span>
-<span class="nc" id="L188">        String signatureAlgorithmName = AlgorithmTools.getAlgorithmNameFromOID(oid);</span>
-<span class="nc bnc" id="L189" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="fc" id="L187">        PKIHeader head = headerBuilder.build();</span>
+<span class="fc" id="L188">        String signatureAlgorithmName = AlgorithmTools.getAlgorithmNameFromOID(oid);</span>
+<span class="pc bpc" id="L189" title="1 of 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
 <span class="nc" id="L190">            LOG.debug(&quot;Signing CMP message with signature alg: &quot; + signatureAlgorithmName);</span>
         }
-<span class="nc" id="L192">        Signature sig = Signature.getInstance(signatureAlgorithmName, provider);</span>
-<span class="nc" id="L193">        sig.initSign(key);</span>
-<span class="nc" id="L194">        sig.update(getProtectedBytes(head, pkiMessage.getBody()));</span>
+<span class="fc" id="L192">        Signature sig = Signature.getInstance(signatureAlgorithmName, provider);</span>
+<span class="fc" id="L193">        sig.initSign(key);</span>
+<span class="fc" id="L194">        sig.update(getProtectedBytes(head, pkiMessage.getBody()));</span>
         final PKIMessage protectedPkiMessage;
-<span class="nc bnc" id="L196" title="All 4 branches missed.">        if (extraCerts != null &amp;&amp; extraCerts.length &gt; 0) {</span>
-<span class="nc" id="L197">            protectedPkiMessage = new PKIMessage(head, pkiMessage.getBody(), new DERBitString(sig.sign()), extraCerts);</span>
+<span class="pc bpc" id="L196" title="2 of 4 branches missed.">        if (extraCerts != null &amp;&amp; extraCerts.length &gt; 0) {</span>
+<span class="fc" id="L197">            protectedPkiMessage = new PKIMessage(head, pkiMessage.getBody(), new DERBitString(sig.sign()), extraCerts);</span>
         } else {
 <span class="nc" id="L199">            protectedPkiMessage = new PKIMessage(head, pkiMessage.getBody(), new DERBitString(sig.sign()));</span>
         }
-<span class="nc" id="L201">        return protectedPkiMessage;</span>
+<span class="fc" id="L201">        return protectedPkiMessage;</span>
     }
 
     //TODO see if we could do this in a better way
     public static PKIHeaderBuilder getHeaderBuilder(PKIHeader head) {
-<span class="nc" id="L206">        PKIHeaderBuilder builder = new PKIHeaderBuilder(head.getPvno().getValue().intValue(), head.getSender(), head.getRecipient());</span>
-<span class="nc" id="L207">        builder.setFreeText(head.getFreeText());</span>
-<span class="nc" id="L208">        builder.setGeneralInfo(head.getGeneralInfo());</span>
-<span class="nc" id="L209">        builder.setMessageTime(head.getMessageTime());</span>
-<span class="nc" id="L210">        builder.setRecipKID((DEROctetString) head.getRecipKID());</span>
-<span class="nc" id="L211">        builder.setRecipNonce(head.getRecipNonce());</span>
-<span class="nc" id="L212">        builder.setSenderKID(head.getSenderKID());</span>
-<span class="nc" id="L213">        builder.setSenderNonce(head.getSenderNonce());</span>
-<span class="nc" id="L214">        builder.setTransactionID(head.getTransactionID());</span>
-<span class="nc" id="L215">        return builder;</span>
+<span class="fc" id="L206">        PKIHeaderBuilder builder = new PKIHeaderBuilder(head.getPvno().getValue().intValue(), head.getSender(), head.getRecipient());</span>
+<span class="fc" id="L207">        builder.setFreeText(head.getFreeText());</span>
+<span class="fc" id="L208">        builder.setGeneralInfo(head.getGeneralInfo());</span>
+<span class="fc" id="L209">        builder.setMessageTime(head.getMessageTime());</span>
+<span class="fc" id="L210">        builder.setRecipKID((DEROctetString) head.getRecipKID());</span>
+<span class="fc" id="L211">        builder.setRecipNonce(head.getRecipNonce());</span>
+<span class="fc" id="L212">        builder.setSenderKID(head.getSenderKID());</span>
+<span class="fc" id="L213">        builder.setSenderNonce(head.getSenderNonce());</span>
+<span class="fc" id="L214">        builder.setTransactionID(head.getTransactionID());</span>
+<span class="fc" id="L215">        return builder;</span>
     }
 
     /** verifies signature protection on CMP PKI messages
@@ -226,30 +226,30 @@ import org.ejbca.core.model.InternalEjbcaResources;
      */
     public static boolean verifyCertBasedPKIProtection(PKIMessage pKIMessage, PublicKey pubKey) throws NoSuchAlgorithmException,
              InvalidKeyException, SignatureException {
-<span class="nc bnc" id="L229" title="All 2 branches missed.">        if(pKIMessage.getProtection() == null) {</span>
+<span class="pc bpc" id="L229" title="1 of 2 branches missed.">        if(pKIMessage.getProtection() == null) {</span>
 <span class="nc" id="L230">            throw new SignatureException(&quot;Message was not signed.&quot;);</span>
         }
-<span class="nc" id="L232">        AlgorithmIdentifier sigAlg = pKIMessage.getHeader().getProtectionAlg();</span>
-<span class="nc bnc" id="L233" title="All 2 branches missed.">        if(sigAlg == null) {</span>
+<span class="fc" id="L232">        AlgorithmIdentifier sigAlg = pKIMessage.getHeader().getProtectionAlg();</span>
+<span class="pc bpc" id="L233" title="1 of 2 branches missed.">        if(sigAlg == null) {</span>
 <span class="nc" id="L234">            throw new SignatureException(&quot;No signature algorithm was provided.&quot;);</span>
         }
       
-<span class="nc bnc" id="L237" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="pc bpc" id="L237" title="1 of 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
 <span class="nc" id="L238">            LOG.debug(&quot;Verifying signature with algorithm: &quot; + sigAlg.getAlgorithm().getId());</span>
         }
         Signature sig;
         try {
-<span class="nc" id="L242">            sig = Signature.getInstance(sigAlg.getAlgorithm().getId(), BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="fc" id="L242">            sig = Signature.getInstance(sigAlg.getAlgorithm().getId(), BouncyCastleProvider.PROVIDER_NAME);</span>
 <span class="nc" id="L243">        } catch (NoSuchProviderException e) {</span>
 <span class="nc" id="L244">            throw new IllegalStateException(&quot;BouncyCastle provider not installed.&quot;, e);</span>
-<span class="nc" id="L245">        }</span>
-<span class="nc" id="L246">        sig.initVerify(pubKey);</span>
-<span class="nc" id="L247">        sig.update(getProtectedBytes(pKIMessage));</span>
-<span class="nc" id="L248">        boolean result = sig.verify(pKIMessage.getProtection().getBytes());</span>
-<span class="nc bnc" id="L249" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="fc" id="L245">        }</span>
+<span class="fc" id="L246">        sig.initVerify(pubKey);</span>
+<span class="fc" id="L247">        sig.update(getProtectedBytes(pKIMessage));</span>
+<span class="fc" id="L248">        boolean result = sig.verify(pKIMessage.getProtection().getBytes());</span>
+<span class="pc bpc" id="L249" title="1 of 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
 <span class="nc" id="L250">            LOG.debug(&quot;Verification result: &quot; + result);</span>
         }
-<span class="nc" id="L252">        return result;</span>
+<span class="fc" id="L252">        return result;</span>
     }
         
     public static byte[] protectPKIMessageWithPBE(PKIMessage msg, String keyId, String raSecret, String digestAlgId, String macAlgId,
@@ -484,7 +484,7 @@ import org.ejbca.core.model.InternalEjbcaResources;
      * @return the PKIMessage's header and body in byte array
      */
     public static byte[] getProtectedBytes(PKIMessage msg) {
-<span class="nc" id="L487">        return getProtectedBytes(msg.getHeader(), msg.getBody());</span>
+<span class="fc" id="L487">        return getProtectedBytes(msg.getHeader(), msg.getBody());</span>
     }
 
     /**
@@ -496,20 +496,20 @@ import org.ejbca.core.model.InternalEjbcaResources;
      * @return the PKIMessage's header and body in byte array
      */
     public static byte[] getProtectedBytes(PKIHeader header, PKIBody body) {
-<span class="nc" id="L499">        byte[] res = null;</span>
-<span class="nc" id="L500">        ASN1EncodableVector v = new ASN1EncodableVector();</span>
-<span class="nc" id="L501">        v.add(header);</span>
-<span class="nc" id="L502">        v.add(body);</span>
-<span class="nc" id="L503">        ASN1Encodable protectedPart = new DERSequence(v);</span>
+<span class="fc" id="L499">        byte[] res = null;</span>
+<span class="fc" id="L500">        ASN1EncodableVector v = new ASN1EncodableVector();</span>
+<span class="fc" id="L501">        v.add(header);</span>
+<span class="fc" id="L502">        v.add(body);</span>
+<span class="fc" id="L503">        ASN1Encodable protectedPart = new DERSequence(v);</span>
         try {
-<span class="nc" id="L505">            ByteArrayOutputStream bao = new ByteArrayOutputStream();</span>
-<span class="nc" id="L506">            DEROutputStream out = new DEROutputStream(bao);</span>
-<span class="nc" id="L507">            out.writeObject(protectedPart);</span>
-<span class="nc" id="L508">            res = bao.toByteArray();</span>
+<span class="fc" id="L505">            ByteArrayOutputStream bao = new ByteArrayOutputStream();</span>
+<span class="fc" id="L506">            DEROutputStream out = new DEROutputStream(bao);</span>
+<span class="fc" id="L507">            out.writeObject(protectedPart);</span>
+<span class="fc" id="L508">            res = bao.toByteArray();</span>
 <span class="nc" id="L509">        } catch (Exception ex) {</span>
 <span class="nc" id="L510">            LOG.error(ex.getLocalizedMessage(), ex);</span>
-<span class="nc" id="L511">        }</span>
-<span class="nc" id="L512">        return res;</span>
+<span class="fc" id="L511">        }</span>
+<span class="fc" id="L512">        return res;</span>
     }
 
     /**
@@ -542,24 +542,24 @@ import org.ejbca.core.model.InternalEjbcaResources;
         //         has to be preserved, but that is a different story).
 
         // Reconstructing the CertRequest
-<span class="nc" id="L545">        ASN1Encodable o2 = ((DERSequence) messages.toASN1Primitive()).getObjectAt(0);</span>
-<span class="nc" id="L546">        ASN1Encodable o3 = ((DERSequence) o2).getObjectAt(0);</span>
-<span class="nc" id="L547">        CertRequest cr = CertRequest.getInstance(o3);</span>
+<span class="fc" id="L545">        ASN1Encodable o2 = ((DERSequence) messages.toASN1Primitive()).getObjectAt(0);</span>
+<span class="fc" id="L546">        ASN1Encodable o3 = ((DERSequence) o2).getObjectAt(0);</span>
+<span class="fc" id="L547">        CertRequest cr = CertRequest.getInstance(o3);</span>
 
         // Reconstructing the proof-of-posession
-<span class="nc" id="L550">        ASN1TaggedObject o4 = (ASN1TaggedObject) ((DERSequence) o2).getObjectAt(1);</span>
+<span class="fc" id="L550">        ASN1TaggedObject o4 = (ASN1TaggedObject) ((DERSequence) o2).getObjectAt(1);</span>
         ProofOfPossession pp;
-<span class="nc" id="L552">        int tagnr = o4.getTagNo();</span>
+<span class="fc" id="L552">        int tagnr = o4.getTagNo();</span>
         ASN1Encodable o5;
-<span class="nc bnc" id="L554" title="All 4 branches missed.">        switch (tagnr) {</span>
+<span class="pc bpc" id="L554" title="3 of 4 branches missed.">        switch (tagnr) {</span>
         case 0:
 <span class="nc" id="L556">            o5 = DERNull.INSTANCE;</span>
 <span class="nc" id="L557">            pp = new ProofOfPossession();</span>
 <span class="nc" id="L558">            break;</span>
         case 1:
-<span class="nc" id="L560">            o5 = POPOSigningKey.getInstance(o4.getObject());</span>
-<span class="nc" id="L561">            pp = new ProofOfPossession((POPOSigningKey) o5);</span>
-<span class="nc" id="L562">            break;</span>
+<span class="fc" id="L560">            o5 = POPOSigningKey.getInstance(o4.getObject());</span>
+<span class="fc" id="L561">            pp = new ProofOfPossession((POPOSigningKey) o5);</span>
+<span class="fc" id="L562">            break;</span>
         case 2:
         case 3:
 <span class="nc" id="L565">            o5 = POPOPrivKey.getInstance(o4, false);</span>
@@ -570,12 +570,12 @@ import org.ejbca.core.model.InternalEjbcaResources;
         }
 
         // Reconstructing the regToken
-<span class="nc" id="L573">        ASN1Sequence o6 = (ASN1Sequence) ((ASN1Sequence) o2.toASN1Primitive()).getObjectAt(2);</span>
-<span class="nc" id="L574">        final AttributeTypeAndValue av = AttributeTypeAndValue.getInstance(o6.getObjectAt(0));</span>
-<span class="nc" id="L575">        final AttributeTypeAndValue[] avs = { av };</span>
+<span class="fc" id="L573">        ASN1Sequence o6 = (ASN1Sequence) ((ASN1Sequence) o2.toASN1Primitive()).getObjectAt(2);</span>
+<span class="fc" id="L574">        final AttributeTypeAndValue av = AttributeTypeAndValue.getInstance(o6.getObjectAt(0));</span>
+<span class="fc" id="L575">        final AttributeTypeAndValue[] avs = { av };</span>
 
         // finally, recreating the CertReqMsg object
-<span class="nc" id="L578">        return new CertReqMsg(cr, pp, avs);</span>
+<span class="fc" id="L578">        return new CertReqMsg(cr, pp, avs);</span>
     }
 
     public static RevDetails getNovosecRevDetails(RevReqContent revContent) {
@@ -643,17 +643,17 @@ import org.ejbca.core.model.InternalEjbcaResources;
     /** @param octets ASN.1
      * @return SenderKeyId of in the header or null none was found. */
     public static String getStringFromOctets(final ASN1OctetString octets) {
-<span class="nc" id="L646">        String str = null;</span>
-<span class="nc bnc" id="L647" title="All 2 branches missed.">        if (octets != null) {</span>
-<span class="nc" id="L648">            byte[] bytes = octets.getOctets();</span>
-<span class="nc bnc" id="L649" title="All 2 branches missed.">            if (bytes.length &gt; 128) { // arbitrary limitation on octet string size</span>
+<span class="fc" id="L646">        String str = null;</span>
+<span class="pc bpc" id="L647" title="1 of 2 branches missed.">        if (octets != null) {</span>
+<span class="fc" id="L648">            byte[] bytes = octets.getOctets();</span>
+<span class="pc bpc" id="L649" title="1 of 2 branches missed.">            if (bytes.length &gt; 128) { // arbitrary limitation on octet string size</span>
 <span class="nc" id="L650">                LOG.info(&quot;Truncating octet string longer than 128 bytes&quot;);</span>
 <span class="nc" id="L651">                byte[] newbytes = Arrays.copyOf(bytes, 128);</span>
 <span class="nc" id="L652">                bytes = newbytes;</span>
             }
-<span class="nc" id="L654">            str = new String(bytes, StandardCharsets.UTF_8);</span>
-<span class="nc bnc" id="L655" title="All 2 branches missed.">            if (StringTools.isAlphaOrAsciiPrintable(str)) {</span>
-<span class="nc bnc" id="L656" title="All 2 branches missed.">                if (LOG.isDebugEnabled()) {</span>
+<span class="fc" id="L654">            str = new String(bytes, StandardCharsets.UTF_8);</span>
+<span class="pc bpc" id="L655" title="1 of 2 branches missed.">            if (StringTools.isAlphaOrAsciiPrintable(str)) {</span>
+<span class="pc bpc" id="L656" title="1 of 2 branches missed.">                if (LOG.isDebugEnabled()) {</span>
 <span class="nc" id="L657">                    LOG.debug(&quot;Found string: &quot; + str);</span>
                 }
             } else {
@@ -663,7 +663,7 @@ import org.ejbca.core.model.InternalEjbcaResources;
                 }
             }
         }
-<span class="nc" id="L666">        return str;</span>
+<span class="fc" id="L666">        return str;</span>
     }
 
     /** @param pkiMessageBytes bytes

@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CmpMessageDispatcherSessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.cmp</a> &gt; <span class="el_source">CmpMessageDispatcherSessionBean.java</span></div><h1>CmpMessageDispatcherSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.cmp;
+
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.cmp.PKIBody;
+import org.bouncycastle.asn1.cmp.PKIHeader;
+import org.bouncycastle.asn1.cmp.PKIMessage;
+import org.bouncycastle.asn1.cmp.PKIMessages;
+import org.bouncycastle.asn1.util.ASN1Dump;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.certificate.request.FailInfo;
+import org.cesecore.certificates.certificate.request.ResponseMessage;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.keys.token.CryptoTokenSessionLocal;
+import org.ejbca.config.CmpConfiguration;
+import org.ejbca.core.ejb.EjbBridgeSessionLocal;
+import org.ejbca.core.ejb.ra.CertificateRequestSessionLocal;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.protocol.NoSuchAliasException;
+
+/**
+ * Class that receives a CMP message and passes it on to the correct message handler.
+ *
+ * -----
+ * This processes does the following:
+ * 1. receive a CMP message
+ * 2. check which message type it is
+ * 3. dispatch to the correct message handler
+ * 4. send back the response received from the handler
+ * -----
+ *
+ * Messages supported (@see &lt;a href=&quot;https://tools.ietf.org/html/rfc4210#section-5.3&quot;&gt;RFC4210 5.3 Operation-Specific Data Structures&lt;/a&gt;):
+ * 
+ * Implemented:
+ * - 5.3.1 Initialization Request - will return an Initialization Response (-&amp;gt; CertRepMessage).
+ * - 5.3.9 Revocation Request / Response (-&amp;gt; RevRepContent)
+ * - 5.3.17 PKI Confirmation - same as certificate confirmation accept - will return a PKI Confirmation Content (-&amp;gt; PKIConfirmContent)
+ * - 5.3.18 Certificate Confirmation - accept or reject by client - will return a PKI Confirmation Content (-&amp;gt; PKIConfirmContent)
+ * - 5.3.3 Certificate Request / Response (-&amp;gt; CertRepMessage)
+ * - 5.3.5 Key Update Request / Response (-&amp;gt; CertRepMessage)
+ * 
+ *  Responses of type 'CertRepMessage' may contain additional CA certificates in its 'caPubs' field 
+ *  which can be configured in the CMP configuration ({@link CmpConfiguration#getResponseCaPubsCA(String)}.
+ *  
+ * @version $Id: CmpMessageDispatcherSessionBean.java 28471 2018-03-12 15:11:18Z henriks $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;CmpMessageDispatcherSessionRemote&quot;)
+<span class="nc" id="L77">public class CmpMessageDispatcherSessionBean implements CmpMessageDispatcherSessionLocal, CmpMessageDispatcherSessionRemote {</span>
+
+<span class="nc" id="L79">    private static final Logger log = Logger.getLogger(CmpMessageDispatcherSessionBean.class);</span>
+    /** Internal localization of logs and errors */
+<span class="nc" id="L81">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+
+    @EJB
+    private EjbBridgeSessionLocal ejbBridgeSession;
+    @EJB
+    private CertificateRequestSessionLocal certificateRequestSession;
+    @EJB
+    private CryptoTokenSessionLocal cryptoTokenSession;
+    @EJB
+    private CaSessionLocal caSession;
+    @EJB
+    private GlobalConfigurationSessionLocal globalConfigSession;
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public byte[] dispatchRequest(final AuthenticationToken authenticationToken, final byte[] pkiMessageBytes, final String cmpConfigurationAlias)
+            throws NoSuchAliasException {
+        try {
+<span class="nc" id="L99">            final CmpConfiguration cmpConfiguration = (CmpConfiguration) this.globalConfigSession.getCachedConfiguration(CmpConfiguration.CMP_CONFIGURATION_ID);</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">            if (!cmpConfiguration.aliasExists(cmpConfigurationAlias)) {</span>
+<span class="nc" id="L101">                final String msg = intres.getLocalizedMessage(&quot;protocol.nosuchalias&quot;, &quot;CMP&quot;, cmpConfigurationAlias);</span>
+<span class="nc" id="L102">                log.info(msg);</span>
+<span class="nc" id="L103">                throw new NoSuchAliasException(msg);</span>
+            }
+<span class="nc" id="L105">            final PKIMessage pkiMessage = CmpMessageHelper.getPkiMessageFromBytes(pkiMessageBytes, false);</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">            if (pkiMessage == null) {</span>
+                // Log that we handled a bad request and respond to the client
+<span class="nc" id="L108">                final String msg = intres.getLocalizedMessage(&quot;cmp.errornotcmpmessage&quot;);</span>
+<span class="nc" id="L109">                log.info(msg);</span>
+<span class="nc" id="L110">                return CmpMessageHelper.createUnprotectedErrorMessage(msg);</span>
+            }
+<span class="nc" id="L112">            final ResponseMessage responseMessage = dispatch(authenticationToken, pkiMessage, pkiMessage.getHeader(), cmpConfiguration, cmpConfigurationAlias, /*levelOfNesting=*/0);</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">            return responseMessage == null ? null : responseMessage.getResponseMessage();</span>
+<span class="nc" id="L114">        } catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L115">            log.warn(&quot;Could not retrieve byte representation of from org.cesecore.certificates.certificate.request.ResponseMessage&quot;, e);</span>
+<span class="nc" id="L116">            return null;</span>
+        }
+    }
+
+    /**
+     * The message may have been received by any transport protocol, and is passed here in it's binary ASN.1 form.
+     *
+     * @param authenticationToken the authentication token.
+     * @param pkiMessage DER encoded CMP message received from the client.
+     * @param pkiHeader DER encoded PKI header of the original CMP message received from the client.
+     * @param cmpConfiguration Config
+     * @param cmpConfigurationAlias the CMP alias we want to use for this request.
+    *  @param levelOfNesting the level of nesting depth.
+     * @return A response message containing the CMP response message or null if there is no message to send back or some internal error has occurred
+     */
+    private ResponseMessage dispatch(final AuthenticationToken authenticationToken, final PKIMessage pkiMessage, final PKIHeader pkiHeader,
+            final CmpConfiguration cmpConfiguration, String cmpConfigurationAlias, final int levelOfNesting) {
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        if (levelOfNesting &gt; CmpMessageHelper.MAX_LEVEL_OF_NESTING) {</span>
+<span class="nc" id="L134">            return CmpMessageHelper.createUnprotectedErrorMessage(pkiHeader, FailInfo.BAD_REQUEST, &quot;Rejected request due to unreasonable level of nesting.&quot;);</span>
+        }
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        final boolean authenticated = levelOfNesting &gt; 0;</span>
+        try {
+<span class="nc" id="L138">            final PKIBody pkiBody = pkiMessage.getBody();</span>
+<span class="nc" id="L139">            final int tagno = pkiBody.getType();</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L141">                final String message = &quot;Received CMP message with pvno=&quot; + pkiHeader.getPvno() + &quot;, sender=&quot; + pkiHeader.getSender().toString() +</span>
+<span class="nc" id="L142">                        &quot;, recipient=&quot; + pkiHeader.getRecipient().toString() + System.lineSeparator() +</span>
+<span class="nc" id="L143">                        &quot;Cmp configuration alias: &quot; + cmpConfigurationAlias + System.lineSeparator() +</span>
+<span class="nc" id="L144">                        &quot;The CMP message is already authenticated: &quot; + authenticated + System.lineSeparator() +</span>
+<span class="nc" id="L145">                        &quot;Body is of type: &quot; + tagno + System.lineSeparator() +</span>
+<span class="nc" id="L146">                        &quot;Transaction ID: &quot; + pkiHeader.getTransactionID();</span>
+<span class="nc" id="L147">                log.debug(message);</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">                if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L149">                    log.trace(ASN1Dump.dumpAsString(pkiMessage));</span>
+                }
+            }
+<span class="nc" id="L152">            log.info(&quot;Dispatching message with transaction ID: &quot; + pkiHeader.getTransactionID());</span>
+<span class="nc" id="L153">            BaseCmpMessage cmpMessage = null;</span>
+<span class="nc" id="L154">            ICmpMessageHandler handler = null;</span>
+<span class="nc" id="L155">            int unknownMessageType = -1;</span>
+<span class="nc bnc" id="L156" title="All 6 branches missed.">            switch (tagno) {</span>
+            case PKIBody.TYPE_INIT_REQ:
+                // 0: ir, Initialization Request and 2 (cr, Certification Req) are both certificate requests
+            case PKIBody.TYPE_CERT_REQ:
+                // 2:
+<span class="nc" id="L161">                handler = new CrmfMessageHandler(authenticationToken, cmpConfiguration, cmpConfigurationAlias, ejbBridgeSession,</span>
+                        certificateRequestSession);
+<span class="nc" id="L163">                cmpMessage = new CrmfRequestMessage(pkiMessage, cmpConfiguration.getCMPDefaultCA(cmpConfigurationAlias),</span>
+<span class="nc" id="L164">                        cmpConfiguration.getAllowRAVerifyPOPO(cmpConfigurationAlias),</span>
+<span class="nc" id="L165">                        cmpConfiguration.getExtractUsernameComponent(cmpConfigurationAlias));</span>
+<span class="nc" id="L166">                break;</span>
+            case PKIBody.TYPE_KEY_UPDATE_REQ:                    
+                // 7: Key Update request (kur, Key Update Request)
+<span class="nc" id="L169">                handler = new CrmfKeyUpdateHandler(authenticationToken, cmpConfiguration, cmpConfigurationAlias, ejbBridgeSession);</span>
+<span class="nc" id="L170">                cmpMessage = new CrmfRequestMessage(pkiMessage, cmpConfiguration.getCMPDefaultCA(cmpConfigurationAlias),</span>
+<span class="nc" id="L171">                        cmpConfiguration.getAllowRAVerifyPOPO(cmpConfigurationAlias),</span>
+<span class="nc" id="L172">                        cmpConfiguration.getExtractUsernameComponent(cmpConfigurationAlias));</span>
+<span class="nc" id="L173">                break;</span>
+            case PKIBody.TYPE_CONFIRM:
+                // 19: PKI confirm (pkiconf, Confirmation)
+            case PKIBody.TYPE_CERT_CONFIRM:
+                // 24: Certificate confirmation (certConf, Certificate confirm)
+<span class="nc" id="L178">                handler = new ConfirmationMessageHandler(authenticationToken, cmpConfiguration, cmpConfigurationAlias, ejbBridgeSession,</span>
+                        cryptoTokenSession);
+<span class="nc" id="L180">                cmpMessage = new GeneralCmpMessage(pkiMessage);</span>
+<span class="nc" id="L181">                break;</span>
+            case PKIBody.TYPE_REVOCATION_REQ:
+                // 11: Revocation request (rr, Revocation Request)
+<span class="nc" id="L184">                handler = new RevocationMessageHandler(authenticationToken, cmpConfiguration, cmpConfigurationAlias, ejbBridgeSession,</span>
+                        cryptoTokenSession);
+<span class="nc" id="L186">                cmpMessage = new GeneralCmpMessage(pkiMessage);</span>
+<span class="nc" id="L187">                break;</span>
+            case PKIBody.TYPE_NESTED:
+                // 20: NestedMessageContent (nested)
+<span class="nc bnc" id="L190" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L191">                    log.debug(&quot;Received a NestedMessageContent&quot;);</span>
+                }
+<span class="nc" id="L193">                final NestedMessageContent nestedMessage = new NestedMessageContent(pkiMessage, cmpConfiguration, cmpConfigurationAlias);</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">                if (nestedMessage.verify()) {</span>
+<span class="nc bnc" id="L195" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L196">                        log.debug(&quot;The NestedMessageContent was verified successfully&quot;);</span>
+                    }
+                    try {
+<span class="nc" id="L199">                        final PKIMessages nestedPkiMessages = PKIMessages.getInstance(pkiMessage.getBody().getContent());</span>
+<span class="nc" id="L200">                        final PKIMessage nestedPkiMessage = nestedPkiMessages.toPKIMessageArray()[0];</span>
+<span class="nc" id="L201">                        return dispatch(authenticationToken, nestedPkiMessage, pkiHeader, cmpConfiguration, cmpConfigurationAlias, levelOfNesting+1);</span>
+<span class="nc" id="L202">                    } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L203">                        final String errMsg = e.getMessage();</span>
+<span class="nc" id="L204">                        log.info(errMsg, e);</span>
+<span class="nc" id="L205">                        return CmpMessageHelper.createUnprotectedErrorMessage(pkiHeader, FailInfo.BAD_REQUEST, errMsg);</span>
+                    }
+                }
+<span class="nc" id="L208">                final String errMsg = &quot;Could not verify the RA, signature verification on NestedMessageContent failed.&quot;;</span>
+<span class="nc" id="L209">                log.info(errMsg);</span>
+<span class="nc" id="L210">                return CmpMessageHelper.createUnprotectedErrorMessage(pkiHeader, FailInfo.BAD_REQUEST, errMsg);</span>
+            default:
+<span class="nc" id="L212">                unknownMessageType = tagno;</span>
+<span class="nc" id="L213">                log.info(&quot;Received an unknown message type, tagno=&quot; + tagno);</span>
+                break;
+            }
+            
+<span class="nc" id="L217">            addAdditionalResponseCaPubsCertificates(authenticationToken, cmpConfiguration, cmpConfigurationAlias, cmpMessage);</span>
+<span class="nc" id="L218">            addAdditionalResponseExtraCertsCertificates(authenticationToken, cmpConfiguration, cmpConfigurationAlias, cmpMessage);</span>
+            
+<span class="nc bnc" id="L220" title="All 4 branches missed.">            if (handler == null || cmpMessage == null) {</span>
+<span class="nc bnc" id="L221" title="All 2 branches missed.">                if (unknownMessageType &gt; -1) {</span>
+<span class="nc" id="L222">                    final String eMsg = intres.getLocalizedMessage(&quot;cmp.errortypenohandle&quot;, Integer.valueOf(unknownMessageType));</span>
+<span class="nc" id="L223">                    log.error(eMsg);</span>
+<span class="nc" id="L224">                    return CmpMessageHelper.createUnprotectedErrorMessage(pkiHeader, FailInfo.BAD_REQUEST, eMsg);</span>
+                }
+<span class="nc" id="L226">                throw new IllegalStateException(&quot;Something is null! Handler=&quot; + handler + &quot;, cmpMessage=&quot; + cmpMessage);</span>
+            }
+<span class="nc" id="L228">            final ResponseMessage ret = handler.handleMessage(cmpMessage, authenticated);</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">            if (ret == null) {</span>
+<span class="nc" id="L230">                log.error(intres.getLocalizedMessage(&quot;cmp.errorresponsenull&quot;));</span>
+            } else {
+<span class="nc bnc" id="L232" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L233">                    log.debug(&quot;Received a response message of type '&quot; + ret.getClass().getName() + &quot;' from CmpMessageHandler.&quot;);</span>
+                }
+            }
+<span class="nc" id="L236">            return ret;</span>
+<span class="nc" id="L237">        } catch (RuntimeException e) {</span>
+<span class="nc" id="L238">            log.error(intres.getLocalizedMessage(&quot;cmp.errorprocess&quot;), e);</span>
+<span class="nc" id="L239">            return null;</span>
+        }
+    }
+    
+    /**
+     * Adds the list of additional CA certificates to the user certificates signing CA certificate to be 
+     * returned with the CMP response 'CertRepMessage.caPubs' field.
+     * 
+     * @param admin the authentication token.
+     * @param cmpConfiguration the CMP configuration list.
+     * @param alias the CMP configuration alias.
+     * @param message the request message.
+     */
+    private void addAdditionalResponseCaPubsCertificates(final AuthenticationToken admin, final CmpConfiguration cmpConfiguration, final String alias, 
+            final BaseCmpMessage message) {
+<span class="nc bnc" id="L254" title="All 2 branches missed.">        if (message != null) {</span>
+<span class="nc" id="L255">            final String casToAdd = cmpConfiguration.getResponseCaPubsCA(alias);</span>
+<span class="nc bnc" id="L256" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L257">                log.debug(&quot;Add CA certificates of CAs '&quot; + casToAdd + &quot;' to the CMP response message caPubs field.&quot;);</span>
+            }
+<span class="nc" id="L259">            message.setAdditionalCaCertificates(getCaCertificates(admin, casToAdd));</span>
+        }
+<span class="nc" id="L261">    }</span>
+    
+    /**
+     * Adds the list of additional CA certificates to the message signing CA certificate returned
+     * with the outer PKI response message 'PKIMessage.extraCerts' field.
+     * 
+     * @param admin the authentication token.
+     * @param cmpConfiguration the CMP configuration list.
+     * @param alias the CMP configuration alias.
+     * @param message the request message.
+     */
+    private void addAdditionalResponseExtraCertsCertificates(final AuthenticationToken admin, final CmpConfiguration cmpConfiguration, final String alias, 
+            final BaseCmpMessage message) {
+<span class="nc bnc" id="L274" title="All 2 branches missed.">        if (message != null) {</span>
+<span class="nc" id="L275">            final String casToAdd = cmpConfiguration.getResponseExtraCertsCA(alias);</span>
+<span class="nc bnc" id="L276" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L277">                log.debug(&quot;Add CA certificates of CAs '&quot; + casToAdd + &quot;' to the PKI response message extraCerts field.&quot;);</span>
+            }
+<span class="nc" id="L279">            message.setAdditionalExtraCertsCertificates(getCaCertificates(admin, casToAdd));</span>
+        }
+<span class="nc" id="L281">    }</span>
+    
+    /**
+     * Gets the CA certificates by the semicolon separated string of CA names.
+     * 
+     * @param admin the authentication token.
+     * @param caListString the semicolon separated string of CA IDs
+     * @return the list of CA certificates in the order, the CA IDs were given.
+     */
+    private List&lt;Certificate&gt; getCaCertificates(final AuthenticationToken admin, final String caListString) {
+<span class="nc" id="L291">        final List&lt;Certificate&gt; result = new ArrayList&lt;Certificate&gt;();</span>
+<span class="nc" id="L292">        CAInfo cainfo = null;</span>
+        Certificate cacert;
+<span class="nc bnc" id="L294" title="All 2 branches missed.">        if (StringUtils.isNotBlank(caListString)) {</span>
+            int caId;
+<span class="nc bnc" id="L296" title="All 2 branches missed.">            for(String ca : StringUtils.split(caListString, &quot;;&quot;)) {</span>
+<span class="nc" id="L297">                caId = Integer.parseInt(ca);</span>
+<span class="nc bnc" id="L298" title="All 2 branches missed.">                if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L299">                    log.debug(&quot;Get CA by ID: &quot; + caId);</span>
+                }
+                try {
+<span class="nc" id="L302">                    cainfo = caSession.getCAInfo(admin, caId);</span>
+<span class="nc bnc" id="L303" title="All 4 branches missed.">                    if (cainfo != null &amp;&amp; CollectionUtils.isNotEmpty(cainfo.getCertificateChain())) {</span>
+<span class="nc" id="L304">                        cacert = (X509Certificate) cainfo.getCertificateChain().get(0);</span>
+<span class="nc bnc" id="L305" title="All 2 branches missed.">                        if (!result.contains(cacert)) {</span>
+<span class="nc" id="L306">                            result.add((X509Certificate) cacert);</span>
+                        }
+                    } else { // Should never happen.
+<span class="nc" id="L309">                        log.info(&quot;Cannot find CA: &quot; + ca); </span>
+                    }
+<span class="nc" id="L311">                } catch (AuthorizationDeniedException e) {</span>
+<span class="nc bnc" id="L312" title="All 2 branches missed.">                    if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L313">                        log.debug(e.getMessage());</span>
+                    }
+<span class="nc" id="L315">                }</span>
+            }
+        }
+<span class="nc" id="L318">        return result;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

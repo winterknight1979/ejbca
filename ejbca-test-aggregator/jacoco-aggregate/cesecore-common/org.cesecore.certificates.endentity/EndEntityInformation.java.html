@@ -283,28 +283,28 @@ public class EndEntityInformation implements Serializable {
      * @param sendnotification true or false
      */
     public void setSendNotification(final boolean sendnotification){
-<span class="nc" id="L286">        final EndEntityType type = getType();</span>
-<span class="nc bnc" id="L287" title="All 2 branches missed.">        if (sendnotification) {</span>
-<span class="nc" id="L288">            type.addType(EndEntityTypes.SENDNOTIFICATION);</span>
+<span class="fc" id="L286">        final EndEntityType type = getType();</span>
+<span class="fc bfc" id="L287" title="All 2 branches covered.">        if (sendnotification) {</span>
+<span class="fc" id="L288">            type.addType(EndEntityTypes.SENDNOTIFICATION);</span>
         } else {
-<span class="nc" id="L290">            type.removeType(EndEntityTypes.SENDNOTIFICATION);</span>
+<span class="fc" id="L290">            type.removeType(EndEntityTypes.SENDNOTIFICATION);</span>
         }
-<span class="nc" id="L292">        setType(type);</span>
-<span class="nc" id="L293">    }</span>
+<span class="fc" id="L292">        setType(type);</span>
+<span class="fc" id="L293">    }</span>
 
     public boolean getPrintUserData(){
 <span class="fc" id="L296">        return getType().contains(EndEntityTypes.PRINT);</span>
     }
 
     public void setPrintUserData(final boolean printUserData){
-<span class="nc" id="L300">        final EndEntityType type = getType();</span>
-<span class="nc bnc" id="L301" title="All 2 branches missed.">        if (printUserData) {</span>
+<span class="fc" id="L300">        final EndEntityType type = getType();</span>
+<span class="pc bpc" id="L301" title="1 of 2 branches missed.">        if (printUserData) {</span>
 <span class="nc" id="L302">            type.addType(EndEntityTypes.PRINT);</span>
         } else {
-<span class="nc" id="L304">            type.removeType(EndEntityTypes.PRINT);</span>
+<span class="fc" id="L304">            type.removeType(EndEntityTypes.PRINT);</span>
         }
-<span class="nc" id="L306">        setType(type);</span>
-<span class="nc" id="L307">    }</span>
+<span class="fc" id="L306">        setType(type);</span>
+<span class="fc" id="L307">    }</span>
 
 	/**
 	 * @return Returns the extendedinformation or null if no extended information exists.

@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CertificateRequestSessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.ra</a> &gt; <span class="el_source">CertificateRequestSessionBean.java</span></div><h1>CertificateRequestSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.ejb.ra;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
+
+import javax.annotation.Resource;
+import javax.ejb.EJB;
+import javax.ejb.SessionContext;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+
+import org.apache.log4j.Logger;
+import org.cesecore.CesecoreException;
+import org.cesecore.ErrorCode;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.ca.IllegalNameException;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificate.certextensions.CertificateExtensionException;
+import org.cesecore.certificates.certificate.exception.CertificateSerialNumberException;
+import org.cesecore.certificates.certificate.request.CertificateResponseMessage;
+import org.cesecore.certificates.certificate.request.RequestMessage;
+import org.cesecore.certificates.certificate.request.RequestMessageUtils;
+import org.cesecore.certificates.certificate.request.ResponseMessage;
+import org.cesecore.certificates.certificate.request.X509ResponseMessage;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.util.CertTools;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.core.EjbcaException;
+import org.ejbca.core.ejb.ca.auth.EndEntityAuthenticationSessionLocal;
+import org.ejbca.core.ejb.ca.sign.SignSessionLocal;
+import org.ejbca.core.ejb.hardtoken.HardTokenSessionLocal;
+import org.ejbca.core.ejb.keyrecovery.KeyRecoverySessionLocal;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.ca.WrongTokenTypeException;
+import org.ejbca.core.model.ra.CustomFieldException;
+import org.ejbca.core.model.ra.NotFoundException;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
+import org.ejbca.cvc.exception.ConstructionException;
+import org.ejbca.cvc.exception.ParseException;
+
+/**
+ * Combines EditUser (RA) with CertReq (CA) methods using transactions.
+ *
+ * @version $Id: CertificateRequestSessionBean.java 29635 2018-08-14 10:56:22Z anatom $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;CertificateRequestSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L87">public class CertificateRequestSessionBean implements CertificateRequestSessionRemote, CertificateRequestSessionLocal {</span>
+
+<span class="nc" id="L89">    private static final Logger log = Logger.getLogger(CertificateRequestSessionBean.class);</span>
+
+    /** Internal localization of logs and errors */
+<span class="nc" id="L92">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private CaSessionLocal caSession;
+    @EJB
+    private EndEntityAuthenticationSessionLocal authenticationSession;
+    @EJB
+    private EndEntityAccessSessionLocal endEntityAccessSession;
+    @EJB
+    private EndEntityProfileSessionLocal endEntityProfileSession;
+    @EJB
+    private HardTokenSessionLocal hardTokenSession;
+    @EJB
+    private KeyRecoverySessionLocal keyRecoverySession;
+    @EJB
+    private KeyStoreCreateSessionLocal keyStoreCreateSession;
+    @EJB
+    private GlobalConfigurationSessionLocal globalConfigurationSession;
+    @EJB
+    private EndEntityManagementSessionLocal endEntityManagementSession;
+    @EJB
+    private SignSessionLocal signSession;
+    @Resource
+    private SessionContext sessionContext;
+
+    @Override
+    public byte[] processCertReq(AuthenticationToken admin, EndEntityInformation userdata, String req, int reqType, String hardTokenSN,
+            int responseType) throws AuthorizationDeniedException, NotFoundException, InvalidKeyException, NoSuchAlgorithmException,
+            InvalidKeySpecException, NoSuchProviderException, SignatureException, IOException, CertificateException,
+            EndEntityProfileValidationException, ApprovalException, EjbcaException, CesecoreException, CertificateExtensionException {
+<span class="nc" id="L124">        byte[] retval = null;</span>
+
+        // Check tokentype
+<span class="nc bnc" id="L127" title="All 2 branches missed.">        if (userdata.getTokenType() != SecConst.TOKEN_SOFT_BROWSERGEN) {</span>
+<span class="nc" id="L128">            throw new WrongTokenTypeException(&quot;Error: Wrong Token Type of user, must be 'USERGENERATED' for PKCS10/SPKAC/CRMF/CVC requests&quot;);</span>
+        }
+        // This is the secret sauce, do the end entity handling automagically here before we get the cert
+<span class="nc" id="L131">        addOrEditUser(admin, userdata, false, true);</span>
+        // Process request
+        try {
+<span class="nc" id="L134">            String password = userdata.getPassword();</span>
+<span class="nc" id="L135">            String username = userdata.getUsername();</span>
+<span class="nc" id="L136">            RequestMessage imsg = RequestMessageUtils.getRequestMessageFromType(username, password, req, reqType);</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">            if (imsg != null) {</span>
+<span class="nc" id="L138">                retval = getCertResponseFromPublicKey(admin, imsg, hardTokenSN, responseType, userdata);</span>
+            }
+<span class="nc" id="L140">        } catch (NotFoundException e) {</span>
+<span class="nc" id="L141">            sessionContext.setRollbackOnly(); // This is an application exception so it wont trigger a roll-back automatically</span>
+<span class="nc" id="L142">            throw e;</span>
+<span class="nc" id="L143">        } catch (InvalidKeyException e) {</span>
+<span class="nc" id="L144">            sessionContext.setRollbackOnly(); // This is an application exception so it wont trigger a roll-back automatically</span>
+<span class="nc" id="L145">            throw e;</span>
+<span class="nc" id="L146">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L147">            sessionContext.setRollbackOnly(); // This is an application exception so it wont trigger a roll-back automatically</span>
+<span class="nc" id="L148">            throw e;</span>
+<span class="nc" id="L149">        } catch (InvalidKeySpecException e) {</span>
+<span class="nc" id="L150">            sessionContext.setRollbackOnly(); // This is an application exception so it wont trigger a roll-back automatically</span>
+<span class="nc" id="L151">            throw e;</span>
+<span class="nc" id="L152">        } catch (NoSuchProviderException e) {</span>
+<span class="nc" id="L153">            sessionContext.setRollbackOnly(); // This is an application exception so it wont trigger a roll-back automatically</span>
+<span class="nc" id="L154">            throw e;</span>
+<span class="nc" id="L155">        } catch (SignatureException e) {</span>
+<span class="nc" id="L156">            sessionContext.setRollbackOnly(); // This is an application exception so it wont trigger a roll-back automatically</span>
+<span class="nc" id="L157">            throw e;</span>
+<span class="nc" id="L158">        } catch (IOException e) {</span>
+<span class="nc" id="L159">            sessionContext.setRollbackOnly(); // This is an application exception so it wont trigger a roll-back automatically</span>
+<span class="nc" id="L160">            throw e;</span>
+<span class="nc" id="L161">        } catch (CertificateException e) {</span>
+<span class="nc" id="L162">            sessionContext.setRollbackOnly(); // This is an application exception so it wont trigger a roll-back automatically</span>
+<span class="nc" id="L163">            throw e;</span>
+<span class="nc" id="L164">        } catch (EjbcaException e) {</span>
+<span class="nc" id="L165">            sessionContext.setRollbackOnly(); // This is an application exception so it wont trigger a roll-back automatically</span>
+<span class="nc" id="L166">            throw e;</span>
+<span class="nc" id="L167">        } catch (CesecoreException e) {</span>
+<span class="nc" id="L168">            sessionContext.setRollbackOnly(); // This is an application exception so it wont trigger a roll-back automatically</span>
+<span class="nc" id="L169">            throw e;</span>
+<span class="nc" id="L170">        } catch (ParseException e) {</span>
+<span class="nc" id="L171">            sessionContext.setRollbackOnly(); // This is an application exception so it wont trigger a roll-back automatically</span>
+<span class="nc" id="L172">            throw new EjbcaException(ErrorCode.FIELD_VALUE_NOT_VALID, e);</span>
+<span class="nc" id="L173">        } catch (ConstructionException e) {</span>
+<span class="nc" id="L174">            sessionContext.setRollbackOnly(); // This is an application exception so it wont trigger a roll-back automatically</span>
+<span class="nc" id="L175">            throw new EjbcaException(ErrorCode.FIELD_VALUE_NOT_VALID, e);</span>
+<span class="nc" id="L176">        } catch (NoSuchFieldException e) {</span>
+<span class="nc" id="L177">            sessionContext.setRollbackOnly(); // This is an application exception so it wont trigger a roll-back automatically</span>
+<span class="nc" id="L178">            throw new EjbcaException(ErrorCode.FIELD_VALUE_NOT_VALID, e);</span>
+<span class="nc" id="L179">        } catch (CertificateExtensionException e) {</span>
+<span class="nc" id="L180">            sessionContext.setRollbackOnly(); // This is an application exception so it wont trigger a roll-back automatically</span>
+<span class="nc" id="L181">            throw e;</span>
+<span class="nc" id="L182">        }</span>
+<span class="nc" id="L183">        return retval;</span>
+    }
+
+    @Override
+    public ResponseMessage processCertReq(AuthenticationToken admin, EndEntityInformation userdata, RequestMessage req, Class&lt;? extends CertificateResponseMessage&gt; responseClass)
+            throws EndEntityExistsException, AuthorizationDeniedException, EndEntityProfileValidationException, EjbcaException, CesecoreException, CertificateExtensionException {
+        // Check tokentype
+<span class="nc bnc" id="L190" title="All 2 branches missed.">        if (userdata.getTokenType() != SecConst.TOKEN_SOFT_BROWSERGEN) {</span>
+<span class="nc" id="L191">            throw new WrongTokenTypeException(&quot;Error: Wrong Token Type of user, must be 'USERGENERATED' for PKCS10/SPKAC/CRMF/CVC requests&quot;);</span>
+        }
+        // This is the secret sauce, do the end entity handling automagically here before we get the cert
+<span class="nc" id="L194">        addOrEditUser(admin, userdata, false, true);</span>
+<span class="nc" id="L195">        ResponseMessage retval = null;</span>
+        try {
+<span class="nc" id="L197">            retval = signSession.createCertificate(admin, req, responseClass, userdata);</span>
+<span class="nc" id="L198">        } catch (EjbcaException e) {</span>
+<span class="nc" id="L199">            sessionContext.setRollbackOnly(); // This is an application exception so it wont trigger a roll-back automatically</span>
+<span class="nc" id="L200">            throw e;</span>
+<span class="nc" id="L201">        } catch (CertificateExtensionException e) {</span>
+<span class="nc" id="L202">            sessionContext.setRollbackOnly(); // This is an application exception so it wont trigger a roll-back automatically</span>
+<span class="nc" id="L203">            throw e;</span>
+<span class="nc" id="L204">        }</span>
+<span class="nc" id="L205">        return retval;</span>
+    }
+
+    /**
+     * @param admin Admin
+     * @param userdata User
+     * @param clearpwd PWD
+     * @param fromwebservice bool 
+     * @throws AuthorizationDeniedException fail
+     * @throws EndEntityProfileValidationException fail 
+     * @throws ApprovalException fail
+     * @throws EndEntityExistsException fail 
+     * @throws CADoesntExistsException if userdata.caId is not a valid caid. This is checked in editUser or addUserFromWS
+     * @throws IllegalNameException  if the Subject DN failed constraints
+     * @throws CertificateSerialNumberException if SubjectDN serial number already exists.
+     * @throws CustomFieldException if the end entity was not validated by a locally defined field validator
+     * @throws NoSuchEndEntityException if the end entity was not found
+     */
+    private void addOrEditUser(AuthenticationToken admin, EndEntityInformation userdata, boolean clearpwd, boolean fromwebservice)
+            throws AuthorizationDeniedException, EndEntityProfileValidationException, ApprovalException, EndEntityExistsException,
+            CADoesntExistsException, CertificateSerialNumberException, IllegalNameException, CustomFieldException, NoSuchEndEntityException {
+
+<span class="nc" id="L227">        int caid = userdata.getCAId();</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">        if (!authorizationSession.isAuthorizedNoLogging(admin, StandardRules.CAACCESS.resource() + caid)) {</span>
+<span class="nc" id="L229">            final String msg = intres.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, StandardRules.CAACCESS.resource() + caid, null);</span>
+<span class="nc" id="L230">            throw new AuthorizationDeniedException(msg);</span>
+        }
+<span class="nc bnc" id="L232" title="All 2 branches missed.">        if (!authorizationSession.isAuthorizedNoLogging(admin, AccessRulesConstants.REGULAR_CREATECERTIFICATE)) {</span>
+<span class="nc" id="L233">            final String msg = intres.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, AccessRulesConstants.REGULAR_CREATECERTIFICATE,</span>
+                    null);
+<span class="nc" id="L235">            throw new AuthorizationDeniedException(msg);</span>
+        }
+        // First we need to fetch the CA configuration to see if we save UserData, if not, we still run addUserFromWS to
+        // get all the proper authentication checks for CA and end entity profile.
+        // No need to to access control here just to fetch this flag, access control for the CA is done in EndEntityManagementSession
+<span class="nc" id="L240">        boolean useUserStorage = caSession.getCAInfoInternal(caid, null, true).isUseUserStorage();</span>
+        // Add or edit user
+        try {
+<span class="nc" id="L243">            String username = userdata.getUsername();</span>
+<span class="nc bnc" id="L244" title="All 4 branches missed.">            if (useUserStorage &amp;&amp; endEntityManagementSession.existsUser(username)) {</span>
+<span class="nc bnc" id="L245" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L246">                    log.debug(&quot;User &quot; + username + &quot; exists, update the userdata. New status of user '&quot; + userdata.getStatus() + &quot;'.&quot;);</span>
+                }
+<span class="nc" id="L248">                endEntityManagementSession.changeUser(admin, userdata, clearpwd, fromwebservice);</span>
+            } else {
+<span class="nc bnc" id="L250" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L251">                    log.debug(&quot;New User &quot; + username + &quot;, adding userdata. New status of user '&quot; + userdata.getStatus() + &quot;'.&quot;);</span>
+                }
+                // addUserfromWS also checks useUserStorage internally, so don't duplicate the check
+<span class="nc" id="L254">                endEntityManagementSession.addUserFromWS(admin, userdata, clearpwd);</span>
+            }
+<span class="nc" id="L256">        } catch (WaitingForApprovalException e) {</span>
+<span class="nc" id="L257">            sessionContext.setRollbackOnly(); // This is an application exception so it wont trigger a roll-back automatically</span>
+<span class="nc" id="L258">            String msg = &quot;Single transaction enrollment request rejected since approvals are enabled for this CA (&quot; + caid</span>
+<span class="nc" id="L259">                    + &quot;) or Certificate Profile (&quot; + userdata.getCertificateProfileId() + &quot;).&quot;;</span>
+<span class="nc" id="L260">            log.info(msg);</span>
+<span class="nc" id="L261">            throw new ApprovalException(msg);</span>
+<span class="nc" id="L262">        }</span>
+<span class="nc" id="L263">    }</span>
+
+    /**
+     * Process a request in the CA module.
+     *
+     * @param admin is the requesting administrator
+     * @param msg is the request message processed by the CA
+     * @param hardTokenSN is the hard token to associate this or null
+     * @param responseType is one of SecConst.CERT_RES_TYPE_...
+     * @param userData Data
+     * @return a encoded certificate of the type specified in responseType
+     * @throws EjbcaException fail
+     * @throws CesecoreException fail
+     * @throws CertificateEncodingException fail
+     * @throws CertificateException fail
+     * @throws IOException fail
+     * @throws AuthorizationDeniedException fail
+     * @throws CertificateExtensionException if the request message contained invalid extensions
+     */
+    private byte[] getCertResponseFromPublicKey(AuthenticationToken admin, RequestMessage msg, String hardTokenSN, int responseType,
+            EndEntityInformation userData) throws EjbcaException, CesecoreException, CertificateEncodingException, CertificateException, IOException,
+            AuthorizationDeniedException, CertificateExtensionException {
+<span class="nc" id="L285">        byte[] retval = null;</span>
+<span class="nc" id="L286">        Class&lt;X509ResponseMessage&gt; respClass = X509ResponseMessage.class;</span>
+<span class="nc" id="L287">        ResponseMessage resp = signSession.createCertificate(admin, msg, respClass, userData);</span>
+<span class="nc" id="L288">        X509Certificate cert = CertTools.getCertfromByteArray(resp.getResponseMessage(), X509Certificate.class);</span>
+<span class="nc bnc" id="L289" title="All 2 branches missed.">        if (responseType == CertificateConstants.CERT_RES_TYPE_CERTIFICATE) {</span>
+<span class="nc" id="L290">            retval = cert.getEncoded();</span>
+        }
+<span class="nc bnc" id="L292" title="All 2 branches missed.">        if (responseType == CertificateConstants.CERT_RES_TYPE_PKCS7) {</span>
+<span class="nc" id="L293">            retval = signSession.createPKCS7(admin, cert, false);</span>
+        }
+<span class="nc bnc" id="L295" title="All 2 branches missed.">        if (responseType == CertificateConstants.CERT_RES_TYPE_PKCS7WITHCHAIN) {</span>
+<span class="nc" id="L296">            retval = signSession.createPKCS7(admin, cert, true);</span>
+        }
+
+<span class="nc bnc" id="L299" title="All 2 branches missed.">        if (hardTokenSN != null) {</span>
+<span class="nc" id="L300">            hardTokenSession.addHardTokenCertificateMapping(admin, hardTokenSN, cert);</span>
+        }
+<span class="nc" id="L302">        return retval;</span>
+    }
+
+    @Override
+    public byte[] processSoftTokenReq(AuthenticationToken admin, EndEntityInformation userdata, String hardTokenSN, String keyspec, String keyalg,
+            boolean createJKS) throws ApprovalException, EndEntityExistsException, CADoesntExistsException, CertificateSerialNumberException,
+            IllegalNameException, CustomFieldException, AuthorizationDeniedException, EndEntityProfileValidationException, NoSuchAlgorithmException,
+            InvalidKeySpecException, CertificateException, InvalidAlgorithmParameterException, KeyStoreException, NoSuchEndEntityException {
+
+        // This is the secret sauce, do the end entity handling automagically here before we get the cert
+<span class="nc" id="L312">        addOrEditUser(admin, userdata, false, true);</span>
+        // Process request
+<span class="nc" id="L314">        byte[] ret = null;</span>
+        try {
+            // Get key recovery info
+<span class="nc" id="L317">            boolean usekeyrecovery = ( (GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID)).getEnableKeyRecovery();</span>
+<span class="nc bnc" id="L318" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L319">                log.debug(&quot;usekeyrecovery: &quot; + usekeyrecovery);</span>
+            }
+<span class="nc bnc" id="L321" title="All 6 branches missed.">            boolean savekeys = userdata.getKeyRecoverable() &amp;&amp; usekeyrecovery &amp;&amp; (userdata.getStatus() != EndEntityConstants.STATUS_KEYRECOVERY);</span>
+<span class="nc bnc" id="L322" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L323">                log.debug(&quot;userdata.getKeyRecoverable(): &quot; + userdata.getKeyRecoverable());</span>
+<span class="nc" id="L324">                log.debug(&quot;userdata.getStatus(): &quot; + userdata.getStatus());</span>
+<span class="nc" id="L325">                log.debug(&quot;savekeys: &quot; + savekeys);</span>
+            }
+<span class="nc bnc" id="L327" title="All 4 branches missed.">            boolean loadkeys = (userdata.getStatus() == EndEntityConstants.STATUS_KEYRECOVERY) &amp;&amp; usekeyrecovery;</span>
+<span class="nc bnc" id="L328" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L329">                log.debug(&quot;loadkeys: &quot; + loadkeys);</span>
+            }
+<span class="nc" id="L331">            int endEntityProfileId = userdata.getEndEntityProfileId();</span>
+<span class="nc" id="L332">            EndEntityProfile endEntityProfile = endEntityProfileSession.getEndEntityProfileNoClone(endEntityProfileId);</span>
+<span class="nc" id="L333">            boolean reusecertificate = endEntityProfile.getReUseKeyRecoveredCertificate();</span>
+<span class="nc bnc" id="L334" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L335">                log.debug(&quot;reusecertificate: &quot; + reusecertificate);</span>
+            }
+            // Generate keystore
+<span class="nc" id="L338">            String password = userdata.getPassword();</span>
+<span class="nc" id="L339">            String username = userdata.getUsername();</span>
+<span class="nc" id="L340">            int caid = userdata.getCAId();</span>
+<span class="nc" id="L341">            KeyStore keyStore = keyStoreCreateSession.generateOrKeyRecoverToken(admin, username, password, caid, keyspec, keyalg, null, null,</span>
+                    createJKS, loadkeys, savekeys,
+                    reusecertificate, endEntityProfileId);
+<span class="nc" id="L344">            String alias = keyStore.aliases().nextElement();</span>
+<span class="nc" id="L345">            X509Certificate cert = (X509Certificate) keyStore.getCertificate(alias);</span>
+<span class="nc bnc" id="L346" title="All 4 branches missed.">            if ((hardTokenSN != null) &amp;&amp; (cert != null)) {</span>
+<span class="nc" id="L347">                hardTokenSession.addHardTokenCertificateMapping(admin, hardTokenSN, cert);</span>
+            }
+<span class="nc" id="L349">            ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+<span class="nc" id="L350">            keyStore.store(baos, password.toCharArray());</span>
+<span class="nc" id="L351">            ret = baos.toByteArray();</span>
+<span class="nc" id="L352">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L353">            sessionContext.setRollbackOnly(); // This is an application exception so it wont trigger a roll-back automatically</span>
+<span class="nc" id="L354">            throw e;</span>
+<span class="nc" id="L355">        } catch (InvalidKeySpecException e) {</span>
+<span class="nc" id="L356">            sessionContext.setRollbackOnly(); // This is an application exception so it wont trigger a roll-back automatically</span>
+<span class="nc" id="L357">            throw e;</span>
+<span class="nc" id="L358">        } catch (IOException e) {</span>
+<span class="nc" id="L359">            sessionContext.setRollbackOnly(); // This is an application exception so it wont trigger a roll-back automatically</span>
+<span class="nc" id="L360">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L361">        } catch (CertificateException e) {</span>
+<span class="nc" id="L362">            sessionContext.setRollbackOnly(); // This is an application exception so it wont trigger a roll-back automatically</span>
+<span class="nc" id="L363">            throw e;</span>
+<span class="nc" id="L364">        } catch (InvalidAlgorithmParameterException e) {</span>
+<span class="nc" id="L365">            sessionContext.setRollbackOnly(); // This is an application exception so it wont trigger a roll-back automatically</span>
+<span class="nc" id="L366">            throw e;</span>
+<span class="nc" id="L367">        } catch (RuntimeException e) {</span>
+<span class="nc" id="L368">            throw e;</span>
+<span class="nc" id="L369">        } catch (Exception e) {</span>
+<span class="nc" id="L370">            sessionContext.setRollbackOnly(); // This is an application exception so it wont trigger a roll-back automatically</span>
+<span class="nc" id="L371">            throw new KeyStoreException(e);</span>
+<span class="nc" id="L372">        }</span>
+<span class="nc" id="L373">        return ret;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,576 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>UserDataSourceSessionBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.ra.userdatasource</a> &gt; <span class="el_source">UserDataSourceSessionBean.java</span></div><h1>UserDataSourceSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.ejb.ra.userdatasource;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.apache.log4j.Logger;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.util.Base64GetHashMap;
+import org.cesecore.util.ProfileID;
+import org.cesecore.util.SecureXMLDecoder;
+import org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaModuleTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaServiceTypes;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.ra.userdatasource.BaseUserDataSource;
+import org.ejbca.core.model.ra.userdatasource.CustomUserDataSourceContainer;
+import org.ejbca.core.model.ra.userdatasource.MultipleMatchException;
+import org.ejbca.core.model.ra.userdatasource.UserDataSourceConnectionException;
+import org.ejbca.core.model.ra.userdatasource.UserDataSourceException;
+import org.ejbca.core.model.ra.userdatasource.UserDataSourceExistsException;
+import org.ejbca.core.model.ra.userdatasource.UserDataSourceVO;
+
+/**
+ * Stores data used by web server clients.
+ * 
+ * @version $Id: UserDataSourceSessionBean.java 34163 2020-01-02 15:00:17Z samuellb $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;UserDataSourceSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L67">public class UserDataSourceSessionBean implements UserDataSourceSessionLocal, UserDataSourceSessionRemote {</span>
+
+<span class="nc" id="L69">	private static final Logger log = Logger.getLogger(UserDataSourceSessionBean.class);</span>
+	/** Internal localization of logs and errors */
+<span class="nc" id="L71">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+    
+    @PersistenceContext(unitName=&quot;ejbca&quot;)
+    private EntityManager entityManager;
+
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private CaSessionLocal caSession;
+    @EJB
+    private SecurityEventsLoggerSessionLocal auditSession;
+
+    @Override
+    public Collection&lt;UserDataSourceVO&gt; fetch(AuthenticationToken admin, Collection&lt;Integer&gt; userdatasourceids, String searchstring) throws AuthorizationDeniedException, UserDataSourceException{
+<span class="nc" id="L85">    	Iterator&lt;Integer&gt; iter = userdatasourceids.iterator();</span>
+<span class="nc" id="L86">    	ArrayList&lt;UserDataSourceVO&gt; result = new ArrayList&lt;UserDataSourceVO&gt;();</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">    	while (iter.hasNext()) {</span>
+<span class="nc" id="L88">    		Integer id = iter.next();</span>
+<span class="nc" id="L89">    		UserDataSourceData pdl = UserDataSourceData.findById(entityManager, id);</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">    		if (pdl != null) {</span>
+<span class="nc" id="L91">    			BaseUserDataSource userdatasource = getUserDataSource(pdl);</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">    			if(isAuthorizedToUserDataSource(admin,id.intValue(),userdatasource,false)){</span>
+    				try {
+<span class="nc" id="L94">    					result.addAll(getUserDataSource(pdl).fetchUserDataSourceVOs(admin,searchstring));</span>
+<span class="nc" id="L95">    					String msg = intres.getLocalizedMessage(&quot;userdatasource.fetcheduserdatasource&quot;, pdl.getName()); </span>
+<span class="nc" id="L96">    		            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L97">    		            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L98">    		            auditSession.log(EjbcaEventTypes.RA_USERDATASOURCEFETCHDATA, EventStatus.SUCCESS, EjbcaModuleTypes.RA, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L99">    				} catch (UserDataSourceException pe) {</span>
+<span class="nc" id="L100">    					String msg = intres.getLocalizedMessage(&quot;userdatasource.errorfetchuserdatasource&quot;, pdl.getName());</span>
+<span class="nc" id="L101">    					log.info(msg, pe);</span>
+<span class="nc" id="L102">    					throw pe;</span>
+<span class="nc" id="L103">    				}</span>
+    			}else{
+<span class="nc" id="L105">    				String msg = intres.getLocalizedMessage(&quot;userdatasource.errornotauth&quot;, pdl.getName());</span>
+<span class="nc" id="L106">    				log.info(msg);</span>
+    			}
+<span class="nc" id="L108">    		} else {</span>
+<span class="nc" id="L109">    			String msg = intres.getLocalizedMessage(&quot;userdatasource.erroruserdatasourceexist&quot;, id);</span>
+<span class="nc" id="L110">    			log.info(msg);</span>
+<span class="nc" id="L111">    			throw new UserDataSourceException(msg);</span>
+    		}
+<span class="nc" id="L113">    	}</span>
+<span class="nc" id="L114">        return result;</span>
+    }
+
+    @Override
+    public boolean removeUserData(AuthenticationToken admin, Collection&lt;Integer&gt; userdatasourceids, String searchstring, boolean removeMultipleMatch) throws AuthorizationDeniedException, MultipleMatchException, UserDataSourceException{
+<span class="nc" id="L119">    	boolean retval = false;</span>
+<span class="nc" id="L120">    	Iterator&lt;Integer&gt; iter = userdatasourceids.iterator();</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">    	while (iter.hasNext()) {</span>
+<span class="nc" id="L122">    		Integer id = iter.next();</span>
+<span class="nc" id="L123">    		UserDataSourceData pdl = UserDataSourceData.findById(entityManager, id);</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">    		if (pdl != null) {</span>
+<span class="nc" id="L125">    			BaseUserDataSource userdatasource = getUserDataSource(pdl);</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">    			if(isAuthorizedToUserDataSource(admin,id.intValue(),userdatasource,true)){</span>
+    				try {
+<span class="nc bnc" id="L128" title="All 4 branches missed.">    					retval = retval || getUserDataSource(pdl).removeUserData(admin, searchstring, removeMultipleMatch);</span>
+<span class="nc" id="L129">    					String msg = intres.getLocalizedMessage(&quot;userdatasource.removeduserdata&quot;, pdl.getName());            	</span>
+<span class="nc" id="L130">    		            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L131">    		            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L132">    		            auditSession.log(EjbcaEventTypes.RA_USERDATASOURCEREMOVEDATA, EventStatus.SUCCESS, EjbcaModuleTypes.RA, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L133">    				} catch (UserDataSourceException pe) {</span>
+<span class="nc" id="L134">    					String msg = intres.getLocalizedMessage(&quot;userdatasource.errorremovinguserdatasource&quot;, pdl.getName());</span>
+<span class="nc" id="L135">    					log.info(msg);</span>
+<span class="nc" id="L136">    					throw pe;</span>
+
+<span class="nc" id="L138">    				}</span>
+    			}else{
+<span class="nc" id="L140">    				String msg = intres.getLocalizedMessage(&quot;userdatasource.errornotauth&quot;, pdl.getName());</span>
+<span class="nc" id="L141">    				log.info(msg);</span>
+    			}
+<span class="nc" id="L143">    		} else {</span>
+<span class="nc" id="L144">    			String msg = intres.getLocalizedMessage(&quot;userdatasource.erroruserdatasourceexist&quot;, id);</span>
+<span class="nc" id="L145">    			log.info(msg);</span>
+<span class="nc" id="L146">    			throw new UserDataSourceException(msg);</span>
+    		}
+<span class="nc" id="L148">    	}</span>
+<span class="nc" id="L149">    	return retval;</span>
+    }
+
+    @Override
+    public void testConnection(AuthenticationToken admin, int userdatasourceid) throws UserDataSourceConnectionException, AuthorizationDeniedException {
+<span class="nc bnc" id="L154" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L155">            log.trace(&quot;&gt;testConnection(id: &quot; + userdatasourceid + &quot;)&quot;);</span>
+    	}
+<span class="nc" id="L157">    	UserDataSourceData pdl = UserDataSourceData.findById(entityManager, userdatasourceid);</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">    	if (pdl != null) {</span>
+<span class="nc" id="L159">    	    BaseUserDataSource userdatasource = getUserDataSource(pdl);</span>
+<span class="nc" id="L160">    	    authorizedToEditUserDataSource(admin, pdl.getName(), userdatasource);</span>
+    	    try {
+<span class="nc" id="L162">    	        userdatasource.testConnection(admin);</span>
+<span class="nc" id="L163">    	        String msg = intres.getLocalizedMessage(&quot;userdatasource.testedcon&quot;, pdl.getName());</span>
+<span class="nc" id="L164">    	        log.info(msg);</span>
+<span class="nc" id="L165">    	    } catch (UserDataSourceConnectionException pe) {</span>
+<span class="nc" id="L166">    	        String msg = intres.getLocalizedMessage(&quot;userdatasource.errortestcon&quot;, pdl.getName());</span>
+<span class="nc" id="L167">    	        log.info(msg);</span>
+<span class="nc" id="L168">    	        throw pe;</span>
+<span class="nc" id="L169">    	    }</span>
+<span class="nc" id="L170">    	} else {</span>
+<span class="nc" id="L171">    	    String msg = intres.getLocalizedMessage(&quot;userdatasource.erroruserdatasourceexist&quot;, Integer.valueOf(userdatasourceid));</span>
+<span class="nc" id="L172">			log.info(msg);</span>
+        }
+<span class="nc bnc" id="L174" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L175">            log.trace(&quot;&lt;testConnection(id: &quot; + userdatasourceid + &quot;)&quot;);</span>
+    	}
+<span class="nc" id="L177">    }</span>
+
+    @Override
+    public void addUserDataSource(AuthenticationToken admin, String name, BaseUserDataSource userdatasource) throws UserDataSourceExistsException, AuthorizationDeniedException {
+<span class="nc bnc" id="L181" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L182">            log.trace(&quot;&gt;addUserDataSource(name: &quot; + name + &quot;)&quot;);</span>
+    	}
+<span class="nc" id="L184">        addUserDataSource(admin,findFreeUserDataSourceId(),name,userdatasource);</span>
+<span class="nc" id="L185">        log.trace(&quot;&lt;addUserDataSource()&quot;);</span>
+<span class="nc" id="L186">    }</span>
+
+    @Override
+    public void addUserDataSource(AuthenticationToken admin, int id, String name, BaseUserDataSource userdatasource) throws UserDataSourceExistsException, AuthorizationDeniedException {
+<span class="nc bnc" id="L190" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L191">            log.trace(&quot;&gt;addUserDataSource(name: &quot; + name + &quot;, id: &quot; + id + &quot;)&quot;);</span>
+    	}
+    	try {
+<span class="nc" id="L194">    	    addUserDataSourceInternal(admin, id, name, userdatasource);</span>
+<span class="nc" id="L195">    	    String msg = intres.getLocalizedMessage(&quot;userdatasource.addedsource&quot;, name);            	</span>
+<span class="nc" id="L196">    	    final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L197">    	    details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L198">    	    auditSession.log(EjbcaEventTypes.RA_USERDATASOURCEADD, EventStatus.SUCCESS, EjbcaModuleTypes.RA, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L199">        } catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L200">            log.info(&quot;UnsupportedEncodingException adding user data source &quot;+name+&quot;, &quot;+id+&quot;: &quot;, e);</span>
+<span class="nc" id="L201">            throw new EJBException(e);</span>
+<span class="nc" id="L202">        }</span>
+<span class="nc" id="L203">    	log.trace(&quot;&lt;addUserDataSource()&quot;);</span>
+<span class="nc" id="L204">    }</span>
+
+    private void addUserDataSourceInternal(AuthenticationToken admin, int id, String name, BaseUserDataSource userdatasource)
+            throws AuthorizationDeniedException, UserDataSourceExistsException, UnsupportedEncodingException {
+<span class="nc" id="L208">    	authorizedToEditUserDataSource(admin, name, userdatasource);</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">    	if (UserDataSourceData.findByName(entityManager, name) == null) {</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">    	    if (UserDataSourceData.findById(entityManager, id) == null) {</span>
+<span class="nc" id="L211">    	        entityManager.persist(new UserDataSourceData(Integer.valueOf(id), name, userdatasource));</span>
+    	    } else {
+<span class="nc" id="L213">                String msg = intres.getLocalizedMessage(&quot;userdatasource.erroraddsource&quot;, id);</span>
+<span class="nc" id="L214">                log.info(msg);</span>
+<span class="nc" id="L215">                throw new UserDataSourceExistsException();    	        </span>
+    	    }
+    	} else {
+<span class="nc" id="L218">            String msg = intres.getLocalizedMessage(&quot;userdatasource.erroraddsource&quot;, name);</span>
+<span class="nc" id="L219">            log.info(msg);</span>
+<span class="nc" id="L220">            throw new UserDataSourceExistsException();    	    </span>
+    	}
+<span class="nc" id="L222">    }</span>
+
+    @Override
+    public void changeUserDataSource(AuthenticationToken admin, String name, BaseUserDataSource userdatasource) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L226" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L227">            log.trace(&quot;&gt;changeUserDataSource(name: &quot; + name + &quot;)&quot;);</span>
+    	}
+<span class="nc" id="L229">    	authorizedToEditUserDataSource(admin, name, userdatasource);</span>
+<span class="nc" id="L230">    	UserDataSourceData htp = UserDataSourceData.findByName(entityManager, name);</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">    	if (htp != null) {</span>
+<span class="nc" id="L232">            final BaseUserDataSource oldsource = getUserDataSource(htp);</span>
+<span class="nc" id="L233">            final Map&lt;Object, Object&gt; diff = oldsource.diff(userdatasource);</span>
+            
+<span class="nc" id="L235">    	    htp.setUserDataSource(userdatasource);</span>
+    	    
+<span class="nc" id="L237">            final String msg = intres.getLocalizedMessage(&quot;userdatasource.changedsource&quot;, name);                </span>
+<span class="nc" id="L238">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L239">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc bnc" id="L240" title="All 2 branches missed.">            for (Map.Entry&lt;Object, Object&gt; entry : diff.entrySet()) {</span>
+<span class="nc" id="L241">                details.put(entry.getKey().toString(), entry.getValue().toString());</span>
+<span class="nc" id="L242">            }</span>
+<span class="nc" id="L243">            auditSession.log(EjbcaEventTypes.RA_USERDATASOURCEEDIT, EventStatus.SUCCESS, EjbcaModuleTypes.RA, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L244">    	} else {</span>
+<span class="nc" id="L245">    	    String msg = intres.getLocalizedMessage(&quot;userdatasource.errorchangesource&quot;, name);</span>
+<span class="nc" id="L246">    	    log.info(msg);</span>
+    	}
+<span class="nc" id="L248">    	log.trace(&quot;&lt;changeUserDataSource()&quot;);</span>
+<span class="nc" id="L249">    }</span>
+
+    @Override
+    public void cloneUserDataSource(AuthenticationToken admin, String oldname, String newname) throws UserDataSourceExistsException, AuthorizationDeniedException {
+<span class="nc bnc" id="L253" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L254">            log.trace(&quot;&gt;cloneUserDataSource(name: &quot; + oldname + &quot;)&quot;);</span>
+    	}
+<span class="nc" id="L256">        BaseUserDataSource userdatasourcedata = null;</span>
+<span class="nc" id="L257">        UserDataSourceData htp = UserDataSourceData.findByName(entityManager, oldname);</span>
+<span class="nc bnc" id="L258" title="All 2 branches missed.">        if (htp == null) {</span>
+<span class="nc" id="L259">			String msg = intres.getLocalizedMessage(&quot;userdatasource.errorclonesource&quot;, newname, oldname);            	</span>
+<span class="nc" id="L260">            log.error(msg);</span>
+<span class="nc" id="L261">            throw new EJBException(msg);</span>
+        }
+        try {
+<span class="nc" id="L264">            userdatasourcedata = (BaseUserDataSource) getUserDataSource(htp).clone();</span>
+<span class="nc" id="L265">            authorizedToEditUserDataSource(admin, newname, userdatasourcedata);                 		</span>
+            try {
+<span class="nc" id="L267">                addUserDataSourceInternal(admin, findFreeUserDataSourceId(), newname, userdatasourcedata);</span>
+<span class="nc" id="L268">                String msg = intres.getLocalizedMessage(&quot;userdatasource.clonedsource&quot;, newname, oldname);            	</span>
+<span class="nc" id="L269">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L270">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L271">                auditSession.log(EjbcaEventTypes.RA_USERDATASOURCEADD, EventStatus.SUCCESS, EjbcaModuleTypes.RA, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L272">            } catch (UnsupportedEncodingException f) {</span>
+<span class="nc" id="L273">                String msg = intres.getLocalizedMessage(&quot;userdatasource.errorclonesource&quot;, newname, oldname);</span>
+<span class="nc" id="L274">                log.info(msg, f);</span>
+<span class="nc" id="L275">                throw new EJBException(f);</span>
+<span class="nc" id="L276">            }        		</span>
+<span class="nc" id="L277">        } catch (CloneNotSupportedException e) {</span>
+<span class="nc" id="L278">			String msg = intres.getLocalizedMessage(&quot;userdatasource.errorclonesource&quot;, newname, oldname);            	</span>
+<span class="nc" id="L279">            log.error(msg, e);</span>
+<span class="nc" id="L280">            throw new EJBException(e);</span>
+<span class="nc" id="L281">		}</span>
+<span class="nc" id="L282">        log.trace(&quot;&lt;cloneUserDataSource()&quot;);</span>
+<span class="nc" id="L283">    }</span>
+
+    @Override
+    public boolean removeUserDataSource(AuthenticationToken admin, String name) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L287" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L288">    		log.trace(&quot;&gt;removeUserDataSource(name: &quot; + name + &quot;)&quot;);</span>
+    	}
+<span class="nc" id="L290">    	boolean retval = false;</span>
+<span class="nc" id="L291">    	UserDataSourceData htp = UserDataSourceData.findByName(entityManager, name);</span>
+<span class="nc bnc" id="L292" title="All 2 branches missed.">    	if (htp != null) {</span>
+<span class="nc" id="L293">            BaseUserDataSource userdatasource = getUserDataSource(htp);</span>
+<span class="nc" id="L294">            authorizedToEditUserDataSource(admin, name, userdatasource);</span>
+<span class="nc" id="L295">            entityManager.remove(htp);</span>
+<span class="nc" id="L296">            String msg = intres.getLocalizedMessage(&quot;userdatasource.removedsource&quot;, name);              </span>
+<span class="nc" id="L297">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L298">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L299">            auditSession.log(EjbcaEventTypes.RA_USERDATASOURCEREMOVE, EventStatus.SUCCESS, EjbcaModuleTypes.RA, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L300">            retval = true;</span>
+<span class="nc" id="L301">    	} else {</span>
+<span class="nc" id="L302">            log.info(&quot;No such UserDataSource. trying to remove: &quot;+name);</span>
+    	}
+<span class="nc" id="L304">    	log.trace(&quot;&lt;removeUserDataSource()&quot;);</span>
+<span class="nc" id="L305">    	return retval;</span>
+    }
+
+    @Override
+    public void renameUserDataSource(AuthenticationToken admin, String oldname, String newname) throws UserDataSourceExistsException, AuthorizationDeniedException {
+<span class="nc bnc" id="L310" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L311">            log.trace(&quot;&gt;renameUserDataSource(from &quot; + oldname + &quot; to &quot; + newname + &quot;)&quot;);</span>
+    	}
+<span class="nc" id="L313">        boolean success = false;</span>
+<span class="nc bnc" id="L314" title="All 2 branches missed.">        if (UserDataSourceData.findByName(entityManager, newname) == null) {</span>
+<span class="nc" id="L315">        	UserDataSourceData htp = UserDataSourceData.findByName(entityManager, oldname);</span>
+<span class="nc bnc" id="L316" title="All 2 branches missed.">        	if (htp != null) {</span>
+<span class="nc" id="L317">        	    authorizedToEditUserDataSource(admin, oldname, getUserDataSource(htp));</span>
+<span class="nc" id="L318">        	    htp.setName(newname);</span>
+<span class="nc" id="L319">        	    success = true;</span>
+        	}
+        }
+<span class="nc bnc" id="L322" title="All 2 branches missed.">        if (success) {</span>
+<span class="nc" id="L323">        	String msg = intres.getLocalizedMessage(&quot;userdatasource.renamedsource&quot;, oldname, newname);            	</span>
+<span class="nc" id="L324">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L325">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L326">            auditSession.log(EjbcaEventTypes.RA_USERDATASOURCERENAME, EventStatus.SUCCESS, EjbcaModuleTypes.RA, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L327">        } else {</span>
+<span class="nc" id="L328">            String msg = intres.getLocalizedMessage(&quot;userdatasource.errorrenamesource&quot;, oldname, newname);   </span>
+<span class="nc" id="L329">            log.info(msg);</span>
+<span class="nc" id="L330">            throw new UserDataSourceExistsException();</span>
+        }
+<span class="nc" id="L332">        log.trace(&quot;&lt;renameUserDataSource()&quot;);</span>
+<span class="nc" id="L333">    }</span>
+
+    @Override
+    public Collection&lt;Integer&gt; getAuthorizedUserDataSourceIds(AuthenticationToken admin, boolean includeAnyCA) {
+<span class="nc" id="L337">        HashSet&lt;Integer&gt; returnval = new HashSet&lt;Integer&gt;();</span>
+<span class="nc" id="L338">        boolean superadmin = false;</span>
+        // If superadmin return all available user data sources
+<span class="nc" id="L340">        superadmin = authorizationSession.isAuthorizedNoLogging(admin, StandardRules.ROLE_ROOT.resource());</span>
+<span class="nc" id="L341">        Collection&lt;Integer&gt; authorizedcas = caSession.getAuthorizedCaIds(admin);</span>
+<span class="nc" id="L342">        Iterator&lt;UserDataSourceData&gt; i = UserDataSourceData.findAll(entityManager).iterator();</span>
+<span class="nc bnc" id="L343" title="All 2 branches missed.">        while (i.hasNext()) {</span>
+<span class="nc" id="L344">        	UserDataSourceData next = i.next();</span>
+<span class="nc bnc" id="L345" title="All 2 branches missed.">        	if(superadmin){</span>
+<span class="nc" id="L346">        		returnval.add(next.getId());</span>
+        	}else{
+<span class="nc" id="L348">        		BaseUserDataSource userdatasource = getUserDataSource(next);</span>
+<span class="nc bnc" id="L349" title="All 2 branches missed.">        		if(userdatasource.getApplicableCAs().contains(Integer.valueOf(BaseUserDataSource.ANYCA))){</span>
+<span class="nc bnc" id="L350" title="All 2 branches missed.">        			if(includeAnyCA){</span>
+<span class="nc" id="L351">        				returnval.add(next.getId());</span>
+        			}
+        		}else{
+<span class="nc bnc" id="L354" title="All 2 branches missed.">        			if(authorizedcas.containsAll(userdatasource.getApplicableCAs())){</span>
+<span class="nc" id="L355">        				returnval.add(next.getId());</span>
+        			}
+        		}
+        	}
+<span class="nc" id="L359">        }</span>
+<span class="nc" id="L360">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public Map&lt;Integer,String&gt; getUserDataSourceIdToNameMap() {
+<span class="nc" id="L366">        final Map&lt;Integer,String&gt; ret = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L367" title="All 2 branches missed.">        for (final UserDataSourceData userDataSourceData : UserDataSourceData.findAll(entityManager)) {</span>
+<span class="nc" id="L368">            ret.put(userDataSourceData.getId(), userDataSourceData.getName());</span>
+<span class="nc" id="L369">        }</span>
+<span class="nc" id="L370">        return ret;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public HashMap&lt;Integer,String&gt; getUserDataSourceIdToNameMap(AuthenticationToken admin) {
+<span class="nc" id="L376">        HashMap&lt;Integer,String&gt; returnval = new HashMap&lt;Integer,String&gt;();</span>
+<span class="nc" id="L377">        Collection&lt;UserDataSourceData&gt; result = UserDataSourceData.findAll(entityManager);</span>
+<span class="nc" id="L378">        Iterator&lt;UserDataSourceData&gt; i = result.iterator();</span>
+<span class="nc bnc" id="L379" title="All 2 branches missed.">        while (i.hasNext()) {</span>
+<span class="nc" id="L380">        	UserDataSourceData next = i.next();</span>
+<span class="nc" id="L381">        	returnval.put(next.getId(), next.getName());</span>
+<span class="nc" id="L382">        }</span>
+<span class="nc" id="L383">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public BaseUserDataSource getUserDataSource(AuthenticationToken admin, String name) {
+<span class="nc" id="L389">        BaseUserDataSource returnval = null;</span>
+<span class="nc" id="L390">        UserDataSourceData udsd = UserDataSourceData.findByName(entityManager, name);</span>
+<span class="nc bnc" id="L391" title="All 2 branches missed.">        if (udsd != null) {</span>
+<span class="nc" id="L392">        	BaseUserDataSource result = getUserDataSource(udsd);</span>
+            try {
+<span class="nc" id="L394">                authorizedToEditUserDataSource(admin, name, result);</span>
+<span class="nc" id="L395">                returnval = result;</span>
+<span class="nc" id="L396">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc bnc" id="L397" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L398">                    log.debug(&quot;Admin not authorized to user data source, not returning: &quot;+e.getMessage());</span>
+                }
+<span class="nc" id="L400">            }</span>
+        }
+<span class="nc" id="L402">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public BaseUserDataSource getUserDataSource(AuthenticationToken admin, int id) {
+<span class="nc" id="L408">        BaseUserDataSource returnval = null;</span>
+<span class="nc" id="L409">        UserDataSourceData udsd = UserDataSourceData.findById(entityManager, id);</span>
+<span class="nc bnc" id="L410" title="All 2 branches missed.">        if (udsd != null) {</span>
+<span class="nc" id="L411">        	BaseUserDataSource result = getUserDataSource(udsd);</span>
+            try {
+<span class="nc" id="L413">                authorizedToEditUserDataSource(admin, udsd.getName(), result);</span>
+<span class="nc" id="L414">                returnval = result;</span>
+<span class="nc" id="L415">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc bnc" id="L416" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L417">                    log.debug(&quot;Admin not authorized to user data source, not returning: &quot;+e.getMessage());</span>
+                }
+<span class="nc" id="L419">            }</span>
+        }
+<span class="nc" id="L421">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public int getUserDataSourceUpdateCount(AuthenticationToken admin, int userdatasourceid) {
+<span class="nc" id="L427">        int returnval = 0;</span>
+<span class="nc" id="L428">        UserDataSourceData udsd = UserDataSourceData.findById(entityManager, userdatasourceid);</span>
+<span class="nc bnc" id="L429" title="All 2 branches missed.">        if (udsd != null) {</span>
+<span class="nc" id="L430">        	returnval = udsd.getUpdateCounter();</span>
+        }
+<span class="nc" id="L432">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public int getUserDataSourceId(AuthenticationToken admin, String name) {
+<span class="nc" id="L438">        int returnval = 0;</span>
+<span class="nc" id="L439">        UserDataSourceData udsd = UserDataSourceData.findByName(entityManager, name);</span>
+<span class="nc bnc" id="L440" title="All 2 branches missed.">        if (udsd != null) {</span>
+<span class="nc" id="L441">        	returnval = udsd.getId();</span>
+        }
+<span class="nc" id="L443">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public String getUserDataSourceName(AuthenticationToken admin, int id) {
+<span class="nc bnc" id="L449" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L450">            log.trace(&quot;&gt;getUserDataSourceName(id: &quot; + id + &quot;)&quot;);</span>
+    	}
+<span class="nc" id="L452">        String returnval = null;</span>
+<span class="nc" id="L453">        UserDataSourceData udsd = UserDataSourceData.findById(entityManager, id);</span>
+<span class="nc bnc" id="L454" title="All 2 branches missed.">        if (udsd != null) {</span>
+<span class="nc" id="L455">        	returnval = udsd.getName();</span>
+        }
+<span class="nc" id="L457">        log.trace(&quot;&lt;getUserDataSourceName()&quot;);</span>
+<span class="nc" id="L458">        return returnval;</span>
+    }
+    
+    /**
+     * Method to check if an admin is authorized to fetch user data from userdata source
+     * The following checks are performed.
+     * 
+     * 1. If the admin is an administrator
+     * 2. If the admin is authorized to all cas applicable to userdata source.
+     *    or
+     *    If the userdatasource have &quot;ANYCA&quot; set.
+     * 3. The admin is authorized to the fetch or remove rule depending on the remove parameter
+     * @param admin Admin
+     * @param id ID
+     * @param userdatasource data 
+     * @param remove if the call is a remove call, othervise fetch authorization is used.
+     * @return true if the administrator is authorized
+     */
+    private boolean isAuthorizedToUserDataSource(AuthenticationToken admin, int id,  BaseUserDataSource userdatasource,boolean remove) {    	
+<span class="nc bnc" id="L477" title="All 2 branches missed.">    	if(authorizationSession.isAuthorizedNoLogging(admin,StandardRules.ROLE_ROOT.resource())){</span>
+<span class="nc" id="L478">    		return true;</span>
+        }
+<span class="nc bnc" id="L480" title="All 2 branches missed.">        if (remove) {</span>
+<span class="nc bnc" id="L481" title="All 2 branches missed.">            if(!authorizationSession.isAuthorized(admin, AccessRulesConstants.USERDATASOURCEPREFIX + id + AccessRulesConstants.UDS_REMOVE_RIGHTS)) {</span>
+<span class="nc" id="L482">                return false;</span>
+            }
+        } else {
+<span class="nc bnc" id="L485" title="All 2 branches missed.">            if(!authorizationSession.isAuthorized(admin, AccessRulesConstants.USERDATASOURCEPREFIX + id + AccessRulesConstants.UDS_FETCH_RIGHTS)) {</span>
+<span class="nc" id="L486">                return false;</span>
+            }
+        }
+<span class="nc bnc" id="L489" title="All 2 branches missed.">        if (authorizationSession.isAuthorizedNoLogging(admin, AccessRulesConstants.ROLE_ADMINISTRATOR)) {</span>
+<span class="nc bnc" id="L490" title="All 2 branches missed.">            if (userdatasource.getApplicableCAs().contains(Integer.valueOf(BaseUserDataSource.ANYCA))) {</span>
+<span class="nc" id="L491">                return true;</span>
+            }
+<span class="nc" id="L493">            Collection&lt;Integer&gt; authorizedcas = caSession.getAuthorizedCaIds(admin);</span>
+<span class="nc bnc" id="L494" title="All 2 branches missed.">            if (authorizedcas.containsAll(userdatasource.getApplicableCAs())) {</span>
+<span class="nc" id="L495">                return true;</span>
+            }
+        }
+<span class="nc" id="L498">        return false;</span>
+    }
+    
+    /**
+     * Method to check if an admin is authorized to edit an user data source
+     * The following checks are performed.
+     * 
+     * 1. If the admin is an administrator
+     * 2. If tha admin is authorized AccessRulesConstants.REGULAR_EDITUSERDATASOURCES
+     * 3. Only the superadmin should have edit access to user data sources with 'ANYCA' set
+     * 4. Administrators should be authorized to all the user data source applicable cas.
+     * @param admin Admin
+     * @param name name
+     * @param userdatasource Daya
+     * 
+     * @throws AuthorizationDeniedException if the administrator is not authorized
+     */
+    private void authorizedToEditUserDataSource(final AuthenticationToken admin, final String name, final BaseUserDataSource userdatasource) throws AuthorizationDeniedException {
+
+<span class="nc" id="L517">        boolean ret = false;</span>
+<span class="nc bnc" id="L518" title="All 2 branches missed.">        if (authorizationSession.isAuthorizedNoLogging(admin, StandardRules.ROLE_ROOT.resource())) {</span>
+<span class="nc" id="L519">            ret = true;</span>
+        }
+
+<span class="nc bnc" id="L522" title="All 2 branches missed.">        if (authorizationSession.isAuthorizedNoLogging(admin, AccessRulesConstants.ROLE_ADMINISTRATOR)</span>
+<span class="nc bnc" id="L523" title="All 2 branches missed.">                &amp;&amp; authorizationSession.isAuthorizedNoLogging(admin, AccessRulesConstants.REGULAR_EDITUSERDATASOURCES)) {</span>
+<span class="nc bnc" id="L524" title="All 2 branches missed.">            if (userdatasource.getApplicableCAs().contains(Integer.valueOf(BaseUserDataSource.ANYCA))) {</span>
+<span class="nc" id="L525">                ret = false;</span>
+            }
+<span class="nc" id="L527">            Collection&lt;Integer&gt; authorizedcas = caSession.getAuthorizedCaIds(admin);</span>
+<span class="nc bnc" id="L528" title="All 2 branches missed.">            if (authorizedcas.containsAll(userdatasource.getApplicableCAs())) {</span>
+<span class="nc" id="L529">                ret =  true;</span>
+            }
+        }
+<span class="nc bnc" id="L532" title="All 2 branches missed.">        if (!ret) {</span>
+<span class="nc" id="L533">            final String msg = intres.getLocalizedMessage(&quot;userdatasource.errornotauth&quot;, name);</span>
+<span class="nc" id="L534">            throw new AuthorizationDeniedException(msg);</span>
+        }
+<span class="nc" id="L536">    }</span>
+
+    private int findFreeUserDataSourceId() {
+<span class="nc" id="L539">        final ProfileID.DB db = new ProfileID.DB() {</span>
+            @Override
+            public boolean isFree(int i) {
+<span class="nc bnc" id="L542" title="All 2 branches missed.">                return UserDataSourceData.findById(UserDataSourceSessionBean.this.entityManager, i)==null;</span>
+            }
+        };
+<span class="nc" id="L545">        return ProfileID.getNotUsedID(db);</span>
+    }
+
+    /** Method that returns the UserDataSource data and updates it if necessary. 
+     * @param udsData Data
+     * @return Updated */
+    private BaseUserDataSource getUserDataSource(UserDataSourceData udsData) {
+<span class="nc" id="L552">    	BaseUserDataSource userdatasource = udsData.getCachedUserDataSource();</span>
+<span class="nc bnc" id="L553" title="All 2 branches missed.">        if (userdatasource == null) {</span>
+            final HashMap&lt;?, ?&gt; h;
+<span class="nc" id="L555">        	try (SecureXMLDecoder decoder = new SecureXMLDecoder(new java.io.ByteArrayInputStream(udsData.getData().getBytes(StandardCharsets.UTF_8)))) {</span>
+<span class="nc" id="L556">        	    h = (HashMap&lt;?, ?&gt;) decoder.readObject();</span>
+<span class="nc" id="L557">        	} catch (IOException e) {</span>
+<span class="nc" id="L558">                final String msg = &quot;Failed to parse AcmeOrderData data map in database: &quot; + e.getMessage();</span>
+<span class="nc bnc" id="L559" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L560">                    log.debug(msg + &quot;. Data:\n&quot; + udsData.getData());</span>
+                }
+<span class="nc" id="L562">                throw new IllegalStateException(msg, e);</span>
+<span class="nc" id="L563">            }</span>
+        	// Handle Base64 encoded string values
+<span class="nc" id="L565">        	HashMap&lt;?, ?&gt; data = new Base64GetHashMap(h);</span>
+<span class="nc bnc" id="L566" title="All 2 branches missed.">        	switch (((Integer) (data.get(BaseUserDataSource.TYPE))).intValue()) {</span>
+        	case CustomUserDataSourceContainer.TYPE_CUSTOMUSERDATASOURCECONTAINER:
+<span class="nc" id="L568">        		userdatasource = new CustomUserDataSourceContainer();</span>
+        		break;
+        	}
+<span class="nc" id="L571">        	userdatasource.loadData(data);</span>
+    	}
+<span class="nc" id="L573">    	return userdatasource;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

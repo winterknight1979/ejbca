@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DistinguishedName.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util.dn</a> &gt; <span class="el_source">DistinguishedName.java</span></div><h1>DistinguishedName.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.util.dn;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
+
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.util.DnComponents;
+
+/** This class aims to be DN representation.
+ * It offers facilities to merge two DN.
+ * @author David Galichet
+ * @version $Id: DistinguishedName.java 19947 2014-10-07 00:39:24Z davidcarella $
+ */
+public class DistinguishedName extends LdapName {
+
+    private static final long serialVersionUID = -66612792695581203L;
+<span class="fc" id="L38">    private static final Logger logger = Logger.getLogger(DistinguishedName.class);</span>
+
+    /** Public constructor.
+     * @param rdns list of relative Distinguished Names.
+     */
+    public DistinguishedName(List&lt;Rdn&gt; rdns) {
+<span class="fc" id="L44">        super(rdns);</span>
+<span class="fc" id="L45">    }</span>
+
+    /** Public constructor.
+     * @param name Distinguished Name.
+     * @throws javax.naming.InvalidNameException in case of invalid name.
+     */
+    public DistinguishedName(String name) throws InvalidNameException {
+<span class="fc" id="L52">        super(name);</span>
+<span class="fc" id="L53">    }</span>
+
+    /** Get a relative Distinguished Name.
+     * this method get the first occurence in the case of mulitple.
+     * @param type type of the DN.
+     * @return the requested DN.
+     */
+    public Rdn getRdn(String type) {
+<span class="fc" id="L61">        return getRdn(type, 0);</span>
+    }
+
+    /** Get a relative Distinguished Name.
+     * @param type type of the DN.
+     * @param index index of the DN (in case of multiple occurences).
+     * @return the requested DN.
+     */
+    public Rdn getRdn(String type, int index) {
+<span class="fc" id="L70">        return getRdn(this, type, index);</span>
+    }
+
+    /** Merge this DN with another provided DN.
+     * The result is a new DN resulting from the merge of this DN and the 
+     * 
+     * @param dn the provided DN.
+     * @param override override this DN with provided datas.
+     * @param dnMap values that must be inserted in the DN.
+     * @return a new DN resulting from the merge.
+     */
+    public DistinguishedName mergeDN(DistinguishedName dn, boolean override, Map&lt;String,String&gt; dnMap) {
+
+<span class="fc bfc" id="L83" title="All 4 branches covered.">        boolean useEntityEmailField = (dnMap == null ? false : (dnMap.size() &gt; 0));</span>
+
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">        if (logger.isDebugEnabled()) {</span>
+<span class="nc" id="L86">        	logger.debug(&quot;Trying to merge \n&quot; + dn.toString() + &quot;\n with \n&quot; + this.toString()+&quot;, useEntityEmailField=&quot;+useEntityEmailField);</span>
+        }
+
+        // This list will enclose the resulting list of RDNs.
+<span class="fc" id="L90">        List&lt;Rdn&gt; localRdns = new ArrayList&lt;Rdn&gt;();</span>
+
+        // This Map contains some lists of Rdns identified by their type.
+<span class="fc" id="L93">        Map&lt;String, List&lt;Rdn&gt;&gt; providedRdnsMap = new HashMap&lt;String, List&lt;Rdn&gt;&gt;();</span>
+
+        // init the providedRdnsMap :
+<span class="fc bfc" id="L96" title="All 2 branches covered.">        for (ListIterator&lt;Rdn&gt; it = dn.getRdns().listIterator(dn.getRdns().size()); it.hasPrevious(); ) {</span>
+<span class="fc" id="L97">            Rdn providedRdn = (Rdn) it.previous();</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">            if (providedRdnsMap.containsKey(providedRdn.getType())) {</span>
+                // add the provided Rdn in the existing list for this type :
+<span class="fc" id="L100">                List&lt;Rdn&gt; rdns = (List&lt;Rdn&gt;) providedRdnsMap.get(providedRdn.getType());</span>
+<span class="fc" id="L101">                rdns.add(providedRdn);</span>
+<span class="fc" id="L102">            } else {</span>
+                // create a new list for this type :
+<span class="fc" id="L104">                List&lt;Rdn&gt; rdns = new ArrayList&lt;Rdn&gt;();</span>
+<span class="fc" id="L105">                rdns.add(providedRdn);</span>
+<span class="fc" id="L106">                providedRdnsMap.put(providedRdn.getType(), rdns);</span>
+            }
+<span class="fc" id="L108">        }</span>
+
+        // convert to a Map of Iterators :
+<span class="fc" id="L111">        Map&lt;String,Iterator&lt;Rdn&gt;&gt; providedRdnIteratorsMap = new HashMap&lt;String,Iterator&lt;Rdn&gt;&gt;();</span>
+<span class="fc bfc" id="L112" title="All 2 branches covered.">        for (Iterator&lt;String&gt; it = providedRdnsMap.keySet().iterator(); it.hasNext(); ) {</span>
+<span class="fc" id="L113">            String key = (String) it.next();</span>
+<span class="fc" id="L114">            providedRdnIteratorsMap.put(key, ((List&lt;Rdn&gt;) providedRdnsMap.get(key)).iterator());</span>
+<span class="fc" id="L115">        }</span>
+
+        // loop on all Rdn and check if they must be replaced :
+<span class="fc bfc" id="L118" title="All 2 branches covered.">        for (ListIterator&lt;Rdn&gt; it = getRdns().listIterator(getRdns().size()); it.hasPrevious();) {</span>
+<span class="fc" id="L119">            Rdn localRdn = (Rdn) it.previous();</span>
+<span class="fc bfc" id="L120" title="All 2 branches covered.">            if (providedRdnIteratorsMap.containsKey(localRdn.getType())</span>
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">                    &amp;&amp; (providedRdnIteratorsMap.get(localRdn.getType())).hasNext()) {</span>
+<span class="fc" id="L122">                Rdn providedRdn = (Rdn) (providedRdnIteratorsMap.get(localRdn.getType())).next();</span>
+<span class="fc bfc" id="L123" title="All 2 branches covered.">                if (override) {</span>
+<span class="fc" id="L124">                    localRdns.add(providedRdn);</span>
+                } else {
+<span class="fc" id="L126">                    localRdns.add(localRdn);</span>
+                }
+<span class="fc" id="L128">            } else {</span>
+<span class="pc bpc" id="L129" title="1 of 4 branches missed.">                if (useEntityEmailField &amp;&amp; override) {</span>
+<span class="fc" id="L130">                    boolean finded = false;</span>
+<span class="fc bfc" id="L131" title="All 2 branches covered.">                    for (Iterator&lt;String&gt; dnIt = dnMap.keySet().iterator(); dnIt.hasNext();) {</span>
+<span class="fc" id="L132">                        String key = (String) dnIt.next();</span>
+<span class="pc bpc" id="L133" title="1 of 2 branches missed.">                        if (translateComponentName(key).equalsIgnoreCase(localRdn.getType())) {</span>
+<span class="fc" id="L134">                            finded = true;</span>
+                        }
+<span class="fc" id="L136">                    }</span>
+<span class="pc bpc" id="L137" title="1 of 2 branches missed.">                    if (finded) {</span>
+<span class="fc" id="L138">                        String value = (String) dnMap.get(localRdn.getType().toUpperCase());</span>
+                        try {
+<span class="fc" id="L140">                            localRdns.add(new Rdn(translateComponentName(localRdn.getType().toUpperCase()), value));</span>
+<span class="nc" id="L141">                        } catch (InvalidNameException e) {</span>
+                            // Can't occur.
+<span class="fc" id="L143">                        }</span>
+<span class="fc" id="L144">                    } else {</span>
+<span class="nc" id="L145">                        localRdns.add(localRdn);</span>
+                    }
+<span class="fc" id="L147">                } else {</span>
+<span class="fc" id="L148">                    localRdns.add(localRdn);</span>
+                }
+            }
+<span class="fc" id="L151">        }</span>
+
+        // loop on all remaining provided components and add them at the end of the dn :
+<span class="fc bfc" id="L154" title="All 2 branches covered.">        for (Iterator&lt;Iterator&lt;Rdn&gt;&gt; it = providedRdnIteratorsMap.values().iterator(); it.hasNext(); ) {</span>
+<span class="fc" id="L155">            Iterator&lt;Rdn&gt; rdnIterator = it.next();</span>
+<span class="fc bfc" id="L156" title="All 2 branches covered.">            while (rdnIterator.hasNext()) {</span>
+<span class="fc" id="L157">                Rdn providedRdn = (Rdn) rdnIterator.next();</span>
+<span class="fc" id="L158">                localRdns.add(providedRdn);</span>
+<span class="fc" id="L159">            }</span>
+<span class="fc" id="L160">        }</span>
+
+        // Add entity data if necessary
+<span class="fc bfc" id="L163" title="All 2 branches covered.">        if (useEntityEmailField) {</span>
+<span class="fc bfc" id="L164" title="All 2 branches covered.">            for (Iterator&lt;String&gt; it = dnMap.keySet().iterator(); it.hasNext();) {</span>
+<span class="fc" id="L165">                boolean finded = false;</span>
+<span class="fc" id="L166">                String compName = (String) it.next();</span>
+<span class="fc bfc" id="L167" title="All 2 branches covered.">                for (Iterator&lt;Rdn&gt; rdnIt = localRdns.iterator(); rdnIt.hasNext();) {</span>
+<span class="fc" id="L168">                    Rdn rdn = (Rdn) rdnIt.next();</span>
+<span class="fc bfc" id="L169" title="All 2 branches covered.">                    if (translateComponentName(compName).equalsIgnoreCase(rdn.getType())) {</span>
+<span class="fc" id="L170">                        finded = true;</span>
+                    }
+<span class="fc" id="L172">                }</span>
+<span class="pc bpc" id="L173" title="1 of 2 branches missed.">                if (!finded) {</span>
+<span class="nc" id="L174">                    String value = (String) dnMap.get(compName);</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">                    if (value != null) {</span>
+                        try {
+<span class="nc" id="L177">                            localRdns.add(new Rdn(translateComponentName(compName), value));</span>
+<span class="nc" id="L178">                        } catch (InvalidNameException e) { } // never occurs                    	</span>
+                    }
+                }
+<span class="fc" id="L181">            }</span>
+        }
+
+<span class="fc" id="L184">        Collections.reverse(localRdns);</span>
+
+<span class="pc bpc" id="L186" title="1 of 2 branches missed.">        if (logger.isDebugEnabled()) {</span>
+<span class="nc" id="L187">        	logger.debug(&quot;result :\n&quot; + localRdns);</span>
+        }
+
+        // Final step, create a new DN and return it.
+<span class="fc" id="L191">        return new DistinguishedName(localRdns);</span>
+    }
+
+    /** Get a relative Distinguished Name.
+     * @param dn the DN.
+     * @param type type of the DN.
+     * @return the requested DN.
+     */
+    public static Rdn getRdn(DistinguishedName dn, String type) {
+<span class="nc" id="L200">        return getRdn(dn, type, 0);</span>
+    }
+
+    /** Get a relative Distinguished Name.
+     * @param dn the DN.
+     * @param type type of the DN.
+     * @param index index of the DN (in case of multiple occurrences).
+     * @return the requested DN.
+     */
+    public static Rdn getRdn(DistinguishedName dn, String type, int index) {
+
+<span class="pc bpc" id="L211" title="1 of 2 branches missed.">        if (index &lt; 0) {</span>
+<span class="nc" id="L212">            return null;</span>
+        }
+
+        // list of RDN of the specified type.
+<span class="fc" id="L216">        List&lt;Rdn&gt; rdnsOfThisType = new ArrayList&lt;Rdn&gt;();</span>
+
+        // First step, get the list of all Rdn of this type:
+<span class="fc bfc" id="L219" title="All 2 branches covered.">        for (Iterator&lt;Rdn&gt; it = dn.getRdns().iterator(); it.hasNext();) {</span>
+<span class="fc" id="L220">            Rdn rdn = (Rdn) it.next();</span>
+<span class="fc bfc" id="L221" title="All 2 branches covered.">            if (rdn.getType().equalsIgnoreCase(type)) {</span>
+<span class="fc" id="L222">                rdnsOfThisType.add(rdn);</span>
+            }
+<span class="fc" id="L224">        }</span>
+
+        // Second step, return the Rdn at the specified index or null if not exists:
+<span class="fc bfc" id="L227" title="All 2 branches covered.">        if (rdnsOfThisType.size() &gt; index) {</span>
+<span class="fc" id="L228">            return (Rdn) rdnsOfThisType.get(index);</span>
+        } else {
+<span class="fc" id="L230">            return null;</span>
+        }
+    }
+
+    /** Translate component name (ejbca name -&amp;gt; x509).
+     * @param name to translate.
+     * @return translated name.
+     */
+    public String translateComponentName(String name) {
+<span class="pc bpc" id="L239" title="1 of 2 branches missed.">        if (DnComponents.DNEMAILADDRESS.equals(name)) {</span>
+<span class="nc" id="L240">            return &quot;E&quot;;</span>
+        }
+<span class="fc" id="L242">        return name;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

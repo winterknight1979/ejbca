@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ApprovalProfileSessionBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.approval</a> &gt; <span class="el_source">ApprovalProfileSessionBean.java</span></div><h1>ApprovalProfileSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.ejb.approval;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+
+import org.apache.log4j.Logger;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.ca.ApprovalRequestType;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.internal.InternalResources;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.profiles.ProfileData;
+import org.cesecore.profiles.ProfileDoesNotExistException;
+import org.cesecore.profiles.ProfileSessionLocal;
+import org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaModuleTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaServiceTypes;
+import org.ejbca.core.model.approval.profile.ApprovalProfile;
+
+/**
+ * Keeps track of the approval profiles
+ * 
+ * @version $Id: ApprovalProfileSessionBean.java 26388 2017-08-22 14:20:40Z mikekushner $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;ApprovalProfileSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L55">public class ApprovalProfileSessionBean implements ApprovalProfileSessionLocal, ApprovalProfileSessionRemote {</span>
+    
+<span class="nc" id="L57">    private static final Logger LOG = Logger.getLogger(ApprovalProfileSessionBean.class);</span>
+    /** Internal localization of logs and errors */
+<span class="nc" id="L59">    private static final InternalResources INTRES = InternalResources.getInstance();</span>
+
+    @EJB
+    private ApprovalProfileCacheBean approvalProfileCache;
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private ProfileSessionLocal profileSession;
+    @EJB
+    private SecurityEventsLoggerSessionLocal logSession;
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public int addApprovalProfile(AuthenticationToken admin, ApprovalProfile profile)
+            throws ApprovalProfileExistsException, AuthorizationDeniedException {
+<span class="nc" id="L74">        authorizedToEditProfiles(admin);</span>
+<span class="nc" id="L75">        final String name = profile.getProfileName();</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        if (findByApprovalProfileName(name).isEmpty()) {</span>
+<span class="nc" id="L77">            int profileId = profileSession.addProfile(profile);</span>
+<span class="nc" id="L78">            approvalProfileCache.forceCacheExpiration();</span>
+<span class="nc" id="L79">            final String msg = INTRES.getLocalizedMessage(&quot;approval.profile.store.add&quot;, name);</span>
+<span class="nc" id="L80">            Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L81">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L82">            logSession.log(EjbcaEventTypes.APPROVAL_PROFILE_ADD, EventStatus.SUCCESS, EjbcaModuleTypes.APPROVAL_PROFILE, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L83">                    admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L84">            return profileId;</span>
+        } else {
+<span class="nc" id="L86">            final String msg = INTRES.getLocalizedMessage(&quot;profile.store.error.profile_with_name_exists&quot;, name);</span>
+<span class="nc" id="L87">            throw new ApprovalProfileExistsException(msg);</span>
+        }
+    }
+ 
+    
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void changeApprovalProfile(final AuthenticationToken admin, final ApprovalProfile profile) throws AuthorizationDeniedException {
+<span class="nc" id="L95">        authorizedToEditProfiles(admin);</span>
+<span class="nc" id="L96">        String name = profile.getProfileName();</span>
+<span class="nc" id="L97">        profileSession.changeProfile(profile);</span>
+<span class="nc" id="L98">        String msg = INTRES.getLocalizedMessage(&quot;approval.profile.store.edit&quot;, name);</span>
+<span class="nc" id="L99">        Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L100">        details.put(&quot;msg&quot;, msg);</span>
+        //TODO: Include a diff in the changelog (profileData.getProfile().diff(profile);), but make sure to resolve all steps so that we don't
+        //      output a ton of serialized garbage (see ECA-5276)
+<span class="nc" id="L103">        logSession.log(EjbcaEventTypes.APPROVAL_PROFILE_EDIT, EventStatus.SUCCESS, EjbcaModuleTypes.APPROVAL_PROFILE, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L104">                admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L105">        approvalProfileCache.forceCacheExpiration();</span>
+<span class="nc" id="L106">    }</span>
+    
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void removeApprovalProfile(final AuthenticationToken admin, final ApprovalProfile profile) throws AuthorizationDeniedException {
+<span class="nc" id="L111">        removeApprovalProfile(admin, profile.getProfileId());</span>
+<span class="nc" id="L112">    }</span>
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void removeApprovalProfile(final AuthenticationToken admin, final int id) throws AuthorizationDeniedException {
+<span class="nc" id="L117">        authorizedToEditProfiles(admin);</span>
+<span class="nc" id="L118">        ProfileData profileData = profileSession.findById(id);</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        if(profileData == null) {</span>
+<span class="nc" id="L120">            throw new IllegalArgumentException(&quot;No profile with ID &quot; + id + &quot; could be found.&quot;);</span>
+        }
+<span class="nc" id="L122">        profileSession.removeProfile(profileData);</span>
+<span class="nc" id="L123">        approvalProfileCache.forceCacheExpiration();</span>
+<span class="nc" id="L124">        String msg = INTRES.getLocalizedMessage(&quot;approval.profile.store.remove&quot;, profileData.getProfileName());</span>
+<span class="nc" id="L125">        Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L126">        details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L127">        logSession.log(EjbcaEventTypes.APPROVAL_PROFILE_REMOVE, EventStatus.SUCCESS, EjbcaModuleTypes.APPROVAL_PROFILE, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L128">                admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L129">    } </span>
+    
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void renameApprovalProfile(final AuthenticationToken admin, final ApprovalProfile approvalProfile, final String newName)
+            throws ApprovalProfileExistsException, ApprovalProfileDoesNotExistException, AuthorizationDeniedException {
+<span class="nc bnc" id="L135" title="All 2 branches missed.">        if (findByApprovalProfileName(newName).isEmpty()) {</span>
+<span class="nc" id="L136">            authorizedToEditProfiles(admin);</span>
+<span class="nc" id="L137">            String oldName = approvalProfile.getProfileName();</span>
+            try {
+<span class="nc" id="L139">                profileSession.renameProfile(approvalProfile, newName);</span>
+<span class="nc" id="L140">            } catch (ProfileDoesNotExistException e) {</span>
+<span class="nc" id="L141">                throw new ApprovalProfileDoesNotExistException(e);</span>
+<span class="nc" id="L142">            }</span>
+<span class="nc" id="L143">            approvalProfileCache.forceCacheExpiration();</span>
+<span class="nc" id="L144">            final String msg = INTRES.getLocalizedMessage(&quot;approval.profile.store.rename&quot;, oldName, newName);</span>
+<span class="nc" id="L145">            Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L146">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L147">            logSession.log(EjbcaEventTypes.APPROVAL_PROFILE_RENAME, EventStatus.SUCCESS, EjbcaModuleTypes.APPROVAL_PROFILE, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L148">                    admin.toString(), null, null, null, details);</span>
+
+<span class="nc" id="L150">        } else {</span>
+<span class="nc" id="L151">            final String msg = INTRES.getLocalizedMessage(&quot;approval.profile.store.error.profile_with_name_exists&quot;, newName);</span>
+<span class="nc" id="L152">            throw new ApprovalProfileExistsException(msg);</span>
+        }
+<span class="nc" id="L154">    }</span>
+    
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void cloneApprovalProfile(final AuthenticationToken admin, final ApprovalProfile approvalProfile, final String newName)
+            throws ApprovalProfileExistsException, ApprovalProfileDoesNotExistException, AuthorizationDeniedException {
+<span class="nc" id="L160">        ApprovalProfile profile = null;</span>
+<span class="nc" id="L161">        final Integer origProfileId = approvalProfile.getProfileId();</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">        if (origProfileId == null) {</span>
+<span class="nc" id="L163">            final String msg = INTRES.getLocalizedMessage(&quot;profile.store.error.profile_not_found&quot;, approvalProfile.getProfileName());</span>
+<span class="nc" id="L164">            throw new ApprovalProfileDoesNotExistException(msg);</span>
+        }
+<span class="nc" id="L166">        profile = getApprovalProfile(origProfileId).clone();</span>
+<span class="nc" id="L167">        profile.setProfileName(newName);</span>
+<span class="nc" id="L168">        authorizedToEditProfiles(admin);</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">        if (findByApprovalProfileName(newName).isEmpty()) {</span>
+<span class="nc" id="L170">            profileSession.addProfile(profile);</span>
+<span class="nc" id="L171">            approvalProfileCache.forceCacheExpiration();</span>
+<span class="nc" id="L172">            final String msg = INTRES.getLocalizedMessage(&quot;approval.profile.store.clone&quot;, approvalProfile.getProfileName(), newName);</span>
+<span class="nc" id="L173">            Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L174">            details.put(&quot;msg&quot;, msg);    </span>
+<span class="nc" id="L175">            logSession.log(EjbcaEventTypes.APPROVAL_PROFILE_ADD, EventStatus.SUCCESS, EjbcaModuleTypes.APPROVAL_PROFILE, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L176">                    admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L177">        } else {</span>
+<span class="nc" id="L178">            final String msg = INTRES.getLocalizedMessage(&quot;approval.profile.store.clone.error.profile.name.exists&quot;, newName);</span>
+<span class="nc" id="L179">            throw new ApprovalProfileExistsException(msg);</span>
+        }    
+<span class="nc" id="L181">    }</span>
+   
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public List&lt;Integer&gt; getAuthorizedApprovalProfileIds(final AuthenticationToken admin) {
+<span class="nc" id="L186">        return new ArrayList&lt;&gt;(getAllApprovalProfiles().keySet());</span>
+    }    
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public List&lt;ProfileData&gt; findByApprovalProfileName(String profileName) {
+<span class="nc" id="L192">        return profileSession.findByNameAndType(profileName, ApprovalProfile.TYPE_NAME);</span>
+    }
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public List&lt;ProfileData&gt; findAllProfiles() {
+<span class="nc" id="L198">        return profileSession.findAllProfiles(ApprovalProfile.TYPE_NAME);</span>
+    }
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public Map&lt;Integer, ApprovalProfile&gt; getAllApprovalProfiles() {
+<span class="nc" id="L204">        return approvalProfileCache.getProfileCache();</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public Collection&lt;ApprovalProfile&gt; getApprovalProfilesList() {
+<span class="nc" id="L210">        Map&lt;Integer, ApprovalProfile&gt; allProfiles = approvalProfileCache.getProfileCache();    </span>
+<span class="nc" id="L211">        ArrayList&lt;ApprovalProfile&gt; profiles = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L212">        Set&lt;Entry&lt;Integer, ApprovalProfile&gt;&gt; entries = allProfiles.entrySet();</span>
+<span class="nc bnc" id="L213" title="All 2 branches missed.">        for (Entry&lt;Integer, ApprovalProfile&gt; entry : entries) {</span>
+<span class="nc" id="L214">            ApprovalProfile profile = entry.getValue();</span>
+<span class="nc" id="L215">            profiles.add(profile);</span>
+<span class="nc" id="L216">        }</span>
+<span class="nc" id="L217">        return profiles;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public ApprovalProfile getApprovalProfile(int id) {
+<span class="nc bnc" id="L223" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L224">            LOG.trace(&quot;&gt;getApprovalProfile(&quot; + id + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L226">        ApprovalProfile returnval = null;</span>
+<span class="nc" id="L227">        final ApprovalProfile aprofile = approvalProfileCache.getProfileCache().get(Integer.valueOf(id));</span>
+        // We need to clone the profile, otherwise the cache contents will be modifiable from the outside
+<span class="nc bnc" id="L229" title="All 2 branches missed.">        if (aprofile != null) {</span>
+<span class="nc" id="L230">            returnval = aprofile.clone();</span>
+        }    
+<span class="nc bnc" id="L232" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">            LOG.trace(&quot;&lt;getApprovalProfile(&quot; + id + &quot;): &quot; + (returnval == null ? &quot;null&quot; : &quot;not null&quot;));</span>
+        }
+<span class="nc" id="L235">        return returnval;</span>
+    }
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public String getApprovalProfileName(int id) {
+<span class="nc bnc" id="L241" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L242">            LOG.trace(&quot;&gt;getApprovalProfileName: &quot; + id);</span>
+        }
+<span class="nc" id="L244">        final String returnval = approvalProfileCache.getIdNameMapCache().get(Integer.valueOf(id));</span>
+<span class="nc bnc" id="L245" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L246">            LOG.trace(&quot;&lt;getApprovalProfileName: &quot; + id + &quot;): &quot; + returnval);</span>
+        }
+<span class="nc" id="L248">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public Map&lt;Integer, String&gt; getApprovalProfileIdToNameMap() {
+<span class="nc bnc" id="L254" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L255">            LOG.trace(&quot;&gt;&lt;getApprovalProfileIdToNameMap&quot;);</span>
+        }
+<span class="nc" id="L257">        return approvalProfileCache.getIdNameMapCache();</span>
+    }
+    
+    
+    private void authorizedToEditProfiles(final AuthenticationToken admin) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L262" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(admin, StandardRules.APPROVALPROFILEEDIT.resource())) {</span>
+<span class="nc" id="L263">            final String msg = INTRES.getLocalizedMessage(&quot;store.editapprovalprofilenotauthorized&quot;, admin.toString());</span>
+<span class="nc" id="L264">            throw new AuthorizationDeniedException(msg);</span>
+        }
+<span class="nc" id="L266">    }</span>
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public void forceProfileCacheRebuild() {
+<span class="nc" id="L271">       approvalProfileCache.updateProfileCache(true);</span>
+<span class="nc" id="L272">    }</span>
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public ApprovalProfile getApprovalProfileForAction(final ApprovalRequestType action, final CAInfo cainfo, final CertificateProfile certProfile) {
+<span class="nc bnc" id="L277" title="All 2 branches missed.">        if (certProfile != null) {</span>
+<span class="nc" id="L278">            Integer approvalProfileId = certProfile.getApprovals().get(action);                 </span>
+<span class="nc bnc" id="L279" title="All 2 branches missed.">            if(approvalProfileId != null) {</span>
+<span class="nc" id="L280">                ApprovalProfile profile = getApprovalProfile(approvalProfileId);        </span>
+<span class="nc bnc" id="L281" title="All 4 branches missed.">                if (profile != null &amp;&amp; profile.isApprovalRequired()) { </span>
+<span class="nc bnc" id="L282" title="All 2 branches missed.">                    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L283">                        LOG.debug(&quot;Approval required from Certificate Profile, approval profile name: &quot;+profile.getProfileName());</span>
+                    }
+<span class="nc" id="L285">                    return profile;</span>
+                }
+            }
+        }
+<span class="nc bnc" id="L289" title="All 2 branches missed.">        if (cainfo != null) {         </span>
+<span class="nc" id="L290">            Integer approvalProfileId = cainfo.getApprovals().get(action);</span>
+<span class="nc bnc" id="L291" title="All 2 branches missed.">            if(approvalProfileId != null) {</span>
+<span class="nc" id="L292">                ApprovalProfile profile = getApprovalProfile(approvalProfileId);             </span>
+<span class="nc bnc" id="L293" title="All 4 branches missed.">                if (profile != null &amp;&amp; profile.isApprovalRequired()) {</span>
+<span class="nc bnc" id="L294" title="All 2 branches missed.">                    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L295">                        LOG.debug(&quot;Approval required from CA &quot;+cainfo.getName()+&quot;, approval profile name: &quot;+profile.getProfileName());</span>
+                    }
+<span class="nc" id="L297">                    return profile;</span>
+                }
+            }
+        }
+<span class="nc" id="L301">        return null;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

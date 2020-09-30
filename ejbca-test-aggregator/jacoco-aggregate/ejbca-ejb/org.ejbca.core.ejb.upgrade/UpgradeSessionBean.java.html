@@ -1,0 +1,1678 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>UpgradeSessionBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.upgrade</a> &gt; <span class="el_source">UpgradeSessionBean.java</span></div><h1>UpgradeSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.ejb.upgrade;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.math.BigInteger;
+import java.net.URL;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Future;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import javax.ejb.AsyncResult;
+import javax.ejb.Asynchronous;
+import javax.ejb.EJB;
+import javax.ejb.SessionContext;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.UsernamePrincipal;
+import org.cesecore.authentication.tokens.X509CertificateAuthenticationTokenMetaData;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.cache.AccessTreeUpdateSessionLocal;
+import org.cesecore.authorization.control.AuditLogRules;
+import org.cesecore.authorization.control.CryptoTokenRules;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.authorization.rules.AccessRuleData;
+import org.cesecore.authorization.user.AccessMatchType;
+import org.cesecore.authorization.user.AccessUserAspectData;
+import org.cesecore.authorization.user.matchvalues.X500PrincipalAccessMatchValue;
+import org.cesecore.certificates.ca.ApprovalRequestType;
+import org.cesecore.certificates.ca.CA;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
+import org.cesecore.certificates.certificate.certextensions.AvailableCustomCertificateExtensionsConfiguration;
+import org.cesecore.certificates.certificate.certextensions.CertificateExtension;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.certificates.certificatetransparency.CTLogInfo;
+import org.cesecore.certificates.ocsp.OcspResponseGeneratorSessionLocal;
+import org.cesecore.certificates.util.DNFieldExtractor;
+import org.cesecore.config.AvailableExtendedKeyUsagesConfiguration;
+import org.cesecore.config.ConfigurationHolder;
+import org.cesecore.config.GlobalOcspConfiguration;
+import org.cesecore.config.OcspConfiguration;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.keybind.InternalKeyBinding;
+import org.cesecore.keybind.InternalKeyBindingDataSessionLocal;
+import org.cesecore.keybind.InternalKeyBindingNameInUseException;
+import org.cesecore.keybind.InternalKeyBindingRules;
+import org.cesecore.keybind.InternalKeyBindingTrustEntry;
+import org.cesecore.keybind.impl.OcspKeyBinding;
+import org.cesecore.keys.token.CryptoTokenSessionLocal;
+import org.cesecore.roles.AccessRulesHelper;
+import org.cesecore.roles.AccessRulesMigrator;
+import org.cesecore.roles.AdminGroupData;
+import org.cesecore.roles.Role;
+import org.cesecore.roles.management.RoleDataSessionLocal;
+import org.cesecore.roles.management.RoleSessionLocal;
+import org.cesecore.roles.member.RoleMember;
+import org.cesecore.roles.member.RoleMemberDataSessionLocal;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.cesecore.util.FileTools;
+import org.cesecore.util.StringTools;
+import org.cesecore.util.ui.PropertyValidationException;
+import org.ejbca.config.CmpConfiguration;
+import org.ejbca.config.DatabaseConfiguration;
+import org.ejbca.config.EjbcaConfiguration;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.config.InternalConfiguration;
+import org.ejbca.config.WebConfiguration;
+import org.ejbca.core.ejb.EnterpriseEditionEjbBridgeSessionLocal;
+import org.ejbca.core.ejb.approval.ApprovalData;
+import org.ejbca.core.ejb.approval.ApprovalProfileExistsException;
+import org.ejbca.core.ejb.approval.ApprovalProfileSessionLocal;
+import org.ejbca.core.ejb.approval.ApprovalSessionLocal;
+import org.ejbca.core.ejb.authentication.cli.CliAuthenticationTokenMetaData;
+import org.ejbca.core.ejb.authentication.cli.CliUserAccessMatchValue;
+import org.ejbca.core.ejb.authorization.AuthorizationSystemSessionLocal;
+import org.ejbca.core.ejb.ca.publisher.PublisherSessionLocal;
+import org.ejbca.core.ejb.config.GlobalUpgradeConfiguration;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal;
+import org.ejbca.core.ejb.ra.userdatasource.UserDataSourceSessionLocal;
+import org.ejbca.core.model.approval.Approval;
+import org.ejbca.core.model.approval.profile.AccumulativeApprovalProfile;
+import org.ejbca.core.model.approval.profile.ApprovalPartition;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.ca.publisher.BasePublisher;
+import org.ejbca.core.model.ca.publisher.CustomPublisherContainer;
+import org.ejbca.core.model.ca.publisher.GeneralPurposeCustomPublisher;
+import org.ejbca.core.model.ca.publisher.upgrade.BasePublisherConverter;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileNotFoundException;
+import org.ejbca.util.JDBCUtil;
+
+/**
+ * The upgrade session bean is used to upgrade the database between EJBCA
+ * releases.
+ *
+ * @version $Id: UpgradeSessionBean.java 31276 2019-01-21 23:52:29Z jeklund $
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;UpgradeSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+<span class="nc" id="L145">public class UpgradeSessionBean implements UpgradeSessionLocal, UpgradeSessionRemote {</span>
+
+<span class="nc" id="L147">    private static final Logger log = Logger.getLogger(UpgradeSessionBean.class);</span>
+
+<span class="nc" id="L149">    private static final AuthenticationToken authenticationToken = new AlwaysAllowLocalAuthenticationToken(&quot;Internal upgrade&quot;);</span>
+
+    @PersistenceContext(unitName = &quot;ejbca&quot;)
+    private EntityManager entityManager;
+
+    @Resource
+    private SessionContext sessionContext;
+
+    @EJB
+    private AccessTreeUpdateSessionLocal accessTreeUpdateSession;
+    @EJB
+    private ApprovalProfileSessionLocal approvalProfileSession;
+    @EJB
+    private ApprovalSessionLocal approvalSession;
+    @EJB
+    private AuthorizationSystemSessionLocal authorizationSystemSession;
+    @EJB
+    private CaSessionLocal caSession;
+    @EJB
+    private CertificateProfileSessionLocal certProfileSession;
+    @EJB
+    private CertificateStoreSessionLocal certificateStoreSession;
+    @EJB
+    private CryptoTokenSessionLocal cryptoTokenSession;
+    @EJB
+    private EndEntityProfileSessionLocal endEntityProfileSession;
+    @EJB
+    private EnterpriseEditionEjbBridgeSessionLocal enterpriseEditionEjbBridgeSession;
+    @EJB
+    private GlobalConfigurationSessionLocal globalConfigurationSession;
+    @EJB
+    private InternalKeyBindingDataSessionLocal internalKeyBindingDataSession;
+    @EJB
+    private OcspResponseGeneratorSessionLocal ocspResponseGeneratorSession;
+    @EJB
+    private PublisherSessionLocal publisherSession;
+    @EJB
+    private RoleDataSessionLocal roleDataSession;
+    @EJB
+    private LegacyRoleManagementSessionLocal legacyRoleManagementSession;
+    @EJB
+    private RoleMemberDataSessionLocal roleMemberDataSession;
+    @EJB
+    private RoleSessionLocal roleSession;
+    @EJB
+    private SecurityEventsLoggerSessionLocal securityEventsLogger;
+    @EJB
+    private UserDataSourceSessionLocal userDataSourceSession;
+    @EJB
+    private UpgradeStatusSingletonLocal upgradeStatusSingleton;
+
+    private UpgradeSessionLocal upgradeSession;
+
+    @PostConstruct
+    public void ejbCreate() {
+<span class="nc" id="L204">    	upgradeSession = sessionContext.getBusinessObject(UpgradeSessionLocal.class);</span>
+<span class="nc" id="L205">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public String getLastUpgradedToVersion() {
+<span class="nc" id="L210">        return getGlobalUpgradeConfiguration().getUpgradedToVersion();</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public String getLastPostUpgradedToVersion() {
+<span class="nc" id="L216">        return getGlobalUpgradeConfiguration().getPostUpgradedToVersion();</span>
+    }
+
+    private void setLastUpgradedToVersion(final String version) {
+<span class="nc" id="L220">        final GlobalUpgradeConfiguration guc = getGlobalUpgradeConfiguration();</span>
+        // (From EJBCA 6.8.0) set the oldest known installation ad-hoc if it was previously unset.
+<span class="nc bnc" id="L222" title="All 2 branches missed.">        if(guc.getUpgradedFromVersion() == null) {</span>
+<span class="nc" id="L223">            String oldVersion = guc.getUpgradedToVersion();</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">            if(oldVersion == null) {</span>
+<span class="nc" id="L225">                guc.setUpgradedFromVersion(version);</span>
+            } else {
+<span class="nc" id="L227">                guc.setUpgradedFromVersion(oldVersion);</span>
+            }
+        }
+<span class="nc" id="L230">        guc.setUpgradedToVersion(version);</span>
+        try {
+<span class="nc" id="L232">            globalConfigurationSession.saveConfiguration(authenticationToken, guc);</span>
+<span class="nc" id="L233">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L234">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L235">        }</span>
+<span class="nc" id="L236">    }</span>
+
+    private String getUpgradedFromVersion() {
+<span class="nc" id="L239">        return getGlobalUpgradeConfiguration().getUpgradedFromVersion();</span>
+    }
+
+    private void setLastPostUpgradedToVersion(final String version) {
+<span class="nc" id="L243">        final GlobalUpgradeConfiguration guc = getGlobalUpgradeConfiguration();</span>
+<span class="nc" id="L244">        guc.setPostUpgradedToVersion(version);</span>
+        try {
+<span class="nc" id="L246">            globalConfigurationSession.saveConfiguration(authenticationToken, guc);</span>
+<span class="nc" id="L247">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L248">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L249">        }</span>
+<span class="nc" id="L250">    }</span>
+
+    @Override
+    public long getPostUpgradeStarted() {
+<span class="nc" id="L254">        return getGlobalUpgradeConfiguration().getPostUpgradeStarted();</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @Override
+    public boolean setPostUpgradeStarted(final long startTimeMs) {
+<span class="nc" id="L260">        final GlobalUpgradeConfiguration globalUpgradeConfiguration = getGlobalUpgradeConfiguration();</span>
+<span class="nc bnc" id="L261" title="All 4 branches missed.">        if (startTimeMs!=0L &amp;&amp; globalUpgradeConfiguration.getPostUpgradeStarted()!=0L) {</span>
+<span class="nc" id="L262">            return false;</span>
+        }
+<span class="nc" id="L264">        globalUpgradeConfiguration.setPostUpgradeStarted(startTimeMs);</span>
+<span class="nc" id="L265">        setGlobalUpgradeConfiguration(globalUpgradeConfiguration);</span>
+<span class="nc" id="L266">        return true;</span>
+    }
+
+    private boolean setPostUpgradeStartedInternal(final long startTimeMs) {
+<span class="nc" id="L270">        boolean ret = false;</span>
+        try {
+<span class="nc" id="L272">            ret = upgradeSession.setPostUpgradeStarted(startTimeMs);</span>
+<span class="nc bnc" id="L273" title="All 2 branches missed.">            if (!ret) {</span>
+<span class="nc" id="L274">                log.debug(&quot;Post upgrade has already been started elsewhere and update prevents start on this node.&quot;);</span>
+            }
+<span class="nc" id="L276">        } catch (RuntimeException e) {</span>
+<span class="nc" id="L277">            log.debug(&quot;Concurrent persistence update prevents upgrade to start on this node.&quot;);</span>
+<span class="nc" id="L278">        }</span>
+<span class="nc" id="L279">        return ret;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public boolean isEndEntityProfileInCertificateData() {
+<span class="nc" id="L285">        return getGlobalUpgradeConfiguration().isEndEntityProfileInCertificateData();</span>
+    }
+
+    private void setEndEntityProfileInCertificateData(final boolean value) {
+<span class="nc" id="L289">        final GlobalUpgradeConfiguration guc = getGlobalUpgradeConfiguration();</span>
+<span class="nc" id="L290">        guc.setEndEntityProfileInCertificateData(value);</span>
+<span class="nc" id="L291">        setGlobalUpgradeConfiguration(guc);</span>
+<span class="nc" id="L292">    }</span>
+
+    private GlobalUpgradeConfiguration getGlobalUpgradeConfiguration() {
+<span class="nc" id="L295">        return (GlobalUpgradeConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalUpgradeConfiguration.CONFIGURATION_ID);</span>
+    }
+    private void setGlobalUpgradeConfiguration(final GlobalUpgradeConfiguration globalUpgradeConfiguration) {
+        try {
+<span class="nc" id="L299">            globalConfigurationSession.saveConfiguration(authenticationToken, globalUpgradeConfiguration);</span>
+<span class="nc" id="L300">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L301">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L302">        }</span>
+<span class="nc" id="L303">    }</span>
+
+
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    @Override
+    public void performPreUpgrade(final boolean isFreshInstallation) {
+        try {
+<span class="nc bnc" id="L310" title="All 2 branches missed.">            if (isFreshInstallation) {</span>
+                // Unlock statedump in new installations
+<span class="nc" id="L312">                final GlobalConfiguration globalConfig = (GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID);</span>
+<span class="nc" id="L313">                globalConfig.setStatedumpLockedDown(false);</span>
+<span class="nc" id="L314">                globalConfigurationSession.saveConfiguration(authenticationToken, globalConfig);</span>
+<span class="nc" id="L315">                setEndEntityProfileInCertificateData(true);</span>
+                // Since we know that this is a brand new installation, no upgrade should be needed
+<span class="nc" id="L317">                setLastUpgradedToVersion(InternalConfiguration.getAppVersionNumber());</span>
+<span class="nc" id="L318">                setLastPostUpgradedToVersion(&quot;6.10.1&quot;);</span>
+<span class="nc" id="L319">            } else {</span>
+                // Ensure that we save currently known oldest installation version before any upgrade is invoked
+<span class="nc bnc" id="L321" title="All 2 branches missed.">                if(getLastUpgradedToVersion() != null) {</span>
+<span class="nc" id="L322">                    setLastUpgradedToVersion(getLastUpgradedToVersion());</span>
+                }
+            }
+<span class="nc" id="L325">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L326">            throw new IllegalStateException(&quot;AlwaysAllowLocalAuthenticationToken should not have been denied authorization&quot;);</span>
+<span class="nc" id="L327">        }</span>
+<span class="nc" id="L328">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    @Override
+    public boolean performUpgrade() {
+<span class="nc" id="L333">        final String dbType = DatabaseConfiguration.getDatabaseName();</span>
+<span class="nc" id="L334">        final String currentVersion = InternalConfiguration.getAppVersionNumber();</span>
+<span class="nc" id="L335">        String last = getLastUpgradedToVersion();</span>
+<span class="nc bnc" id="L336" title="All 2 branches missed.">        if (last==null) {</span>
+            // Start auto-detection, since no version info was present
+            // This auto-detection was added for EJBCA 6.4.0
+<span class="nc bnc" id="L339" title="All 2 branches missed.">            if (!checkColumnExists500()) {</span>
+                // The CAId column was removed during post upgrade to EJBCA 5.0
+<span class="nc" id="L341">                last = &quot;5.0&quot;;</span>
+<span class="nc bnc" id="L342" title="All 2 branches missed.">                if (globalConfigurationSession.findByConfigurationId(GlobalOcspConfiguration.OCSP_CONFIGURATION_ID)!=null) {</span>
+<span class="nc" id="L343">                    last = &quot;6.2.4&quot;;</span>
+                }
+<span class="nc" id="L345">                setLastUpgradedToVersion(last);</span>
+<span class="nc bnc" id="L346" title="All 2 branches missed.">                if (!publisherSession.isOldVaPublisherPresent()) {</span>
+                    // For all practical purposes, this version can used as post-upgrade version
+<span class="nc" id="L348">                    setLastPostUpgradedToVersion(&quot;6.4.0&quot;);</span>
+                }
+            } else {
+                // We are on EJBCA 4.0 or 3.11 or even earlier
+<span class="nc" id="L352">                log.error(</span>
+                        &quot;Post-upgrade from EJBCA prior to version 5.0.0 is forbidden. It is recommended that you upgrade to the intermediate release&quot;
+                                + &quot; EJBCA 6.3.2.6 first. Read the EJBCA Upgrade Guide for more information.&quot;);
+<span class="nc" id="L355">                return false;</span>
+            }
+        }
+<span class="nc" id="L358">        boolean ret = true;</span>
+<span class="nc bnc" id="L359" title="All 2 branches missed.">        if (isLesserThan(last, currentVersion)) {</span>
+<span class="nc" id="L360">            log.info(&quot;Database content version: &quot; + last + &quot;, current application version: &quot; + currentVersion + &quot; -&gt; Starting upgrade.&quot;);</span>
+<span class="nc" id="L361">            ret = upgradeSession.upgrade(dbType, last, false);</span>
+        } else {
+<span class="nc" id="L363">            log.info(&quot;Database content version: &quot; + last + &quot;, current application version: &quot; + currentVersion + &quot; -&gt; Upgrade is not needed.&quot;);</span>
+        }
+<span class="nc" id="L365">        return ret;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    @Asynchronous
+    @Override
+    public Future&lt;Boolean&gt; startPostUpgrade() {
+<span class="nc" id="L372">        log.trace(&quot;&gt;startPostUpgrade&quot;);</span>
+<span class="nc" id="L373">        boolean ret = false;</span>
+<span class="nc bnc" id="L374" title="All 2 branches missed.">        if (setPostUpgradeStartedInternal(System.currentTimeMillis())) {</span>
+            try {
+<span class="nc" id="L376">                upgradeStatusSingleton.logAppenderAttach(log);</span>
+<span class="nc bnc" id="L377" title="All 2 branches missed.">                if (upgradeStatusSingleton.setPostUpgradeInProgressIfDifferent(true)) {</span>
+                    try {
+<span class="nc" id="L379">                        final String dbType = DatabaseConfiguration.getDatabaseName();</span>
+<span class="nc" id="L380">                        final String currentVersion = InternalConfiguration.getAppVersionNumber();</span>
+<span class="nc" id="L381">                        final String last = getLastPostUpgradedToVersion();</span>
+<span class="nc bnc" id="L382" title="All 2 branches missed.">                        if (isLesserThan(last, currentVersion)) {</span>
+<span class="nc" id="L383">                            log.info(&quot;Database content version: &quot; + last + &quot;, current application version: &quot; + currentVersion + &quot; -&gt; Starting post-upgrade.&quot;);</span>
+<span class="nc" id="L384">                            ret = upgradeSession.upgrade(dbType, last, true);</span>
+                        } else {
+<span class="nc" id="L386">                            log.info(&quot;Database content version: &quot; + last + &quot;, current application version: &quot; + currentVersion + &quot; -&gt; Post-upgrade is not needed.&quot;);</span>
+<span class="nc" id="L387">                            ret = true;</span>
+                        }
+                    } finally {
+<span class="nc" id="L390">                        upgradeStatusSingleton.resetPostUpgradeInProgress();</span>
+<span class="nc" id="L391">                    }</span>
+                } else {
+<span class="nc" id="L393">                    log.info(&quot;Preventing start of post-upgrade background tasks since it has already been started on this cluster node.&quot;);</span>
+                }
+<span class="nc" id="L395">            } catch (RuntimeException e) {</span>
+                // Since this is invoked asynchronously the calling client might no longer be around to receive the &quot;result&quot;
+<span class="nc" id="L397">                log.error(&quot;Unexpected error from post-upgrade: &quot; + e.getMessage(), e);</span>
+            } finally {
+<span class="nc" id="L399">                setPostUpgradeStartedInternal(0L);</span>
+<span class="nc" id="L400">                upgradeStatusSingleton.logAppenderDetach(log);</span>
+<span class="nc" id="L401">            }</span>
+        } else {
+<span class="nc" id="L403">            log.info(&quot;Preventing start of post-upgrade background tasks since it has already been started by a cluster node.&quot;);</span>
+        }
+<span class="nc" id="L405">        log.trace(&quot;&lt;startPostUpgrade&quot;);</span>
+<span class="nc" id="L406">        return new AsyncResult&lt;Boolean&gt;(ret);</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    @Override
+    public boolean upgrade(String dbtype, String oldVersion, boolean isPost) {
+        try {
+<span class="nc" id="L413">            log.debug(&quot;Upgrading from version=&quot; + oldVersion);</span>
+<span class="nc bnc" id="L414" title="All 2 branches missed.">            if (isPost) {</span>
+                // TODO: We might want to check that upgrade has run ok before allowing this.
+                // ...on the other hand... we wont allow it via the GUI so it might be good to be able to force upgrade retries
+<span class="nc" id="L417">                return postUpgrade(oldVersion, dbtype);</span>
+            } else {
+<span class="nc" id="L419">                return upgrade(dbtype, oldVersion);</span>
+            }
+<span class="nc" id="L421">        } catch (RuntimeException e) {</span>
+        	// We want to log in server.log so we can analyze the error
+<span class="nc" id="L423">            log.error(&quot;Error thrown during upgrade: &quot;, e);</span>
+<span class="nc" id="L424">            throw e;</span>
+        } finally {
+<span class="nc" id="L426">            log.trace(&quot;&lt;upgrade()&quot;);</span>
+        }
+    }
+
+    private boolean upgrade(String dbtype, String oldVersion) {
+<span class="nc" id="L431">    	log.debug(&quot;&gt;upgrade from version: &quot;+oldVersion+&quot;, with dbtype: &quot;+dbtype);</span>
+<span class="nc bnc" id="L432" title="All 2 branches missed.">        if (isLesserThan(oldVersion, &quot;5.0.0&quot;)) {</span>
+<span class="nc" id="L433">            log.error(</span>
+                    &quot;Upgrading from EJBCA prior to version 5.0.0 is forbidden. You must upgrade to the intermediate release EJBCA 6.3.2.6 first. Read the EJBCA Upgrade Guide for more information.&quot;);
+<span class="nc" id="L435">            return false;</span>
+        }
+<span class="nc bnc" id="L437" title="All 2 branches missed.">        if (isLesserThan(oldVersion, &quot;6.0&quot;)) {</span>
+            // Check and upgrade if this is the first time we start an instance that was previously an stand-alone VA
+<span class="nc" id="L439">            ocspResponseGeneratorSession.adhocUpgradeFromPre60(null);</span>
+<span class="nc" id="L440">            setLastUpgradedToVersion(&quot;6.0&quot;);</span>
+        }
+<span class="nc bnc" id="L442" title="All 2 branches missed.">        if (isLesserThan(oldVersion, &quot;6.2.4&quot;)) {</span>
+            try {
+<span class="nc" id="L444">                upgradeSession.migrateDatabase624();</span>
+<span class="nc" id="L445">            } catch (UpgradeFailedException e) {</span>
+<span class="nc" id="L446">                return false;</span>
+<span class="nc" id="L447">            }</span>
+<span class="nc" id="L448">            setLastUpgradedToVersion(&quot;6.2.4&quot;);</span>
+        }
+<span class="nc bnc" id="L450" title="All 2 branches missed.">        if (isLesserThan(oldVersion, &quot;6.3.1&quot;)) {</span>
+            // Upgrade the old Validation Authority Publisher in Community Edition (leave it be in Enterprise for the sake of 100% uptime)
+<span class="nc bnc" id="L452" title="All 2 branches missed.">            if (!enterpriseEditionEjbBridgeSession.isRunningEnterprise()) {</span>
+<span class="nc" id="L453">                publisherSession.adhocUpgradeTo6_3_1_1();</span>
+            }
+<span class="nc" id="L455">            setLastUpgradedToVersion(&quot;6.3.1&quot;);</span>
+        }
+<span class="nc bnc" id="L457" title="All 2 branches missed.">        if (isLesserThan(oldVersion, &quot;6.4&quot;)) {</span>
+            try {
+<span class="nc" id="L459">                upgradeSession.migrateDatabase640();</span>
+<span class="nc" id="L460">            } catch (UpgradeFailedException e) {</span>
+<span class="nc" id="L461">                return false;</span>
+<span class="nc" id="L462">            }</span>
+<span class="nc" id="L463">            setLastUpgradedToVersion(&quot;6.4&quot;);</span>
+        }
+<span class="nc bnc" id="L465" title="All 2 branches missed.">        if (isLesserThan(oldVersion, &quot;6.4.2&quot;)) {</span>
+            try {
+<span class="nc" id="L467">                upgradeSession.migrateDatabase642();</span>
+<span class="nc" id="L468">            } catch (UpgradeFailedException e) {</span>
+<span class="nc" id="L469">                return false;</span>
+<span class="nc" id="L470">            }</span>
+<span class="nc" id="L471">            setLastUpgradedToVersion(&quot;6.4.2&quot;);</span>
+        }
+<span class="nc bnc" id="L473" title="All 2 branches missed.">        if (isLesserThan(oldVersion, &quot;6.5.1&quot;)) {</span>
+            try {
+<span class="nc" id="L475">                upgradeSession.migrateDatabase651();</span>
+<span class="nc" id="L476">            } catch (UpgradeFailedException e) {</span>
+<span class="nc" id="L477">                return false;</span>
+<span class="nc" id="L478">            }</span>
+<span class="nc" id="L479">            setLastUpgradedToVersion(&quot;6.5.1&quot;);</span>
+        }
+<span class="nc bnc" id="L481" title="All 2 branches missed.">        if (isLesserThan(oldVersion, &quot;6.6.0&quot;)) {</span>
+            try {
+<span class="nc" id="L483">                upgradeSession.migrateDatabase660();</span>
+<span class="nc" id="L484">            } catch (UpgradeFailedException e) {</span>
+<span class="nc" id="L485">                return false;</span>
+<span class="nc" id="L486">            }</span>
+<span class="nc bnc" id="L487" title="All 2 branches missed.">            if (!isEndEntityProfileInCertificateData()) {</span>
+                // Persist mark that this upgrade has not been performed so we can do it in later release (unless the value was set due to this being a fresh installation)
+<span class="nc" id="L489">                setEndEntityProfileInCertificateData(false);</span>
+            }
+<span class="nc" id="L491">            setLastUpgradedToVersion(&quot;6.6.0&quot;);</span>
+        }
+<span class="nc bnc" id="L493" title="All 2 branches missed.">        if (isLesserThan(oldVersion, &quot;6.8.0&quot;)) {</span>
+            try {
+<span class="nc" id="L495">                upgradeSession.migrateDatabase680();</span>
+<span class="nc" id="L496">            } catch (UpgradeFailedException e) {</span>
+<span class="nc" id="L497">                return false;</span>
+<span class="nc" id="L498">            }</span>
+<span class="nc" id="L499">            setLastUpgradedToVersion(&quot;6.8.0&quot;);</span>
+        }
+<span class="nc bnc" id="L501" title="All 2 branches missed.">        if (isLesserThan(oldVersion, &quot;6.10.1&quot;)) {</span>
+            try {
+<span class="nc" id="L503">                upgradeSession.migrateDatabase6101();</span>
+<span class="nc" id="L504">            } catch (UpgradeFailedException e) {</span>
+<span class="nc" id="L505">                return false;</span>
+<span class="nc" id="L506">            }</span>
+<span class="nc" id="L507">            setLastUpgradedToVersion(&quot;6.10.1&quot;);</span>
+        }
+<span class="nc bnc" id="L509" title="All 2 branches missed.">        if (isLesserThan(oldVersion, &quot;6.11.0&quot;)) {</span>
+            try {
+<span class="nc" id="L511">                upgradeSession.migrateDatabase6110();</span>
+<span class="nc" id="L512">            } catch (UpgradeFailedException e) {</span>
+<span class="nc" id="L513">                return false;</span>
+<span class="nc" id="L514">            }</span>
+<span class="nc" id="L515">            setLastUpgradedToVersion(&quot;6.11.0&quot;);</span>
+        }
+<span class="nc bnc" id="L517" title="All 2 branches missed.">        if (isLesserThan(oldVersion, &quot;6.12.0&quot;)) {</span>
+            try {
+<span class="nc" id="L519">                upgradeSession.migrateDatabase6120();</span>
+<span class="nc" id="L520">            } catch (UpgradeFailedException e) {</span>
+<span class="nc" id="L521">                return false;</span>
+<span class="nc" id="L522">            }</span>
+<span class="nc" id="L523">            setLastUpgradedToVersion(&quot;6.12.0&quot;);</span>
+        }
+<span class="nc bnc" id="L525" title="All 2 branches missed.">        if (isLesserThan(oldVersion, &quot;6.14.0&quot;)) {</span>
+            try {
+<span class="nc" id="L527">                upgradeSession.migrateDatabase6140();</span>
+<span class="nc" id="L528">            } catch (UpgradeFailedException e) {</span>
+<span class="nc" id="L529">                return false;</span>
+<span class="nc" id="L530">            }</span>
+<span class="nc" id="L531">            setLastUpgradedToVersion(&quot;6.14.0&quot;);</span>
+        }
+<span class="nc bnc" id="L533" title="All 2 branches missed.">        if (isLesserThan(oldVersion, &quot;6.15.0&quot;)) {</span>
+            try {
+<span class="nc" id="L535">                upgradeSession.migrateDatabase6150();</span>
+<span class="nc" id="L536">            } catch (UpgradeFailedException e) {</span>
+<span class="nc" id="L537">                return false;</span>
+<span class="nc" id="L538">            }</span>
+<span class="nc" id="L539">            setLastUpgradedToVersion(&quot;6.15.0&quot;);</span>
+        }
+<span class="nc" id="L541">        setLastUpgradedToVersion(InternalConfiguration.getAppVersionNumber());</span>
+<span class="nc" id="L542">        return true;</span>
+    }
+
+    private boolean postUpgrade(String oldVersion, String dbtype) {
+<span class="nc" id="L546">        log.debug(&quot;&gt;post-upgrade from version: &quot;+oldVersion);</span>
+<span class="nc bnc" id="L547" title="All 2 branches missed.">        if (isLesserThan(oldVersion, &quot;5.0.0&quot;)) {</span>
+<span class="nc" id="L548">            log.error(</span>
+                    &quot;Post-upgrade from EJBCA prior to version 5.0.0 is forbidden. You must upgrade to the intermediate release EJBCA 6.3.2.6 first. Read the EJBCA Upgrade Guide for more information.&quot;);
+<span class="nc" id="L550">            return false;</span>
+        }
+<span class="nc bnc" id="L552" title="All 2 branches missed.">        if (isLesserThan(oldVersion, &quot;6.3.2&quot;)) {</span>
+<span class="nc bnc" id="L553" title="All 2 branches missed.">            if (!postMigrateDatabase632()) {</span>
+<span class="nc" id="L554">                return false;</span>
+            }
+<span class="nc" id="L556">            setLastPostUpgradedToVersion(&quot;6.3.2&quot;);</span>
+        }
+<span class="nc bnc" id="L558" title="All 2 branches missed.">        if (isLesserThan(oldVersion, &quot;6.8.0&quot;)) {</span>
+<span class="nc bnc" id="L559" title="All 2 branches missed.">            if (!postMigrateDatabase680()) {</span>
+<span class="nc" id="L560">                return false;</span>
+            }
+<span class="nc" id="L562">            setLastPostUpgradedToVersion(&quot;6.8.0&quot;);</span>
+        }
+<span class="nc bnc" id="L564" title="All 2 branches missed.">        if (isLesserThan(oldVersion, &quot;6.10.1&quot;)) {</span>
+<span class="nc bnc" id="L565" title="All 2 branches missed.">            if (!postMigrateDatabase6101()) {</span>
+<span class="nc" id="L566">                return false;</span>
+            }
+<span class="nc" id="L568">            setLastPostUpgradedToVersion(&quot;6.10.1&quot;);</span>
+        }
+        // NOTE: If you add additional post upgrade tasks here, also modify isPostUpgradeNeeded() and performPreUpgrade()
+        //setLastPostUpgradedToVersion(InternalConfiguration.getAppVersionNumber());
+<span class="nc" id="L572">        return true;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    @Override
+    public boolean isPostUpgradeNeeded() {
+<span class="nc" id="L578">        return isLesserThan(getLastPostUpgradedToVersion(), &quot;6.10.1&quot;);</span>
+    }
+
+    /**
+     * Upgrade access rules such that every role that already has access to /system_functionality/edit_systemconfiguration
+     * will also have access to the new access rule /system_functionality/edit_available_extended_key_usages
+     *
+     * @return true if the upgrade was successful and false otherwise
+     */
+    private boolean addEKUAndCustomCertExtensionsAccessRulestoRoles() {
+<span class="nc" id="L588">        legacyRoleManagementSession.addAccessRuleDataToRolesWhenAccessIsImplied(authenticationToken, StandardRules.ROLE_ROOT.resource(),</span>
+<span class="nc" id="L589">        		Arrays.asList(StandardRules.SYSTEMCONFIGURATION_EDIT.resource()),</span>
+<span class="nc" id="L590">                Arrays.asList(StandardRules.EKUCONFIGURATION_EDIT.resource(), StandardRules.CUSTOMCERTEXTENSIONCONFIGURATION_EDIT.resource()), false);</span>
+<span class="nc" id="L591">        accessTreeUpdateSession.signalForAccessTreeUpdate();</span>
+<span class="nc" id="L592">        return true;</span>
+    }
+
+    private void importExtendedKeyUsagesFromFile() {
+<span class="nc" id="L596">        final URL url = ConfigurationHolder.class.getResource(&quot;/conf/extendedkeyusage.properties&quot;);</span>
+        AvailableExtendedKeyUsagesConfiguration ekuConfig;
+<span class="nc bnc" id="L598" title="All 2 branches missed.">        if (url == null) {</span>
+            // Create using the default template of the current version if no such file exists
+<span class="nc" id="L600">            ekuConfig = (AvailableExtendedKeyUsagesConfiguration)</span>
+<span class="nc" id="L601">                    globalConfigurationSession.getCachedConfiguration(AvailableExtendedKeyUsagesConfiguration.CONFIGURATION_ID);</span>
+        } else {
+<span class="nc" id="L603">            ekuConfig = new AvailableExtendedKeyUsagesConfiguration(false);</span>
+<span class="nc" id="L604">            final Configuration conf = ConfigurationHolder.instance();</span>
+<span class="nc" id="L605">            final String ekuname = &quot;extendedkeyusage.name.&quot;;</span>
+<span class="nc" id="L606">            final String ekuoid = &quot;extendedkeyusage.oid.&quot;;</span>
+<span class="nc" id="L607">            int j=0;</span>
+<span class="nc bnc" id="L608" title="All 2 branches missed.">            for (int i = 0; i &lt; 255; i++) {</span>
+<span class="nc" id="L609">                final String oid = conf.getString(ekuoid+i);</span>
+<span class="nc bnc" id="L610" title="All 2 branches missed.">                if (oid != null) {</span>
+<span class="nc" id="L611">                    String name = conf.getString(ekuname+i);</span>
+<span class="nc bnc" id="L612" title="All 2 branches missed.">                    if (name != null) {</span>
+                        // A null value in the properties file means that we should not use this value, so set it to null for real
+<span class="nc bnc" id="L614" title="All 2 branches missed.">                        if (!name.equalsIgnoreCase(&quot;null&quot;)) {</span>
+                            // Set the untranslated name (since the translation is actually only available in the Admin GUI)
+<span class="nc" id="L616">                            ekuConfig.addExtKeyUsage(oid, name);</span>
+<span class="nc" id="L617">                            j++;</span>
+                        }
+                    } else {
+<span class="nc" id="L620">                        log.error(&quot;Found extended key usage oid &quot;+oid+&quot;, but no name defined. Not adding to list of extended key usages.&quot;);</span>
+                    }
+                }
+                // No eku with a certain number == continue trying next, we will try 0-255.
+            }
+<span class="nc bnc" id="L625" title="All 2 branches missed.">            if(log.isDebugEnabled()) {</span>
+<span class="nc" id="L626">                log.debug(&quot;Read &quot; + j + &quot; extended key usages from the configurations file&quot;);</span>
+            }
+        }
+        try {
+<span class="nc" id="L630">            globalConfigurationSession.saveConfiguration(authenticationToken, ekuConfig);</span>
+<span class="nc" id="L631">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L632">            log.error(&quot;Received an AuthorizationDeniedException even though AlwaysAllowLocalAuthenticationToken is used. &quot; + e.getLocalizedMessage());</span>
+<span class="nc" id="L633">        }</span>
+<span class="nc" id="L634">    }</span>
+
+    /**
+     * This method adds read-only rules that were created for the new read-only admin in https://jira.primekey.se/browse/ECA-4344. It makes sure that any roles which previously
+     * had access to the affected resources retain read rights (in case those roles should be restricted as a result of this ticket).
+     *
+     * All access has been made more granular, so performing this step post-upgrade is safe.
+     *
+     *
+     * The exact changes performed are documented in the UPGRADE document.
+     * @throws UpgradeFailedException if upgrade fails.
+     */
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    private void addReadOnlyRules640() throws UpgradeFailedException {
+        // Roles with access to /ca_functionality/basic_functions/activate_ca or just /ca_functionality/ (+recursive)
+        // should be given access to /ca_functionality/view_ca
+<span class="nc" id="L650">        legacyRoleManagementSession.addAccessRuleDataToRolesWhenAccessIsImplied(authenticationToken, StandardRules.CAFUNCTIONALITY.resource(),</span>
+<span class="nc" id="L651">                Arrays.asList(AccessRulesConstants.REGULAR_ACTIVATECA), Arrays.asList(StandardRules.CAVIEW.resource()), false);</span>
+        // Roles with access to /ca_functionality/edit_certificate_profiles should be given access to /ca_functionality/view_certificate_profiles
+<span class="nc" id="L653">        legacyRoleManagementSession.addAccessRuleDataToRolesWhenAccessIsImplied(authenticationToken, StandardRules.CAFUNCTIONALITY.resource(),</span>
+<span class="nc" id="L654">                Arrays.asList(StandardRules.CERTIFICATEPROFILEEDIT.resource()), Arrays.asList(StandardRules.CERTIFICATEPROFILEVIEW.resource()), false);</span>
+        // Roles with access to /ca_functionality/edit_publisher should be given /ca_functionality/view_publisher
+<span class="nc" id="L656">        legacyRoleManagementSession.addAccessRuleDataToRolesWhenAccessIsImplied(authenticationToken, StandardRules.CAFUNCTIONALITY.resource(),</span>
+<span class="nc" id="L657">                Arrays.asList(AccessRulesConstants.REGULAR_EDITPUBLISHER), Arrays.asList(AccessRulesConstants.REGULAR_VIEWPUBLISHER), false);</span>
+        // Roles with access to /ra_functionality/edit_end_entity_profiles should be given /ra_functionality/view_end_entity_profiles
+<span class="nc" id="L659">        legacyRoleManagementSession.addAccessRuleDataToRolesWhenAccessIsImplied(authenticationToken, AccessRulesConstants.REGULAR_RAFUNCTIONALITY,</span>
+<span class="nc" id="L660">                Arrays.asList(AccessRulesConstants.REGULAR_EDITENDENTITYPROFILES), Arrays.asList(AccessRulesConstants.REGULAR_VIEWENDENTITYPROFILES), false);</span>
+        // Roles with access to &quot;/&quot; (non-recursive) should be given /services/edit, /services/view and /peer/view (+recursive)
+<span class="nc" id="L662">        legacyRoleManagementSession.addAccessRuleDataToRolesWhenAccessIsImplied(authenticationToken, StandardRules.ROLE_ROOT.resource(),</span>
+<span class="nc" id="L663">                Arrays.asList(StandardRules.ROLE_ROOT.resource()), Arrays.asList(AccessRulesConstants.SERVICES_EDIT, AccessRulesConstants.SERVICES_VIEW), false);</span>
+<span class="nc" id="L664">        legacyRoleManagementSession.addAccessRuleDataToRolesWhenAccessIsImplied(authenticationToken, StandardRules.ROLE_ROOT.resource(),</span>
+<span class="nc" id="L665">                Arrays.asList(StandardRules.ROLE_ROOT.resource()), Arrays.asList(AccessRulesConstants.REGULAR_PEERCONNECTOR_VIEW), true);</span>
+        // Roles with access to /internalkeybinding should be given /internalkeybinding/view (+recursive)
+<span class="nc" id="L667">        legacyRoleManagementSession.addAccessRuleDataToRolesWhenAccessIsImplied(authenticationToken, StandardRules.ROLE_ROOT.resource(),</span>
+<span class="nc" id="L668">                Arrays.asList(InternalKeyBindingRules.BASE.resource()), Arrays.asList(InternalKeyBindingRules.VIEW.resource()), true);</span>
+<span class="nc" id="L669">    }</span>
+
+    /**
+     * Adds the access rules defined in https://jira.primekey.se/browse/ECA-4463
+     *
+     * These are:   View rules for system configuration, EKU config and CCE config
+     *
+     * Any roles which matched the previous auditor role, or which had edit access to the above will be given view access.
+     * @throws UpgradeFailedException fail
+     *
+     */
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    private void addReadOnlyRules642() throws UpgradeFailedException {
+        // If role is the old auditor from 6.4.0, grant new view rights
+<span class="nc" id="L683">        legacyRoleManagementSession.addAccessRuleDataToRolesWhenAccessIsImplied(authenticationToken, StandardRules.ROLE_ROOT.resource(), Arrays.asList(</span>
+                AccessRulesConstants.ROLE_ADMINISTRATOR,
+                AccessRulesConstants.REGULAR_VIEWCERTIFICATE,
+<span class="nc" id="L686">                AuditLogRules.VIEW.resource(),</span>
+<span class="nc" id="L687">                InternalKeyBindingRules.VIEW.resource(),</span>
+<span class="nc" id="L688">                StandardRules.CAVIEW.resource(),</span>
+<span class="nc" id="L689">                StandardRules.CERTIFICATEPROFILEVIEW.resource(),</span>
+<span class="nc" id="L690">                StandardRules.APPROVALPROFILEVIEW.resource(),</span>
+<span class="nc" id="L691">                CryptoTokenRules.VIEW.resource(),</span>
+                AccessRulesConstants.REGULAR_VIEWPUBLISHER,
+                AccessRulesConstants.SERVICES_VIEW,
+                AccessRulesConstants.REGULAR_VIEWENDENTITYPROFILES,
+                AccessRulesConstants.REGULAR_PEERCONNECTOR_VIEW,
+<span class="nc" id="L696">                StandardRules.SYSTEMCONFIGURATION_VIEW.resource(),</span>
+<span class="nc" id="L697">                StandardRules.EKUCONFIGURATION_VIEW.resource(),</span>
+<span class="nc" id="L698">                StandardRules.CUSTOMCERTEXTENSIONCONFIGURATION_VIEW.resource(),</span>
+<span class="nc" id="L699">                StandardRules.VIEWROLES.resource(),</span>
+                AccessRulesConstants.REGULAR_VIEWENDENTITY
+<span class="nc" id="L701">                ), Arrays.asList(</span>
+<span class="nc" id="L702">                        StandardRules.SYSTEMCONFIGURATION_VIEW.resource(),</span>
+<span class="nc" id="L703">                        StandardRules.EKUCONFIGURATION_VIEW.resource(),</span>
+<span class="nc" id="L704">                        StandardRules.CUSTOMCERTEXTENSIONCONFIGURATION_VIEW.resource(),</span>
+<span class="nc" id="L705">                        StandardRules.VIEWROLES.resource(),</span>
+                        AccessRulesConstants.REGULAR_VIEWENDENTITY
+                        ), false);
+        // Other cases where we should grant additional access.
+<span class="nc" id="L709">        legacyRoleManagementSession.addAccessRuleDataToRolesWhenAccessIsImplied(authenticationToken, StandardRules.ROLE_ROOT.resource(),</span>
+<span class="nc" id="L710">                Arrays.asList(StandardRules.SYSTEMCONFIGURATION_EDIT.resource()), Arrays.asList(StandardRules.SYSTEMCONFIGURATION_VIEW.resource()), false);</span>
+<span class="nc" id="L711">        legacyRoleManagementSession.addAccessRuleDataToRolesWhenAccessIsImplied(authenticationToken, StandardRules.ROLE_ROOT.resource(),</span>
+<span class="nc" id="L712">                Arrays.asList(StandardRules.EKUCONFIGURATION_EDIT.resource()), Arrays.asList(StandardRules.EKUCONFIGURATION_VIEW.resource()), false);</span>
+<span class="nc" id="L713">        legacyRoleManagementSession.addAccessRuleDataToRolesWhenAccessIsImplied(authenticationToken, StandardRules.ROLE_ROOT.resource(),</span>
+<span class="nc" id="L714">                Arrays.asList(StandardRules.CUSTOMCERTEXTENSIONCONFIGURATION_EDIT.resource()), Arrays.asList(StandardRules.CUSTOMCERTEXTENSIONCONFIGURATION_VIEW.resource()), false);</span>
+<span class="nc" id="L715">        legacyRoleManagementSession.addAccessRuleDataToRolesWhenAccessIsImplied(authenticationToken, StandardRules.ROLE_ROOT.resource(),</span>
+<span class="nc" id="L716">                Arrays.asList(StandardRules.EDITROLES.resource()), Arrays.asList(StandardRules.VIEWROLES.resource()), false);</span>
+<span class="nc" id="L717">    }</span>
+
+    /**
+     * EJBCA 6.3.1.1 moves the VA Publisher from Community to Enterprise, changing its baseclass in the process for Enterprise users.
+     * This method will fail gracefully if user is not running Enterprise. It will also upgrade any placeholder publishers from 6.3.1.1 Community
+     * if so required.
+     *
+     * @return true if the upgrade was successful
+     */
+    private boolean postMigrateDatabase632() {
+<span class="nc bnc" id="L727" title="All 2 branches missed.">        if(!enterpriseEditionEjbBridgeSession.isRunningEnterprise()) {</span>
+<span class="nc" id="L728">            log.error(&quot;Upgrade procedure to 6.3.2 can only be run on EJBCA Enterprise.&quot;);</span>
+<span class="nc" id="L729">            return true; // Fail gracefully and pretend it was ok.</span>
+        }
+<span class="nc" id="L731">        log.error(&quot;(this is not an error) Starting post upgrade to 6.3.2&quot;);</span>
+        //Find all publishers, make copies of them using the new publisher class.
+<span class="nc" id="L733">        Map&lt;Integer, BasePublisher&gt; allPublishers = publisherSession.getAllPublishers();</span>
+<span class="nc" id="L734">        Map&lt;Integer, String&gt; publisherNames = publisherSession.getPublisherIdToNameMap();</span>
+        BasePublisherConverter publisherFactory;
+        try {
+<span class="nc" id="L737">            publisherFactory = (BasePublisherConverter) Class.forName(&quot;org.ejbca.va.publisher.EnterpriseValidationAuthorityPublisherFactoryImpl&quot;).getConstructor().newInstance();</span>
+<span class="nc" id="L738">        } catch (InstantiationException | InvocationTargetException e) {</span>
+            //Shouldn't happen since we've already checked that we're running Enterprise
+<span class="nc" id="L740">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L741">        } catch (IllegalAccessException e) {</span>
+            //Shouldn't happen since we've already checked that we're running Enterprise
+<span class="nc" id="L743">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L744">        } catch (ClassNotFoundException | NoSuchMethodException e) {</span>
+            //Shouldn't happen since we've already checked that we're running Enterprise
+<span class="nc" id="L746">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L747">        }</span>
+<span class="nc" id="L748">        AuthenticationToken admin = new AlwaysAllowLocalAuthenticationToken(new UsernamePrincipal(&quot;UpgradeSessionBean.postMigrateDatabase631&quot;));</span>
+
+<span class="nc bnc" id="L750" title="All 2 branches missed.">        for(Integer publisherId : allPublishers.keySet()) {</span>
+<span class="nc" id="L751">            BasePublisher newPublisher = publisherFactory.createPublisher(allPublishers.get(publisherId));</span>
+<span class="nc bnc" id="L752" title="All 2 branches missed.">            if (newPublisher != null) {</span>
+                try {
+<span class="nc" id="L754">                    String publisherName = publisherNames.get(publisherId);</span>
+<span class="nc" id="L755">                    log.info(&quot;Upgrading publisher: &quot; + publisherName);</span>
+<span class="nc" id="L756">                    publisherSession.changePublisher(admin, publisherName, newPublisher);</span>
+<span class="nc" id="L757">                } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L758">                    throw new IllegalStateException(&quot;Always allow token was not given access to publishers.&quot;, e);</span>
+<span class="nc" id="L759">                }</span>
+            }
+<span class="nc" id="L761">        }</span>
+<span class="nc" id="L762">        return true;</span>
+    }
+
+    /**
+     * EJBCA 6.2.4 introduced default responder configuration in the database.
+     *
+     * @throws UpgradeFailedException if upgrade fails (rolls back)
+     */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @Override
+    public void migrateDatabase624() throws UpgradeFailedException {
+        // Check if there the default responder has been set. If not, try setting it using the old value.
+<span class="nc" id="L774">        GlobalOcspConfiguration globalConfiguration = (GlobalOcspConfiguration) globalConfigurationSession</span>
+<span class="nc" id="L775">                .getCachedConfiguration(GlobalOcspConfiguration.OCSP_CONFIGURATION_ID);</span>
+<span class="nc bnc" id="L776" title="All 2 branches missed.">        if (StringUtils.isEmpty(globalConfiguration.getOcspDefaultResponderReference())) {</span>
+<span class="nc" id="L777">            globalConfiguration.setOcspDefaultResponderReference(OcspConfiguration.getDefaultResponderId());</span>
+            try {
+<span class="nc" id="L779">                globalConfigurationSession.saveConfiguration(authenticationToken, globalConfiguration);</span>
+<span class="nc" id="L780">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L781">                throw new UpgradeFailedException(e);</span>
+<span class="nc" id="L782">            }</span>
+<span class="nc" id="L783">            globalConfigurationSession.flushConfigurationCache(GlobalOcspConfiguration.OCSP_CONFIGURATION_ID);</span>
+        }
+<span class="nc" id="L785">        log.error(&quot;(This is not an error) Completed upgrade procedure to 6.2.4&quot;);</span>
+<span class="nc" id="L786">    }</span>
+
+    /**
+     * EJBCA 6.4.0 introduces new sun rules to System Configuration in regards to Custom OIDs and EKUs.
+     *
+     * Access rules have also been added for read only rights to parts of the GUI.
+     * @throws UpgradeFailedException if upgrade fails (rolls back)
+     */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @Override
+    public void migrateDatabase640() throws UpgradeFailedException {
+        //First add access rules for handling custom OIDs to any roles which previous had access to system configuration
+        // Add the new access rule /system_functionality/edit_available_extended_key_usages to every role that already has the access rule /system_functionality/edit_systemconfiguration
+<span class="nc" id="L799">        addEKUAndCustomCertExtensionsAccessRulestoRoles();</span>
+<span class="nc" id="L800">        importExtendedKeyUsagesFromFile();</span>
+        // Next add access rules for the new audit role template, allowing easy restriction of resources where needed.
+<span class="nc" id="L802">        addReadOnlyRules640();</span>
+<span class="nc" id="L803">        log.error(&quot;(This is not an error) Completed upgrade procedure to 6.4.0&quot;);</span>
+<span class="nc" id="L804">    }</span>
+
+    /**
+     * EJBCA 6.4.2:
+     *
+     * 1.   Adds view rules to System Configuration, EKU Configuration and Certificate Extension Configuration. Any roles with edit rights to those pages, or which match the Auditor role
+     *      from 6.4.0 will be automatically upgraded.
+     * 2.   Adds view rules to Roles. Any roles with edit rights roles, or which match the Auditor role from 6.4.0 will be automatically upgraded.
+     *
+     * @throws UpgradeFailedException if upgrade fails (rolls back)
+     */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @Override
+    public void migrateDatabase642() throws UpgradeFailedException {
+<span class="nc" id="L818">        addReadOnlyRules642();</span>
+<span class="nc" id="L819">        log.error(&quot;(This is not an error) Completed upgrade procedure to 6.4.2&quot;);</span>
+<span class="nc" id="L820">    }</span>
+
+    /**
+     * EJBCA 6.5.1:
+     *
+     * This upgrade only affects CMP aliases:
+     * 1.   End entity profiles will be referred to by ID instead of by name. In consideration of 100% uptime requirements, the value
+     *      ra.endentityprofile is replaced by ra.endentityprofileid, allowing legacy configurations to keep using the old value.
+     *
+     * @throws UpgradeFailedException if upgrade fails (rolls back)
+     */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @Override
+    public void migrateDatabase651() throws UpgradeFailedException {
+<span class="nc" id="L834">        CmpConfiguration cmpConfiguration = (CmpConfiguration) globalConfigurationSession.getCachedConfiguration(CmpConfiguration.CMP_CONFIGURATION_ID);</span>
+<span class="nc bnc" id="L835" title="All 2 branches missed.">        for(final String cmpAlias : cmpConfiguration.getAliasList()) {</span>
+            // Avoid aliases that may already have been upgraded
+<span class="nc bnc" id="L837" title="All 2 branches missed.">            if(StringUtils.isEmpty(cmpConfiguration.getRAEEProfile(cmpAlias))) {</span>
+<span class="nc" id="L838">                String endEntityProfileName = cmpConfiguration.getValue(cmpAlias + &quot;.&quot; + CmpConfiguration.CONFIG_RA_ENDENTITYPROFILE, cmpAlias);</span>
+<span class="nc bnc" id="L839" title="All 2 branches missed.">                if (!StringUtils.isEmpty(endEntityProfileName)) {</span>
+                    try {
+<span class="nc" id="L841">                        cmpConfiguration.setRAEEProfile(cmpAlias,</span>
+<span class="nc" id="L842">                                Integer.toString(endEntityProfileSession.getEndEntityProfileId(endEntityProfileName)));</span>
+<span class="nc" id="L843">                    } catch (EndEntityProfileNotFoundException e) {</span>
+                        //Fail gracefully if a CMP alias already is in an error state
+<span class="nc" id="L845">                        log.error(&quot;CMP alias &quot; + cmpAlias + &quot; could not be upgraded. It refers by name to End Entity Profile &quot; + endEntityProfileName</span>
+                                + &quot;, which does not appear to exist. Value has instead been set to 1 (EMPTY). Please review this profile after upgrade.&quot;);
+<span class="nc" id="L847">                        cmpConfiguration.setRAEEProfile(cmpAlias, CmpConfiguration.DEFAULT_RA_EEPROFILE);</span>
+<span class="nc" id="L848">                    }</span>
+                } else {
+                    //Could be a client alias, we still need to set a default value though
+<span class="nc" id="L851">                    cmpConfiguration.setRAEEProfile(cmpAlias, CmpConfiguration.DEFAULT_RA_EEPROFILE);</span>
+                }
+            }
+<span class="nc" id="L854">        }</span>
+        try {
+<span class="nc" id="L856">            globalConfigurationSession.saveConfiguration(authenticationToken, cmpConfiguration);</span>
+<span class="nc" id="L857">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L858">            log.error(&quot;Always allow token was denied authoriation to global configuration table.&quot;, e);</span>
+<span class="nc" id="L859">        }</span>
+<span class="nc" id="L860">        log.error(&quot;(This is not an error) Completed upgrade procedure to 6.5.1&quot;);</span>
+<span class="nc" id="L861">    }</span>
+
+    /**
+     * EJBCA 6.6.0:
+     *
+     * 1.   Adds new access rules for approval profiles
+     * 2.   If CA or certificate profiles require Approvals, create a new Approval Profile matching those settings and convert to using that
+     *
+     * @throws UpgradeFailedException if upgrade fails (rolls back)
+     */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @Override
+    public void migrateDatabase660() throws UpgradeFailedException {
+<span class="nc" id="L874">        log.debug(&quot;migrateDatabase660: Upgrading roles with approval rules&quot;);</span>
+        // Any roles with access to /ca_functionality/view_certifcate_profiles should be given /ca_functionality/view_approval_profiles
+<span class="nc" id="L876">        legacyRoleManagementSession.addAccessRuleDataToRolesWhenAccessIsImplied(authenticationToken, StandardRules.CAFUNCTIONALITY.resource(),</span>
+<span class="nc" id="L877">                Arrays.asList(StandardRules.CERTIFICATEPROFILEVIEW.resource()), Arrays.asList(StandardRules.APPROVALPROFILEVIEW.resource()), false);</span>
+        // Any roles with access to /ca_functionality/edit_certificate_profiles should be given /ca_functionality/edit_approval_profiles
+<span class="nc" id="L879">        legacyRoleManagementSession.addAccessRuleDataToRolesWhenAccessIsImplied(authenticationToken, StandardRules.CAFUNCTIONALITY.resource(),</span>
+<span class="nc" id="L880">                Arrays.asList(StandardRules.CERTIFICATEPROFILEEDIT.resource()), Arrays.asList(StandardRules.APPROVALPROFILEEDIT.resource()), false);</span>
+        // Create AccumulativeApprovalProfile for all CA's and Certificate Profiles running approvals
+        //Sort cache by the number of approvals
+<span class="nc" id="L883">        Map&lt;Integer, Integer&gt; approvalProfileCache = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L884">        Map&lt;Integer, Integer&gt; approvalPartitionCache = new HashMap&lt;&gt;();</span>
+        //Add approval profiles to all CAs with approvals
+        try {
+<span class="nc" id="L887">            log.debug(&quot;migrateDatabase660: Upgrading CAs with approval profiles&quot;);</span>
+<span class="nc bnc" id="L888" title="All 2 branches missed.">            for (int caId : caSession.getAllCaIds()) {</span>
+                try {
+<span class="nc" id="L890">                    CA ca = caSession.getCAForEdit(authenticationToken, caId);</span>
+<span class="nc" id="L891">                    int numberOfRequiredApprovals = ca.getNumOfRequiredApprovals();</span>
+                    //Verify that the CA is in need of an approval profile...
+<span class="nc bnc" id="L893" title="All 4 branches missed.">                    if (ca.getApprovalProfile() == -1 &amp;&amp; ca.getApprovalSettings().size() &gt; 0) {</span>
+                        //Maybe this profile has already been created?
+<span class="nc bnc" id="L895" title="All 2 branches missed.">                        if (approvalProfileCache.containsKey(Integer.valueOf(numberOfRequiredApprovals))) {</span>
+                            //Indeed it has!
+<span class="nc" id="L897">                            ca.setApprovalProfile(approvalProfileCache.get(numberOfRequiredApprovals));</span>
+<span class="nc" id="L898">                            caSession.editCA(authenticationToken, ca, true);</span>
+                        } else {
+                            //None found! Let's create one!
+<span class="nc bnc" id="L901" title="All 2 branches missed.">                            String name = &quot;Require &quot; + numberOfRequiredApprovals + &quot; Approval&quot; + (numberOfRequiredApprovals &gt; 1 ? &quot;s&quot; : &quot;&quot;);</span>
+<span class="nc" id="L902">                            AccumulativeApprovalProfile newProfile = new AccumulativeApprovalProfile(name);</span>
+                            try {
+<span class="nc" id="L904">                                newProfile.setNumberOfApprovalsRequired(numberOfRequiredApprovals);</span>
+<span class="nc" id="L905">                            } catch (PropertyValidationException e1) {</span>
+<span class="nc" id="L906">                                log.info(&quot;Attempted to upgrade an approval profile with negative value (&quot; + numberOfRequiredApprovals + &quot;). Setting 0 instead.&quot;);</span>
+                                try {
+<span class="nc" id="L908">                                    newProfile.setNumberOfApprovalsRequired(0);</span>
+<span class="nc" id="L909">                                } catch (PropertyValidationException e) {</span>
+<span class="nc" id="L910">                                    throw new IllegalStateException(e);</span>
+<span class="nc" id="L911">                                }</span>
+<span class="nc" id="L912">                            }</span>
+<span class="nc" id="L913">                            addApprovalNotification(newProfile);</span>
+                            try {
+<span class="nc" id="L915">                                int newProfileId = approvalProfileSession.addApprovalProfile(authenticationToken, newProfile);</span>
+<span class="nc" id="L916">                                approvalProfileCache.put(numberOfRequiredApprovals, newProfileId);</span>
+<span class="nc" id="L917">                                approvalPartitionCache.put(numberOfRequiredApprovals, newProfile.getFirstStep().getPartitions().values().iterator().next().getPartitionIdentifier());</span>
+<span class="nc" id="L918">                                ca.setApprovalProfile(newProfileId);</span>
+<span class="nc" id="L919">                                caSession.editCA(authenticationToken, ca, true);</span>
+<span class="nc" id="L920">                            } catch (ApprovalProfileExistsException e) {</span>
+<span class="nc" id="L921">                                throw new IllegalStateException(&quot;Approval profile was apparently already persisted.&quot;, e);</span>
+<span class="nc" id="L922">                            }</span>
+                        }
+                    }
+<span class="nc" id="L925">                } catch (CADoesntExistsException e) {</span>
+<span class="nc" id="L926">                    throw new IllegalStateException(&quot;CA was not found, in spite of ID just being retireved&quot;, e);</span>
+<span class="nc" id="L927">                }</span>
+<span class="nc" id="L928">            }</span>
+            //Do the same for all certificate profiles (same boilerplate, repeated).
+<span class="nc" id="L930">            log.debug(&quot;migrateDatabase660: Upgrading Certificate Profiles with approval profiles&quot;);</span>
+<span class="nc" id="L931">            Map&lt;Integer, CertificateProfile&gt; allCertificateProfiles = certProfileSession.getAllCertificateProfiles();</span>
+<span class="nc bnc" id="L932" title="All 2 branches missed.">            for (Integer certificateProfileId : allCertificateProfiles.keySet()) {</span>
+<span class="nc" id="L933">                CertificateProfile certificateProfile = allCertificateProfiles.get(certificateProfileId);</span>
+<span class="nc" id="L934">                int numberOfRequiredApprovals = certificateProfile.getNumOfReqApprovals();</span>
+                //Verify that the Certificate Profile is in need of an approval profile...
+<span class="nc bnc" id="L936" title="All 4 branches missed.">                if (certificateProfile.getApprovalProfileID() == -1 &amp;&amp; certificateProfile.getApprovalSettings().size() &gt; 0) {</span>
+                    //Maybe this profile has already been created?
+<span class="nc" id="L938">                    String certificateProfileName = certProfileSession.getCertificateProfileName(certificateProfileId);</span>
+<span class="nc bnc" id="L939" title="All 2 branches missed.">                    if (approvalProfileCache.containsKey(Integer.valueOf(numberOfRequiredApprovals))) {</span>
+                        //Indeed it has!
+<span class="nc" id="L941">                        certificateProfile.setApprovalProfileID(approvalProfileCache.get(numberOfRequiredApprovals));</span>
+<span class="nc" id="L942">                        certProfileSession.changeCertificateProfile(authenticationToken, certificateProfileName, certificateProfile);</span>
+                    } else {
+                        //None found! Let's create one!
+<span class="nc bnc" id="L945" title="All 2 branches missed.">                        String name = &quot;Require &quot; + numberOfRequiredApprovals + &quot; approval&quot; + (numberOfRequiredApprovals &gt; 1 ? &quot;s&quot; : &quot;&quot;);</span>
+<span class="nc" id="L946">                        AccumulativeApprovalProfile newProfile = new AccumulativeApprovalProfile(name);</span>
+                        try {
+<span class="nc" id="L948">                            newProfile.setNumberOfApprovalsRequired(numberOfRequiredApprovals);</span>
+<span class="nc" id="L949">                        } catch (PropertyValidationException e1) {</span>
+<span class="nc" id="L950">                            log.info(&quot;Attempted to upgrade an approval profile with negative value (&quot; + numberOfRequiredApprovals + &quot;). Setting 0 instead.&quot;);</span>
+                            try {
+<span class="nc" id="L952">                                newProfile.setNumberOfApprovalsRequired(0);</span>
+<span class="nc" id="L953">                            } catch (PropertyValidationException e) {</span>
+<span class="nc" id="L954">                                throw new IllegalStateException(e);</span>
+<span class="nc" id="L955">                            }</span>
+<span class="nc" id="L956">                        }</span>
+<span class="nc" id="L957">                        addApprovalNotification(newProfile);</span>
+                        try {
+<span class="nc" id="L959">                            int newProfileId = approvalProfileSession.addApprovalProfile(authenticationToken, newProfile);</span>
+<span class="nc" id="L960">                            approvalProfileCache.put(numberOfRequiredApprovals, newProfileId);</span>
+<span class="nc" id="L961">                            approvalPartitionCache.put(numberOfRequiredApprovals, newProfile.getFirstStep().getPartitions().values().iterator().next().getPartitionIdentifier());</span>
+<span class="nc" id="L962">                            certificateProfile.setApprovalProfileID(newProfileId);</span>
+<span class="nc" id="L963">                            certProfileSession.changeCertificateProfile(authenticationToken, certificateProfileName, certificateProfile);</span>
+<span class="nc" id="L964">                        } catch (ApprovalProfileExistsException e) {</span>
+<span class="nc" id="L965">                            throw new IllegalStateException(&quot;Upgrade appears to be happening concurrently.&quot;, e);</span>
+<span class="nc" id="L966">                        }</span>
+                    }
+                }
+<span class="nc" id="L969">            }</span>
+
+            // An approval now is specific to a partition in a step. Connect previously performed approvals
+            // to the newly created partition so that the new code will recognize it. Note that an AccumulativeApprovalProfile
+            // only has one step and one partition. The step ID is '0', which is the default step ID in an approval, which
+            // is why the step ID in an approval does not need updating the same way as the partition ID needs updating.
+<span class="nc" id="L975">            List&lt;ApprovalData&gt; approvalRequests = approvalSession.findWaitingForApprovalApprovalDataLocal();</span>
+<span class="nc bnc" id="L976" title="All 2 branches missed.">            if (approvalRequests.isEmpty()) {</span>
+<span class="nc" id="L977">                log.debug(&quot;migrateDatabase660: No approval requests to upgrade&quot;);</span>
+            } else {
+<span class="nc" id="L979">                log.debug(&quot;migrateDatabase660: Upgrading approval requests&quot;);</span>
+            }
+<span class="nc bnc" id="L981" title="All 2 branches missed.">            for(ApprovalData request : approvalRequests) {</span>
+<span class="nc" id="L982">                Collection&lt;Approval&gt; approvals = request.getApprovals();</span>
+<span class="nc bnc" id="L983" title="All 2 branches missed.">                if(approvals.size() &gt; 0) {</span>
+<span class="nc" id="L984">                    final int nrOfRequiredApprovals = request.getRemainingapprovals() + approvals.size();</span>
+<span class="nc" id="L985">                    final Integer partitionId = approvalPartitionCache.get(Integer.valueOf(nrOfRequiredApprovals));</span>
+<span class="nc bnc" id="L986" title="All 2 branches missed.">                    if (partitionId != null) {</span>
+                        // It's an old approval from before 6.6.0, that needs upgrading
+<span class="nc bnc" id="L988" title="All 2 branches missed.">                        for (Approval approval : approvals) {</span>
+<span class="nc" id="L989">                            approval.setPartitionId(partitionId);</span>
+<span class="nc" id="L990">                        }</span>
+<span class="nc" id="L991">                        approvalSession.setApprovals(request, approvals);</span>
+                    } else {
+                        // Might be an approval from 6.6.0, in case the upgrade fails at first and the user adds an approval (in 6.6 or later) before the successful upgrade.
+                        // Check that this is really the case
+<span class="nc" id="L995">                        boolean error = false;</span>
+<span class="nc bnc" id="L996" title="All 2 branches missed.">                        for (Approval approval : approvals) {</span>
+<span class="nc bnc" id="L997" title="All 2 branches missed.">                            if (approval.getPartitionId() == 0) { // not from 6.6.0, and can not be upgraded</span>
+<span class="nc" id="L998">                                error = true;</span>
+                            }
+<span class="nc" id="L1000">                        }</span>
+<span class="nc bnc" id="L1001" title="All 2 branches missed.">                        if (error) {</span>
+<span class="nc" id="L1002">                            log.error(&quot;An approval in the approval request with ID &quot; + request.getId() + &quot; could not be upgraded because it could not be mapped to an accumulative approval profile. The approvals in this request have been deleted&quot;);</span>
+<span class="nc" id="L1003">                            approvalSession.setApprovals(request, new ArrayList&lt;Approval&gt;());</span>
+                        }
+                    }
+                }
+<span class="nc" id="L1007">            }</span>
+
+<span class="nc" id="L1009">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L1010">            throw new IllegalStateException(&quot;AlwaysAllowToken was denied access&quot;, e);</span>
+<span class="nc" id="L1011">        }</span>
+<span class="nc" id="L1012">        log.error(&quot;(This is not an error) Completed upgrade procedure to 6.6.0&quot;);</span>
+<span class="nc" id="L1013">    }</span>
+
+    /**
+     * EJBCA 6.8.0:
+     *
+     * 1.   Converts AdminGroupData, AccessRuleData and AdminEntityData to RoleData and RoleMemberData
+     * 2.   Migrates /ca_functionality/basic_functions and /ca_functionality/basic_functions/activate_ca
+     *      to a single rule: /ca_functionality/activate_ca
+     * 3.   Remove no longer used rules
+     * 4.   Upgrades CAs and Certificate Profiles to go from having one approval profile for all approval types to having one for each
+     *
+     * @throws UpgradeFailedException if upgrade fails (rolls back)
+     */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @Override
+    public void migrateDatabase680() throws UpgradeFailedException {
+<span class="nc" id="L1029">        log.debug(&quot;migrateDatabase680: Upgrading roles, rules and role members.&quot;);</span>
+        // Get largest possible list of all access rules on this system
+<span class="nc" id="L1031">        final Set&lt;String&gt; allResourcesInUseOnThisInstallation = authorizationSystemSession.getAllResources(true).keySet();</span>
+        // Migrate one AdminGroupData at the time
+<span class="nc" id="L1033">        final AccessRulesMigrator accessRulesMigrator = new AccessRulesMigrator(allResourcesInUseOnThisInstallation);</span>
+<span class="nc" id="L1034">        final Collection&lt;AdminGroupData&gt; adminGroupDatas = legacyRoleManagementSession.getAllRoles();</span>
+<span class="nc bnc" id="L1035" title="All 2 branches missed.">        final boolean isInstalledOn660OrLater = !isLesserThan(getUpgradedFromVersion(), &quot;6.6.0&quot;);</span>
+<span class="nc bnc" id="L1036" title="All 2 branches missed.">        for (final AdminGroupData adminGroupData : adminGroupDatas) {</span>
+            // Convert AdminGroupData and linked AccessRuleDatas to RoleData
+<span class="nc" id="L1038">            final String roleName = adminGroupData.getRoleName();</span>
+<span class="nc" id="L1039">            final Collection&lt;AccessRuleData&gt; oldAccessRules = adminGroupData.getAccessRules().values();</span>
+<span class="nc" id="L1040">            HashMap&lt;String, Boolean&gt; newAccessRules = accessRulesMigrator.toNewAccessRules(oldAccessRules, roleName);</span>
+            //Migrate rules &amp; rule states changed in 6.8.0.
+<span class="nc" id="L1042">            newAccessRules = migrate680Rules(newAccessRules, isInstalledOn660OrLater);</span>
+<span class="nc" id="L1043">            Role role = new Role(null, roleName, newAccessRules);</span>
+            // Keep AdminGroupData.primaryKey as RoleData.roleId so HardTokenIssuerData.adminGroupId still works during upgrade
+            // (and use direct DB access since the EJB API wont allow us to assign roleId)
+<span class="nc" id="L1046">            final int roleId = adminGroupData.getPrimaryKey().intValue();</span>
+<span class="nc" id="L1047">            role.setRoleId(roleId);</span>
+<span class="nc bnc" id="L1048" title="All 2 branches missed.">            if (roleDataSession.getRole(roleId)!=null) {</span>
+<span class="nc" id="L1049">                log.info(&quot;RoleData '&quot; + role.getRoleName() + &quot;' (&quot; + role.getRoleId() + &quot;) already exists. Will perform merge old role members into this role and overwrite configured access rules.&quot;);</span>
+            }
+<span class="nc" id="L1051">            role.normalizeAccessRules();</span>
+<span class="nc" id="L1052">            role.minimizeAccessRules();</span>
+<span class="nc" id="L1053">            roleDataSession.persistRole(role);</span>
+            // Convert the linked AccessUserAspectDatas to RoleMemberDatas
+<span class="nc" id="L1055">            final Map&lt;Integer, AccessUserAspectData&gt; accessUsers = adminGroupData.getAccessUsers();</span>
+            // Each AccessUserAspectData belongs to one and only one role, so retrieving them this way may be considered safe.
+<span class="nc bnc" id="L1057" title="All 2 branches missed.">            for (final AccessUserAspectData accessUserAspect : accessUsers.values()) {</span>
+<span class="nc" id="L1058">                final String tokenType = accessUserAspect.getTokenType();</span>
+                // Only the X509CertificateAuthenticationToken actually uses the CA Id, so leave it unset for the rest
+                final int tokenIssuerId;
+<span class="nc bnc" id="L1061" title="All 4 branches missed.">                if (X509CertificateAuthenticationTokenMetaData.TOKEN_TYPE.equals(tokenType) &amp;&amp; accessUserAspect.getCaId()!=null) {</span>
+<span class="nc" id="L1062">                    tokenIssuerId = accessUserAspect.getCaId().intValue();</span>
+                } else {
+<span class="nc" id="L1064">                    tokenIssuerId = RoleMember.NO_ISSUER;</span>
+                }
+<span class="nc" id="L1066">                final int tokenMatchKey = accessUserAspect.getMatchWith();</span>
+<span class="nc" id="L1067">                int tokenMatchOperator = accessUserAspect.getMatchType();</span>
+<span class="nc" id="L1068">                String tokenMatchValue = accessUserAspect.getMatchValue();</span>
+<span class="nc" id="L1069">                String description = &quot;&quot;;</span>
+                // Straighten out comparison operators that don't make sense, since previous versions of EJBCA might have allowed such configuration
+<span class="nc bnc" id="L1071" title="All 2 branches missed.">                if (X509CertificateAuthenticationTokenMetaData.TOKEN_TYPE.equals(tokenType)) {</span>
+<span class="nc bnc" id="L1072" title="All 2 branches missed.">                    if (tokenMatchKey == X500PrincipalAccessMatchValue.NONE.getNumericValue() ||</span>
+<span class="nc bnc" id="L1073" title="All 2 branches missed.">                            tokenMatchOperator == AccessMatchType.TYPE_NONE.getNumericValue()) {</span>
+                        // This will never match anything, drop it
+<span class="nc" id="L1075">                        log.info(&quot;Admin in role '&quot; + roleName + &quot;' of type &quot; + tokenType + &quot; with match key &quot; + tokenMatchKey +</span>
+                                &quot; match operator &quot; + tokenMatchOperator + &quot; and match value '&quot; + tokenMatchValue +
+                                &quot;' will be dropped since it will never grant any access.&quot;);
+<span class="nc" id="L1078">                        continue;</span>
+                    }
+<span class="nc bnc" id="L1080" title="All 2 branches missed.">                    if (tokenMatchKey == X500PrincipalAccessMatchValue.WITH_SERIALNUMBER.getNumericValue()) {</span>
+<span class="nc" id="L1081">                        final String serialNumberUppercase = StringUtils.defaultString(tokenMatchValue).toUpperCase(Locale.ROOT).replaceFirst(&quot;^0+&quot;, &quot;&quot;);</span>
+<span class="nc bnc" id="L1082" title="All 2 branches missed.">                        if (!serialNumberUppercase.equals(tokenMatchValue)) {</span>
+<span class="nc" id="L1083">                            log.info(&quot;Admin in role '&quot; + roleName + &quot;' of type &quot; + tokenType + &quot; has serial number match value '&quot; + tokenMatchValue +</span>
+                                    &quot;'. In 6.8.0 all serial numbers are converted to uppercase without leading zeros and match as case sensitive.&quot;);
+<span class="nc bnc" id="L1085" title="All 4 branches missed.">                        } else if (log.isDebugEnabled() &amp;&amp; tokenMatchOperator == AccessMatchType.TYPE_EQUALCASEINS.getNumericValue()) {</span>
+<span class="nc" id="L1086">                            log.debug(&quot;Admin in role '&quot; + roleName + &quot;' of type &quot; + tokenType + &quot; has case insensitive serial number match value '&quot; + tokenMatchValue +</span>
+                                    &quot;'. In 6.8.0 all serial numbers are converted to uppercase and match as case sensitive.&quot;);
+                        }
+<span class="nc" id="L1089">                        tokenMatchOperator = AccessMatchType.TYPE_EQUALCASE.getNumericValue();</span>
+<span class="nc" id="L1090">                        tokenMatchValue = serialNumberUppercase;</span>
+                        // If the certificate is present in the local database, we try to find a human readable description from the certificate
+                        try {
+<span class="nc" id="L1093">                            final CAInfo caInfo = caSession.getCAInfoInternal(tokenIssuerId);</span>
+<span class="nc bnc" id="L1094" title="All 2 branches missed.">                            if (caInfo == null) {</span>
+<span class="nc" id="L1095">                                log.info(&quot;Admin in role '&quot; + roleName + &quot;' of type &quot; + tokenType + &quot; with serial number match value '&quot;</span>
+                                        + tokenMatchValue + &quot;' is issued by a CA with ID &quot; + tokenIssuerId
+                                        + &quot; that is unknown to this system. Migrating admin anyway.&quot;);
+                            } else {
+<span class="nc" id="L1099">                                final String issuerDn = caInfo.getSubjectDN();</span>
+<span class="nc" id="L1100">                                final Certificate certificate = certificateStoreSession.findCertificateByIssuerAndSerno(issuerDn,</span>
+                                        new BigInteger(tokenMatchValue, 16));
+<span class="nc bnc" id="L1102" title="All 2 branches missed.">                                if (certificate != null) {</span>
+<span class="nc" id="L1103">                                    final List&lt;String&gt; commonNames = CertTools.getPartsFromDN(CertTools.getSubjectDN(certificate), &quot;CN&quot;);</span>
+<span class="nc bnc" id="L1104" title="All 2 branches missed.">                                    if (!commonNames.isEmpty()) {</span>
+                                        // Use the first found CN of the mapped certificate
+<span class="nc" id="L1106">                                        description = commonNames.get(0);</span>
+                                    }
+<span class="nc" id="L1108">                                } else {</span>
+<span class="nc" id="L1109">                                    description = &quot;external client certificate&quot;;</span>
+                                    // Since we made the database lookup, take the chance to inform about meaningless configuration
+<span class="nc bnc" id="L1111" title="All 2 branches missed.">                                    if (WebConfiguration.getRequireAdminCertificateInDatabase()) {</span>
+<span class="nc" id="L1112">                                        log.info(&quot;Admin in role '&quot; + roleName + &quot;' of type &quot; + tokenType + &quot; with serial number match value '&quot;</span>
+                                                + tokenMatchValue + &quot;' does match a local certificate even though this is required by the '&quot;
+                                                + WebConfiguration.CONFIG_REQCERTINDB + &quot;' setting.&quot; + &quot;Migrating admin anyway.&quot;);
+                                    }
+                                }
+                            }
+<span class="nc" id="L1118">                        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L1119">                            log.warn(&quot;Admin in role '&quot; + roleName + &quot;' of type &quot; + tokenType + &quot; with serial number match value '&quot; + tokenMatchValue</span>
+                                    + &quot;' could not be interpreted as a hex value. Admin will not be migrated.&quot;);
+<span class="nc" id="L1121">                        }</span>
+                    }
+<span class="nc bnc" id="L1123" title="All 2 branches missed.">                    if (tokenMatchOperator == AccessMatchType.TYPE_NOT_EQUALCASE.getNumericValue() ||</span>
+<span class="nc bnc" id="L1124" title="All 2 branches missed.">                            tokenMatchOperator == AccessMatchType.TYPE_NOT_EQUALCASEINS.getNumericValue()) {</span>
+<span class="nc" id="L1125">                        log.warn(&quot;Admin in role '&quot; + roleName + &quot;' of type &quot; + tokenType + &quot; with match key=&quot; + tokenMatchKey +</span>
+                                &quot; match operator &quot; + tokenMatchOperator + &quot; and match value='&quot;+tokenMatchValue +
+                                &quot;' is most likely misconfigured. This will grant role access to anything not matching the value!&quot;);
+                    }
+<span class="nc bnc" id="L1129" title="All 4 branches missed.">                } else if (CliAuthenticationTokenMetaData.TOKEN_TYPE.equals(tokenType) || &quot;UsernameBasedAuthenticationToken&quot;.equals(tokenType)) {</span>
+<span class="nc bnc" id="L1130" title="All 2 branches missed.">                    if (tokenMatchOperator != AccessMatchType.TYPE_EQUALCASE.getNumericValue()) {</span>
+                        // The implementation always does case sensitive compare
+<span class="nc bnc" id="L1132" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1133">                            log.debug(&quot;Admin in role '&quot; + roleName + &quot;' of type &quot; + tokenType + &quot; with match key &quot; + CliUserAccessMatchValue.USERNAME.name() +</span>
+                                    &quot; match operator &quot; + tokenMatchOperator + &quot; with and match value '&quot; + tokenMatchValue +
+                                    &quot;'. Changing match operator type to defacto operator TYPE_EQUALCASE.&quot;);
+                        }
+<span class="nc" id="L1137">                        tokenMatchOperator = AccessMatchType.TYPE_EQUALCASE.getNumericValue();</span>
+                    }
+                } else {
+                    // None of the other known tokens when writing this upgrade use any operator
+<span class="nc" id="L1141">                    tokenMatchOperator = AccessMatchType.TYPE_UNUSED.getNumericValue();</span>
+                }
+                // Assign upgraded role members the same ID as the old AdminEndEntity.primaryKey so members are merged in case this runs several times (like in tests)
+<span class="nc" id="L1144">                roleMemberDataSession.persistRoleMember(new RoleMember(accessUserAspect.getPrimaryKey(), tokenType,</span>
+                        tokenIssuerId, tokenMatchKey, tokenMatchOperator, tokenMatchValue, roleId, description));
+<span class="nc" id="L1146">            }</span>
+<span class="nc" id="L1147">        }</span>
+        // Note that this has to happen here and not in X509CA or CvcCA due to the fact that this step has to happen after approval profiles have
+        // been created in previous upgrade steps.
+<span class="nc" id="L1150">        log.debug(&quot;migrateDatabase680: Converting Certificate Authorities from using one approval profile for all request types &quot;</span>
+                + &quot;to using one profile per request type.&quot;);
+        try {
+<span class="nc bnc" id="L1153" title="All 2 branches missed.">            for (int caId : caSession.getAllCaIds()) {</span>
+<span class="nc" id="L1154">                CA ca = caSession.getCAForEdit(authenticationToken, caId);</span>
+                //If approvals map is null or empty, then this CA may be in an unupgraded state.
+<span class="nc bnc" id="L1156" title="All 4 branches missed.">                if(ca.getApprovals() == null || ca.getApprovals().isEmpty()) {</span>
+<span class="nc" id="L1157">                	Map&lt;ApprovalRequestType, Integer&gt; approvals = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L1158">                    int approvalProfile = ca.getApprovalProfile();</span>
+<span class="nc bnc" id="L1159" title="All 2 branches missed.">                    if (approvalProfile != -1) {</span>
+<span class="nc bnc" id="L1160" title="All 2 branches missed.">                        for (int approvalSetting : ca.getApprovalSettings()) {</span>
+<span class="nc" id="L1161">                            approvals.put(ApprovalRequestType.getFromIntegerValue(approvalSetting), approvalProfile);</span>
+<span class="nc" id="L1162">                        }</span>
+                    }
+<span class="nc" id="L1164">                    ca.setApprovals(approvals);</span>
+<span class="nc" id="L1165">                    caSession.editCA(authenticationToken, ca, true);</span>
+                }
+<span class="nc" id="L1167">            }</span>
+<span class="nc" id="L1168">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L1169">            throw new IllegalStateException(&quot;Always allow token was denied access.&quot;, e);</span>
+<span class="nc" id="L1170">        } catch (CADoesntExistsException e) {</span>
+<span class="nc" id="L1171">            throw new IllegalStateException(&quot;CA doesn't exist in spite of just being retrieved&quot;, e);</span>
+<span class="nc" id="L1172">        }</span>
+        // Note that this has to happen here and not in CertificateProfile due to the fact that this step has to happen after approval profiles have
+        // been created in previous upgrade steps.
+<span class="nc" id="L1175">        log.debug(&quot;migrateDatabase680: Converting Certificate Profiles from using one approval profile for all request types &quot;</span>
+                + &quot;to using one profile per request type.&quot;);
+<span class="nc" id="L1177">        Map&lt;Integer, CertificateProfile&gt; certificateProfiles = certProfileSession.getAllCertificateProfiles();</span>
+<span class="nc bnc" id="L1178" title="All 2 branches missed.">        for (Integer profileId : certificateProfiles.keySet()) {</span>
+<span class="nc" id="L1179">            CertificateProfile certificateProfile = certificateProfiles.get(profileId);</span>
+<span class="nc" id="L1180">            String certificateProfileName = certProfileSession.getCertificateProfileName(profileId);</span>
+<span class="nc" id="L1181">            Map&lt;ApprovalRequestType, Integer&gt; approvals = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L1182">            int approvalProfile = certificateProfile.getApprovalProfileID();</span>
+<span class="nc bnc" id="L1183" title="All 2 branches missed.">            if (approvalProfile != -1) {</span>
+<span class="nc bnc" id="L1184" title="All 2 branches missed.">                for (int approvalSetting : certificateProfile.getApprovalSettings()) {</span>
+<span class="nc" id="L1185">                    approvals.put(ApprovalRequestType.getFromIntegerValue(approvalSetting), approvalProfile);</span>
+<span class="nc" id="L1186">                }</span>
+            }
+<span class="nc" id="L1188">            certificateProfile.setApprovals(approvals);</span>
+            try {
+<span class="nc" id="L1190">                certProfileSession.changeCertificateProfile(authenticationToken, certificateProfileName, certificateProfile);</span>
+<span class="nc" id="L1191">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L1192">                throw new IllegalStateException(&quot;Always allow token was denied access.&quot;, e);</span>
+<span class="nc" id="L1193">            }</span>
+
+<span class="nc" id="L1195">        }</span>
+
+<span class="nc" id="L1197">        log.error(&quot;(This is not an error) Completed upgrade procedure to 6.8.0&quot;);</span>
+<span class="nc" id="L1198">    }</span>
+
+
+    /**
+     * Upgrade to EJBCA 6.10.1. 
+     * Upgrading System configuration and certificate profiles with CT log label system
+     */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @Override
+    public void migrateDatabase6101() throws UpgradeFailedException {
+<span class="nc" id="L1208">        log.debug(&quot;migrateDatabase6100: Upgrading CT logs&quot;);</span>
+<span class="nc" id="L1209">        final GlobalConfiguration gc = (GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID);</span>
+<span class="nc" id="L1210">        final Map&lt;Integer, CertificateProfile&gt; allCertProfiles = certProfileSession.getAllCertificateProfiles();</span>
+<span class="nc" id="L1211">        final LinkedHashMap&lt;Integer, CTLogInfo&gt; allCtLogs = gc.getCTLogs();</span>
+<span class="nc" id="L1212">        LinkedHashMap&lt;Integer, CTLogInfo&gt; updatedCtLogs = new LinkedHashMap&lt;&gt;();</span>
+
+        /* Determine new label for each log...
+         * If Google log or previously set to mandatory (6.10), place log under label 'Mandatory'.
+         * Gather remaining logs under the label 'Unlabeled'.
+         */
+<span class="nc bnc" id="L1218" title="All 2 branches missed.">        for (Map.Entry&lt;Integer, CTLogInfo&gt; ctLogInfo : allCtLogs.entrySet()) {</span>
+<span class="nc" id="L1219">            CTLogInfo ctLog = ctLogInfo.getValue();</span>
+<span class="nc bnc" id="L1220" title="All 4 branches missed.">            if (ctLog.getUrl().contains(&quot;ct.googleapis.com&quot;) || ctLog.isMandatory()) {</span>
+<span class="nc" id="L1221">                ctLog.setLabel(&quot;Mandatory&quot;);</span>
+            } else {
+<span class="nc" id="L1223">                ctLog.setLabel(&quot;Unlabeled&quot;);</span>
+            }
+<span class="nc" id="L1225">            updatedCtLogs.put(ctLog.getLogId(), ctLog);</span>
+<span class="nc" id="L1226">        }</span>
+
+        // Save CT logs with new labels set
+<span class="nc" id="L1229">        gc.setCTLogs(updatedCtLogs);</span>
+        try {
+<span class="nc" id="L1231">            globalConfigurationSession.saveConfiguration(authenticationToken, gc);</span>
+<span class="nc" id="L1232">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L1233">            throw new IllegalStateException(&quot;Always allow token was denied access.&quot;, e);</span>
+<span class="nc" id="L1234">        }</span>
+
+        // Set CT labels corresponding to previously set CT logs in each cert profile
+<span class="nc bnc" id="L1237" title="All 2 branches missed.">        for (Integer profileId : allCertProfiles.keySet()) {</span>
+<span class="nc" id="L1238">            CertificateProfile certProfile = allCertProfiles.get(profileId);</span>
+<span class="nc bnc" id="L1239" title="All 6 branches missed.">            if (certProfile.isUseCertificateTransparencyInCerts() || certProfile.isUseCertificateTransparencyInOCSP() || certProfile.isUseCertificateTransparencyInPublishers()) {</span>
+<span class="nc" id="L1240">                LinkedHashSet&lt;String&gt; labelsToSelect = new LinkedHashSet&lt;&gt;();</span>
+<span class="nc" id="L1241">                final String certProfileName = certProfileSession.getCertificateProfileName(profileId);</span>
+<span class="nc bnc" id="L1242" title="All 2 branches missed.">                for (Integer ctLog : certProfile.getEnabledCTLogs()) {</span>
+<span class="nc bnc" id="L1243" title="All 2 branches missed.">                    if (updatedCtLogs.containsKey(ctLog)) {</span>
+<span class="nc" id="L1244">                        labelsToSelect.add(updatedCtLogs.get(ctLog).getLabel());</span>
+                    }
+<span class="nc" id="L1246">                }</span>
+<span class="nc" id="L1247">                certProfile.setEnabledCTLabels(labelsToSelect);</span>
+                
+                // This means there were some mandatory- or Google logs selected before upgrade, i.e. it would be ideal to comply to Chrome CT policy
+<span class="nc bnc" id="L1250" title="All 2 branches missed.">                if (labelsToSelect.size() &gt; 1) {</span>
+<span class="nc" id="L1251">                    certProfile.setNumberOfSctByValidity(true);</span>
+<span class="nc" id="L1252">                    certProfile.setMaxNumberOfSctByValidity(true);</span>
+<span class="nc" id="L1253">                    certProfile.setNumberOfSctByCustom(false);</span>
+<span class="nc" id="L1254">                    certProfile.setMaxNumberOfSctByCustom(false);</span>
+                } else {
+<span class="nc" id="L1256">                    certProfile.setNumberOfSctByValidity(false);</span>
+<span class="nc" id="L1257">                    certProfile.setMaxNumberOfSctByValidity(false);</span>
+<span class="nc" id="L1258">                    certProfile.setNumberOfSctByCustom(true);</span>
+<span class="nc" id="L1259">                    certProfile.setMaxNumberOfSctByCustom(true);</span>
+                    // Migrate old values...
+                    // With the new label system, at least one log from each label will be written to, hence allowing a maximum / minimum
+                    // lower than number of labels would lock out issuance.
+<span class="nc bnc" id="L1263" title="All 2 branches missed.">                    if (certProfile.getCtMaxNonMandatoryScts() &lt; labelsToSelect.size()) {</span>
+<span class="nc" id="L1264">                        certProfile.setCtMaxScts(labelsToSelect.size());</span>
+                    } else {
+<span class="nc" id="L1266">                        certProfile.setCtMaxScts(certProfile.getCtMaxNonMandatoryScts());</span>
+                    }
+<span class="nc bnc" id="L1268" title="All 2 branches missed.">                    if (certProfile.getCtMaxNonMandatorySctsOcsp() &lt; labelsToSelect.size()) {</span>
+<span class="nc" id="L1269">                        certProfile.setCtMaxSctsOcsp(labelsToSelect.size());</span>
+                    } else {
+<span class="nc" id="L1271">                        certProfile.setCtMaxSctsOcsp(certProfile.getCtMaxNonMandatorySctsOcsp());</span>
+                    }
+<span class="nc bnc" id="L1273" title="All 2 branches missed.">                    if (certProfile.getCtMinNonMandatoryScts() &lt; labelsToSelect.size()) {</span>
+<span class="nc" id="L1274">                        certProfile.setCtMinScts(labelsToSelect.size());</span>
+                    } else {
+<span class="nc" id="L1276">                        certProfile.setCtMinScts(certProfile.getCtMinNonMandatoryScts());</span>
+                    }
+<span class="nc bnc" id="L1278" title="All 2 branches missed.">                    if (certProfile.getCtMaxNonMandatorySctsOcsp() &lt; labelsToSelect.size()) {</span>
+<span class="nc" id="L1279">                        certProfile.setCtMaxSctsOcsp(labelsToSelect.size());</span>
+                    } else {
+<span class="nc" id="L1281">                        certProfile.setCtMaxSctsOcsp(certProfile.getCtMaxNonMandatorySctsOcsp());</span>
+                    }
+<span class="nc bnc" id="L1283" title="All 2 branches missed.">                    if (certProfile.getCtMinNonMandatorySctsOcsp() &lt; labelsToSelect.size()) {</span>
+<span class="nc" id="L1284">                        certProfile.setCtMinSctsOcsp(labelsToSelect.size());</span>
+                    } else {
+<span class="nc" id="L1286">                        certProfile.setCtMinSctsOcsp(certProfile.getCtMinNonMandatorySctsOcsp());</span>
+                    }
+                }
+                
+                try {
+<span class="nc" id="L1291">                    certProfileSession.changeCertificateProfile(authenticationToken, certProfileName, certProfile);</span>
+<span class="nc" id="L1292">                } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L1293">                    throw new IllegalStateException(&quot;Always allow token was denied access.&quot;, e);</span>
+<span class="nc" id="L1294">                }</span>
+            }
+<span class="nc" id="L1296">        }</span>
+<span class="nc" id="L1297">    }</span>
+
+    /**
+     * Upgrade to EJBCA 6.11.0 
+     * Provides all current Peer connector roles with the new set of rules, controlling access to protocols
+     * on remote RA instances. All should be allowed by default to not cause any regressions. The rules are
+     * only relevant for RA Peer connector roles.
+     */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @Override
+    public void migrateDatabase6110() throws UpgradeFailedException {
+<span class="nc" id="L1308">        log.debug(&quot;migrateDatabase6110: Adding new rules for protocol access on remote RA instances.&quot;);</span>
+<span class="nc" id="L1309">        List&lt;Role&gt; allRoles = roleDataSession.getAllRoles();</span>
+<span class="nc bnc" id="L1310" title="All 2 branches missed.">        for (Role role : allRoles) {</span>
+<span class="nc" id="L1311">            boolean isRaRequestRole = role.hasAccessToResource(AccessRulesConstants.REGULAR_PEERCONNECTOR_INVOKEAPI);</span>
+<span class="nc bnc" id="L1312" title="All 2 branches missed.">            if (isRaRequestRole) {</span>
+<span class="nc" id="L1313">                role.getAccessRules().put(AccessRulesHelper.normalizeResource(AccessRulesConstants.REGULAR_PEERPROTOCOL_CMP), Role.STATE_ALLOW);</span>
+<span class="nc" id="L1314">                role.getAccessRules().put(AccessRulesHelper.normalizeResource(AccessRulesConstants.REGULAR_PEERPROTOCOL_EST), Role.STATE_ALLOW);</span>
+<span class="nc" id="L1315">                role.getAccessRules().put(AccessRulesHelper.normalizeResource(AccessRulesConstants.REGULAR_PEERPROTOCOL_WS), Role.STATE_ALLOW);</span>
+<span class="nc" id="L1316">                roleDataSession.persistRole(role);</span>
+            }
+<span class="nc" id="L1318">        }</span>
+        
+<span class="nc" id="L1320">        log.debug(&quot;migrateDatabase6110: Checking if external scripts should remain enabled.&quot;);</span>
+<span class="nc" id="L1321">        boolean enableScripts = false;</span>
+<span class="nc" id="L1322">        final Map&lt;Integer, BasePublisher&gt; publishers = publisherSession.getAllPublishersInternal();</span>
+<span class="nc bnc" id="L1323" title="All 2 branches missed.">        for (final BasePublisher publisher : publishers.values()) {</span>
+<span class="nc bnc" id="L1324" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1325">                log.debug(&quot;Checking publisher: &quot; + publisher.getName());</span>
+            }
+<span class="nc bnc" id="L1327" title="All 2 branches missed.">            if (GeneralPurposeCustomPublisher.class.getName().equals(publisher.getRawData().get(CustomPublisherContainer.CLASSPATH))) {</span>
+<span class="nc bnc" id="L1328" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1329">                    log.debug(&quot;Found General Purpose Custom Publisher: &quot; + publisher.getName());</span>
+                }
+<span class="nc" id="L1331">                enableScripts = true;</span>
+<span class="nc" id="L1332">                break;</span>
+            }
+<span class="nc" id="L1334">        }</span>
+<span class="nc bnc" id="L1335" title="All 2 branches missed.">        if (enableScripts) {</span>
+<span class="nc" id="L1336">            log.info(&quot;External scripts will remain enabled, since there's at least one General Purpose Custom Publisher.&quot;);</span>
+<span class="nc" id="L1337">            final GlobalConfiguration gc = (GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID);</span>
+<span class="nc" id="L1338">            gc.setEnableExternalScripts(true);</span>
+            try {
+<span class="nc" id="L1340">                globalConfigurationSession.saveConfiguration(authenticationToken, gc);</span>
+<span class="nc" id="L1341">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L1342">                throw new IllegalStateException(&quot;Always allow token was denied access.&quot;, e);</span>
+<span class="nc" id="L1343">            }</span>
+<span class="nc" id="L1344">        } else {</span>
+<span class="nc" id="L1345">            log.info(&quot;External scripts will be disabled, since there are no General Purpose Custom Publishers. The setting can be changed under the 'System Configuration' page.&quot;);</span>
+        }
+<span class="nc" id="L1347">    }</span>
+    
+    
+    /**
+     * Upgrades to EJBCA 6.12.0
+     * 
+     */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @Override
+    public void migrateDatabase6120() {
+<span class="nc" id="L1357">        log.debug(&quot;migrateDatabase6120: Importing OCSP extensions from ocsp.properties file and UnidFnr trust dir (if available)&quot;);</span>
+<span class="nc" id="L1358">        importOcspExtensions();</span>
+<span class="nc" id="L1359">        importUnidFnrTrustDir();</span>
+<span class="nc" id="L1360">    }</span>
+    
+    /**
+     * Upgrade to EJBCA 6.14.0 
+     * Provides all current Peer connector roles with the new rules, controlling access to SCEP (same procedure as 
+     * migrateDatabase6110) on remote RA instances. Should be allowed by default to not cause any regressions. 
+     * This rules is only relevant for RA Peer connector roles.
+     */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @Override
+    public void migrateDatabase6140() throws UpgradeFailedException {
+<span class="nc" id="L1371">        log.debug(&quot;migrateDatabase6140: Adding new rule for SCEP protocol access on remote RA instances.&quot;);</span>
+<span class="nc" id="L1372">        List&lt;Role&gt; allRoles = roleDataSession.getAllRoles();</span>
+<span class="nc bnc" id="L1373" title="All 2 branches missed.">        for (Role role : allRoles) {</span>
+<span class="nc" id="L1374">            boolean isRaRequestRole = role.hasAccessToResource(AccessRulesConstants.REGULAR_PEERCONNECTOR_INVOKEAPI);</span>
+<span class="nc bnc" id="L1375" title="All 2 branches missed.">            if (isRaRequestRole) {</span>
+<span class="nc" id="L1376">                role.getAccessRules().put(AccessRulesHelper.normalizeResource(AccessRulesConstants.REGULAR_PEERPROTOCOL_ACME), Role.STATE_ALLOW);</span>
+<span class="nc" id="L1377">                role.getAccessRules().put(AccessRulesHelper.normalizeResource(AccessRulesConstants.REGULAR_PEERPROTOCOL_REST), Role.STATE_ALLOW);</span>
+<span class="nc" id="L1378">                role.getAccessRules().put(AccessRulesHelper.normalizeResource(AccessRulesConstants.REGULAR_PEERPROTOCOL_SCEP), Role.STATE_ALLOW);</span>
+<span class="nc" id="L1379">                roleDataSession.persistRole(role);</span>
+            }
+<span class="nc" id="L1381">        }</span>
+<span class="nc" id="L1382">    }</span>
+    
+    
+    /**
+     * Upgrade to EJBCA 6.15.0 
+     * 
+     * All the CCE will get a new required flag with the default value set to true.
+     *  
+     */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @Override
+    public void migrateDatabase6150() throws UpgradeFailedException {
+<span class="nc" id="L1394">        log.debug(&quot;migrateDatabase6150: Adding new field (required) for custom certificate extensions.&quot;);</span>
+        
+<span class="nc" id="L1396">        AvailableCustomCertificateExtensionsConfiguration availableCustomCertExtensionsConfig = (AvailableCustomCertificateExtensionsConfiguration) globalConfigurationSession</span>
+<span class="nc" id="L1397">                .getCachedConfiguration(AvailableCustomCertificateExtensionsConfiguration.CONFIGURATION_ID);</span>
+        
+<span class="nc bnc" id="L1399" title="All 2 branches missed.">        for (CertificateExtension customCertificateExtension : availableCustomCertExtensionsConfig.getAllAvailableCustomCertificateExtensions()) {</span>
+<span class="nc" id="L1400">                customCertificateExtension.setRequiredFlag(true);</span>
+                try {
+<span class="nc" id="L1402">                    globalConfigurationSession.saveConfiguration(authenticationToken, availableCustomCertExtensionsConfig);</span>
+<span class="nc" id="L1403">                } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L1404">                    log.error(&quot;Authorization error while saving the updated configuration!&quot;, e);</span>
+<span class="nc" id="L1405">                }</span>
+<span class="nc" id="L1406">        }</span>
+<span class="nc" id="L1407">    }</span>
+
+    /**
+     * From EJBCA 6.12.0, all extensions defined in ocsp.properties are selected for each key binding instead. Since this
+     * setting was global previously, it should be fair to add each extension to every OCSP key binding.
+     */
+    private void importOcspExtensions() {
+<span class="nc" id="L1414">        final List&lt;String&gt; ocspExtensionOids = OcspConfiguration.getExtensionOids();</span>
+<span class="nc bnc" id="L1415" title="All 2 branches missed.">        if (ocspExtensionOids.isEmpty()) {</span>
+<span class="nc" id="L1416">            log.debug(&quot;No OCSP extensions for import were found in ocsp.properties&quot;);</span>
+<span class="nc" id="L1417">            return;</span>
+        }
+<span class="nc" id="L1419">        final List&lt;Integer&gt; ocspKbIds = internalKeyBindingDataSession.getIds(OcspKeyBinding.IMPLEMENTATION_ALIAS);</span>
+<span class="nc bnc" id="L1420" title="All 2 branches missed.">        for (Integer ocspKbId : ocspKbIds) {</span>
+<span class="nc" id="L1421">            InternalKeyBinding ikbToEdit = internalKeyBindingDataSession.getInternalKeyBindingForEdit(ocspKbId);</span>
+<span class="nc" id="L1422">            List&lt;String&gt; currentExtensions = ikbToEdit.getOcspExtensions();</span>
+<span class="nc bnc" id="L1423" title="All 2 branches missed.">            for (String extension : ocspExtensionOids) {</span>
+<span class="nc bnc" id="L1424" title="All 2 branches missed.">                if (!currentExtensions.contains(extension)) {</span>
+<span class="nc" id="L1425">                    currentExtensions.add(extension.replaceAll(&quot;\\*&quot;, &quot;&quot;));</span>
+                }
+<span class="nc" id="L1427">            }</span>
+<span class="nc" id="L1428">            ikbToEdit.setOcspExtensions(currentExtensions);</span>
+            try {
+<span class="nc" id="L1430">                internalKeyBindingDataSession.mergeInternalKeyBinding(ikbToEdit);</span>
+<span class="nc" id="L1431">            } catch (InternalKeyBindingNameInUseException e) {</span>
+<span class="nc" id="L1432">                log.info(&quot;Could not update internal key binding: &quot; + ikbToEdit.getName() + &quot;. IKB is in use. &quot;);</span>
+<span class="nc" id="L1433">            }</span>
+<span class="nc" id="L1434">        }</span>
+<span class="nc" id="L1435">    }</span>
+    
+    private void importUnidFnrTrustDir() {
+<span class="nc" id="L1438">        List&lt;X509Certificate&gt; trustedCerts = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L1439">        Certificate cacert = null;</span>
+<span class="nc" id="L1440">        boolean isUnidFnrEnabled = OcspConfiguration.isUnidEnabled();</span>
+<span class="nc" id="L1441">        String trustDir = OcspConfiguration.getUnidTrustDir();</span>
+<span class="nc" id="L1442">        String cacertfile = OcspConfiguration.getUnidCaCert();</span>
+<span class="nc bnc" id="L1443" title="All 2 branches missed.">        if (StringUtils.isEmpty(trustDir)) {</span>
+            // This installation is probably not using UnidFnr at all.
+<span class="nc" id="L1445">            log.debug(&quot;No UnidFnr Trust directory found. Skipping import (expected for most installations).&quot;);</span>
+<span class="nc bnc" id="L1446" title="All 2 branches missed.">            if (isUnidFnrEnabled) {</span>
+<span class="nc" id="L1447">                log.error(&quot;No UnidFnr Trust directory found. Cannot procede import&quot;);</span>
+            }
+<span class="nc" id="L1449">            return;</span>
+        }
+        
+        // Read all files from trustDir, expect that they are PEM formatted certificates.
+<span class="nc" id="L1453">        CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+<span class="nc" id="L1454">        File dir = new File(trustDir);</span>
+        try {
+<span class="nc bnc" id="L1456" title="All 4 branches missed.">            if (dir == null || dir.isDirectory() == false) {</span>
+<span class="nc" id="L1457">                log.error(&quot;Could not read UnidFnr Trust Directory: &quot; + dir.getCanonicalPath()+ &quot; is not a directory.\nImport interrupted&quot;);</span>
+<span class="nc" id="L1458">                return;                </span>
+            }
+<span class="nc" id="L1460">            File files[] = dir.listFiles();</span>
+<span class="nc bnc" id="L1461" title="All 4 branches missed.">            if (files == null || files.length == 0) {</span>
+<span class="nc" id="L1462">                log.info(&quot;No files found in UnidFnr Trust directory: &quot; + dir.getCanonicalPath() + &quot;. Skipping import&quot;);</span>
+<span class="nc" id="L1463">                return;</span>
+            }
+<span class="nc bnc" id="L1465" title="All 2 branches missed.">            for (int i=0; i &lt; files.length; i++) {</span>
+<span class="nc" id="L1466">                final String fileName = files[i].getCanonicalPath();</span>
+                // Read the file, don't stop completely if one file has errors in it.
+                try {
+<span class="nc" id="L1469">                    final byte bytesFromFile[] = FileTools.readFiletoBuffer(fileName);</span>
+                    byte[] bytes;
+                    try {
+<span class="nc" id="L1472">                        bytes = FileTools.getBytesFromPEM(bytesFromFile, CertTools.BEGIN_CERTIFICATE, CertTools.END_CERTIFICATE);</span>
+<span class="nc" id="L1473">                    } catch (Exception e) {</span>
+<span class="nc" id="L1474">                        bytes = bytesFromFile; // assume binary data (.der).</span>
+<span class="nc" id="L1475">                    }</span>
+<span class="nc" id="L1476">                    final X509Certificate  cert = CertTools.getCertfromByteArray(bytes, X509Certificate.class);</span>
+<span class="nc" id="L1477">                    trustedCerts.add(cert);</span>
+<span class="nc" id="L1478">                } catch (CertificateException | IOException e) {</span>
+<span class="nc" id="L1479">                    log.error(&quot;error reading '&quot; + fileName + &quot;' from trustDir: &quot; + e.getMessage(), e);</span>
+<span class="nc" id="L1480">                }</span>
+            }
+<span class="nc" id="L1482">        } catch (IOException e) {</span>
+<span class="nc" id="L1483">            String errMsg = &quot;Error reading files from trustDir: &quot; + e.getMessage();</span>
+<span class="nc" id="L1484">            log.error(errMsg, e);</span>
+            // Since the file exists but we can't read it. We should stop here and warn the user
+<span class="nc" id="L1486">            throw new IllegalStateException(errMsg);</span>
+<span class="nc" id="L1487">        }</span>
+        // Read the CA Certificate file
+<span class="nc bnc" id="L1489" title="All 2 branches missed.">        if (StringUtils.isEmpty(cacertfile)) {</span>
+            // Since this MUST be set if UnidFnr Extension is used, we should skip import if not found
+<span class="nc" id="L1491">            log.debug(&quot;No UnidFnr CA Cert directory found. Skipping import&quot;);</span>
+<span class="nc bnc" id="L1492" title="All 2 branches missed.">            if (isUnidFnrEnabled) {</span>
+<span class="nc" id="L1493">                log.error(&quot;No UnidFnr CA Cert directory found. Cannot procede import&quot;);</span>
+            }
+<span class="nc" id="L1495">            return;</span>
+        }
+        try {
+<span class="nc" id="L1498">            byte[] bytes = FileTools.getBytesFromPEM(FileTools</span>
+<span class="nc" id="L1499">                    .readFiletoBuffer(cacertfile),</span>
+                    CertTools.BEGIN_CERTIFICATE, CertTools.END_CERTIFICATE);
+<span class="nc" id="L1501">            cacert = CertTools.getCertfromByteArray(bytes, Certificate.class);</span>
+<span class="nc" id="L1502">        } catch (Exception e) {</span>
+<span class="nc" id="L1503">            String errMsg = &quot;Error reading CA Certificate from UnidFnr cacertfile&quot;;</span>
+<span class="nc" id="L1504">            log.error(errMsg, e);</span>
+            // Since the file exists but we can't read it. We should stop here and warn the user
+<span class="nc" id="L1506">            throw new IllegalStateException(errMsg);</span>
+<span class="nc" id="L1507">        }</span>
+        
+<span class="nc bnc" id="L1509" title="All 2 branches missed.">        if (!CertTools.isCA(cacert)) {</span>
+<span class="nc" id="L1510">            log.error(cacertfile + &quot; does not point to a CA Certificate&quot;);</span>
+<span class="nc" id="L1511">            return;</span>
+        }
+<span class="nc" id="L1513">        final String subjectdn = CertTools.getSubjectDN(cacert);</span>
+        
+<span class="nc" id="L1515">        final int caid = CertTools.stringToBCDNString(subjectdn).hashCode();</span>
+        try {
+<span class="nc" id="L1517">            caSession.verifyExistenceOfCA(caid);</span>
+<span class="nc" id="L1518">        } catch (CADoesntExistsException e) {</span>
+<span class="nc" id="L1519">            log.info(&quot;Could not add CA to OCSP Key Binding trusted certificates. &quot; + subjectdn + &quot; is not known by EJBCA.&quot;);</span>
+<span class="nc" id="L1520">            return;</span>
+<span class="nc" id="L1521">        }</span>
+        // Add all found certificate serial numbers to the IKB trust entries
+<span class="nc" id="L1523">        final List&lt;Integer&gt; ocspKbIds = internalKeyBindingDataSession.getIds(OcspKeyBinding.IMPLEMENTATION_ALIAS);</span>
+<span class="nc bnc" id="L1524" title="All 2 branches missed.">        for (Integer ocspKbId : ocspKbIds) {</span>
+<span class="nc" id="L1525">            InternalKeyBinding ikbToEdit = internalKeyBindingDataSession.getInternalKeyBindingForEdit(ocspKbId);</span>
+<span class="nc" id="L1526">            List&lt;InternalKeyBindingTrustEntry&gt; currentTrustEntries = ikbToEdit.getTrustedCertificateReferences();</span>
+            
+<span class="nc bnc" id="L1528" title="All 2 branches missed.">            for (X509Certificate trustedCert : trustedCerts) {</span>
+<span class="nc" id="L1529">                final String subjectDn = trustedCert.getSubjectDN().getName();</span>
+<span class="nc" id="L1530">                final DNFieldExtractor dnFieldExtractor = new DNFieldExtractor(subjectDn, DNFieldExtractor.TYPE_SUBJECTDN);</span>
+<span class="nc" id="L1531">                final String commonName = dnFieldExtractor.getFieldString(DNFieldExtractor.CN);</span>
+<span class="nc" id="L1532">                currentTrustEntries.add(new InternalKeyBindingTrustEntry(caid, trustedCert.getSerialNumber(), commonName));</span>
+<span class="nc" id="L1533">            }</span>
+<span class="nc" id="L1534">            ikbToEdit.setTrustedCertificateReferences(currentTrustEntries);</span>
+            try {
+<span class="nc" id="L1536">                internalKeyBindingDataSession.mergeInternalKeyBinding(ikbToEdit);</span>
+<span class="nc" id="L1537">            } catch (InternalKeyBindingNameInUseException e) {</span>
+                // Should not happen when merging
+<span class="nc" id="L1539">                log.info(&quot;Could not edit key binding: &quot; + ikbToEdit.getName() + &quot;. Name already in use&quot;);</span>
+<span class="nc" id="L1540">            }</span>
+<span class="nc" id="L1541">        }</span>
+<span class="nc" id="L1542">    }</span>
+    
+    private boolean postMigrateDatabase6101() {
+<span class="nc" id="L1545">        log.info(&quot;Starting post upgrade to 6.10.1.&quot;);</span>
+<span class="nc" id="L1546">        final Map&lt;Integer, CertificateProfile&gt; allCertProfiles = certProfileSession.getAllCertificateProfiles();</span>
+
+<span class="nc bnc" id="L1548" title="All 2 branches missed.">        for (Integer profileId : allCertProfiles.keySet()) {</span>
+<span class="nc" id="L1549">            CertificateProfile certProfile = allCertProfiles.get(profileId);</span>
+<span class="nc" id="L1550">            final String certProfileName = certProfileSession.getCertificateProfileName(profileId);</span>
+<span class="nc" id="L1551">            certProfile.removeLegacyCtData();</span>
+            try {
+<span class="nc" id="L1553">                certProfileSession.changeCertificateProfile(authenticationToken, certProfileName, certProfile);</span>
+<span class="nc" id="L1554">            } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L1555">                throw new IllegalStateException(&quot;Always allow token was denied access.&quot;, e);</span>
+<span class="nc" id="L1556">            }</span>
+<span class="nc" id="L1557">        }</span>
+<span class="nc" id="L1558">        log.info(&quot;Post upgrade to 6.10.1 complete.&quot;);</span>
+<span class="nc" id="L1559">        return true;</span>
+    }
+
+
+    private boolean postMigrateDatabase680() {
+<span class="nc" id="L1564">        log.info(&quot;Starting post upgrade to 6.8.0.&quot;);</span>
+        // Verify that there are no TYPE_NOT_EQUALCASE* still in use
+<span class="nc" id="L1566">        log.info(&quot;Verifying that there are no TYPE_NOT_EQUALCASE or TYPE_NOT_EQUALCASEINS token match operators still in use.&quot;);</span>
+<span class="nc" id="L1567">        boolean hasNotEquals = false;</span>
+<span class="nc bnc" id="L1568" title="All 2 branches missed.">        for (final Role role : roleSession.getAuthorizedRoles(authenticationToken)) {</span>
+<span class="nc bnc" id="L1569" title="All 2 branches missed.">            for (final RoleMember roleMember : roleMemberDataSession.findRoleMemberByRoleId(role.getRoleId())) {</span>
+<span class="nc" id="L1570">                final int tokenMatchOperator = roleMember.getTokenMatchOperator();</span>
+<span class="nc bnc" id="L1571" title="All 2 branches missed.">                if (AccessMatchType.TYPE_NOT_EQUALCASE.getNumericValue()==tokenMatchOperator ||</span>
+<span class="nc bnc" id="L1572" title="All 2 branches missed.">                        AccessMatchType.TYPE_NOT_EQUALCASEINS.getNumericValue()==tokenMatchOperator) {</span>
+<span class="nc" id="L1573">                    log.error(&quot;Role '&quot; + role.getRoleNameFull() + &quot;' has a member with a 'not equals' match operator. Post-upgrade cannot complete until this is corrected.&quot;);</span>
+<span class="nc" id="L1574">                    hasNotEquals = true;</span>
+<span class="nc" id="L1575">                    break;</span>
+                }
+<span class="nc" id="L1577">            }</span>
+<span class="nc" id="L1578">        }</span>
+<span class="nc bnc" id="L1579" title="All 2 branches missed.">        if (hasNotEquals) {</span>
+<span class="nc" id="L1580">            return false;</span>
+        }
+        // Change to use union role access rules instead of enum priority matching
+<span class="nc" id="L1583">        accessTreeUpdateSession.setNewAuthorizationPatternMarker();</span>
+<span class="nc" id="L1584">        log.info(&quot;Admins belonging to multiple roles will now be granted the combined access when cache expires.&quot;);</span>
+        // Empty the legacy AdminEntityData, AdmingGroupData and AccessRulesData tables.
+<span class="nc bnc" id="L1586" title="All 2 branches missed.">        if (EjbcaConfiguration.getIsInProductionMode()) {</span>
+<span class="nc" id="L1587">            log.info(&quot;Cleaning up legacy roles and rules.&quot;);</span>
+<span class="nc" id="L1588">            legacyRoleManagementSession.deleteAllRoles(authenticationToken);</span>
+        } else {
+<span class="nc" id="L1590">            log.warn(&quot;This EJBCA installation is not running in production mode, so the tables AdminEntityData, AdmingGroupData and AccessRulesData will not be emptied.&quot;);</span>
+        }
+<span class="nc" id="L1592">        log.info(&quot;Post upgrade to 6.8.0 complete.&quot;);</span>
+<span class="nc" id="L1593">        return true;</span>
+    }
+
+    /**
+     * Since EJBCA 6.8.0, some rules are either removed or have a changed scope.
+     * If Role had access to /ca_functionality/basic_functions or /ca_functionality/basic_functions/activate_ca,
+     * grant access to new rule /ca_functionality/activate_ca
+     *
+     * If upgrading from 6.6.0 or later, grant access to /ca_functionality/view_certificate for roles with access
+     * to ra_functionality/view_end_entity
+     * @param newAccessRules HashMap of access rules to migrate
+     * @param isInstalledOn660OrLater if upgrading from 6.6.0 or later
+     * @return HashMap with migrated rule states
+     */
+    private HashMap&lt;String, Boolean&gt; migrate680Rules(HashMap&lt;String, Boolean&gt; newAccessRules, boolean isInstalledOn660OrLater) {
+<span class="nc" id="L1608">        Boolean isAllowedActivateCa = AccessRulesHelper.hasAccessToResource(newAccessRules, REGULAR_ACTIVATECA_OLD);</span>
+<span class="nc" id="L1609">        Boolean isAllowedViewEndEntity = AccessRulesHelper.hasAccessToResource(newAccessRules, AccessRulesConstants.REGULAR_VIEWENDENTITY);</span>
+<span class="nc bnc" id="L1610" title="All 2 branches missed.">        if(isAllowedActivateCa) {</span>
+<span class="nc" id="L1611">            newAccessRules.put(AccessRulesHelper.normalizeResource(AccessRulesConstants.REGULAR_ACTIVATECA), Role.STATE_ALLOW);</span>
+        } else {
+<span class="nc" id="L1613">            newAccessRules.put(AccessRulesHelper.normalizeResource(AccessRulesConstants.REGULAR_ACTIVATECA), Role.STATE_DENY);</span>
+        }
+        //Remove deprecated rules
+<span class="nc" id="L1616">        newAccessRules.remove(AccessRulesHelper.normalizeResource(REGULAR_CABASICFUNCTIONS_OLD));</span>
+<span class="nc" id="L1617">        newAccessRules.remove(AccessRulesHelper.normalizeResource(ROLE_PUBLICWEBUSER));</span>
+<span class="nc" id="L1618">        newAccessRules.remove(AccessRulesHelper.normalizeResource(REGULAR_ACTIVATECA_OLD));</span>
+<span class="nc bnc" id="L1619" title="All 4 branches missed.">        if(isInstalledOn660OrLater &amp;&amp; isAllowedViewEndEntity) {</span>
+<span class="nc" id="L1620">            newAccessRules.put(AccessRulesHelper.normalizeResource(AccessRulesConstants.REGULAR_VIEWCERTIFICATE), Role.STATE_ALLOW);</span>
+        }
+<span class="nc" id="L1622">        return newAccessRules;</span>
+    }
+
+    /** Add the previously global configuration configured approval notification 
+     * @param newProfile Profile*/
+    private void addApprovalNotification(final AccumulativeApprovalProfile newProfile) {
+<span class="nc" id="L1628">        final GlobalConfiguration gc = (GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID);</span>
+<span class="nc bnc" id="L1629" title="All 2 branches missed.">        if (gc.getUseApprovalNotifications()) {</span>
+<span class="nc" id="L1630">            final String baseUrl = gc.getBaseUrlFromConfig();</span>
+<span class="nc" id="L1631">            final String defaultSubject = &quot;[AR-${approvalRequest.ID}-${approvalRequest.STEP_ID}-${approvalRequest.PARTITION_ID}] &quot; +</span>
+                    &quot;Approval Request to ${approvalRequest.TYPE} is now in state ${approvalRequest.WORKFLOWSTATE}&quot;;
+<span class="nc" id="L1633">            final String defaultBody = &quot;Approval Request to ${approvalRequest.TYPE} from ${approvalRequest.REQUESTOR} is now in state ${approvalRequest.WORKFLOWSTATE}.\n&quot; +</span>
+                    &quot;\n&quot; +
+                    &quot;Direct link to the request: &quot; + baseUrl + &quot;ra/managerequest.xhtml?aid=${approvalRequest.ID}&quot;;
+<span class="nc" id="L1636">            final ApprovalPartition approvalPartition = newProfile.getFirstStep().getPartitions().values().iterator().next();</span>
+<span class="nc" id="L1637">            newProfile.addNotificationProperties(approvalPartition, gc.getApprovalAdminEmailAddress(), gc.getApprovalNotificationFromAddress(), defaultSubject, defaultBody);</span>
+        }
+<span class="nc" id="L1639">    }</span>
+
+    /**
+     * Checks if the column cAId column exists in AdminGroupData
+     *
+     * @return true or false if the column exists or not
+     */
+    @Override
+    public boolean checkColumnExists500() {
+		// Try to find out if caID exists in AdminGroupData, which it did prior to EJBCA 5
+        // If it does exist, a post-upgrade has to be done
+<span class="nc" id="L1650">		final Connection connection = JDBCUtil.getDBConnection();</span>
+<span class="nc" id="L1651">		boolean exists = false;</span>
+		try {
+<span class="nc" id="L1653">			final PreparedStatement stmt = connection.prepareStatement(&quot;select cAId from AdminGroupData where pk='0'&quot;);</span>
+<span class="nc" id="L1654">			stmt.executeQuery();</span>
+			// If it did not throw an exception the column exists and we must run the post upgrade sql
+<span class="nc" id="L1656">			exists = true;</span>
+<span class="nc" id="L1657">			log.info(&quot;cAId column exists in AdminGroupData&quot;);</span>
+<span class="nc" id="L1658">		} catch (SQLException e) {</span>
+			// Column did not exist, it's good we are running a newer version
+<span class="nc" id="L1660">			log.info(&quot;cAId column does not exist in AdminGroupData&quot;);</span>
+			//log.debug(e.getMessage());
+		} finally {
+			try {
+<span class="nc" id="L1664">				connection.close();</span>
+<span class="nc" id="L1665">			} catch (SQLException e) {</span>
+				// do nothing
+<span class="nc" id="L1667">			}</span>
+		}
+<span class="nc" id="L1669">		return exists;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public boolean isLesserThan(final String first, final String second) {
+<span class="nc" id="L1675">        return StringTools.isLesserThan(first, second);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

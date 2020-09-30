@@ -1,0 +1,2193 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EndEntityManagementSessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.ra</a> &gt; <span class="el_source">EndEntityManagementSessionBean.java</span></div><h1>EndEntityManagementSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.ejb.ra;
+
+import java.awt.print.PrinterException;
+import java.lang.reflect.InvocationTargetException;
+import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.FinderException;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.naming.InvalidNameException;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.X500NameStyle;
+import org.bouncycastle.asn1.x509.GeneralNames;
+import org.bouncycastle.util.encoders.Hex;
+import org.cesecore.ErrorCode;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.enums.EventTypes;
+import org.cesecore.audit.enums.ServiceTypes;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.UsernamePrincipal;
+import org.cesecore.authentication.tokens.X509CertificateAuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.ca.ApprovalRequestType;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.ca.IllegalNameException;
+import org.cesecore.certificates.ca.X509CAInfo;
+import org.cesecore.certificates.certificate.BaseCertificateData;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificate.CertificateData;
+import org.cesecore.certificates.certificate.CertificateDataWrapper;
+import org.cesecore.certificates.certificate.CertificateRevokeException;
+import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
+import org.cesecore.certificates.certificate.NoConflictCertificateStoreSessionLocal;
+import org.cesecore.certificates.certificate.exception.CertificateSerialNumberException;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfileDoesNotExistException;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.certificates.crl.RevokedCertInfo;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.EndEntityType;
+import org.cesecore.certificates.endentity.EndEntityTypes;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.certificates.util.DnComponents;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.roles.member.RoleMemberData;
+import org.cesecore.util.CeSecoreNameStyle;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.EJBTools;
+import org.cesecore.util.PrintableStringNameStyle;
+import org.cesecore.util.RFC4683Tools;
+import org.cesecore.util.StringTools;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.config.WebConfiguration;
+import org.ejbca.core.EjbcaException;
+import org.ejbca.core.ejb.approval.ApprovalProfileSessionLocal;
+import org.ejbca.core.ejb.approval.ApprovalSessionLocal;
+import org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaModuleTypes;
+import org.ejbca.core.ejb.authentication.cli.CliAuthenticationTokenMetaData;
+import org.ejbca.core.ejb.authentication.cli.CliUserAccessMatchValue;
+import org.ejbca.core.ejb.ca.auth.EndEntityAuthenticationSessionBean;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionLocal;
+import org.ejbca.core.ejb.ca.publisher.PublisherQueueData;
+import org.ejbca.core.ejb.ca.revoke.RevocationSessionLocal;
+import org.ejbca.core.ejb.ca.store.CertReqHistoryData;
+import org.ejbca.core.ejb.ca.store.CertReqHistorySessionLocal;
+import org.ejbca.core.ejb.dto.CertRevocationDto;
+import org.ejbca.core.ejb.hardtoken.HardTokenData;
+import org.ejbca.core.ejb.keyrecovery.KeyRecoveryData;
+import org.ejbca.core.ejb.keyrecovery.KeyRecoverySessionLocal;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.ApprovalExecutorUtil;
+import org.ejbca.core.model.approval.ApprovalOveradableClassName;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.core.model.approval.approvalrequests.AddEndEntityApprovalRequest;
+import org.ejbca.core.model.approval.approvalrequests.ChangeStatusEndEntityApprovalRequest;
+import org.ejbca.core.model.approval.approvalrequests.EditEndEntityApprovalRequest;
+import org.ejbca.core.model.approval.approvalrequests.RevocationApprovalRequest;
+import org.ejbca.core.model.approval.profile.ApprovalProfile;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.ca.publisher.PublisherConst;
+import org.ejbca.core.model.ca.publisher.PublisherQueueVolatileInformation;
+import org.ejbca.core.model.ca.store.CertReqHistory;
+import org.ejbca.core.model.ra.AlreadyRevokedException;
+import org.ejbca.core.model.ra.CustomFieldException;
+import org.ejbca.core.model.ra.EndEntityInformationFiller;
+import org.ejbca.core.model.ra.ExtendedInformationFields;
+import org.ejbca.core.model.ra.FieldValidator;
+import org.ejbca.core.model.ra.RevokeBackDateNotAllowedForProfileException;
+import org.ejbca.core.model.ra.UserNotificationParamGen;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
+import org.ejbca.core.model.ra.raadmin.ICustomNotificationRecipient;
+import org.ejbca.core.model.ra.raadmin.UserNotification;
+import org.ejbca.util.PrinterManager;
+import org.ejbca.util.dn.DistinguishedName;
+import org.ejbca.util.mail.MailException;
+import org.ejbca.util.mail.MailSender;
+
+/**
+ * Manages end entities in the database using UserData Entity Bean.
+ * 
+ * @version $Id: EndEntityManagementSessionBean.java 29530 2018-07-31 07:28:50Z jekaterina_b_helmes $
+ */
+<span class="nc bnc" id="L151" title="All 2 branches missed.">@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;EndEntityManagementSessionRemote&quot;)</span>
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L153">public class EndEntityManagementSessionBean implements EndEntityManagementSessionLocal, EndEntityManagementSessionRemote {</span>
+
+<span class="nc" id="L155">    private static final Logger log = Logger.getLogger(EndEntityManagementSessionBean.class);</span>
+    /** Internal localization of logs and errors */
+<span class="nc" id="L157">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+
+    @PersistenceContext(unitName = &quot;ejbca&quot;)
+    private EntityManager entityManager;
+
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private ApprovalSessionLocal approvalSession;
+    @EJB
+    private ApprovalProfileSessionLocal approvalProfileSession;
+    @EJB
+    private CAAdminSessionLocal caAdminSession;
+    @EJB
+    private CaSessionLocal caSession;
+    @EJB
+    private CertificateProfileSessionLocal certificateProfileSession;
+    @EJB
+    private CertificateStoreSessionLocal certificateStoreSession;
+    @EJB
+    private CertReqHistorySessionLocal certreqHistorySession;
+    @EJB
+    private EndEntityAccessSessionLocal endEntityAccessSession;
+    @EJB
+    private EndEntityProfileSessionLocal endEntityProfileSession;
+    @EJB
+    private GlobalConfigurationSessionLocal globalConfigurationSession;
+    @EJB
+    private KeyRecoverySessionLocal keyRecoverySession;
+    @EJB
+    private NoConflictCertificateStoreSessionLocal noConflictCertificateStoreSession;
+    @EJB
+    private RevocationSessionLocal revocationSession;
+    @EJB
+    private SecurityEventsLoggerSessionLocal auditSession;
+
+    /** Gets the Global Configuration from ra admin session bean 
+     * @return Config*/
+    private GlobalConfiguration getGlobalConfiguration() {
+<span class="nc" id="L196">        return (GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID);</span>
+    }
+
+    private boolean authorizedToCA(final AuthenticationToken admin, final int caid) {
+<span class="nc" id="L200">        boolean returnval = false;</span>
+<span class="nc" id="L201">        returnval = authorizationSession.isAuthorizedNoLogging(admin, StandardRules.CAACCESS.resource() + caid);</span>
+<span class="nc bnc" id="L202" title="All 2 branches missed.">        if (!returnval) {</span>
+<span class="nc" id="L203">            log.info(&quot;Admin &quot; + admin.toString() + &quot; not authorized to resource &quot; + StandardRules.CAACCESS.resource() + caid);</span>
+        }
+<span class="nc" id="L205">        return returnval;</span>
+    }
+
+    /** Checks CA authorization and logs an official error if not and throws and AuthorizationDeniedException.
+     * Does not log access control granted if granted
+     * @param admin Admin
+     * @param caid ID
+     * @throws AuthorizationDeniedException Fail
+     */
+    private void assertAuthorizedToCA(final AuthenticationToken admin, final int caid) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L215" title="All 2 branches missed.">        if (!authorizedToCA(admin, caid)) {</span>
+<span class="nc" id="L216">            final String msg = intres.getLocalizedMessage(&quot;ra.errorauthca&quot;, Integer.valueOf(caid), admin.toString());</span>
+<span class="nc" id="L217">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L218">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L219">            auditSession.log(EventTypes.ACCESS_CONTROL, EventStatus.FAILURE, EjbcaModuleTypes.RA, ServiceTypes.CORE, admin.toString(),</span>
+<span class="nc" id="L220">                    String.valueOf(caid), null, null, details);</span>
+<span class="nc" id="L221">            throw new AuthorizationDeniedException(msg);</span>
+        }
+<span class="nc" id="L223">    }</span>
+
+    @Override
+    public boolean isAuthorizedToEndEntityProfile(final AuthenticationToken admin, final int profileid, final String rights) {
+<span class="nc" id="L227">        return authorizationSession.isAuthorized(admin, AccessRulesConstants.ENDENTITYPROFILEPREFIX + profileid + rights, AccessRulesConstants.REGULAR_RAFUNCTIONALITY + rights);</span>
+    }
+
+    /** Checks EEP authorization and logs an official error if not and throws and AuthorizationDeniedException. 
+     * Logs the access control granted if granted. 
+     * @param admin Admin
+     * @param endEntityProfileId Profile 
+     * @param accessRule Rule
+     * @param caId CA
+     * @throws AuthorizationDeniedException Fail
+     */
+    private void assertAuthorizedToEndEntityProfile(final AuthenticationToken admin, final int endEntityProfileId, final String accessRule,
+            final int caId) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L240" title="All 2 branches missed.">        if (!isAuthorizedToEndEntityProfile(admin, endEntityProfileId, accessRule)) {</span>
+<span class="nc" id="L241">            final String msg = intres.getLocalizedMessage(&quot;ra.errorauthprofile&quot;, Integer.valueOf(endEntityProfileId), admin.toString());</span>
+<span class="nc" id="L242">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L243">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L244">            auditSession.log(EventTypes.ACCESS_CONTROL, EventStatus.FAILURE, EjbcaModuleTypes.RA, ServiceTypes.CORE, admin.toString(),</span>
+<span class="nc" id="L245">                    String.valueOf(caId), null, null, details);</span>
+<span class="nc" id="L246">            throw new AuthorizationDeniedException(msg);</span>
+        }
+<span class="nc" id="L248">    }</span>
+
+    @Override
+    public void addUser(final AuthenticationToken admin, final String username, final String password, final String subjectdn, final String subjectaltname, final String email,
+            final boolean clearpwd, final int endentityprofileid, final int certificateprofileid, final EndEntityType type, final int tokentype, final int hardwaretokenissuerid, final int caid)
+            throws EndEntityExistsException, AuthorizationDeniedException, EndEntityProfileValidationException, WaitingForApprovalException,
+            CADoesntExistsException, CustomFieldException, IllegalNameException, ApprovalException, CertificateSerialNumberException {
+<span class="nc" id="L255">        final EndEntityInformation userdata = new EndEntityInformation(username, subjectdn, caid, subjectaltname, email, EndEntityConstants.STATUS_NEW,</span>
+                type, endentityprofileid, certificateprofileid, null, null, tokentype, hardwaretokenissuerid, null);
+<span class="nc" id="L257">        userdata.setPassword(password);</span>
+<span class="nc" id="L258">        addUser(admin, userdata, clearpwd);</span>
+<span class="nc" id="L259">    }</span>
+
+<span class="nc" id="L261">    private static final ApprovalOveradableClassName[] NONAPPROVABLECLASSNAMES_ADDUSER = { new ApprovalOveradableClassName(</span>
+<span class="nc" id="L262">            org.ejbca.core.model.approval.approvalrequests.AddEndEntityApprovalRequest.class.getName(), null), };</span>
+
+    @Override
+    public void addUserFromWS(final AuthenticationToken admin, EndEntityInformation userdata, final boolean clearpwd)
+            throws AuthorizationDeniedException, EndEntityProfileValidationException, EndEntityExistsException, WaitingForApprovalException,
+            CADoesntExistsException, CustomFieldException, IllegalNameException, ApprovalException, CertificateSerialNumberException {
+<span class="nc" id="L268">        final int profileId = userdata.getEndEntityProfileId();</span>
+<span class="nc" id="L269">        final EndEntityProfile profile = endEntityProfileSession.getEndEntityProfileNoClone(profileId);</span>
+<span class="nc bnc" id="L270" title="All 2 branches missed.">        if (profile.getAllowMergeDnWebServices()) {</span>
+<span class="nc" id="L271">            userdata = EndEntityInformationFiller.fillUserDataWithDefaultValues(userdata, profile);</span>
+        }
+<span class="nc" id="L273">        addUser(admin, userdata, clearpwd);</span>
+<span class="nc" id="L274">    }</span>
+
+    @Override
+    public EndEntityInformation canonicalizeUser(final EndEntityInformation endEntity) throws CustomFieldException {
+        //Make a deep copy
+<span class="nc" id="L279">        EndEntityInformation endEntityInformationCopy = new EndEntityInformation(endEntity);      </span>
+<span class="nc" id="L280">        final int endEntityProfileId = endEntityInformationCopy.getEndEntityProfileId();</span>
+<span class="nc" id="L281">        final String endEntityProfileName = endEntityProfileSession.getEndEntityProfileName(endEntityProfileId);</span>
+<span class="nc" id="L282">        FieldValidator.validate(endEntity, endEntityProfileId, endEntityProfileName);</span>
+<span class="nc" id="L283">        final String dn = CertTools.stringToBCDNString(StringTools.strip(endEntityInformationCopy.getDN()));</span>
+<span class="nc" id="L284">        endEntityInformationCopy.setDN(dn);</span>
+<span class="nc" id="L285">        endEntityInformationCopy.setSubjectAltName(StringTools.strip(endEntityInformationCopy.getSubjectAltName()));</span>
+<span class="nc" id="L286">        endEntityInformationCopy.setEmail(StringTools.strip(endEntityInformationCopy.getEmail()));</span>
+<span class="nc" id="L287">        return endEntityInformationCopy;</span>
+    }
+    
+    @Override
+    public void addUserAfterApproval(AuthenticationToken admin, EndEntityInformation userdata, boolean clearpwd,
+            AuthenticationToken lastApprovingAdmin) throws AuthorizationDeniedException, EndEntityProfileValidationException, EndEntityExistsException,
+            WaitingForApprovalException, CADoesntExistsException, CustomFieldException, IllegalNameException, ApprovalException, CertificateSerialNumberException {
+<span class="nc" id="L294">        addUser(admin, userdata, clearpwd, lastApprovingAdmin);</span>
+<span class="nc" id="L295">    }</span>
+
+    @Override
+    public EndEntityInformation addUser(final AuthenticationToken admin, final EndEntityInformation endEntity, final boolean clearpwd)
+            throws AuthorizationDeniedException, EndEntityExistsException, EndEntityProfileValidationException, WaitingForApprovalException,
+            CADoesntExistsException, CustomFieldException, IllegalNameException, ApprovalException, CertificateSerialNumberException {
+<span class="nc" id="L301">        return addUser(admin, endEntity, clearpwd, null);</span>
+    }
+
+    /**
+     * 
+     *
+     * 
+     * @param admin Admin
+     * @param endEntity EE
+     * @param clearpwd PWD
+     * @param lastApprovingAdmin Approval 
+     * @return EEI
+     * @throws ApprovalException if an approval already exists for this request.
+     * @throws AuthorizationDeniedException if the admin is not authorized to the CA, or lacks rights to add end entities. 
+     * @throws CADoesntExistsException if the CA specified does not exist
+     * @throws CertificateSerialNumberException if SubjectDN serial number already exists.
+     * @throws CustomFieldException if the end entity was not validated by a locally defined field validator
+     * @throws EndEntityExistsException if the end entity already exists
+     * @throws IllegalNameException if the Subject DN failed constraints
+     * @throws EndEntityProfileValidationException if the end entity fails constrains set by the end entity profile
+     * @throws WaitingForApprovalException to mark that a request has been created and is awaiting approval
+
+     */
+    private EndEntityInformation addUser(final AuthenticationToken admin, EndEntityInformation endEntity, final boolean clearpwd,
+            final AuthenticationToken lastApprovingAdmin)
+            throws AuthorizationDeniedException, EndEntityExistsException, EndEntityProfileValidationException, WaitingForApprovalException,
+            CADoesntExistsException, CustomFieldException, IllegalNameException, ApprovalException, CertificateSerialNumberException {
+<span class="nc" id="L328">        final int endEntityProfileId = endEntity.getEndEntityProfileId();</span>
+<span class="nc" id="L329">        final int caid = endEntity.getCAId();</span>
+        // Check if administrator is authorized to add user to CA.
+<span class="nc" id="L331">        assertAuthorizedToCA(admin, caid);</span>
+<span class="nc" id="L332">        final GlobalConfiguration globalConfiguration = getGlobalConfiguration();</span>
+<span class="nc bnc" id="L333" title="All 2 branches missed.">        if (globalConfiguration.getEnableEndEntityProfileLimitations()) {</span>
+            // Check if administrator is authorized to add user.
+<span class="nc" id="L335">            assertAuthorizedToEndEntityProfile(admin, endEntityProfileId, AccessRulesConstants.CREATE_END_ENTITY, caid);</span>
+        }
+        
+<span class="nc" id="L338">        final String originalDN = endEntity.getDN();</span>
+<span class="nc" id="L339">        EndEntityInformation unCanonicalized = endEntity;</span>
+<span class="nc" id="L340">        endEntity = canonicalizeUser(endEntity);</span>
+<span class="nc bnc" id="L341" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L342">            log.trace(&quot;&gt;addUser(&quot; + endEntity.getUsername() + &quot;, password, &quot; + endEntity.getDN() + &quot;, &quot; + originalDN + &quot;, &quot; + endEntity.getSubjectAltName()</span>
+<span class="nc" id="L343">                    + &quot;, &quot; + endEntity.getEmail() + &quot;, profileId: &quot; + endEntityProfileId + &quot;)&quot;);</span>
+        }
+        
+<span class="nc" id="L346">        final String endEntityProfileName = endEntityProfileSession.getEndEntityProfileName(endEntityProfileId);</span>
+<span class="nc" id="L347">        final String dn = endEntity.getDN();</span>
+<span class="nc" id="L348">        String altName = endEntity.getSubjectAltName();</span>
+        try {
+<span class="nc" id="L350">            altName =  RFC4683Tools.generateSimForInternalSanFormat( altName);</span>
+<span class="nc" id="L351">        } catch(Exception e) {</span>
+<span class="nc" id="L352">            log.info(&quot;Could not generate SIM string for SAN: &quot; + altName, e);</span>
+<span class="nc" id="L353">            throw new EndEntityProfileValidationException(&quot;Could not generate SIM string for SAN: &quot; + e.getMessage(), e);</span>
+<span class="nc" id="L354">        }</span>
+<span class="nc bnc" id="L355" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L356">            log.trace(&quot;addUser(calculated SIM &quot; + altName + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L358">        final String email = endEntity.getEmail();</span>
+<span class="nc" id="L359">        final EndEntityType type = endEntity.getType();</span>
+<span class="nc" id="L360">        String newpassword = endEntity.getPassword();</span>
+<span class="nc" id="L361">        EndEntityProfile profile = null; // Only look this up if we need it..</span>
+<span class="nc bnc" id="L362" title="All 2 branches missed.">        if (endEntity.getPassword() == null) {</span>
+<span class="nc" id="L363">            profile = endEntityProfileSession.getEndEntityProfileNoClone(endEntityProfileId);</span>
+<span class="nc bnc" id="L364" title="All 2 branches missed.">            if (profile.useAutoGeneratedPasswd()) {</span>
+                // special case used to signal regeneration of password
+<span class="nc" id="L366">                newpassword = profile.getAutoGeneratedPasswd();</span>
+            }
+        }
+        //Autogenerate username if it's not modifiable and it's empty
+<span class="nc bnc" id="L370" title="All 2 branches missed.">        if(StringUtils.isBlank(endEntity.getUsername())){</span>
+<span class="nc" id="L371">            profile = endEntityProfileSession.getEndEntityProfileNoClone(endEntityProfileId);</span>
+<span class="nc bnc" id="L372" title="All 2 branches missed.">            if (profile.isAutoGeneratedUsername()) {</span>
+<span class="nc" id="L373">                final byte[] randomData = new byte[16];</span>
+<span class="nc" id="L374">                final Random random = new SecureRandom();</span>
+<span class="nc" id="L375">                random.nextBytes(randomData);</span>
+<span class="nc" id="L376">                String autousername = new String(Hex.encode(randomData));</span>
+<span class="nc bnc" id="L377" title="All 2 branches missed.">                while (endEntityAccessSession.findUser(autousername) != null) {</span>
+<span class="nc bnc" id="L378" title="All 2 branches missed.">                    if(log.isDebugEnabled()){</span>
+<span class="nc" id="L379">                        log.debug(&quot;Autogenerated username '&quot; + autousername + &quot;' is already reserved. Generating the new one...&quot;);</span>
+                    }
+<span class="nc" id="L381">                    random.nextBytes(randomData);</span>
+<span class="nc" id="L382">                    autousername = new String(Hex.encode(randomData));</span>
+                }
+<span class="nc bnc" id="L384" title="All 2 branches missed.">                if(log.isDebugEnabled()){</span>
+<span class="nc" id="L385">                    log.debug(&quot;Unique username '&quot; + autousername + &quot;' has been generated&quot;);</span>
+                }
+<span class="nc" id="L387">                unCanonicalized.setUsername(autousername);</span>
+<span class="nc" id="L388">                endEntity.setUsername(autousername);</span>
+            }
+        }
+<span class="nc" id="L391">        final String username = endEntity.getUsername();</span>
+<span class="nc bnc" id="L392" title="All 2 branches missed.">        if (globalConfiguration.getEnableEndEntityProfileLimitations()) {</span>
+<span class="nc bnc" id="L393" title="All 2 branches missed.">            if (profile == null) {</span>
+<span class="nc" id="L394">                profile = endEntityProfileSession.getEndEntityProfileNoClone(endEntityProfileId);</span>
+            }
+            // Check if user fulfills it's profile.
+            try {
+<span class="nc bnc" id="L398" title="All 2 branches missed.">                final String dirattrs = endEntity.getExtendedInformation() != null ? endEntity.getExtendedInformation()</span>
+<span class="nc" id="L399">                        .getSubjectDirectoryAttributes() : null;</span>
+<span class="nc" id="L400">                profile.doesUserFulfillEndEntityProfile(username, endEntity.getPassword(), dn, altName, dirattrs, email,</span>
+<span class="nc" id="L401">                        endEntity.getCertificateProfileId(), clearpwd, type.contains(EndEntityTypes.KEYRECOVERABLE),</span>
+<span class="nc" id="L402">                        type.contains(EndEntityTypes.SENDNOTIFICATION), endEntity.getTokenType(), endEntity.getHardTokenIssuerId(), caid,</span>
+<span class="nc" id="L403">                        endEntity.getExtendedInformation());</span>
+<span class="nc" id="L404">            } catch (EndEntityProfileValidationException e) {</span>
+<span class="nc" id="L405">                final String msg = intres.getLocalizedMessage(&quot;ra.errorfulfillprofile&quot;, endEntityProfileName, dn, e.getMessage());</span>
+<span class="nc" id="L406">                Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L407">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L408">                auditSession.log(EjbcaEventTypes.RA_ADDENDENTITY, EventStatus.FAILURE, EjbcaModuleTypes.RA, ServiceTypes.CORE, admin.toString(),</span>
+<span class="nc" id="L409">                        String.valueOf(caid), null, username, details);</span>
+<span class="nc" id="L410">                throw e;</span>
+<span class="nc" id="L411">            }</span>
+        }
+        // Get CAInfo, to be able to read configuration
+        // No need to access control on the CA here just to get these flags, we have already checked above that we are authorized to the CA
+<span class="nc" id="L415">        final CAInfo caInfo = caSession.getCAInfoInternal(caid, null, true);</span>
+<span class="nc bnc" id="L416" title="All 2 branches missed.">        if(caInfo == null) {</span>
+<span class="nc" id="L417">            throw new CADoesntExistsException(&quot;CA with ID &quot; + caid + &quot; does not exist.&quot;);</span>
+        }       
+        
+        // Check name constraints
+<span class="nc bnc" id="L421" title="All 6 branches missed.">        if (caInfo instanceof X509CAInfo &amp;&amp; caInfo.getCertificateChain() != null &amp;&amp; !caInfo.getCertificateChain().isEmpty()) {</span>
+<span class="nc" id="L422">            final X509CAInfo x509cainfo = (X509CAInfo) caInfo;</span>
+<span class="nc" id="L423">            final X509Certificate cacert = (X509Certificate)caInfo.getCertificateChain().iterator().next();</span>
+<span class="nc" id="L424">            final CertificateProfile certProfile = certificateProfileSession.getCertificateProfile(endEntity.getCertificateProfileId());</span>
+            
+            final X500NameStyle nameStyle;
+<span class="nc bnc" id="L427" title="All 2 branches missed.">            if (x509cainfo.getUsePrintableStringSubjectDN()) {</span>
+<span class="nc" id="L428">                nameStyle = PrintableStringNameStyle.INSTANCE;</span>
+            } else {
+<span class="nc" id="L430">                nameStyle = CeSecoreNameStyle.INSTANCE;</span>
+            }
+            
+            final boolean ldaporder;
+<span class="nc bnc" id="L434" title="All 4 branches missed.">            if (x509cainfo.getUseLdapDnOrder() &amp;&amp; certProfile.getUseLdapDnOrder()) {</span>
+<span class="nc" id="L435">                ldaporder = true; // will cause an error to be thrown later if name constraints are used</span>
+            } else {
+<span class="nc" id="L437">                ldaporder = false;</span>
+            }
+            
+<span class="nc" id="L440">            X500Name subjectDNName = CertTools.stringToBcX500Name(dn, nameStyle, ldaporder);</span>
+<span class="nc" id="L441">            GeneralNames subjectAltName = CertTools.getGeneralNamesFromAltName(altName);</span>
+            try {
+<span class="nc" id="L443">                CertTools.checkNameConstraints(cacert, subjectDNName, subjectAltName);</span>
+<span class="nc" id="L444">            } catch (IllegalNameException e) {</span>
+<span class="nc" id="L445">                e.setErrorCode(ErrorCode.NAMECONSTRAINT_VIOLATION);</span>
+<span class="nc" id="L446">                throw e;</span>
+<span class="nc" id="L447">            }</span>
+        }
+        // Check if approvals is required. (Only do this if store users, otherwise this approval is disabled.)
+<span class="nc bnc" id="L450" title="All 2 branches missed.">        if (caInfo.isUseUserStorage()) {</span>
+<span class="nc" id="L451">            final CertificateProfile certProfile = certificateProfileSession.getCertificateProfile(endEntity.getCertificateProfileId());</span>
+<span class="nc" id="L452">            final ApprovalProfile approvalProfile = approvalProfileSession.getApprovalProfileForAction(ApprovalRequestType.ADDEDITENDENTITY, caInfo, </span>
+                    certProfile);
+<span class="nc bnc" id="L454" title="All 2 branches missed.">            if (approvalProfile != null) {</span>
+<span class="nc" id="L455">                AddEndEntityApprovalRequest ar = new AddEndEntityApprovalRequest(endEntity, clearpwd, admin, null, caid,</span>
+                        endEntityProfileId, approvalProfile);
+                // How come we pass through here when the request is actually approved?
+                // When the approval request is finally executed, it is executed through AddEndEntityApprovalRequest.execute, which is
+                // the NONAPPROVABLECLASSNAMES_ADDUSER below.
+<span class="nc bnc" id="L460" title="All 2 branches missed.">                if (ApprovalExecutorUtil.requireApproval(ar, NONAPPROVABLECLASSNAMES_ADDUSER)) {</span>
+<span class="nc" id="L461">                    final int requestId = approvalSession.addApprovalRequest(admin, ar);</span>
+<span class="nc" id="L462">                    sendNotification(admin, endEntity, EndEntityConstants.STATUS_WAITINGFORADDAPPROVAL, requestId, lastApprovingAdmin, null);</span>
+<span class="nc" id="L463">                    throw new WaitingForApprovalException(intres.getLocalizedMessage(&quot;ra.approvalad&quot;), requestId);</span>
+                }
+            }
+        }
+        // Check if the subjectDN serialnumber already exists.
+<span class="nc bnc" id="L468" title="All 2 branches missed.">        if (caInfo.isDoEnforceUniqueSubjectDNSerialnumber()) {</span>
+<span class="nc bnc" id="L469" title="All 2 branches missed.">            if (caInfo.isUseUserStorage()) {</span>
+<span class="nc bnc" id="L470" title="All 2 branches missed.">                if (!isSubjectDnSerialnumberUnique(caid, dn, username)) {</span>
+<span class="nc" id="L471">                    throw new CertificateSerialNumberException(&quot;Error: SubjectDN serial number already exists.&quot;);</span>
+                }
+            } else {
+<span class="nc" id="L474">                log.warn(&quot;CA configured to enforce unique SubjectDN serialnumber, but not to store any user data. Check will be ignored. Please verify your configuration.&quot;);</span>
+            }
+        }
+        // Store a new UserData in the database, if this CA is configured to do so.
+<span class="nc bnc" id="L478" title="All 2 branches missed.">        if (caInfo.isUseUserStorage()) {</span>
+            try {
+                // Create the user in one go with all parameters at once. This was important in EJB2.1 so the persistence layer only creates *one*
+                // single
+                // insert statement. If we do a home.create and the some setXX, it will create one insert and one update statement to the database.
+                // Probably not important in EJB3 anymore.
+<span class="nc" id="L484">                final UserData userData = new UserData(username, newpassword, clearpwd, dn, caid, endEntity.getCardNumber(), altName, email, type.getHexValue(),</span>
+<span class="nc" id="L485">                        endEntityProfileId, endEntity.getCertificateProfileId(), endEntity.getTokenType(), endEntity.getHardTokenIssuerId(),</span>
+<span class="nc" id="L486">                        endEntity.getExtendedInformation());</span>
+                // Since persist will not commit and fail if the user already exists, we need to check for this
+                // Flushing the entityManager will not allow us to rollback the persisted user if this is a part of a larger transaction.
+<span class="nc bnc" id="L489" title="All 2 branches missed.">                if (endEntityAccessSession.findByUsername(userData.getUsername()) != null) {</span>
+<span class="nc" id="L490">                    throw new EndEntityExistsException(&quot;User &quot; + userData.getUsername() + &quot; already exists.&quot;);</span>
+                }
+<span class="nc" id="L492">                entityManager.persist(userData);</span>
+                // Although EndEntityInformation should always have a null password for
+                // autogenerated end entities, the notification framework
+                // expect it to exist. Since nothing else but printing is done after
+                // this point it is safe to set the password
+<span class="nc" id="L497">                endEntity.setPassword(newpassword);</span>
+                // Send notifications, if they should be sent
+                // This is an add user request, if there was an approval involved in add user, it will have been added to extendedInformation
+<span class="nc" id="L500">                int approvalRequestID = 0;</span>
+<span class="nc bnc" id="L501" title="All 6 branches missed.">                if ( (endEntity != null) &amp;&amp; (endEntity.getExtendedInformation() != null) &amp;&amp; (endEntity.getExtendedInformation().getAddEndEntityApprovalRequestId() != null) ) {</span>
+<span class="nc" id="L502">                    approvalRequestID = endEntity.getExtendedInformation().getAddEndEntityApprovalRequestId().intValue();</span>
+                }
+<span class="nc" id="L504">                sendNotification(admin, endEntity, EndEntityConstants.STATUS_NEW, approvalRequestID, lastApprovingAdmin, null);</span>
+<span class="nc bnc" id="L505" title="All 2 branches missed.">                if (type.contains(EndEntityTypes.PRINT)) {</span>
+<span class="nc bnc" id="L506" title="All 2 branches missed.">                    if (profile == null) {</span>
+<span class="nc" id="L507">                        profile = endEntityProfileSession.getEndEntityProfileNoClone(endEntityProfileId);</span>
+                    }
+<span class="nc" id="L509">                    print(profile, endEntity);</span>
+                } else {
+<span class="nc bnc" id="L511" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L512">                        log.debug(&quot;Type (&quot;+type.getHexValue()+&quot;) does not contain SecConst.USER_PRINT, no print job created.&quot;);</span>
+                    }
+                }
+<span class="nc" id="L515">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L516">                details.put(&quot;msg&quot;, intres.getLocalizedMessage(&quot;ra.addedentity&quot;, username));</span>
+<span class="nc" id="L517">                details.putAll(endEntity.getDetailMap());</span>
+<span class="nc" id="L518">                auditSession.log(EjbcaEventTypes.RA_ADDENDENTITY, EventStatus.SUCCESS, EjbcaModuleTypes.RA, ServiceTypes.CORE, admin.toString(),</span>
+<span class="nc" id="L519">                        String.valueOf(caid), null, username, details);</span>
+<span class="nc" id="L520">            } catch (EndEntityExistsException e) {</span>
+<span class="nc" id="L521">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L522">                details.put(&quot;msg&quot;, intres.getLocalizedMessage(&quot;ra.errorentityexist&quot;, username));</span>
+<span class="nc" id="L523">                details.put(&quot;error&quot;, e.getMessage());</span>
+<span class="nc" id="L524">                auditSession.log(EjbcaEventTypes.RA_ADDENDENTITY, EventStatus.FAILURE, EjbcaModuleTypes.RA, ServiceTypes.CORE, admin.toString(),</span>
+<span class="nc" id="L525">                        String.valueOf(caid), null, username, details);</span>
+<span class="nc" id="L526">                throw e;</span>
+<span class="nc" id="L527">            } catch (Exception e) {</span>
+<span class="nc" id="L528">                final String msg = intres.getLocalizedMessage(&quot;ra.erroraddentity&quot;, username);</span>
+<span class="nc" id="L529">                log.error(msg, e);</span>
+<span class="nc" id="L530">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L531">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L532">                details.put(&quot;error&quot;, e.getMessage());</span>
+<span class="nc" id="L533">                auditSession.log(EjbcaEventTypes.RA_ADDENDENTITY, EventStatus.FAILURE, EjbcaModuleTypes.RA, ServiceTypes.CORE, admin.toString(),</span>
+<span class="nc" id="L534">                        String.valueOf(caid), null, username, details);</span>
+<span class="nc" id="L535">                throw new EJBException(e);</span>
+<span class="nc" id="L536">            }</span>
+<span class="nc bnc" id="L537" title="All 2 branches missed.">        } else if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L538">            log.debug(&quot;User storage disabled on CA '&quot;+caInfo.getName()+&quot;', user with username '&quot;+username+&quot;' is not stored.&quot;);</span>
+        }
+<span class="nc bnc" id="L540" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L541">            log.trace(&quot;&lt;addUser(&quot; + username + &quot;, password, &quot; + dn + &quot;, &quot; + email + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L543">        return endEntity;</span>
+    }
+    
+    /* Does not check authorization. Calling code is responsible for this. */
+    private boolean isSubjectDnSerialnumberUnique(final int caid, final String subjectDN, final String username) {
+<span class="nc" id="L548">        final String serialnumber = CertTools.getPartFromDN(subjectDN, &quot;SN&quot;);</span>
+<span class="nc bnc" id="L549" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L550">            log.debug(&quot;subjectDN=&quot; + subjectDN + &quot; extracted SN=&quot; + serialnumber);</span>
+        }
+        // We treat the lack of a serialnumber field as unique
+<span class="nc bnc" id="L553" title="All 2 branches missed.">        if (serialnumber == null) {</span>
+<span class="nc" id="L554">            return true;</span>
+        }
+        // Without a username we cannot determine if this is the same user, if we find any in the database later
+<span class="nc bnc" id="L557" title="All 2 branches missed.">        if (username == null) {</span>
+<span class="nc" id="L558">            return false;</span>
+        }
+<span class="nc" id="L560">        final List&lt;String&gt; subjectDNs = endEntityAccessSession.findSubjectDNsByCaIdAndNotUsername(caid, username, serialnumber);</span>
+        // Even though we push down most of the work to the database we still have to verify the serialnumber here since
+        // for example serialnumber '1' will match both &quot;SN=1&quot; and &quot;SN=10&quot; etc
+<span class="nc bnc" id="L563" title="All 2 branches missed.">        for (final String currentSubjectDN : subjectDNs) {</span>
+<span class="nc" id="L564">            final String currentSn = CertTools.getPartFromDN(currentSubjectDN, &quot;SN&quot;);</span>
+<span class="nc bnc" id="L565" title="All 2 branches missed.">            if (serialnumber.equals(currentSn)) {</span>
+<span class="nc" id="L566">                return false;</span>
+            }
+<span class="nc" id="L568">        }</span>
+<span class="nc" id="L569">        return true;</span>
+    }
+
+    @Override
+    public boolean renameEndEntity(final AuthenticationToken admin, String currentUsername, String newUsername) throws AuthorizationDeniedException, EndEntityExistsException {
+        // Sanity check parameters
+<span class="nc bnc" id="L575" title="All 4 branches missed.">        if (currentUsername==null || newUsername==null) {</span>
+<span class="nc" id="L576">            throw new IllegalArgumentException(&quot;Cannot rename an end entity to or from null.&quot;);</span>
+        }
+<span class="nc" id="L578">        currentUsername = StringTools.stripUsername(currentUsername).trim();</span>
+<span class="nc" id="L579">        newUsername = StringTools.stripUsername(newUsername).trim();</span>
+<span class="nc bnc" id="L580" title="All 4 branches missed.">        if (currentUsername.length()==0 || newUsername.length()==0) {</span>
+<span class="nc" id="L581">            throw new IllegalArgumentException(&quot;Cannot rename an end entity to or from empty string.&quot;);</span>
+        }
+        // Check that end entity exists and that the target username isn't already in use
+<span class="nc" id="L584">        final UserData currentUserData = endEntityAccessSession.findByUsername(currentUsername);</span>
+<span class="nc bnc" id="L585" title="All 2 branches missed.">        if (currentUserData==null) {</span>
+<span class="nc" id="L586">            return false;</span>
+        }
+<span class="nc bnc" id="L588" title="All 2 branches missed.">        if (endEntityAccessSession.findByUsername(newUsername) !=null) {</span>
+<span class="nc" id="L589">            throw new EndEntityExistsException(&quot;Unable to rename end entity, since end entity with username '&quot; + newUsername + &quot;' already exists.&quot;);</span>
+        }
+        // Check authorization
+<span class="nc" id="L592">        final int currentCaId = currentUserData.getCaId();</span>
+<span class="nc" id="L593">        assertAuthorizedToCA(admin, currentCaId);</span>
+<span class="nc" id="L594">        final GlobalConfiguration globalConfiguration = getGlobalConfiguration();</span>
+<span class="nc bnc" id="L595" title="All 2 branches missed.">        if (globalConfiguration.getEnableEndEntityProfileLimitations()) {</span>
+            // Check if administrator is authorized to edit user.
+<span class="nc" id="L597">            assertAuthorizedToEndEntityProfile(admin, currentUserData.getEndEntityProfileId(), AccessRulesConstants.EDIT_END_ENTITY, currentCaId);</span>
+        }
+        // Rename the end entity. Username is a primary key of the UserData table and we need to use JPA for this to get rowProtection.
+        // we need to add a new end entity and remove the old one.
+<span class="nc" id="L601">        final long now = System.currentTimeMillis();</span>
+<span class="nc" id="L602">        final UserData userDataClone = currentUserData.clone();</span>
+<span class="nc" id="L603">        userDataClone.setUsername(newUsername);</span>
+<span class="nc" id="L604">        userDataClone.setTimeModified(now);</span>
+<span class="nc" id="L605">        entityManager.persist(userDataClone);</span>
+<span class="nc" id="L606">        entityManager.remove(currentUserData);</span>
+        // Find all entities and update the username (we cant just do UPDATE ... SET username.. WHERE username since rowProtection might be enabled)
+<span class="nc" id="L608">        final List&lt;CertificateData&gt; certificateDatas = entityManager.createQuery(</span>
+<span class="nc" id="L609">                &quot;SELECT a FROM CertificateData a WHERE a.username=:username&quot;, CertificateData.class).setParameter(&quot;username&quot;, currentUsername).getResultList();</span>
+<span class="nc" id="L610">        int updatedPublisherQueueDataRows = 0;</span>
+<span class="nc bnc" id="L611" title="All 2 branches missed.">        for (final CertificateData certificateData : certificateDatas) {</span>
+<span class="nc" id="L612">            final String fingerprint = certificateData.getFingerprint();</span>
+<span class="nc" id="L613">            certificateData.setUsername(newUsername);</span>
+<span class="nc" id="L614">            certificateData.setUpdateTime(now);</span>
+            // Find all publisher queue data where PublisherQueueData.fingerprint matches CertificateData.fingerprint for this user
+<span class="nc" id="L616">            final List&lt;PublisherQueueData&gt; publisherQueueDatas = PublisherQueueData.findDataByFingerprint(entityManager, fingerprint);</span>
+<span class="nc bnc" id="L617" title="All 2 branches missed.">            for (final PublisherQueueData publisherQueueData : publisherQueueDatas) {</span>
+                // Only process entries that has not yet been published/processed
+<span class="nc bnc" id="L619" title="All 2 branches missed.">                if (publisherQueueData.getPublishStatus()==PublisherConst.STATUS_PENDING) {</span>
+<span class="nc" id="L620">                    final PublisherQueueVolatileInformation volatileInformation = publisherQueueData.getPublisherQueueVolatileData();</span>
+<span class="nc bnc" id="L621" title="All 2 branches missed.">                    if (currentUsername.equals(volatileInformation.getUsername())) {</span>
+<span class="nc" id="L622">                        volatileInformation.setUsername(newUsername);</span>
+                        // Invoke setter to trigger update of still managed JPA entity
+<span class="nc" id="L624">                        publisherQueueData.setPublisherQueueVolatileData(volatileInformation);</span>
+<span class="nc" id="L625">                        updatedPublisherQueueDataRows++;</span>
+                    }
+                }
+<span class="nc" id="L628">            }</span>
+<span class="nc" id="L629">        }</span>
+<span class="nc bnc" id="L630" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L631">            log.debug(&quot;Changed username '&quot; + currentUsername + &quot;' to '&quot; + newUsername + &quot;' in &quot; + certificateDatas.size() + &quot; rows of CertificateData.&quot;);</span>
+<span class="nc" id="L632">            log.debug(&quot;Changed username '&quot; + currentUsername + &quot;' to '&quot; + newUsername + &quot;' in &quot; + updatedPublisherQueueDataRows + &quot; rows of PublisherQueueData.&quot;);</span>
+        }
+<span class="nc" id="L634">        final List&lt;CertReqHistoryData&gt; certReqHistoryDatas = entityManager.createQuery(</span>
+<span class="nc" id="L635">                &quot;SELECT a FROM CertReqHistoryData a WHERE a.username=:username&quot;, CertReqHistoryData.class).setParameter(&quot;username&quot;, currentUsername).getResultList();</span>
+<span class="nc bnc" id="L636" title="All 2 branches missed.">        for (final CertReqHistoryData current : certReqHistoryDatas) {</span>
+            // Note: Ignore the username inside certReqHistoryData.getUserDataVO(), since this should reflect the state of the UserData at the time of certificate issuance
+<span class="nc" id="L638">            current.setUsername(newUsername);</span>
+<span class="nc" id="L639">        }</span>
+<span class="nc bnc" id="L640" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L641">            log.debug(&quot;Changed username '&quot; + currentUsername + &quot;' to '&quot; + newUsername + &quot;' in &quot; + certReqHistoryDatas.size() + &quot; rows of CertReqHistoryData.&quot;);</span>
+        }
+<span class="nc" id="L643">        final List&lt;KeyRecoveryData&gt; keyRecoveryDatas = entityManager.createQuery(</span>
+<span class="nc" id="L644">                &quot;SELECT a FROM KeyRecoveryData a WHERE a.username=:username&quot;, KeyRecoveryData.class).setParameter(&quot;username&quot;, currentUsername).getResultList();</span>
+<span class="nc bnc" id="L645" title="All 2 branches missed.">        for (final KeyRecoveryData current : keyRecoveryDatas) {</span>
+<span class="nc" id="L646">            current.setUsername(newUsername);</span>
+<span class="nc" id="L647">        }</span>
+<span class="nc bnc" id="L648" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L649">            log.debug(&quot;Changed username '&quot; + currentUsername + &quot;' to '&quot; + newUsername + &quot;' in &quot; + keyRecoveryDatas.size() + &quot; rows of KeyRecoveryData.&quot;);</span>
+        }
+<span class="nc" id="L651">        final List&lt;HardTokenData&gt; hardTokenDatas = entityManager.createQuery(</span>
+<span class="nc" id="L652">                &quot;SELECT a FROM HardTokenData a WHERE a.username=:username&quot;, HardTokenData.class).setParameter(&quot;username&quot;, currentUsername).getResultList();</span>
+<span class="nc bnc" id="L653" title="All 2 branches missed.">        for (final HardTokenData current : hardTokenDatas) {</span>
+<span class="nc" id="L654">            current.setUsername(newUsername);</span>
+<span class="nc" id="L655">        }</span>
+<span class="nc bnc" id="L656" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L657">            log.debug(&quot;Changed username '&quot; + currentUsername + &quot;' to '&quot; + newUsername + &quot;' in &quot; + hardTokenDatas.size() + &quot; rows of HardTokenData.&quot;);</span>
+        }
+        // Update CLI admins where this username is used in AdminEntityData table.
+<span class="nc" id="L660">        final List&lt;RoleMemberData&gt; roleMemberDatas = entityManager.createQuery(</span>
+                &quot;SELECT a FROM RoleMemberData a WHERE a.tokenType=:tokenType AND a.tokenMatchKey=:tokenMatchKey AND a.tokenMatchValueColumn=:tokenMatchValue&quot;, RoleMemberData.class)
+<span class="nc" id="L662">                .setParameter(&quot;tokenType&quot;, CliAuthenticationTokenMetaData.TOKEN_TYPE)</span>
+<span class="nc" id="L663">                .setParameter(&quot;tokenMatchKey&quot;, CliUserAccessMatchValue.USERNAME.getNumericValue())</span>
+<span class="nc" id="L664">                .setParameter(&quot;tokenMatchValue&quot;, currentUsername)</span>
+<span class="nc" id="L665">                .getResultList();</span>
+<span class="nc bnc" id="L666" title="All 2 branches missed.">        for (final RoleMemberData current : roleMemberDatas) {</span>
+<span class="nc" id="L667">            current.setTokenMatchValue(newUsername);</span>
+<span class="nc" id="L668">        }</span>
+<span class="nc bnc" id="L669" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L670">            log.debug(&quot;Changed username '&quot; + currentUsername + &quot;' to '&quot; + newUsername + &quot;' in &quot; + roleMemberDatas.size() + &quot; rows of RoleMemberData.&quot;);</span>
+        }
+<span class="nc" id="L672">        final String msg = intres.getLocalizedMessage(&quot;ra.editedentityrename&quot;, currentUsername, newUsername);</span>
+<span class="nc" id="L673">        auditSession.log(EjbcaEventTypes.RA_EDITENDENTITY, EventStatus.SUCCESS, EjbcaModuleTypes.RA, ServiceTypes.CORE, admin.toString(),</span>
+<span class="nc" id="L674">                String.valueOf(currentCaId), newUsername, currentUsername, msg);</span>
+<span class="nc" id="L675">        return true;</span>
+    }
+
+<span class="nc" id="L678">    private static final ApprovalOveradableClassName[] NONAPPROVABLECLASSNAMES_CHANGEUSER = {</span>
+<span class="nc" id="L679">            new ApprovalOveradableClassName(org.ejbca.core.model.approval.approvalrequests.EditEndEntityApprovalRequest.class.getName(), null),</span>
+            /**
+             * can not use .class.getName() below, because it is not part of base EJBCA dist
+             */
+            new ApprovalOveradableClassName(&quot;se.primeKey.cardPersonalization.ra.connection.ejbca.EjbcaConnection&quot;, null) };
+
+    @Override
+    public void changeUserAfterApproval(final AuthenticationToken admin, final EndEntityInformation endEntityInformation, final boolean clearpwd,
+            final int approvalRequestId, final AuthenticationToken lastApprovingAdmin) throws AuthorizationDeniedException, EndEntityProfileValidationException, WaitingForApprovalException,
+            CADoesntExistsException, ApprovalException, CertificateSerialNumberException, IllegalNameException, NoSuchEndEntityException, CustomFieldException {
+<span class="nc" id="L689">        changeUser(admin, endEntityInformation, clearpwd, false, approvalRequestId, lastApprovingAdmin, null);</span>
+        
+<span class="nc" id="L691">    }</span>
+    
+    @Override
+    public void changeUserAfterApproval(final AuthenticationToken admin, final EndEntityInformation endEntityInformation, final boolean clearpwd,
+            final int approvalRequestId, final AuthenticationToken lastApprovingAdmin, String oldUsername) throws AuthorizationDeniedException, EndEntityProfileValidationException, WaitingForApprovalException,
+            CADoesntExistsException, ApprovalException, CertificateSerialNumberException, IllegalNameException, NoSuchEndEntityException, CustomFieldException {
+<span class="nc" id="L697">        String newUsername = endEntityInformation.getUsername();</span>
+<span class="nc" id="L698">        endEntityInformation.setUsername(oldUsername);</span>
+<span class="nc" id="L699">        changeUser(admin, endEntityInformation, clearpwd, false, approvalRequestId, lastApprovingAdmin, newUsername);</span>
+<span class="nc" id="L700">    }</span>
+    
+    @Override
+    public void changeUser(final AuthenticationToken admin, final EndEntityInformation userdata, final boolean clearpwd)
+            throws AuthorizationDeniedException, EndEntityProfileValidationException, WaitingForApprovalException, CADoesntExistsException,
+            ApprovalException, CertificateSerialNumberException, IllegalNameException, NoSuchEndEntityException, CustomFieldException {
+<span class="nc" id="L706">        changeUser(admin, userdata, clearpwd, false);</span>
+<span class="nc" id="L707">    }</span>
+
+    @Override
+    public void changeUser(final AuthenticationToken admin, final EndEntityInformation endEntityInformation, final boolean clearpwd,
+            final boolean fromWebService) throws AuthorizationDeniedException, EndEntityProfileValidationException, WaitingForApprovalException,
+            CADoesntExistsException, ApprovalException, CertificateSerialNumberException, IllegalNameException, NoSuchEndEntityException, CustomFieldException {
+<span class="nc" id="L713">        changeUser(admin, endEntityInformation, clearpwd, fromWebService, 0, null, null);</span>
+<span class="nc" id="L714">    }</span>
+
+    
+    @Override
+    public void changeUser(final AuthenticationToken admin, final EndEntityInformation userdata, final boolean clearpwd, String newUsername)
+            throws AuthorizationDeniedException, EndEntityProfileValidationException, WaitingForApprovalException, CADoesntExistsException,
+            ApprovalException, CertificateSerialNumberException, IllegalNameException, NoSuchEndEntityException, CustomFieldException {
+<span class="nc" id="L721">        changeUser(admin, userdata, clearpwd, false, 0, null, newUsername);</span>
+<span class="nc" id="L722">    }</span>
+    
+    private void changeUser(final AuthenticationToken admin, final EndEntityInformation endEntityInformation, final boolean clearpwd,
+            final boolean fromWebService, final int approvalRequestId, final AuthenticationToken lastApprovingAdmin, String newUsername) 
+            throws AuthorizationDeniedException, EndEntityProfileValidationException, WaitingForApprovalException,
+            CADoesntExistsException, ApprovalException, CertificateSerialNumberException, IllegalNameException, NoSuchEndEntityException, CustomFieldException {
+<span class="nc" id="L728">        final int endEntityProfileId = endEntityInformation.getEndEntityProfileId();</span>
+<span class="nc" id="L729">        final int caid = endEntityInformation.getCAId();</span>
+<span class="nc" id="L730">        String username = endEntityInformation.getUsername();</span>
+        // Check if administrator is authorized to edit user to CA.
+<span class="nc" id="L732">        assertAuthorizedToCA(admin, caid);</span>
+<span class="nc" id="L733">        final GlobalConfiguration globalConfiguration = getGlobalConfiguration();</span>
+<span class="nc bnc" id="L734" title="All 2 branches missed.">        if (globalConfiguration.getEnableEndEntityProfileLimitations()) {</span>
+            // Check if administrator is authorized to edit user.
+<span class="nc" id="L736">            assertAuthorizedToEndEntityProfile(admin, endEntityProfileId, AccessRulesConstants.EDIT_END_ENTITY, caid);</span>
+        }
+
+<span class="nc" id="L739">        FieldValidator.validate(endEntityInformation, endEntityProfileId, endEntityProfileSession.getEndEntityProfileName(endEntityProfileId));</span>
+
+<span class="nc" id="L741">        String dn = CertTools.stringToBCDNString(StringTools.strip(endEntityInformation.getDN()));</span>
+<span class="nc" id="L742">        String altName = endEntityInformation.getSubjectAltName();</span>
+<span class="nc bnc" id="L743" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L744">            log.trace(&quot;&gt;changeUser(&quot; + username + &quot;, &quot; + dn + &quot;, &quot; + endEntityInformation.getEmail() + &quot;)&quot;);</span>
+        }   
+        try {
+<span class="nc" id="L747">            altName =  RFC4683Tools.generateSimForInternalSanFormat( altName);</span>
+<span class="nc" id="L748">        } catch(Exception e) {</span>
+<span class="nc" id="L749">             log.info(&quot;Could not generate SIM string for SAN: &quot; + altName, e);</span>
+<span class="nc" id="L750">             throw new EndEntityProfileValidationException(&quot;Could not generate SIM string for SAN: &quot; + e.getMessage(), e);</span>
+<span class="nc" id="L751">        }</span>
+<span class="nc bnc" id="L752" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L753">            log.trace(&quot;&gt;changeUser(calculated SIM &quot; + altName + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L755">        UserData userData = endEntityAccessSession.findByUsername(username); </span>
+<span class="nc bnc" id="L756" title="All 2 branches missed.">        if (userData == null) {</span>
+<span class="nc" id="L757">            final String msg = intres.getLocalizedMessage(&quot;ra.erroreditentity&quot;, username);</span>
+<span class="nc" id="L758">            log.info(msg);</span>
+<span class="nc" id="L759">            throw new NoSuchEndEntityException(msg);</span>
+        }
+<span class="nc" id="L761">        final EndEntityInformation originalCopy = userData.toEndEntityInformation();</span>
+        
+<span class="nc" id="L763">        final EndEntityProfile profile = endEntityProfileSession.getEndEntityProfileNoClone(endEntityProfileId);</span>
+        // if required, we merge the existing user dn into the dn provided by the web service.
+<span class="nc bnc" id="L765" title="All 4 branches missed.">        if (fromWebService &amp;&amp; profile.getAllowMergeDnWebServices()) {</span>
+<span class="nc bnc" id="L766" title="All 2 branches missed.">            if (userData != null) {</span>
+<span class="nc" id="L767">                final Map&lt;String, String&gt; sdnMap = new HashMap&lt;String, String&gt;();</span>
+<span class="nc bnc" id="L768" title="All 2 branches missed.">                if (profile.getUse(DnComponents.DNEMAILADDRESS, 0)) {</span>
+<span class="nc" id="L769">                    sdnMap.put(DnComponents.DNEMAILADDRESS, endEntityInformation.getEmail());</span>
+                }
+                try {
+                    // SubjectDN is not mandatory so
+<span class="nc bnc" id="L773" title="All 2 branches missed.">                    if (dn == null) {</span>
+<span class="nc" id="L774">                        dn = &quot;&quot;;</span>
+                    }
+<span class="nc" id="L776">                    dn = new DistinguishedName(userData.getSubjectDnNeverNull()).mergeDN(new DistinguishedName(dn), true, sdnMap).toString();</span>
+<span class="nc" id="L777">                } catch (InvalidNameException e) {</span>
+<span class="nc bnc" id="L778" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L779">                        log.debug(&quot;Invalid Subject DN when merging '&quot;+dn+&quot;' with '&quot;+userData.getSubjectDnNeverNull()+&quot;'. Setting it to empty. Exception was: &quot; + e.getMessage());</span>
+                    }
+<span class="nc" id="L781">                    dn = &quot;&quot;;</span>
+<span class="nc" id="L782">                }</span>
+<span class="nc" id="L783">                final Map&lt;String, String&gt; sanMap = new HashMap&lt;String, String&gt;();</span>
+<span class="nc bnc" id="L784" title="All 2 branches missed.">                if (profile.getUse(DnComponents.RFC822NAME, 0)) {</span>
+<span class="nc" id="L785">                    sanMap.put(DnComponents.RFC822NAME, endEntityInformation.getEmail());</span>
+                }
+                try {
+                    // SubjectAltName is not mandatory so
+<span class="nc bnc" id="L789" title="All 2 branches missed.">                    if (altName == null) {</span>
+<span class="nc" id="L790">                        altName = &quot;&quot;;</span>
+                    }
+<span class="nc" id="L792">                    altName = new DistinguishedName(userData.getSubjectAltNameNeverNull()).mergeDN(new DistinguishedName(altName), true, sanMap).toString();</span>
+<span class="nc" id="L793">                } catch (InvalidNameException e) {</span>
+<span class="nc bnc" id="L794" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L795">                        log.debug(&quot;Invalid Subject AN when merging '&quot;+altName+&quot;' with '&quot;+userData.getSubjectAltNameNeverNull()+&quot;'. Setting it to empty. Exception was: &quot; + e.getMessage());</span>
+                    }
+<span class="nc" id="L797">                    altName = &quot;&quot;;</span>
+<span class="nc" id="L798">                }</span>
+            }
+        }
+<span class="nc" id="L801">        String newpassword = endEntityInformation.getPassword();</span>
+<span class="nc bnc" id="L802" title="All 4 branches missed.">        if (profile.useAutoGeneratedPasswd() &amp;&amp; newpassword != null) {</span>
+            // special case used to signal regeneraton of password
+<span class="nc" id="L804">            newpassword = profile.getAutoGeneratedPasswd();</span>
+        }
+
+<span class="nc" id="L807">        final EndEntityType type = endEntityInformation.getType();</span>
+<span class="nc" id="L808">        final ExtendedInformation ei = endEntityInformation.getExtendedInformation();</span>
+        // Check if user fulfills it's profile.
+<span class="nc bnc" id="L810" title="All 2 branches missed.">        if (globalConfiguration.getEnableEndEntityProfileLimitations()) {</span>
+            try {
+<span class="nc" id="L812">                String dirattrs = null;</span>
+<span class="nc bnc" id="L813" title="All 2 branches missed.">                if (ei != null) {</span>
+<span class="nc" id="L814">                    dirattrs = ei.getSubjectDirectoryAttributes();</span>
+                }
+                // It is only meaningful to verify the password if we change it in some way, and if we are not autogenerating it
+<span class="nc bnc" id="L817" title="All 4 branches missed.">                if (!profile.useAutoGeneratedPasswd() &amp;&amp; StringUtils.isNotEmpty(newpassword)) {</span>
+<span class="nc" id="L818">                    profile.doesUserFulfillEndEntityProfile(username, endEntityInformation.getPassword(), dn, altName, dirattrs, endEntityInformation.getEmail(),</span>
+<span class="nc" id="L819">                            endEntityInformation.getCertificateProfileId(), clearpwd, type.contains(EndEntityTypes.KEYRECOVERABLE),</span>
+<span class="nc" id="L820">                            type.contains(EndEntityTypes.SENDNOTIFICATION), endEntityInformation.getTokenType(), endEntityInformation.getHardTokenIssuerId(), caid, ei);</span>
+                } else {
+<span class="nc" id="L822">                    profile.doesUserFulfillEndEntityProfileWithoutPassword(username, dn, altName, dirattrs, endEntityInformation.getEmail(),</span>
+<span class="nc" id="L823">                            endEntityInformation.getCertificateProfileId(), type.contains(EndEntityTypes.KEYRECOVERABLE),</span>
+<span class="nc" id="L824">                            type.contains(EndEntityTypes.SENDNOTIFICATION), endEntityInformation.getTokenType(), endEntityInformation.getHardTokenIssuerId(), caid, ei);</span>
+                }
+<span class="nc" id="L826">            } catch (EndEntityProfileValidationException e) {</span>
+<span class="nc" id="L827">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L828">                details.put(&quot;msg&quot;, intres.getLocalizedMessage(&quot;ra.errorfulfillprofile&quot;, Integer.valueOf(endEntityProfileId), dn, e.getMessage()));</span>
+<span class="nc" id="L829">                auditSession.log(EjbcaEventTypes.RA_EDITENDENTITY, EventStatus.FAILURE, EjbcaModuleTypes.RA, ServiceTypes.CORE, admin.toString(),</span>
+<span class="nc" id="L830">                        String.valueOf(caid), null, username, details);</span>
+<span class="nc" id="L831">                throw e;</span>
+<span class="nc" id="L832">            }</span>
+        }
+        // Check name constraints
+<span class="nc" id="L835">        final CAInfo cainfo = caSession.getCAInfoInternal(caid, null, true);</span>
+<span class="nc" id="L836">        final boolean nameChanged = // only check when name is changed so existing end-entities can be changed even if they violate NCs</span>
+<span class="nc bnc" id="L837" title="All 2 branches missed.">                !userData.getSubjectDnNeverNull().equals(CertTools.stringToBCDNString(dn)) ||</span>
+<span class="nc bnc" id="L838" title="All 4 branches missed.">                (userData.getSubjectAltName() != null &amp;&amp; !userData.getSubjectAltName().equals(altName));</span>
+<span class="nc bnc" id="L839" title="All 6 branches missed.">        if (nameChanged &amp;&amp; cainfo instanceof X509CAInfo &amp;&amp; !cainfo.getCertificateChain().isEmpty()) {</span>
+<span class="nc" id="L840">            final X509CAInfo x509cainfo = (X509CAInfo) cainfo;</span>
+<span class="nc" id="L841">            final X509Certificate cacert = (X509Certificate)cainfo.getCertificateChain().iterator().next();</span>
+<span class="nc" id="L842">            final CertificateProfile certProfile = certificateProfileSession.getCertificateProfile(userData.getCertificateProfileId());</span>
+            
+            final X500NameStyle nameStyle;
+<span class="nc bnc" id="L845" title="All 2 branches missed.">            if (x509cainfo.getUsePrintableStringSubjectDN()) {</span>
+<span class="nc" id="L846">                nameStyle = PrintableStringNameStyle.INSTANCE;</span>
+            } else {
+<span class="nc" id="L848">                nameStyle = CeSecoreNameStyle.INSTANCE;</span>
+            }
+            
+            final boolean ldaporder;
+<span class="nc bnc" id="L852" title="All 6 branches missed.">            if (x509cainfo.getUseLdapDnOrder() &amp;&amp; (certProfile != null &amp;&amp; certProfile.getUseLdapDnOrder())) {</span>
+<span class="nc" id="L853">                ldaporder = true; // will cause an error to be thrown later if name constraints are used</span>
+            } else {
+<span class="nc" id="L855">                ldaporder = false;</span>
+            }
+            
+<span class="nc" id="L858">            X500Name subjectDNName = CertTools.stringToBcX500Name(dn, nameStyle, ldaporder);</span>
+<span class="nc" id="L859">            GeneralNames subjectAltName = CertTools.getGeneralNamesFromAltName(altName);</span>
+            try {
+<span class="nc" id="L861">                CertTools.checkNameConstraints(cacert, subjectDNName, subjectAltName);</span>
+<span class="nc" id="L862">            } catch (IllegalNameException e) {</span>
+<span class="nc" id="L863">                e.setErrorCode(ErrorCode.NAMECONSTRAINT_VIOLATION);</span>
+<span class="nc" id="L864">                throw e;</span>
+<span class="nc" id="L865">            }</span>
+        }
+        // Check if approvals is required.
+<span class="nc" id="L868">        final CertificateProfile certificateProfile = certificateProfileSession.getCertificateProfile(endEntityInformation.getCertificateProfileId());</span>
+<span class="nc" id="L869">        final ApprovalProfile approvalProfile = approvalProfileSession.getApprovalProfileForAction(ApprovalRequestType.ADDEDITENDENTITY, cainfo, </span>
+                certificateProfile);
+<span class="nc bnc" id="L871" title="All 2 branches missed.">        if (approvalProfile != null) {</span>
+<span class="nc" id="L872">            final EndEntityInformation orguserdata = userData.toEndEntityInformation();</span>
+<span class="nc" id="L873">            final EndEntityInformation requestInfo = new EndEntityInformation(endEntityInformation);</span>
+<span class="nc bnc" id="L874" title="All 4 branches missed.">            if (newUsername != null &amp;&amp; !newUsername.equals(username)) {</span>
+<span class="nc" id="L875">                requestInfo.setUsername(newUsername);</span>
+            }
+<span class="nc" id="L877">            final EditEndEntityApprovalRequest ar = new EditEndEntityApprovalRequest(requestInfo, clearpwd, orguserdata, admin, null,</span>
+                     caid, endEntityProfileId, approvalProfile, true);
+<span class="nc bnc" id="L879" title="All 2 branches missed.">            if (ApprovalExecutorUtil.requireApproval(ar, NONAPPROVABLECLASSNAMES_CHANGEUSER)) {</span>
+<span class="nc" id="L880">                final int requestId = approvalSession.addApprovalRequest(admin, ar);</span>
+<span class="nc" id="L881">                throw new WaitingForApprovalException(intres.getLocalizedMessage(&quot;ra.approvaledit&quot;), requestId);</span>
+            }
+        }
+        // Rename the end entity if there's a new username
+<span class="nc bnc" id="L885" title="All 4 branches missed.">        if (newUsername != null &amp;&amp; !newUsername.equals(username)) {</span>
+<span class="nc" id="L886">            boolean success = false;</span>
+            try {
+<span class="nc" id="L888">                success = renameEndEntity(admin, username, newUsername);</span>
+<span class="nc" id="L889">            } catch (EndEntityExistsException e) {</span>
+<span class="nc" id="L890">                throw new IllegalNameException(&quot;Username already taken&quot;);</span>
+<span class="nc" id="L891">            }</span>
+<span class="nc bnc" id="L892" title="All 2 branches missed.">            if (!success) {</span>
+<span class="nc" id="L893">                throw new NoSuchEndEntityException(&quot;End entity does not exist&quot;);</span>
+            }
+<span class="nc" id="L895">            username = newUsername;</span>
+<span class="nc" id="L896">            userData = endEntityAccessSession.findByUsername(username);</span>
+        }      
+        // Check if the subjectDN serialnumber already exists.
+        // No need to access control on the CA here just to get these flags, we have already checked above that we are authorized to the CA
+<span class="nc bnc" id="L900" title="All 2 branches missed.">        if (cainfo.isDoEnforceUniqueSubjectDNSerialnumber()) {</span>
+<span class="nc bnc" id="L901" title="All 2 branches missed.">            if (!isSubjectDnSerialnumberUnique(caid, dn, username)) {</span>
+<span class="nc" id="L902">                throw new CertificateSerialNumberException(&quot;Error: SubjectDN Serialnumber already exists.&quot;);</span>
+            }
+        }
+        
+        try {
+<span class="nc" id="L907">            userData.setDN(dn);</span>
+<span class="nc" id="L908">            userData.setSubjectAltName(altName);</span>
+<span class="nc" id="L909">            userData.setSubjectEmail(endEntityInformation.getEmail());</span>
+<span class="nc" id="L910">            userData.setCaId(caid);</span>
+<span class="nc" id="L911">            userData.setType(type.getHexValue());</span>
+<span class="nc" id="L912">            userData.setEndEntityProfileId(endEntityProfileId);</span>
+<span class="nc" id="L913">            userData.setCertificateProfileId(endEntityInformation.getCertificateProfileId());</span>
+<span class="nc" id="L914">            userData.setTokenType(endEntityInformation.getTokenType());</span>
+<span class="nc" id="L915">            userData.setHardTokenIssuerId(endEntityInformation.getHardTokenIssuerId());</span>
+<span class="nc" id="L916">            userData.setCardNumber(endEntityInformation.getCardNumber());</span>
+<span class="nc" id="L917">            final int newstatus = endEntityInformation.getStatus();</span>
+<span class="nc" id="L918">            final int oldstatus = userData.getStatus();</span>
+<span class="nc bnc" id="L919" title="All 6 branches missed.">            if (oldstatus == EndEntityConstants.STATUS_KEYRECOVERY &amp;&amp; newstatus != EndEntityConstants.STATUS_KEYRECOVERY</span>
+                    &amp;&amp; newstatus != EndEntityConstants.STATUS_INPROCESS) {
+<span class="nc" id="L921">                keyRecoverySession.unmarkUser(admin, username);</span>
+            }
+<span class="nc bnc" id="L923" title="All 2 branches missed.">            if (ei != null) {</span>
+<span class="nc" id="L924">                final String requestCounter = ei.getCustomData(ExtendedInformationFields.CUSTOM_REQUESTCOUNTER);</span>
+<span class="nc bnc" id="L925" title="All 6 branches missed.">                if (StringUtils.equals(requestCounter, &quot;0&quot;) &amp;&amp; newstatus == EndEntityConstants.STATUS_NEW &amp;&amp; oldstatus != EndEntityConstants.STATUS_NEW) {</span>
+                    // If status is set to new, we should re-set the allowed request counter to the default values
+                    // But we only do this if no value is specified already, i.e. 0 or null
+<span class="nc" id="L928">                    resetRequestCounter(admin, false, ei, username, endEntityProfileId);</span>
+                } else {
+                    // If status is not new, we will only remove the counter if the profile does not use it
+<span class="nc" id="L931">                    resetRequestCounter(admin, true, ei, username, endEntityProfileId);</span>
+                }
+                
+                // Make sure that information about related approval requests are carried over to the edited end entity. 
+                // This is done to make it possible to  trace/find an approval request from the actually added/edited end entity
+<span class="nc" id="L936">                final ExtendedInformation oldExtendedInfo = userData.getExtendedInformation();</span>
+<span class="nc bnc" id="L937" title="All 2 branches missed.">                if(oldExtendedInfo != null) {</span>
+<span class="nc" id="L938">                    List&lt;Integer&gt; editApprovalReqIds = oldExtendedInfo.getEditEndEntityApprovalRequestIds();</span>
+<span class="nc bnc" id="L939" title="All 2 branches missed.">                    for(Integer id : editApprovalReqIds) {</span>
+<span class="nc" id="L940">                        ei.addEditEndEntityApprovalRequestId(id);</span>
+<span class="nc" id="L941">                    }</span>
+                
+<span class="nc" id="L943">                    Integer addApprovalReqId = oldExtendedInfo.getAddEndEntityApprovalRequestId();</span>
+<span class="nc bnc" id="L944" title="All 2 branches missed.">                    if(addApprovalReqId != null) {</span>
+<span class="nc" id="L945">                        ei.setAddEndEntityApprovalRequestId(addApprovalReqId);</span>
+                    }
+                }
+            }
+<span class="nc" id="L949">            userData.setExtendedInformation(ei);</span>
+<span class="nc" id="L950">            userData.setStatus(newstatus);</span>
+<span class="nc bnc" id="L951" title="All 2 branches missed.">            if (StringUtils.isNotEmpty(newpassword)) {</span>
+<span class="nc bnc" id="L952" title="All 2 branches missed.">                if (clearpwd) {</span>
+<span class="nc" id="L953">                    userData.setOpenPassword(newpassword);</span>
+                } else {
+<span class="nc" id="L955">                    userData.setPassword(newpassword);</span>
+                }
+            }
+            // We want to create this object before re-setting the time modified, because we may want to
+            // use the old time modified in any notifications
+<span class="nc" id="L960">            final EndEntityInformation notificationEndEntityInformation = userData.toEndEntityInformation();</span>
+<span class="nc" id="L961">            userData.setTimeModified(new Date().getTime());</span>
+            // We also want to be able to handle non-clear generated passwords in the notification, although EndEntityInformation
+            // should always have a null password for autogenerated end entities the notification framework expects it to
+            // exist.
+<span class="nc bnc" id="L965" title="All 2 branches missed.">            if (newpassword != null) {</span>
+<span class="nc" id="L966">                notificationEndEntityInformation.setPassword(newpassword);</span>
+            }
+            // Send notification if it should be sent.
+<span class="nc" id="L969">            sendNotification(admin, notificationEndEntityInformation, newstatus, approvalRequestId, lastApprovingAdmin, null);</span>
+            // Logging details object
+<span class="nc" id="L971">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+            // Make a diff of what was changed to we can log it
+            // We need to set times so that diffing is made properly
+<span class="nc" id="L974">            endEntityInformation.setTimeModified(new Date(userData.getTimeModified()));</span>
+<span class="nc" id="L975">            endEntityInformation.setTimeCreated(new Date(userData.getTimeCreated()));</span>
+<span class="nc" id="L976">            Map&lt;String, String[]&gt; diff = originalCopy.getDiff(endEntityInformation);</span>
+            // Add the diff later on, in order to have it after the &quot;msg&quot;
+<span class="nc bnc" id="L978" title="All 2 branches missed.">            if (newstatus != oldstatus) {</span>
+                // Only print stuff on a printer on the same conditions as for
+                // notifications, we also only print if the status changes, not for
+                // every time we press save
+<span class="nc bnc" id="L982" title="All 8 branches missed.">                if (type.contains(EndEntityTypes.PRINT)</span>
+                        &amp;&amp; (newstatus == EndEntityConstants.STATUS_NEW || newstatus == EndEntityConstants.STATUS_KEYRECOVERY || newstatus == EndEntityConstants.STATUS_INITIALIZED)) {
+<span class="nc" id="L984">                    print(profile, endEntityInformation);</span>
+                }
+<span class="nc" id="L986">                final String msg = intres.getLocalizedMessage(&quot;ra.editedentitystatus&quot;, username, Integer.valueOf(newstatus));</span>
+<span class="nc" id="L987">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc bnc" id="L988" title="All 2 branches missed.">                for(String key : diff.keySet()) {</span>
+<span class="nc" id="L989">                    details.put(key, diff.get(key)[0] + &quot; -&gt; &quot; + diff.get(key)[1]);</span>
+<span class="nc" id="L990">                }</span>
+<span class="nc" id="L991">                auditSession.log(EjbcaEventTypes.RA_EDITENDENTITY, EventStatus.SUCCESS, EjbcaModuleTypes.RA, ServiceTypes.CORE, admin.toString(),</span>
+<span class="nc" id="L992">                        String.valueOf(caid), null, username, details);</span>
+<span class="nc" id="L993">            } else {</span>
+<span class="nc" id="L994">                final String msg = intres.getLocalizedMessage(&quot;ra.editedentity&quot;, username);</span>
+<span class="nc" id="L995">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc bnc" id="L996" title="All 2 branches missed.">                for(String key : diff.keySet()) {</span>
+<span class="nc" id="L997">                    details.put(key, diff.get(key)[0] + &quot; -&gt; &quot; + diff.get(key)[1]);</span>
+<span class="nc" id="L998">                }</span>
+<span class="nc" id="L999">                auditSession.log(EjbcaEventTypes.RA_EDITENDENTITY, EventStatus.SUCCESS, EjbcaModuleTypes.RA, ServiceTypes.CORE, admin.toString(),</span>
+<span class="nc" id="L1000">                        String.valueOf(caid), null, username, details);</span>
+            }
+<span class="nc" id="L1002">        } catch (Exception e) {</span>
+<span class="nc" id="L1003">            final String msg = intres.getLocalizedMessage(&quot;ra.erroreditentity&quot;, username);</span>
+<span class="nc" id="L1004">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L1005">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L1006">            details.put(&quot;error&quot;, e.getMessage());</span>
+<span class="nc" id="L1007">            auditSession.log(EjbcaEventTypes.RA_EDITENDENTITY, EventStatus.FAILURE, EjbcaModuleTypes.RA, ServiceTypes.CORE, admin.toString(),</span>
+<span class="nc" id="L1008">                    String.valueOf(caid), null, username, details);</span>
+<span class="nc" id="L1009">            log.error(&quot;ChangeUser:&quot;, e);</span>
+<span class="nc" id="L1010">            throw new EJBException(e);</span>
+<span class="nc" id="L1011">        }</span>
+<span class="nc bnc" id="L1012" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1013">            log.trace(&quot;&lt;changeUser(&quot; + username + &quot;, password, &quot; + dn + &quot;, &quot; + endEntityInformation.getEmail() + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L1015">    }</span>
+
+    @Override
+    public void deleteUser(final AuthenticationToken admin, final String username) throws AuthorizationDeniedException, NoSuchEndEntityException, CouldNotRemoveEndEntityException {
+<span class="nc bnc" id="L1019" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1020">            log.trace(&quot;&gt;deleteUser(&quot; + username + &quot;)&quot;);</span>
+        }
+        // Check if administrator is authorized to delete user.
+<span class="nc" id="L1023">        String caIdLog = null;</span>
+<span class="nc" id="L1024">        final UserData data1 = endEntityAccessSession.findByUsername(username);</span>
+<span class="nc bnc" id="L1025" title="All 2 branches missed.">        if (data1 != null) {</span>
+<span class="nc" id="L1026">            final int caid = data1.getCaId();</span>
+<span class="nc" id="L1027">            caIdLog = String.valueOf(caid);</span>
+<span class="nc" id="L1028">            assertAuthorizedToCA(admin, caid);</span>
+<span class="nc bnc" id="L1029" title="All 2 branches missed.">            if (getGlobalConfiguration().getEnableEndEntityProfileLimitations()) {</span>
+<span class="nc" id="L1030">                assertAuthorizedToEndEntityProfile(admin, data1.getEndEntityProfileId(), AccessRulesConstants.DELETE_END_ENTITY, caid);</span>
+            }
+<span class="nc" id="L1032">        } else {</span>
+<span class="nc" id="L1033">            log.info(intres.getLocalizedMessage(&quot;ra.errorentitynotexist&quot;, username));</span>
+            // This exception message is used to not leak information to the user 
+<span class="nc" id="L1035">            final String msg = intres.getLocalizedMessage(&quot;ra.wrongusernameorpassword&quot;);</span>
+<span class="nc" id="L1036">            log.info(msg);</span>
+<span class="nc" id="L1037">            throw new NoSuchEndEntityException(msg);</span>
+        }
+        try {
+<span class="nc" id="L1040">            entityManager.remove(data1);</span>
+<span class="nc" id="L1041">            final String msg = intres.getLocalizedMessage(&quot;ra.removedentity&quot;, username);</span>
+<span class="nc" id="L1042">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L1043">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L1044">            auditSession.log(EjbcaEventTypes.RA_DELETEENDENTITY, EventStatus.SUCCESS, EjbcaModuleTypes.RA, ServiceTypes.CORE, admin.toString(),</span>
+                    caIdLog, null, username, details);
+<span class="nc" id="L1046">        } catch (Exception e) {</span>
+<span class="nc" id="L1047">            final String msg = intres.getLocalizedMessage(&quot;ra.errorremoveentity&quot;, username);</span>
+<span class="nc" id="L1048">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L1049">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L1050">            details.put(&quot;error&quot;, e.getMessage());</span>
+<span class="nc" id="L1051">            auditSession.log(EjbcaEventTypes.RA_DELETEENDENTITY, EventStatus.FAILURE, EjbcaModuleTypes.RA, ServiceTypes.CORE, admin.toString(),</span>
+                    caIdLog, null, username, details);
+<span class="nc" id="L1053">            throw new CouldNotRemoveEndEntityException(msg);</span>
+<span class="nc" id="L1054">        }</span>
+<span class="nc bnc" id="L1055" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1056">            log.trace(&quot;&lt;deleteUser(&quot; + username + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L1058">    }</span>
+
+<span class="nc" id="L1060">    private static final ApprovalOveradableClassName[] NONAPPROVABLECLASSNAMES_SETUSERSTATUS = {</span>
+<span class="nc" id="L1061">            new ApprovalOveradableClassName(org.ejbca.core.model.approval.approvalrequests.ChangeStatusEndEntityApprovalRequest.class.getName(), null),</span>
+<span class="nc" id="L1062">            new ApprovalOveradableClassName(org.ejbca.core.ejb.ra.EndEntityManagementSessionBean.class.getName(), &quot;revokeUser&quot;),</span>
+<span class="nc" id="L1063">            new ApprovalOveradableClassName(org.ejbca.core.ejb.ra.EndEntityManagementSessionBean.class.getName(), &quot;revokeUserAfterApproval&quot;),</span>
+<span class="nc" id="L1064">            new ApprovalOveradableClassName(org.ejbca.core.ejb.ra.EndEntityManagementSessionBean.class.getName(), &quot;revokeCert&quot;),</span>
+<span class="nc" id="L1065">            new ApprovalOveradableClassName(org.ejbca.core.ejb.ca.auth.EndEntityAuthenticationSessionBean.class.getName(), &quot;finishUser&quot;),</span>
+<span class="nc" id="L1066">            new ApprovalOveradableClassName(org.ejbca.core.ejb.ra.EndEntityManagementSessionBean.class.getName(), &quot;unrevokeCert&quot;),</span>
+<span class="nc" id="L1067">            new ApprovalOveradableClassName(org.ejbca.core.ejb.ra.EndEntityManagementSessionBean.class.getName(), &quot;prepareForKeyRecovery&quot;),</span>
+            /**
+             * can not use .class.getName() below, because it is not part of base EJBCA dist
+             */
+            new ApprovalOveradableClassName(&quot;org.ejbca.extra.caservice.ExtRACAProcess&quot;, &quot;processExtRARevocationRequest&quot;),
+            new ApprovalOveradableClassName(&quot;se.primeKey.cardPersonalization.ra.connection.ejbca.EjbcaConnection&quot;, null) };
+
+    @Override
+    public int decRequestCounter(String username) throws NoSuchEndEntityException, ApprovalException,
+            WaitingForApprovalException {
+<span class="nc bnc" id="L1077" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1078">            log.trace(&quot;&gt;decRequestCounter(&quot; + username + &quot;)&quot;);</span>
+        }
+        // Default return value is as if the optional value does not exist for
+        // the user, i.e. the default values is 0
+        // because the default number of allowed requests are 1
+<span class="nc" id="L1083">        int counter = 0;</span>
+        // Check if administrator is authorized to edit user.
+<span class="nc" id="L1085">        UserData data1 = endEntityAccessSession.findByUsername(username);</span>
+<span class="nc bnc" id="L1086" title="All 2 branches missed.">        if (data1 != null) {</span>
+            // Do the work of decreasing the counter
+<span class="nc" id="L1088">            ExtendedInformation ei = data1.getExtendedInformation();</span>
+<span class="nc bnc" id="L1089" title="All 2 branches missed.">            if (ei != null) {</span>
+<span class="nc" id="L1090">                String counterstr = ei.getCustomData(ExtendedInformationFields.CUSTOM_REQUESTCOUNTER);</span>
+<span class="nc" id="L1091">                boolean serialNumberCleared = false;</span>
+<span class="nc bnc" id="L1092" title="All 2 branches missed.">                if (StringUtils.isNotEmpty(counterstr)) {</span>
+                    try {
+<span class="nc" id="L1094">                        counter = Integer.valueOf(counterstr);</span>
+<span class="nc bnc" id="L1095" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1096">                            log.debug(&quot;Found a counter with value &quot; + counter);</span>
+                        }
+                        // decrease the counter, if we get to 0 we must set
+                        // status to generated
+<span class="nc" id="L1100">                        counter--;</span>
+<span class="nc bnc" id="L1101" title="All 2 branches missed.">                        if (counter &gt;= 0) {</span>
+<span class="nc" id="L1102">                            ei.setCustomData(ExtendedInformationFields.CUSTOM_REQUESTCOUNTER, String.valueOf(counter));</span>
+<span class="nc" id="L1103">                            ei.setCertificateSerialNumber(null);// cert serial number should also be cleared after successful command.</span>
+<span class="nc" id="L1104">                            data1.setExtendedInformation(ei);</span>
+<span class="nc" id="L1105">                            serialNumberCleared = true;</span>
+<span class="nc" id="L1106">                            final Date now = new Date();</span>
+<span class="nc bnc" id="L1107" title="All 2 branches missed.">                            if (counter &gt; 0) { // if 0 then update when changing type</span>
+<span class="nc" id="L1108">                                data1.setTimeModified(now.getTime());</span>
+                            }
+<span class="nc" id="L1110">                            String msg = intres.getLocalizedMessage(&quot;ra.decreasedentityrequestcounter&quot;, username, counter);</span>
+<span class="nc" id="L1111">                            log.info(msg);</span>
+<span class="nc" id="L1112">                        } else {</span>
+<span class="nc bnc" id="L1113" title="All 2 branches missed.">                            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1114">                                log.debug(&quot;Counter value was already 0, not decreased in db.&quot;);</span>
+                            }
+                        }
+<span class="nc" id="L1117">                    } catch (NumberFormatException e) {</span>
+<span class="nc" id="L1118">                        String msg = intres.getLocalizedMessage(&quot;ra.errorrequestcounterinvalid&quot;, username, counterstr, e.getMessage());</span>
+<span class="nc" id="L1119">                        log.error(msg, e);</span>
+<span class="nc" id="L1120">                    }</span>
+                } else {
+<span class="nc bnc" id="L1122" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1123">                        log.debug(&quot;No (optional) request counter exists for end entity: &quot; + username);</span>
+                    }
+                }
+<span class="nc bnc" id="L1126" title="All 4 branches missed.">                if (!serialNumberCleared &amp;&amp; ei.certificateSerialNumber() != null) {</span>
+<span class="nc" id="L1127">                    ei.setCertificateSerialNumber(null);// cert serial number should also be cleared after successful command.</span>
+<span class="nc" id="L1128">                    data1.setExtendedInformation(ei);</span>
+                }
+<span class="nc" id="L1130">            } else {</span>
+<span class="nc bnc" id="L1131" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1132">                    log.debug(&quot;No extended information exists for user: &quot; + data1.getUsername());</span>
+                }
+            }
+<span class="nc" id="L1135">        } else {</span>
+<span class="nc" id="L1136">            log.info(intres.getLocalizedMessage(&quot;ra.errorentitynotexist&quot;, username));</span>
+            // This exception message is used to not leak information to the user
+<span class="nc" id="L1138">            String msg = intres.getLocalizedMessage(&quot;ra.wrongusernameorpassword&quot;);</span>
+<span class="nc" id="L1139">            log.info(msg);</span>
+<span class="nc" id="L1140">            throw new NoSuchEndEntityException(msg);</span>
+        }
+<span class="nc bnc" id="L1142" title="All 2 branches missed.">        if (counter &lt;= 0) {</span>
+<span class="nc" id="L1143">            AuthenticationToken admin = new AlwaysAllowLocalAuthenticationToken(new UsernamePrincipal(&quot;Local admin call from EndEntityManagementSession.decRequestCounter&quot;));</span>
+<span class="nc" id="L1144">            setUserStatus(admin, data1, EndEntityConstants.STATUS_GENERATED, 0, null);</span>
+        }
+<span class="nc bnc" id="L1146" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1147">            log.trace(&quot;&lt;decRequestCounter(&quot; + username + &quot;): &quot; + counter);</span>
+        }
+<span class="nc" id="L1149">        return counter;</span>
+    }
+
+    @Override
+    public void cleanUserCertDataSN(EndEntityInformation data) throws NoSuchEndEntityException {
+<span class="nc bnc" id="L1154" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1155">            log.trace(&quot;&gt;cleanUserCertDataSN: &quot; + data.getUsername());</span>
+        }
+        try {
+<span class="nc" id="L1158">            cleanUserCertDataSN(data.getUsername());</span>
+<span class="nc" id="L1159">        } catch (NoSuchEndEntityException e) {</span>
+<span class="nc" id="L1160">            String msg = intres.getLocalizedMessage(&quot;authentication.usernotfound&quot;, data.getUsername());</span>
+<span class="nc" id="L1161">            log.info(msg);</span>
+<span class="nc" id="L1162">            throw new NoSuchEndEntityException(e.getMessage());   </span>
+<span class="nc" id="L1163">        } catch (ApprovalException e) {</span>
+            // Should never happen
+<span class="nc" id="L1165">            log.error(&quot;ApprovalException: &quot;, e);</span>
+<span class="nc" id="L1166">            throw new EJBException(e);</span>
+<span class="nc" id="L1167">        } catch (WaitingForApprovalException e) {</span>
+            // Should never happen
+<span class="nc" id="L1169">            log.error(&quot;WaitingForApprovalException: &quot;, e);</span>
+<span class="nc" id="L1170">            throw new EJBException(e);</span>
+<span class="nc" id="L1171">        }</span>
+<span class="nc bnc" id="L1172" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1173">            log.trace(&quot;&lt;cleanUserCertDataSN: &quot; + data.getUsername());</span>
+        }
+<span class="nc" id="L1175">    }</span>
+
+    @Override
+    public void cleanUserCertDataSN(String username) throws ApprovalException, WaitingForApprovalException, NoSuchEndEntityException {
+<span class="nc bnc" id="L1179" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1180">            log.trace(&quot;&gt;cleanUserCertDataSN(&quot; + username + &quot;)&quot;);</span>
+        }
+        try {
+            // Check if administrator is authorized to edit user.
+<span class="nc" id="L1184">            UserData data1 = endEntityAccessSession.findByUsername(username);</span>
+<span class="nc bnc" id="L1185" title="All 2 branches missed.">            if (data1 != null) {</span>
+<span class="nc" id="L1186">                final ExtendedInformation ei = data1.getExtendedInformation();</span>
+<span class="nc bnc" id="L1187" title="All 2 branches missed.">                if (ei == null) {</span>
+<span class="nc bnc" id="L1188" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1189">                        log.debug(&quot;No extended information exists for user: &quot; + data1.getUsername());</span>
+                    }
+                } else {
+<span class="nc" id="L1192">                    ei.setCertificateSerialNumber(null);</span>
+<span class="nc" id="L1193">                    data1.setExtendedInformation(ei);</span>
+                }
+<span class="nc" id="L1195">            } else {</span>
+<span class="nc" id="L1196">                log.info(intres.getLocalizedMessage(&quot;ra.errorentitynotexist&quot;, username));</span>
+                // This exception message is used to not leak information to the user
+<span class="nc" id="L1198">                String msg = intres.getLocalizedMessage(&quot;ra.wrongusernameorpassword&quot;);</span>
+<span class="nc" id="L1199">                log.info(msg);</span>
+<span class="nc" id="L1200">                throw new NoSuchEndEntityException(msg);</span>
+            }
+        } finally {
+<span class="nc bnc" id="L1203" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1204">                log.trace(&quot;&lt;cleanUserCertDataSN(&quot; + username + &quot;)&quot;);</span>
+            }
+        }
+<span class="nc" id="L1207">    }</span>
+    
+    @Override
+    public void setUserStatus(final AuthenticationToken admin, final String username, final int status) throws AuthorizationDeniedException,
+            ApprovalException, WaitingForApprovalException, NoSuchEndEntityException {
+<span class="nc" id="L1212">        setUserStatusAfterApproval(admin, username, status, 0, null);</span>
+<span class="nc" id="L1213">    }</span>
+    
+    @Override
+    public void setUserStatusAfterApproval(final AuthenticationToken admin, final String username, final int status, final int approvalRequestID,
+            final AuthenticationToken lastApprovingAdmin)
+            throws AuthorizationDeniedException, ApprovalException, WaitingForApprovalException, NoSuchEndEntityException {
+<span class="nc bnc" id="L1219" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1220">            log.trace(&quot;&gt;setUserStatus(&quot; + username + &quot;, &quot; + status + &quot;)&quot;);</span>
+        }
+        // Check if administrator is authorized to edit user.
+<span class="nc" id="L1223">        final UserData data = endEntityAccessSession.findByUsername(username);</span>
+<span class="nc bnc" id="L1224" title="All 2 branches missed.">        if (data == null) {</span>
+<span class="nc" id="L1225">            log.info(intres.getLocalizedMessage(&quot;ra.errorentitynotexist&quot;, username));</span>
+            // This exception message is used to not leak information to the user
+<span class="nc" id="L1227">            final String msg = intres.getLocalizedMessage(&quot;ra.wrongusernameorpassword&quot;);</span>
+<span class="nc" id="L1228">            log.info(msg);</span>
+<span class="nc" id="L1229">            throw new NoSuchEndEntityException(msg);</span>
+        }
+        // Check authorization
+<span class="nc" id="L1232">        final int caid = data.getCaId();</span>
+<span class="nc" id="L1233">        assertAuthorizedToCA(admin, caid);</span>
+<span class="nc bnc" id="L1234" title="All 2 branches missed.">        if (getGlobalConfiguration().getEnableEndEntityProfileLimitations()) {</span>
+<span class="nc" id="L1235">            assertAuthorizedToEndEntityProfile(admin, data.getEndEntityProfileId(), AccessRulesConstants.EDIT_END_ENTITY, caid);</span>
+        }
+<span class="nc" id="L1237">        setUserStatus(admin, data, status, approvalRequestID, lastApprovingAdmin);</span>
+<span class="nc" id="L1238">    }</span>
+    
+    private void setUserStatus(final AuthenticationToken admin, final UserData data1, final int status, final int approvalRequestID, 
+            final AuthenticationToken lastApprovingAdmin) throws ApprovalException, WaitingForApprovalException {
+<span class="nc" id="L1242">        final int caid = data1.getCaId();</span>
+<span class="nc" id="L1243">        CAInfo cainfo = caSession.getCAInfoInternal(caid, null, true);</span>
+        
+<span class="nc" id="L1245">        final String username = data1.getUsername();</span>
+<span class="nc" id="L1246">        final int endEntityProfileId = data1.getEndEntityProfileId();</span>
+        // Check if approvals is required.
+<span class="nc" id="L1248">        final CertificateProfile certProfile = certificateProfileSession.getCertificateProfile(data1.getCertificateProfileId());</span>
+<span class="nc" id="L1249">        final ApprovalProfile approvalProfile = approvalProfileSession.getApprovalProfileForAction(ApprovalRequestType.ADDEDITENDENTITY, cainfo, </span>
+                certProfile);
+<span class="nc bnc" id="L1251" title="All 2 branches missed.">        if (approvalProfile != null) {</span>
+<span class="nc" id="L1252">            final ChangeStatusEndEntityApprovalRequest ar = new ChangeStatusEndEntityApprovalRequest(username, data1.getStatus(), status, admin,</span>
+<span class="nc" id="L1253">                    null, data1.getCaId(), endEntityProfileId, approvalProfile);</span>
+<span class="nc bnc" id="L1254" title="All 2 branches missed.">            if (ApprovalExecutorUtil.requireApproval(ar, NONAPPROVABLECLASSNAMES_SETUSERSTATUS)) {</span>
+<span class="nc" id="L1255">                final int requestId = approvalSession.addApprovalRequest(admin, ar);</span>
+<span class="nc" id="L1256">                String msg = intres.getLocalizedMessage(&quot;ra.approvaledit&quot;);                </span>
+<span class="nc" id="L1257">                throw new WaitingForApprovalException(msg, requestId);</span>
+            }
+        }
+<span class="nc bnc" id="L1260" title="All 8 branches missed.">        if (data1.getStatus() == EndEntityConstants.STATUS_KEYRECOVERY</span>
+                &amp;&amp; !(status == EndEntityConstants.STATUS_KEYRECOVERY || status == EndEntityConstants.STATUS_INPROCESS || status == EndEntityConstants.STATUS_INITIALIZED)) {
+<span class="nc" id="L1262">            keyRecoverySession.unmarkUser(admin, username);</span>
+        }
+<span class="nc bnc" id="L1264" title="All 4 branches missed.">        if ((status == EndEntityConstants.STATUS_NEW) &amp;&amp; (data1.getStatus() != EndEntityConstants.STATUS_NEW)) {</span>
+<span class="nc" id="L1265">            final ExtendedInformation ei = data1.getExtendedInformation();</span>
+<span class="nc bnc" id="L1266" title="All 2 branches missed.">            if (ei != null) {</span>
+                // If status is set to new, when it is not already new, we should
+                // re-set the allowed request counter to the default values
+<span class="nc" id="L1269">                final boolean counterChanged = resetRequestCounter(admin, false, ei, username, endEntityProfileId);</span>
+                // Reset remaining login counter
+<span class="nc" id="L1271">                final boolean resetChanged = UserData.resetRemainingLoginAttemptsInternal(ei, username);</span>
+<span class="nc bnc" id="L1272" title="All 4 branches missed.">                if (counterChanged || resetChanged) {</span>
+                    // TimeModified is set finally below, since this method sets status as well
+                    // data1.setTimeModified(new Date().getTime());
+<span class="nc" id="L1275">                    data1.setExtendedInformation(ei);</span>
+                }
+            }
+<span class="nc" id="L1278">        } else {</span>
+<span class="nc bnc" id="L1279" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1280">                log.debug(&quot;Status not changing from something else to new, not resetting requestCounter.&quot;);</span>
+            }
+        }
+        
+<span class="nc bnc" id="L1284" title="All 2 branches missed.">        if(approvalRequestID != 0) {</span>
+<span class="nc" id="L1285">            ExtendedInformation ei = data1.getExtendedInformation();</span>
+<span class="nc bnc" id="L1286" title="All 2 branches missed.">            if(ei == null) {</span>
+<span class="nc" id="L1287">                ei = new ExtendedInformation();</span>
+            }
+<span class="nc" id="L1289">            ei.addEditEndEntityApprovalRequestId(Integer.valueOf(approvalRequestID));</span>
+<span class="nc" id="L1290">            data1.setExtendedInformation(ei);</span>
+        } 
+        
+<span class="nc" id="L1293">        final Date timeModified = new Date();</span>
+<span class="nc" id="L1294">        data1.setStatus(status);</span>
+<span class="nc" id="L1295">        data1.setTimeModified(timeModified.getTime());</span>
+<span class="nc" id="L1296">        final String msg = intres.getLocalizedMessage(&quot;ra.editedentitystatus&quot;, username, Integer.valueOf(status));</span>
+<span class="nc" id="L1297">        Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L1298">        details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L1299">        auditSession.log(EjbcaEventTypes.RA_EDITENDENTITY, EventStatus.SUCCESS, EjbcaModuleTypes.RA, ServiceTypes.CORE, admin.toString(),</span>
+<span class="nc" id="L1300">                String.valueOf(caid), null, username, details);</span>
+        // Send notifications when transitioning user through work-flow, if they
+        // should be sent
+<span class="nc" id="L1303">        final EndEntityInformation userdata = data1.toEndEntityInformation();</span>
+<span class="nc" id="L1304">        sendNotification(admin, userdata, status, 0, lastApprovingAdmin, null);</span>
+<span class="nc bnc" id="L1305" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1306">            log.trace(&quot;&lt;setUserStatus(&quot; + username + &quot;, &quot; + status + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L1308">    }</span>
+
+    @Override
+    public void setPassword(AuthenticationToken admin, String username, String password) throws EndEntityProfileValidationException,
+            AuthorizationDeniedException, NoSuchEndEntityException {
+<span class="nc" id="L1313">        setPassword(admin, username, password, false);</span>
+<span class="nc" id="L1314">    }</span>
+
+    @Override
+    public void setClearTextPassword(AuthenticationToken admin, String username, String password) throws EndEntityProfileValidationException,
+            AuthorizationDeniedException, NoSuchEndEntityException {
+<span class="nc" id="L1319">        setPassword(admin, username, password, true);</span>
+<span class="nc" id="L1320">    }</span>
+
+    /**
+     * Sets a password, hashed or clear text, for a user.
+     * 
+     * @param admin the administrator performing the action
+     * @param username the unique username.
+     * @param password the new password to be stored in clear text. Setting password to 'null' effectively deletes any previous clear text password.
+     * @param cleartext true gives cleartext password, false hashed
+     * @throws EndEntityProfileValidationException Fail
+     * @throws AuthorizationDeniedException Fail
+     * @throws NoSuchEndEntityException Fail
+     */
+    private void setPassword(final AuthenticationToken admin, final String username, final String password, final boolean cleartext)
+            throws EndEntityProfileValidationException, AuthorizationDeniedException, NoSuchEndEntityException {
+<span class="nc bnc" id="L1335" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1336">            log.trace(&quot;&gt;setPassword(&quot; + username + &quot;, hiddenpwd), &quot; + cleartext);</span>
+        }
+        // Find user
+<span class="nc" id="L1339">        String newpasswd = password;</span>
+<span class="nc" id="L1340">        final UserData data = endEntityAccessSession.findByUsername(username);</span>
+<span class="nc bnc" id="L1341" title="All 2 branches missed.">        if (data == null) {</span>
+<span class="nc" id="L1342">            throw new NoSuchEndEntityException(&quot;Could not find user &quot; + username);</span>
+        }
+<span class="nc" id="L1344">        final int caid = data.getCaId();</span>
+<span class="nc" id="L1345">        final int endEntityProfileId = data.getEndEntityProfileId();</span>
+
+<span class="nc" id="L1347">        final EndEntityProfile profile = endEntityProfileSession.getEndEntityProfileNoClone(endEntityProfileId);</span>
+<span class="nc bnc" id="L1348" title="All 2 branches missed.">        if (profile != null) {</span>
+<span class="nc bnc" id="L1349" title="All 2 branches missed.">            if (profile.useAutoGeneratedPasswd()) {</span>
+<span class="nc" id="L1350">                newpasswd = profile.getAutoGeneratedPasswd();</span>
+            }
+        }
+<span class="nc bnc" id="L1353" title="All 2 branches missed.">        if (getGlobalConfiguration().getEnableEndEntityProfileLimitations()) {</span>
+            // Check if user fulfills it's profile.
+<span class="nc bnc" id="L1355" title="All 2 branches missed.">            if (profile != null) {</span>
+                try {
+<span class="nc" id="L1357">                    profile.doesPasswordFulfillEndEntityProfile(password, true);</span>
+<span class="nc" id="L1358">                } catch (EndEntityProfileValidationException e) {</span>
+<span class="nc" id="L1359">                    final String dn = data.getSubjectDnNeverNull();</span>
+<span class="nc" id="L1360">                    final String msg = intres.getLocalizedMessage(&quot;ra.errorfulfillprofile&quot;, Integer.valueOf(endEntityProfileId), dn, e.getMessage());</span>
+<span class="nc" id="L1361">                    auditSession.log(EjbcaEventTypes.RA_EDITENDENTITY, EventStatus.FAILURE, EjbcaModuleTypes.RA, ServiceTypes.CORE, admin.toString(),</span>
+<span class="nc" id="L1362">                            String.valueOf(caid), null, username, msg);</span>
+<span class="nc" id="L1363">                    throw e;</span>
+<span class="nc" id="L1364">                }</span>
+            }
+            // Check if administrator is authorized to edit user.
+<span class="nc" id="L1367">            assertAuthorizedToEndEntityProfile(admin, data.getEndEntityProfileId(), AccessRulesConstants.EDIT_END_ENTITY, caid);</span>
+        }
+<span class="nc" id="L1369">        assertAuthorizedToCA(admin, caid);</span>
+        try {
+<span class="nc" id="L1371">            final Date now = new Date();</span>
+<span class="nc bnc" id="L1372" title="All 4 branches missed.">            if ((newpasswd == null) &amp;&amp; (cleartext)) {</span>
+<span class="nc" id="L1373">                data.setClearPassword(&quot;&quot;);</span>
+<span class="nc" id="L1374">                data.setPasswordHash(&quot;&quot;);</span>
+<span class="nc" id="L1375">                data.setTimeModified(now.getTime());</span>
+            } else {
+<span class="nc bnc" id="L1377" title="All 2 branches missed.">                if (cleartext) {</span>
+<span class="nc" id="L1378">                    data.setOpenPassword(newpasswd);</span>
+                } else {
+<span class="nc" id="L1380">                    data.setPassword(newpasswd);</span>
+                }
+<span class="nc" id="L1382">                data.setTimeModified(now.getTime());</span>
+            }
+<span class="nc" id="L1384">            final String msg = intres.getLocalizedMessage(&quot;ra.editpwdentity&quot;, username);</span>
+<span class="nc" id="L1385">            Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L1386">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L1387">            auditSession.log(EjbcaEventTypes.RA_EDITENDENTITY, EventStatus.SUCCESS, EjbcaModuleTypes.RA, ServiceTypes.CORE, admin.toString(),</span>
+<span class="nc" id="L1388">                    String.valueOf(caid), null, username, details);</span>
+<span class="nc" id="L1389">        } catch (NoSuchAlgorithmException nsae) {</span>
+<span class="nc" id="L1390">            log.error(&quot;NoSuchAlgorithmException while setting password for user &quot; + username);</span>
+<span class="nc" id="L1391">            throw new EJBException(nsae);</span>
+<span class="nc" id="L1392">        }</span>
+<span class="nc bnc" id="L1393" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1394">            log.trace(&quot;&lt;setPassword(&quot; + username + &quot;, hiddenpwd), &quot; + cleartext);</span>
+        }
+<span class="nc" id="L1396">    }</span>
+    
+    @Override
+    public void updateCAId(final AuthenticationToken admin, final String username, int newCAId)
+            throws AuthorizationDeniedException, NoSuchEndEntityException {
+<span class="nc bnc" id="L1401" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1402">            log.trace(&quot;&gt;updateCAId(&quot; + username + &quot;, &quot;+newCAId+&quot;)&quot;);</span>
+        }
+        // Find user
+<span class="nc" id="L1405">        final UserData data = endEntityAccessSession.findByUsername(username);</span>
+<span class="nc bnc" id="L1406" title="All 2 branches missed.">        if (data == null) {</span>
+<span class="nc" id="L1407">            throw new NoSuchEndEntityException(&quot;Could not find user &quot; + username);</span>
+        }
+<span class="nc" id="L1409">        int oldCAId = data.getCaId();</span>
+<span class="nc" id="L1410">        assertAuthorizedToCA(admin, oldCAId);</span>
+<span class="nc" id="L1411">        data.setCaId(newCAId);</span>
+        
+<span class="nc" id="L1413">        final String msg = intres.getLocalizedMessage(&quot;ra.updatedentitycaid&quot;, username, oldCAId, newCAId);</span>
+<span class="nc" id="L1414">        Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L1415">        details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L1416">        auditSession.log(EjbcaEventTypes.RA_EDITENDENTITY, EventStatus.SUCCESS, EjbcaModuleTypes.RA, ServiceTypes.CORE, admin.toString(),</span>
+<span class="nc" id="L1417">            String.valueOf(oldCAId), null, username, details);</span>
+<span class="nc bnc" id="L1418" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1419">            log.trace(&quot;&gt;updateCAId(&quot; + username + &quot;, &quot;+newCAId+&quot;)&quot;);</span>
+        }
+<span class="nc" id="L1421">    }</span>
+
+    @Override
+    public boolean verifyPassword(AuthenticationToken admin, String username, String password, boolean decRemainingLoginAttemptsOnFailure) throws EndEntityProfileValidationException,
+            AuthorizationDeniedException, NoSuchEndEntityException {
+<span class="nc bnc" id="L1426" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1427">            log.trace(&quot;&gt;verifyPassword(&quot; + username + &quot;, hiddenpwd)&quot;);</span>
+        }
+<span class="nc" id="L1429">        boolean ret = false;</span>
+        // Find user
+<span class="nc" id="L1431">        final UserData data = endEntityAccessSession.findByUsername(username);</span>
+<span class="nc bnc" id="L1432" title="All 2 branches missed.">        if (data == null) {</span>
+<span class="nc" id="L1433">            throw new NoSuchEndEntityException(&quot;Could not find user &quot; + username);</span>
+        }
+<span class="nc" id="L1435">        final int caid = data.getCaId();</span>
+<span class="nc bnc" id="L1436" title="All 2 branches missed.">        if (getGlobalConfiguration().getEnableEndEntityProfileLimitations()) {</span>
+            // Check if administrator is authorized to edit user.
+<span class="nc" id="L1438">            assertAuthorizedToEndEntityProfile(admin, data.getEndEntityProfileId(), AccessRulesConstants.EDIT_END_ENTITY, caid);</span>
+        }
+<span class="nc" id="L1440">        assertAuthorizedToCA(admin, caid);</span>
+        try {
+<span class="nc" id="L1442">            ret = data.comparePassword(password);</span>
+<span class="nc bnc" id="L1443" title="All 4 branches missed.">            if (!ret &amp;&amp; decRemainingLoginAttemptsOnFailure) {</span>
+                // If verification fails, and the caller want to, try to decrease remaining login attempts
+<span class="nc" id="L1445">                final ExtendedInformation ei = data.getExtendedInformation();</span>
+<span class="nc bnc" id="L1446" title="All 2 branches missed.">                if (EndEntityAuthenticationSessionBean.decRemainingLoginAttempts(data, ei)) {</span>
+<span class="nc" id="L1447">                    data.setTimeModified(new Date().getTime());</span>
+<span class="nc" id="L1448">                    data.setExtendedInformation(ei);</span>
+                }
+            }
+<span class="nc" id="L1451">        } catch (NoSuchAlgorithmException nsae) {</span>
+<span class="nc" id="L1452">            log.debug(&quot;NoSuchAlgorithmException while verifying password for user &quot; + username);</span>
+<span class="nc" id="L1453">            throw new EJBException(nsae);</span>
+<span class="nc" id="L1454">        }</span>
+<span class="nc bnc" id="L1455" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1456">            log.trace(&quot;&lt;verifyPassword(&quot; + username + &quot;, hiddenpwd)&quot;);</span>
+        }
+<span class="nc" id="L1458">        return ret;</span>
+    }
+
+<span class="nc" id="L1461">    private static final ApprovalOveradableClassName[] NONAPPROVABLECLASSNAMES_REVOKEANDDELETEUSER = { new ApprovalOveradableClassName(</span>
+<span class="nc" id="L1462">            org.ejbca.core.model.approval.approvalrequests.RevocationApprovalRequest.class.getName(), null), };</span>
+
+    @Override
+    public void revokeAndDeleteUser(AuthenticationToken admin, String username, int reason) throws AuthorizationDeniedException, ApprovalException,
+            WaitingForApprovalException, NoSuchEndEntityException, CouldNotRemoveEndEntityException {
+<span class="nc" id="L1467">        final UserData data = endEntityAccessSession.findByUsername(username);</span>
+<span class="nc bnc" id="L1468" title="All 2 branches missed.">        if (data == null) {</span>
+<span class="nc" id="L1469">            throw new NoSuchEndEntityException(&quot;User '&quot; + username + &quot;' not found.&quot;);</span>
+        }
+        // Authorized?
+<span class="nc" id="L1472">        final int caid = data.getCaId();</span>
+<span class="nc" id="L1473">        assertAuthorizedToCA(admin, caid);</span>
+<span class="nc bnc" id="L1474" title="All 2 branches missed.">        if (getGlobalConfiguration().getEnableEndEntityProfileLimitations()) {</span>
+<span class="nc" id="L1475">            assertAuthorizedToEndEntityProfile(admin, data.getEndEntityProfileId(), AccessRulesConstants.REVOKE_END_ENTITY, caid);</span>
+        }
+
+<span class="nc bnc" id="L1478" title="All 2 branches missed.">        if (data.getStatus() != EndEntityConstants.STATUS_REVOKED) {</span>
+            // Check if approvals is required.
+<span class="nc" id="L1480">            CAInfo cainfo = caSession.getCAInfoInternal(caid, null, true);</span>
+<span class="nc bnc" id="L1481" title="All 2 branches missed.">            if(cainfo == null) {</span>
+                // If CA does not exist, the user is a bit &quot;weird&quot;, but things can happen in reality and CAs can disappear
+                // So the CA not existing should not prevent us from revoking the user.
+                // It may however affect the possible Approvals, but we probably need to be able to do this in order to clean up a bad situation
+<span class="nc" id="L1485">                log.info(&quot;Trying to revokeAndDelete an End Entity connected to a CA, with ID &quot; + caid + &quot;, that does not exist.&quot;);</span>
+            }
+<span class="nc" id="L1487">            final CertificateProfile certProfile = certificateProfileSession.getCertificateProfile(data.getCertificateProfileId());</span>
+<span class="nc" id="L1488">            final ApprovalProfile approvalProfile = approvalProfileSession.getApprovalProfileForAction(ApprovalRequestType.REVOCATION, cainfo,</span>
+                    certProfile);
+<span class="nc bnc" id="L1490" title="All 2 branches missed.">            if (approvalProfile != null) {</span>
+<span class="nc" id="L1491">                final RevocationApprovalRequest ar = new RevocationApprovalRequest(true, username, reason, admin, caid, data.getEndEntityProfileId(),</span>
+                        approvalProfile);
+<span class="nc bnc" id="L1493" title="All 2 branches missed.">                if (ApprovalExecutorUtil.requireApproval(ar, NONAPPROVABLECLASSNAMES_REVOKEANDDELETEUSER)) {</span>
+<span class="nc" id="L1494">                    final int requestId = approvalSession.addApprovalRequest(admin, ar);</span>
+<span class="nc" id="L1495">                    throw new WaitingForApprovalException(intres.getLocalizedMessage(&quot;ra.approvalrevoke&quot;), requestId);</span>
+                }
+            }
+            try {
+<span class="nc" id="L1499">                revokeUser(admin, username, reason);</span>
+<span class="nc" id="L1500">            } catch (AlreadyRevokedException e) {</span>
+                // This just means that the end entity was revoked before
+                // this request could be completed. No harm.
+<span class="nc" id="L1503">            }</span>
+        } 
+<span class="nc" id="L1505">        deleteUser(admin, username);</span>
+<span class="nc" id="L1506">    }</span>
+
+<span class="nc" id="L1508">    private static final ApprovalOveradableClassName[] NONAPPROVABLECLASSNAMES_REVOKEUSER = {</span>
+<span class="nc" id="L1509">            new ApprovalOveradableClassName(org.ejbca.core.ejb.ra.EndEntityManagementSessionBean.class.getName(), &quot;revokeAndDeleteUser&quot;),</span>
+<span class="nc" id="L1510">            new ApprovalOveradableClassName(org.ejbca.core.model.approval.approvalrequests.RevocationApprovalRequest.class.getName(), null), };</span>
+
+    @Override
+    public void revokeUser(final AuthenticationToken authenticationToken, final String username, final int reason, final boolean deleteUser) throws AuthorizationDeniedException, CADoesntExistsException, 
+        ApprovalException, WaitingForApprovalException, AlreadyRevokedException, NoSuchEndEntityException, CouldNotRemoveEndEntityException, EjbcaException {
+        // Check username.
+<span class="nc" id="L1516">        final EndEntityInformation userdata = endEntityAccessSession.findUser(authenticationToken,username);</span>
+<span class="nc bnc" id="L1517" title="All 2 branches missed.">        if(userdata == null) {</span>
+<span class="nc" id="L1518">            throw new NoSuchEndEntityException(&quot;User '&quot; + username + &quot;' not found.&quot;);</span>
+        }
+        // Check CA ID.
+<span class="nc" id="L1521">        final int caId = userdata.getCAId();</span>
+<span class="nc" id="L1522">        caSession.verifyExistenceOfCA(caId);</span>
+        // Authorization check is done later again in revokeUser..., and may be written to audit log.
+        // The error messages differ and MUST NOT be changed here because of the call by RaMasterAPI and EJBCA WS.
+<span class="nc bnc" id="L1525" title="All 2 branches missed.">        if(!authorizationSession.isAuthorizedNoLogging(authenticationToken, StandardRules.CAACCESS.resource() + caId)) {     </span>
+<span class="nc" id="L1526">            throw new AuthorizationDeniedException(intres.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, StandardRules.CAACCESS.resource() + caId, null));</span>
+        }
+<span class="nc bnc" id="L1528" title="All 2 branches missed.">        if (deleteUser) {</span>
+<span class="nc" id="L1529">            revokeAndDeleteUser(authenticationToken,username,reason);</span>
+        } else {
+<span class="nc" id="L1531">            revokeUser(authenticationToken,username,reason);</span>
+        }
+<span class="nc" id="L1533">    }</span>
+    
+    @Override
+    public void revokeUser(AuthenticationToken admin, String username, int reason) throws AuthorizationDeniedException, NoSuchEndEntityException,
+            ApprovalException, WaitingForApprovalException, AlreadyRevokedException {
+<span class="nc" id="L1538">        revokeUserAfterApproval(admin, username, reason, 0, null);</span>
+<span class="nc" id="L1539">    }</span>
+    
+    @Override
+    public void revokeUserAfterApproval(AuthenticationToken admin, String username, int reason, final int approvalRequestID, 
+            final AuthenticationToken lastApprovingAdmin) throws AuthorizationDeniedException, NoSuchEndEntityException,
+            ApprovalException, WaitingForApprovalException, AlreadyRevokedException {
+<span class="nc bnc" id="L1545" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1546">            log.trace(&quot;&gt;revokeUser(&quot; + username + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L1548">        final UserData userData = endEntityAccessSession.findByUsername(username);</span>
+<span class="nc bnc" id="L1549" title="All 2 branches missed.">        if (userData == null) {</span>
+<span class="nc" id="L1550">            throw new NoSuchEndEntityException(&quot;Could not find user &quot; + username);</span>
+        }
+<span class="nc" id="L1552">        final int caid = userData.getCaId();</span>
+<span class="nc" id="L1553">        assertAuthorizedToCA(admin, caid);</span>
+<span class="nc bnc" id="L1554" title="All 2 branches missed.">        if (getGlobalConfiguration().getEnableEndEntityProfileLimitations()) {</span>
+<span class="nc" id="L1555">            assertAuthorizedToEndEntityProfile(admin, userData.getEndEntityProfileId(), AccessRulesConstants.REVOKE_END_ENTITY, caid);</span>
+        }
+
+<span class="nc bnc" id="L1558" title="All 4 branches missed.">        if ((userData.getStatus() == EndEntityConstants.STATUS_REVOKED) &amp;&amp; !RevokedCertInfo.isRevoked(reason)) {</span>
+<span class="nc" id="L1559">            final String msg = intres.getLocalizedMessage(&quot;ra.errorinvalidrevokereason&quot;, userData.getUsername(), reason);</span>
+<span class="nc" id="L1560">            log.info(msg);</span>
+<span class="nc" id="L1561">            throw new AlreadyRevokedException(msg);</span>
+        }
+
+        // Check if approvals is required.
+<span class="nc" id="L1565">        CAInfo cainfo = caSession.getCAInfoInternal(caid, null, true);</span>
+<span class="nc bnc" id="L1566" title="All 2 branches missed.">        if(cainfo == null) {</span>
+            // If CA does not exist, the user is a bit &quot;weird&quot;, but things can happen in reality and CAs can disappear
+            // So the CA not existing should not prevent us from revoking the user.
+            // It may however affect the possible Approvals, but we probably need to be able to do this in order to clean up a bad situation 
+<span class="nc" id="L1570">            log.info(&quot;Trying to revoke an End Entity connected to a CA, with ID &quot;+caid+&quot;, that does not exist.&quot;);</span>
+        }
+<span class="nc" id="L1572">        final CertificateProfile certProfile = certificateProfileSession.getCertificateProfile(userData.getCertificateProfileId());</span>
+<span class="nc" id="L1573">        final ApprovalProfile approvalProfile = approvalProfileSession.getApprovalProfileForAction(ApprovalRequestType.REVOCATION, cainfo, certProfile);</span>
+<span class="nc bnc" id="L1574" title="All 2 branches missed.">        if (approvalProfile != null) {</span>
+<span class="nc" id="L1575">            final RevocationApprovalRequest ar = new RevocationApprovalRequest(false, username, reason, admin, caid, userData.getEndEntityProfileId(),</span>
+                    approvalProfile);
+<span class="nc bnc" id="L1577" title="All 2 branches missed.">            if (ApprovalExecutorUtil.requireApproval(ar, NONAPPROVABLECLASSNAMES_REVOKEUSER)) {</span>
+<span class="nc" id="L1578">                final int requestId = approvalSession.addApprovalRequest(admin, ar);</span>
+<span class="nc" id="L1579">                throw new WaitingForApprovalException(intres.getLocalizedMessage(&quot;ra.approvalrevoke&quot;), requestId);</span>
+            }
+        }
+        // Revoke all non-expired and not revoked certs, one at the time
+<span class="nc" id="L1583">        final EndEntityInformation endEntityInformation = userData.toEndEntityInformation();</span>
+<span class="nc" id="L1584">        final List&lt;CertificateDataWrapper&gt; cdws = certificateStoreSession.getCertificateDataByUsername(username, true, Arrays.asList(CertificateConstants.CERT_ARCHIVED, CertificateConstants.CERT_REVOKED));</span>
+<span class="nc bnc" id="L1585" title="All 2 branches missed.">        for (final CertificateDataWrapper cdw : cdws) {</span>
+            try {
+<span class="nc" id="L1587">                final Certificate certificate = cdw.getCertificate();</span>
+                final BigInteger serialNumber;
+<span class="nc bnc" id="L1589" title="All 2 branches missed.">                if (certificate==null) {</span>
+                    try {
+                        // This will work for X.509
+<span class="nc" id="L1592">                        serialNumber = new BigInteger(cdw.getCertificateData().getSerialNumber(), 10);</span>
+<span class="nc" id="L1593">                    } catch (NumberFormatException e) {</span>
+<span class="nc" id="L1594">                        throw new UnsupportedOperationException();</span>
+<span class="nc" id="L1595">                    }</span>
+                } else {
+<span class="nc" id="L1597">                    serialNumber = CertTools.getSerialNumber(certificate);</span>
+                }
+                try {
+<span class="nc" id="L1600">                    revokeCert(admin, serialNumber, null, cdw.getCertificateData().getIssuerDN(), reason, false, endEntityInformation, 0, lastApprovingAdmin, null);</span>
+<span class="nc" id="L1601">                } catch (RevokeBackDateNotAllowedForProfileException e) {</span>
+<span class="nc" id="L1602">                    throw new IllegalStateException(&quot;This should not happen since there is no back dating.&quot;,e);</span>
+<span class="nc" id="L1603">                } catch (CertificateProfileDoesNotExistException e) {</span>
+<span class="nc" id="L1604">                    throw new IllegalStateException(&quot;This should not happen since this method overload does not support certificateProfileId input parameter.&quot;,e);</span>
+<span class="nc" id="L1605">                }</span>
+<span class="nc" id="L1606">            } catch (AlreadyRevokedException e) {</span>
+<span class="nc bnc" id="L1607" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1608">                    log.debug(&quot;Certificate from issuer '&quot; + cdw.getCertificateData().getIssuerDN() + &quot;' with serial &quot; + cdw.getCertificateData().getSerialNumber()</span>
+                            + &quot; was already revoked.&quot;);
+                }
+<span class="nc" id="L1611">            }</span>
+<span class="nc" id="L1612">        }</span>
+        
+<span class="nc bnc" id="L1614" title="All 2 branches missed.">        if(approvalRequestID != 0) { </span>
+<span class="nc" id="L1615">            ExtendedInformation ei = userData.getExtendedInformation();</span>
+<span class="nc bnc" id="L1616" title="All 2 branches missed.">            if(ei == null) {</span>
+<span class="nc" id="L1617">                ei = new ExtendedInformation();</span>
+            }
+<span class="nc" id="L1619">            ei.addRevokeEndEntityApprovalRequestId(Integer.valueOf(approvalRequestID));</span>
+<span class="nc" id="L1620">            userData.setExtendedInformation(ei);</span>
+        }
+        
+        // Finally set revoke status on the user as well
+        try {
+<span class="nc" id="L1625">            setUserStatus(admin, userData, EndEntityConstants.STATUS_REVOKED, 0, lastApprovingAdmin);</span>
+<span class="nc" id="L1626">        } catch (ApprovalException e) {</span>
+<span class="nc" id="L1627">            throw new IllegalStateException(&quot;This should never happen&quot;, e);</span>
+<span class="nc" id="L1628">        } catch (WaitingForApprovalException e) {</span>
+<span class="nc" id="L1629">            throw new IllegalStateException(&quot;This should never happen&quot;, e);</span>
+<span class="nc" id="L1630">        }</span>
+<span class="nc" id="L1631">        final String msg = intres.getLocalizedMessage(&quot;ra.revokedentity&quot;, username);</span>
+<span class="nc" id="L1632">        Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L1633">        details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L1634">        auditSession.log(EjbcaEventTypes.RA_REVOKEDENDENTITY, EventStatus.SUCCESS, EjbcaModuleTypes.RA, ServiceTypes.CORE, admin.toString(),</span>
+<span class="nc" id="L1635">                String.valueOf(caid), null, username, details);</span>
+<span class="nc bnc" id="L1636" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1637">            log.trace(&quot;&lt;revokeUser()&quot;);</span>
+        }
+<span class="nc" id="L1639">    }</span>
+
+<span class="nc" id="L1641">    private static final ApprovalOveradableClassName[] NONAPPROVABLECLASSNAMES_REVOKECERT = { new ApprovalOveradableClassName(</span>
+<span class="nc" id="L1642">            org.ejbca.core.model.approval.approvalrequests.RevocationApprovalRequest.class.getName(), null), };</span>
+
+    @Override
+    public void revokeCert(final AuthenticationToken admin, final BigInteger certserno, final String issuerdn, final int reason)
+            throws AuthorizationDeniedException, NoSuchEndEntityException, ApprovalException, WaitingForApprovalException, AlreadyRevokedException {
+        try {
+<span class="nc" id="L1648">            revokeCert(admin, certserno, null, issuerdn, reason, false);</span>
+<span class="nc" id="L1649">        } catch (RevokeBackDateNotAllowedForProfileException e) {</span>
+<span class="nc" id="L1650">            throw new IllegalStateException(&quot;This should not happen since there is no back dating.&quot;,e);</span>
+<span class="nc" id="L1651">        }</span>
+<span class="nc" id="L1652">    }</span>
+    @Override
+    public void revokeCertAfterApproval(final AuthenticationToken admin, final BigInteger certserno, final String issuerdn, final int reason, 
+            final int approvalRequestID, final AuthenticationToken lastApprovingAdmin)
+            throws AuthorizationDeniedException, NoSuchEndEntityException, ApprovalException, WaitingForApprovalException, AlreadyRevokedException {
+        try {
+<span class="nc" id="L1658">            revokeCert(admin, certserno, null, issuerdn, reason, false, null, approvalRequestID, lastApprovingAdmin, null);</span>
+<span class="nc" id="L1659">        } catch (RevokeBackDateNotAllowedForProfileException e) {</span>
+<span class="nc" id="L1660">            throw new IllegalStateException(&quot;This should not happen since there is no back dating.&quot;,e);</span>
+<span class="nc" id="L1661">        } catch (CertificateProfileDoesNotExistException e) {</span>
+<span class="nc" id="L1662">            throw new IllegalStateException(&quot;This should not happen since this method overload does not support certificateProfileId input parameter.&quot;,e);</span>
+<span class="nc" id="L1663">        }</span>
+<span class="nc" id="L1664">    }</span>
+    
+    @Override
+    public void revokeCert(AuthenticationToken admin, BigInteger certserno, Date revocationdate, String issuerdn, int reason, boolean checkDate)
+            throws AuthorizationDeniedException, NoSuchEndEntityException, ApprovalException, WaitingForApprovalException,
+            RevokeBackDateNotAllowedForProfileException, AlreadyRevokedException {
+        try {
+<span class="nc" id="L1671">            revokeCert(admin, certserno, revocationdate, issuerdn, reason, checkDate, null, 0, null, null);</span>
+<span class="nc" id="L1672">        } catch (CertificateProfileDoesNotExistException e) {</span>
+<span class="nc" id="L1673">            throw new IllegalStateException(&quot;This should not happen since this method overload does not support certificateProfileId input parameter.&quot;,e);</span>
+<span class="nc" id="L1674">        }</span>
+<span class="nc" id="L1675">    }</span>
+    
+    @Override
+    public void revokeCertWithMetadata(AuthenticationToken admin, CertRevocationDto certRevocationDto)
+            throws AuthorizationDeniedException, NoSuchEndEntityException, ApprovalException, WaitingForApprovalException,
+            RevokeBackDateNotAllowedForProfileException, AlreadyRevokedException, CertificateProfileDoesNotExistException {
+        
+<span class="nc" id="L1682">        BigInteger certificateSn = new BigInteger(certRevocationDto.getCertificateSN(), 16);</span>
+<span class="nc" id="L1683">        revokeCert(admin, certificateSn, certRevocationDto.getRevocationDate(), certRevocationDto.getIssuerDN(), certRevocationDto.getReason(), certRevocationDto.isCheckDate(), </span>
+<span class="nc" id="L1684">                null, 0, null, certRevocationDto.getCertificateProfileId());</span>
+<span class="nc" id="L1685">    }</span>
+
+    private void revokeCert(AuthenticationToken admin, BigInteger certserno, Date revocationdate, String issuerdn, int reason, boolean checkDate,
+            final EndEntityInformation endEntityInformationParam, final int approvalRequestID, final AuthenticationToken lastApprovingAdmin, final Integer certificateProfileIdParam) 
+            throws AuthorizationDeniedException, NoSuchEndEntityException, ApprovalException, WaitingForApprovalException,
+            RevokeBackDateNotAllowedForProfileException, AlreadyRevokedException, CertificateProfileDoesNotExistException {
+<span class="nc bnc" id="L1691" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1692">            log.trace(&quot;&gt;revokeCert(&quot; + certserno.toString(16) + &quot;, IssuerDN: &quot; + issuerdn + &quot;)&quot;);</span>
+        }
+        // Check that the admin has revocation rights.
+<span class="nc bnc" id="L1695" title="All 2 branches missed.">        if (!authorizationSession.isAuthorizedNoLogging(admin, AccessRulesConstants.REGULAR_REVOKEENDENTITY)) {</span>
+<span class="nc" id="L1696">            String msg = intres.getLocalizedMessage(&quot;ra.errorauthrevoke&quot;);</span>
+<span class="nc" id="L1697">            Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L1698">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L1699">            auditSession.log(EventTypes.ACCESS_CONTROL, EventStatus.FAILURE, EjbcaModuleTypes.RA, ServiceTypes.CORE, admin.toString(), null,</span>
+<span class="nc" id="L1700">                    certserno.toString(16).toUpperCase(), null, details);</span>
+<span class="nc" id="L1701">            throw new AuthorizationDeniedException(msg);</span>
+        }
+        
+        // To be fully backwards compatible we just use the first fingerprint found..
+<span class="nc" id="L1705">        final CertificateDataWrapper cdw = noConflictCertificateStoreSession.getCertificateDataByIssuerAndSerno(issuerdn, certserno);</span>
+<span class="nc bnc" id="L1706" title="All 2 branches missed.">        if (cdw == null) {</span>
+<span class="nc" id="L1707">            final String msg = intres.getLocalizedMessage(&quot;ra.errorfindentitycert&quot;, issuerdn, certserno.toString(16));</span>
+<span class="nc" id="L1708">            log.info(msg);</span>
+<span class="nc" id="L1709">            throw new NoSuchEndEntityException(msg);</span>
+        }
+<span class="nc" id="L1711">        final BaseCertificateData certificateData = cdw.getBaseCertificateData();</span>
+<span class="nc" id="L1712">        final int caid = certificateData.getIssuerDN().hashCode();</span>
+<span class="nc" id="L1713">        final String username = certificateData.getUsername();</span>
+<span class="nc" id="L1714">        assertAuthorizedToCA(admin, caid);</span>
+<span class="nc" id="L1715">        final int revocationReason = certificateData.getRevocationReason();</span>
+        
+<span class="nc bnc" id="L1717" title="All 2 branches missed.">        if (certificateProfileIdParam != null) {</span>
+<span class="nc" id="L1718">            validateCertificateProfileExists(certificateProfileIdParam);</span>
+<span class="nc" id="L1719">            certificateData.setCertificateProfileId(certificateProfileIdParam);</span>
+        }
+<span class="nc" id="L1721">        int certificateProfileId = certificateData.getCertificateProfileId();</span>
+        
+<span class="nc" id="L1723">        String certificateSubjectDN = certificateData.getSubjectDnNeverNull();</span>
+<span class="nc" id="L1724">        final CertReqHistory certReqHistory = certreqHistorySession.retrieveCertReqHistory(certserno, issuerdn);</span>
+<span class="nc bnc" id="L1725" title="All 2 branches missed.">        int endEntityProfileId = certificateData.getEndEntityProfileId()==null ? -1 : certificateData.getEndEntityProfileIdOrZero();</span>
+<span class="nc bnc" id="L1726" title="All 2 branches missed.">        final EndEntityInformation endEntityInformation = endEntityInformationParam==null ? endEntityAccessSession.findUser(username) : endEntityInformationParam;</span>
+<span class="nc bnc" id="L1727" title="All 2 branches missed.">        if (certReqHistory == null) {</span>
+<span class="nc bnc" id="L1728" title="All 2 branches missed.">            if (endEntityInformation!=null) {</span>
+                // Get the EEP that is currently used as a fallback, if we can find it
+<span class="nc" id="L1730">                endEntityProfileId = endEntityInformation.getEndEntityProfileId();</span>
+                // Republish with the same user DN that is currently used as a fallback, if we can find it
+<span class="nc" id="L1732">                certificateSubjectDN = endEntityInformation.getCertificateDN();</span>
+                // If for some reason the certificate profile ID was not set in the certificate data, try to get it from current userdata
+<span class="nc bnc" id="L1734" title="All 2 branches missed.">                if (certificateProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE) {</span>
+<span class="nc" id="L1735">                    certificateProfileId = endEntityInformation.getCertificateProfileId();</span>
+                }
+            }
+        } else {
+            // Get the EEP that was used in the original issuance, if we can find it
+<span class="nc" id="L1740">            endEntityProfileId = certReqHistory.getEndEntityInformation().getEndEntityProfileId();</span>
+            // Republish with the same user DN that was used in the original publication, if we can find it
+<span class="nc" id="L1742">            certificateSubjectDN = certReqHistory.getEndEntityInformation().getCertificateDN();</span>
+            // If for some reason the certificate profile ID was not set in the certificate data, try to get it from the certreq history
+<span class="nc bnc" id="L1744" title="All 2 branches missed.">            if (certificateProfileId == CertificateProfileConstants.CERTPROFILE_NO_PROFILE) {</span>
+<span class="nc" id="L1745">                certificateProfileId = certReqHistory.getEndEntityInformation().getCertificateProfileId();</span>
+            }
+        }
+<span class="nc bnc" id="L1748" title="All 2 branches missed.">        if (endEntityProfileId != -1) {</span>
+            // We can only perform this check if we have a trail of what eep was used..
+<span class="nc bnc" id="L1750" title="All 2 branches missed.">            if (getGlobalConfiguration().getEnableEndEntityProfileLimitations()) {</span>
+<span class="nc" id="L1751">                assertAuthorizedToEndEntityProfile(admin, endEntityProfileId, AccessRulesConstants.REVOKE_END_ENTITY, caid);</span>
+            }
+        }
+        // Check that unrevocation is not done on anything that can not be unrevoked
+<span class="nc bnc" id="L1755" title="All 2 branches missed.">        if (!RevokedCertInfo.isRevoked(reason)) {</span>
+<span class="nc bnc" id="L1756" title="All 2 branches missed.">            if (revocationReason != RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD) {</span>
+<span class="nc" id="L1757">                final String msg = intres.getLocalizedMessage(&quot;ra.errorunrevokenotonhold&quot;, issuerdn, certserno.toString(16));</span>
+<span class="nc" id="L1758">                log.info(msg);</span>
+<span class="nc" id="L1759">                throw new AlreadyRevokedException(msg);</span>
+            }
+        } else {
+<span class="nc bnc" id="L1762" title="All 6 branches missed.">            if (    revocationReason != RevokedCertInfo.NOT_REVOKED &amp;&amp;</span>
+                    // it should be possible to revoke a certificate on hold for good.
+                    revocationReason != RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD &amp;&amp;
+                    // a valid certificate could have reason &quot;REVOCATION_REASON_REMOVEFROMCRL&quot; if it has been revoked in the past.
+                    revocationReason != RevokedCertInfo.REVOCATION_REASON_REMOVEFROMCRL ) {
+<span class="nc" id="L1767">                final String msg = intres.getLocalizedMessage(&quot;ra.errorrevocationexists&quot;, issuerdn, certserno.toString(16));</span>
+<span class="nc" id="L1768">                log.info(msg);</span>
+<span class="nc" id="L1769">                throw new AlreadyRevokedException(msg);</span>
+            }
+        }
+<span class="nc bnc" id="L1772" title="All 4 branches missed.">        if (endEntityProfileId != -1 &amp;&amp; certificateProfileId != CertificateProfileConstants.CERTPROFILE_NO_PROFILE) {</span>
+            // We can only perform this check if we have a trail of what eep and cp was used..
+            // Check if approvals is required.
+<span class="nc" id="L1775">            CAInfo cainfo = caSession.getCAInfoInternal(caid, null, true);</span>
+<span class="nc bnc" id="L1776" title="All 2 branches missed.">            if(cainfo == null) {</span>
+                // If CA does not exist, the certificate is a bit &quot;weird&quot;, but things can happen in reality and CAs can disappear
+                // So the CA not existing should not prevent us from revoking the certificate.
+                // It may however affect the possible Approvals, but we probably need to be able to do this in order to clean up a bad situation 
+<span class="nc" id="L1780">                log.info(&quot;Trying to revoke a certificate issued by a CA, with ID &quot;+caid+&quot;, that does not exist. IssuerDN='&quot;+certificateData.getIssuerDN()+&quot;'.&quot;);</span>
+            }
+<span class="nc" id="L1782">            final CertificateProfile certProfile = certificateProfileSession.getCertificateProfile(certificateProfileId);</span>
+<span class="nc" id="L1783">            final ApprovalProfile approvalProfile = approvalProfileSession.getApprovalProfileForAction(ApprovalRequestType.REVOCATION, cainfo, </span>
+                    certProfile);
+<span class="nc bnc" id="L1785" title="All 2 branches missed.">            if (approvalProfile != null) {</span>
+<span class="nc" id="L1786">                final RevocationApprovalRequest ar = new RevocationApprovalRequest(certserno, issuerdn, username, reason, admin, caid,</span>
+                        endEntityProfileId, approvalProfile);
+<span class="nc bnc" id="L1788" title="All 2 branches missed.">                if (ApprovalExecutorUtil.requireApproval(ar, NONAPPROVABLECLASSNAMES_REVOKECERT)) {</span>
+<span class="nc" id="L1789">                    final int requestId = approvalSession.addApprovalRequest(admin, ar);</span>
+<span class="nc" id="L1790">                    throw new WaitingForApprovalException(intres.getLocalizedMessage(&quot;ra.approvalrevoke&quot;), requestId);</span>
+                }
+            }
+        }
+        // Finally find the publishers for the certificate profileId that we found
+<span class="nc" id="L1795">        Collection&lt;Integer&gt; publishers = new ArrayList&lt;&gt;(0);</span>
+<span class="nc" id="L1796">        final CertificateProfile certificateProfile = certificateProfileSession.getCertificateProfile(certificateProfileId);</span>
+<span class="nc bnc" id="L1797" title="All 2 branches missed.">        if (certificateProfile != null) {</span>
+<span class="nc" id="L1798">            publishers = certificateProfile.getPublisherList();</span>
+<span class="nc bnc" id="L1799" title="All 4 branches missed.">            if (publishers == null || publishers.size() == 0) {</span>
+<span class="nc bnc" id="L1800" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1801">                    log.debug(&quot;No publishers defined for certificate with serial #&quot; + certserno.toString(16) + &quot; issued by &quot; + issuerdn);</span>
+                }
+            }
+        } else {
+<span class="nc" id="L1805">            log.warn(&quot;No certificate profile for certificate with serial #&quot; + certserno.toString(16) + &quot; issued by &quot; + issuerdn);</span>
+        }
+<span class="nc bnc" id="L1807" title="All 8 branches missed.">        if ( checkDate &amp;&amp; revocationdate!=null &amp;&amp; (certificateProfile==null || !certificateProfile.getAllowBackdatedRevocation()) ) {</span>
+<span class="nc" id="L1808">        	final String profileName = this.certificateProfileSession.getCertificateProfileName(certificateProfileId);</span>
+<span class="nc" id="L1809">        	final String m = intres.getLocalizedMessage(&quot;ra.norevokebackdate&quot;, profileName, certserno.toString(16), issuerdn);</span>
+<span class="nc" id="L1810">        	throw new RevokeBackDateNotAllowedForProfileException(m);</span>
+        }
+        
+<span class="nc bnc" id="L1813" title="All 2 branches missed.">        if(approvalRequestID != 0) {</span>
+<span class="nc" id="L1814">            UserData userdata = endEntityAccessSession.findByUsername(username);</span>
+<span class="nc" id="L1815">            ExtendedInformation ei = userdata.getExtendedInformation();</span>
+<span class="nc bnc" id="L1816" title="All 2 branches missed.">            if(ei == null) {</span>
+<span class="nc" id="L1817">                ei = new ExtendedInformation();</span>
+            }
+<span class="nc" id="L1819">            ei.addRevokeEndEntityApprovalRequestId(Integer.valueOf(approvalRequestID));</span>
+<span class="nc" id="L1820">            userdata.setExtendedInformation(ei);</span>
+<span class="nc" id="L1821">            userdata.setTimeModified((new Date()).getTime());</span>
+        }
+        
+        // Revoke certificate in database and all publishers
+        try {
+<span class="nc bnc" id="L1826" title="All 2 branches missed.">            revocationSession.revokeCertificate(admin, cdw, publishers, revocationdate!=null ? revocationdate : new Date(), reason, certificateSubjectDN);</span>
+<span class="nc" id="L1827">        } catch (CertificateRevokeException e) {</span>
+<span class="nc" id="L1828">            final String msg = intres.getLocalizedMessage(&quot;ra.errorfindentitycert&quot;, issuerdn, certserno.toString(16));</span>
+<span class="nc" id="L1829">            log.info(msg);</span>
+<span class="nc" id="L1830">            throw new NoSuchEndEntityException(msg);</span>
+<span class="nc" id="L1831">        }</span>
+        // In the case where this is an individual certificate revocation request, we still send a STATUS_REVOKED notification (since user state wont change)
+<span class="nc bnc" id="L1833" title="All 4 branches missed.">        if (endEntityProfileId != -1 &amp;&amp; endEntityInformationParam==null) {</span>
+<span class="nc" id="L1834">            sendNotification(admin, endEntityInformation, EndEntityConstants.STATUS_REVOKED, 0, lastApprovingAdmin, cdw);</span>
+        }
+<span class="nc bnc" id="L1836" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1837">            log.trace(&quot;&lt;revokeCert()&quot;);</span>
+        }
+<span class="nc" id="L1839">    }</span>
+
+    private void validateCertificateProfileExists(Integer certificateProfileIdParam) throws CertificateProfileDoesNotExistException {
+<span class="nc bnc" id="L1842" title="All 4 branches missed.">        assert(certificateProfileIdParam != null);</span>
+<span class="nc" id="L1843">        CertificateProfile certificateProfile = certificateProfileSession.getCertificateProfile(certificateProfileIdParam);</span>
+<span class="nc bnc" id="L1844" title="All 2 branches missed.">        if (certificateProfile == null) {</span>
+<span class="nc" id="L1845">            final String msg = intres.getLocalizedMessage(&quot;ra.errornocertificateprofile&quot;, certificateProfileIdParam);</span>
+<span class="nc" id="L1846">            throw new CertificateProfileDoesNotExistException(msg);</span>
+        }
+<span class="nc" id="L1848">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public boolean checkIfCertificateBelongToUser(BigInteger certificatesnr, String issuerdn) {
+<span class="nc bnc" id="L1853" title="All 2 branches missed.">        if (!WebConfiguration.getRequireAdminCertificateInDatabase()) {</span>
+<span class="nc bnc" id="L1854" title="All 2 branches missed.">            if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1855">                log.trace(&quot;&lt;checkIfCertificateBelongToUser Configured to ignore if cert belongs to user.&quot;);</span>
+            }
+<span class="nc" id="L1857">            return true;</span>
+        }
+<span class="nc" id="L1859">        final String username = certificateStoreSession.findUsernameByCertSerno(certificatesnr, issuerdn);</span>
+<span class="nc bnc" id="L1860" title="All 2 branches missed.">        if (username != null) {</span>
+<span class="nc bnc" id="L1861" title="All 2 branches missed.">            if (endEntityAccessSession.findByUsername(username) == null) {</span>
+<span class="nc" id="L1862">                final String msg = intres.getLocalizedMessage(&quot;ra.errorcertnouser&quot;, issuerdn, certificatesnr.toString(16));</span>
+<span class="nc" id="L1863">                log.info(msg);</span>
+<span class="nc" id="L1864">                return false;</span>
+            } else {
+<span class="nc" id="L1866">                return true;</span>
+            }
+        } else {
+<span class="nc" id="L1869">            return false;</span>
+        }
+       
+    }
+
+   
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public List&lt;EndEntityInformation&gt; findUsers(List&lt;Integer&gt; caIds, long timeModified, int status) {
+<span class="nc" id="L1879">        String queryString = &quot;SELECT a FROM UserData a WHERE (a.timeModified &lt;=:timeModified) AND (a.status=:status)&quot;;</span>
+<span class="nc bnc" id="L1880" title="All 2 branches missed.">        if (caIds.size() &gt; 0) {</span>
+<span class="nc" id="L1881">            queryString += &quot; AND (a.caId=:caId0&quot;;</span>
+<span class="nc bnc" id="L1882" title="All 2 branches missed.">            for (int i = 1; i &lt; caIds.size(); i++) {</span>
+<span class="nc" id="L1883">                queryString += &quot; OR a.caId=:caId&quot; + i;</span>
+            }
+<span class="nc" id="L1885">            queryString += &quot;)&quot;;</span>
+        }
+<span class="nc bnc" id="L1887" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1888">            log.debug(&quot;Checking for &quot; + caIds.size() + &quot; CAs&quot;);</span>
+<span class="nc" id="L1889">            log.debug(&quot;Generated query string: &quot; + queryString);</span>
+        }
+<span class="nc" id="L1891">        TypedQuery&lt;UserData&gt; query = entityManager.createQuery(queryString, UserData.class);</span>
+<span class="nc" id="L1892">        query.setParameter(&quot;timeModified&quot;, timeModified);</span>
+<span class="nc" id="L1893">        query.setParameter(&quot;status&quot;, status);</span>
+<span class="nc bnc" id="L1894" title="All 2 branches missed.">        if (caIds.size() &gt; 0) {</span>
+<span class="nc bnc" id="L1895" title="All 2 branches missed.">            for (int i = 0; i &lt; caIds.size(); i++) {</span>
+<span class="nc" id="L1896">                query.setParameter(&quot;caId&quot; + i, caIds.get(i));</span>
+            }
+        }
+<span class="nc" id="L1899">        final List&lt;UserData&gt; queryResult = query.getResultList();</span>
+<span class="nc" id="L1900">        final List&lt;EndEntityInformation&gt; ret = new ArrayList&lt;EndEntityInformation&gt;(queryResult.size());</span>
+<span class="nc bnc" id="L1901" title="All 2 branches missed.">        for (UserData userData : queryResult) {</span>
+<span class="nc" id="L1902">            ret.add(userData.toEndEntityInformation());</span>
+<span class="nc" id="L1903">        }</span>
+<span class="nc" id="L1904">        return ret;</span>
+    }
+
+   
+   
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public boolean checkForCAId(int caid) {
+<span class="nc bnc" id="L1912" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1913">            log.trace(&quot;&gt;checkForCAId()&quot;);</span>
+        }
+<span class="nc" id="L1915">        final long count = endEntityAccessSession.countByCaId(caid);</span>
+<span class="nc bnc" id="L1916" title="All 2 branches missed.">        if (count &gt; 0) {</span>
+<span class="nc bnc" id="L1917" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1918">                log.debug(&quot;CA exists in end entities: &quot; + count);</span>
+            }
+        }
+<span class="nc bnc" id="L1921" title="All 2 branches missed.">        return count &gt; 0;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public boolean checkForHardTokenProfileId(int profileid) {
+<span class="nc bnc" id="L1927" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1928">            log.trace(&quot;&gt;checkForHardTokenProfileId()&quot;);</span>
+        }
+<span class="nc bnc" id="L1930" title="All 2 branches missed.">        return endEntityAccessSession.countByHardTokenProfileId(profileid) &gt; 0;</span>
+    }
+
+    private void print(EndEntityProfile profile, EndEntityInformation userdata) {
+        try {
+<span class="nc bnc" id="L1935" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1936">                log.debug(&quot;profile.getUsePrinting(): &quot;+profile.getUsePrinting());</span>
+            }
+<span class="nc bnc" id="L1938" title="All 2 branches missed.">            if (profile.getUsePrinting()) {</span>
+<span class="nc" id="L1939">                String[] pINs = new String[1];</span>
+<span class="nc" id="L1940">                pINs[0] = userdata.getPassword();</span>
+<span class="nc" id="L1941">                PrinterManager.print(profile.getPrinterName(), profile.getPrinterSVGFileName(), profile.getPrinterSVGData(),</span>
+<span class="nc" id="L1942">                        profile.getPrintedCopies(), 0, userdata, pINs, new String[0], &quot;&quot;, &quot;&quot;, &quot;&quot;);</span>
+            }
+<span class="nc" id="L1944">        } catch (PrinterException e) {</span>
+<span class="nc" id="L1945">            String msg = intres.getLocalizedMessage(&quot;ra.errorprint&quot;, userdata.getUsername(), e.getMessage());</span>
+<span class="nc" id="L1946">            log.error(msg, e);</span>
+<span class="nc" id="L1947">        }</span>
+<span class="nc" id="L1948">    }</span>
+
+    private void sendNotification(final AuthenticationToken admin, final EndEntityInformation endEntityInformation, final int newstatus, 
+            final int approvalRequestID, final AuthenticationToken lastApprovingAdmin, CertificateDataWrapper revokedCertificate) {
+<span class="nc bnc" id="L1952" title="All 2 branches missed.">        if (endEntityInformation == null) {</span>
+<span class="nc bnc" id="L1953" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1954">                log.debug(&quot;No UserData, no notification sent.&quot;);</span>
+            }
+<span class="nc" id="L1956">            return;</span>
+        }
+<span class="nc" id="L1958">        final String userEmail = endEntityInformation.getEmail();</span>
+<span class="nc bnc" id="L1959" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1960">            log.trace(&quot;&gt;sendNotification: user=&quot; + endEntityInformation.getUsername() + &quot;, email=&quot; + userEmail);</span>
+        }
+        // Make check if we should send notifications at all
+<span class="nc bnc" id="L1963" title="All 2 branches missed.">        if (endEntityInformation.getType().contains(EndEntityTypes.SENDNOTIFICATION)) {</span>
+<span class="nc" id="L1964">            final int endEntityProfileId = endEntityInformation.getEndEntityProfileId();</span>
+<span class="nc" id="L1965">            final EndEntityProfile endEntityProfile = endEntityProfileSession.getEndEntityProfileNoClone(endEntityProfileId);</span>
+<span class="nc" id="L1966">            final List&lt;UserNotification&gt; userNotifications = endEntityProfile.getUserNotifications();</span>
+<span class="nc bnc" id="L1967" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1968">                log.debug(&quot;Number of user notifications: &quot; + userNotifications.size());</span>
+            }
+<span class="nc" id="L1970">            String recipientEmail = userEmail; // Default value</span>
+<span class="nc bnc" id="L1971" title="All 2 branches missed.">            for (final UserNotification userNotification : userNotifications) {</span>
+<span class="nc" id="L1972">                final Collection&lt;String&gt; events = userNotification.getNotificationEventsCollection();</span>
+<span class="nc bnc" id="L1973" title="All 2 branches missed.">                if (events.contains(String.valueOf(newstatus))) {</span>
+<span class="nc bnc" id="L1974" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L1975">                        log.debug(&quot;Status is &quot; + newstatus + &quot;, notification sent for notificationevents: &quot; + userNotification.getNotificationEvents());</span>
+                    }
+                    try {
+<span class="nc bnc" id="L1978" title="All 2 branches missed.">                        if (StringUtils.equals(userNotification.getNotificationRecipient(), UserNotification.RCPT_USER)) {</span>
+<span class="nc" id="L1979">                            recipientEmail = userEmail;</span>
+<span class="nc bnc" id="L1980" title="All 2 branches missed.">                        } else if (StringUtils.contains(userNotification.getNotificationRecipient(), UserNotification.RCPT_CUSTOM)) {</span>
+                            // Just if this fail it will say that sending to user with email &quot;custom&quot; failed.
+<span class="nc" id="L1982">                            recipientEmail = &quot;custom&quot;;</span>
+                            // Plug-in mechanism for retrieving custom notification email recipient addresses
+<span class="nc bnc" id="L1984" title="All 2 branches missed.">                            if (userNotification.getNotificationRecipient().length() &lt; 6) {</span>
+<span class="nc" id="L1985">                                final String msg = intres.getLocalizedMessage(&quot;ra.errorcustomrcptshort&quot;, userNotification.getNotificationRecipient());</span>
+<span class="nc" id="L1986">                                log.error(msg);</span>
+<span class="nc" id="L1987">                            } else {</span>
+<span class="nc" id="L1988">                                final String customClassName = userNotification.getNotificationRecipient().substring(7);</span>
+<span class="nc bnc" id="L1989" title="All 2 branches missed.">                                if (StringUtils.isNotEmpty(customClassName)) {</span>
+                                    ICustomNotificationRecipient plugin;
+                                    try {
+<span class="nc" id="L1992">                                        plugin = (ICustomNotificationRecipient) Thread.currentThread()</span>
+<span class="nc" id="L1993">                                                .getContextClassLoader().loadClass(customClassName).getConstructor().newInstance();</span>
+<span class="nc" id="L1994">                                    } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | InvocationTargetException e) {</span>
+<span class="nc" id="L1995">                                        throw new MailException(&quot;Custom notification class &quot; + customClassName + &quot; could not be instansiated.&quot;, e);</span>
+<span class="nc" id="L1996">                                    }</span>
+<span class="nc" id="L1997">                                    recipientEmail = plugin.getRecipientEmails(endEntityInformation);</span>
+<span class="nc bnc" id="L1998" title="All 2 branches missed.">                                    if (StringUtils.isEmpty(recipientEmail)) {</span>
+<span class="nc" id="L1999">                                        final String msg = intres.getLocalizedMessage(&quot;ra.errorcustomnoemail&quot;, userNotification.getNotificationRecipient());</span>
+<span class="nc" id="L2000">                                        log.error(msg);</span>
+<span class="nc" id="L2001">                                    } else {</span>
+<span class="nc bnc" id="L2002" title="All 2 branches missed.">                                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L2003">                                            log.debug(&quot;Custom notification recipient plugin returned email: &quot; + recipientEmail);</span>
+                                        }
+                                    }
+<span class="nc" id="L2006">                                } else {</span>
+<span class="nc" id="L2007">                                    final String msg = intres.getLocalizedMessage(&quot;ra.errorcustomnoclasspath&quot;, userNotification.getNotificationRecipient());</span>
+<span class="nc" id="L2008">                                    log.error(msg);</span>
+                                }
+<span class="nc" id="L2010">                            }</span>
+                        } else {
+                            // Just a plain email address specified in the recipient field
+<span class="nc" id="L2013">                            recipientEmail = userNotification.getNotificationRecipient();</span>
+                        }
+<span class="nc bnc" id="L2015" title="All 2 branches missed.">                        if (StringUtils.isEmpty(recipientEmail)) {</span>
+<span class="nc" id="L2016">                            final String msg = intres.getLocalizedMessage(&quot;ra.errornotificationnoemail&quot;, endEntityInformation.getUsername());</span>
+<span class="nc" id="L2017">                            throw new MailException(msg);</span>
+                        }
+                        // Get the administrators DN from the admin certificate, if one exists
+<span class="nc" id="L2020">                        EndEntityInformation requestAdmin = null;</span>
+<span class="nc bnc" id="L2021" title="All 2 branches missed.">                        if (admin instanceof X509CertificateAuthenticationToken) {</span>
+<span class="nc" id="L2022">                            final X509CertificateAuthenticationToken xtok = (X509CertificateAuthenticationToken) admin;</span>
+<span class="nc" id="L2023">                            final X509Certificate adminCert = xtok.getCertificate();</span>
+<span class="nc" id="L2024">                            final String username = certificateStoreSession.findUsernameByFingerprint(CertTools.getFingerprintAsString(adminCert));</span>
+<span class="nc bnc" id="L2025" title="All 2 branches missed.">                            if (username!=null) {</span>
+<span class="nc" id="L2026">                                requestAdmin = endEntityAccessSession.findUser(username);</span>
+                            }
+                        }
+<span class="nc" id="L2029">                        String lastApprovalAdminDN = null;</span>
+<span class="nc bnc" id="L2030" title="All 2 branches missed.">                        if (lastApprovingAdmin instanceof X509CertificateAuthenticationToken) {</span>
+<span class="nc" id="L2031">                            final X509CertificateAuthenticationToken xtok = (X509CertificateAuthenticationToken) lastApprovingAdmin;</span>
+<span class="nc" id="L2032">                            final X509Certificate adminCert = xtok.getCertificate();</span>
+<span class="nc" id="L2033">                            lastApprovalAdminDN = CertTools.getSubjectDN(adminCert);</span>
+                        }
+
+<span class="nc" id="L2036">                        final UserNotificationParamGen paramGen = new UserNotificationParamGen(endEntityInformation, lastApprovalAdminDN, requestAdmin, </span>
+                                approvalRequestID, revokedCertificate);
+                        // substitute any $ fields in the recipient and from fields
+<span class="nc" id="L2039">                        recipientEmail = paramGen.interpolate(recipientEmail);</span>
+<span class="nc" id="L2040">                        final String fromemail = paramGen.interpolate(userNotification.getNotificationSender());</span>
+<span class="nc" id="L2041">                        final String subject = paramGen.interpolate(userNotification.getNotificationSubject());</span>
+<span class="nc" id="L2042">                        final String message = paramGen.interpolate(userNotification.getNotificationMessage());</span>
+<span class="nc" id="L2043">                        MailSender.sendMailOrThrow(fromemail, Arrays.asList(recipientEmail), MailSender.NO_CC, subject, message, MailSender.NO_ATTACHMENTS);</span>
+<span class="nc" id="L2044">                        final String logmsg = intres.getLocalizedMessage(&quot;ra.sentnotification&quot;, endEntityInformation.getUsername(), recipientEmail);</span>
+<span class="nc" id="L2045">                        log.info(logmsg);</span>
+<span class="nc" id="L2046">                    } catch (MailException e) {</span>
+<span class="nc" id="L2047">                        final String msg = intres.getLocalizedMessage(&quot;ra.errorsendnotification&quot;, endEntityInformation.getUsername(), recipientEmail);</span>
+<span class="nc" id="L2048">                        log.error(msg, e);</span>
+<span class="nc" id="L2049">                    }</span>
+                } else {
+<span class="nc bnc" id="L2051" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L2052">                        log.debug(&quot;Status is &quot; + newstatus + &quot;, no notification sent for notificationevents: &quot; + userNotification.getNotificationEvents());</span>
+                    }
+                }
+<span class="nc" id="L2055">            }</span>
+<span class="nc" id="L2056">        } else {</span>
+<span class="nc bnc" id="L2057" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L2058">                log.debug(&quot;Type (&quot;+endEntityInformation.getType().getHexValue()+&quot;) does not contain EndEntityTypes.USER_SENDNOTIFICATION, no notification sent.&quot;);</span>
+            }
+        }
+<span class="nc bnc" id="L2061" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L2062">            log.trace(&quot;&lt;sendNotification: user=&quot; + endEntityInformation.getUsername() + &quot;, email=&quot; + userEmail);</span>
+        }
+<span class="nc" id="L2064">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public boolean existsUser(String username) {
+        // Selecting 1 column is optimal speed
+<span class="nc" id="L2070">        final javax.persistence.Query query = entityManager.createQuery(&quot;SELECT 1 FROM UserData a WHERE a.username=:username&quot;);</span>
+<span class="nc" id="L2071">        query.setParameter(&quot;username&quot;, username);</span>
+<span class="nc bnc" id="L2072" title="All 2 branches missed.">        return query.getResultList().size() &gt; 0;</span>
+    }
+    
+    @Override
+    public boolean prepareForKeyRecoveryInternal(AuthenticationToken admin, String username, int endEntityProfileId, Certificate certificate) 
+            throws AuthorizationDeniedException, ApprovalException, CADoesntExistsException, WaitingForApprovalException {
+<span class="nc" id="L2078">        boolean ret = false;</span>
+<span class="nc bnc" id="L2079" title="All 2 branches missed.">        if (keyRecoverySession.authorizedToKeyRecover(admin, endEntityProfileId)) {</span>
+<span class="nc" id="L2080">            keyRecoverySession.checkIfApprovalRequired(admin, EJBTools.wrap(certificate), username, endEntityProfileId, false);</span>
+<span class="nc" id="L2081">            ret = true;</span>
+        } else {
+<span class="nc" id="L2083">            throw new AuthorizationDeniedException(admin + &quot; not authorized to key recovery for end entity profile id &quot; + endEntityProfileId);</span>
+        }
+        try {
+<span class="nc" id="L2086">            final UserData data = endEntityAccessSession.findByUsername(username);</span>
+<span class="nc bnc" id="L2087" title="All 2 branches missed.">            if (data == null) {</span>
+<span class="nc" id="L2088">                log.info(intres.getLocalizedMessage(&quot;ra.errorentitynotexist&quot;, username));</span>
+                // This exception message is used to not leak information to the user
+<span class="nc" id="L2090">                final String msg = intres.getLocalizedMessage(&quot;ra.wrongusernameorpassword&quot;);</span>
+<span class="nc" id="L2091">                log.info(msg);</span>
+<span class="nc" id="L2092">                throw new FinderException(msg);</span>
+            }
+<span class="nc" id="L2094">            assertAuthorizedToCA(admin, data.getCaId());</span>
+<span class="nc" id="L2095">            setUserStatus(admin, data, EndEntityConstants.STATUS_KEYRECOVERY, 0, null);</span>
+<span class="nc" id="L2096">        } catch (FinderException e) {</span>
+<span class="nc" id="L2097">            ret = false;</span>
+<span class="nc" id="L2098">            log.info(&quot;prepareForKeyRecovery: No such user: &quot; + username);</span>
+<span class="nc" id="L2099">        }</span>
+        
+<span class="nc" id="L2101">        return ret;</span>
+    }
+    
+    @Override
+    public boolean prepareForKeyRecovery(AuthenticationToken admin, String username, int endEntityProfileId, Certificate certificate)
+            throws AuthorizationDeniedException, ApprovalException, WaitingForApprovalException, CADoesntExistsException {
+        boolean ret;
+<span class="nc bnc" id="L2108" title="All 2 branches missed.">        if (certificate == null) {</span>
+<span class="nc" id="L2109">            ret = keyRecoverySession.markNewestAsRecoverable(admin, username, endEntityProfileId);</span>
+        } else {
+<span class="nc" id="L2111">            ret = keyRecoverySession.markAsRecoverable(admin, certificate, endEntityProfileId);</span>
+        }
+        try {
+<span class="nc" id="L2114">            final UserData data = endEntityAccessSession.findByUsername(username);</span>
+<span class="nc bnc" id="L2115" title="All 2 branches missed.">            if (data == null) {</span>
+<span class="nc" id="L2116">                log.info(intres.getLocalizedMessage(&quot;ra.errorentitynotexist&quot;, username));</span>
+                // This exception message is used to not leak information to the user
+<span class="nc" id="L2118">                final String msg = intres.getLocalizedMessage(&quot;ra.wrongusernameorpassword&quot;);</span>
+<span class="nc" id="L2119">                log.info(msg);</span>
+<span class="nc" id="L2120">                throw new FinderException(msg);</span>
+            }
+<span class="nc" id="L2122">            assertAuthorizedToCA(admin, data.getCaId());</span>
+<span class="nc" id="L2123">            setUserStatus(admin, data, EndEntityConstants.STATUS_KEYRECOVERY, 0, null);            </span>
+<span class="nc" id="L2124">        } catch (FinderException e) {</span>
+<span class="nc" id="L2125">            ret = false;</span>
+<span class="nc" id="L2126">            log.info(&quot;prepareForKeyRecovery: No such user: &quot; + username);</span>
+<span class="nc" id="L2127">        }</span>
+<span class="nc" id="L2128">        return ret;</span>
+    }
+
+    //
+    // Private helper methods
+    //
+    /**
+     * re-sets the optional request counter of a user to the default value specified by the end entity profile. If the profile does not specify that
+     * request counter should be used, the counter is removed.
+     * 
+     * @param admin administrator
+     * @param onlyRemoveNoUpdate bool
+     * @param ei the ExtendedInformation object to modify
+     * @param username User
+     * @param endEntityProfileId ID
+     * @return true if ExtendedInformation was changed (i.e. it should be saved), false otherwise
+     */
+    private boolean resetRequestCounter(final AuthenticationToken admin, final boolean onlyRemoveNoUpdate, final ExtendedInformation ei,
+            final String username, final int endEntityProfileId) {
+<span class="nc bnc" id="L2147" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L2148">            log.trace(&quot;&gt;resetRequestCounter(&quot; + username + &quot;, &quot; + onlyRemoveNoUpdate + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L2150">        final EndEntityProfile prof = endEntityProfileSession.getEndEntityProfileNoClone(endEntityProfileId);</span>
+<span class="nc" id="L2151">        String value = null;</span>
+<span class="nc bnc" id="L2152" title="All 2 branches missed.">        if (prof != null) {</span>
+<span class="nc bnc" id="L2153" title="All 2 branches missed.">            if (prof.getUse(EndEntityProfile.ALLOWEDREQUESTS, 0)) {</span>
+<span class="nc" id="L2154">                value = prof.getValue(EndEntityProfile.ALLOWEDREQUESTS, 0);</span>
+            }
+        } else {
+<span class="nc bnc" id="L2157" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L2158">                log.debug(&quot;Can not fetch entity profile with ID &quot; + endEntityProfileId);</span>
+            }
+        }
+<span class="nc" id="L2161">        final String counter = ei.getCustomData(ExtendedInformationFields.CUSTOM_REQUESTCOUNTER);</span>
+<span class="nc bnc" id="L2162" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L2163">            log.debug(&quot;Old counter is: &quot; + counter + &quot;, new counter will be: &quot; + value);</span>
+        }
+        // If this end entity profile does not use ALLOWEDREQUESTS, this
+        // value will be set to null
+        // We only re-set this value if the COUNTER was used in the first
+        // place, if never used, we will not fiddle with it
+<span class="nc" id="L2169">        boolean ret = false;</span>
+<span class="nc bnc" id="L2170" title="All 2 branches missed.">        if (counter != null) {</span>
+<span class="nc bnc" id="L2171" title="All 6 branches missed.">            if ((!onlyRemoveNoUpdate) || (onlyRemoveNoUpdate &amp;&amp; (value == null))) {</span>
+<span class="nc" id="L2172">                ei.setCustomData(ExtendedInformationFields.CUSTOM_REQUESTCOUNTER, value);</span>
+<span class="nc bnc" id="L2173" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L2174">                    log.debug(&quot;Re-set request counter for user '&quot; + username + &quot;' to:&quot; + value);</span>
+                }
+<span class="nc" id="L2176">                ret = true;</span>
+            } else {
+<span class="nc bnc" id="L2178" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L2179">                    log.debug(&quot;No re-setting counter because we should only remove&quot;);</span>
+                }
+            }
+        } else {
+<span class="nc bnc" id="L2183" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L2184">                log.debug(&quot;Request counter not used, not re-setting it.&quot;);</span>
+            }
+        }        
+<span class="nc bnc" id="L2187" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L2188">            log.trace(&quot;&lt;resetRequestCounter(&quot; + username + &quot;, &quot; + onlyRemoveNoUpdate + &quot;): &quot;+ret);</span>
+        }
+<span class="nc" id="L2190">        return ret;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

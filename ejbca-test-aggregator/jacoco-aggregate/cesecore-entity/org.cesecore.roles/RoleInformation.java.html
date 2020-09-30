@@ -44,12 +44,12 @@ public class RoleInformation implements Serializable {
 <span class="nc" id="L44">        this(identifier, null, roleName, accessUserAspects);</span>
 <span class="nc" id="L45">    }</span>
     
-<span class="nc" id="L47">    private RoleInformation(final int identifier, final String nameSpace, final String roleName, final List&lt;AccessUserAspectData&gt; accessUserAspects) {</span>
-<span class="nc" id="L48">        this.identifier = identifier;</span>
-<span class="nc" id="L49">        this.name = roleName;</span>
-<span class="nc" id="L50">        this.accessUserAspects = accessUserAspects;</span>
-<span class="nc" id="L51">        this.nameSpace = nameSpace;</span>
-<span class="nc" id="L52">    }</span>
+<span class="fc" id="L47">    private RoleInformation(final int identifier, final String nameSpace, final String roleName, final List&lt;AccessUserAspectData&gt; accessUserAspects) {</span>
+<span class="fc" id="L48">        this.identifier = identifier;</span>
+<span class="fc" id="L49">        this.name = roleName;</span>
+<span class="fc" id="L50">        this.accessUserAspects = accessUserAspects;</span>
+<span class="fc" id="L51">        this.nameSpace = nameSpace;</span>
+<span class="fc" id="L52">    }</span>
     
     /** 
      * Static helper to create new instance and still allowing deserialization of this class on EJBCA instances that
@@ -64,16 +64,16 @@ public class RoleInformation implements Serializable {
      * @return Info
      */
     public static RoleInformation fromRoleMembers(final int identifier, final String nameSpace, final String roleName, final List&lt;RoleMember&gt; roleMembers) {
-<span class="nc bnc" id="L67" title="All 2 branches missed.">        final String nameSpaceToUse = StringUtils.isEmpty(nameSpace) ? null : nameSpace;</span>
-<span class="nc" id="L68">        final List&lt;AccessUserAspectData&gt; accessUserAspects = new ArrayList&lt;&gt;();</span>
-<span class="nc bnc" id="L69" title="All 2 branches missed.">        if (roleMembers!=null) {</span>
-<span class="nc bnc" id="L70" title="All 2 branches missed.">            for (final RoleMember roleMember : roleMembers) {</span>
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">        final String nameSpaceToUse = StringUtils.isEmpty(nameSpace) ? null : nameSpace;</span>
+<span class="fc" id="L68">        final List&lt;AccessUserAspectData&gt; accessUserAspects = new ArrayList&lt;&gt;();</span>
+<span class="pc bpc" id="L69" title="1 of 2 branches missed.">        if (roleMembers!=null) {</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">            for (final RoleMember roleMember : roleMembers) {</span>
 <span class="nc bnc" id="L71" title="All 2 branches missed.">                final String roleNameForAspect = StringUtils.isEmpty(nameSpace) ? roleName : nameSpace+&quot;;&quot;+roleName;</span>
 <span class="nc" id="L72">                accessUserAspects.add(new AccessUserAspectData(roleNameForAspect, roleMember.getTokenIssuerId(), roleMember.getTokenMatchKey(),</span>
 <span class="nc" id="L73">                        roleMember.getTokenType(), roleMember.getAccessMatchType(), roleMember.getTokenMatchValue()));</span>
 <span class="nc" id="L74">            }</span>
         }
-<span class="nc" id="L76">        return new RoleInformation(identifier, nameSpaceToUse, roleName, accessUserAspects);</span>
+<span class="fc" id="L76">        return new RoleInformation(identifier, nameSpaceToUse, roleName, accessUserAspects);</span>
     }
 
     /** @return the Role name */
@@ -111,8 +111,8 @@ public class RoleInformation implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-<span class="nc bnc" id="L114" title="All 2 branches missed.">        if (this == obj)</span>
-<span class="nc" id="L115">            return true;</span>
+<span class="pc bpc" id="L114" title="1 of 2 branches missed.">        if (this == obj)</span>
+<span class="fc" id="L115">            return true;</span>
 <span class="nc bnc" id="L116" title="All 2 branches missed.">        if (obj == null)</span>
 <span class="nc" id="L117">            return false;</span>
 <span class="nc bnc" id="L118" title="All 2 branches missed.">        if (getClass() != obj.getClass())</span>

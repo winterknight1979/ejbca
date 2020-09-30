@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthorizationSystemSessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.authorization</a> &gt; <span class="el_source">AuthorizationSystemSessionBean.java</span></div><h1>AuthorizationSystemSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.ejb.authorization;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.ServiceLoader;
+import java.util.Set;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.AuthenticationFailedException;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.X509CertificateAuthenticationTokenMetaData;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.access.AccessSet;
+import org.cesecore.authorization.control.CryptoTokenRules;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.authorization.rules.AccessRulePlugin;
+import org.cesecore.authorization.user.AccessMatchType;
+import org.cesecore.authorization.user.matchvalues.X500PrincipalAccessMatchValue;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.keys.token.CryptoTokenSessionLocal;
+import org.cesecore.keys.validation.KeyValidatorSessionLocal;
+import org.cesecore.roles.AccessRulesHelper;
+import org.cesecore.roles.Role;
+import org.cesecore.roles.management.RoleDataSessionLocal;
+import org.cesecore.roles.management.RoleSessionLocal;
+import org.cesecore.roles.member.RoleMember;
+import org.cesecore.roles.member.RoleMemberDataSessionLocal;
+import org.cesecore.roles.member.RoleMemberSessionLocal;
+import org.ejbca.config.EjbcaConfiguration;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.core.ejb.authentication.cli.CliAuthenticationTokenMetaData;
+import org.ejbca.core.ejb.authentication.cli.CliUserAccessMatchValue;
+import org.ejbca.core.ejb.ra.UserData;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal;
+import org.ejbca.core.ejb.ra.userdatasource.UserDataSourceSessionLocal;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+
+/**
+ * This session bean handles high level authorization system tasks.
+ *
+ * @version $Id: AuthorizationSystemSessionBean.java 27422 2017-12-05 14:05:42Z bastianf $
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;AuthorizationSystemSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+<span class="nc" id="L76">public class AuthorizationSystemSessionBean implements AuthorizationSystemSessionLocal, AuthorizationSystemSessionRemote {</span>
+
+<span class="nc" id="L78">    private static final Logger log = Logger.getLogger(AuthorizationSystemSessionBean.class);</span>
+
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private CaSessionLocal caSession;
+    @EJB
+    private KeyValidatorSessionLocal keyValidatorSession;
+    @EJB
+    private CryptoTokenSessionLocal cryptoTokenSession;
+    @EJB
+    private EndEntityProfileSessionLocal endEntityProfileSession;
+    @EJB
+    private GlobalConfigurationSessionLocal globalConfigurationSession;
+    @EJB
+    private RoleSessionLocal roleSession;
+    @EJB
+    private RoleDataSessionLocal roleDataSession;
+    @EJB
+    private RoleMemberSessionLocal roleMemberSession;
+    @EJB
+    private RoleMemberDataSessionLocal roleMemberDataSession;
+    @EJB
+    private UserDataSourceSessionLocal userDataSourceSession;
+
+    @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+    private EntityManager entityManager;
+
+    @Override
+    public Map&lt;String,String&gt; getAllResources(final AuthenticationToken authenticationToken, final boolean ignoreLimitations) {
+<span class="nc" id="L108">        final Map&lt;String,String&gt; authorizedResources = new HashMap&lt;&gt;();</span>
+        try {
+<span class="nc" id="L110">            final HashMap&lt;String, Boolean&gt; accessRules = authorizationSession.getAccessAvailableToAuthenticationToken(authenticationToken);</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">            for (final Entry&lt;String,String&gt; entry : getAllResources(ignoreLimitations).entrySet()) {</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">                if (AccessRulesHelper.hasAccessToResource(accessRules, entry.getKey())) {</span>
+<span class="nc" id="L113">                    authorizedResources.put(AccessRulesHelper.normalizeResource(entry.getKey()), AccessRulesHelper.normalizeResource(entry.getValue()));</span>
+                }
+<span class="nc" id="L115">            }</span>
+<span class="nc" id="L116">        } catch (AuthenticationFailedException e) {</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L118">                log.debug(&quot;Failed to get resources due to authentication failure: &quot; + e.getMessage());</span>
+            }
+<span class="nc" id="L120">        }</span>
+<span class="nc" id="L121">        return authorizedResources;</span>
+    }
+
+    @Override
+    public Map&lt;String,String&gt; getAllResources(final boolean ignoreLimitations) {
+<span class="nc" id="L126">        final Map&lt;Integer, String&gt; caIdToNameMap = caSession.getCAIdToNameMap();</span>
+<span class="nc" id="L127">        final Map&lt;Integer, String&gt; kvIdToNameMap = keyValidatorSession.getKeyValidatorIdToNameMap();</span>
+<span class="nc" id="L128">        final Map&lt;Integer, String&gt; eepIdToNameMap = endEntityProfileSession.getEndEntityProfileIdToNameMap();</span>
+<span class="nc" id="L129">        final Map&lt;Integer, String&gt; userDataSourceIdToNameMap = userDataSourceSession.getUserDataSourceIdToNameMap();</span>
+<span class="nc" id="L130">        final Map&lt;Integer,String&gt; cryptoTokenIdToNameMap = cryptoTokenSession.getCryptoTokenIdToNameMap();</span>
+<span class="nc" id="L131">        final GlobalConfiguration globalConfiguration = (GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID);</span>
+<span class="nc bnc" id="L132" title="All 4 branches missed.">        final boolean endEntityProfileLimitationsEnabled = ignoreLimitations || globalConfiguration.getEnableEndEntityProfileLimitations();</span>
+<span class="nc bnc" id="L133" title="All 4 branches missed.">        final boolean hardTokenIssuingEnabled = ignoreLimitations || globalConfiguration.getIssueHardwareTokens();</span>
+<span class="nc bnc" id="L134" title="All 4 branches missed.">        final boolean keyRecoveryEnabled = ignoreLimitations || globalConfiguration.getEnableKeyRecovery();</span>
+<span class="nc" id="L135">        final Map&lt;String, Map&lt;String,String&gt;&gt; categorizedAccessRules = getAllResourceAndResourceNamesByCategory(</span>
+                endEntityProfileLimitationsEnabled, hardTokenIssuingEnabled, keyRecoveryEnabled,
+<span class="nc" id="L137">                Arrays.asList(EjbcaConfiguration.getCustomAvailableAccessRules()), eepIdToNameMap, userDataSourceIdToNameMap, cryptoTokenIdToNameMap, caIdToNameMap, kvIdToNameMap);</span>
+<span class="nc" id="L138">        final Map&lt;String,String&gt; ret = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        for (final Map&lt;String,String&gt; acessRuleMap : categorizedAccessRules.values()) {</span>
+<span class="nc" id="L140">            ret.putAll(acessRuleMap);</span>
+<span class="nc" id="L141">        }</span>
+<span class="nc" id="L142">        return ret;</span>
+    }
+
+    @Override
+    public Map&lt;String,Map&lt;String,String&gt;&gt; getAllResourceAndResourceNamesByCategory() {
+<span class="nc" id="L147">        final Map&lt;Integer, String&gt; caIdToNameMap = caSession.getCAIdToNameMap();</span>
+<span class="nc" id="L148">        final Map&lt;Integer, String&gt; kvIdToNameMap = keyValidatorSession.getKeyValidatorIdToNameMap();</span>
+<span class="nc" id="L149">        final Map&lt;Integer, String&gt; eepIdToNameMap = endEntityProfileSession.getEndEntityProfileIdToNameMap();</span>
+<span class="nc" id="L150">        final Map&lt;Integer, String&gt; userDataSourceIdToNameMap = userDataSourceSession.getUserDataSourceIdToNameMap();</span>
+<span class="nc" id="L151">        final Map&lt;Integer,String&gt; cryptoTokenIdToNameMap = cryptoTokenSession.getCryptoTokenIdToNameMap();</span>
+<span class="nc" id="L152">        final GlobalConfiguration globalConfiguration = (GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID);</span>
+<span class="nc" id="L153">        final boolean endEntityProfileLimitationsEnabled = globalConfiguration.getEnableEndEntityProfileLimitations();</span>
+<span class="nc" id="L154">        final boolean hardTokenIssuingEnabled = globalConfiguration.getIssueHardwareTokens();</span>
+<span class="nc" id="L155">        final boolean keyRecoveryEnabled = globalConfiguration.getEnableKeyRecovery();</span>
+<span class="nc" id="L156">        return getAllResourceAndResourceNamesByCategory(</span>
+                endEntityProfileLimitationsEnabled, hardTokenIssuingEnabled, keyRecoveryEnabled,
+<span class="nc" id="L158">                Arrays.asList(EjbcaConfiguration.getCustomAvailableAccessRules()), eepIdToNameMap, userDataSourceIdToNameMap, cryptoTokenIdToNameMap, caIdToNameMap, kvIdToNameMap);</span>
+    }
+
+    private Map&lt;String,Map&lt;String,String&gt;&gt; getAllResourceAndResourceNamesByCategory(boolean endEntityProfileLimitationsEnabled,
+            boolean hardTokenIssuingEnabled, boolean keyRecoveryEnabled,
+            Collection&lt;String&gt; customAccessRules, Map&lt;Integer,String&gt; eepIdToNameMap, Map&lt;Integer, String&gt; userDataSourceIdToNameMap,
+            Map&lt;Integer,String&gt; cryptoTokenIdToNameMap, Map&lt;Integer,String&gt; caIdToNameMap, Map&lt;Integer,String&gt; kvIdToNameMap) {
+<span class="nc" id="L165">        final Map&lt;String,Map&lt;String,String&gt;&gt; ret = new LinkedHashMap&lt;&gt;();</span>
+        // Role based access rules
+<span class="nc" id="L167">        final Map&lt;String,String&gt; accessRulesRoleBased = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L168">        accessRulesRoleBased.put(AccessRulesConstants.ROLE_ADMINISTRATOR, AccessRulesConstants.ROLE_ADMINISTRATOR);</span>
+<span class="nc" id="L169">        accessRulesRoleBased.put(StandardRules.ROLE_ROOT.resource(), StandardRules.ROLE_ROOT.resource());</span>
+<span class="nc" id="L170">        ret.put(&quot;ROLEBASEDACCESSRULES&quot;, accessRulesRoleBased);</span>
+        // Standard rules (including custom access rules)
+<span class="nc" id="L172">        final Map&lt;String,String&gt; accessRulesRegular = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L173" title="All 2 branches missed.">        for (final String resource : AccessRulesConstants.STANDARDREGULARACCESSRULES) {</span>
+<span class="nc" id="L174">            accessRulesRegular.put(resource, resource);</span>
+        }
+<span class="nc bnc" id="L176" title="All 2 branches missed.">        if (hardTokenIssuingEnabled) {</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">            for (final String resource : AccessRulesConstants.HARDTOKENACCESSRULES) {</span>
+<span class="nc" id="L178">                accessRulesRegular.put(resource, resource);</span>
+            }
+<span class="nc" id="L180">            accessRulesRegular.put(AccessRulesConstants.REGULAR_VIEWHARDTOKENS, AccessRulesConstants.REGULAR_VIEWHARDTOKENS);</span>
+<span class="nc" id="L181">            accessRulesRegular.put(AccessRulesConstants.REGULAR_VIEWPUKS, AccessRulesConstants.REGULAR_VIEWPUKS);</span>
+        }
+<span class="nc bnc" id="L183" title="All 2 branches missed.">        if (keyRecoveryEnabled) {</span>
+<span class="nc" id="L184">            accessRulesRegular.put(AccessRulesConstants.REGULAR_KEYRECOVERY, AccessRulesConstants.REGULAR_KEYRECOVERY);</span>
+        }
+<span class="nc bnc" id="L186" title="All 2 branches missed.">        for (final String resource : customAccessRules) {</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">            if (!StringUtils.isEmpty(resource.trim())) {</span>
+<span class="nc" id="L188">                accessRulesRegular.put(resource.trim(), resource.trim());</span>
+            }
+<span class="nc" id="L190">        }</span>
+<span class="nc" id="L191">        ret.put(&quot;REGULARACCESSRULES&quot;, accessRulesRegular);</span>
+        // Insert CA access rules
+<span class="nc" id="L193">        final Map&lt;String,String&gt; accessRulesCaAccess = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L194">        accessRulesCaAccess.put(StandardRules.CAACCESSBASE.resource(), StandardRules.CAACCESSBASE.resource());</span>
+<span class="nc bnc" id="L195" title="All 2 branches missed.">        for (final int caId : caIdToNameMap.keySet()) {</span>
+<span class="nc" id="L196">            String caName = caIdToNameMap.get(caId);</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">            if (caName==null) {</span>
+<span class="nc" id="L198">                caName = String.valueOf(caId);</span>
+            }
+<span class="nc" id="L200">            accessRulesCaAccess.put(StandardRules.CAACCESS.resource() + caId, StandardRules.CAACCESS.resource() + caName);</span>
+<span class="nc" id="L201">        }</span>
+<span class="nc" id="L202">        ret.put(&quot;CAACCESSRULES&quot;, accessRulesCaAccess);</span>
+        
+<span class="nc" id="L204">        final Map&lt;String,String&gt; accessRulesKeyValidatorAccess = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L205">        accessRulesKeyValidatorAccess.put(StandardRules.VALIDATORACCESSBASE.resource(), StandardRules.VALIDATORACCESSBASE.resource());</span>
+        String kvName;
+<span class="nc bnc" id="L207" title="All 2 branches missed.">        for (final int kvId : kvIdToNameMap.keySet()) {</span>
+<span class="nc" id="L208">            kvName = kvIdToNameMap.get(kvId);</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">            if (kvName==null) {</span>
+<span class="nc" id="L210">                kvName = String.valueOf(kvId);</span>
+            }
+<span class="nc" id="L212">            accessRulesKeyValidatorAccess.put(StandardRules.VALIDATORACCESS.resource() + kvId, StandardRules.VALIDATORACCESS.resource() + kvName);</span>
+<span class="nc" id="L213">        }</span>
+<span class="nc" id="L214">        ret.put(&quot;VALIDATORACCESSRULES&quot;, accessRulesKeyValidatorAccess);</span>
+        
+        // End entity profile rules
+<span class="nc bnc" id="L217" title="All 2 branches missed.">        if (endEntityProfileLimitationsEnabled) {</span>
+<span class="nc" id="L218">            final Map&lt;String,String&gt; accessRulesEepAccess = new LinkedHashMap&lt;&gt;();</span>
+            // Add most basic rule if authorized to it.
+<span class="nc" id="L220">            accessRulesEepAccess.put(AccessRulesConstants.ENDENTITYPROFILEBASE, AccessRulesConstants.ENDENTITYPROFILEBASE);</span>
+            // Add all authorized End Entity Profiles
+<span class="nc bnc" id="L222" title="All 2 branches missed.">            for (final int eepId : eepIdToNameMap.keySet()) {</span>
+<span class="nc" id="L223">                String eepName = eepIdToNameMap.get(eepId);</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">                if (eepName==null) {</span>
+<span class="nc" id="L225">                    eepName = String.valueOf(eepId);</span>
+                }
+                // Administrator is authorized to this End Entity Profile, add it.
+<span class="nc" id="L228">                accessRulesEepAccess.put(AccessRulesConstants.ENDENTITYPROFILEPREFIX + eepId, AccessRulesConstants.ENDENTITYPROFILEPREFIX + eepName);</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">                for (final String subResource : AccessRulesConstants.ENDENTITYPROFILE_ENDINGS) {</span>
+<span class="nc" id="L230">                    accessRulesEepAccess.put(AccessRulesConstants.ENDENTITYPROFILEPREFIX + eepId + subResource,</span>
+                            AccessRulesConstants.ENDENTITYPROFILEPREFIX + eepName + subResource);
+                }
+<span class="nc bnc" id="L233" title="All 2 branches missed.">                if (hardTokenIssuingEnabled) {</span>
+<span class="nc" id="L234">                    accessRulesEepAccess.put(AccessRulesConstants.ENDENTITYPROFILEPREFIX + eepId + AccessRulesConstants.HARDTOKEN_RIGHTS,</span>
+                            AccessRulesConstants.ENDENTITYPROFILEPREFIX + eepName + AccessRulesConstants.HARDTOKEN_RIGHTS);
+<span class="nc" id="L236">                    accessRulesEepAccess.put(AccessRulesConstants.ENDENTITYPROFILEPREFIX + eepId + AccessRulesConstants.HARDTOKEN_PUKDATA_RIGHTS,</span>
+                            AccessRulesConstants.ENDENTITYPROFILEPREFIX + eepName + AccessRulesConstants.HARDTOKEN_PUKDATA_RIGHTS);
+                }
+<span class="nc bnc" id="L239" title="All 2 branches missed.">                if (keyRecoveryEnabled) {</span>
+<span class="nc" id="L240">                    accessRulesEepAccess.put(AccessRulesConstants.ENDENTITYPROFILEPREFIX + eepId + AccessRulesConstants.KEYRECOVERY_RIGHTS,</span>
+                            AccessRulesConstants.ENDENTITYPROFILEPREFIX + eepName + AccessRulesConstants.KEYRECOVERY_RIGHTS);
+                }
+<span class="nc" id="L243">            }</span>
+<span class="nc" id="L244">            ret.put(&quot;ENDENTITYPROFILEACCESSR&quot;, accessRulesEepAccess);</span>
+        }
+        // Crypto token rules
+<span class="nc" id="L247">        final Map&lt;String,String&gt; accessRulesCtAccess = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L248" title="All 2 branches missed.">        for (final CryptoTokenRules rule : CryptoTokenRules.values()) {</span>
+<span class="nc" id="L249">            accessRulesCtAccess.put(rule.resource(), rule.resource());</span>
+        }
+<span class="nc bnc" id="L251" title="All 2 branches missed.">        for (final int cryptoTokenId : cryptoTokenIdToNameMap.keySet()) {</span>
+<span class="nc" id="L252">            String cryptoTokenName = cryptoTokenIdToNameMap.get(cryptoTokenId);</span>
+<span class="nc bnc" id="L253" title="All 2 branches missed.">            if (cryptoTokenName==null) {</span>
+<span class="nc" id="L254">                cryptoTokenName = String.valueOf(cryptoTokenId);</span>
+            }
+<span class="nc bnc" id="L256" title="All 2 branches missed.">            for (final CryptoTokenRules rule : CryptoTokenRules.values()) {</span>
+<span class="nc bnc" id="L257" title="All 6 branches missed.">                if (!rule.equals(CryptoTokenRules.BASE) &amp;&amp; !rule.equals(CryptoTokenRules.MODIFY_CRYPTOTOKEN) &amp;&amp; !rule.equals(CryptoTokenRules.DELETE_CRYPTOTOKEN)) {</span>
+<span class="nc" id="L258">                    accessRulesCtAccess.put(rule.resource() + &quot;/&quot; + cryptoTokenId, rule.resource() + &quot;/&quot; + cryptoTokenName);</span>
+                }
+            }
+<span class="nc" id="L261">        }</span>
+<span class="nc" id="L262">        ret.put(&quot;CRYPTOTOKENACCESSRULES&quot;, accessRulesCtAccess);</span>
+        // Insert User data source access rules
+<span class="nc" id="L264">        final Map&lt;String,String&gt; accessRulesUdsAccess = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L265">        accessRulesUdsAccess.put(AccessRulesConstants.USERDATASOURCEBASE, AccessRulesConstants.USERDATASOURCEBASE);</span>
+<span class="nc bnc" id="L266" title="All 2 branches missed.">        for (final int userDataSourceId : userDataSourceIdToNameMap.keySet()) {</span>
+<span class="nc" id="L267">            String userDataSourceName = userDataSourceIdToNameMap.get(userDataSourceId);</span>
+<span class="nc bnc" id="L268" title="All 2 branches missed.">            if (userDataSourceName==null) {</span>
+<span class="nc" id="L269">                userDataSourceName = String.valueOf(userDataSourceId);</span>
+            }
+<span class="nc" id="L271">            accessRulesUdsAccess.put(AccessRulesConstants.USERDATASOURCEPREFIX + userDataSourceId + AccessRulesConstants.UDS_FETCH_RIGHTS,</span>
+                    AccessRulesConstants.USERDATASOURCEPREFIX + userDataSourceName + AccessRulesConstants.UDS_FETCH_RIGHTS);
+<span class="nc" id="L273">            accessRulesUdsAccess.put(AccessRulesConstants.USERDATASOURCEPREFIX + userDataSourceId + AccessRulesConstants.UDS_REMOVE_RIGHTS,</span>
+                    AccessRulesConstants.USERDATASOURCEPREFIX + userDataSourceName + AccessRulesConstants.UDS_REMOVE_RIGHTS);
+<span class="nc" id="L275">        }</span>
+<span class="nc" id="L276">        ret.put(&quot;USERDATASOURCEACCESSRULES&quot;, accessRulesUdsAccess);</span>
+        // Insert plugin rules
+<span class="nc bnc" id="L278" title="All 2 branches missed.">        for (final AccessRulePlugin accessRulePlugin : ServiceLoader.load(AccessRulePlugin.class)) {</span>
+<span class="nc" id="L279">            Map&lt;String,String&gt; accessRulesInCategory = ret.get(accessRulePlugin.getCategory());</span>
+<span class="nc bnc" id="L280" title="All 2 branches missed.">            if (accessRulesInCategory==null) {</span>
+<span class="nc" id="L281">                accessRulesInCategory = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L282">                ret.put(accessRulePlugin.getCategory(), accessRulesInCategory);</span>
+            }
+<span class="nc bnc" id="L284" title="All 2 branches missed.">            for (final Entry&lt;String,String&gt; resourceAndName : accessRulePlugin.getRules().entrySet()) {</span>
+<span class="nc" id="L285">                accessRulesInCategory.put(resourceAndName.getKey(), resourceAndName.getValue());</span>
+<span class="nc" id="L286">            }</span>
+<span class="nc" id="L287">        }</span>
+<span class="nc" id="L288">        return ret;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public boolean initializeAuthorizationModule() {
+        // Since RoleData might be empty when this is invoked on a not yet upgraded system, we also check if there are any CAs present.
+        // (The CLI admin might have been reconfigured or removed in the old authorization system and we don't want to change this.)
+<span class="nc bnc" id="L296" title="All 4 branches missed.">        if (roleDataSession.getAllRoles().isEmpty() &amp;&amp; caSession.getAllCaIds().isEmpty()) {</span>
+<span class="nc" id="L297">            log.info(&quot;No roles or CAs exist, intializing Super Administrator Role with default CLI user.&quot;);</span>
+            // Create &quot;Super Administrator Role&quot; (with roleId &quot;1&quot; to ensure that upgraded installations still have the same roleId)
+<span class="nc" id="L299">            final Role roleToPersist = new Role(null, SUPERADMIN_ROLE, Arrays.asList(StandardRules.ROLE_ROOT.resource()), null);</span>
+<span class="nc" id="L300">            roleToPersist.setRoleId(1);</span>
+<span class="nc" id="L301">            final Role role = roleDataSession.persistRole(roleToPersist);</span>
+            // We won't create any RoleMember for a Super Admin certificate here
+            // Add CLI user role member
+<span class="nc" id="L304">            final String username = EjbcaConfiguration.getCliDefaultUser();</span>
+<span class="nc" id="L305">            roleMemberDataSession.persistRoleMember(new RoleMember(CliAuthenticationTokenMetaData.TOKEN_TYPE,</span>
+<span class="nc" id="L306">                    RoleMember.NO_ISSUER, CliUserAccessMatchValue.USERNAME.getNumericValue(), AccessMatchType.TYPE_EQUALCASE.getNumericValue(),</span>
+<span class="nc" id="L307">                    username, role.getRoleId(), null));</span>
+            // Add CLI user end entity
+<span class="nc" id="L309">            final UserData userData = new UserData(username, EjbcaConfiguration.getCliDefaultPassword(), false, &quot;UID=&quot; + username, 0, null, null, null, 0,</span>
+                    EndEntityConstants.EMPTY_END_ENTITY_PROFILE, 0, 0, 0, null);
+<span class="nc" id="L311">            userData.setStatus(EndEntityConstants.STATUS_GENERATED);</span>
+<span class="nc bnc" id="L312" title="All 2 branches missed.">            if (entityManager.find(UserData.class, username)==null) {</span>
+<span class="nc" id="L313">                entityManager.persist(userData);</span>
+            }
+<span class="nc" id="L315">            return true;</span>
+        }
+<span class="nc" id="L317">        log.info(&quot;Roles or CAs exist, not intializing &quot; + SUPERADMIN_ROLE);</span>
+<span class="nc" id="L318">        return false;</span>
+    }
+
+    /*
+     * Note:
+     * This is expected to be invoked by the CLI user during &quot;ant install&quot; or similar operation.
+     * The StartupSingletonBean should have initialized by the SUPERADMIN_ROLE at startup on a fresh system and authorized the CLI user.
+     */
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public boolean initializeAuthorizationModuleWithSuperAdmin(AuthenticationToken authenticationToken, int caId, String superAdminCN) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L329" title="All 4 branches missed.">        if (roleDataSession.getAllRoles().isEmpty() &amp;&amp; caSession.getAllCaIds().isEmpty()) {</span>
+<span class="nc" id="L330">            log.info(&quot;The Role '&quot; + SUPERADMIN_ROLE + &quot;' has not been initialized. Cannot add SuperAdmin '&quot; + superAdminCN + &quot;'.&quot;);</span>
+<span class="nc" id="L331">            return false;</span>
+        }
+<span class="nc" id="L333">        final Role role = roleSession.getRole(authenticationToken, null, SUPERADMIN_ROLE);</span>
+<span class="nc bnc" id="L334" title="All 2 branches missed.">        if (role==null) {</span>
+<span class="nc" id="L335">            log.info(&quot;The Role '&quot; + SUPERADMIN_ROLE + &quot;' does not exist. Cannot add SuperAdmin '&quot; + superAdminCN + &quot;'.&quot;);</span>
+<span class="nc" id="L336">            return false;</span>
+        }
+        // We don't care if the caller has done this before. If the caller is authorized we comply.
+<span class="nc" id="L339">        roleMemberSession.persist(authenticationToken, new RoleMember(X509CertificateAuthenticationTokenMetaData.TOKEN_TYPE,</span>
+<span class="nc" id="L340">                caId, X500PrincipalAccessMatchValue.WITH_COMMONNAME.getNumericValue(), AccessMatchType.TYPE_EQUALCASE.getNumericValue(),</span>
+<span class="nc" id="L341">                superAdminCN, role.getRoleId(), null));</span>
+<span class="nc" id="L342">        return true;</span>
+    }
+
+    @Override
+    public AccessSet getAccessSetForAuthToken(AuthenticationToken authenticationToken) throws AuthenticationFailedException {
+<span class="nc" id="L347">        final HashMap&lt;String, Boolean&gt; accessRules = authorizationSession.getAccessAvailableToAuthenticationToken(authenticationToken);</span>
+<span class="nc" id="L348">        final Set&lt;String&gt; allResources = new HashSet&lt;&gt;(getAllResources(false).keySet());</span>
+        // Since we no longer support the recursive rule in AccessSets from EJBCA 6.8.0 we also need to include non-configurable access rules
+        // ..but this is kind of theoretical since we currently don't support any of these operations from the RA
+<span class="nc" id="L351">        allResources.add(StandardRules.CAADD.resource());</span>
+<span class="nc" id="L352">        allResources.add(StandardRules.CAREMOVE.resource());</span>
+<span class="nc" id="L353">        return AccessSet.fromAccessRules(accessRules, allResources);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

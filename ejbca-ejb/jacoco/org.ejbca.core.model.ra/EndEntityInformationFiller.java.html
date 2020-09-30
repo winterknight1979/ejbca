@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EndEntityInformationFiller.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.ra</a> &gt; <span class="el_source">EndEntityInformationFiller.java</span></div><h1>EndEntityInformationFiller.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.ra;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.Rdn;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.EndEntityType;
+import org.cesecore.certificates.endentity.EndEntityTypes;
+import org.cesecore.certificates.util.DNFieldExtractor;
+import org.cesecore.certificates.util.DnComponents;
+import org.cesecore.util.CertTools;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
+import org.ejbca.util.dn.DistinguishedName;
+
+/** This class gives facilities to populate user data with default values from profile.
+ *
+ * @version $Id: EndEntityInformationFiller.java 28128 2018-01-30 07:09:34Z samuellb $
+ */
+<span class="nc" id="L38">public class EndEntityInformationFiller {</span>
+
+    /** For log purpose. */
+<span class="fc" id="L41">    private static final Logger log = Logger.getLogger(EndEntityInformationFiller.class.getName());</span>
+
+    /** This method fill user data with the default values from the specified profile.
+     * 
+     * @param userData user data.
+     * @param profile user associated profile.
+     * @return update user.
+     */
+    public static EndEntityInformation fillUserDataWithDefaultValues(final EndEntityInformation userData, final EndEntityProfile profile) {
+
+    	
+<span class="fc bfc" id="L52" title="All 2 branches covered.">    	if (StringUtils.isEmpty(userData.getUsername())) {</span>
+<span class="fc" id="L53">        	userData.setUsername(profile.getUsernameDefault());</span>
+        }
+<span class="fc bfc" id="L55" title="All 2 branches covered.">    	if (userData.getSendNotification()==false) {</span>
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">    		if(StringUtils.isNotEmpty(profile.getValue(EndEntityProfile.SENDNOTIFICATION, 0))) {</span>
+<span class="fc" id="L57">    			final Boolean isSendNotification = Boolean.valueOf(profile.getValue(EndEntityProfile.SENDNOTIFICATION, 0));</span>
+<span class="fc" id="L58">    			userData.setSendNotification(isSendNotification.booleanValue());    			</span>
+    		}
+        }
+<span class="fc bfc" id="L61" title="All 2 branches covered.">    	if (StringUtils.isEmpty(userData.getEmail())) {</span>
+<span class="fc" id="L62">			final String email = profile.getValue(EndEntityProfile.EMAIL, 0);</span>
+<span class="pc bpc" id="L63" title="1 of 4 branches missed.">			if (StringUtils.isNotEmpty(email) &amp;&amp; email.indexOf(&quot;@&quot;) &gt; 0) {</span>
+<span class="fc" id="L64">				userData.setEmail(email);</span>
+			}
+		}
+        //Batch generation (clear text pwd storage) is only active when password 
+        //is not empty so is not necessary to do something here
+<span class="fc bfc" id="L69" title="All 2 branches covered.">        if (StringUtils.isEmpty(userData.getPassword())) {</span>
+            // check if the password is autogenerated
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">        	if(!profile.useAutoGeneratedPasswd()) {</span>
+<span class="fc" id="L72">        		userData.setPassword(profile.getValue(EndEntityProfile.PASSWORD, 0));        		</span>
+        	}
+        }
+        
+        // Processing Subject DN values
+<span class="fc" id="L77">        String subjectDN = userData.getDN();</span>
+<span class="fc" id="L78">        subjectDN = mergeSubjectDnWithDefaultValues(subjectDN, profile, userData.getEmail());</span>
+<span class="fc" id="L79">        userData.setDN(subjectDN);</span>
+<span class="fc" id="L80">        String subjectAltName = userData.getSubjectAltName();</span>
+        // Processing Subject Altname values
+<span class="fc" id="L82">        subjectAltName = mergeSubjectAltNameWithDefaultValues(subjectAltName, profile, userData.getEmail());</span>
+<span class="fc" id="L83">        userData.setSubjectAltName(subjectAltName);</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">        if (userData.getType().getHexValue()==EndEntityTypes.INVALID.hexValue()) {</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        	if(StringUtils.isNotEmpty(profile.getValue(EndEntityProfile.FIELDTYPE, 0))){</span>
+<span class="nc" id="L86">        	    final int type = Integer.parseInt(profile.getValue(EndEntityProfile.FIELDTYPE, 0));</span>
+<span class="nc" id="L87">        		userData.setType(new EndEntityType(type));</span>
+        	}
+        }
+<span class="fc" id="L90">        return userData;</span>
+    }
+
+    /** This method merge subject DN with data from End entity profile.
+     * @param subjectDN user Distinguished Name.
+     * @param profile user associated profile.
+     * @param entityEmail entity email.
+     * @return updated DN.
+     */
+    private static String mergeSubjectDnWithDefaultValues(String subjectDN, EndEntityProfile profile, 
+            String entityEmail) {
+        DistinguishedName profiledn;
+        DistinguishedName userdn;
+        try {
+<span class="fc" id="L104">        	userdn = new DistinguishedName(subjectDN);</span>
+<span class="nc" id="L105">		} catch (InvalidNameException ine) {</span>
+<span class="nc" id="L106">			log.debug(subjectDN,ine);</span>
+<span class="nc" id="L107">			throw new RuntimeException(ine);</span>
+<span class="fc" id="L108">		}</span>
+<span class="fc" id="L109">        int numberofsubjectdnfields = profile.getSubjectDNFieldOrderLength();</span>
+<span class="fc" id="L110">        List&lt;Rdn&gt; rdnList = new ArrayList&lt;Rdn&gt;(numberofsubjectdnfields);</span>
+<span class="fc" id="L111">        int[] fielddata = null;</span>
+        String value;
+        //Build profile's DN
+<span class="fc bfc" id="L114" title="All 2 branches covered.">        for (int i = 0; i &lt; numberofsubjectdnfields; i++) {</span>
+<span class="fc" id="L115">        	value=null;</span>
+<span class="fc" id="L116">			fielddata = profile.getSubjectDNFieldsInOrder(i);</span>
+<span class="fc" id="L117">			String parameter = DNFieldExtractor.getFieldComponent(</span>
+<span class="fc" id="L118">					DnComponents.profileIdToDnId(fielddata[EndEntityProfile.FIELDTYPE]),</span>
+					DNFieldExtractor.TYPE_SUBJECTDN);
+<span class="fc" id="L120">			value = profile.getValue(fielddata[EndEntityProfile.FIELDTYPE], 0);</span>
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">			if (value != null) {</span>
+<span class="fc" id="L122">				value = value.trim();</span>
+<span class="pc bpc" id="L123" title="1 of 2 branches missed.">				if (!value.equals(&quot;&quot;)) {					</span>
+					try {
+<span class="fc" id="L125">						parameter = StringUtils.replace(parameter, &quot;=&quot;, &quot;&quot;);</span>
+<span class="fc" id="L126">						rdnList.add(fielddata[EndEntityProfile.NUMBER],new Rdn(parameter,value));</span>
+<span class="nc" id="L127">					}catch(InvalidNameException ine) {</span>
+<span class="nc" id="L128">						log.debug(&quot;InvalidNameException while creating new Rdn with parameter &quot;+ parameter + &quot; and value &quot; + value,ine);</span>
+<span class="nc" id="L129">						throw new RuntimeException(ine);</span>
+<span class="fc" id="L130">					}</span>
+					
+				}
+			}
+		}
+<span class="fc" id="L135">        profiledn = new DistinguishedName(rdnList);</span>
+
+<span class="fc" id="L137">        Map&lt;String, String&gt; dnMap = new HashMap&lt;String, String&gt;();</span>
+<span class="pc bpc" id="L138" title="1 of 2 branches missed.">        if (profile.getUse(DnComponents.DNEMAILADDRESS, 0)) {</span>
+<span class="nc" id="L139">            dnMap.put(DnComponents.DNEMAILADDRESS, entityEmail);</span>
+        }
+        
+<span class="fc" id="L142">        return  CertTools.stringToBCDNString(profiledn.mergeDN(userdn, true, dnMap).toString());</span>
+    }
+ 
+    /**
+     * This method merge subject Alt name with data from End entity profile.
+     * @param subjectAltName user subject alt name.
+     * @param profile user associated profile.
+     * @param entityEmail entity email field
+     * @return updated subject alt name
+     */
+    private static String mergeSubjectAltNameWithDefaultValues(String subjectAltName, EndEntityProfile profile, String entityEmail) {
+        DistinguishedName profileAltName;
+        DistinguishedName userAltName;
+        try {
+<span class="pc bpc" id="L156" title="1 of 2 branches missed.">        	if(subjectAltName==null) {</span>
+<span class="nc" id="L157">        		subjectAltName = &quot;&quot;;</span>
+        	}
+<span class="fc" id="L159">        	userAltName = new DistinguishedName(subjectAltName);</span>
+<span class="nc" id="L160">		} catch (InvalidNameException ine) {</span>
+<span class="nc" id="L161">			log.debug(subjectAltName,ine);</span>
+<span class="nc" id="L162">			throw new RuntimeException(ine);</span>
+<span class="fc" id="L163">		}</span>
+<span class="fc" id="L164">        int numberofsubjectAltNamefields = profile.getSubjectAltNameFieldOrderLength();</span>
+<span class="fc" id="L165">        List&lt;Rdn&gt; rdnList = new ArrayList&lt;Rdn&gt;(numberofsubjectAltNamefields);</span>
+<span class="fc" id="L166">        int[] fielddata = null;</span>
+        String value;
+        //Build profile's Alt Name
+<span class="pc bpc" id="L169" title="1 of 2 branches missed.">        for (int i = 0; i &lt; numberofsubjectAltNamefields; i++) {</span>
+<span class="nc" id="L170">        	value=null;</span>
+<span class="nc" id="L171">			fielddata = profile.getSubjectAltNameFieldsInOrder(i);</span>
+<span class="nc" id="L172">			String parameter = DNFieldExtractor.getFieldComponent(</span>
+<span class="nc" id="L173">					DnComponents.profileIdToDnId(fielddata[EndEntityProfile.FIELDTYPE]),</span>
+					DNFieldExtractor.TYPE_SUBJECTALTNAME);
+<span class="nc" id="L175">			value = profile.getValue(fielddata[EndEntityProfile.FIELDTYPE], fielddata[EndEntityProfile.NUMBER]);</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">			if (value != null) {</span>
+<span class="nc" id="L177">				value = value.trim();</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">				if (!value.equals(&quot;&quot;)) {					</span>
+					try {
+<span class="nc" id="L180">						parameter = StringUtils.replace(parameter, &quot;=&quot;, &quot;&quot;);</span>
+<span class="nc" id="L181">						rdnList.add(fielddata[EndEntityProfile.NUMBER],new Rdn(parameter,value));</span>
+<span class="nc" id="L182">					}catch(InvalidNameException ine) {</span>
+<span class="nc" id="L183">						log.debug(&quot;InvalidNameException while creating new Rdn with parameter &quot;+ parameter + &quot; and value &quot; + value,ine);</span>
+<span class="nc" id="L184">						throw new RuntimeException(ine);</span>
+<span class="nc" id="L185">					}</span>
+					
+				}
+			}
+		}
+<span class="fc" id="L190">        profileAltName = new DistinguishedName(rdnList);</span>
+
+<span class="fc" id="L192">        Map&lt;String, String&gt; dnMap = new HashMap&lt;String, String&gt;();</span>
+<span class="pc bpc" id="L193" title="1 of 2 branches missed.">        if (profile.getUse(DnComponents.RFC822NAME, 0)) {</span>
+<span class="nc" id="L194">            dnMap.put(DnComponents.RFC822NAME, entityEmail);</span>
+        }
+
+<span class="fc" id="L197">        return  profileAltName.mergeDN(userAltName, true, dnMap).toString();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

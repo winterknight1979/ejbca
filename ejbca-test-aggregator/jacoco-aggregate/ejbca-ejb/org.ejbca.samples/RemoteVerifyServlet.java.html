@@ -1,0 +1,625 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RemoteVerifyServlet.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.samples</a> &gt; <span class="el_source">RemoteVerifyServlet.java</span></div><h1>RemoteVerifyServlet.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.samples;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.StringTokenizer;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+import org.ejbca.ui.web.RequestHelper;
+
+
+/**
+ * Servlet to authenticate a user. Simple database using a file to keep users in format:
+ * instance;username;password;DN DN is in form: dn-c:dn-o:dn-ou:dn-ln:dn-gn:dn-cn where parts can
+ * be left out as desired. Expects these parameters when called: (error 500 if any missing)
+ * 
+ * &lt;ul&gt;
+ * &lt;li&gt;
+ * user=&amp;lt;username&amp;gt;
+ * &lt;/li&gt;
+ * &lt;li&gt;
+ * password=&amp;lt;password&amp;gt;
+ * &lt;/li&gt;
+ * &lt;li&gt;
+ * version=&amp;lt;major&amp;gt;.&amp;lt;minor&amp;gt;
+ * &lt;/li&gt;
+ * &lt;/ul&gt;
+ * 
+ * &lt;p&gt;
+ * Returns a logic token stating that user is authenticated followed by the information to use for
+ * this user's certificate.
+ * &lt;/p&gt;
+ *
+ * @author Original code by Peter Neemeth
+ * @version $Id: RemoteVerifyServlet.java 19901 2014-09-30 14:29:38Z anatom $
+ */
+<span class="nc" id="L64">public class RemoteVerifyServlet extends HttpServlet {</span>
+    private static final long serialVersionUID = -2870243590371650403L;
+
+<span class="nc" id="L67">    private static Logger log = Logger.getLogger(RemoteVerifyServlet.class);</span>
+
+    /** Status code for successful communication */
+    public static final String MSG_OK = &quot;200 OK&quot;;
+
+    /** Status code for failed communication */
+    public static final String MSG_PROTOCOL_MISMATCH = &quot;400 Wrong protocol version&quot;;
+
+    /** Status code for generic error */
+    public static final String MSG_GENERIC_ERROR = &quot;500 ERROR (Missing parameter?) : &quot;;
+
+    /** Name of user id parameter */
+    public static final String REQUEST_USERNAME = &quot;username&quot;;
+
+    /** Name of password parameter */
+    public static final String REQUEST_PASSWORD = &quot;password&quot;;
+
+    /** Name of version parameter */
+    public static final String REQUEST_VERSION = &quot;version&quot;;
+
+    /** Token for protocol */
+    public static final String RESPONSE_END = &quot;end&quot;;
+
+    /** Token for protocol */
+    public static final String RESPONSE_STATUS = &quot;status&quot;;
+
+    /** Token for protocol */
+    public static final String RESPONSE_RESULT = &quot;result&quot;;
+
+    /** Token for protocol */
+    public static final String RESPONSE_MESSAGE = &quot;message&quot;;
+
+    /** Status code for granting of certificate. */
+    public static final String GRANT = &quot;grant&quot;;
+
+    /** Status code for rejecting certificate request. */
+    public static final String REJECT = &quot;reject&quot;;
+
+    /** Version of the protocol used when communicating back to requestor */
+    protected static final int PROTOCOL_VERSION_MAJOR = 1;
+
+    /** Version of the protocol used when communicating back to requestor */
+    protected static final int PROTOCOL_VERSION_MINOR = 0;
+
+    /**
+     * Basic structure containing users. Top level keyed on instance gives new HashMap keyed on
+     * username with String[] = { password, result } as data.
+     */
+    protected static HashMap&lt;String, String[]&gt; users;
+
+    /**
+     * Delimiter between parts in DN
+     * 
+     * &lt;p&gt;
+     * Can be controlled via properties file.
+     * &lt;/p&gt;
+     */
+    protected static final String DNPART_DELIMITER = &quot;:&quot;;
+
+    /**
+     * Separator between name and value in DN name = value
+     * 
+     * &lt;p&gt;
+     * Can be controlled via properties file.
+     * &lt;/p&gt;
+     */
+    protected static final String DNPART_NAME_VALUE_SEPARATOR = &quot;=&quot;;
+
+    /**
+     * For easy export from Excel and others.
+     * 
+     * &lt;p&gt;
+     * Can be controlled via properties file.
+     * &lt;/p&gt;
+     */
+    protected static final String RECORD_SEPARATOR = &quot;;&quot;;
+
+    /**
+     * Ignored lines in DBUSER_file start with this character.
+     * 
+     * &lt;p&gt;
+     * Can be controlled via properties file.
+     * &lt;/p&gt;
+     */
+    protected static final String LINE_COMMENT = &quot;;&quot;;
+
+    /** What parameter to send when using GET to show status. */
+    protected static final String STATUS_KEY = &quot;status&quot;;
+
+    /** Count total accesses */
+<span class="nc" id="L157">    protected static int countAccess = 0;</span>
+
+    /** Count granted accesses */
+<span class="nc" id="L160">    protected static int countGranted = 0;</span>
+
+    /** Count rejected accesses */
+<span class="nc" id="L163">    protected static int countRejected = 0;</span>
+
+    /**
+     * Updates result with name-value-pairs extracted from dnPartsString
+     *
+     * @param result where the result is stuffed
+     * @param dnPartsString name-value-pairs separated by delimiter
+     */
+    void addUserDataToResult(AuthResult result, final String dnPartsString) {
+<span class="nc bnc" id="L172" title="All 2 branches missed.">        if (dnPartsString == null) {</span>
+<span class="nc" id="L173">            return;</span>
+        }
+
+<span class="nc" id="L176">        Enumeration&lt;Object&gt; dnParts = new StringTokenizer(dnPartsString, DNPART_DELIMITER);</span>
+
+<span class="nc bnc" id="L178" title="All 2 branches missed.">        while (dnParts.hasMoreElements()) {</span>
+<span class="nc" id="L179">            String dnPart = (String) dnParts.nextElement();</span>
+<span class="nc" id="L180">            int separatorPosition = dnPart.indexOf(DNPART_NAME_VALUE_SEPARATOR);</span>
+<span class="nc" id="L181">            String dnName = dnPart.substring(0, separatorPosition);</span>
+<span class="nc" id="L182">            String dnValue = dnPart.substring(separatorPosition + 1); // skip separator</span>
+<span class="nc" id="L183">            result.add(dnName, dnValue);</span>
+<span class="nc" id="L184">            debugLog(&quot;addUserDataToResult: result=&quot; + result);</span>
+<span class="nc" id="L185">        }</span>
+<span class="nc" id="L186">    }</span>
+
+    /**
+     * Authenticate a user given a querystring. &lt;b&gt;This is the only method a customer should have
+     * to rewrite/override.&lt;/b&gt;
+     *
+     * @param username containing parsed username from requestor
+     * @param password containing parsed password from requestor
+     *
+     * @return status + certificate contents in an AuthResult
+     */
+    protected AuthResult authenticateUser(String username, String password) {
+<span class="nc" id="L198">        AuthResult result = new AuthResult();</span>
+<span class="nc" id="L199">        String[] userData = findUserData(username);</span>
+
+<span class="nc bnc" id="L201" title="All 2 branches missed.">        if (userData == null) {</span>
+<span class="nc" id="L202">            result.reject();</span>
+<span class="nc" id="L203">            result.setReason(&quot;Failed to authenticate credentials.&quot;);</span>
+<span class="nc" id="L204">            debugLog(&quot;authenticateUser: No such user. REJECTING&quot;);</span>
+        } else {
+<span class="nc" id="L206">            debugLog(&quot;authenticateUser: Got userData for user '&quot; + username + &quot;'&quot;);</span>
+
+<span class="nc bnc" id="L208" title="All 2 branches missed.">            if (password.equals(userData[0])) {</span>
+<span class="nc" id="L209">                debugLog(&quot;authenticateUser: Password matched. GRANTING&quot;);</span>
+<span class="nc" id="L210">                result.grant();</span>
+<span class="nc" id="L211">                addUserDataToResult(result, userData[1]);</span>
+            } else {
+<span class="nc" id="L213">                debugLog(&quot;authenticateUser: Password missmatch. REJECTING&quot;);</span>
+<span class="nc" id="L214">                result.reject();</span>
+<span class="nc" id="L215">                result.setReason(&quot;Failed to authenticate credentials.&quot;);</span>
+            }
+        }
+
+<span class="nc" id="L219">        return result;</span>
+    }
+
+    /**
+     * Logs extensively to the log.
+     *
+     * @param s What to log
+     */
+    protected void debugLog(final String s) {
+<span class="nc" id="L228">        log.debug(s);</span>
+<span class="nc" id="L229">    }</span>
+
+    /**
+     * logs info.
+     *
+     * @param s What to log
+     */
+    protected void infoLog(final String s) {
+<span class="nc" id="L237">        log.info(s);</span>
+<span class="nc" id="L238">    }</span>
+
+    /**
+     * logs error
+     *
+     * @param s What to log
+     */
+    protected void errorLog(final String s) {
+<span class="nc" id="L246">        log.error(s);</span>
+<span class="nc" id="L247">    }</span>
+
+    /**
+     * logs error and stacktrace.
+     *
+     * @param s What to log
+     * @param e DOCUMENT ME!
+     */
+    protected void errorLog(final String s, java.lang.Exception e) {
+<span class="nc" id="L256">        log.error(s, e);</span>
+<span class="nc" id="L257">    }</span>
+
+    /**
+     * Allows for checking status of.
+     *
+     * @param req javax.servlet.http.HttpServletRequest
+     * @param res javax.servlet.http.HttpServletResponse
+     *
+     * @exception javax.servlet.ServletException The exception description.
+     */
+    protected void doGet(HttpServletRequest req, HttpServletResponse res)
+        throws ServletException, IOException {
+<span class="nc" id="L269">        res.setContentType(&quot;text/plain&quot;);</span>
+
+<span class="nc" id="L271">        ServletOutputStream out = res.getOutputStream();</span>
+
+        // Keep this for logging.
+<span class="nc" id="L274">        String remoteAddr = req.getRemoteAddr();</span>
+
+        // Extract information about request type and how we were called.
+        // Also suitable for logging.
+<span class="nc" id="L278">        String method = req.getMethod();</span>
+<span class="nc" id="L279">        String path = req.getServletPath();</span>
+<span class="nc" id="L280">        log.debug(&quot;Received request: method=&quot;+method+&quot;, path=&quot;+path);</span>
+
+<span class="nc" id="L282">        out.print(&quot;You called from &quot; + remoteAddr);</span>
+<span class="nc" id="L283">        out.println(&quot; using &quot; + method + &quot; as method.&quot;);</span>
+
+<span class="nc" id="L285">        RequestHelper.setDefaultCharacterEncoding(req);</span>
+        try {
+<span class="nc" id="L287">            Map&lt;?, ?&gt; params = req.getParameterMap();</span>
+
+<span class="nc bnc" id="L289" title="All 2 branches missed.">            if (params.containsKey(STATUS_KEY)) {</span>
+<span class="nc" id="L290">                out.println(&quot;\n&quot;);</span>
+<span class="nc" id="L291">                out.println((new Date()).toString() + &quot; RemoteVerify status: &quot;);</span>
+<span class="nc" id="L292">                out.println(&quot;Accesses: &quot; + countAccess);</span>
+<span class="nc" id="L293">                out.println(&quot;Granted: &quot; + countGranted);</span>
+<span class="nc" id="L294">                out.println(&quot;Rejected: &quot; + countRejected);</span>
+
+<span class="nc bnc" id="L296" title="All 2 branches missed.">                if (users != null) {</span>
+<span class="nc" id="L297">                    out.println(&quot;Number of users in database: &quot; + users.size());</span>
+                } else {
+<span class="nc" id="L299">                    out.println(&quot;No users in database.&quot;);</span>
+                }
+
+<span class="nc" id="L302">                out.println(&quot;\n&quot;);</span>
+<span class="nc" id="L303">                out.println(&quot;Protocol version: &quot; + PROTOCOL_VERSION_MAJOR + &quot;.&quot; +</span>
+                    PROTOCOL_VERSION_MINOR);
+<span class="nc" id="L305">                out.println(&quot;Database loaded from: &quot; + getInitParameter(&quot;dbfilename&quot;));</span>
+<span class="nc" id="L306">                out.println((new Date()).toString() + &quot; DONE.&quot;);</span>
+            }
+<span class="nc" id="L308">        } catch (IllegalArgumentException ignored) {</span>
+<span class="nc" id="L309">            out.println(&quot;Couldn't parse that request. Check parameters and try again.&quot;);</span>
+<span class="nc" id="L310">        }</span>
+
+<span class="nc" id="L312">        out.println(&quot;Request done.&quot;);</span>
+<span class="nc" id="L313">    }</span>
+
+    /**
+     * Accepts requests and dispatches to authenticateUser in this object.
+     * 
+     * &lt;p&gt;
+     * Returns one of the following cases. (Apart from status being the first line, order is not
+     * specified.)
+     * 
+     * &lt;ul&gt;
+     * &lt;li&gt;
+     * A granted reply:
+     * &lt;pre&gt;
+     *   status=200 OK
+     *   result=grant
+     *   dn-ou=OU
+     *   dn-o=O
+     *   dn-cn=CN
+     *   end
+     *   &lt;/pre&gt;
+     * &lt;/li&gt;
+     * &lt;li&gt;
+     * A rejected reply:
+     * &lt;pre&gt;
+     *   status=200 OK
+     *   result=reject
+     *   message=Wrong username/password.
+     *   end
+     *   &lt;/pre&gt;
+     * &lt;/li&gt;
+     * &lt;li&gt;
+     * A failed request:
+     * &lt;pre&gt;
+     *   status=400
+     *   message=Server can't handle given protocol version
+     *   end
+     *   &lt;/pre&gt;
+     * &lt;/li&gt;
+     * &lt;/ul&gt;
+     * 
+     *
+     * @param req DOCUMENT ME!
+     * @param res DOCUMENT ME!
+     *
+     * @exception ServletException when servlet mechanism fails
+     * @exception IOException when something fails with basic I/O, such as reading/writing to
+     *            client.
+     */
+    protected void doPost(HttpServletRequest req, HttpServletResponse res)
+        throws ServletException, IOException {
+<span class="nc" id="L363">        increaseAccess();</span>
+
+<span class="nc" id="L365">        res.setContentType(&quot;text/plain&quot;);</span>
+
+<span class="nc" id="L367">        ServletOutputStream out = res.getOutputStream();</span>
+
+        //
+        // Keep this for logging.
+<span class="nc" id="L371">        String remoteAddr = req.getRemoteAddr();</span>
+
+        //
+        // Extract information about request type and how we were called.
+        // Also suitable for logging.
+<span class="nc" id="L376">        String method = req.getMethod();</span>
+<span class="nc" id="L377">        String path = req.getServletPath();</span>
+<span class="nc" id="L378">        log.debug(&quot;Received request: method=&quot;+method+&quot;, path=&quot;+path);</span>
+
+        //
+        // Will this work with content length == -1 ?? (Unknown length)
+        // Don't know, but -1 is possible only if we have a GET
+        // and we KNOW this is a POST :-)
+<span class="nc" id="L384">        Map&lt;?, ?&gt; params = req.getParameterMap();</span>
+
+        try {
+            // Extract parameters from client
+<span class="nc" id="L388">            String username = &quot;&quot;;</span>
+<span class="nc" id="L389">            String password = &quot;&quot;;</span>
+<span class="nc" id="L390">            String version = &quot;&quot;;</span>
+
+            try {
+<span class="nc" id="L393">                username = ((String[]) params.get(REQUEST_USERNAME))[0];</span>
+<span class="nc" id="L394">                password = ((String[]) params.get(REQUEST_PASSWORD))[0];</span>
+<span class="nc" id="L395">                version = ((String[]) params.get(REQUEST_VERSION))[0];</span>
+<span class="nc" id="L396">            } catch (ArrayIndexOutOfBoundsException ignored) {</span>
+                // No parameters will result in &quot;&quot; being used from
+                // step above
+<span class="nc" id="L399">            } catch (NullPointerException ignoredAsWell) {</span>
+                // No parameters will result in &quot;&quot; being used from
+                // step above
+<span class="nc" id="L402">            }</span>
+
+            //
+            // Extract and verify protocol version
+<span class="nc" id="L406">            int majorversion = 0;</span>
+<span class="nc" id="L407">            int minorversion = 0;</span>
+
+            // Split version on '.'
+<span class="nc" id="L410">            int dotAt = version.indexOf('.');</span>
+
+<span class="nc bnc" id="L412" title="All 2 branches missed.">            if (dotAt == -1) {</span>
+                // No separator entered, assume minor == 0
+                try {
+<span class="nc" id="L415">                    majorversion = Integer.parseInt(version);</span>
+<span class="nc" id="L416">                } catch (NumberFormatException nfe) {</span>
+<span class="nc" id="L417">                    errorLog(&quot;doPost: Got &quot; + nfe + &quot; on call from &quot; + remoteAddr +</span>
+                        &quot; for username '&quot; + username +
+                        &quot;'. Asuming version is OK. Tried to parse '&quot; + version + &quot;'&quot;);
+<span class="nc" id="L420">                }</span>
+
+<span class="nc" id="L422">                minorversion = 0;</span>
+            } else {
+                try {
+<span class="nc" id="L425">                    majorversion = Integer.parseInt(version.substring(0, dotAt));</span>
+<span class="nc" id="L426">                    minorversion = Integer.parseInt(version.substring(1 + dotAt, version.length()));</span>
+<span class="nc" id="L427">                } catch (NumberFormatException nfe) {</span>
+<span class="nc" id="L428">                    errorLog(&quot;doPost: Got &quot; + nfe + &quot; on call from &quot; + remoteAddr +</span>
+                        &quot; for username '&quot; + username +
+                        &quot;'. Asuming version is OK. Tried to parse '&quot; + version + &quot;'&quot;);
+<span class="nc" id="L431">                }</span>
+            }
+
+            //
+            // Now let's make sure we can play this tune
+<span class="nc bnc" id="L436" title="All 4 branches missed.">            if ((majorversion == PROTOCOL_VERSION_MAJOR) &amp;&amp;</span>
+                    (minorversion &lt;= PROTOCOL_VERSION_MINOR)) {
+                // We're in business, protocol matches
+                // This is the call to what the customer usually
+                // needs to care about.
+                // The call itself seldom needs to be changed...
+                //
+                // You should, of course, make sure that you like
+                // the given code, as it's only an example!
+<span class="nc" id="L445">                AuthResult result = authenticateUser(username, password);</span>
+
+                //
+                // Now build the result we'll send to the client
+                // We treat grant and rejects slightly different
+<span class="nc bnc" id="L450" title="All 2 branches missed.">                if (result.granted()) {</span>
+<span class="nc" id="L451">                    increaseGranted();</span>
+<span class="nc" id="L452">                    out.println(RESPONSE_STATUS + &quot;=&quot; + MSG_OK);</span>
+<span class="nc" id="L453">                    out.println(RESPONSE_RESULT + &quot;=&quot; + GRANT);</span>
+<span class="nc" id="L454">                    debugLog(&quot;GRANTING request for '&quot; + username + &quot;'&quot;);</span>
+
+                    // loop over all elements in resultHash, print one by one
+<span class="nc" id="L457">                    Map&lt;String, String&gt; resultParams = result.getResult();</span>
+
+                    // Standard code for printing a Hash.
+<span class="nc" id="L460">                    Set&lt;String&gt; keys = resultParams.keySet();</span>
+<span class="nc bnc" id="L461" title="All 2 branches missed.">                    for (String key : keys) {</span>
+<span class="nc" id="L462">                        out.println(key + &quot;=&quot; + resultParams.get(key));                        </span>
+<span class="nc" id="L463">                    }</span>
+<span class="nc" id="L464">                } else { // rejected.</span>
+<span class="nc" id="L465">                    increaseRejected();</span>
+<span class="nc" id="L466">                    out.println(RESPONSE_STATUS + &quot;=&quot; + MSG_OK);</span>
+<span class="nc" id="L467">                    out.println(RESPONSE_RESULT + &quot;=&quot; + REJECT);</span>
+<span class="nc" id="L468">                    out.println(RESPONSE_MESSAGE + &quot;=&quot; + result.getReason());</span>
+<span class="nc" id="L469">                    debugLog(&quot;REJECTING request for '&quot; + username + &quot;'. Reason: &quot; +</span>
+<span class="nc" id="L470">                        result.getReason());</span>
+                }
+
+<span class="nc" id="L473">                out.println(RESPONSE_END); // The end of response token</span>
+<span class="nc" id="L474">            } else {</span>
+                // protocol missmatch, reject and return
+<span class="nc" id="L476">                out.println(RESPONSE_STATUS + &quot;=&quot; + MSG_PROTOCOL_MISMATCH);</span>
+<span class="nc" id="L477">                out.println(&quot;message=Accepting at most &quot; + PROTOCOL_VERSION_MAJOR + &quot;.&quot; +</span>
+                    PROTOCOL_VERSION_MINOR);
+<span class="nc" id="L479">                errorLog(&quot;PROTOCOL MISSMATCH. Got '&quot; + version + &quot;', but accepts only '&quot; +</span>
+                    PROTOCOL_VERSION_MAJOR + &quot;.&quot; + PROTOCOL_VERSION_MINOR + &quot;'&quot;);
+            }
+<span class="nc" id="L482">        } catch (Exception e) {</span>
+<span class="nc" id="L483">            out.println(RESPONSE_STATUS + &quot;=&quot; + MSG_GENERIC_ERROR + e);</span>
+<span class="nc" id="L484">            out.println(RESPONSE_END); // The end of response token</span>
+<span class="nc" id="L485">            errorLog(&quot;?Caught exception &quot;, e);</span>
+<span class="nc" id="L486">        }</span>
+<span class="nc" id="L487">    }</span>
+
+    /**
+     * Gets information for a user.
+     *
+     * @param username user to lookup.
+     *
+     * @return &lt;b&gt;null&lt;/b&gt; (if no user found) or String[] with [0] as passwd and [1] as certificate
+     *         contents.
+     */
+    protected String[] findUserData(String username) {
+<span class="nc bnc" id="L498" title="All 2 branches missed.">        if (users == null) {</span>
+<span class="nc" id="L499">            debugLog(&quot;findUserData: No users found. Returning null for user '&quot; + username + &quot;'.&quot;);</span>
+
+<span class="nc" id="L501">            return null;</span>
+        }
+
+<span class="nc" id="L504">        String[] result = (String[]) users.get(username.toLowerCase());</span>
+
+<span class="nc bnc" id="L506" title="All 2 branches missed.">        if (result != null) {</span>
+<span class="nc" id="L507">            debugLog(&quot;findUserData: Information for user '&quot; + username + &quot;'found.&quot;);</span>
+        } else {
+<span class="nc" id="L509">            debugLog(&quot;findUserData: No information for user '&quot; + username + &quot;'found.&quot;);</span>
+        }
+
+<span class="nc" id="L512">        return result;</span>
+    }
+
+    protected synchronized void increaseAccess() {
+<span class="nc" id="L516">        countAccess++;</span>
+<span class="nc" id="L517">    }</span>
+
+    protected synchronized void increaseGranted() {
+<span class="nc" id="L520">        countGranted++;</span>
+<span class="nc" id="L521">    }</span>
+
+    protected synchronized void increaseRejected() {
+<span class="nc" id="L524">        countRejected++;</span>
+<span class="nc" id="L525">    }</span>
+
+    /**
+     * Loads userdatabase at first access.
+     *
+     * @param config DOCUMENT ME!
+     *
+     * @exception javax.servlet.ServletException The exception description.
+     */
+    public void init(ServletConfig config) throws ServletException {
+<span class="nc" id="L535">        super.init(config);</span>
+
+<span class="nc" id="L537">        log = Logger.getLogger(this.getClass());</span>
+
+<span class="nc" id="L539">        debugLog((new Date()).toString() + &quot; RemoteVerify.init:&quot;);</span>
+<span class="nc" id="L540">        loadUserDB();</span>
+<span class="nc" id="L541">    }</span>
+
+    /**
+     * Load user DB at servlet load time, ie first access to servlet. It's ok to call this method
+     * multiple times, since it simply clears the old cached data each time it's called.
+     */
+    protected synchronized void loadUserDB() {
+        // First we clear cached users.
+<span class="nc" id="L549">        HashMap&lt;String, String[]&gt; oldEnUsers = users;</span>
+<span class="nc" id="L550">        users = null;</span>
+
+<span class="nc" id="L552">        BufferedReader in = null;</span>
+<span class="nc" id="L553">        debugLog((new Date()).toString() + &quot;loadUserDB: Loading from file: '&quot; +</span>
+<span class="nc" id="L554">            getInitParameter(&quot;dbfilename&quot;) + &quot;'.&quot;);</span>
+
+<span class="nc" id="L556">        InputStream is = getServletContext().getResourceAsStream(getInitParameter(&quot;dbfilename&quot;));</span>
+<span class="nc" id="L557">        in = new BufferedReader(new InputStreamReader(is));</span>
+
+        String line;
+<span class="nc" id="L560">        boolean readMore = true;</span>
+
+        try {
+<span class="nc bnc" id="L563" title="All 2 branches missed.">            while (readMore) {</span>
+<span class="nc" id="L564">                line = in.readLine();</span>
+
+<span class="nc bnc" id="L566" title="All 2 branches missed.">                if (line == null) {</span>
+<span class="nc" id="L567">                    readMore = false;</span>
+                } else {
+<span class="nc bnc" id="L569" title="All 2 branches missed.">                    if (!line.startsWith(LINE_COMMENT)) {</span>
+<span class="nc" id="L570">                        Enumeration&lt;Object&gt; lineParts = new StringTokenizer(line, RECORD_SEPARATOR);</span>
+<span class="nc" id="L571">                        String username = (String) lineParts.nextElement();</span>
+<span class="nc" id="L572">                        debugLog(&quot;loadUserDB: username=&quot; + username);</span>
+
+<span class="nc" id="L574">                        String password = (String) lineParts.nextElement();</span>
+<span class="nc" id="L575">                        debugLog(&quot;loadUserDB: password=&quot; + password);</span>
+
+<span class="nc" id="L577">                        String userDataString = (String) lineParts.nextElement();</span>
+<span class="nc" id="L578">                        debugLog(&quot;loadUserDB: userDataString=&quot; + userDataString);</span>
+
+<span class="nc" id="L580">                        StringTokenizer st = new StringTokenizer(userDataString, DNPART_DELIMITER);</span>
+<span class="nc" id="L581">                        debugLog(&quot;loadUserDB: st=&quot; + st);</span>
+
+<span class="nc" id="L583">                        String[] userData = new String[2];</span>
+<span class="nc" id="L584">                        userData[0] = password;</span>
+<span class="nc" id="L585">                        userData[1] = userDataString;</span>
+<span class="nc" id="L586">                        debugLog(&quot;loadUserDB: calling addUserData.&quot; + Arrays.toString(userData));</span>
+<span class="nc" id="L587">                        addUserData(username, userData);</span>
+<span class="nc" id="L588">                    } else {</span>
+<span class="nc" id="L589">                        debugLog(&quot;loadUserDB: skipping comment line.&quot; + line);</span>
+                    }
+                }
+            }
+<span class="nc" id="L593">        } catch (IOException ioe) {</span>
+<span class="nc" id="L594">            errorLog(&quot;loadUserDB: FAILED TO PARSE FILE: '&quot; + getInitParameter(&quot;dbfilename&quot;) + &quot;'.&quot;);</span>
+<span class="nc" id="L595">            errorLog(&quot;loadUserDB: Got exception: &quot;, ioe);</span>
+<span class="nc" id="L596">            errorLog(&quot;loadUserDB: Restored previous version of DB&quot;);</span>
+<span class="nc" id="L597">            users = oldEnUsers;</span>
+        } finally {
+            try {
+<span class="nc" id="L600">                in.close();</span>
+<span class="nc" id="L601">            } catch (IOException ignored) {</span>
+<span class="nc" id="L602">            }</span>
+        }
+
+<span class="nc" id="L605">        debugLog((new Date()).toString() + &quot;loadUserDB: Done.&quot;);</span>
+<span class="nc" id="L606">    }</span>
+
+    /**
+     * Adds information for a user in an instance to users.
+     *
+     * @param username user to lookup.
+     * @param userData String[] with [0] as passwd and [1] as certificate contents.
+     */
+    protected void addUserData(String username, String[] userData) {
+<span class="nc bnc" id="L615" title="All 2 branches missed.">        if (users == null) {</span>
+<span class="nc" id="L616">            debugLog(&quot;addUserData: Creating new users.&quot;);</span>
+<span class="nc" id="L617">            users = new HashMap&lt;String, String[]&gt;();</span>
+        }
+
+<span class="nc" id="L620">        debugLog(&quot;addUserData: Adding '&quot; + username);</span>
+
+<span class="nc" id="L622">        users.put(username.toLowerCase(), userData);</span>
+<span class="nc" id="L623">    }</span>
+} // RemoteVerifyServlet
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

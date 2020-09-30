@@ -31,7 +31,7 @@ CeSeCore Security Common Code,org.cesecore.util,PKIXCertRevocationStatusChecker,
 CeSeCore Security Common Code,org.cesecore.util,SimpleTime,33,407,6,4,12,78,5,25,1,23
 CeSeCore Security Common Code,org.cesecore.util,ValueExtractor,122,88,8,6,16,17,6,6,1,4
 CeSeCore Security Common Code,org.cesecore.util,ValidityDate,99,300,13,31,23,70,16,23,4,13
-CeSeCore Security Common Code,org.cesecore.util,ConcurrentCache,181,520,31,63,45,113,31,34,6,12
+CeSeCore Security Common Code,org.cesecore.util,ConcurrentCache,159,542,26,68,42,116,27,38,6,12
 CeSeCore Security Common Code,org.cesecore.util,StreamSizeLimitExceededException,12,4,0,0,6,2,3,1,3,1
 CeSeCore Security Common Code,org.cesecore.util,PrintableStringNameStyle,32,48,8,8,7,9,8,4,0,4
 CeSeCore Security Common Code,org.cesecore.util,CertificateSerializableWrapper,59,0,8,0,20,0,7,0,3,0
@@ -80,7 +80,7 @@ CeSeCore Security Common Code,org.cesecore.keys,KeyCreationException,16,0,0,0,8,
 CeSeCore Security Common Code,org.cesecore.internal,UpgradeableDataHashMap,116,186,20,20,28,44,16,17,4,9
 CeSeCore Security Common Code,org.cesecore.internal,CommonCacheBase,402,0,46,0,91,0,38,0,15,0
 CeSeCore Security Common Code,org.cesecore.internal,CommonCacheBase.CacheEntry,18,0,0,0,6,0,1,0,1,0
-CeSeCore Security Common Code,org.cesecore.internal,InternalResources,76,351,18,40,23,85,18,23,0,12
+CeSeCore Security Common Code,org.cesecore.internal,InternalResources,62,365,16,42,21,87,16,25,0,12
 CeSeCore Security Common Code,org.cesecore.certificates.ocsp,SHA1DigestCalculator,8,32,0,0,3,9,1,4,1,4
 CeSeCore Security Common Code,org.cesecore.util.ui,RadioButton,76,0,12,0,22,0,13,0,7,0
 CeSeCore Security Common Code,org.cesecore.util.ui,PositiveIntegerValidator,29,0,2,0,8,0,6,0,5,0

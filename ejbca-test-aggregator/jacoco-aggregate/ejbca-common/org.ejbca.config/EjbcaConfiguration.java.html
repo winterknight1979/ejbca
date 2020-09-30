@@ -94,7 +94,7 @@ public final class EjbcaConfiguration {
      * @return Excluded classes from approval.
      */
     public static String getApprovalExcludedClasses() {
-<span class="nc" id="L97">        return EjbcaConfigurationHolder.getExpandedString(&quot;approval.excludedClasses&quot;);</span>
+<span class="fc" id="L97">        return EjbcaConfigurationHolder.getExpandedString(&quot;approval.excludedClasses&quot;);</span>
     }
 
     /**
@@ -212,16 +212,16 @@ public final class EjbcaConfiguration {
      * @return Parameter to specify if retrieving Publishers from PublisherSession should be cached, and in that case for how long.
      */
     public static long getCachePublisherTime() {
-<span class="nc" id="L215">        final String value = EjbcaConfigurationHolder.getString(&quot;publisher.cachetime&quot;);</span>
-<span class="nc" id="L216">        long time = 1000; // cache 1 second is the default</span>
+<span class="fc" id="L215">        final String value = EjbcaConfigurationHolder.getString(&quot;publisher.cachetime&quot;);</span>
+<span class="fc" id="L216">        long time = 1000; // cache 1 second is the default</span>
         try {
-<span class="nc bnc" id="L218" title="All 2 branches missed.">            if (value!=null) {</span>
-<span class="nc" id="L219">                time = Long.valueOf(value);</span>
+<span class="pc bpc" id="L218" title="1 of 2 branches missed.">            if (value!=null) {</span>
+<span class="fc" id="L219">                time = Long.valueOf(value);</span>
             }
 <span class="nc" id="L221">        } catch (NumberFormatException e) {</span>
 <span class="nc" id="L222">            log.error(&quot;Invalid value in publisher.cachetime, must be decimal number (milliseconds to cache Publisher): &quot; + e.getMessage());</span>
-<span class="nc" id="L223">        }</span>
-<span class="nc" id="L224">        return time;</span>
+<span class="fc" id="L223">        }</span>
+<span class="fc" id="L224">        return time;</span>
     }
 
     /** @return Custom Available Access Rules. */

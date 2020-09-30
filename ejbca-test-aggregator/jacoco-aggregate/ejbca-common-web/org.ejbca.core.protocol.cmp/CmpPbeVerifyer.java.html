@@ -44,15 +44,15 @@ public class CmpPbeVerifyer {
     /** Internal localization of logs and errors */
 <span class="fc" id="L45">    private static final InternalEjbcaResources INTRES = InternalEjbcaResources.getInstance();</span>
 
-<span class="nc" id="L47">    private byte[] protectedBytes = null;</span>
-<span class="nc" id="L48">    private DERBitString protection = null;</span>
-<span class="nc" id="L49">	private AlgorithmIdentifier pAlg = null;</span>
-<span class="nc" id="L50">	private String errMsg = null;</span>
-<span class="nc" id="L51">	private String owfOid = null;</span>
-<span class="nc" id="L52">	private String macOid = null;</span>
-<span class="nc" id="L53">	private int iterationCount = 1024;</span>
-<span class="nc" id="L54">	private byte[] salt = null;</span>
-<span class="nc" id="L55">	private String lastUsedRaSecret = null;</span>
+<span class="fc" id="L47">    private byte[] protectedBytes = null;</span>
+<span class="fc" id="L48">    private DERBitString protection = null;</span>
+<span class="fc" id="L49">	private AlgorithmIdentifier pAlg = null;</span>
+<span class="fc" id="L50">	private String errMsg = null;</span>
+<span class="fc" id="L51">	private String owfOid = null;</span>
+<span class="fc" id="L52">	private String macOid = null;</span>
+<span class="fc" id="L53">	private int iterationCount = 1024;</span>
+<span class="fc" id="L54">	private byte[] salt = null;</span>
+<span class="fc" id="L55">	private String lastUsedRaSecret = null;</span>
 	
 	/**
 	 * Constructor for CmpPbeVerifyer
@@ -61,36 +61,36 @@ public class CmpPbeVerifyer {
 	 * @throws InvalidCmpProtectionException if this class is invoked on a message not signed with a password based MAC or
 	 *         the iterator count for this verifier was set higher than 10000.
 	 */
-<span class="nc" id="L64">	public CmpPbeVerifyer(final PKIMessage msg) throws InvalidCmpProtectionException {</span>
-<span class="nc" id="L65">		final PKIHeader head = msg.getHeader();</span>
-<span class="nc" id="L66">		protectedBytes = CmpMessageHelper.getProtectedBytes(msg);</span>
-<span class="nc" id="L67">		protection = msg.getProtection();</span>
-<span class="nc" id="L68">		pAlg = head.getProtectionAlg();</span>
-<span class="nc" id="L69">		final ASN1ObjectIdentifier algId = pAlg.getAlgorithm();</span>
-<span class="nc bnc" id="L70" title="All 2 branches missed.">		if (!StringUtils.equals(algId.getId(), CMPObjectIdentifiers.passwordBasedMac.getId())) {</span>
+<span class="fc" id="L64">	public CmpPbeVerifyer(final PKIMessage msg) throws InvalidCmpProtectionException {</span>
+<span class="fc" id="L65">		final PKIHeader head = msg.getHeader();</span>
+<span class="fc" id="L66">		protectedBytes = CmpMessageHelper.getProtectedBytes(msg);</span>
+<span class="fc" id="L67">		protection = msg.getProtection();</span>
+<span class="fc" id="L68">		pAlg = head.getProtectionAlg();</span>
+<span class="fc" id="L69">		final ASN1ObjectIdentifier algId = pAlg.getAlgorithm();</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">		if (!StringUtils.equals(algId.getId(), CMPObjectIdentifiers.passwordBasedMac.getId())) {</span>
 <span class="nc" id="L71">            final String errMsg = &quot;Protection algorithm id expected '&quot;+CMPObjectIdentifiers.passwordBasedMac.getId()+&quot;' (passwordBasedMac) but was '&quot;+algId.getId()+&quot;'.&quot;;</span>
 <span class="nc" id="L72">            throw new InvalidCmpProtectionException(errMsg);   </span>
 		}
-<span class="nc" id="L74">		final PBMParameter pp = PBMParameter.getInstance(pAlg.getParameters());</span>
-<span class="nc" id="L75">		iterationCount = pp.getIterationCount().getPositiveValue().intValue();</span>
-<span class="nc" id="L76">		final AlgorithmIdentifier owfAlg = pp.getOwf();</span>
+<span class="fc" id="L74">		final PBMParameter pp = PBMParameter.getInstance(pAlg.getParameters());</span>
+<span class="fc" id="L75">		iterationCount = pp.getIterationCount().getPositiveValue().intValue();</span>
+<span class="fc" id="L76">		final AlgorithmIdentifier owfAlg = pp.getOwf();</span>
 		// Normal OWF alg is 1.3.14.3.2.26 - SHA1
-<span class="nc" id="L78">		owfOid = owfAlg.getAlgorithm().getId();</span>
-<span class="nc" id="L79">		final AlgorithmIdentifier macAlg = pp.getMac();</span>
+<span class="fc" id="L78">		owfOid = owfAlg.getAlgorithm().getId();</span>
+<span class="fc" id="L79">		final AlgorithmIdentifier macAlg = pp.getMac();</span>
 		// Normal mac alg is 1.3.6.1.5.5.8.1.2 - HMAC/SHA1
-<span class="nc" id="L81">		macOid = macAlg.getAlgorithm().getId();</span>
-<span class="nc bnc" id="L82" title="All 2 branches missed.">		if (LOG.isDebugEnabled()) {</span>
+<span class="fc" id="L81">		macOid = macAlg.getAlgorithm().getId();</span>
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">		if (LOG.isDebugEnabled()) {</span>
 <span class="nc" id="L83">			LOG.debug(&quot;Protection type is: &quot;+algId.getId());</span>
 <span class="nc" id="L84">			LOG.debug(&quot;Iteration count is: &quot;+iterationCount);</span>
 <span class="nc" id="L85">			LOG.debug(&quot;Owf type is: &quot;+owfOid);</span>
 <span class="nc" id="L86">			LOG.debug(&quot;Mac type is: &quot;+macOid);</span>
 		}
-<span class="nc bnc" id="L88" title="All 2 branches missed.">        if (iterationCount &gt; 10000) {</span>
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">        if (iterationCount &gt; 10000) {</span>
 <span class="nc" id="L89">            LOG.info(&quot;Received message with too many iterations in PBE protection: &quot;+iterationCount);</span>
 <span class="nc" id="L90">            throw new InvalidCmpProtectionException(&quot;Iteration count can not exceed 10000&quot;);</span>
         }           
-<span class="nc" id="L92">		salt = pp.getSalt().getOctets();</span>
-<span class="nc" id="L93">	}</span>
+<span class="fc" id="L92">		salt = pp.getSalt().getOctets();</span>
+<span class="fc" id="L93">	}</span>
 	
 	/**
 	 * 
@@ -100,43 +100,43 @@ public class CmpPbeVerifyer {
 	 * @throws NoSuchAlgorithmException if the algorithm for the Owf or the MAC weren't found
 	 */
 	public boolean verify(String raAuthenticationSecret) throws InvalidKeyException, NoSuchAlgorithmException {
-<span class="nc bnc" id="L103" title="All 2 branches missed.">	    if (raAuthenticationSecret == null) {</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">	    if (raAuthenticationSecret == null) {</span>
 <span class="nc" id="L104">            throw new IllegalArgumentException(&quot;RA authentication secret is null.&quot;);</span>
 	    }
-<span class="nc" id="L106">	    lastUsedRaSecret = raAuthenticationSecret;</span>
-<span class="nc" id="L107">		boolean ret = false;</span>
+<span class="fc" id="L106">	    lastUsedRaSecret = raAuthenticationSecret;</span>
+<span class="fc" id="L107">		boolean ret = false;</span>
 		// Verify the PasswordBased protection of the message
-<span class="nc bnc" id="L109" title="All 2 branches missed.">		if (!pAlg.getAlgorithm().equals(CMPObjectIdentifiers.passwordBasedMac)) {</span>
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">		if (!pAlg.getAlgorithm().equals(CMPObjectIdentifiers.passwordBasedMac)) {</span>
 <span class="nc" id="L110">			errMsg = INTRES.getLocalizedMessage(&quot;cmp.errorunknownprotalg&quot;, pAlg.getAlgorithm().getId());</span>
 <span class="nc" id="L111">			LOG.error(errMsg);</span>
 <span class="nc" id="L112">			return ret;</span>
 		} else {
-<span class="nc" id="L114">			byte[] raSecret = raAuthenticationSecret.getBytes();</span>
-<span class="nc" id="L115">			byte[] basekey = new byte[raSecret.length + salt.length];</span>
-<span class="nc" id="L116">	        System.arraycopy(raSecret, 0, basekey, 0, raSecret.length);</span>
-<span class="nc" id="L117">	        System.arraycopy(salt, 0, basekey, raSecret.length, salt.length);</span>
+<span class="fc" id="L114">			byte[] raSecret = raAuthenticationSecret.getBytes();</span>
+<span class="fc" id="L115">			byte[] basekey = new byte[raSecret.length + salt.length];</span>
+<span class="fc" id="L116">	        System.arraycopy(raSecret, 0, basekey, 0, raSecret.length);</span>
+<span class="fc" id="L117">	        System.arraycopy(salt, 0, basekey, raSecret.length, salt.length);</span>
 			// Construct the base key according to rfc4210, section 5.1.3.1
             try {
-<span class="nc" id="L120">                MessageDigest dig = MessageDigest.getInstance(owfOid, BouncyCastleProvider.PROVIDER_NAME);</span>
-<span class="nc bnc" id="L121" title="All 2 branches missed.">                for (int i = 0; i &lt; iterationCount; i++) {</span>
-<span class="nc" id="L122">                    basekey = dig.digest(basekey);</span>
-<span class="nc" id="L123">                    dig.reset();</span>
+<span class="fc" id="L120">                MessageDigest dig = MessageDigest.getInstance(owfOid, BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="fc bfc" id="L121" title="All 2 branches covered.">                for (int i = 0; i &lt; iterationCount; i++) {</span>
+<span class="fc" id="L122">                    basekey = dig.digest(basekey);</span>
+<span class="fc" id="L123">                    dig.reset();</span>
                 }
                 // HMAC/SHA1 is normal 1.3.6.1.5.5.8.1.2 or 1.2.840.113549.2.7 
-<span class="nc" id="L126">                Mac mac = Mac.getInstance(macOid, BouncyCastleProvider.PROVIDER_NAME);</span>
-<span class="nc" id="L127">                SecretKey key = new SecretKeySpec(basekey, macOid);</span>
-<span class="nc" id="L128">                mac.init(key);</span>
-<span class="nc" id="L129">                mac.reset();</span>
-<span class="nc" id="L130">                mac.update(protectedBytes, 0, protectedBytes.length);</span>
-<span class="nc" id="L131">                byte[] out = mac.doFinal();</span>
+<span class="fc" id="L126">                Mac mac = Mac.getInstance(macOid, BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="fc" id="L127">                SecretKey key = new SecretKeySpec(basekey, macOid);</span>
+<span class="fc" id="L128">                mac.init(key);</span>
+<span class="fc" id="L129">                mac.reset();</span>
+<span class="fc" id="L130">                mac.update(protectedBytes, 0, protectedBytes.length);</span>
+<span class="fc" id="L131">                byte[] out = mac.doFinal();</span>
                 // My out should now be the same as the protection bits
-<span class="nc" id="L133">                byte[] pb = protection.getBytes();</span>
-<span class="nc" id="L134">                ret = Arrays.equals(out, pb);</span>
+<span class="fc" id="L133">                byte[] pb = protection.getBytes();</span>
+<span class="fc" id="L134">                ret = Arrays.equals(out, pb);</span>
 <span class="nc" id="L135">            } catch (NoSuchProviderException e) {</span>
 <span class="nc" id="L136">                throw new IllegalStateException(&quot;BouncyCastle provider not found.&quot;);</span>
-<span class="nc" id="L137">            }</span>
+<span class="fc" id="L137">            }</span>
 		}
-<span class="nc" id="L139">		return ret;</span>
+<span class="fc" id="L139">		return ret;</span>
 	}
 
 	public String getErrMsg() {

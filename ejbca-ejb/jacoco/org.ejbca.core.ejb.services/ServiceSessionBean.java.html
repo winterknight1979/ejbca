@@ -1,0 +1,1004 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ServiceSessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.services</a> &gt; <span class="el_source">ServiceSessionBean.java</span></div><h1>ServiceSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.ejb.services;
+
+import java.io.Serializable;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.FinderException;
+import javax.ejb.SessionContext;
+import javax.ejb.Stateless;
+import javax.ejb.Timeout;
+import javax.ejb.Timer;
+import javax.ejb.TimerConfig;
+import javax.ejb.TimerService;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.log.InternalSecurityEventsLoggerSessionLocal;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.UsernamePrincipal;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.certificates.crl.CrlCreateSessionLocal;
+import org.cesecore.certificates.crl.CrlStoreSessionLocal;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
+import org.cesecore.util.ProfileID;
+import org.ejbca.core.ejb.approval.ApprovalProfileSessionLocal;
+import org.ejbca.core.ejb.approval.ApprovalSessionLocal;
+import org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaModuleTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaServiceTypes;
+import org.ejbca.core.ejb.authentication.web.WebAuthenticationProviderSessionLocal;
+import org.ejbca.core.ejb.ca.auth.EndEntityAuthenticationSessionLocal;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionLocal;
+import org.ejbca.core.ejb.ca.publisher.PublisherQueueSessionLocal;
+import org.ejbca.core.ejb.ca.publisher.PublisherSessionLocal;
+import org.ejbca.core.ejb.ca.sign.SignSessionLocal;
+import org.ejbca.core.ejb.crl.ImportCrlSessionLocal;
+import org.ejbca.core.ejb.crl.PublishingCrlSessionLocal;
+import org.ejbca.core.ejb.hardtoken.HardTokenSessionLocal;
+import org.ejbca.core.ejb.keyrecovery.KeyRecoverySessionLocal;
+import org.ejbca.core.ejb.ra.CertificateRequestSessionLocal;
+import org.ejbca.core.ejb.ra.EndEntityAccessSessionLocal;
+import org.ejbca.core.ejb.ra.EndEntityManagementSessionLocal;
+import org.ejbca.core.ejb.ra.KeyStoreCreateSessionLocal;
+import org.ejbca.core.ejb.ra.raadmin.AdminPreferenceSessionLocal;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.services.BaseWorker;
+import org.ejbca.core.model.services.IInterval;
+import org.ejbca.core.model.services.IWorker;
+import org.ejbca.core.model.services.ServiceConfiguration;
+import org.ejbca.core.model.services.ServiceExecutionFailedException;
+import org.ejbca.core.model.services.ServiceExistsException;
+import org.ejbca.core.protocol.cmp.CmpMessageDispatcherSessionLocal;
+
+/**
+ * Session bean that handles adding and editing services as displayed in EJBCA. This bean manages the service configuration as stored in the database,
+ * and executes services at timeouts triggered by the timeoutHandler.
+ * 
+ * @version $Id: ServiceSessionBean.java 34133 2019-12-19 14:28:28Z anatom $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;ServiceSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L101">public class ServiceSessionBean implements ServiceSessionLocal, ServiceSessionRemote {</span>
+
+<span class="nc" id="L103">    private static final Logger log = Logger.getLogger(ServiceSessionBean.class);</span>
+
+    /** Internal localization of logs and errors */
+<span class="nc" id="L106">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+
+    /**
+     * Constant indicating the Id of the &quot;service loader&quot; service. Used in a clustered environment to periodically load available services
+     */
+<span class="nc" id="L111">    private static final Integer SERVICELOADER_ID = 0;</span>
+
+    private static final long SERVICELOADER_PERIOD = 5 * 60 * 1000;
+
+    @Resource
+    private SessionContext sessionContext;
+    private TimerService timerService; // When the sessionContext is injected, the timerService should be looked up.
+
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private SecurityEventsLoggerSessionLocal auditSession;
+    @EJB
+    private InternalSecurityEventsLoggerSessionLocal internalAuditSession;
+    @EJB
+    private ServiceDataSessionLocal serviceDataSession;
+
+    private ServiceSessionLocal serviceSession;
+
+    // Additional dependencies from the services we executeServiceInTransaction
+    @EJB
+    private ApprovalSessionLocal approvalSession;
+    @EJB
+    private ApprovalProfileSessionLocal approvalProfileSession;
+    @EJB
+    private EndEntityAuthenticationSessionLocal authenticationSession;
+    @EJB
+    private CAAdminSessionLocal caAdminSession;
+    @EJB
+    private CaSessionLocal caSession;
+    @EJB
+    private CertificateProfileSessionLocal certificateProfileSession;
+    @EJB
+    private CertificateStoreSessionLocal certificateStoreSession;
+    @EJB
+    private CrlCreateSessionLocal crlCreateSession;
+    @EJB
+    private CrlStoreSessionLocal crlStoreSession;
+    @EJB
+    private EndEntityAccessSessionLocal endEntityAccessSession;
+    @EJB
+    private EndEntityProfileSessionLocal endEntityProfileSession;
+    @EJB
+    private HardTokenSessionLocal hardTokenSession;
+    @EJB
+    private KeyRecoverySessionLocal keyRecoverySession;
+    @EJB
+    private AdminPreferenceSessionLocal raAdminSession;
+    @EJB
+    private GlobalConfigurationSessionLocal globalConfigurationSession;
+    @EJB
+    private SignSessionLocal signSession;
+    @EJB
+    private EndEntityManagementSessionLocal endEntityManagementSession;
+    @EJB
+    private PublisherQueueSessionLocal publisherQueueSession;
+    @EJB
+    private PublisherSessionLocal publisherSession;
+    @EJB
+    private CertificateRequestSessionLocal certificateRequestSession;
+    @EJB
+    private WebAuthenticationProviderSessionLocal webAuthenticationSession;
+    @EJB
+    private PublishingCrlSessionLocal publishingCrlSession;
+    @EJB
+    private CryptoTokenManagementSessionLocal cryptoTokenSession;
+    @EJB
+    private CmpMessageDispatcherSessionLocal cmpMsgDispatcherSession;
+    @EJB
+    private ImportCrlSessionLocal importCrlSession;
+    @EJB
+    private KeyStoreCreateSessionLocal keyStoreCreateSession;
+
+    @PostConstruct
+    public void ejbCreate() {
+<span class="nc" id="L186">        timerService = sessionContext.getTimerService();</span>
+<span class="nc" id="L187">        serviceSession = sessionContext.getBusinessObject(ServiceSessionLocal.class);</span>
+<span class="nc" id="L188">    }</span>
+
+    @Override
+    public void addService(AuthenticationToken admin, String name, ServiceConfiguration serviceConfiguration) throws ServiceExistsException {
+<span class="nc bnc" id="L192" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L193">            log.trace(&quot;&gt;addService(name: &quot; + name + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L195">        addService(admin, findFreeServiceId(), name, serviceConfiguration);</span>
+<span class="nc" id="L196">        log.trace(&quot;&lt;addService()&quot;);</span>
+<span class="nc" id="L197">    }</span>
+
+    @Override
+    public void addService(AuthenticationToken admin, int id, String name, ServiceConfiguration serviceConfiguration) throws ServiceExistsException {
+<span class="nc bnc" id="L201" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L202">            log.trace(&quot;&gt;addService(name: &quot; + name + &quot;, id: &quot; + id + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L204">        boolean success = addServiceInternal(admin, id, name, serviceConfiguration);</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">        if (success) {</span>
+<span class="nc" id="L206">            final String msg = intres.getLocalizedMessage(&quot;services.serviceadded&quot;, name);</span>
+<span class="nc" id="L207">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L208">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L209">            auditSession.log(EjbcaEventTypes.SERVICE_ADD, EventStatus.SUCCESS, EjbcaModuleTypes.SERVICE, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L210">                    admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L211">        } else {</span>
+<span class="nc" id="L212">            final String msg = intres.getLocalizedMessage(&quot;services.erroraddingservice&quot;, name);</span>
+<span class="nc" id="L213">            log.info(msg);</span>
+<span class="nc" id="L214">            throw new ServiceExistsException(msg);</span>
+        }
+<span class="nc" id="L216">        log.trace(&quot;&lt;addService()&quot;);</span>
+<span class="nc" id="L217">    }</span>
+    
+    private boolean addServiceInternal(AuthenticationToken admin, int id, String name, ServiceConfiguration serviceConfiguration) throws ServiceExistsException {
+<span class="nc" id="L220">        boolean success = false;</span>
+<span class="nc bnc" id="L221" title="All 2 branches missed.">        if (isAuthorizedToEditService(admin)) {</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">            if (serviceDataSession.findByName(name) == null) {</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">                if (serviceDataSession.findById(Integer.valueOf(id)) == null) {</span>
+<span class="nc" id="L224">                    serviceDataSession.addServiceData(id, name, serviceConfiguration);</span>
+<span class="nc" id="L225">                    success = true;</span>
+                }
+            }
+        } else {
+<span class="nc" id="L229">            final String msg = intres.getLocalizedMessage(&quot;services.notauthorizedtoadd&quot;, name);</span>
+<span class="nc" id="L230">            log.info(msg);</span>
+        }
+<span class="nc" id="L232">        return success;</span>
+    }
+
+    @Override
+    public void cloneService(AuthenticationToken admin, String oldname, String newname) throws ServiceExistsException {
+<span class="nc bnc" id="L237" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L238">            log.trace(&quot;&gt;cloneService(name: &quot; + oldname + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L240">        ServiceConfiguration servicedata = null;</span>
+<span class="nc" id="L241">        ServiceData htp = serviceDataSession.findByName(oldname);</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">        if (htp == null) {</span>
+<span class="nc" id="L243">            String msg = &quot;Error cloning service: No such service found.&quot;;</span>
+<span class="nc" id="L244">            log.error(msg);</span>
+<span class="nc" id="L245">            throw new EJBException(msg);</span>
+        }
+        try {
+<span class="nc" id="L248">            servicedata = (ServiceConfiguration) htp.getServiceConfiguration().clone();</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">            if (isAuthorizedToEditService(admin)) {</span>
+<span class="nc" id="L250">                addServiceInternal(admin, findFreeServiceId(), newname, servicedata);</span>
+<span class="nc" id="L251">                final String msg = intres.getLocalizedMessage(&quot;services.servicecloned&quot;, newname, oldname);</span>
+<span class="nc" id="L252">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L253">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L254">                auditSession.log(EjbcaEventTypes.SERVICE_ADD, EventStatus.SUCCESS, EjbcaModuleTypes.SERVICE, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L255">                        admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L256">            } else {</span>
+<span class="nc" id="L257">                final String msg = intres.getLocalizedMessage(&quot;services.notauthorizedtoedit&quot;, oldname);</span>
+<span class="nc" id="L258">                log.info(msg);</span>
+            }
+<span class="nc" id="L260">        } catch (CloneNotSupportedException e) {</span>
+<span class="nc" id="L261">            log.error(&quot;Error cloning service: &quot;, e);</span>
+<span class="nc" id="L262">            throw new EJBException(e);</span>
+<span class="nc" id="L263">        }</span>
+<span class="nc" id="L264">        log.trace(&quot;&lt;cloneService()&quot;);</span>
+<span class="nc" id="L265">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public boolean removeService(AuthenticationToken admin, String name) {
+<span class="nc bnc" id="L270" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L271">            log.trace(&quot;&gt;removeService(name: &quot; + name + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L273">        boolean retval = false;</span>
+        try {
+<span class="nc" id="L275">            ServiceData htp = serviceDataSession.findByName(name);</span>
+<span class="nc bnc" id="L276" title="All 2 branches missed.">            if (htp == null) {</span>
+<span class="nc" id="L277">                throw new FinderException(&quot;Cannot find service &quot; + name);</span>
+            }
+<span class="nc" id="L279">            ServiceConfiguration serviceConfiguration = htp.getServiceConfiguration();</span>
+<span class="nc bnc" id="L280" title="All 2 branches missed.">            if (isAuthorizedToEditService(admin)) {</span>
+<span class="nc" id="L281">                IWorker worker = getWorker(serviceConfiguration, name, htp.getRunTimeStamp(), htp.getNextRunTimeStamp());</span>
+<span class="nc bnc" id="L282" title="All 2 branches missed.">                if (worker != null) {</span>
+<span class="nc" id="L283">                    serviceSession.cancelTimer(htp.getId());</span>
+                }
+<span class="nc" id="L285">                serviceDataSession.removeServiceData(htp.getId());</span>
+<span class="nc" id="L286">                final String msg = intres.getLocalizedMessage(&quot;services.serviceremoved&quot;, name);</span>
+<span class="nc" id="L287">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L288">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L289">                auditSession.log(EjbcaEventTypes.SERVICE_REMOVE, EventStatus.SUCCESS, EjbcaModuleTypes.SERVICE, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L290">                        admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L291">                retval = true;</span>
+<span class="nc" id="L292">            } else {</span>
+<span class="nc" id="L293">                final String msg = intres.getLocalizedMessage(&quot;services.notauthorizedtoedit&quot;, name);</span>
+<span class="nc" id="L294">                log.info(msg);</span>
+            }
+<span class="nc" id="L296">        } catch (Exception e) {</span>
+<span class="nc" id="L297">            final String msg = intres.getLocalizedMessage(&quot;services.errorremovingservice&quot;, name);</span>
+<span class="nc" id="L298">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L299">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L300">            details.put(&quot;error&quot;, e.getMessage());</span>
+<span class="nc" id="L301">            auditSession.log(EjbcaEventTypes.SERVICE_REMOVE, EventStatus.FAILURE, EjbcaModuleTypes.SERVICE, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L302">                    admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L303">        }</span>
+<span class="nc" id="L304">        log.trace(&quot;&lt;removeService)&quot;);</span>
+<span class="nc" id="L305">        return retval;</span>
+    }
+
+    @Override
+    public void renameService(AuthenticationToken admin, String oldname, String newname) throws ServiceExistsException {
+<span class="nc bnc" id="L310" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L311">            log.trace(&quot;&gt;renameService(from &quot; + oldname + &quot; to &quot; + newname + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L313">        boolean success = false;</span>
+<span class="nc bnc" id="L314" title="All 2 branches missed.">        if (serviceDataSession.findByName(newname) == null) {</span>
+<span class="nc" id="L315">            ServiceData htp = serviceDataSession.findByName(oldname);</span>
+<span class="nc bnc" id="L316" title="All 2 branches missed.">            if (htp != null) {</span>
+<span class="nc bnc" id="L317" title="All 2 branches missed.">                if (isAuthorizedToEditService(admin)) {</span>
+<span class="nc" id="L318">                    htp.setName(newname);</span>
+<span class="nc" id="L319">                    success = true;</span>
+                } else {
+<span class="nc" id="L321">                    final String msg = intres.getLocalizedMessage(&quot;services.notauthorizedtoedit&quot;, oldname);</span>
+<span class="nc" id="L322">                    log.info(msg);</span>
+                }
+            }
+        }
+<span class="nc bnc" id="L326" title="All 2 branches missed.">        if (success) {</span>
+<span class="nc" id="L327">            final String msg = intres.getLocalizedMessage(&quot;services.servicerenamed&quot;, oldname, newname);</span>
+<span class="nc" id="L328">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L329">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L330">            auditSession.log(EjbcaEventTypes.SERVICE_RENAME, EventStatus.SUCCESS, EjbcaModuleTypes.SERVICE, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L331">                    admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L332">        } else {</span>
+<span class="nc" id="L333">            final String msg = intres.getLocalizedMessage(&quot;services.errorrenamingservice&quot;, oldname, newname);</span>
+<span class="nc" id="L334">            log.info(msg);</span>
+<span class="nc" id="L335">            throw new ServiceExistsException(msg);</span>
+        }
+<span class="nc" id="L337">        log.trace(&quot;&lt;renameService()&quot;);</span>
+<span class="nc" id="L338">    }</span>
+
+    @Override
+    public Collection&lt;Integer&gt; getVisibleServiceIds() {
+<span class="nc" id="L342">        Collection&lt;Integer&gt; allVisibleServiceIds = new ArrayList&lt;Integer&gt;();</span>
+<span class="nc" id="L343">            Collection&lt;Integer&gt; allServiceIds = getServiceIdToNameMap().keySet();</span>
+<span class="nc bnc" id="L344" title="All 2 branches missed.">            for (int id : allServiceIds) {</span>
+                // Remove hidden services here..
+<span class="nc bnc" id="L346" title="All 2 branches missed.">                if (!getServiceConfiguration(id).isHidden()) {</span>
+<span class="nc" id="L347">                    allVisibleServiceIds.add(Integer.valueOf(id));</span>
+                }
+<span class="nc" id="L349">            }</span>
+
+<span class="nc" id="L351">        return allVisibleServiceIds;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public ServiceConfiguration getService(String name) {
+<span class="nc bnc" id="L357" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L358">            log.trace(&quot;&gt;getService: &quot; + name);</span>
+        }
+<span class="nc" id="L360">        ServiceConfiguration returnval = null;</span>
+<span class="nc" id="L361">        ServiceData serviceData = serviceDataSession.findByName(name);</span>
+<span class="nc bnc" id="L362" title="All 2 branches missed.">        if (serviceData != null) {</span>
+<span class="nc" id="L363">            returnval = serviceData.getServiceConfiguration();</span>
+        }
+<span class="nc bnc" id="L365" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L366">            log.trace(&quot;&lt;getService: &quot; + name);</span>
+        }
+<span class="nc" id="L368">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public int getServiceId(String name) {
+<span class="nc" id="L374">        int returnval = 0;</span>
+<span class="nc" id="L375">        ServiceData serviceData = serviceDataSession.findByName(name);</span>
+<span class="nc bnc" id="L376" title="All 2 branches missed.">        if (serviceData != null) {</span>
+<span class="nc" id="L377">            returnval = serviceData.getId();</span>
+        }
+<span class="nc" id="L379">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public void activateServiceTimer(AuthenticationToken admin, String name) {
+<span class="nc bnc" id="L385" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L386">            log.trace(&quot;&gt;activateServiceTimer(name: &quot; + name + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L388">        ServiceData htp = serviceDataSession.findByName(name);</span>
+<span class="nc bnc" id="L389" title="All 2 branches missed.">        if (htp != null) {</span>
+<span class="nc" id="L390">            ServiceConfiguration serviceConfiguration = htp.getServiceConfiguration();</span>
+<span class="nc bnc" id="L391" title="All 2 branches missed.">            if (isAuthorizedToEditService(admin)) {</span>
+<span class="nc" id="L392">                IWorker worker = getWorker(serviceConfiguration, name, htp.getRunTimeStamp(), htp.getNextRunTimeStamp());</span>
+<span class="nc bnc" id="L393" title="All 2 branches missed.">                if (worker != null) {</span>
+<span class="nc" id="L394">                    serviceSession.cancelTimer(htp.getId());</span>
+<span class="nc bnc" id="L395" title="All 4 branches missed.">                    if (serviceConfiguration.isActive() &amp;&amp; worker.getNextInterval() != IInterval.DONT_EXECUTE) {</span>
+<span class="nc" id="L396">                        addTimer(worker.getNextInterval() * 1000, htp.getId());</span>
+                    }
+                }
+<span class="nc" id="L399">            } else {</span>
+<span class="nc" id="L400">                final String msg = intres.getLocalizedMessage(&quot;services.notauthorizedtoedit&quot;, name);</span>
+<span class="nc" id="L401">                log.info(msg);</span>
+            }
+<span class="nc" id="L403">        } else {</span>
+<span class="nc" id="L404">            log.error(&quot;Can not find service: &quot; + name);</span>
+        }
+<span class="nc" id="L406">        log.trace(&quot;&lt;activateServiceTimer()&quot;);</span>
+<span class="nc" id="L407">    }</span>
+
+    private int findFreeServiceId() {
+<span class="nc" id="L410">        final ProfileID.DB db = new ProfileID.DB() {</span>
+            @Override
+            public boolean isFree(int i) {
+<span class="nc bnc" id="L413" title="All 2 branches missed.">                return ServiceSessionBean.this.serviceDataSession.findById(Integer.valueOf(i))==null;</span>
+            }
+        };
+<span class="nc" id="L416">        return ProfileID.getNotUsedID(db);</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public String getServiceName(int id) {
+<span class="nc bnc" id="L422" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L423">            log.trace(&quot;&gt;getServiceName(id: &quot; + id + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L425">        String returnval = null;</span>
+<span class="nc" id="L426">        ServiceData serviceData = serviceDataSession.findById(id);</span>
+<span class="nc bnc" id="L427" title="All 2 branches missed.">        if (serviceData != null) {</span>
+<span class="nc" id="L428">            returnval = serviceData.getName();</span>
+        }
+<span class="nc bnc" id="L430" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L431">            log.trace(&quot;&lt;getServiceName()&quot;);</span>
+        }
+<span class="nc" id="L433">        return returnval;</span>
+    }
+
+    /**
+     * Method implemented from the TimerObject and is the main method of this session bean. It calls the work object for each object.
+     * 
+     * @param timer timer whose expiration caused this notification.
+     */
+    @Timeout
+    // Glassfish 2.1.1:
+    // &quot;Timeout method ....timeoutHandler(javax.ejb.Timer)must have TX attribute of TX_REQUIRES_NEW or TX_REQUIRED or TX_NOT_SUPPORTED&quot;
+    // JBoss 5.1.0.GA: We cannot mix timer updates with our EJBCA DataSource transactions.
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public void timeoutHandler(Timer timer) {
+<span class="nc bnc" id="L447" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L448">            log.trace(&quot;&gt;ejbTimeout&quot;);</span>
+        }
+<span class="nc" id="L450">        final long startOfTimeOut = System.currentTimeMillis();</span>
+<span class="nc" id="L451">        long serviceInterval = IInterval.DONT_EXECUTE;</span>
+<span class="nc" id="L452">        Integer timerInfo = (Integer) timer.getInfo();</span>
+<span class="nc bnc" id="L453" title="All 2 branches missed.">        if (timerInfo.equals(SERVICELOADER_ID)) {</span>
+<span class="nc bnc" id="L454" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L455">                log.debug(&quot;Running the internal Service loader.&quot;);</span>
+            }
+<span class="nc" id="L457">            load();</span>
+        } else {
+<span class="nc" id="L459">            String serviceName = null;</span>
+            try {
+<span class="nc" id="L461">                serviceName = serviceDataSession.findNameById(timerInfo);</span>
+<span class="nc" id="L462">            } catch (Throwable t) { // NOPMD: we really need to catch everything to not risk hanging somewhere in limbo</span>
+<span class="nc" id="L463">                log.warn(&quot;Exception finding service name: &quot;, t); // if this throws, there is a failed database or similar</span>
+                // Unexpected error (probably database related). We need to reschedule the service with a default interval.
+<span class="nc" id="L465">                addTimer(30 * 1000, timerInfo);</span>
+<span class="nc" id="L466">            }</span>
+<span class="nc bnc" id="L467" title="All 2 branches missed.">            if (serviceName == null) {</span>
+<span class="nc" id="L468">                final String msg = intres.getLocalizedMessage(&quot;services.servicenotfound&quot;, timerInfo);</span>
+<span class="nc" id="L469">                log.info(msg);</span>
+<span class="nc" id="L470">            } else {</span>
+                // Get interval of worker
+                try {
+<span class="nc" id="L473">                    serviceInterval = serviceSession.getServiceInterval(timerInfo);</span>
+<span class="nc" id="L474">                } catch (Throwable t) { // NOPMD: we really need to catch everything to not risk hanging somewhere in limbo</span>
+<span class="nc" id="L475">                    log.warn(&quot;Exception getting service interval: &quot;, t); // if this throws, there is a failed database or similar</span>
+                    // Unexpected error (probably database related). We need to reschedule the service with a default interval.
+<span class="nc" id="L477">                    addTimer(30 * 1000, timerInfo);</span>
+<span class="nc" id="L478">                }</span>
+                // Reschedule timer
+<span class="nc" id="L480">                IWorker worker = null;</span>
+<span class="nc bnc" id="L481" title="All 2 branches missed.">                if (serviceInterval != IInterval.DONT_EXECUTE) {</span>
+<span class="nc" id="L482">                    Timer nextTrigger = addTimer(serviceInterval * 1000, timerInfo);</span>
+                    try {
+                        // Try to acquire lock / see if this node should run
+<span class="nc" id="L485">                        worker = serviceSession.getWorkerIfItShouldRun(timerInfo, nextTrigger.getNextTimeout().getTime());</span>
+<span class="nc" id="L486">                    } catch (Throwable t) { // NOPMD: we really need to catch everything to not risk hanging somewhere in limbo</span>
+<span class="nc bnc" id="L487" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L488">                            log.debug(&quot;Exception: &quot;, t); // Don't spam log with stacktraces in normal production cases</span>
+                        }
+<span class="nc" id="L490">                    }</span>
+<span class="nc bnc" id="L491" title="All 2 branches missed.">                    if (worker != null) {</span>
+                        try {
+<span class="nc" id="L493">                            serviceSession.executeServiceInNoTransaction(worker, serviceName);</span>
+<span class="nc" id="L494">                        } catch (RuntimeException e) {</span>
+                            /*
+                             * If the service worker fails with a RuntimeException we need to
+                             * swallow this here. If we allow it to propagate outside the
+                             * ejbTimeout method it is up to the application server config how it
+                             * should be retried, but we have already scheduled a new try
+                             * previously in this method. We still want to log this as an ERROR
+                             * since it is some kind of catastrophic failure..
+                             */
+<span class="nc" id="L503">                            log.error(&quot;Service worker execution failed.&quot;, e);</span>
+<span class="nc" id="L504">                        }</span>
+                    } else {
+<span class="nc bnc" id="L506" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L507">                            Object o = timerInfo;</span>
+<span class="nc bnc" id="L508" title="All 2 branches missed.">                            if (serviceName != null) {</span>
+<span class="nc" id="L509">                                o = serviceName;</span>
+                            }
+<span class="nc" id="L511">                            final String msg = intres.getLocalizedMessage(&quot;services.servicerunonothernode&quot;, o);</span>
+<span class="nc" id="L512">                            log.debug(msg);</span>
+                        }
+                    }
+<span class="nc bnc" id="L515" title="All 2 branches missed.">                    if (System.currentTimeMillis() - startOfTimeOut &gt; serviceInterval * 1000) {</span>
+<span class="nc" id="L516">                        log.warn(&quot;Service '&quot; + serviceName + &quot;' took longer than it's configured service interval (&quot;+serviceInterval+&quot;).&quot;</span>
+                                + &quot; This can trigger simultanious service execution on several nodes in a cluster.&quot;
+                                + &quot; Increase interval or lower each invocations work load.&quot;);
+                    }
+                }
+            }
+        }
+<span class="nc bnc" id="L523" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L524">            log.trace(&quot;&lt;ejbTimeout&quot;);</span>
+        }
+<span class="nc" id="L526">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @Override
+    public IWorker getWorkerIfItShouldRun(final Integer serviceId, final long nextTimeout) {
+<span class="nc" id="L531">        return getWorkerIfItShouldRun(serviceId, nextTimeout, false);</span>
+    }
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @Override
+    public IWorker getWorkerIfItShouldRun(final Integer serviceId, final long nextTimeout, final boolean testRunOnOtherNode) {
+<span class="nc bnc" id="L536" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L537">    	    log.trace(&quot;&gt;getWorkerIfItShouldRun: &quot;+serviceId+&quot;, &quot;+nextTimeout+&quot;, &quot;+testRunOnOtherNode);</span>
+    	}
+<span class="nc" id="L539">        IWorker worker = null;</span>
+<span class="nc" id="L540">        ServiceData serviceData = serviceDataSession.findById(serviceId);</span>
+<span class="nc" id="L541">        ServiceConfiguration serviceConfiguration = serviceData.getServiceConfiguration();</span>
+<span class="nc bnc" id="L542" title="All 2 branches missed.">        if (!serviceConfiguration.isActive()) {</span>
+<span class="nc bnc" id="L543" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L544">                log.debug(&quot;Service &quot; + serviceId + &quot; is inactive.&quot;);</span>
+            }
+<span class="nc" id="L546">            return null; // Don't return an inactive worker to run</span>
+        }
+<span class="nc" id="L548">        String serviceName = serviceData.getName();</span>
+<span class="nc" id="L549">        final String hostname = getHostName();</span>
+<span class="nc bnc" id="L550" title="All 2 branches missed.">        if (shouldRunOnThisNode(hostname, Arrays.asList(serviceConfiguration.getPinToNodes()))) {</span>
+<span class="nc" id="L551">            long oldRunTimeStamp = serviceData.getRunTimeStamp();</span>
+<span class="nc" id="L552">            long oldNextRunTimeStamp = serviceData.getNextRunTimeStamp();</span>
+<span class="nc" id="L553">            worker = getWorker(serviceConfiguration, serviceName, oldRunTimeStamp, oldNextRunTimeStamp);</span>
+<span class="nc bnc" id="L554" title="All 2 branches missed.">            if (worker.getNextInterval() == IInterval.DONT_EXECUTE) {</span>
+<span class="nc bnc" id="L555" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L556">                    log.debug(&quot;Service &quot;+serviceName+&quot; has interval IInterval.DONT_EXECUTE.&quot;);</span>
+                }
+<span class="nc" id="L558">                return null; // Don't return an inactive worker to run</span>
+            }
+            // nextRunDateCheck will typically be the same (or just a millisecond earlier) as now here
+<span class="nc" id="L561">            final Date runDateCheck = new Date(oldNextRunTimeStamp); </span>
+<span class="nc" id="L562">            final Date currentDate = new Date();</span>
+<span class="nc bnc" id="L563" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L564">                final Date nextRunDate = new Date(nextTimeout);</span>
+<span class="nc" id="L565">                log.debug(&quot;nextRunDate is:  &quot; + nextRunDate);</span>
+<span class="nc" id="L566">                log.debug(&quot;runDateCheck is: &quot; + runDateCheck);</span>
+<span class="nc" id="L567">                log.debug(&quot;currentDate is:  &quot; + currentDate);</span>
+            }
+            // Check if this is a service that should run on all nodes, i.e. ignore if it is already running on another node in a cluster
+            // This is used for services that do (lighter) work local to each node, such as HSM keepalive service
+<span class="nc bnc" id="L571" title="All 2 branches missed.">            if (!serviceConfiguration.isRunOnAllNodes()) {</span>
+                /*
+                 * Check if the current date is after when the service should run. If a
+                 * service on another cluster node has updated this timestamp already,
+                 * then it will return false and this service will not run. This is a
+                 * semaphore (not the best one admitted) so that services in a cluster
+                 * only runs on one node and don't compete with each other. If a worker
+                 * on one node for instance runs for a very long time, there is a chance
+                 * that another worker on another node will break this semaphore and run
+                 * as well.
+                 */
+<span class="nc bnc" id="L582" title="All 2 branches missed.">                if (currentDate.after(runDateCheck)) {</span>
+                    /*
+                     * We only update the nextRunTimeStamp if the service is allowed to run on this node.
+                     * 
+                     * However, we need to make sure that no other node has already acquired the semaphore
+                     * if our current database allows non-repeatable reads.
+                     */
+<span class="nc" id="L589">                    final boolean updateTimestamps = serviceDataSession.updateTimestamps(serviceId, oldRunTimeStamp, oldNextRunTimeStamp, runDateCheck.getTime(), nextTimeout);</span>
+<span class="nc bnc" id="L590" title="All 4 branches missed.">                    if (!updateTimestamps || testRunOnOtherNode) {</span>
+<span class="nc bnc" id="L591" title="All 4 branches missed.">                        if (testRunOnOtherNode &amp;&amp; updateTimestamps) {</span>
+<span class="nc" id="L592">                            log.info(&quot;testRunOnOtherNode == true, we are returning null even though another node had not updated the database. This node will not run the service &quot;+serviceName+&quot;.&quot;);</span>
+                        } else {
+<span class="nc" id="L594">                            log.debug(&quot;Another node had already updated the database at this point. This node will not run the service &quot;+serviceName+&quot;.&quot;);</span>
+                        }
+<span class="nc" id="L596">                        worker = null; // Failed to update the database.                            </span>
+                    } else {
+<span class="nc bnc" id="L598" title="All 2 branches missed.">                        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L599">                            log.trace(&quot;Timestamps updated, service &quot;+serviceName+&quot; will run: &quot;+currentDate+&quot;, &quot;+runDateCheck);</span>
+                        }                        
+                    }
+<span class="nc" id="L602">                } else {</span>
+<span class="nc bnc" id="L603" title="All 2 branches missed.">                    if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L604">                        log.trace(&quot;!currentDate.after(runDateCheck), service &quot;+serviceName+&quot; will not run: &quot;+currentDate+&quot;, &quot;+runDateCheck);</span>
+                    }
+<span class="nc" id="L606">                    worker = null; // Don't return a worker, since this node should not run</span>
+                }
+            } else {
+<span class="nc bnc" id="L609" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L610">                    log.debug(&quot;Service &quot; + serviceName + &quot; is set to run on all nodes and will run on this node: \&quot;&quot; + hostname + &quot;\&quot;, updating timeStamps&quot;);</span>
+                }
+                // Always update timestamp so we have a record of running, and nextTimeout is set for service reload
+<span class="nc" id="L613">                serviceDataSession.updateTimestamps(serviceId, oldRunTimeStamp, oldNextRunTimeStamp, runDateCheck.getTime(), nextTimeout);</span>
+            }
+<span class="nc" id="L615">        } else {</span>
+<span class="nc" id="L616">            worker = null;</span>
+<span class="nc bnc" id="L617" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L618">                log.debug(&quot;Service &quot; + serviceName + &quot; will not run on this node: \&quot;&quot; + hostname + &quot;\&quot;, Pinned to: &quot;</span>
+<span class="nc" id="L619">                        + Arrays.toString(serviceConfiguration.getPinToNodes()));</span>
+            }
+        }
+<span class="nc bnc" id="L622" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc bnc" id="L623" title="All 2 branches missed.">            log.trace(&quot;&lt;getWorkerIfItShouldRun: &quot;+serviceName+&quot;, ret: &quot;+ (worker != null ? worker.getClass().getName() : &quot;null&quot;));</span>
+        }
+<span class="nc" id="L625">        return worker;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    @Override
+    public void executeServiceInNoTransaction(IWorker worker, String serviceName) {
+        try {
+            // Awkward way of letting POJOs get interfaces, but shows dependencies on the EJB level for all used classes. Injection wont work, since
+            // we have circular dependencies!
+<span class="nc" id="L634">            Map&lt;Class&lt;?&gt;, Object&gt; ejbs = new HashMap&lt;Class&lt;?&gt;, Object&gt;();</span>
+<span class="nc" id="L635">            ejbs.put(ApprovalSessionLocal.class, approvalSession);</span>
+<span class="nc" id="L636">            ejbs.put(ApprovalProfileSessionLocal.class, approvalProfileSession);</span>
+<span class="nc" id="L637">            ejbs.put(EndEntityAuthenticationSessionLocal.class, authenticationSession);</span>
+<span class="nc" id="L638">            ejbs.put(AuthorizationSessionLocal.class, authorizationSession);</span>
+<span class="nc" id="L639">            ejbs.put(CAAdminSessionLocal.class, caAdminSession);</span>
+<span class="nc" id="L640">            ejbs.put(CaSessionLocal.class, caSession);</span>
+<span class="nc" id="L641">            ejbs.put(CertificateProfileSessionLocal.class, certificateProfileSession);</span>
+<span class="nc" id="L642">            ejbs.put(CertificateStoreSessionLocal.class, certificateStoreSession);</span>
+<span class="nc" id="L643">            ejbs.put(CrlCreateSessionLocal.class, crlCreateSession);</span>
+<span class="nc" id="L644">            ejbs.put(CrlStoreSessionLocal.class, crlStoreSession);</span>
+<span class="nc" id="L645">            ejbs.put(EndEntityProfileSessionLocal.class, endEntityProfileSession);</span>
+<span class="nc" id="L646">            ejbs.put(HardTokenSessionLocal.class, hardTokenSession);</span>
+<span class="nc" id="L647">            ejbs.put(SecurityEventsLoggerSessionLocal.class, auditSession);</span>
+<span class="nc" id="L648">            ejbs.put(InternalSecurityEventsLoggerSessionLocal.class, internalAuditSession);</span>
+<span class="nc" id="L649">            ejbs.put(KeyRecoverySessionLocal.class, keyRecoverySession);</span>
+<span class="nc" id="L650">            ejbs.put(AdminPreferenceSessionLocal.class, raAdminSession);</span>
+<span class="nc" id="L651">            ejbs.put(GlobalConfigurationSessionLocal.class, globalConfigurationSession);</span>
+<span class="nc" id="L652">            ejbs.put(SignSessionLocal.class, signSession);</span>
+<span class="nc" id="L653">            ejbs.put(EndEntityManagementSessionLocal.class, endEntityManagementSession);</span>
+<span class="nc" id="L654">            ejbs.put(PublisherQueueSessionLocal.class, publisherQueueSession);</span>
+<span class="nc" id="L655">            ejbs.put(PublisherSessionLocal.class, publisherSession);</span>
+<span class="nc" id="L656">            ejbs.put(CertificateRequestSessionLocal.class, certificateRequestSession);</span>
+<span class="nc" id="L657">            ejbs.put(EndEntityAccessSessionLocal.class, endEntityAccessSession);</span>
+<span class="nc" id="L658">            ejbs.put(WebAuthenticationProviderSessionLocal.class, webAuthenticationSession);</span>
+<span class="nc" id="L659">            ejbs.put(PublishingCrlSessionLocal.class, publishingCrlSession);</span>
+<span class="nc" id="L660">            ejbs.put(CryptoTokenManagementSessionLocal.class, cryptoTokenSession);</span>
+<span class="nc" id="L661">            ejbs.put(CmpMessageDispatcherSessionLocal.class, cmpMsgDispatcherSession);</span>
+<span class="nc" id="L662">            ejbs.put(ImportCrlSessionLocal.class, importCrlSession);</span>
+<span class="nc" id="L663">            ejbs.put(KeyStoreCreateSessionLocal.class, keyStoreCreateSession);</span>
+<span class="nc" id="L664">            worker.work(ejbs);</span>
+<span class="nc" id="L665">            final String msg = intres.getLocalizedMessage(&quot;services.serviceexecuted&quot;, serviceName);</span>
+<span class="nc" id="L666">            log.info(msg);</span>
+<span class="nc" id="L667">        } catch (ServiceExecutionFailedException e) {</span>
+<span class="nc" id="L668">            final String msg = intres.getLocalizedMessage(&quot;services.serviceexecutionfailed&quot;, serviceName);</span>
+<span class="nc" id="L669">            log.info(msg, e);</span>
+<span class="nc" id="L670">        }</span>
+<span class="nc" id="L671">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public void changeService(AuthenticationToken admin, String name, ServiceConfiguration serviceConfiguration, boolean noLogging) {
+<span class="nc bnc" id="L676" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L677">            log.trace(&quot;&gt;changeService(name: &quot; + name + &quot;)&quot;);</span>
+        }
+<span class="nc bnc" id="L679" title="All 2 branches missed.">        if (isAuthorizedToEditService(admin)) {</span>
+<span class="nc" id="L680">            ServiceData oldservice = serviceDataSession.findByName(name);</span>
+<span class="nc bnc" id="L681" title="All 2 branches missed.">            if (oldservice != null) {</span>
+<span class="nc" id="L682">                final Map&lt;Object, Object&gt; diff = oldservice.getServiceConfiguration().diff(serviceConfiguration);</span>
+<span class="nc bnc" id="L683" title="All 2 branches missed.">                if (serviceDataSession.updateServiceConfiguration(name, serviceConfiguration)) {</span>
+<span class="nc" id="L684">                    final String msg = intres.getLocalizedMessage(&quot;services.serviceedited&quot;, name);</span>
+<span class="nc bnc" id="L685" title="All 2 branches missed.">                    if (noLogging) {</span>
+<span class="nc" id="L686">                        log.info(msg);</span>
+                    } else {
+<span class="nc" id="L688">                        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L689">                        details.put(&quot;msg&quot;, msg);</span>
+<span class="nc bnc" id="L690" title="All 2 branches missed.">                        for (Map.Entry&lt;Object, Object&gt; entry : diff.entrySet()) {</span>
+<span class="nc" id="L691">                            details.put(entry.getKey().toString(), entry.getValue().toString());</span>
+<span class="nc" id="L692">                        }</span>
+<span class="nc" id="L693">                        auditSession.log(EjbcaEventTypes.SERVICE_EDIT, EventStatus.SUCCESS, EjbcaModuleTypes.SERVICE, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L694">                                admin.toString(), null, null, null, details);</span>
+                    }
+<span class="nc" id="L696">                } else {</span>
+<span class="nc" id="L697">                    String msg = intres.getLocalizedMessage(&quot;services.serviceedited&quot;, name);</span>
+<span class="nc bnc" id="L698" title="All 2 branches missed.">                    if (noLogging) {</span>
+<span class="nc" id="L699">                        log.error(msg);</span>
+                    } else {
+<span class="nc" id="L701">                        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L702">                        details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L703">                        auditSession.log(EjbcaEventTypes.SERVICE_EDIT, EventStatus.FAILURE, EjbcaModuleTypes.SERVICE, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L704">                                admin.toString(), null, null, null, details);</span>
+                    }
+                }
+<span class="nc" id="L707">            } else {</span>
+<span class="nc" id="L708">                log.error(&quot;Can not find service to change: &quot; + name);</span>
+            }
+<span class="nc" id="L710">        } else {</span>
+<span class="nc" id="L711">            String msg = intres.getLocalizedMessage(&quot;services.notauthorizedtoedit&quot;, name);</span>
+<span class="nc" id="L712">            log.info(msg);</span>
+        }
+<span class="nc" id="L714">        log.trace(&quot;&lt;changeService()&quot;);</span>
+<span class="nc" id="L715">    }</span>
+    
+    // We don't want the appserver to persist/update the timer in the same transaction if they are stored in different non XA DataSources
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    @Override
+    public void load() {
+        // Get all services
+<span class="nc" id="L722">        Collection&lt;Timer&gt; currentTimers = timerService.getTimers();</span>
+<span class="nc" id="L723">        Iterator&lt;Timer&gt; iter = currentTimers.iterator();</span>
+<span class="nc" id="L724">        HashSet&lt;Serializable&gt; existingTimers = new HashSet&lt;Serializable&gt;();</span>
+<span class="nc bnc" id="L725" title="All 2 branches missed.">        while (iter.hasNext()) {</span>
+<span class="nc" id="L726">            Timer timer = iter.next();</span>
+            try {
+<span class="nc" id="L728">                Serializable info = timer.getInfo();</span>
+<span class="nc" id="L729">                existingTimers.add(info);</span>
+<span class="nc" id="L730">            } catch (Throwable e) { // NOPMD: we really need to catch everything to not risk hanging somewhere in limbo</span>
+                // EJB 2.1 only?: We need this try because weblogic seems to ... suck ...
+<span class="nc" id="L732">                log.debug(&quot;Error invoking timer.getInfo(): &quot;, e);</span>
+<span class="nc" id="L733">            }</span>
+<span class="nc" id="L734">        }</span>
+
+        // Get new services and add timeouts
+<span class="nc" id="L737">        Map&lt;Integer, Long&gt; newTimeouts = serviceSession.getNewServiceTimeouts(existingTimers);</span>
+<span class="nc bnc" id="L738" title="All 2 branches missed.">        for (Integer id : newTimeouts.keySet()) {</span>
+<span class="nc" id="L739">            addTimer(newTimeouts.get(id), id);</span>
+<span class="nc" id="L740">        }</span>
+
+<span class="nc bnc" id="L742" title="All 2 branches missed.">        if (!existingTimers.contains(SERVICELOADER_ID)) {</span>
+            // load the service timer
+<span class="nc" id="L744">            addTimer(SERVICELOADER_PERIOD, SERVICELOADER_ID);</span>
+        }
+<span class="nc" id="L746">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @Override
+    public Map&lt;Integer, Long&gt; getNewServiceTimeouts(HashSet&lt;Serializable&gt; existingTimers) {
+<span class="nc" id="L751">        Map&lt;Integer, Long&gt; ret = new HashMap&lt;Integer, Long&gt;();</span>
+<span class="nc" id="L752">        HashMap&lt;Integer, String&gt; idToNameMap = getServiceIdToNameMap();</span>
+<span class="nc" id="L753">        Collection&lt;Integer&gt; allServices = idToNameMap.keySet();</span>
+<span class="nc" id="L754">        Iterator&lt;Integer&gt; iter2 = allServices.iterator();</span>
+<span class="nc bnc" id="L755" title="All 2 branches missed.">        while (iter2.hasNext()) {</span>
+<span class="nc" id="L756">            Integer id = iter2.next();</span>
+<span class="nc" id="L757">            ServiceData htp = serviceDataSession.findById(id);</span>
+<span class="nc bnc" id="L758" title="All 2 branches missed.">            if (htp != null) {</span>
+<span class="nc bnc" id="L759" title="All 2 branches missed.">                if (!existingTimers.contains(id)) {</span>
+<span class="nc" id="L760">                    ServiceConfiguration serviceConfiguration = htp.getServiceConfiguration();</span>
+<span class="nc" id="L761">                    IWorker worker = getWorker(serviceConfiguration, idToNameMap.get(id), htp.getRunTimeStamp(), htp.getNextRunTimeStamp());</span>
+<span class="nc bnc" id="L762" title="All 6 branches missed.">                    if (worker != null &amp;&amp; serviceConfiguration.isActive() &amp;&amp; worker.getNextInterval() != IInterval.DONT_EXECUTE) {</span>
+<span class="nc" id="L763">                        ret.put(id, Long.valueOf((worker.getNextInterval()) * 1000));</span>
+                    }
+<span class="nc" id="L765">                }</span>
+            } else {
+                // Service does not exist, strange, but no panic.
+<span class="nc" id="L768">                log.debug(&quot;Can not find service with id &quot; + id);</span>
+            }
+<span class="nc" id="L770">        }</span>
+<span class="nc" id="L771">        return ret;</span>
+    }
+
+    // We don't want the appserver to persist/update the timer in the same transaction if they are stored in different non XA DataSources
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    @Override
+    public void unload() {
+<span class="nc" id="L778">        log.debug(&quot;Unloading all timers.&quot;);</span>
+        // Get all services
+<span class="nc bnc" id="L780" title="All 2 branches missed.">        for (final Timer timer : timerService.getTimers()) {</span>
+            try {
+<span class="nc" id="L782">                timer.cancel();</span>
+<span class="nc" id="L783">            } catch (Exception e) {</span>
+                /*
+                 * EJB 2.1 only?: We need to catch this because Weblogic 10
+                 * throws an exception if we have not scheduled this timer, so
+                 * we don't have anything to cancel. Only weblogic though...
+                 */
+<span class="nc" id="L789">                log.info(&quot;Caught exception canceling timer: &quot; + e.getMessage());</span>
+<span class="nc" id="L790">            }</span>
+<span class="nc" id="L791">        }</span>
+<span class="nc" id="L792">    }</span>
+
+    /**
+     * Adds a timer to the bean
+     * @param interval Interval
+     * 
+     * @param id the id of the timer
+     * @return Timer
+     */
+    // We don't want the appserver to persist/update the timer in the same transaction if they are stored in different non XA DataSources. This method
+    // should not be run from within a transaction.
+    private Timer addTimer(long interval, Integer id) {
+<span class="nc bnc" id="L804" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L805">            log.debug(&quot;addTimer: &quot; + id);</span>
+        }
+<span class="nc" id="L807">        return timerService.createSingleActionTimer(interval, new TimerConfig(id, false));</span>
+    }
+
+    /**
+     * Cancels all existing timeouts for this id.
+     * 
+     * @param id the id of the timer
+     */
+    // We don't want the appserver to persist/update the timer in the same transaction if they are stored in different non XA DataSources. This method
+    // should not be run from within a transaction.
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    @Override
+    public void cancelTimer(Integer id) {
+<span class="nc bnc" id="L820" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L821">            log.debug(&quot;cancelTimer: &quot; + id);</span>
+        }
+<span class="nc bnc" id="L823" title="All 2 branches missed.">        for (final Timer next : timerService.getTimers()) {</span>
+            try {
+<span class="nc bnc" id="L825" title="All 2 branches missed.">                if (id.equals(next.getInfo())) {</span>
+<span class="nc" id="L826">                    next.cancel();</span>
+<span class="nc" id="L827">                    break;</span>
+                }
+<span class="nc" id="L829">            } catch (Exception e) {</span>
+                /*
+                 * EJB 2.1 only?: We need to catch this because Weblogic 10
+                 * throws an exception if we have not scheduled this timer, so
+                 * we don't have anything to cancel. Only weblogic though...
+                 */
+<span class="nc" id="L835">                log.error(&quot;Caught exception canceling timer: &quot; + e.getMessage(), e);</span>
+<span class="nc" id="L836">            }</span>
+<span class="nc" id="L837">        }</span>
+<span class="nc" id="L838">    }</span>
+
+    // Use an internal admin, allow all, to initialize the service, the service must be allowed to work on everything
+<span class="nc" id="L841">    private final AuthenticationToken intAdmin = new AlwaysAllowLocalAuthenticationToken(new UsernamePrincipal(&quot;ServiceSession&quot;));</span>
+    /**
+     * Method that creates a worker from the service configuration.
+     * 
+     * @param serviceConfiguration Config
+     * @param serviceName Name
+     * @param runTimeStamp the time this service runs
+     * @param nextRunTimeStamp the time this service will run next time
+     * @return a worker object or null if the worker is misconfigured.
+     */
+    private IWorker getWorker(ServiceConfiguration serviceConfiguration, String serviceName, long runTimeStamp, long nextRunTimeStamp) {
+<span class="nc" id="L852">        IWorker worker = null;</span>
+        try {
+<span class="nc" id="L854">            String clazz = serviceConfiguration.getWorkerClassPath();</span>
+<span class="nc bnc" id="L855" title="All 2 branches missed.">            if (StringUtils.isNotEmpty(clazz)) {</span>
+<span class="nc" id="L856">                worker = (IWorker) Thread.currentThread().getContextClassLoader().loadClass(clazz).getConstructor().newInstance();</span>
+<span class="nc" id="L857">                worker.init(intAdmin, serviceConfiguration, serviceName, runTimeStamp, nextRunTimeStamp);</span>
+            } else {
+<span class="nc" id="L859">                log.info(&quot;Worker has empty classpath for service &quot; + serviceName);</span>
+            }
+<span class="nc" id="L861">        } catch (Exception e) {</span>
+            // Only display a real error if it is a worker that we are actually
+            // using
+<span class="nc bnc" id="L864" title="All 2 branches missed.">            if (serviceConfiguration.isActive()) {</span>
+<span class="nc" id="L865">                log.error(&quot;Worker is misconfigured, check the classpath&quot;, e);</span>
+            } else {
+<span class="nc" id="L867">                log.info(&quot;Worker is misconfigured, check the classpath: &quot; + e.getMessage());</span>
+            }
+<span class="nc" id="L869">        }</span>
+<span class="nc" id="L870">        return worker;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    @Override
+    public long getServiceInterval(Integer serviceId) {
+<span class="nc" id="L876">        long ret = IInterval.DONT_EXECUTE;</span>
+<span class="nc" id="L877">        ServiceData htp = serviceDataSession.findById(serviceId);</span>
+<span class="nc bnc" id="L878" title="All 2 branches missed.">        if (htp != null) {</span>
+<span class="nc" id="L879">            ServiceConfiguration serviceConfiguration = htp.getServiceConfiguration();</span>
+<span class="nc bnc" id="L880" title="All 2 branches missed.">            if (serviceConfiguration.isActive()) {</span>
+<span class="nc" id="L881">                IWorker worker = getWorker(serviceConfiguration, &quot;temp&quot;, 0, 0); // A bit dirty, but it works..</span>
+<span class="nc bnc" id="L882" title="All 2 branches missed.">                if (worker != null) {</span>
+<span class="nc" id="L883">                    ret = worker.getNextInterval();</span>
+                }
+<span class="nc" id="L885">            } else {</span>
+<span class="nc bnc" id="L886" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L887">                    log.debug(&quot;Service &quot; + serviceId + &quot; is inactive.&quot;);</span>
+                }
+            }
+        }
+<span class="nc" id="L891">        return ret;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public ServiceConfiguration getServiceConfiguration(int id) {
+<span class="nc bnc" id="L897" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L898">            log.trace(&quot;&gt;getServiceConfiguration: &quot; + id);</span>
+        }
+<span class="nc" id="L900">        ServiceConfiguration returnval = null;</span>
+        try {
+<span class="nc" id="L902">            ServiceData serviceData = serviceDataSession.findById(Integer.valueOf(id));</span>
+<span class="nc bnc" id="L903" title="All 2 branches missed.">            if (serviceData != null) {</span>
+<span class="nc" id="L904">                returnval = serviceData.getServiceConfiguration();</span>
+            } else {
+<span class="nc bnc" id="L906" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L907">                    log.debug(&quot;Returnval is null for service id: &quot; + id);</span>
+                }
+            }
+<span class="nc" id="L910">        } catch (Exception e) {</span>
+            // return null if we cant find it, if it is not due to underlying
+            // database error
+<span class="nc" id="L913">            log.debug(&quot;Got an Exception for service with id &quot; + id + &quot;: &quot; + e.getMessage());</span>
+            /*
+             * If we don't re-throw here it will be treated as the service id
+             * does not exist and the service will not be rescheduled to run.
+             */
+<span class="nc" id="L918">            throw new EJBException(e);</span>
+<span class="nc" id="L919">        }</span>
+<span class="nc bnc" id="L920" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L921">            log.trace(&quot;&lt;getServiceConfiguration: &quot; + id);</span>
+        }
+<span class="nc" id="L923">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public HashMap&lt;Integer, String&gt; getServiceIdToNameMap() {
+<span class="nc" id="L929">        HashMap&lt;Integer, String&gt; returnval = new HashMap&lt;Integer, String&gt;();</span>
+<span class="nc" id="L930">        Collection&lt;ServiceData&gt; result = serviceDataSession.findAll();</span>
+<span class="nc bnc" id="L931" title="All 2 branches missed.">        for(ServiceData next : result) {</span>
+<span class="nc" id="L932">            returnval.put(next.getId(), next.getName());</span>
+<span class="nc" id="L933">        }</span>
+<span class="nc" id="L934">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public List&lt;String&gt; getServicesUsingCertificateProfile(Integer certificateProfileId) {
+<span class="nc" id="L940">        List&lt;String&gt; result = new ArrayList&lt;String&gt;();</span>
+        //Since the service types are embedded in the data objects there is no more elegant way to to this.
+<span class="nc" id="L942">        List&lt;ServiceData&gt; allServices = serviceDataSession.findAll();</span>
+<span class="nc bnc" id="L943" title="All 2 branches missed.">        for (ServiceData service : allServices) {</span>
+<span class="nc" id="L944">            String certificateProfiles = service.getServiceConfiguration().getWorkerProperties()</span>
+<span class="nc" id="L945">                    .getProperty(BaseWorker.PROP_CERTIFICATE_PROFILE_IDS_TO_CHECK);</span>
+<span class="nc bnc" id="L946" title="All 4 branches missed.">            if (certificateProfiles != null &amp;&amp; !certificateProfiles.equals(&quot;&quot;)) {</span>
+<span class="nc bnc" id="L947" title="All 2 branches missed.">                for (String certificateProfile : certificateProfiles.split(&quot;;&quot;)) {</span>
+<span class="nc bnc" id="L948" title="All 2 branches missed.">                    if (certificateProfile.equals(certificateProfileId.toString())) {</span>
+<span class="nc" id="L949">                        result.add(service.getName());</span>
+<span class="nc" id="L950">                        break;</span>
+                    }
+                }
+            }
+<span class="nc" id="L954">        }</span>
+<span class="nc" id="L955">        return result;</span>
+    }
+    
+    /**
+     * Method to check if an admin is authorized to edit a service. Allow access for /services/edit
+     * @param admin Admin
+     * 
+     * @return true if the administrator is authorized
+     */
+    private boolean isAuthorizedToEditService(AuthenticationToken admin) {
+<span class="nc" id="L965">       return authorizationSession.isAuthorizedNoLogging(admin, AccessRulesConstants.SERVICES_EDIT);            </span>
+    }
+
+    /**
+     * Return true if the service should run on the node given the list of nodes it is pinned to. An empty list means that the service is not pinned
+     * to any particular node and should run on all.
+     * @param hostname Host
+     * 
+     * @param nodes list of nodes the service is pinned to
+     * @return true if the service should run on this node
+     */
+    private boolean shouldRunOnThisNode(final String hostname, final List&lt;String&gt; nodes) {
+        final boolean result;
+<span class="nc bnc" id="L978" title="All 4 branches missed.">        if (nodes == null || nodes.isEmpty()) {</span>
+<span class="nc" id="L979">            result = true;</span>
+<span class="nc bnc" id="L980" title="All 2 branches missed.">        } else if (hostname == null) {</span>
+<span class="nc" id="L981">            result = false;</span>
+        } else {
+<span class="nc" id="L983">            result = nodes.contains(hostname);</span>
+        }
+<span class="nc" id="L985">        return result;</span>
+    }
+
+    /**
+     * @return The host's name or null if it could not be determined.
+     */
+    private String getHostName() {
+<span class="nc" id="L992">        String hostname = null;</span>
+        try {
+<span class="nc" id="L994">            InetAddress addr = InetAddress.getLocalHost();</span>
+            // Get hostname
+<span class="nc" id="L996">            hostname = addr.getHostName();</span>
+<span class="nc" id="L997">        } catch (UnknownHostException e) {</span>
+<span class="nc" id="L998">            log.error(&quot;Hostname could not be determined&quot;, e);</span>
+<span class="nc" id="L999">        }</span>
+<span class="nc" id="L1000">        return hostname;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

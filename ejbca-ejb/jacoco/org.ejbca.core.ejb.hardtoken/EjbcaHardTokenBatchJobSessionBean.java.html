@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EjbcaHardTokenBatchJobSessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.hardtoken</a> &gt; <span class="el_source">EjbcaHardTokenBatchJobSessionBean.java</span></div><h1>EjbcaHardTokenBatchJobSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.ejb.hardtoken;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.jndi.JndiConstants;
+import org.ejbca.core.ejb.ra.EndEntityAccessSessionLocal;
+import org.ejbca.core.ejb.ra.UserData;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.hardtoken.UnavailableTokenException;
+
+/**
+ * Used by hardtoken batch clients to retrieve users to generate from EJBCA RA.
+ *
+ * @version $Id: EjbcaHardTokenBatchJobSessionBean.java 27718 2018-01-03 08:31:26Z mikekushner $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;HardTokenBatchJobSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L43">public class EjbcaHardTokenBatchJobSessionBean implements HardTokenBatchJobSessionRemote, HardTokenBatchJobSessionLocal  {</span>
+
+    public static final int MAX_RETURNED_QUEUE_SIZE = 300;
+
+<span class="nc" id="L47">    private static final Logger log = Logger.getLogger(EjbcaHardTokenBatchJobSessionBean.class);</span>
+    
+    /** Internal localization of logs and errors */
+<span class="nc" id="L50">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+    
+    @PersistenceContext(unitName=&quot;ejbca&quot;)
+    private EntityManager entityManager;
+
+    @EJB
+    private EndEntityAccessSessionLocal endEntityAccessSession;
+    
+    @EJB
+    private HardTokenSessionLocal hardTokenSession;
+
+    @Override
+    public EndEntityInformation getNextHardTokenToGenerate(String alias) throws UnavailableTokenException{
+<span class="nc" id="L63">    	log.trace(&quot;&gt;getNextHardTokenToGenerate()&quot;);</span>
+<span class="nc" id="L64">    	EndEntityInformation returnval = null;</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">    	if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L66">    		log.debug(&quot;alias=&quot; + alias);</span>
+    	}
+<span class="nc" id="L68">    	int hardTokenIssuerId = hardTokenSession.getHardTokenIssuerId(alias);</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">    	if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L70">    		log.debug(&quot;hardTokenIssuerId=&quot; + hardTokenIssuerId);</span>
+    	}
+<span class="nc bnc" id="L72" title="All 2 branches missed.">    	if (hardTokenIssuerId != HardTokenSessionBean.NO_ISSUER) {</span>
+    		try {
+<span class="nc" id="L74">    			List&lt;UserData&gt; userDataList = endEntityAccessSession.findNewOrKeyrecByHardTokenIssuerId(hardTokenIssuerId, 0);</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">    			if (!userDataList.isEmpty()) {</span>
+<span class="nc" id="L76">    				returnval = userDataList.get(0).toEndEntityInformation();</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">    				if (log.isDebugEnabled()) {    					</span>
+<span class="nc" id="L78">    					log.debug(&quot;found user&quot; + returnval.getUsername());</span>
+    				}
+<span class="nc" id="L80">    				hardTokenSession.getIsHardTokenProfileAvailableToIssuer(hardTokenIssuerId, returnval);</span>
+<span class="nc" id="L81">    				String msg = intres.getLocalizedMessage(&quot;hardtoken.userdatasent&quot;, alias);</span>
+<span class="nc" id="L82">    				log.info(msg);</span>
+    			}
+<span class="nc" id="L84">    		} catch(Exception e) {</span>
+<span class="nc" id="L85">    			String msg = intres.getLocalizedMessage(&quot;hardtoken.errorsenduserdata&quot;, alias);   </span>
+<span class="nc" id="L86">    			log.info(msg, e);</span>
+<span class="nc" id="L87">    			throw new EJBException(e);</span>
+<span class="nc" id="L88">    		}</span>
+    	}
+<span class="nc" id="L90">    	log.trace(&quot;&lt;getNextHardTokenToGenerate()&quot;);</span>
+<span class="nc" id="L91">    	return returnval;</span>
+    }
+
+    @Override
+    public Collection&lt;EndEntityInformation&gt; getNextHardTokensToGenerate(String alias) throws UnavailableTokenException {
+<span class="nc" id="L96">    	log.trace(&quot;&gt;getNextHardTokensToGenerate()&quot;);</span>
+<span class="nc" id="L97">    	List&lt;EndEntityInformation&gt; returnval = new ArrayList&lt;EndEntityInformation&gt;();</span>
+<span class="nc" id="L98">    	int hardTokenIssuerId = hardTokenSession.getHardTokenIssuerId(alias);</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">    	if (hardTokenIssuerId != HardTokenSessionBean.NO_ISSUER) {</span>
+    		try {
+<span class="nc" id="L101">    			List&lt;UserData&gt; userDataList = endEntityAccessSession.findNewOrKeyrecByHardTokenIssuerId( hardTokenIssuerId, MAX_RETURNED_QUEUE_SIZE);</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">    			for (UserData userData : userDataList) {</span>
+<span class="nc" id="L103">    				EndEntityInformation endEntityInformation = userData.toEndEntityInformation();</span>
+<span class="nc" id="L104">    				hardTokenSession.getIsHardTokenProfileAvailableToIssuer(hardTokenIssuerId, endEntityInformation);</span>
+<span class="nc" id="L105">    				returnval.add(endEntityInformation);</span>
+<span class="nc" id="L106">    				String msg = intres.getLocalizedMessage(&quot;hardtoken.userdatasent&quot;, alias);</span>
+<span class="nc" id="L107">    				log.info(msg);</span>
+<span class="nc" id="L108">    			}</span>
+<span class="nc" id="L109">    		} catch(Exception e) {</span>
+<span class="nc" id="L110">    			String msg = intres.getLocalizedMessage(&quot;hardtoken.errorsenduserdata&quot;, alias);</span>
+<span class="nc" id="L111">    			log.info(msg, e);</span>
+<span class="nc" id="L112">    			throw new EJBException(e);</span>
+<span class="nc" id="L113">    		}</span>
+    	}
+<span class="nc bnc" id="L115" title="All 2 branches missed.">    	if (returnval.size()==0) {</span>
+<span class="nc" id="L116">    		returnval=null;</span>
+    	}
+<span class="nc" id="L118">    	log.trace(&quot;&lt;getNextHardTokensToGenerate()&quot;);</span>
+<span class="nc" id="L119">    	return returnval;</span>
+    }
+
+    // TODO: Since there is no guarantee that the database query always will return entries in the same order, this functionality might be broken!
+    @Override
+    public EndEntityInformation getNextHardTokenToGenerateInQueue(String alias, int index) throws UnavailableTokenException {
+<span class="nc" id="L125">    	log.trace(&quot;&gt;getNextHardTokenToGenerateInQueue()&quot;);</span>
+<span class="nc" id="L126">    	EndEntityInformation returnval = null;</span>
+<span class="nc" id="L127">    	int hardTokenIssuerId = hardTokenSession.getHardTokenIssuerId(alias);</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">    	if (hardTokenIssuerId != HardTokenSessionBean.NO_ISSUER) {</span>
+    		try {
+<span class="nc" id="L130">    			List&lt;UserData&gt; userDataList = endEntityAccessSession.findNewOrKeyrecByHardTokenIssuerId(hardTokenIssuerId, 0);</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">    			if (userDataList.size()&gt;(index-1)) {</span>
+<span class="nc" id="L132">    				returnval = userDataList.get(index-1).toEndEntityInformation();</span>
+<span class="nc" id="L133">    				hardTokenSession.getIsHardTokenProfileAvailableToIssuer(hardTokenIssuerId, returnval);</span>
+<span class="nc" id="L134">    				String msg = intres.getLocalizedMessage(&quot;hardtoken.userdatasent&quot;, alias);</span>
+<span class="nc" id="L135">    				log.info(msg);</span>
+    			}
+<span class="nc" id="L137">    		} catch(Exception e) {</span>
+<span class="nc" id="L138">    			String msg = intres.getLocalizedMessage(&quot;hardtoken.errorsenduserdata&quot;, alias);</span>
+<span class="nc" id="L139">    			log.info(msg, e);</span>
+<span class="nc" id="L140">    			throw new EJBException(e);</span>
+<span class="nc" id="L141">    		}</span>
+    	}
+<span class="nc" id="L143">    	log.trace(&quot;&lt;getNextHardTokenToGenerateInQueue()&quot;);</span>
+<span class="nc" id="L144">    	return returnval;</span>
+    }
+
+    @Override
+    public int getNumberOfHardTokensToGenerate(String alias){
+<span class="nc" id="L149">    	log.trace(&quot;&gt;getNumberOfHardTokensToGenerate()&quot;);</span>
+<span class="nc" id="L150">    	long count = 0;</span>
+<span class="nc" id="L151">    	int hardTokenIssuerId = hardTokenSession.getHardTokenIssuerId(alias);</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">    	if (hardTokenIssuerId != HardTokenSessionBean.NO_ISSUER) {</span>
+<span class="nc" id="L153">    		count = endEntityAccessSession.countNewOrKeyrecByHardTokenIssuerId(hardTokenIssuerId);</span>
+    	}
+<span class="nc" id="L155">    	log.trace(&quot;&lt;getNumberOfHardTokensToGenerate()&quot;);</span>
+<span class="nc" id="L156">    	return (int)count;</span>
+    }
+
+    @Override
+    public boolean checkForHardTokenIssuerId(int hardtokenissuerid){
+<span class="nc bnc" id="L161" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L162">            log.trace(&quot;&gt;checkForHardTokenIssuerId(id: &quot; + hardtokenissuerid + &quot;)&quot;);</span>
+    	}
+<span class="nc bnc" id="L164" title="All 2 branches missed.">    	return endEntityAccessSession.countByHardTokenIssuerId(hardtokenissuerid) &gt; 0;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

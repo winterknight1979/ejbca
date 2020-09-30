@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ObjectCache.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util</a> &gt; <span class="el_source">ObjectCache.java</span></div><h1>ObjectCache.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.util;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+/** A simple object cache that can be used to cache object for a limited time. By default object are cached for 5 seconds.
+ * Uses synchronized collections.
+ * 
+ * @version $Id: ObjectCache.java 22142 2015-11-03 14:15:51Z mikekushner $
+ * @param &lt;K&gt; Key type
+ * @param &lt;V&gt; Value type
+ */
+public class ObjectCache&lt;K,V&gt; {
+
+	/** The objects */
+	private final Map&lt;K,V&gt; objects;
+	/** map holding expire times for the object, so we know when we should not cache them any more */
+	private final Map&lt;K, Long&gt; expire;
+
+	/** expiration time in milliseconds*/
+	private long expireTime;
+
+	/**
+	 * Constructor with default expire of 5 seconds.
+	 */
+	public ObjectCache() {
+<span class="nc" id="L40">		this(5000);</span>
+<span class="nc" id="L41">	}</span>
+
+	/**
+	 * Constructor with expire as argument.
+	 * @param expireTime expiration time in milliseconds
+	 */
+<span class="fc" id="L47">	public ObjectCache(final long expireTime) {</span>
+<span class="fc" id="L48">		this.objects = Collections.synchronizedMap(new HashMap&lt;K,V&gt;());</span>
+<span class="fc" id="L49">		this.expire = Collections.synchronizedMap(new HashMap&lt;K,Long&gt;());</span>
+<span class="fc" id="L50">		this.expireTime = expireTime;</span>
+<span class="fc" id="L51">	}</span>
+
+	/** empties the cache completely */
+	public synchronized void emptyCache() {
+<span class="nc" id="L55">		this.objects.clear();</span>
+<span class="nc" id="L56">		this.expire.clear();</span>
+<span class="nc" id="L57">	}</span>
+	/**
+	 * Put an object into the cache, the expiration time will be set.
+	 * 
+	 * @param key the key for the object in the cache
+	 * @param o the cached object
+	 */
+	public void put(final K key, final V o) {
+<span class="fc" id="L65">		this.objects.put(key, o);</span>
+<span class="fc" id="L66">		this.expire.put(key, Long.valueOf(System.currentTimeMillis() + expireTime));</span>
+<span class="fc" id="L67">	}</span>
+
+	/**
+	 * Returns an object from the cache.
+	 * 
+	 * @param key the key for the object in the cache
+	 * @return the cached object
+	 */
+	public V get(final K key) {
+<span class="fc" id="L76">		final Long expiresAt = this.expire.get(key);</span>
+<span class="fc" id="L77">		V ret = null;</span>
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">		if (expiresAt != null) {</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">			if (System.currentTimeMillis() &lt; expiresAt) {</span>
+<span class="fc" id="L80">				return this.objects.get(key);</span>
+			} else {
+<span class="fc" id="L82">				this.objects.remove(key);</span>
+<span class="fc" id="L83">				this.expire.remove(key);				</span>
+			}
+		}
+<span class="fc" id="L86">		return ret;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

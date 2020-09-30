@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EndEntityAuthenticationSessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.ca.auth</a> &gt; <span class="el_source">EndEntityAuthenticationSessionBean.java</span></div><h1>EndEntityAuthenticationSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.ejb.ca.auth;
+
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.apache.log4j.Logger;
+import org.cesecore.ErrorCode;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.enums.ModuleTypes;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.jndi.JndiConstants;
+import org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaServiceTypes;
+import org.ejbca.core.ejb.ra.EndEntityAccessSessionLocal;
+import org.ejbca.core.ejb.ra.EndEntityManagementSessionLocal;
+import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
+import org.ejbca.core.ejb.ra.UserData;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.core.model.ca.AuthLoginException;
+import org.ejbca.core.model.ca.AuthStatusException;
+
+/**
+ * Authenticates users towards a user database.
+ * @see EndEntityAuthenticationSession
+ *
+ * @version $Id: EndEntityAuthenticationSessionBean.java 33852 2019-11-14 13:27:03Z jekaterina_b_helmes $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;EndEntityAuthenticationSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L58">public class EndEntityAuthenticationSessionBean implements EndEntityAuthenticationSessionLocal, EndEntityAuthenticationSessionRemote {</span>
+
+<span class="nc" id="L60">    private static final Logger log = Logger.getLogger(EndEntityAuthenticationSessionBean.class);</span>
+    
+    @PersistenceContext(unitName=&quot;ejbca&quot;)
+    private EntityManager entityManager;
+
+    @EJB
+    private EndEntityAccessSessionLocal endEntityAccessSession;
+    @EJB
+    private EndEntityManagementSessionLocal endEntityManagementSession;
+    @EJB
+    private SecurityEventsLoggerSessionLocal auditSession;
+    
+    /** Internal localization of logs and errors */
+<span class="nc" id="L73">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+    
+    @Override
+    public EndEntityInformation authenticateUser(final AuthenticationToken admin, final String username, final String password)
+        throws AuthStatusException, AuthLoginException, NoSuchEndEntityException {
+<span class="nc bnc" id="L78" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L79">            log.trace(&quot;&gt;authenticateUser(&quot; + username + &quot;, hiddenpwd)&quot;);</span>
+    	}
+<span class="nc" id="L81">    	boolean eichange = false;</span>
+        try {
+            // Find the user with username username, or throw ObjectNotFoundException
+<span class="nc" id="L84">            final UserData data = endEntityAccessSession.findByUsername(username);</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">            if (data == null) {</span>
+<span class="nc" id="L86">            	throw new NoSuchEndEntityException(&quot;Could not find username &quot; + username);</span>
+            }
+            // Decrease the remaining login attempts. When zero, the status is set to STATUS_GENERATED
+<span class="nc" id="L89">            ExtendedInformation ei = data.getExtendedInformation();</span>
+<span class="nc" id="L90">           	eichange = EndEntityAuthenticationSessionBean.decRemainingLoginAttempts(data, ei);</span>
+<span class="nc" id="L91">           	boolean authenticated = false;</span>
+<span class="nc" id="L92">           	final int status = data.getStatus();</span>
+<span class="nc bnc" id="L93" title="All 8 branches missed.">            if ( (status == EndEntityConstants.STATUS_NEW) || (status == EndEntityConstants.STATUS_FAILED) || (status == EndEntityConstants.STATUS_INPROCESS) || (status == EndEntityConstants.STATUS_KEYRECOVERY)) {</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">            	if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L95">            		log.debug(&quot;Trying to authenticate user: username=&quot;+username+&quot;, dn=&quot;+data.getSubjectDnNeverNull()+&quot;, email=&quot;+data.getSubjectEmail()+&quot;, status=&quot;+status+&quot;, type=&quot;+data.getType());</span>
+            	}
+<span class="nc bnc" id="L97" title="All 2 branches missed.">                if (!data.comparePassword(password)) {</span>
+<span class="nc" id="L98">                	final String msg = intres.getLocalizedMessage(&quot;authentication.invalidpwd&quot;, username);            	</span>
+<span class="nc" id="L99">                    final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L100">                    details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L101">                    auditSession.log(EjbcaEventTypes.CA_USERAUTH, EventStatus.FAILURE, ModuleTypes.CA, EjbcaServiceTypes.EJBCA, admin.toString(), String.valueOf(data.getCaId()), null, username, details);</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">                    if (eichange) {</span>
+<span class="nc" id="L103">                        data.setTimeModified(new Date().getTime());</span>
+<span class="nc" id="L104">                        data.setExtendedInformation(ei);</span>
+                    }
+<span class="nc" id="L106">                	throw new AuthLoginException(ErrorCode.LOGIN_ERROR, msg);</span>
+                }
+                // Resets the remaining login attempts as this was a successful login
+<span class="nc bnc" id="L109" title="All 2 branches missed.">                if (UserData.resetRemainingLoginAttemptsInternal(ei, data.getUsername())) {</span>
+                    // This call can never set eichange to false, only to true (because it is already false if it should be)
+<span class="nc" id="L111">                    eichange = true;</span>
+                }
+            	// Log formal message that authentication was successful
+<span class="nc" id="L114">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L115">                details.put(&quot;msg&quot;, intres.getLocalizedMessage(&quot;authentication.authok&quot;, username));</span>
+<span class="nc" id="L116">                auditSession.log(EjbcaEventTypes.CA_USERAUTH, EventStatus.SUCCESS, ModuleTypes.CA, EjbcaServiceTypes.EJBCA, admin.toString(), String.valueOf(data.getCaId()), null, username, details);</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">            	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L118">                    log.trace(&quot;&lt;authenticateUser(&quot;+username+&quot;, hiddenpwd)&quot;);</span>
+            	}
+<span class="nc" id="L120">            	authenticated = true;</span>
+            }
+<span class="nc bnc" id="L122" title="All 2 branches missed.">            if (eichange) {</span>
+<span class="nc" id="L123">                data.setTimeModified(new Date().getTime());</span>
+<span class="nc" id="L124">                data.setExtendedInformation(ei);</span>
+            }
+<span class="nc bnc" id="L126" title="All 2 branches missed.">            if (authenticated) {</span>
+<span class="nc" id="L127">                return data.toEndEntityInformation();</span>
+            } else {
+<span class="nc" id="L129">                final String msg = intres.getLocalizedMessage(&quot;authentication.wrongstatus&quot;, EndEntityConstants.getStatusText(status), status, username);</span>
+<span class="nc" id="L130">                log.info(msg);</span>
+<span class="nc" id="L131">                throw new AuthStatusException(msg);</span>
+            }
+<span class="nc" id="L133">        } catch (NoSuchEndEntityException oe) {</span>
+<span class="nc" id="L134">        	final String msg = intres.getLocalizedMessage(&quot;authentication.usernotfound&quot;, username);</span>
+<span class="nc" id="L135">        	log.info(msg);</span>
+<span class="nc" id="L136">            throw oe;</span>
+<span class="nc" id="L137">        } catch (AuthStatusException | AuthLoginException se) {</span>
+<span class="nc" id="L138">            throw se;</span>
+<span class="nc" id="L139">        }  catch (Exception e) {</span>
+<span class="nc" id="L140">            log.error(intres.getLocalizedMessage(&quot;error.unknown&quot;), e);</span>
+<span class="nc" id="L141">            throw new EJBException(e);</span>
+        }
+    }
+
+    /**
+     * Decrements the remaining failed login attempts counter. If the counter
+     * already was zero the status for the user is set to
+     * {@link EndEntityConstants#STATUS_GENERATED} if it wasn't that already.
+     * This method does nothing if the counter value is set to UNLIMITED (-1).
+     * 
+     * @param ei Info
+     * @param user the unique username of the user
+     * @return true if the value was decremented or the status was changed, false if not
+     */
+    public static boolean decRemainingLoginAttempts(UserData user, ExtendedInformation ei) {
+<span class="nc bnc" id="L156" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L157">            log.trace(&quot;&gt;decRemainingLoginAttempts(&quot; + user.getUsername()+ &quot;)&quot;);</span>
+        }
+<span class="nc" id="L159">        boolean ret = false;</span>
+<span class="nc" id="L160">        int counter = Integer.MAX_VALUE;</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        if (ei != null) {</span>
+<span class="nc" id="L162">            counter = ei.getRemainingLoginAttempts();</span>
+            // If we get to 0 we must set status to generated
+<span class="nc bnc" id="L164" title="All 2 branches missed.">            if (counter == 0) {</span>
+                // if it isn't already
+<span class="nc bnc" id="L166" title="All 2 branches missed.">                if (user.getStatus() != EndEntityConstants.STATUS_GENERATED) {</span>
+<span class="nc" id="L167">                    user.setStatus(EndEntityConstants.STATUS_GENERATED);</span>
+<span class="nc" id="L168">                    user.setTimeModified(new Date().getTime());</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">                    if (UserData.resetRemainingLoginAttemptsInternal(ei, user.getUsername())) {</span>
+<span class="nc" id="L170">                        final String msg = intres.getLocalizedMessage(&quot;ra.decreasedloginattemptscounter&quot;, user.getUsername(), counter);</span>
+<span class="nc" id="L171">                        log.info(msg);</span>
+                        // We return that ei was changed so it can be persisted later
+<span class="nc" id="L173">                        ret = true;</span>
+<span class="nc" id="L174">                    }</span>
+                }
+<span class="nc bnc" id="L176" title="All 2 branches missed.">            } else if (counter != -1) {</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L178">                    log.debug(&quot;Found a remaining login counter with value &quot; + counter);</span>
+                }
+<span class="nc" id="L180">                ei.setRemainingLoginAttempts(--counter);</span>
+                // We return ei to set later
+                // We return that ei was changed so it can be persisted later
+<span class="nc" id="L183">                ret = true;</span>
+<span class="nc" id="L184">                String msg = intres.getLocalizedMessage(&quot;ra.decreasedloginattemptscounter&quot;, user.getUsername(), counter);</span>
+<span class="nc" id="L185">                log.info(msg);</span>
+<span class="nc" id="L186">            } else {</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L188">                    log.debug(&quot;Found a remaining login counter with value UNLIMITED, not decreased in db.&quot;);</span>
+                }
+<span class="nc" id="L190">                counter = Integer.MAX_VALUE;</span>
+            }
+        }
+<span class="nc bnc" id="L193" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L194">            log.trace(&quot;&lt;decRemainingLoginAttempts(&quot; + user.getUsername() + &quot;): &quot; + counter);</span>
+        }
+<span class="nc" id="L196">        return ret;</span>
+    }
+
+    @Override
+	public void finishUser(final EndEntityInformation data) throws NoSuchEndEntityException {
+<span class="nc bnc" id="L201" title="All 2 branches missed.">		if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L202">			log.trace(&quot;&gt;finishUser(&quot; + data.getUsername() + &quot;, hiddenpwd)&quot;);</span>
+		}
+		try {
+			
+			// See if we are allowed for make more requests than this one. If not user status changed by decRequestCounter
+<span class="nc" id="L207">			final int counter = endEntityManagementSession.decRequestCounter(data.getUsername());</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">			if (counter &lt;= 0) {</span>
+<span class="nc" id="L209">				log.info(intres.getLocalizedMessage(&quot;authentication.statuschanged&quot;, data.getUsername()));</span>
+			} 
+<span class="nc bnc" id="L211" title="All 2 branches missed.">			if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L212">				log.trace(&quot;&lt;finishUser(&quot;+data.getUsername()+&quot;, hiddenpwd)&quot;);</span>
+			}
+<span class="nc" id="L214">		} catch (NoSuchEndEntityException e) {</span>
+<span class="nc" id="L215">			final String msg = intres.getLocalizedMessage(&quot;authentication.usernotfound&quot;, data.getUsername());</span>
+<span class="nc" id="L216">			log.info(msg);</span>
+<span class="nc" id="L217">			throw new NoSuchEndEntityException(e.getMessage());</span>
+<span class="nc" id="L218">        } catch (ApprovalException | WaitingForApprovalException e) {</span>
+            // Should never happen
+<span class="nc" id="L220">            log.error(&quot;ApprovalException: &quot;, e);</span>
+<span class="nc" id="L221">            throw new EJBException(e);</span>
+<span class="nc" id="L222">        }</span>
+<span class="nc" id="L223">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

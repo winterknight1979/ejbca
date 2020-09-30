@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AuthResult.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.samples</a> &gt; <span class="el_source">AuthResult.java</span></div><h1>AuthResult.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.samples;
+
+import java.util.HashMap;
+import java.util.Map;
+
+
+/**
+ * Class containing the complete result from an authenticateUser request.
+ *
+ * @author Original code by Peter Neemeth
+ * @version $Id: AuthResult.java 19901 2014-09-30 14:29:38Z anatom $
+ */
+<span class="nc" id="L26">public class AuthResult {</span>
+    /** Constants for grant and reject */
+    private static final boolean GRANT_STATUS = true;
+    private static final boolean REJECT_STATUS = false;
+
+    /** Default to rejecting a request */
+<span class="nc" id="L32">    private boolean status = REJECT_STATUS; //GRANT_STATUS or REJECT_STATUS</span>
+
+    /** What was the reason to reject this request? */
+<span class="nc" id="L35">    private String reason = &quot;&quot;; //No reason</span>
+
+    /** This map keeps all the name-value pairs in the result. */
+<span class="nc" id="L38">    private Map&lt;String, String&gt; resultHash = new HashMap&lt;String, String&gt;();</span>
+
+    /**
+     * Adds a new key, value pair to the grant response.
+     *
+     * @param key left hand value. Must be unique for this result
+     * @param value right hand value
+     */
+    public void add(final String key, final String value) {
+<span class="nc" id="L47">        resultHash.put(key, value);</span>
+<span class="nc" id="L48">    }</span>
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @return reason for rejecting this request
+     */
+    public String getReason() {
+<span class="nc" id="L56">        return reason;</span>
+    }
+
+    /**
+     * Get result as Map.
+     *
+     * @return hash table of results
+     */
+    public Map&lt;String, String&gt; getResult() {
+<span class="nc" id="L65">        return resultHash;</span>
+    }
+
+    /**
+     * Set status to GRANT
+     */
+    public void grant() {
+<span class="nc" id="L72">        status = GRANT_STATUS;</span>
+<span class="nc" id="L73">    }</span>
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @return true if the request was GRANTed
+     */
+    public boolean granted() {
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        return status == GRANT_STATUS;</span>
+    }
+
+    /**
+     * Set status to REJECT
+     */
+    public void reject() {
+<span class="nc" id="L88">        status = REJECT_STATUS;</span>
+<span class="nc" id="L89">    }</span>
+
+    /**
+     * DOCUMENT ME!
+     *
+     * @return true if the request was REJECTed
+     */
+    public boolean rejected() {
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        return status == REJECT_STATUS;</span>
+    }
+
+    /**
+     * Set reason of rejected request. No default.
+     *
+     * @param newReason describing why the request was rejected
+     */
+    public void setReason(final String newReason) {
+<span class="nc" id="L106">        reason = newReason;</span>
+<span class="nc" id="L107">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

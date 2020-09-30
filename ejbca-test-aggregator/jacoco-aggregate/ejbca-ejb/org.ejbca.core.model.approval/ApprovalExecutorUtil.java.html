@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ApprovalExecutorUtil.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.approval</a> &gt; <span class="el_source">ApprovalExecutorUtil.java</span></div><h1>ApprovalExecutorUtil.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.approval;
+
+import java.util.ArrayList;
+import java.util.StringTokenizer;
+
+import org.apache.log4j.Logger;
+import org.ejbca.config.EjbcaConfiguration;
+
+/**
+ * Util class with methods to get information about calling classes
+ * Used to avoid circular method invocations
+
+Approval configuration
+======================
+
+There are three levels of configuration for approval.
+
+1. Globally excluded classes. When these call functions that normally require approval, approval is not required. This is configured, as a comma separated list, in the ejbca.properties property approval.excludedClasses (for example approval.excludedClasses=org.ejbca.extra.caservice.ExtRACAProcess).
+The check for these globally excluded classes are done in ApprovalExecutorUtil. The list of globally excluded classes are kept as a String in ApprovalExecutorUtil.
+
+2. Fine grained excluded classes/methods. This is configured, hard coded, within a session bean that uses approval. These fine grained classes and methods uses an array of ApprovalOverridableClassName, which is passed to ApprovalExecutorUtil. The check itself is also done in ApprovalExecutorUtil. The array can be defined per approval function.
+For example:
+private static final ApprovalOveradableClassName[] NONAPPROVABLECLASSNAMES_SETUSERSTATUS = {
+		new ApprovalOveradableClassName(&quot;org.ejbca.core.ejb.ra.EndEntityManagementSessionBean&quot;,&quot;revokeUser&quot;),
+		new ApprovalOveradableClassName(&quot;org.ejbca.core.ejb.ra.EndEntityManagementSessionBean&quot;,&quot;revokeCert&quot;),
+		new ApprovalOveradableClassName(&quot;org.ejbca.ui.web.admin.rainterface.RAInterfaceBean&quot;,&quot;unrevokeCert&quot;),
+		new ApprovalOveradableClassName(&quot;org.ejbca.ui.web.admin.rainterface.RAInterfaceBean&quot;,&quot;markForRecovery&quot;),
+		new ApprovalOveradableClassName(&quot;se.primeKey.cardPersonalization.ra.connection.ejbca.EjbcaConnection&quot;,null)
+	};
+    
+3. Transitions that are always allowed. For some approval methods there are transitions that never require approval. For example when status for a user changes from new-&amp;gt;inprocess, or inprocess-&amp;gt;generated.
+These rules are configured, hard coded, within the ApprovalRequest, which is the entity that knows about the transitions best. 
+For example in ChangeStatusEndEntityApprovalRequest the status transitions from new-&amp;gt;inprocess or inprocess-&amp;gt;generated never required approval.
+The code checking used by the programmer to determine if approval is required is once again ApprovalExecutorUtil. 
+
+Checking rules
+--------------
+To check all these rules is simple:
+
+int numOfApprovalsRequired = getNumOfApprovalRequired(admin, CAInfo.REQ_APPROVAL_ADDEDITENDENTITY, caid);
+ChangeStatusEndEntityApprovalRequest ar = new ChangeStatusEndEntityApprovalRequest(username, data1.getStatus(), status, admin, null, numOfApprovalsRequired, data1.getCaId(), data1.getEndEntityProfileId());
+if (ApprovalExecutorUtil.requireApproval(ar,NONAPPROVABLECLASSNAMES_SETUSERSTATUS)) {       		    		
+    approvalsession.addApprovalRequest(admin, ar);
+    throw new WaitingForApprovalException(&quot;Edit Endity Action have been added for approval by authorized adminstrators&quot;);
+}  
+
+The method ApprovalExecutorUtil.requireApproval checks first if the caller class is one of the globally excluded. Then it checks the passed in array ApprovalOveradableClassName, and last it calls the ApprovalRequest itself to see if it is a alwaysAllowedTransition (ApprovalRequest.isAlwaysAlloedTransition).
+
+ApprovalExecutorUtil.requireApproval checks all the rules and returns true or false.
+
+ * 
+ * @version $Id: ApprovalExecutorUtil.java 23752 2016-06-30 12:56:18Z mikekushner $
+ */
+<span class="nc" id="L66">public class ApprovalExecutorUtil {</span>
+      
+<span class="fc" id="L68">	private static final Logger log = Logger.getLogger(ApprovalExecutorUtil.class);</span>
+	
+	/** These variables are protected to enable JUnit testing */
+<span class="fc" id="L71">	protected static String globallyAllowedString = EjbcaConfiguration.getApprovalExcludedClasses();</span>
+<span class="fc" id="L72">	protected static ApprovalOveradableClassName[] globallyAllowed = null;</span>
+	
+	 /** Method that checks if the request requires approval or not.
+	 *
+	 * 
+	 * @param req the request to check
+	 * @param overridableClassNames containing an array of classnamnes/mehtods that shouldn't
+	 * be involved in the approvalprocess, i.e their calls to the original method
+	 * shouldn't require an approval even though approvals is configured for this method. 
+	 * Null means no classes should be overridable.
+	 * @return true if the request requires approval, false otherwise
+	 */ 
+	public static boolean requireApproval(ApprovalRequest req, ApprovalOveradableClassName[] overridableClassNames) {
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">		if (req == null) {</span>
+<span class="nc" id="L86">			return false;</span>
+		}
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">	    if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L89">            log.trace(&quot;&gt;requireApproval: &quot;+req.getClass().getName());            </span>
+        }
+<span class="fc" id="L91">		boolean ret = true;	</span>
+<span class="pc bpc" id="L92" title="1 of 4 branches missed.">		if (req.getApprovalProfile() != null &amp;&amp; req.getApprovalProfile().isApprovalRequired()) {</span>
+<span class="fc bfc" id="L93" title="All 2 branches covered.">			ret = !isCalledByOveridableClassnames(getGloballyAllowed());</span>
+			// If we were not found in the globally allowed list, check the passed in list
+<span class="fc bfc" id="L95" title="All 4 branches covered.">			if (ret &amp;&amp; (overridableClassNames != null)) {</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">				ret = !isCalledByOveridableClassnames(overridableClassNames);			</span>
+			}
+			// If we were not found in any allowed list, check if it is an allowed transition
+<span class="fc bfc" id="L99" title="All 4 branches covered.">			if (ret &amp;&amp; req.isAllowedTransition()) {</span>
+<span class="fc" id="L100">				ret = false;</span>
+			}
+		} else {
+<span class="fc" id="L103">			ret = false;</span>
+		}
+		
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L107">            log.trace(&quot;&lt;requireApproval: &quot;+ret);</span>
+        }
+<span class="fc" id="L109">		return ret;</span>
+	}
+		
+	private static ApprovalOveradableClassName[] getGloballyAllowed() {
+<span class="fc bfc" id="L113" title="All 2 branches covered.">		if (globallyAllowed == null) {</span>
+<span class="fc" id="L114">			ArrayList&lt;ApprovalOveradableClassName&gt; arr = new ArrayList&lt;ApprovalOveradableClassName&gt;();</span>
+<span class="fc" id="L115">            StringTokenizer tokenizer = new StringTokenizer(globallyAllowedString, &quot;,&quot;, false);</span>
+<span class="fc bfc" id="L116" title="All 2 branches covered.">            while (tokenizer.hasMoreTokens()) {</span>
+<span class="fc" id="L117">            	String t = tokenizer.nextToken();</span>
+<span class="fc" id="L118">            	ApprovalOveradableClassName o = new ApprovalOveradableClassName(t.trim(), null);</span>
+<span class="fc" id="L119">            	arr.add(o);</span>
+<span class="fc" id="L120">            }              </span>
+<span class="fc" id="L121">            globallyAllowed = (ApprovalOveradableClassName[])arr.toArray(new ApprovalOveradableClassName[arr.size()]);</span>
+		}
+<span class="fc" id="L123">		return globallyAllowed;</span>
+	}
+
+	/** @param overridableClassNames Class names
+	 * @return true if calling stack contains one of the overridableClassNames className,methodName combination. */
+	private static boolean isCalledByOveridableClassnames(final ApprovalOveradableClassName[] overridableClassNames){
+<span class="fc" id="L129">	    final StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();</span>
+<span class="fc bfc" id="L130" title="All 2 branches covered.">	    for (final ApprovalOveradableClassName overridableClassName : overridableClassNames) {</span>
+<span class="fc bfc" id="L131" title="All 2 branches covered.">	        if (overridableClassName.isInStackTrace(stackTraceElements)) {</span>
+<span class="fc" id="L132">	            return true;</span>
+	        }
+	    }
+<span class="fc" id="L135">	    return false;</span>
+	}
+	   
+
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

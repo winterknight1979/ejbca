@@ -68,6 +68,7 @@ org.cesecore.util.query.clauses
 org.cesecore.util.query.elems
 org.cesecore.util.ui
 org.ejbca.acme
+org.ejbca.cesecoreintegration
 org.ejbca.config
 org.ejbca.configdump
 org.ejbca.configdump.ejb
@@ -91,6 +92,7 @@ org.ejbca.core.ejb.config
 org.ejbca.core.ejb.crl
 org.ejbca.core.ejb.dto
 org.ejbca.core.ejb.hardtoken
+org.ejbca.core.ejb.keybind
 org.ejbca.core.ejb.keyrecovery
 org.ejbca.core.ejb.ocsp
 org.ejbca.core.ejb.ra
@@ -141,6 +143,7 @@ org.ejbca.core.protocol.est
 org.ejbca.core.protocol.ocsp.extension.unid
 org.ejbca.core.protocol.rest
 org.ejbca.core.protocol.scep
+org.ejbca.core.protocol.unid
 org.ejbca.core.protocol.ws
 org.ejbca.core.protocol.ws.client
 org.ejbca.core.protocol.ws.common
@@ -148,6 +151,7 @@ org.ejbca.core.protocol.ws.jaxws
 org.ejbca.core.protocol.ws.logger
 org.ejbca.core.protocol.ws.objects
 org.ejbca.peerconnector
+org.ejbca.samples
 org.ejbca.statedump.ejb
 org.ejbca.ui.cli
 org.ejbca.ui.web
@@ -159,6 +163,7 @@ org.ejbca.ui.web.renew
 org.ejbca.util
 org.ejbca.util.cert
 org.ejbca.util.crypto
+org.ejbca.util.dn
 org.ejbca.util.keystore
 org.ejbca.util.mail
 org.ejbca.util.passgen

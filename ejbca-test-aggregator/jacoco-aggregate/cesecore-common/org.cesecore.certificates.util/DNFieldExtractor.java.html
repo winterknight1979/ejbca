@@ -149,14 +149,14 @@ public class DNFieldExtractor implements java.io.Serializable {
 
     public static String getFieldComponent(final int field, final int type) {
         final String ret;
-<span class="nc bnc" id="L152" title="All 2 branches missed.">        if (type == DNFieldExtractor.TYPE_SUBJECTDN) {</span>
-<span class="nc" id="L153">            ret = DnComponents.getDnExtractorFieldFromDnId(field);</span>
+<span class="pc bpc" id="L152" title="1 of 2 branches missed.">        if (type == DNFieldExtractor.TYPE_SUBJECTDN) {</span>
+<span class="fc" id="L153">            ret = DnComponents.getDnExtractorFieldFromDnId(field);</span>
 <span class="nc bnc" id="L154" title="All 2 branches missed.">        } else if (type == DNFieldExtractor.TYPE_SUBJECTALTNAME) {</span>
 <span class="nc" id="L155">            ret = DnComponents.getAltNameExtractorFieldFromDnId(field);</span>
         } else {
 <span class="nc" id="L157">            ret = DnComponents.getDirAttrExtractorFieldFromDnId(field);</span>
         }
-<span class="nc" id="L159">        return ret;</span>
+<span class="fc" id="L159">        return ret;</span>
     }
 
     /**

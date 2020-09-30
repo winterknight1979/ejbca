@@ -1,0 +1,1252 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>HardTokenSessionBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.hardtoken</a> &gt; <span class="el_source">HardTokenSessionBean.java</span></div><h1>HardTokenSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.ejb.hardtoken;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.apache.log4j.Logger;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificate.CertificateDataWrapper;
+import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
+import org.cesecore.certificates.certificateprofile.CertificateProfileConstants;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.config.GlobalCesecoreConfiguration;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.roles.Role;
+import org.cesecore.roles.management.RoleSessionLocal;
+import org.cesecore.util.Base64GetHashMap;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.ProfileID;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaModuleTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaServiceTypes;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionLocal;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.ca.caadmin.extendedcaservices.HardTokenEncryptCAServiceRequest;
+import org.ejbca.core.model.ca.caadmin.extendedcaservices.HardTokenEncryptCAServiceResponse;
+import org.ejbca.core.model.hardtoken.HardTokenDoesntExistsException;
+import org.ejbca.core.model.hardtoken.HardTokenExistsException;
+import org.ejbca.core.model.hardtoken.HardTokenInformation;
+import org.ejbca.core.model.hardtoken.HardTokenIssuer;
+import org.ejbca.core.model.hardtoken.HardTokenIssuerInformation;
+import org.ejbca.core.model.hardtoken.HardTokenProfileExistsException;
+import org.ejbca.core.model.hardtoken.UnavailableTokenException;
+import org.ejbca.core.model.hardtoken.profiles.EIDProfile;
+import org.ejbca.core.model.hardtoken.profiles.EnhancedEIDProfile;
+import org.ejbca.core.model.hardtoken.profiles.HardTokenProfile;
+import org.ejbca.core.model.hardtoken.profiles.SwedishEIDProfile;
+import org.ejbca.core.model.hardtoken.profiles.TurkishEIDProfile;
+import org.ejbca.core.model.hardtoken.types.EIDHardToken;
+import org.ejbca.core.model.hardtoken.types.EnhancedEIDHardToken;
+import org.ejbca.core.model.hardtoken.types.HardToken;
+import org.ejbca.core.model.hardtoken.types.SwedishEIDHardToken;
+import org.ejbca.core.model.hardtoken.types.TurkishEIDHardToken;
+
+/**
+ * HardToken API, this mimics &quot;smart card&quot; tokens where one token that has a serial number
+ * may care multiple certificates. Different types of hard tokens have different profiles.
+ *
+ * @version $Id: HardTokenSessionBean.java 29010 2018-05-23 13:09:53Z jekaterina_b_helmes $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;HardTokenSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+<span class="nc" id="L100">public class HardTokenSessionBean implements HardTokenSessionLocal, HardTokenSessionRemote {</span>
+
+<span class="nc" id="L102">    private static final Logger log = Logger.getLogger(EjbcaHardTokenBatchJobSessionBean.class);</span>
+    /** Internal localization of logs and errors */
+<span class="nc" id="L104">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+
+    @PersistenceContext(unitName = &quot;ejbca&quot;)
+    private EntityManager entityManager;
+
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private CAAdminSessionLocal caAdminSession;
+    @EJB
+    private CaSessionLocal caSession;
+    @EJB
+    private GlobalConfigurationSessionLocal globalConfigurationSession;
+    @EJB
+    private CertificateProfileSessionLocal certificateProfileSession;
+    @EJB
+    private CertificateStoreSessionLocal certificateStoreSession;
+    @EJB
+    private RoleSessionLocal roleSession;
+    @EJB
+    private SecurityEventsLoggerSessionLocal auditSession;
+
+    public static final int NO_ISSUER = 0;
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public void addHardTokenProfile(AuthenticationToken admin, String name, HardTokenProfile profile) throws HardTokenProfileExistsException, AuthorizationDeniedException {
+<span class="nc bnc" id="L131" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L132">            log.trace(&quot;&gt;addHardTokenProfile(name: &quot; + name + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L134">        addHardTokenProfile(admin, findFreeHardTokenProfileId(), name, profile);</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L136">            log.trace(&quot;&lt;addHardTokenProfile()&quot;);</span>
+        }
+<span class="nc" id="L138">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public void addHardTokenProfile(AuthenticationToken admin, int profileid, String name, HardTokenProfile profile) throws HardTokenProfileExistsException, AuthorizationDeniedException {
+<span class="nc bnc" id="L143" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L144">            log.trace(&quot;&gt;addHardTokenProfile(name: &quot; + name + &quot;, id: &quot; + profileid + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L146">        addHardTokenProfileInternal(admin, profileid, name, profile);</span>
+<span class="nc" id="L147">        final String msg = intres.getLocalizedMessage(&quot;hardtoken.addedprofile&quot;, name);</span>
+<span class="nc" id="L148">        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L149">        details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L150">        auditSession.log(EjbcaEventTypes.HARDTOKEN_ADDPROFILE, EventStatus.SUCCESS, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L152">            log.trace(&quot;&lt;addHardTokenProfile()&quot;);</span>
+        }
+<span class="nc" id="L154">    }</span>
+
+    private void addHardTokenProfileInternal(AuthenticationToken admin, int profileid, String name, HardTokenProfile profile) throws HardTokenProfileExistsException, AuthorizationDeniedException {
+<span class="nc" id="L157">        authorizedToEditProfile(admin);</span>
+<span class="nc bnc" id="L158" title="All 4 branches missed.">        if (HardTokenProfileData.findByName(entityManager, name) == null &amp;&amp; HardTokenProfileData.findByPK(entityManager, profileid) == null) {</span>
+<span class="nc" id="L159">            entityManager.persist(new HardTokenProfileData(profileid, name, profile));</span>
+        } else {
+<span class="nc" id="L161">            final String msg = intres.getLocalizedMessage(&quot;hardtoken.erroraddprofile&quot;, name);</span>
+<span class="nc" id="L162">            log.info(msg);</span>
+<span class="nc" id="L163">            throw new HardTokenProfileExistsException();</span>
+        }
+<span class="nc" id="L165">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public void changeHardTokenProfile(AuthenticationToken admin, String name, HardTokenProfile profile) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L170" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L171">            log.trace(&quot;&gt;changeHardTokenProfile(name: &quot; + name + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L173">        authorizedToEditProfile(admin);</span>
+<span class="nc" id="L174">        HardTokenProfileData htp = HardTokenProfileData.findByName(entityManager, name);</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">        if (htp != null) {</span>
+            // Make a diff what has changed
+<span class="nc" id="L177">            final HardTokenProfile oldhtp = getHardTokenProfile(htp);</span>
+<span class="nc" id="L178">            final Map&lt;Object, Object&gt; diff = oldhtp.diff(profile);</span>
+<span class="nc" id="L179">            htp.setHardTokenProfile(profile);</span>
+<span class="nc" id="L180">            final String msg = intres.getLocalizedMessage(&quot;hardtoken.editedprofile&quot;, name);</span>
+<span class="nc" id="L181">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L182">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">            for (Map.Entry&lt;Object, Object&gt; entry : diff.entrySet()) {</span>
+<span class="nc" id="L184">                details.put(entry.getKey().toString(), entry.getValue().toString());</span>
+<span class="nc" id="L185">            }</span>
+<span class="nc" id="L186">            auditSession.log(EjbcaEventTypes.HARDTOKEN_EDITPROFILE, EventStatus.SUCCESS, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L187">        } else {</span>
+<span class="nc" id="L188">            final String msg = intres.getLocalizedMessage(&quot;hardtoken.erroreditprofile&quot;, name);</span>
+<span class="nc" id="L189">            log.info(msg);</span>
+        }
+<span class="nc bnc" id="L191" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L192">            log.trace(&quot;&lt;changeHardTokenProfile()&quot;);</span>
+        }
+<span class="nc" id="L194">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public void cloneHardTokenProfile(AuthenticationToken admin, String oldname, String newname) throws HardTokenProfileExistsException, AuthorizationDeniedException {
+<span class="nc bnc" id="L199" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L200">            log.trace(&quot;&gt;cloneHardTokenProfile(name: &quot; + oldname + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L202">        HardTokenProfileData htp = HardTokenProfileData.findByName(entityManager, oldname);</span>
+        try {
+<span class="nc" id="L204">            HardTokenProfile profiledata = (HardTokenProfile) getHardTokenProfile(htp).clone();</span>
+            try {
+<span class="nc" id="L206">                addHardTokenProfileInternal(admin, findFreeHardTokenProfileId(), newname, profiledata);</span>
+<span class="nc" id="L207">                final String msg = intres.getLocalizedMessage(&quot;hardtoken.clonedprofile&quot;, newname, oldname);</span>
+<span class="nc" id="L208">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L209">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L210">                auditSession.log(EjbcaEventTypes.HARDTOKEN_ADDPROFILE, EventStatus.SUCCESS, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L211">            } catch (HardTokenProfileExistsException f) {</span>
+<span class="nc" id="L212">                final String msg = intres.getLocalizedMessage(&quot;hardtoken.errorcloneprofile&quot;, newname, oldname);</span>
+<span class="nc" id="L213">                log.info(msg);</span>
+<span class="nc" id="L214">                throw f;</span>
+<span class="nc" id="L215">            }</span>
+<span class="nc" id="L216">        } catch (CloneNotSupportedException e) {</span>
+<span class="nc" id="L217">            throw new EJBException(e);</span>
+<span class="nc" id="L218">        }</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L220">            log.trace(&quot;&lt;cloneHardTokenProfile()&quot;);</span>
+        }
+<span class="nc" id="L222">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public void removeHardTokenProfile(AuthenticationToken admin, String name) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L227" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L228">            log.trace(&quot;&gt;removeHardTokenProfile(name: &quot; + name + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L230">        authorizedToEditProfile(admin);</span>
+        try {
+<span class="nc" id="L232">            HardTokenProfileData htp = HardTokenProfileData.findByName(entityManager, name);</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">            if (htp == null) {</span>
+<span class="nc bnc" id="L234" title="All 2 branches missed.">            	if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L235">            		log.debug(&quot;Trying to remove HardTokenProfileData that does not exist: &quot;+name);</span>
+            	}
+            } else {
+<span class="nc" id="L238">            	entityManager.remove(htp);</span>
+<span class="nc" id="L239">                final String msg = intres.getLocalizedMessage(&quot;hardtoken.removedprofile&quot;, name);</span>
+<span class="nc" id="L240">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L241">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L242">                auditSession.log(EjbcaEventTypes.HARDTOKEN_REMOVEPROFILE, EventStatus.SUCCESS, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+            }
+<span class="nc" id="L244">        } catch (Exception e) {</span>
+<span class="nc" id="L245">            final String msg = intres.getLocalizedMessage(&quot;hardtoken.errorremoveprofile&quot;, name);</span>
+<span class="nc" id="L246">            log.info(msg);</span>
+<span class="nc" id="L247">        }</span>
+<span class="nc bnc" id="L248" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L249">            log.trace(&quot;&lt;removeHardTokenProfile()&quot;);</span>
+        }
+<span class="nc" id="L251">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public void renameHardTokenProfile(AuthenticationToken admin, String oldname, String newname) throws HardTokenProfileExistsException, AuthorizationDeniedException {
+<span class="nc bnc" id="L256" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L257">            log.trace(&quot;&gt;renameHardTokenProfile(from &quot; + oldname + &quot; to &quot; + newname + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L259">        boolean success = false;</span>
+<span class="nc" id="L260">        authorizedToEditProfile(admin);</span>
+<span class="nc bnc" id="L261" title="All 2 branches missed.">        if (HardTokenProfileData.findByName(entityManager, newname) == null) {</span>
+<span class="nc" id="L262">            HardTokenProfileData htp = HardTokenProfileData.findByName(entityManager, oldname);</span>
+<span class="nc bnc" id="L263" title="All 2 branches missed.">            if (htp != null) {</span>
+<span class="nc" id="L264">                htp.setName(newname);</span>
+<span class="nc" id="L265">                success = true;</span>
+            }
+        }
+<span class="nc bnc" id="L268" title="All 2 branches missed.">        if (success) {</span>
+<span class="nc" id="L269">            final String msg = intres.getLocalizedMessage(&quot;hardtoken.renamedprofile&quot;, oldname, newname);</span>
+<span class="nc" id="L270">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L271">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L272">            auditSession.log(EjbcaEventTypes.HARDTOKEN_EDITPROFILE, EventStatus.SUCCESS, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L273">        } else {</span>
+<span class="nc" id="L274">            final String msg = intres.getLocalizedMessage(&quot;hardtoken.errorrenameprofile&quot;, oldname, newname);</span>
+<span class="nc" id="L275">            log.info(msg);</span>
+<span class="nc" id="L276">            throw new HardTokenProfileExistsException();</span>
+        }
+<span class="nc bnc" id="L278" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L279">            log.trace(&quot;&lt;renameHardTokenProfile()&quot;);</span>
+        }
+
+<span class="nc" id="L282">    }</span>
+
+    @Override
+    public Collection&lt;Integer&gt; getAuthorizedHardTokenProfileIds(AuthenticationToken admin) {
+<span class="nc" id="L286">        ArrayList&lt;Integer&gt; returnval = new ArrayList&lt;Integer&gt;();</span>
+<span class="nc" id="L287">        HashSet&lt;Integer&gt; authorizedcertprofiles = new HashSet&lt;Integer&gt;(certificateProfileSession.getAuthorizedCertificateProfileIds(admin, CertificateConstants.CERTTYPE_HARDTOKEN));</span>
+        // It should be possible to indicate that a certificate should not be generated by not specifying a cert profile for this key.
+<span class="nc" id="L289">        authorizedcertprofiles.add(Integer.valueOf(CertificateProfileConstants.CERTPROFILE_NO_PROFILE));</span>
+<span class="nc" id="L290">        HashSet&lt;Integer&gt; authorizedcaids = new HashSet&lt;Integer&gt;(caSession.getAuthorizedCaIds(admin));</span>
+<span class="nc" id="L291">        Collection&lt;HardTokenProfileData&gt; result = HardTokenProfileData.findAll(entityManager);</span>
+<span class="nc" id="L292">        Iterator&lt;HardTokenProfileData&gt; i = result.iterator();</span>
+<span class="nc bnc" id="L293" title="All 2 branches missed.">        while (i.hasNext()) {</span>
+<span class="nc" id="L294">            HardTokenProfileData next = i.next();</span>
+<span class="nc" id="L295">            HardTokenProfile profile = getHardTokenProfile(next);</span>
+<span class="nc bnc" id="L296" title="All 2 branches missed.">            if (profile instanceof EIDProfile) {</span>
+<span class="nc bnc" id="L297" title="All 2 branches missed.">                if (authorizedcertprofiles.containsAll(((EIDProfile) profile).getAllCertificateProfileIds())</span>
+<span class="nc bnc" id="L298" title="All 2 branches missed.">                        &amp;&amp; authorizedcaids.containsAll(((EIDProfile) profile).getAllCAIds())) {</span>
+<span class="nc" id="L299">                    returnval.add(next.getId());</span>
+                }
+            } else {
+                // Implement for other profile types
+            }
+<span class="nc" id="L304">        }</span>
+<span class="nc" id="L305">        return returnval;</span>
+    }
+
+    private void authorizedToEditProfile(AuthenticationToken admin) throws AuthorizationDeniedException {
+        // We need to check that admin also have rights to edit certificate profiles
+<span class="nc bnc" id="L310" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(admin, AccessRulesConstants.HARDTOKEN_EDITHARDTOKENPROFILES)) {</span>
+<span class="nc" id="L311">            final String msg = intres.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, AccessRulesConstants.HARDTOKEN_EDITHARDTOKENPROFILES, null);</span>
+<span class="nc" id="L312">            throw new AuthorizationDeniedException(msg);</span>
+        }
+<span class="nc" id="L314">    }</span>
+
+    @Override
+    public HashMap&lt;Integer, String&gt; getHardTokenProfileIdToNameMap() {
+<span class="nc" id="L318">        HashMap&lt;Integer, String&gt; returnval = new HashMap&lt;Integer, String&gt;();</span>
+<span class="nc" id="L319">        Collection&lt;HardTokenProfileData&gt; result = HardTokenProfileData.findAll(entityManager);</span>
+<span class="nc" id="L320">        Iterator&lt;HardTokenProfileData&gt; i = result.iterator();</span>
+<span class="nc bnc" id="L321" title="All 2 branches missed.">        while (i.hasNext()) {</span>
+<span class="nc" id="L322">            HardTokenProfileData next = i.next();</span>
+<span class="nc" id="L323">            returnval.put(next.getId(), next.getName());</span>
+<span class="nc" id="L324">        }</span>
+<span class="nc" id="L325">        return returnval;</span>
+    }
+
+    @Override
+    public HardTokenProfile getHardTokenProfile(String name) {
+<span class="nc" id="L330">        HardTokenProfile returnval = null;</span>
+<span class="nc" id="L331">        HardTokenProfileData htpd = HardTokenProfileData.findByName(entityManager, name);</span>
+<span class="nc bnc" id="L332" title="All 2 branches missed.">        if (htpd != null) {</span>
+<span class="nc" id="L333">            returnval = getHardTokenProfile(htpd);</span>
+        }
+<span class="nc" id="L335">        return returnval;</span>
+    }
+
+    @Override
+    public HardTokenProfile getHardTokenProfile(int id) {
+<span class="nc" id="L340">        HardTokenProfile returnval = null;</span>
+<span class="nc" id="L341">        HardTokenProfileData htpd = HardTokenProfileData.findByPK(entityManager, Integer.valueOf(id));</span>
+<span class="nc bnc" id="L342" title="All 2 branches missed.">        if (htpd != null) {</span>
+<span class="nc" id="L343">            returnval = getHardTokenProfile(htpd);</span>
+        }
+<span class="nc" id="L345">        return returnval;</span>
+    }
+
+    @Override
+    public int getHardTokenProfileUpdateCount(int hardtokenprofileid) {
+<span class="nc" id="L350">        int returnval = 0;</span>
+<span class="nc" id="L351">        HardTokenProfileData htpd = HardTokenProfileData.findByPK(entityManager, Integer.valueOf(hardtokenprofileid));</span>
+<span class="nc bnc" id="L352" title="All 2 branches missed.">        if (htpd != null) {</span>
+<span class="nc" id="L353">            returnval = htpd.getUpdateCounter();</span>
+        }
+<span class="nc" id="L355">        return returnval;</span>
+    }
+
+    @Override
+    public int getHardTokenProfileId(String name) {
+<span class="nc" id="L360">        int returnval = 0;</span>
+<span class="nc" id="L361">        HardTokenProfileData htpd = HardTokenProfileData.findByName(entityManager, name);</span>
+<span class="nc bnc" id="L362" title="All 2 branches missed.">        if (htpd != null) {</span>
+<span class="nc" id="L363">            returnval = htpd.getId();</span>
+        }
+<span class="nc" id="L365">        return returnval;</span>
+    }
+
+    @Override
+    public String getHardTokenProfileName(int id) {
+<span class="nc bnc" id="L370" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L371">            log.trace(&quot;&gt;getHardTokenProfileName(id: &quot; + id + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L373">        String returnval = null;</span>
+<span class="nc" id="L374">        HardTokenProfileData htpd = HardTokenProfileData.findByPK(entityManager, Integer.valueOf(id));</span>
+<span class="nc bnc" id="L375" title="All 2 branches missed.">        if (htpd != null) {</span>
+<span class="nc" id="L376">            returnval = htpd.getName();</span>
+        }
+<span class="nc" id="L378">        log.trace(&quot;&lt;getHardTokenProfileName()&quot;);</span>
+<span class="nc" id="L379">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public boolean addHardTokenIssuer(AuthenticationToken admin, String alias, int admingroupid, HardTokenIssuer issuerdata) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L385" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L386">            log.trace(&quot;&gt;addHardTokenIssuer(alias: &quot; + alias + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L388">        boolean returnval = addhardTokenIssuerInternal(admin, alias, admingroupid, issuerdata);</span>
+<span class="nc bnc" id="L389" title="All 2 branches missed.">        if (returnval) {</span>
+<span class="nc" id="L390">            String msg = intres.getLocalizedMessage(&quot;hardtoken.addedissuer&quot;, alias);</span>
+<span class="nc" id="L391">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L392">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L393">            auditSession.log(EjbcaEventTypes.HARDTOKEN_ADDISSUER, EventStatus.SUCCESS, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L394">        } else {</span>
+        	// Does not exist
+<span class="nc" id="L396">            String msg = intres.getLocalizedMessage(&quot;hardtoken.erroraddissuer&quot;, alias);</span>
+<span class="nc" id="L397">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L398">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L399">            auditSession.log(EjbcaEventTypes.HARDTOKEN_ADDISSUER, EventStatus.FAILURE, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+        }
+<span class="nc bnc" id="L401" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L402">            log.trace(&quot;&lt;addHardTokenIssuer()&quot;);</span>
+        }
+<span class="nc" id="L404">        return returnval;</span>
+    }
+
+    private boolean addhardTokenIssuerInternal(final AuthenticationToken admin, final String alias, final int admingroupid, final HardTokenIssuer issuerdata) throws AuthorizationDeniedException {
+<span class="nc" id="L408">        boolean returnval = false;</span>
+<span class="nc" id="L409">        authorizedToEditIssuer(admin);</span>
+<span class="nc bnc" id="L410" title="All 2 branches missed.">        if (HardTokenIssuerData.findByAlias(entityManager, alias) == null) {</span>
+<span class="nc" id="L411">            entityManager.persist(new HardTokenIssuerData(findFreeHardTokenIssuerId(), alias, admingroupid, issuerdata));</span>
+<span class="nc" id="L412">            returnval = true;</span>
+        }
+<span class="nc" id="L414">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public boolean changeHardTokenIssuer(AuthenticationToken admin, String alias, HardTokenIssuer issuerdata) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L420" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L421">            log.trace(&quot;&gt;changeHardTokenIssuer(alias: &quot; + alias + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L423">        boolean returnvalue = false;</span>
+<span class="nc" id="L424">        authorizedToEditIssuer(admin);</span>
+<span class="nc" id="L425">        HardTokenIssuerData htih = HardTokenIssuerData.findByAlias(entityManager, alias);</span>
+<span class="nc bnc" id="L426" title="All 2 branches missed.">        if (htih != null) {</span>
+<span class="nc" id="L427">            final HardTokenIssuer oldissuer = htih.getHardTokenIssuer();</span>
+<span class="nc" id="L428">            final Map&lt;Object, Object&gt; diff = oldissuer.diff(issuerdata);</span>
+<span class="nc" id="L429">            htih.setHardTokenIssuer(issuerdata);</span>
+<span class="nc" id="L430">            String msg = intres.getLocalizedMessage(&quot;hardtoken.editedissuer&quot;, alias);</span>
+<span class="nc" id="L431">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L432">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc bnc" id="L433" title="All 2 branches missed.">            for (Map.Entry&lt;Object, Object&gt; entry : diff.entrySet()) {</span>
+<span class="nc" id="L434">                details.put(entry.getKey().toString(), entry.getValue().toString());</span>
+<span class="nc" id="L435">            }</span>
+<span class="nc" id="L436">            auditSession.log(EjbcaEventTypes.HARDTOKEN_EDITISSUER, EventStatus.SUCCESS, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L437">            returnvalue = true;</span>
+<span class="nc" id="L438">        } else {</span>
+        	// Does not exist
+<span class="nc" id="L440">            String msg = intres.getLocalizedMessage(&quot;hardtoken.erroreditissuer&quot;, alias);</span>
+<span class="nc" id="L441">            log.info(msg);</span>
+        }
+<span class="nc bnc" id="L443" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L444">            log.trace(&quot;&lt;changeHardTokenIssuer()&quot;);</span>
+        }
+<span class="nc" id="L446">        return returnvalue;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public boolean cloneHardTokenIssuer(AuthenticationToken admin, String oldalias, String newalias, int admingroupid) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L452" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L453">            log.trace(&quot;&gt;cloneHardTokenIssuer(alias: &quot; + oldalias + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L455">        boolean returnval = false;</span>
+<span class="nc" id="L456">        HardTokenIssuerData htih = HardTokenIssuerData.findByAlias(entityManager, oldalias);</span>
+<span class="nc bnc" id="L457" title="All 2 branches missed.">        if (htih != null) {</span>
+            try {
+<span class="nc" id="L459">            	HardTokenIssuer issuerdata = (HardTokenIssuer) htih.getHardTokenIssuer().clone();</span>
+<span class="nc" id="L460">                returnval = addhardTokenIssuerInternal(admin, newalias, admingroupid, issuerdata);</span>
+<span class="nc" id="L461">            } catch (CloneNotSupportedException e) {</span>
+<span class="nc" id="L462">            }</span>
+        }
+<span class="nc bnc" id="L464" title="All 2 branches missed.">        if (returnval) {</span>
+<span class="nc" id="L465">            String msg = intres.getLocalizedMessage(&quot;hardtoken.clonedissuer&quot;, newalias, oldalias);</span>
+<span class="nc" id="L466">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L467">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L468">            auditSession.log(EjbcaEventTypes.HARDTOKEN_ADDISSUER, EventStatus.SUCCESS, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L469">        } else {</span>
+        	// Does not exist
+<span class="nc" id="L471">            String msg = intres.getLocalizedMessage(&quot;hardtoken.errorcloneissuer&quot;, newalias, oldalias);</span>
+<span class="nc" id="L472">            log.info(msg);</span>
+        }
+<span class="nc bnc" id="L474" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L475">            log.trace(&quot;&lt;cloneHardTokenIssuer()&quot;);</span>
+        }
+<span class="nc" id="L477">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public void removeHardTokenIssuer(AuthenticationToken admin, String alias) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L483" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L484">            log.trace(&quot;&gt;removeHardTokenIssuer(alias: &quot; + alias + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L486">        authorizedToEditIssuer(admin);</span>
+        try {
+<span class="nc" id="L488">            HardTokenIssuerData htih = HardTokenIssuerData.findByAlias(entityManager, alias);</span>
+<span class="nc bnc" id="L489" title="All 2 branches missed.">            if (htih == null) {</span>
+<span class="nc bnc" id="L490" title="All 2 branches missed.">            	if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L491">            		log.debug(&quot;Trying to remove HardTokenProfileData that does not exist: &quot;+alias);</span>
+            	}
+            } else {
+<span class="nc" id="L494">            	entityManager.remove(htih);</span>
+<span class="nc" id="L495">            	String msg = intres.getLocalizedMessage(&quot;hardtoken.removedissuer&quot;, alias);</span>
+<span class="nc" id="L496">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L497">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L498">                auditSession.log(EjbcaEventTypes.HARDTOKEN_REMOVEISSUER, EventStatus.SUCCESS, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+            }
+<span class="nc" id="L500">        } catch (Exception e) {</span>
+<span class="nc" id="L501">            String msg = intres.getLocalizedMessage(&quot;hardtoken.errorremoveissuer&quot;, alias);</span>
+<span class="nc" id="L502">            log.info(msg, e);</span>
+<span class="nc" id="L503">        }</span>
+<span class="nc bnc" id="L504" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L505">            log.trace(&quot;&lt;removeHardTokenIssuer()&quot;);</span>
+        }
+<span class="nc" id="L507">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public boolean renameHardTokenIssuer(AuthenticationToken admin, String oldalias, String newalias, int newadmingroupid) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L512" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L513">            log.trace(&quot;&gt;renameHardTokenIssuer(from &quot; + oldalias + &quot; to &quot; + newalias + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L515">        authorizedToEditIssuer(admin);</span>
+<span class="nc" id="L516">        boolean returnvalue = false;</span>
+<span class="nc bnc" id="L517" title="All 2 branches missed.">        if (HardTokenIssuerData.findByAlias(entityManager, newalias) == null) {</span>
+<span class="nc" id="L518">            HardTokenIssuerData htih = HardTokenIssuerData.findByAlias(entityManager, oldalias);</span>
+<span class="nc bnc" id="L519" title="All 2 branches missed.">            if (htih != null) {</span>
+<span class="nc" id="L520">                htih.setAlias(newalias);</span>
+<span class="nc" id="L521">                htih.setAdminGroupId(newadmingroupid);</span>
+<span class="nc" id="L522">                returnvalue = true;</span>
+            }
+        }
+<span class="nc bnc" id="L525" title="All 2 branches missed.">        if (returnvalue) {</span>
+<span class="nc" id="L526">            String msg = intres.getLocalizedMessage(&quot;hardtoken.renameissuer&quot;, oldalias, newalias);</span>
+<span class="nc" id="L527">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L528">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L529">            auditSession.log(EjbcaEventTypes.HARDTOKEN_EDITISSUER, EventStatus.SUCCESS, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L530">        } else {</span>
+        	// Does not exist
+<span class="nc" id="L532">            String msg = intres.getLocalizedMessage(&quot;hardtoken.errorrenameissuer&quot;, oldalias, newalias);</span>
+<span class="nc" id="L533">            log.info(msg);</span>
+        }
+<span class="nc bnc" id="L535" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L536">            log.trace(&quot;&lt;renameHardTokenIssuer()&quot;);</span>
+        }
+<span class="nc" id="L538">        return returnvalue;</span>
+    }
+
+    @Override
+    public boolean isAuthorizedToEditHardTokenIssuer(AuthenticationToken token, String alias) {
+<span class="nc" id="L543">        TreeMap&lt;String, HardTokenIssuerInformation&gt;  authorizedIssuers = getHardTokenIssuers(token);</span>
+<span class="nc bnc" id="L544" title="All 4 branches missed.">        return authorizationSession.isAuthorizedNoLogging(token, AccessRulesConstants.HARDTOKEN_EDITHARDTOKENISSUERS) &amp;&amp; authorizedIssuers.containsKey(alias);</span>
+    }
+
+    @Override
+    public boolean isAuthorizedToHardTokenIssuer(AuthenticationToken admin, String alias) {
+<span class="nc bnc" id="L549" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L550">            log.trace(&quot;&gt;isAuthorizedToHardTokenIssuer(&quot; + alias + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L552">        boolean returnval = false;</span>
+<span class="nc" id="L553">        HardTokenIssuerData htih = HardTokenIssuerData.findByAlias(entityManager, alias);</span>
+<span class="nc bnc" id="L554" title="All 2 branches missed.">        if (htih != null) {</span>
+<span class="nc bnc" id="L555" title="All 2 branches missed.">            if (authorizationSession.isAuthorizedNoLogging(admin, AccessRulesConstants.HARDTOKEN_ISSUEHARDTOKENS)) {</span>
+<span class="nc" id="L556">                final List&lt;Role&gt; roles = roleSession.getRolesAuthenticationTokenIsMemberOf(admin);</span>
+<span class="nc bnc" id="L557" title="All 2 branches missed.">                for (final Role role : roles) {</span>
+<span class="nc bnc" id="L558" title="All 2 branches missed.">                    if (role.getRoleId()==htih.getAdminGroupId()) {</span>
+<span class="nc" id="L559">                        returnval = true;</span>
+<span class="nc" id="L560">                        break;</span>
+                    }
+<span class="nc" id="L562">                }</span>
+            }
+        }
+<span class="nc bnc" id="L565" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L566">        	log.trace(&quot;&lt;isAuthorizedToHardTokenIssuer(&quot; + returnval + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L568">        return returnval;</span>
+    }
+
+    private void authorizedToEditIssuer(AuthenticationToken admin) throws AuthorizationDeniedException {
+        // We need to check that admin also have rights to edit certificate profiles
+<span class="nc bnc" id="L573" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(admin, AccessRulesConstants.HARDTOKEN_EDITHARDTOKENISSUERS)) {</span>
+<span class="nc" id="L574">            final String msg = intres.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, AccessRulesConstants.HARDTOKEN_EDITHARDTOKENISSUERS, null);</span>
+<span class="nc" id="L575">            throw new AuthorizationDeniedException(msg);</span>
+        }
+<span class="nc" id="L577">    }</span>
+
+    @Override
+    public Collection&lt;HardTokenIssuerInformation&gt; getHardTokenIssuerDatas(AuthenticationToken admin) {
+<span class="nc" id="L581">        log.trace(&quot;&gt;getHardTokenIssuerDatas()&quot;);</span>
+<span class="nc" id="L582">        ArrayList&lt;HardTokenIssuerInformation&gt; returnval = new ArrayList&lt;HardTokenIssuerInformation&gt;();</span>
+<span class="nc" id="L583">        Collection&lt;Integer&gt; authorizedhardtokenprofiles = getAuthorizedHardTokenProfileIds(admin);</span>
+<span class="nc" id="L584">        Collection&lt;HardTokenIssuerData&gt; result = HardTokenIssuerData.findAll(entityManager);</span>
+<span class="nc" id="L585">        Iterator&lt;HardTokenIssuerData&gt; i = result.iterator();</span>
+<span class="nc bnc" id="L586" title="All 2 branches missed.">        while (i.hasNext()) {</span>
+<span class="nc" id="L587">            HardTokenIssuerData htih = i.next();</span>
+<span class="nc bnc" id="L588" title="All 2 branches missed.">            if (authorizedhardtokenprofiles.containsAll(htih.getHardTokenIssuer().getAvailableHardTokenProfiles())) {</span>
+<span class="nc" id="L589">                returnval.add(new HardTokenIssuerInformation(htih.getId(), htih.getAlias(), htih.getAdminGroupId(), htih.getHardTokenIssuer()));</span>
+            }
+<span class="nc" id="L591">        }</span>
+<span class="nc" id="L592">        Collections.sort(returnval);</span>
+<span class="nc" id="L593">        log.trace(&quot;&lt;getHardTokenIssuerDatas()&quot;);</span>
+<span class="nc" id="L594">        return returnval;</span>
+    }
+
+    @Override
+    public Collection&lt;String&gt; getHardTokenIssuerAliases(AuthenticationToken admin) {
+<span class="nc" id="L599">        log.trace(&quot;&gt;getHardTokenIssuerAliases()&quot;);</span>
+<span class="nc" id="L600">        ArrayList&lt;String&gt; returnval = new ArrayList&lt;String&gt;();</span>
+<span class="nc" id="L601">        Collection&lt;Integer&gt; authorizedhardtokenprofiles = getAuthorizedHardTokenProfileIds(admin);</span>
+<span class="nc" id="L602">        Collection&lt;HardTokenIssuerData&gt; result = HardTokenIssuerData.findAll(entityManager);</span>
+<span class="nc" id="L603">        Iterator&lt;HardTokenIssuerData&gt; i = result.iterator();</span>
+<span class="nc bnc" id="L604" title="All 2 branches missed.">        while (i.hasNext()) {</span>
+<span class="nc" id="L605">            HardTokenIssuerData htih = i.next();</span>
+<span class="nc bnc" id="L606" title="All 2 branches missed.">            if (authorizedhardtokenprofiles.containsAll(htih.getHardTokenIssuer().getAvailableHardTokenProfiles())) {</span>
+<span class="nc" id="L607">                returnval.add(htih.getAlias());</span>
+            }
+<span class="nc" id="L609">        }</span>
+<span class="nc" id="L610">        Collections.sort(returnval);</span>
+<span class="nc" id="L611">        log.trace(&quot;&lt;getHardTokenIssuerAliases()&quot;);</span>
+<span class="nc" id="L612">        return returnval;</span>
+    }
+
+    @Override
+    public TreeMap&lt;String, HardTokenIssuerInformation&gt; getHardTokenIssuers(AuthenticationToken admin) {
+<span class="nc" id="L617">        log.trace(&quot;&gt;getHardTokenIssuers()&quot;);</span>
+<span class="nc" id="L618">        Collection&lt;Integer&gt; authorizedhardtokenprofiles = getAuthorizedHardTokenProfileIds(admin);</span>
+<span class="nc" id="L619">        TreeMap&lt;String, HardTokenIssuerInformation&gt; returnval = new TreeMap&lt;String, HardTokenIssuerInformation&gt;();</span>
+<span class="nc" id="L620">        Collection&lt;HardTokenIssuerData&gt; result = HardTokenIssuerData.findAll(entityManager);</span>
+<span class="nc" id="L621">        Iterator&lt;HardTokenIssuerData&gt; i = result.iterator();</span>
+<span class="nc bnc" id="L622" title="All 2 branches missed.">        while (i.hasNext()) {</span>
+<span class="nc" id="L623">            HardTokenIssuerData htih = i.next();</span>
+<span class="nc bnc" id="L624" title="All 2 branches missed.">            if (authorizedhardtokenprofiles.containsAll(htih.getHardTokenIssuer().getAvailableHardTokenProfiles())) {</span>
+<span class="nc" id="L625">                returnval.put(htih.getAlias(), new HardTokenIssuerInformation(htih.getId(), htih.getAlias(), htih.getAdminGroupId(), htih</span>
+<span class="nc" id="L626">                        .getHardTokenIssuer()));</span>
+            }
+<span class="nc" id="L628">        }</span>
+<span class="nc" id="L629">        log.trace(&quot;&lt;getHardTokenIssuers()&quot;);</span>
+<span class="nc" id="L630">        return returnval;</span>
+    }
+
+    @Override
+    public HardTokenIssuerInformation getHardTokenIssuerInformation(String alias) {
+<span class="nc bnc" id="L635" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L636">            log.trace(&quot;&gt;getHardTokenIssuerData(alias: &quot; + alias + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L638">        HardTokenIssuerInformation returnval = null;</span>
+<span class="nc" id="L639">        HardTokenIssuerData htih = HardTokenIssuerData.findByAlias(entityManager, alias);</span>
+<span class="nc bnc" id="L640" title="All 2 branches missed.">        if (htih != null) {</span>
+<span class="nc" id="L641">            returnval = new HardTokenIssuerInformation(htih.getId(), htih.getAlias(), htih.getAdminGroupId(), htih.getHardTokenIssuer());</span>
+        }
+<span class="nc" id="L643">        log.trace(&quot;&lt;getHardTokenIssuerData()&quot;);</span>
+<span class="nc" id="L644">        return returnval;</span>
+    }
+
+    @Override
+    public HardTokenIssuerInformation getHardTokenIssuerInformation(int id) {
+<span class="nc bnc" id="L649" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L650">            log.trace(&quot;&gt;getHardTokenIssuerData(id: &quot; + id + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L652">        HardTokenIssuerInformation returnval = null;</span>
+<span class="nc" id="L653">        HardTokenIssuerData htih = HardTokenIssuerData.findByPK(entityManager, Integer.valueOf(id));</span>
+<span class="nc bnc" id="L654" title="All 2 branches missed.">        if (htih != null) {</span>
+<span class="nc" id="L655">            returnval = new HardTokenIssuerInformation(htih.getId(), htih.getAlias(), htih.getAdminGroupId(), htih.getHardTokenIssuer());</span>
+        }
+<span class="nc" id="L657">        log.trace(&quot;&lt;getHardTokenIssuerData()&quot;);</span>
+<span class="nc" id="L658">        return returnval;</span>
+    }
+
+    @Override
+    public int getNumberOfHardTokenIssuers(AuthenticationToken admin) {
+<span class="nc" id="L663">        log.trace(&quot;&gt;getNumberOfHardTokenIssuers()&quot;);</span>
+<span class="nc" id="L664">        int returnval = HardTokenIssuerData.findAll(entityManager).size();</span>
+<span class="nc" id="L665">        log.trace(&quot;&lt;getNumberOfHardTokenIssuers()&quot;);</span>
+<span class="nc" id="L666">        return returnval;</span>
+    }
+
+    @Override
+    public int getHardTokenIssuerId(String alias) {
+<span class="nc bnc" id="L671" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L672">            log.trace(&quot;&gt;getHardTokenIssuerId(alias: &quot; + alias + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L674">        int returnval = NO_ISSUER;</span>
+<span class="nc" id="L675">        HardTokenIssuerData htih = HardTokenIssuerData.findByAlias(entityManager, alias);</span>
+<span class="nc bnc" id="L676" title="All 2 branches missed.">        if (htih != null) {</span>
+<span class="nc" id="L677">            returnval = htih.getId();</span>
+        }
+<span class="nc" id="L679">        log.trace(&quot;&lt;getHardTokenIssuerId()&quot;);</span>
+<span class="nc" id="L680">        return returnval;</span>
+    }
+
+    @Override
+    public String getHardTokenIssuerAlias(int id) {
+<span class="nc bnc" id="L685" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L686">            log.trace(&quot;&gt;getHardTokenIssuerAlias(id: &quot; + id + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L688">        String returnval = null;</span>
+<span class="nc bnc" id="L689" title="All 2 branches missed.">        if (id != 0) {</span>
+<span class="nc" id="L690">            HardTokenIssuerData htih = HardTokenIssuerData.findByPK(entityManager, Integer.valueOf(id));</span>
+<span class="nc bnc" id="L691" title="All 2 branches missed.">            if (htih != null) {</span>
+<span class="nc" id="L692">                returnval = htih.getAlias();</span>
+            }
+        }
+<span class="nc" id="L695">        log.trace(&quot;&lt;getHardTokenIssuerAlias()&quot;);</span>
+<span class="nc" id="L696">        return returnval;</span>
+    }
+
+    /*
+     * TODO: Somebody please clean the hell out of this method =) -mikek
+     *
+     * getIs? srsly? and then toss an exception? orly?
+     */
+    @Override
+    public void getIsHardTokenProfileAvailableToIssuer(int issuerid, EndEntityInformation userdata) throws UnavailableTokenException {
+<span class="nc bnc" id="L706" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L707">            log.trace(&quot;&gt;getIsTokenTypeAvailableToIssuer(issuerid: &quot; + issuerid + &quot;, tokentype: &quot; + userdata.getTokenType() + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L709">        boolean returnval = false;</span>
+<span class="nc" id="L710">        ArrayList&lt;Integer&gt; availabletokentypes = getHardTokenIssuerInformation(issuerid).getHardTokenIssuer().getAvailableHardTokenProfiles();</span>
+<span class="nc bnc" id="L711" title="All 2 branches missed.">        for (int i = 0; i &lt; availabletokentypes.size(); i++) {</span>
+<span class="nc bnc" id="L712" title="All 2 branches missed.">            if (availabletokentypes.get(i).intValue() == userdata.getTokenType()) {</span>
+<span class="nc" id="L713">                returnval = true;</span>
+            }
+        }
+<span class="nc bnc" id="L716" title="All 2 branches missed.">        if (!returnval) {</span>
+<span class="nc" id="L717">            String msg = intres.getLocalizedMessage(&quot;hardtoken.unavailabletoken&quot;, userdata.getUsername());</span>
+<span class="nc" id="L718">            throw new UnavailableTokenException(msg);</span>
+        }
+<span class="nc" id="L720">        log.trace(&quot;&lt;getIsTokenTypeAvailableToIssuer()&quot;);</span>
+<span class="nc" id="L721">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public void addHardToken(AuthenticationToken admin, String tokensn, String username, String significantissuerdn, int tokentype, HardToken hardtokendata,
+            Collection&lt;Certificate&gt; certificates, String copyof) throws HardTokenExistsException {
+<span class="nc bnc" id="L727" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L728">            log.trace(&quot;&gt;addHardToken(tokensn : &quot; + tokensn + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L730">        final String bcdn = CertTools.stringToBCDNString(significantissuerdn);</span>
+<span class="nc" id="L731">        final HardTokenData data = HardTokenData.findByTokenSN(entityManager, tokensn);</span>
+<span class="nc bnc" id="L732" title="All 2 branches missed.">        if ( data!=null ) {</span>
+<span class="nc" id="L733">            String msg = intres.getLocalizedMessage(&quot;hardtoken.tokenexists&quot;, tokensn);</span>
+<span class="nc" id="L734">            log.info(msg);</span>
+<span class="nc" id="L735">            throw new HardTokenExistsException(&quot;Hard token with serial number '&quot; + tokensn+ &quot;' does exist.&quot;);</span>
+        }
+<span class="nc" id="L737">        entityManager.persist(new HardTokenData(tokensn, username, new java.util.Date(), new java.util.Date(),</span>
+<span class="nc" id="L738">                tokentype, bcdn, setHardToken(admin, ((GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID)).getHardTokenEncryptCA(),</span>
+                        hardtokendata)));
+<span class="nc bnc" id="L740" title="All 2 branches missed.">        if (certificates != null) {</span>
+<span class="nc bnc" id="L741" title="All 2 branches missed.">            for ( Certificate cert : certificates ) {</span>
+<span class="nc" id="L742">                addHardTokenCertificateMapping(admin, tokensn, cert);</span>
+<span class="nc" id="L743">            }</span>
+        }
+<span class="nc bnc" id="L745" title="All 2 branches missed.">        if (copyof != null) {</span>
+<span class="nc" id="L746">            entityManager.persist(new HardTokenPropertyData(tokensn, HardTokenPropertyData.PROPERTY_COPYOF, copyof));</span>
+        }
+<span class="nc" id="L748">        String msg = intres.getLocalizedMessage(&quot;hardtoken.addedtoken&quot;, tokensn);</span>
+<span class="nc" id="L749">        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L750">        details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L751">        auditSession.log(EjbcaEventTypes.HARDTOKEN_ADD, EventStatus.SUCCESS, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, username, details);</span>
+<span class="nc" id="L752">        log.trace(&quot;&lt;addHardToken()&quot;);</span>
+<span class="nc" id="L753">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public void changeHardToken(AuthenticationToken admin, String tokensn, int tokentype, HardToken hardtokendata) throws HardTokenDoesntExistsException {
+<span class="nc bnc" id="L758" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L759">            log.trace(&quot;&gt;changeHardToken(tokensn : &quot; + tokensn + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L761">        final HardTokenData htd = HardTokenData.findByTokenSN(entityManager, tokensn);</span>
+<span class="nc bnc" id="L762" title="All 2 branches missed.">        if ( htd==null ) {</span>
+<span class="nc" id="L763">            String msg = intres.getLocalizedMessage(&quot;hardtoken.errorchangetoken&quot;, tokensn);</span>
+<span class="nc" id="L764">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L765">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L766">            final String errorMessage = &quot;Hard token with serial number '&quot; + tokensn+ &quot;' does not exist.&quot;;</span>
+<span class="nc" id="L767">            details.put(&quot;error&quot;, errorMessage);</span>
+<span class="nc" id="L768">            auditSession.log(EjbcaEventTypes.HARDTOKEN_EDIT, EventStatus.FAILURE, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L769">            throw new HardTokenDoesntExistsException(errorMessage);</span>
+        }
+<span class="nc" id="L771">        htd.setTokenType(tokentype);</span>
+<span class="nc" id="L772">        htd.setData(setHardToken(admin, ((GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID)).getHardTokenEncryptCA(), hardtokendata));</span>
+<span class="nc" id="L773">        htd.setModifyTime(new java.util.Date());</span>
+<span class="nc" id="L774">        int caid = htd.getSignificantIssuerDN().hashCode();</span>
+<span class="nc" id="L775">        String msg = intres.getLocalizedMessage(&quot;hardtoken.changedtoken&quot;, tokensn);</span>
+<span class="nc" id="L776">        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L777">        details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L778">        auditSession.log(EjbcaEventTypes.HARDTOKEN_EDIT, EventStatus.SUCCESS, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), String.valueOf(caid), null, htd.getUsername(), details);</span>
+<span class="nc" id="L779">        log.trace(&quot;&lt;changeHardToken()&quot;);</span>
+<span class="nc" id="L780">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public void removeHardToken(AuthenticationToken admin, String tokensn) throws HardTokenDoesntExistsException {
+<span class="nc bnc" id="L785" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L786">            log.trace(&quot;&gt;removeHardToken(tokensn : &quot; + tokensn + &quot;)&quot;);</span>
+        }
+
+<span class="nc" id="L789">        HardTokenData htd = HardTokenData.findByTokenSN(entityManager, tokensn);</span>
+<span class="nc bnc" id="L790" title="All 2 branches missed.">        if (htd == null) {</span>
+<span class="nc" id="L791">            String msg = intres.getLocalizedMessage(&quot;hardtoken.errorremovetoken&quot;, tokensn);</span>
+<span class="nc" id="L792">            log.info(msg);</span>
+<span class="nc" id="L793">            throw new HardTokenDoesntExistsException(&quot;Tokensn : &quot; + tokensn);</span>
+        }
+<span class="nc" id="L795">        int caid = htd.getSignificantIssuerDN().hashCode();</span>
+<span class="nc" id="L796">        entityManager.remove(htd);</span>
+        // Remove all certificate mappings.
+<span class="nc" id="L798">        removeHardTokenCertificateMappings(admin, tokensn);</span>
+        // Remove all copyof references id property database if they exist.
+<span class="nc" id="L800">        HardTokenPropertyData htpd = HardTokenPropertyData.findByProperty(entityManager, tokensn, HardTokenPropertyData.PROPERTY_COPYOF);</span>
+<span class="nc bnc" id="L801" title="All 2 branches missed.">        if (htpd != null) {</span>
+<span class="nc" id="L802">            entityManager.remove(htpd);</span>
+        }
+
+<span class="nc bnc" id="L805" title="All 2 branches missed.">        for (HardTokenPropertyData hardTokenPropertyData : HardTokenPropertyData.findIdsByPropertyAndValue(entityManager,</span>
+                HardTokenPropertyData.PROPERTY_COPYOF, tokensn)) {
+<span class="nc" id="L807">            entityManager.remove(hardTokenPropertyData);</span>
+<span class="nc" id="L808">        }</span>
+<span class="nc" id="L809">        String msg = intres.getLocalizedMessage(&quot;hardtoken.removedtoken&quot;, tokensn);</span>
+<span class="nc" id="L810">        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L811">        details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L812">        auditSession.log(EjbcaEventTypes.HARDTOKEN_REMOVE, EventStatus.SUCCESS, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), String.valueOf(caid), null, htd.getUsername(), details);</span>
+<span class="nc" id="L813">        log.trace(&quot;&lt;removeHardToken()&quot;);</span>
+<span class="nc" id="L814">    }</span>
+
+    @Override
+    public boolean existsHardToken(String tokensn) {
+<span class="nc bnc" id="L818" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L819">            log.trace(&quot;&gt;existsHardToken(tokensn : &quot; + tokensn + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L821">        boolean ret = false;</span>
+<span class="nc bnc" id="L822" title="All 2 branches missed.">        if (HardTokenData.findByTokenSN(entityManager, tokensn) != null) {</span>
+<span class="nc" id="L823">            ret = true;</span>
+        }
+<span class="nc" id="L825">        log.trace(&quot;&lt;existsHardToken(): &quot;+ret);</span>
+<span class="nc" id="L826">        return ret;</span>
+    }
+
+    @Override
+    public HardTokenInformation getHardToken(AuthenticationToken admin, String tokensn, boolean includePUK) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L831" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L832">            log.trace(&quot;&gt;getHardToken(tokensn :&quot; + tokensn + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L834">        HardTokenInformation returnval = null;</span>
+<span class="nc" id="L835">        HardTokenData htd = HardTokenData.findByTokenSN(entityManager, tokensn);</span>
+<span class="nc bnc" id="L836" title="All 2 branches missed.">        if (htd != null) {</span>
+            // Find Copyof
+<span class="nc" id="L838">            String copyof = null;</span>
+<span class="nc" id="L839">            HardTokenPropertyData htpd = HardTokenPropertyData.findByProperty(entityManager, tokensn, HardTokenPropertyData.PROPERTY_COPYOF);</span>
+<span class="nc bnc" id="L840" title="All 2 branches missed.">            if (htpd != null) {</span>
+<span class="nc" id="L841">                copyof = htpd.getValue();</span>
+            }
+<span class="nc" id="L843">            ArrayList&lt;String&gt; copies = null;</span>
+<span class="nc bnc" id="L844" title="All 2 branches missed.">            if (copyof == null) {</span>
+                // Find Copies
+<span class="nc" id="L846">                Collection&lt;HardTokenPropertyData&gt; copieslocal = HardTokenPropertyData.findIdsByPropertyAndValue(entityManager,</span>
+                        HardTokenPropertyData.PROPERTY_COPYOF, tokensn);
+<span class="nc bnc" id="L848" title="All 2 branches missed.">                if (copieslocal.size() &gt; 0) {</span>
+<span class="nc" id="L849">                    copies = new ArrayList&lt;String&gt;();</span>
+<span class="nc" id="L850">                    Iterator&lt;HardTokenPropertyData&gt; iter = copieslocal.iterator();</span>
+<span class="nc bnc" id="L851" title="All 2 branches missed.">                    while (iter.hasNext()) {</span>
+<span class="nc" id="L852">                        copies.add(iter.next().getId());</span>
+                    }
+                }
+            }
+<span class="nc bnc" id="L856" title="All 2 branches missed.">            if (htd != null) {</span>
+<span class="nc" id="L857">                returnval = new HardTokenInformation(htd.getTokenSN(), htd.getUsername(), htd.getCreateTime(), htd.getModifyTime(), htd.getTokenType(), htd</span>
+<span class="nc" id="L858">                        .getSignificantIssuerDN(), getHardToken(admin, ((GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID)).getHardTokenEncryptCA(),</span>
+<span class="nc" id="L859">                        includePUK, htd.getData()), copyof, copies);</span>
+<span class="nc" id="L860">                int caid = htd.getSignificantIssuerDN().hashCode();</span>
+<span class="nc" id="L861">                String msg = intres.getLocalizedMessage(&quot;hardtoken.viewedtoken&quot;, tokensn);</span>
+<span class="nc" id="L862">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L863">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L864">                auditSession.log(EjbcaEventTypes.HARDTOKEN_VIEWED, EventStatus.SUCCESS, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), String.valueOf(caid), null, htd.getUsername(), details);</span>
+<span class="nc bnc" id="L865" title="All 2 branches missed.">                if (includePUK) {</span>
+<span class="nc" id="L866">                    msg = intres.getLocalizedMessage(&quot;hardtoken.viewedpuk&quot;, tokensn);</span>
+<span class="nc" id="L867">                    final Map&lt;String, Object&gt; detailspuk = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L868">                    detailspuk.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L869">                    auditSession.log(EjbcaEventTypes.HARDTOKEN_VIEWEDPUK, EventStatus.SUCCESS, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), String.valueOf(caid), null, htd.getUsername(), detailspuk);</span>
+                }
+            }
+        }
+<span class="nc" id="L873">        log.trace(&quot;&lt;getHardToken()&quot;);</span>
+<span class="nc" id="L874">        return returnval;</span>
+    }
+
+    @Override
+    public Collection&lt;HardTokenInformation&gt; getHardTokens(AuthenticationToken admin, String username, boolean includePUK) {
+<span class="nc bnc" id="L879" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L880">            log.trace(&quot;&lt;getHardToken(username :&quot; + username + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L882">        final ArrayList&lt;HardTokenInformation&gt; returnval = new ArrayList&lt;HardTokenInformation&gt;();</span>
+<span class="nc" id="L883">        final Collection&lt;HardTokenData&gt; result = HardTokenData.findByUsername(entityManager, username);</span>
+<span class="nc bnc" id="L884" title="All 2 branches missed.">        for (HardTokenData htd : result) {</span>
+            // Find Copyof
+<span class="nc" id="L886">            String copyof = null;</span>
+<span class="nc" id="L887">            HardTokenPropertyData htpd = HardTokenPropertyData.findByProperty(entityManager, htd.getTokenSN(), HardTokenPropertyData.PROPERTY_COPYOF);</span>
+<span class="nc bnc" id="L888" title="All 2 branches missed.">            if (htpd != null) {</span>
+<span class="nc" id="L889">                copyof = htpd.getValue();</span>
+            }
+<span class="nc" id="L891">            ArrayList&lt;String&gt; copies = null;</span>
+<span class="nc bnc" id="L892" title="All 2 branches missed.">            if (copyof == null) {</span>
+                // Find Copies
+<span class="nc" id="L894">                Collection&lt;HardTokenPropertyData&gt; copieslocal = HardTokenPropertyData.findIdsByPropertyAndValue(entityManager,</span>
+<span class="nc" id="L895">                        HardTokenPropertyData.PROPERTY_COPYOF, htd.getTokenSN());</span>
+<span class="nc bnc" id="L896" title="All 2 branches missed.">                if (copieslocal.size() &gt; 0) {</span>
+<span class="nc" id="L897">                    copies = new ArrayList&lt;String&gt;();</span>
+<span class="nc" id="L898">                    Iterator&lt;HardTokenPropertyData&gt; iter = copieslocal.iterator();</span>
+<span class="nc bnc" id="L899" title="All 2 branches missed.">                    while (iter.hasNext()) {</span>
+<span class="nc" id="L900">                        copies.add(iter.next().getId());</span>
+                    }
+                }
+            }
+<span class="nc" id="L904">            returnval.add(new HardTokenInformation(htd.getTokenSN(), htd.getUsername(), htd.getCreateTime(), htd.getModifyTime(), htd.getTokenType(), htd</span>
+<span class="nc" id="L905">                    .getSignificantIssuerDN(), getHardToken(admin, ((GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID)).getHardTokenEncryptCA(),</span>
+<span class="nc" id="L906">                    includePUK, htd.getData()), copyof, copies));</span>
+<span class="nc" id="L907">            int caid = htd.getSignificantIssuerDN().hashCode();</span>
+<span class="nc" id="L908">            String msg = intres.getLocalizedMessage(&quot;hardtoken.viewedtoken&quot;, htd.getTokenSN());</span>
+<span class="nc" id="L909">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L910">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L911">            auditSession.log(EjbcaEventTypes.HARDTOKEN_VIEWED, EventStatus.SUCCESS, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), String.valueOf(caid), null, htd.getUsername(), details);</span>
+<span class="nc bnc" id="L912" title="All 2 branches missed.">            if (includePUK) {</span>
+<span class="nc" id="L913">                msg = intres.getLocalizedMessage(&quot;hardtoken.viewedpuk&quot;, htd.getTokenSN());</span>
+<span class="nc" id="L914">                final Map&lt;String, Object&gt; detailspuk = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L915">                detailspuk.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L916">                auditSession.log(EjbcaEventTypes.HARDTOKEN_VIEWEDPUK, EventStatus.SUCCESS, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), String.valueOf(caid), null, htd.getUsername(), detailspuk);</span>
+            }
+<span class="nc" id="L918">        }</span>
+<span class="nc" id="L919">        Collections.sort(returnval);</span>
+<span class="nc" id="L920">        log.trace(&quot;&lt;getHardToken()&quot;);</span>
+<span class="nc" id="L921">        return returnval;</span>
+    }
+
+    @Override
+    public Collection&lt;String&gt; matchHardTokenByTokenSerialNumber(String searchpattern) {
+<span class="nc" id="L926">        log.trace(&quot;&gt;findHardTokenByTokenSerialNumber()&quot;);</span>
+<span class="nc" id="L927">        GlobalCesecoreConfiguration globalConfiguration = (GlobalCesecoreConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalCesecoreConfiguration.CESECORE_CONFIGURATION_ID);</span>
+<span class="nc" id="L928">        return HardTokenData.findUsernamesByHardTokenSerialNumber(entityManager, searchpattern, globalConfiguration.getMaximumQueryCount());</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public void addHardTokenCertificateMapping(AuthenticationToken admin, String tokensn, Certificate certificate) {
+<span class="nc" id="L934">        String certificatesn = CertTools.getSerialNumberAsString(certificate);</span>
+<span class="nc bnc" id="L935" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L936">            log.trace(&quot;&gt;addHardTokenCertificateMapping(certificatesn : &quot; + certificatesn + &quot;, tokensn : &quot; + tokensn + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L938">        String fp = CertTools.getFingerprintAsString(certificate);</span>
+<span class="nc bnc" id="L939" title="All 2 branches missed.">        if (HardTokenCertificateMap.findByCertificateFingerprint(entityManager, fp) == null) {</span>
+            try {
+<span class="nc" id="L941">                entityManager.persist(new HardTokenCertificateMap(fp, tokensn));</span>
+<span class="nc" id="L942">                String msg = intres.getLocalizedMessage(&quot;hardtoken.addedtokencertmapping&quot;, certificatesn, tokensn);</span>
+<span class="nc" id="L943">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L944">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L945">                auditSession.log(EjbcaEventTypes.HARDTOKEN_ADDCERTMAP, EventStatus.SUCCESS, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), null, certificatesn, null, details);</span>
+<span class="nc" id="L946">            } catch (Exception e) {</span>
+<span class="nc" id="L947">                String msg = intres.getLocalizedMessage(&quot;hardtoken.erroraddtokencertmapping&quot;, certificatesn, tokensn);</span>
+<span class="nc" id="L948">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L949">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L950">                auditSession.log(EjbcaEventTypes.HARDTOKEN_ADDCERTMAP, EventStatus.FAILURE, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), null, certificatesn, null, details);</span>
+<span class="nc" id="L951">            }</span>
+        } else {
+        	// Does not exist
+<span class="nc" id="L954">            String msg = intres.getLocalizedMessage(&quot;hardtoken.erroraddtokencertmapping&quot;, certificatesn, tokensn);</span>
+<span class="nc" id="L955">            log.info(msg);</span>
+        }
+<span class="nc" id="L957">        log.trace(&quot;&lt;addHardTokenCertificateMapping()&quot;);</span>
+<span class="nc" id="L958">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public void removeHardTokenCertificateMapping(AuthenticationToken admin, Certificate certificate) {
+<span class="nc" id="L963">        final String certificatesn = CertTools.getSerialNumberAsString(certificate);</span>
+<span class="nc bnc" id="L964" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L965">            log.trace(&quot;&gt;removeHardTokenCertificateMapping(Certificatesn: &quot; + certificatesn + &quot;)&quot;);</span>
+        }
+        try {
+<span class="nc" id="L968">            final HardTokenCertificateMap htcm = HardTokenCertificateMap.findByCertificateFingerprint(entityManager, CertTools.getFingerprintAsString(certificate));</span>
+<span class="nc bnc" id="L969" title="All 2 branches missed.">            if (htcm == null) {</span>
+<span class="nc bnc" id="L970" title="All 2 branches missed.">            	if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L971">            		log.debug(&quot;Trying to remove HardTokenCertificateMap that does not exist: &quot;+CertTools.getFingerprintAsString(certificate));</span>
+            	}
+            } else {
+<span class="nc" id="L974">            	entityManager.remove(htcm);</span>
+<span class="nc" id="L975">            	final String msg = intres.getLocalizedMessage(&quot;hardtoken.removedtokencertmappingcert&quot;, certificatesn);</span>
+<span class="nc" id="L976">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L977">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L978">                auditSession.log(EjbcaEventTypes.HARDTOKEN_REMOVECERTMAP, EventStatus.SUCCESS, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), null, certificatesn, null, details);</span>
+            }
+<span class="nc" id="L980">        } catch (Exception e) {</span>
+<span class="nc" id="L981">            final String msg = intres.getLocalizedMessage(&quot;hardtoken.errorremovetokencertmappingcert&quot;, certificatesn);</span>
+<span class="nc" id="L982">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L983">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L984">            auditSession.log(EjbcaEventTypes.HARDTOKEN_REMOVECERTMAP, EventStatus.FAILURE, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), null, certificatesn, null, details);</span>
+<span class="nc" id="L985">        }</span>
+<span class="nc" id="L986">        log.trace(&quot;&lt;removeHardTokenCertificateMapping()&quot;);</span>
+<span class="nc" id="L987">    }</span>
+
+    /**
+     * Removes all mappings between a hard token and a certificate.
+     *
+     * @param admin the administrator calling the function
+     * @param tokensn the serial number to remove.
+     */
+    private void removeHardTokenCertificateMappings(AuthenticationToken admin, String tokensn) {
+<span class="nc bnc" id="L996" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L997">            log.trace(&quot;&gt;removeHardTokenCertificateMappings(tokensn: &quot; + tokensn + &quot;)&quot;);</span>
+        }
+        try {
+<span class="nc" id="L1000">            Iterator&lt;HardTokenCertificateMap&gt; result = HardTokenCertificateMap.findByTokenSN(entityManager, tokensn).iterator();</span>
+<span class="nc bnc" id="L1001" title="All 2 branches missed.">            while (result.hasNext()) {</span>
+<span class="nc" id="L1002">                HardTokenCertificateMap htcm = result.next();</span>
+<span class="nc" id="L1003">                entityManager.remove(htcm);</span>
+<span class="nc" id="L1004">            }</span>
+<span class="nc" id="L1005">            String msg = intres.getLocalizedMessage(&quot;hardtoken.removedtokencertmappingtoken&quot;, tokensn);</span>
+<span class="nc" id="L1006">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L1007">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L1008">            auditSession.log(EjbcaEventTypes.HARDTOKEN_REMOVECERTMAP, EventStatus.SUCCESS, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L1009">        } catch (Exception e) {</span>
+<span class="nc" id="L1010">            String msg = intres.getLocalizedMessage(&quot;hardtoken.errorremovetokencertmappingtoken&quot;, tokensn);</span>
+<span class="nc" id="L1011">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L1012">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L1013">            auditSession.log(EjbcaEventTypes.HARDTOKEN_REMOVECERTMAP, EventStatus.FAILURE, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L1014">        }</span>
+<span class="nc" id="L1015">        log.trace(&quot;&lt;removeHardTokenCertificateMappings()&quot;);</span>
+<span class="nc" id="L1016">    }</span>
+
+    @Override
+    public Collection&lt;Certificate&gt; findCertificatesInHardToken(final String tokensn) {
+<span class="nc bnc" id="L1020" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1021">            log.trace(&quot;&lt;findCertificatesInHardToken(tokensn :&quot; + tokensn + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L1023">        final List&lt;Certificate&gt; ret = new ArrayList&lt;Certificate&gt;();</span>
+<span class="nc bnc" id="L1024" title="All 2 branches missed.">        for (final CertificateDataWrapper cdw : getCertificateDatasFromHardToken(tokensn)) {</span>
+<span class="nc" id="L1025">            ret.add(cdw.getCertificate());</span>
+<span class="nc" id="L1026">        }</span>
+<span class="nc" id="L1027">        log.trace(&quot;&lt;findCertificatesInHardToken()&quot;);</span>
+<span class="nc" id="L1028">        return ret;</span>
+    }
+
+    @Override
+    public List&lt;CertificateDataWrapper&gt; getCertificateDatasFromHardToken(final String tokensn) {
+<span class="nc" id="L1033">        final List&lt;CertificateDataWrapper&gt; ret = new ArrayList&lt;CertificateDataWrapper&gt;();</span>
+        try {
+<span class="nc bnc" id="L1035" title="All 2 branches missed.">            for (final HardTokenCertificateMap htcm : HardTokenCertificateMap.findByTokenSN(entityManager, tokensn)) {</span>
+<span class="nc" id="L1036">                final CertificateDataWrapper cdw = certificateStoreSession.getCertificateData(htcm.getCertificateFingerprint());</span>
+<span class="nc bnc" id="L1037" title="All 2 branches missed.">                if (cdw != null) {</span>
+<span class="nc" id="L1038">                    ret.add(cdw);</span>
+                }
+<span class="nc" id="L1040">            }</span>
+<span class="nc" id="L1041">        } catch (Exception e) {</span>
+<span class="nc" id="L1042">            throw new EJBException(e);</span>
+<span class="nc" id="L1043">        }</span>
+<span class="nc" id="L1044">        return ret;</span>
+    }
+
+    @Override
+    public String findHardTokenByCertificateSNIssuerDN(BigInteger certificatesn, String issuerdn) {
+<span class="nc bnc" id="L1049" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L1050">            log.trace(&quot;&lt;findHardTokenByCertificateSNIssuerDN(certificatesn :&quot; + certificatesn + &quot;, issuerdn :&quot; + issuerdn + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L1052">        String returnval = null;</span>
+<span class="nc" id="L1053">        X509Certificate cert = (X509Certificate) certificateStoreSession.findCertificateByIssuerAndSerno(issuerdn, certificatesn);</span>
+<span class="nc bnc" id="L1054" title="All 2 branches missed.">        if (cert != null) {</span>
+<span class="nc" id="L1055">            HardTokenCertificateMap htcm = HardTokenCertificateMap.findByCertificateFingerprint(entityManager, CertTools.getFingerprintAsString(cert));</span>
+<span class="nc bnc" id="L1056" title="All 2 branches missed.">            if (htcm != null) {</span>
+<span class="nc" id="L1057">                returnval = htcm.getTokenSN();</span>
+            }
+        }
+<span class="nc" id="L1060">        log.trace(&quot;&lt;findHardTokenByCertificateSNIssuerDN()&quot;);</span>
+<span class="nc" id="L1061">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public void tokenGenerated(AuthenticationToken admin, String tokensn, String username, String significantissuerdn) {
+<span class="nc" id="L1067">        int caid = CertTools.stringToBCDNString(significantissuerdn).hashCode();</span>
+        try {
+<span class="nc" id="L1069">            String msg = intres.getLocalizedMessage(&quot;hardtoken.generatedtoken&quot;, tokensn);</span>
+<span class="nc" id="L1070">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L1071">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L1072">            auditSession.log(EjbcaEventTypes.HARDTOKEN_GENERATE, EventStatus.SUCCESS, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), String.valueOf(caid), null, username, details);</span>
+<span class="nc" id="L1073">        } catch (Exception e) {</span>
+<span class="nc" id="L1074">            throw new EJBException(e);</span>
+<span class="nc" id="L1075">        }</span>
+<span class="nc" id="L1076">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public void errorWhenGeneratingToken(AuthenticationToken admin, String tokensn, String username, String significantissuerdn) {
+<span class="nc" id="L1081">        int caid = CertTools.stringToBCDNString(significantissuerdn).hashCode();</span>
+        try {
+<span class="nc" id="L1083">            String msg = intres.getLocalizedMessage(&quot;hardtoken.errorgeneratetoken&quot;, tokensn);</span>
+<span class="nc" id="L1084">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L1085">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L1086">            auditSession.log(EjbcaEventTypes.HARDTOKEN_GENERATE, EventStatus.FAILURE, EjbcaModuleTypes.HARDTOKEN, EjbcaServiceTypes.EJBCA, admin.toString(), String.valueOf(caid), null, username, details);</span>
+<span class="nc" id="L1087">        } catch (Exception e) {</span>
+<span class="nc" id="L1088">            throw new EJBException(e);</span>
+<span class="nc" id="L1089">        }</span>
+<span class="nc" id="L1090">    }</span>
+
+    @Override
+    public List&lt;String&gt; getHardTokenProfileUsingCertificateProfile(int certificateProfileId) {
+<span class="nc" id="L1094">        List&lt;String&gt; result = new ArrayList&lt;String&gt;();</span>
+<span class="nc" id="L1095">        Collection&lt;Integer&gt; certprofiles = null;</span>
+<span class="nc" id="L1096">        HardTokenProfile profile = null;</span>
+<span class="nc bnc" id="L1097" title="All 2 branches missed.">        for(HardTokenProfileData profileData : HardTokenProfileData.findAll(entityManager)) {</span>
+<span class="nc" id="L1098">            profile = getHardTokenProfile(profileData);</span>
+<span class="nc bnc" id="L1099" title="All 2 branches missed.">            if (profile instanceof EIDProfile) {</span>
+<span class="nc" id="L1100">                certprofiles = ((EIDProfile) profile).getAllCertificateProfileIds();</span>
+<span class="nc bnc" id="L1101" title="All 2 branches missed.">                if (certprofiles.contains(certificateProfileId)) {</span>
+<span class="nc" id="L1102">                    result.add(profileData.getName());</span>
+                }
+            }
+<span class="nc" id="L1105">        }</span>
+<span class="nc" id="L1106">        return result;</span>
+    }
+
+    @Override
+    public boolean existsHardTokenProfileInHardTokenIssuer(int id) {
+<span class="nc" id="L1111">        HardTokenIssuer issuer = null;</span>
+<span class="nc" id="L1112">        Collection&lt;Integer&gt; hardtokenissuers = null;</span>
+<span class="nc" id="L1113">        boolean exists = false;</span>
+<span class="nc" id="L1114">        Collection&lt;HardTokenIssuerData&gt; result = HardTokenIssuerData.findAll(entityManager);</span>
+<span class="nc" id="L1115">        Iterator&lt;HardTokenIssuerData&gt; i = result.iterator();</span>
+<span class="nc bnc" id="L1116" title="All 4 branches missed.">        while (i.hasNext() &amp;&amp; !exists) {</span>
+<span class="nc" id="L1117">            issuer = i.next().getHardTokenIssuer();</span>
+<span class="nc" id="L1118">            hardtokenissuers = issuer.getAvailableHardTokenProfiles();</span>
+<span class="nc bnc" id="L1119" title="All 2 branches missed.">            if (hardtokenissuers.contains(Integer.valueOf(id))) {</span>
+<span class="nc" id="L1120">                exists = true;</span>
+            }
+        }
+<span class="nc" id="L1123">        return exists;</span>
+    }
+
+    private int findFreeHardTokenProfileId() {
+<span class="nc" id="L1127">        final ProfileID.DB db = new ProfileID.DB() {</span>
+            @Override
+            public boolean isFree(int i) {
+<span class="nc bnc" id="L1130" title="All 2 branches missed.">                return HardTokenProfileData.findByPK(entityManager, Integer.valueOf(i))==null;</span>
+            }
+        };
+<span class="nc" id="L1133">        return ProfileID.getNotUsedID(db);</span>
+    }
+
+    private int findFreeHardTokenIssuerId() {
+<span class="nc" id="L1137">        final ProfileID.DB db = new ProfileID.DB() {</span>
+            @Override
+            public boolean isFree(int i) {
+<span class="nc bnc" id="L1140" title="All 2 branches missed.">                return HardTokenIssuerData.findByPK(entityManager, Integer.valueOf(i)) == null;</span>
+            }
+        };
+<span class="nc" id="L1143">        return ProfileID.getNotUsedID(db);</span>
+    }
+
+    /** Method that returns the hard token data from a hashmap and updates it if necessary. 
+     * @param admin Admin
+     * @param encryptcaid ID 
+     * @param includePUK PUK
+     * @param data data
+     * @return token */
+    private HardToken getHardToken(AuthenticationToken admin, int encryptcaid, boolean includePUK, Map&lt;?, ?&gt; data) {
+<span class="nc" id="L1153">        HardToken returnval = null;</span>
+
+<span class="nc bnc" id="L1155" title="All 2 branches missed.">        if (data.get(HardTokenData.ENCRYPTEDDATA) != null) {</span>
+            // Data in encrypted, decrypt
+<span class="nc" id="L1157">            byte[] encdata = (byte[]) data.get(HardTokenData.ENCRYPTEDDATA);</span>
+
+<span class="nc" id="L1159">            HardTokenEncryptCAServiceRequest request = new HardTokenEncryptCAServiceRequest(HardTokenEncryptCAServiceRequest.COMMAND_DECRYPTDATA, encdata);</span>
+            try {
+<span class="nc" id="L1161">                HardTokenEncryptCAServiceResponse response = (HardTokenEncryptCAServiceResponse) caAdminSession.extendedService(admin, encryptcaid, request);</span>
+<span class="nc" id="L1162">                ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(response.getData()));</span>
+<span class="nc" id="L1163">                data = (Map&lt;?, ?&gt;) ois.readObject();</span>
+<span class="nc" id="L1164">            } catch (Exception e) {</span>
+<span class="nc" id="L1165">                throw new EJBException(e);</span>
+<span class="nc" id="L1166">            }</span>
+        }
+
+<span class="nc" id="L1169">        int tokentype = ((Integer) data.get(HardToken.TOKENTYPE)).intValue();</span>
+
+<span class="nc bnc" id="L1171" title="All 5 branches missed.">        switch (tokentype) {</span>
+        case SecConst.TOKEN_SWEDISHEID:
+<span class="nc" id="L1173">            returnval = new SwedishEIDHardToken(includePUK);</span>
+<span class="nc" id="L1174">            break;</span>
+        case SecConst.TOKEN_ENHANCEDEID:
+<span class="nc" id="L1176">            returnval = new EnhancedEIDHardToken(includePUK);</span>
+<span class="nc" id="L1177">            break;</span>
+        case SecConst.TOKEN_TURKISHEID:
+<span class="nc" id="L1179">            returnval = new TurkishEIDHardToken(includePUK);</span>
+<span class="nc" id="L1180">            break;</span>
+        case SecConst.TOKEN_EID: // Left for backward compability
+<span class="nc" id="L1182">            returnval = new EIDHardToken(includePUK);</span>
+<span class="nc" id="L1183">            break;</span>
+        default:
+<span class="nc" id="L1185">            returnval = new EIDHardToken(includePUK);</span>
+            break;
+        }
+
+<span class="nc" id="L1189">        returnval.loadData(data);</span>
+<span class="nc" id="L1190">        return returnval;</span>
+    }
+
+    /**
+     * Method that saves the hard token issuer data to a HashMap that can be
+     * saved to database.
+     * @param admin Admin
+     * @param encryptcaid ID 
+     * @param tokendata Data
+     * @return Map
+     */
+	@SuppressWarnings(&quot;unchecked&quot;)
+    private LinkedHashMap&lt;String,byte[]&gt; setHardToken(AuthenticationToken admin, int encryptcaid, HardToken tokendata) {
+<span class="nc" id="L1203">        LinkedHashMap&lt;String,byte[]&gt; retval = null;</span>
+<span class="nc bnc" id="L1204" title="All 2 branches missed.">        if (encryptcaid != 0) {</span>
+            try {
+<span class="nc" id="L1206">                ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+<span class="nc" id="L1207">                ObjectOutputStream ois = new ObjectOutputStream(baos);</span>
+<span class="nc" id="L1208">                ois.writeObject(tokendata.saveData());</span>
+<span class="nc" id="L1209">                HardTokenEncryptCAServiceRequest request = new HardTokenEncryptCAServiceRequest(HardTokenEncryptCAServiceRequest.COMMAND_ENCRYPTDATA, baos</span>
+<span class="nc" id="L1210">                        .toByteArray());</span>
+<span class="nc" id="L1211">                HardTokenEncryptCAServiceResponse response = (HardTokenEncryptCAServiceResponse) caAdminSession.extendedService(admin, encryptcaid, request);</span>
+<span class="nc" id="L1212">                LinkedHashMap&lt;String,byte[]&gt; data = new LinkedHashMap&lt;String,byte[]&gt;();</span>
+<span class="nc" id="L1213">                data.put(HardTokenData.ENCRYPTEDDATA, response.getData());</span>
+<span class="nc" id="L1214">                retval = data;</span>
+<span class="nc" id="L1215">            } catch (Exception e) {</span>
+<span class="nc" id="L1216">                throw new EJBException(e);</span>
+<span class="nc" id="L1217">            }</span>
+        } else {
+            // Don't encrypt data
+<span class="nc" id="L1220">            retval = (LinkedHashMap&lt;String,byte[]&gt;) tokendata.saveData();</span>
+        }
+<span class="nc" id="L1222">        return retval;</span>
+    }
+
+    private HardTokenProfile getHardTokenProfile(HardTokenProfileData htpData) {
+<span class="nc" id="L1226">        HardTokenProfile profile = null;</span>
+        java.beans.XMLDecoder decoder;
+        try {
+<span class="nc" id="L1229">            decoder = new java.beans.XMLDecoder(new java.io.ByteArrayInputStream(htpData.getData().getBytes(&quot;UTF8&quot;)));</span>
+<span class="nc" id="L1230">        } catch (UnsupportedEncodingException e) {</span>
+<span class="nc" id="L1231">            throw new RuntimeException(e);</span>
+<span class="nc" id="L1232">        }</span>
+<span class="nc" id="L1233">        final Map&lt;?, ?&gt; h = (Map&lt;?, ?&gt;) decoder.readObject();</span>
+<span class="nc" id="L1234">        decoder.close();</span>
+        // Handle Base64 encoded string values
+<span class="nc" id="L1236">        final Map&lt;?, ?&gt; data = new Base64GetHashMap(h);</span>
+<span class="nc bnc" id="L1237" title="All 4 branches missed.">        switch (((Integer) (data.get(HardTokenProfile.TYPE))).intValue()) {</span>
+        case SwedishEIDProfile.TYPE_SWEDISHEID:
+<span class="nc" id="L1239">            profile = new SwedishEIDProfile();</span>
+<span class="nc" id="L1240">            break;</span>
+        case EnhancedEIDProfile.TYPE_ENHANCEDEID:
+<span class="nc" id="L1242">            profile = new EnhancedEIDProfile();</span>
+<span class="nc" id="L1243">            break;</span>
+        case TurkishEIDProfile.TYPE_TURKISHEID:
+<span class="nc" id="L1245">            profile = new TurkishEIDProfile();</span>
+            break;
+        }
+<span class="nc" id="L1248">        profile.loadData(data);</span>
+<span class="nc" id="L1249">        return profile;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ImportCrlSessionBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.crl</a> &gt; <span class="el_source">ImportCrlSessionBean.java</span></div><h1>ImportCrlSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.ejb.crl;
+
+import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
+import java.security.cert.CRLException;
+import java.security.cert.X509CRL;
+import java.security.cert.X509CRLEntry;
+import java.security.cert.X509Certificate;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificate.CertificateData;
+import org.cesecore.certificates.certificate.CertificateDataWrapper;
+import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
+import org.cesecore.certificates.crl.CrlImportException;
+import org.cesecore.certificates.crl.CrlStoreException;
+import org.cesecore.certificates.crl.CrlStoreSessionLocal;
+import org.cesecore.certificates.crl.RevokedCertInfo;
+import org.cesecore.certificates.util.cert.CrlExtensions;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.util.CertTools;
+import org.ejbca.core.ejb.ra.EndEntityManagementSessionLocal;
+import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.core.model.ra.AlreadyRevokedException;
+import org.ejbca.core.model.ra.RevokeBackDateNotAllowedForProfileException;
+
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;ImportCrlSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L57">public class ImportCrlSessionBean implements ImportCrlSessionLocal, ImportCrlSessionRemote {</span>
+
+<span class="nc" id="L59">    private static final Logger log = Logger.getLogger(ImportCrlSessionBean.class);</span>
+
+    @EJB
+    private CertificateStoreSessionLocal certStoreSession;
+    @EJB
+    private CrlStoreSessionLocal crlStoreSession;
+    @EJB
+    private EndEntityManagementSessionLocal endentityManagementSession;
+    
+    @Override
+    public void importCrl(AuthenticationToken authenticationToken, CAInfo cainfo, byte[] crlbytes)
+            throws CrlImportException, CrlStoreException, CRLException, AuthorizationDeniedException {
+
+<span class="nc" id="L72">        X509CRL x509crl = CertTools.getCRLfromByteArray(crlbytes);</span>
+        
+<span class="nc" id="L74">        X509Certificate cacert = (X509Certificate) cainfo.getCertificateChain().iterator().next();</span>
+<span class="nc" id="L75">        final String caFingerprint = CertTools.getFingerprintAsString(cacert);</span>
+<span class="nc" id="L76">        final String issuerDn = CertTools.getSubjectDN(cacert);</span>
+        
+<span class="nc" id="L78">        verifyCrlIssuer(x509crl, issuerDn, cacert);</span>
+        
+        // Check if the CRL is already stored locally
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        final boolean isDeltaCrl = CrlExtensions.getDeltaCRLIndicator(x509crl).intValue() != -1;</span>
+<span class="nc" id="L82">        final int downloadedCrlNumber = CrlExtensions.getCrlNumber(x509crl).intValue();</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L84">            log.trace(&quot;Delta CRL:  &quot; + isDeltaCrl);</span>
+<span class="nc" id="L85">            log.trace(&quot;IssuerDn:   &quot; + issuerDn);</span>
+<span class="nc" id="L86">            log.trace(&quot;CRL Number: &quot; + downloadedCrlNumber);</span>
+        }
+        
+<span class="nc" id="L89">        X509CRL lastCrlOfSameType = getLastCrlOfSameType(x509crl, isDeltaCrl, issuerDn);</span>
+<span class="nc bnc" id="L90" title="All 4 branches missed.">        if(lastCrlOfSameType!=null &amp;&amp; !x509crl.getThisUpdate().after(lastCrlOfSameType.getThisUpdate())) {</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">            log.info((isDeltaCrl?&quot;Delta&quot;:&quot;Full&quot;) + &quot; CRL number &quot; + downloadedCrlNumber + &quot; for CA '&quot; + cainfo.getName() + </span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">                    &quot;' is not newer than last known &quot; + (isDeltaCrl?&quot;delta&quot;:&quot;full&quot;) + &quot; CRL. Ignoring download.&quot;);</span>
+<span class="nc" id="L93">            return;</span>
+        }
+        
+        // If the CRL is newer than the last known or there wasn't any old one, loop through it
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        if (x509crl.getRevokedCertificates()==null) {</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">            log.info(&quot;No revoked certificates in &quot; + (isDeltaCrl?&quot;delta&quot;:&quot;full&quot;) + &quot; CRL for CA '&quot; + cainfo.getName() + &quot;'&quot;);</span>
+        } else {
+<span class="nc" id="L100">            final Set&lt;X509CRLEntry&gt; crlEntries = new HashSet&lt;X509CRLEntry&gt;();</span>
+<span class="nc" id="L101">            crlEntries.addAll(x509crl.getRevokedCertificates());</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L103">                log.debug(&quot;Downloaded CRL contains &quot; + crlEntries.size() + &quot; entries.&quot;);</span>
+            }
+            
+<span class="nc bnc" id="L106" title="All 4 branches missed.">            if(lastCrlOfSameType != null &amp;&amp; lastCrlOfSameType.getRevokedCertificates()!=null) {</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L108">                    log.debug(&quot;Last known CRL contains &quot; + lastCrlOfSameType.getRevokedCertificates().size() + &quot; entries.&quot;);</span>
+                }
+                // Remove all entries that were processed last time
+<span class="nc" id="L111">                crlEntries.removeAll(lastCrlOfSameType.getRevokedCertificates());</span>
+            }
+        
+<span class="nc bnc" id="L114" title="All 2 branches missed.">            log.info(&quot;Found &quot; + crlEntries.size() + &quot; new entires in &quot; + (isDeltaCrl?&quot;delta&quot;:&quot;full&quot;)+ &quot; CRL number &quot; + downloadedCrlNumber + &quot; issued by '&quot; + issuerDn + &quot;' compared to previous.&quot;);</span>
+            // For each entry that was updated after the last known CRL, create/update a new database entry with the new status
+<span class="nc bnc" id="L116" title="All 2 branches missed.">            for (final X509CRLEntry crlEntry : crlEntries) {</span>
+<span class="nc" id="L117">                final Date revocationDate = crlEntry.getRevocationDate();</span>
+<span class="nc" id="L118">                final BigInteger serialNumber = crlEntry.getSerialNumber();</span>
+<span class="nc" id="L119">                final int reasonCode = CrlExtensions.extractReasonCode(crlEntry);</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">                if (crlEntry.getCertificateIssuer()!=null) {</span>
+<span class="nc" id="L121">                    final String entryIssuerDn = CertTools.stringToBCDNString(crlEntry.getCertificateIssuer().getName());</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">                    if (!issuerDn.equals(entryIssuerDn)) {</span>
+<span class="nc" id="L123">                        log.warn(&quot;CA's subjectDN does not match CRL entry's issuerDn '&quot;+entryIssuerDn+&quot;' and entry with serialNumber &quot; + serialNumber + &quot; will be ignored.&quot;);</span>
+                    }
+                }
+                
+<span class="nc" id="L127">                final CertificateDataWrapper cdw = certStoreSession.getCertificateDataByIssuerAndSerno(issuerDn, serialNumber);</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">                if(isLimitedCertificate(issuerDn, serialNumber, cdw)) {</span>
+                    // Store as much as possible about what we know about the certificate and its status (which is limited) in the database
+<span class="nc" id="L130">                    certStoreSession.updateLimitedCertificateDataStatus(authenticationToken, cainfo.getCAId(), issuerDn, serialNumber, revocationDate, reasonCode, caFingerprint);</span>
+                } else {
+<span class="nc" id="L132">                    final String serialHex = serialNumber.toString(16).toUpperCase();</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">                    if (isCertAlreadyRevoked(reasonCode, cdw)) {</span>
+<span class="nc" id="L134">                        log.info(&quot;Certificate '&quot; + serialHex + &quot;' is already revoked&quot;);</span>
+<span class="nc" id="L135">                        continue;</span>
+                    }
+<span class="nc" id="L137">                    log.info(&quot;Revoking '&quot; + serialHex + &quot;' &quot; + &quot;(&quot; + serialNumber.toString() + &quot;)&quot;);</span>
+                    try {
+                        //log.info(&quot;Reason code: &quot; + reason);
+<span class="nc" id="L140">                        endentityManagementSession.revokeCert(authenticationToken, serialNumber, crlEntry.getRevocationDate(), issuerDn, reasonCode, false);</span>
+<span class="nc" id="L141">                    } catch (AlreadyRevokedException e) {</span>
+<span class="nc" id="L142">                        log.warn(&quot;Failed to revoke '&quot; + serialHex + &quot;'. (Status might be 'Archived'.) Error message was: &quot; + e.getMessage());</span>
+<span class="nc" id="L143">                    } catch (ApprovalException | RevokeBackDateNotAllowedForProfileException | NoSuchEndEntityException | WaitingForApprovalException e) {</span>
+<span class="nc" id="L144">                        throw new CrlImportException(&quot;Failed to revoke certificate with serial number &quot; + serialHex, e);</span>
+<span class="nc" id="L145">                    }</span>
+                    
+                }
+<span class="nc" id="L148">            }</span>
+        }
+        // Calculate (make up) the CRL Number if the number was not present
+        final int newCrlNumber;
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        if (downloadedCrlNumber==0) {</span>
+<span class="nc" id="L153">            final int lastCrlNumber = crlStoreSession.getLastCRLNumber(issuerDn, isDeltaCrl);</span>
+<span class="nc" id="L154">            newCrlNumber = lastCrlNumber+1;</span>
+<span class="nc" id="L155">        } else {</span>
+<span class="nc" id="L156">            newCrlNumber = downloadedCrlNumber;</span>
+        }
+        // Last of all, store the CRL if there were no errors during creation of database entries
+<span class="nc bnc" id="L159" title="All 2 branches missed.">        crlStoreSession.storeCRL(authenticationToken, x509crl.getEncoded(), caFingerprint, newCrlNumber, issuerDn, x509crl.getThisUpdate(), x509crl.getNextUpdate(), isDeltaCrl?1:-1);</span>
+    
+<span class="nc" id="L161">    }</span>
+    
+    private boolean isCertAlreadyRevoked(final int revocationReason, final CertificateDataWrapper cdw) {
+<span class="nc bnc" id="L164" title="All 2 branches missed.">        if(cdw != null) {</span>
+<span class="nc" id="L165">            final CertificateData certData = cdw.getCertificateData();</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">            if(certData.getStatus()==CertificateConstants.CERT_REVOKED) {</span>
+<span class="nc" id="L167">                final int storedRevocationReason = certData.getRevocationReason();</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">                if(storedRevocationReason==RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD) {</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">                    return revocationReason==storedRevocationReason;</span>
+                }
+<span class="nc" id="L171">                return true;</span>
+            }
+        }
+<span class="nc" id="L174">        return false;</span>
+    }
+    
+    private void verifyCrlIssuer(final X509CRL crl, final String issuerDN, final X509Certificate cacert) throws CrlImportException {
+<span class="nc" id="L178">        log.info(&quot;CA: &quot; + issuerDN);</span>
+        // Read the supplied CRL and verify that it is issued by the specified CA
+<span class="nc bnc" id="L180" title="All 2 branches missed.">        if (!crl.getIssuerX500Principal().equals(cacert.getSubjectX500Principal())) {</span>
+<span class="nc" id="L181">            throw new CrlImportException(&quot;CRL wasn't issued by &quot; + issuerDN);</span>
+        }
+        
+        try {
+<span class="nc" id="L185">            crl.verify(cacert.getPublicKey());</span>
+<span class="nc" id="L186">        } catch (InvalidKeyException | CRLException | NoSuchAlgorithmException | NoSuchProviderException | SignatureException e) {</span>
+<span class="nc" id="L187">            throw new CrlImportException(&quot;Failed to verify CRL signature.&quot;, e);</span>
+<span class="nc" id="L188">        }</span>
+<span class="nc" id="L189">    }</span>
+    
+    private X509CRL getLastCrlOfSameType(final X509CRL crl, final boolean isDeltaCrl, final String issuerDN) {
+<span class="nc" id="L192">        X509CRL lastCrlOfSameType = null;</span>
+<span class="nc" id="L193">        final byte[] lastCrl = crlStoreSession.getLastCRL(issuerDN, isDeltaCrl);</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">        if(lastCrl != null) {</span>
+            try {
+<span class="nc" id="L196">                lastCrlOfSameType = CertTools.getCRLfromByteArray(lastCrl);</span>
+<span class="nc" id="L197">            } catch (CRLException e) {</span>
+<span class="nc" id="L198">                log.warn(&quot;Could not retrieve an older CRL issued by &quot; + issuerDN, e);</span>
+<span class="nc" id="L199">            }</span>
+        }
+<span class="nc" id="L201">        return lastCrlOfSameType;</span>
+    }
+    
+    private boolean isLimitedCertificate(final String issuerDn, final BigInteger serialNumber, final CertificateDataWrapper cdw) {
+<span class="nc" id="L205">        final String limitedFingerprint = CertTools.getFingerprintAsString((issuerDn+&quot;;&quot;+serialNumber).getBytes());</span>
+<span class="nc bnc" id="L206" title="All 4 branches missed.">        return (cdw==null) || (limitedFingerprint.equals(cdw.getCertificateData().getFingerprint()));</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

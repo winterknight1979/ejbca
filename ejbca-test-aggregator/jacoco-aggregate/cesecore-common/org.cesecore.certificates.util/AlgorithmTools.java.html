@@ -776,8 +776,8 @@ import org.ejbca.cvc.OIDField;
 <span class="nc" id="L776">            oid = new ASN1ObjectIdentifier(CesecoreConfiguration.getOidDstu4145());</span>
         }
 <span class="pc bpc" id="L778" title="1 of 2 branches missed.">        if (digestAlg != null) {</span>
-<span class="pc bpc" id="L779" title="3 of 4 branches missed.">            if (digestAlg.equals(CMSSignedGenerator.DIGEST_SHA256) &amp;&amp; keyAlg.equals(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
-<span class="nc" id="L780">                oid = PKCSObjectIdentifiers.sha256WithRSAEncryption;</span>
+<span class="pc bpc" id="L779" title="1 of 4 branches missed.">            if (digestAlg.equals(CMSSignedGenerator.DIGEST_SHA256) &amp;&amp; keyAlg.equals(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
+<span class="fc" id="L780">                oid = PKCSObjectIdentifiers.sha256WithRSAEncryption;</span>
 <span class="pc bpc" id="L781" title="3 of 4 branches missed.">            } else if (digestAlg.equals(CMSSignedGenerator.DIGEST_SHA512) &amp;&amp; keyAlg.equals(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
 <span class="nc" id="L782">                oid = PKCSObjectIdentifiers.sha512WithRSAEncryption;</span>
 <span class="pc bpc" id="L783" title="3 of 4 branches missed.">            } else if (digestAlg.equals(CMSSignedGenerator.DIGEST_MD5) &amp;&amp; keyAlg.equals(AlgorithmConstants.KEYALGORITHM_RSA)) {</span>
@@ -884,8 +884,8 @@ import org.ejbca.cvc.OIDField;
 <span class="fc" id="L884">            return AlgorithmConstants.SIGALG_SHA1_WITH_RSA;</span>
         }
 
-<span class="pc bpc" id="L887" title="1 of 2 branches missed.">        if(sigAlgOid.equals(PKCSObjectIdentifiers.sha256WithRSAEncryption)) {</span>
-<span class="nc" id="L888">            return AlgorithmConstants.SIGALG_SHA256_WITH_RSA;</span>
+<span class="fc bfc" id="L887" title="All 2 branches covered.">        if(sigAlgOid.equals(PKCSObjectIdentifiers.sha256WithRSAEncryption)) {</span>
+<span class="fc" id="L888">            return AlgorithmConstants.SIGALG_SHA256_WITH_RSA;</span>
         }
 
 <span class="pc bpc" id="L891" title="1 of 2 branches missed.">        if(sigAlgOid.equals(PKCSObjectIdentifiers.sha384WithRSAEncryption)) {</span>

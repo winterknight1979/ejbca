@@ -1,0 +1,788 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EjbcaWSHelperSessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.ws</a> &gt; <span class="el_source">EjbcaWSHelperSessionBean.java</span></div><h1>EjbcaWSHelperSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.ejb.ws;
+
+import java.security.cert.CertPathValidatorException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
+import java.security.cert.CertificateParsingException;
+import java.security.cert.X509Certificate;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.log4j.Logger;
+import org.cesecore.CesecoreException;
+import org.cesecore.ErrorCode;
+import org.cesecore.authentication.tokens.AuthenticationSubject;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.ca.catoken.CATokenConstants;
+import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
+import org.cesecore.certificates.certificate.CertificateWrapper;
+import org.cesecore.certificates.certificate.request.X509ResponseMessage;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.keybind.CertificateImportException;
+import org.cesecore.keys.token.CryptoTokenAuthenticationFailedException;
+import org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.keys.token.IllegalCryptoTokenException;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.StringTools;
+import org.cesecore.util.ValidityDate;
+import org.ejbca.core.EjbcaException;
+import org.ejbca.core.ejb.authentication.web.WebAuthenticationProviderSessionLocal;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionLocal;
+import org.ejbca.core.ejb.hardtoken.HardTokenSessionLocal;
+import org.ejbca.core.ejb.ra.EndEntityAccessSessionLocal;
+import org.ejbca.core.ejb.ra.EndEntityManagementSessionLocal;
+import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.era.RaMasterApiProxyBeanLocal;
+import org.ejbca.core.model.hardtoken.HardTokenConstants;
+import org.ejbca.core.model.hardtoken.HardTokenInformation;
+import org.ejbca.core.model.hardtoken.types.EnhancedEIDHardToken;
+import org.ejbca.core.model.hardtoken.types.SwedishEIDHardToken;
+import org.ejbca.core.model.hardtoken.types.TurkishEIDHardToken;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileNotFoundException;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
+import org.ejbca.core.protocol.ws.objects.Certificate;
+import org.ejbca.core.protocol.ws.objects.ExtendedInformationWS;
+import org.ejbca.core.protocol.ws.objects.HardTokenDataWS;
+import org.ejbca.core.protocol.ws.objects.PinDataWS;
+import org.ejbca.core.protocol.ws.objects.UserDataVOWS;
+import org.ejbca.core.protocol.ws.objects.UserMatch;
+import org.ejbca.util.cert.OID;
+import org.ejbca.util.query.Query;
+
+/**
+ * Contains methods that are used by both the EjbcaWS, the Ejbca WS tests and by RAMasterApiSessionBean.
+ * For instance, methods to convert between EndEntityInformation and UserDataWO.
+ * 
+ * @version $Id: EjbcaWSHelperSessionBean.java 29706 2018-08-21 12:50:27Z mikekushner $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;EjbcaWSHelperSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L112">public class EjbcaWSHelperSessionBean implements EjbcaWSHelperSessionLocal, EjbcaWSHelperSessionRemote {</span>
+
+<span class="nc" id="L114">    private static final Logger log = Logger.getLogger(EjbcaWSHelperSessionBean.class);</span>
+
+<span class="nc" id="L116">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+
+    @EJB
+    private WebAuthenticationProviderSessionLocal authenticationSession;
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private CAAdminSessionLocal caAdminSession;
+    @EJB
+    private CaSessionLocal caSession;
+    @EJB
+    private CertificateStoreSessionLocal certificateStoreSession;
+    @EJB
+    private CertificateProfileSessionLocal certificateProfileSession;
+    @EJB
+    private CryptoTokenManagementSessionLocal cryptoTokenManagementSession;
+    @EJB
+    private HardTokenSessionLocal hardTokenSession;
+    @EJB
+    private EndEntityAccessSessionLocal endEntityAccessSession;
+    @EJB
+    private EndEntityProfileSessionLocal endEntityProfileSession;
+    @EJB
+    private EndEntityManagementSessionLocal endEntityManagementSession;
+    @EJB
+    private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
+
+    
+<span class="nc" id="L144">    private final String[] softtokennames = { UserDataVOWS.TOKEN_TYPE_USERGENERATED,UserDataVOWS.TOKEN_TYPE_P12,</span>
+                                              UserDataVOWS.TOKEN_TYPE_JKS,UserDataVOWS.TOKEN_TYPE_PEM };
+<span class="nc" id="L146">    private final int[] softtokenids = { SecConst.TOKEN_SOFT_BROWSERGEN,</span>
+            SecConst.TOKEN_SOFT_P12, SecConst.TOKEN_SOFT_JKS, SecConst.TOKEN_SOFT_PEM };
+    
+    
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    @Override
+    public AuthenticationToken getAdmin(final boolean allowNonAdmins, final X509Certificate cert) throws AuthorizationDeniedException {
+<span class="nc" id="L153">        final Set&lt;X509Certificate&gt; credentials = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L154">        credentials.add(cert);</span>
+<span class="nc" id="L155">        final AuthenticationSubject subject = new AuthenticationSubject(null, credentials);</span>
+<span class="nc" id="L156">        final AuthenticationToken admin = authenticationSession.authenticate(subject);</span>
+<span class="nc bnc" id="L157" title="All 4 branches missed.">        if ((admin != null) &amp;&amp; (!allowNonAdmins)) {</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">            if(!raMasterApiProxyBean.isAuthorizedNoLogging(admin, AccessRulesConstants.ROLE_ADMINISTRATOR)) {</span>
+<span class="nc" id="L159">                final String msg = intres.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, AccessRulesConstants.ROLE_ADMINISTRATOR, null);</span>
+<span class="nc" id="L160">                throw new AuthorizationDeniedException(msg);</span>
+            }
+<span class="nc bnc" id="L162" title="All 2 branches missed.">        } else if (admin == null) {</span>
+<span class="nc" id="L163">            final String msg = intres.getLocalizedMessage(&quot;authentication.failed&quot;, &quot;No admin authenticated for certificate with serialNumber &quot; +CertTools.getSerialNumber(cert)+&quot; and issuerDN '&quot;+CertTools.getIssuerDN(cert)+&quot;'.&quot;);</span>
+<span class="nc" id="L164">            throw new AuthorizationDeniedException(msg);</span>
+        }
+<span class="nc" id="L166">        return admin;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED) // authentication failure should not force a rollback
+	@Override
+	public void isAuthorizedToRepublish(AuthenticationToken admin, String username, int caid) throws AuthorizationDeniedException, EjbcaException {
+<span class="nc bnc" id="L172" title="All 2 branches missed.">		if (!authorizationSession.isAuthorizedNoLogging(admin, AccessRulesConstants.REGULAR_VIEWCERTIFICATE)) {</span>
+<span class="nc" id="L173">            final String msg = intres.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, AccessRulesConstants.REGULAR_VIEWCERTIFICATE, null);</span>
+<span class="nc" id="L174">	        throw new AuthorizationDeniedException(msg);</span>
+		}
+<span class="nc" id="L176">		EndEntityInformation userdata = endEntityAccessSession.findUser(admin, username);</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">		if (userdata == null){</span>
+<span class="nc" id="L178">		    log.info(intres.getLocalizedMessage(&quot;ra.errorentitynotexist&quot;, username));</span>
+<span class="nc" id="L179">			String msg = intres.getLocalizedMessage(&quot;ra.wrongusernameorpassword&quot;);            	</span>
+<span class="nc" id="L180">			throw new EjbcaException(ErrorCode.USER_NOT_FOUND, msg);</span>
+		}
+<span class="nc bnc" id="L182" title="All 2 branches missed.">		if (!authorizationSession.isAuthorizedNoLogging(admin, AccessRulesConstants.ENDENTITYPROFILEPREFIX + userdata.getEndEntityProfileId() + AccessRulesConstants.VIEW_END_ENTITY)) {</span>
+<span class="nc" id="L183">            final String msg = intres.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, AccessRulesConstants.ENDENTITYPROFILEPREFIX + userdata.getEndEntityProfileId() + AccessRulesConstants.VIEW_END_ENTITY, null);</span>
+<span class="nc" id="L184">	        throw new AuthorizationDeniedException(msg);</span>
+		}
+<span class="nc bnc" id="L186" title="All 2 branches missed.">		if (!authorizationSession.isAuthorizedNoLogging(admin, StandardRules.CAACCESS.resource() + caid )){</span>
+<span class="nc" id="L187">            final String msg = intres.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, StandardRules.CAACCESS.resource() + caid, null);</span>
+<span class="nc" id="L188">	        throw new AuthorizationDeniedException(msg);</span>
+		}
+<span class="nc" id="L190">	}</span>
+	
+	@TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED) // authentication failure should not force a rollback
+	@Override
+	public void isAuthorizedToHardTokenData(final AuthenticationToken admin, final String username, final boolean viewPUKData) throws AuthorizationDeniedException, EjbcaException {
+		try {
+<span class="nc bnc" id="L196" title="All 2 branches missed.">			if (!authorizationSession.isAuthorizedNoLogging(admin, AccessRulesConstants.REGULAR_VIEWHARDTOKENS)) {</span>
+<span class="nc" id="L197">	            final String msg = intres.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, AccessRulesConstants.REGULAR_VIEWHARDTOKENS, null);</span>
+<span class="nc" id="L198">		        throw new AuthorizationDeniedException(msg);</span>
+			}
+<span class="nc" id="L200">			EndEntityInformation userdata = endEntityAccessSession.findUser(admin, username);</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">			if (userdata == null){</span>
+<span class="nc" id="L202">			    log.info(intres.getLocalizedMessage(&quot;ra.errorentitynotexist&quot;, username));</span>
+<span class="nc" id="L203">				String msg = intres.getLocalizedMessage(&quot;ra.wrongusernameorpassword&quot;);            	</span>
+<span class="nc" id="L204">				throw new EjbcaException(ErrorCode.USER_NOT_FOUND, msg);</span>
+			}
+
+<span class="nc bnc" id="L207" title="All 2 branches missed.">			if (viewPUKData){</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">				if(!authorizationSession.isAuthorizedNoLogging(admin, AccessRulesConstants.REGULAR_VIEWPUKS)) {</span>
+<span class="nc" id="L209">		            final String msg = intres.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, AccessRulesConstants.REGULAR_VIEWPUKS, null);</span>
+<span class="nc" id="L210">			        throw new AuthorizationDeniedException(msg);</span>
+				}
+			}
+<span class="nc bnc" id="L213" title="All 2 branches missed.">		    if (!authorizationSession.isAuthorizedNoLogging(admin, AccessRulesConstants.ENDENTITYPROFILEPREFIX + userdata.getEndEntityProfileId() + AccessRulesConstants.HARDTOKEN_RIGHTS)) {</span>
+<span class="nc" id="L214">	            final String msg = intres.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, AccessRulesConstants.ENDENTITYPROFILEPREFIX + userdata.getEndEntityProfileId() + AccessRulesConstants.HARDTOKEN_RIGHTS, null);</span>
+<span class="nc" id="L215">		        throw new AuthorizationDeniedException(msg);</span>
+		    }
+<span class="nc bnc" id="L217" title="All 2 branches missed.">			if (viewPUKData){</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">			    if(!authorizationSession.isAuthorizedNoLogging(admin, AccessRulesConstants.ENDENTITYPROFILEPREFIX + userdata.getEndEntityProfileId() + AccessRulesConstants.HARDTOKEN_PUKDATA_RIGHTS)) {	</span>
+<span class="nc" id="L219">		            final String msg = intres.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, AccessRulesConstants.ENDENTITYPROFILEPREFIX + userdata.getEndEntityProfileId() + AccessRulesConstants.HARDTOKEN_PUKDATA_RIGHTS, null);</span>
+<span class="nc" id="L220">			        throw new AuthorizationDeniedException(msg);</span>
+			    }
+			}
+<span class="nc" id="L223">		} catch (EJBException e) {</span>
+<span class="nc" id="L224">			throw new EjbcaException(ErrorCode.INTERNAL_ERROR, e);</span>
+<span class="nc" id="L225">		}		</span>
+<span class="nc" id="L226">	}</span>
+
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	@Override
+	public EndEntityInformation convertUserDataVOWSInternal(final UserDataVOWS userdata, final int caid, final int endentityprofileid, final int certificateprofileid, final int hardtokenissuerid, final int tokenid, final boolean useRawSubjectDN) throws EjbcaException {
+<span class="nc" id="L231">        final ExtendedInformation ei = new ExtendedInformation();</span>
+<span class="nc" id="L232">        boolean useEI = false;</span>
+
+<span class="nc bnc" id="L234" title="All 2 branches missed.">        if (userdata.getStartTime() != null) {</span>
+<span class="nc" id="L235">            String customStartTime = userdata.getStartTime();</span>
+            try {
+<span class="nc bnc" id="L237" title="All 4 branches missed.">                if (customStartTime.length()&gt;0 &amp;&amp; !customStartTime.matches(&quot;^\\d+:\\d?\\d:\\d?\\d$&quot;)) {</span>
+<span class="nc" id="L238">                    customStartTime = customStartTime.replace(&quot;Z&quot;, &quot;+00:00&quot;);</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">                    if (!customStartTime.matches(&quot;^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}.\\d{2}:\\d{2}$&quot;)) {</span>
+                        // We use the old absolute time format, so we need to upgrade and log deprecation info
+<span class="nc" id="L241">                        final DateFormat oldDateFormat = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, Locale.US);</span>
+<span class="nc" id="L242">                        final String newCustomStartTime = ValidityDate.formatAsISO8601(oldDateFormat.parse(customStartTime), ValidityDate.TIMEZONE_UTC);</span>
+<span class="nc" id="L243">                        log.info(&quot;WS client sent userdata with startTime using US Locale date format. yyyy-MM-dd HH:mm:ssZZ should be used for absolute time and any fetched UserDataVOWS will use this format.&quot;);</span>
+<span class="nc bnc" id="L244" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L245">                            log.debug(&quot; Changed startTime \&quot;&quot; + customStartTime + &quot;\&quot; to \&quot;&quot; + newCustomStartTime + &quot;\&quot; in UserDataVOWS.&quot;);</span>
+                        }
+<span class="nc" id="L247">                        customStartTime = newCustomStartTime;</span>
+                    }
+<span class="nc" id="L249">                    customStartTime = ValidityDate.getImpliedUTCFromISO8601(customStartTime);</span>
+                }
+<span class="nc" id="L251">                ei.setCustomData(ExtendedInformation.CUSTOM_STARTTIME, customStartTime);</span>
+<span class="nc" id="L252">                useEI = true;</span>
+<span class="nc" id="L253">            } catch (ParseException e) {</span>
+<span class="nc" id="L254">                log.info(&quot;WS client supplied invalid startTime in userData. startTime for this request was ignored. Supplied SubjectDN was \&quot;&quot; + userdata.getSubjectDN() + &quot;\&quot;&quot;);</span>
+<span class="nc" id="L255">                throw new EjbcaException(ErrorCode.FIELD_VALUE_NOT_VALID, &quot;Invalid date format in StartTime.&quot;);</span>
+<span class="nc" id="L256">            }</span>
+        }
+<span class="nc bnc" id="L258" title="All 2 branches missed.">        if(userdata.getEndTime() != null) {</span>
+<span class="nc" id="L259">            String customEndTime = userdata.getEndTime();</span>
+            try {
+<span class="nc bnc" id="L261" title="All 4 branches missed.">                if (customEndTime.length()&gt;0 &amp;&amp; !customEndTime.matches(&quot;^\\d+:\\d?\\d:\\d?\\d$&quot;)){</span>
+<span class="nc bnc" id="L262" title="All 2 branches missed.">                    if (!customEndTime.matches(&quot;^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}.\\d{2}:\\d{2}$&quot;)) {</span>
+                        // We use the old absolute time format, so we need to upgrade and log deprecation info
+<span class="nc" id="L264">                        final DateFormat oldDateFormat = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, Locale.US);</span>
+<span class="nc" id="L265">                        final String newCustomStartTime = ValidityDate.formatAsISO8601(oldDateFormat.parse(customEndTime), ValidityDate.TIMEZONE_UTC);</span>
+<span class="nc" id="L266">                        log.info(&quot;WS client sent userdata with endTime using US Locale date format. yyyy-MM-dd HH:mm:ssZZ should be used for absolute time and any fetched UserDataVOWS will use this format.&quot;);</span>
+<span class="nc bnc" id="L267" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L268">                            log.debug(&quot; Changed endTime \&quot;&quot; + customEndTime + &quot;\&quot; to \&quot;&quot; + newCustomStartTime + &quot;\&quot; in UserDataVOWS.&quot;);</span>
+                        }
+<span class="nc" id="L270">                        customEndTime = newCustomStartTime;</span>
+                    }
+<span class="nc" id="L272">                    customEndTime = ValidityDate.getImpliedUTCFromISO8601(customEndTime);</span>
+                }
+<span class="nc" id="L274">                ei.setCustomData(ExtendedInformation.CUSTOM_ENDTIME, customEndTime);</span>
+<span class="nc" id="L275">                useEI = true;</span>
+<span class="nc" id="L276">            } catch (ParseException e) {</span>
+<span class="nc" id="L277">                log.info(&quot;WS client supplied invalid endTime in userData. endTime for this request was ignored. Supplied SubjectDN was \&quot;&quot; + userdata.getSubjectDN() + &quot;\&quot;&quot;);</span>
+<span class="nc" id="L278">                throw new EjbcaException(ErrorCode.FIELD_VALUE_NOT_VALID, &quot;Invalid date format in EndTime.&quot;);</span>
+<span class="nc" id="L279">            }</span>
+        }
+<span class="nc bnc" id="L281" title="All 2 branches missed.">        if (userdata.getCertificateSerialNumber()!=null) {</span>
+<span class="nc" id="L282">            ei.setCertificateSerialNumber(userdata.getCertificateSerialNumber());</span>
+<span class="nc" id="L283">            useEI = true;</span>
+        }
+
+<span class="nc bnc" id="L286" title="All 2 branches missed.">        if (useRawSubjectDN) {</span>
+            // It could/should B64 encoded to avoid XML baddies, ExtendedInformation.getRawSubjectDn does encoding, if the string is encoded
+<span class="nc" id="L288">            final String value = StringTools.putBase64String(userdata.getSubjectDN());</span>
+<span class="nc" id="L289">            ei.setMapData(ExtendedInformation.RAWSUBJECTDN, value);</span>
+<span class="nc" id="L290">            useEI = true;</span>
+        }
+<span class="nc bnc" id="L292" title="All 4 branches missed.">        useEI = setExtendedInformationFromUserDataVOWS(userdata, ei) || useEI;</span>
+
+<span class="nc" id="L294">        final EndEntityInformation endEntityInformation = new EndEntityInformation(userdata.getUsername(),</span>
+<span class="nc" id="L295">                userdata.getSubjectDN(),</span>
+                caid,
+<span class="nc" id="L297">                userdata.getSubjectAltName(),</span>
+<span class="nc" id="L298">                userdata.getEmail(),</span>
+<span class="nc" id="L299">                userdata.getStatus(),</span>
+<span class="nc" id="L300">                userdata.getType(),</span>
+                endentityprofileid,
+                certificateprofileid,
+                null,
+                null,
+                tokenid,
+                hardtokenissuerid,
+<span class="nc bnc" id="L307" title="All 2 branches missed.">                useEI ? ei : null);</span>
+        
+<span class="nc" id="L309">        endEntityInformation.setPassword(userdata.getPassword());</span>
+<span class="nc" id="L310">        endEntityInformation.setCardNumber(userdata.getCardNumber());</span>
+<span class="nc" id="L311">        endEntityInformation.setSendNotification(userdata.isSendNotification());</span>
+<span class="nc" id="L312">        return endEntityInformation;</span>
+	}
+
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+	public EndEntityInformation convertUserDataVOWS(final AuthenticationToken admin, final UserDataVOWS userdata) throws CADoesntExistsException, EjbcaException {
+        // No need to check CA authorization here, we are only converting the user input. The actual authorization check in CA is done when 
+        // trying to add/edit the user
+<span class="nc" id="L320">		final CAInfo cainfo = caSession.getCAInfoInternal(-1,userdata.getCaName(), true);</span>
+<span class="nc bnc" id="L321" title="All 2 branches missed.">		if(cainfo == null) {</span>
+<span class="nc" id="L322">		    throw new CADoesntExistsException(&quot;No CA found by name of &quot; + userdata.getCaName());</span>
+		}
+<span class="nc" id="L324">		final int caid = cainfo.getCAId();</span>
+<span class="nc bnc" id="L325" title="All 2 branches missed.">		if (caid == 0) {</span>
+<span class="nc" id="L326">			throw new CADoesntExistsException(&quot;Error CA &quot; + userdata.getCaName() + &quot; have caid 0, which is impossible.&quot;);</span>
+		}
+		
+		int endentityprofileid;
+        try {
+<span class="nc" id="L331">            endentityprofileid = endEntityProfileSession.getEndEntityProfileId(userdata.getEndEntityProfileName());</span>
+<span class="nc" id="L332">        } catch (EndEntityProfileNotFoundException e) {</span>
+<span class="nc" id="L333">            throw new EjbcaException(ErrorCode.EE_PROFILE_NOT_EXISTS, </span>
+<span class="nc" id="L334">                    &quot;Error End Entity profile &quot; + userdata.getEndEntityProfileName() + &quot; does not exist.&quot;, e);</span>
+<span class="nc" id="L335">        }</span>
+
+<span class="nc" id="L337">		final int certificateprofileid = certificateProfileSession.getCertificateProfileId(userdata.getCertificateProfileName());</span>
+<span class="nc bnc" id="L338" title="All 2 branches missed.">		if (certificateprofileid == 0){</span>
+<span class="nc" id="L339">			throw new EjbcaException(ErrorCode.CERT_PROFILE_NOT_EXISTS,</span>
+<span class="nc" id="L340">                &quot;Error Certificate profile &quot; + userdata.getCertificateProfileName() + &quot; does not exist.&quot;);</span>
+		}
+<span class="nc" id="L342">        final CertificateProfile cp = certificateProfileSession.getCertificateProfile(certificateprofileid);</span>
+<span class="nc" id="L343">        final boolean useRawSubjectDN = cp.getAllowDNOverrideByEndEntityInformation();</span>
+		
+		final int hardtokenissuerid;
+<span class="nc bnc" id="L346" title="All 2 branches missed.">		if (userdata.getHardTokenIssuerName() != null){</span>
+<span class="nc" id="L347">         hardtokenissuerid = hardTokenSession.getHardTokenIssuerId(userdata.getHardTokenIssuerName());</span>
+<span class="nc bnc" id="L348" title="All 2 branches missed.">		   if (hardtokenissuerid == 0){</span>
+<span class="nc" id="L349">			  throw new EjbcaException(ErrorCode.HARD_TOKEN_ISSUER_NOT_EXISTS,</span>
+<span class="nc" id="L350">                  &quot;Error Hard Token Issuer &quot; + userdata.getHardTokenIssuerName() + &quot; does not exist.&quot;);</span>
+		   }
+		} else {
+<span class="nc" id="L353">			hardtokenissuerid = 0;</span>
+		}
+		
+<span class="nc" id="L356">		final int tokenid = getTokenId(admin,userdata.getTokenType());</span>
+<span class="nc bnc" id="L357" title="All 2 branches missed.">		if (tokenid == 0){</span>
+<span class="nc" id="L358">			throw new EjbcaException(ErrorCode.UNKOWN_TOKEN_TYPE,</span>
+<span class="nc" id="L359">                &quot;Error Token Type  &quot; + userdata.getTokenType() + &quot; does not exist.&quot;);</span>
+		}
+
+<span class="nc" id="L362">		return convertUserDataVOWSInternal(userdata, caid, endentityprofileid, certificateprofileid, hardtokenissuerid, tokenid, useRawSubjectDN);</span>
+	}
+
+	/** Sets generic Custom ExtendedInformation from potential data in UserDataVOWS.
+	 * This is data from the field &quot;Custom certificate extension data&quot; in the EE profile.
+	 * @param userdata UserDataVOWS that we want to see if any ExtendedInformationWS is set
+	 * @param ei ExtendedInformation to populate with information.
+	 * @return true if some value was added, false if nothing was added
+	 */
+	private static boolean setExtendedInformationFromUserDataVOWS( UserDataVOWS userdata, ExtendedInformation ei ) {
+		// Set generic Custom ExtendedInformation from potential data in UserDataVOWS
+<span class="nc" id="L373">		final List&lt;ExtendedInformationWS&gt; userei = userdata.getExtendedInformation();</span>
+<span class="nc bnc" id="L374" title="All 2 branches missed.">		if ( userei==null ) {</span>
+<span class="nc" id="L375">			return false;</span>
+		}
+<span class="nc" id="L377">		boolean useEI = false;</span>
+<span class="nc bnc" id="L378" title="All 2 branches missed.">		for (ExtendedInformationWS item : userei) {</span>
+<span class="nc" id="L379">			final String key = item.getName();</span>
+<span class="nc" id="L380">			final String value = item.getValue ();</span>
+<span class="nc bnc" id="L381" title="All 4 branches missed.">			if ( value==null || key==null ) {</span>
+<span class="nc bnc" id="L382" title="All 2 branches missed.">				if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L383">					log.debug(&quot;Key or value is null when trying to set generic extended information.&quot;);</span>
+				}
+				continue;
+			}
+<span class="nc bnc" id="L387" title="All 2 branches missed.">			if ( OID.isStartingWithValidOID(key)  ) {</span>
+<span class="nc" id="L388">				ei.setExtensionData(key, value);</span>
+<span class="nc bnc" id="L389" title="All 2 branches missed.">				if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L390">					log.debug(&quot;Set certificate extension: &quot;+key+&quot;, &quot;+value);</span>
+				}
+			} else {
+<span class="nc" id="L393">				ei.setMapData(key, value);</span>
+<span class="nc bnc" id="L394" title="All 2 branches missed.">				if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L395">					log.debug(&quot;Set generic extended information: &quot;+key+&quot;, &quot;+value);</span>
+				}
+			}
+<span class="nc" id="L398">			useEI = true;</span>
+<span class="nc" id="L399">		}</span>
+<span class="nc" id="L400">		return useEI;</span>
+	}
+
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	@Override
+	public UserDataVOWS convertEndEntityInformation(final EndEntityInformation endEntityInformation, final String caname, final String endentityprofilename, 
+	        final String certificateprofilename, final String hardtokenissuername, final String tokenname) {
+<span class="nc" id="L407">        final UserDataVOWS dataWS = new UserDataVOWS();</span>
+<span class="nc" id="L408">        dataWS.setUsername(endEntityInformation.getUsername());</span>
+<span class="nc" id="L409">        dataWS.setCaName(caname);</span>
+<span class="nc" id="L410">        dataWS.setEndEntityProfileName(endentityprofilename);</span>
+<span class="nc" id="L411">        dataWS.setCertificateProfileName(certificateprofilename);</span>
+<span class="nc" id="L412">        dataWS.setHardTokenIssuerName(hardtokenissuername);</span>
+<span class="nc" id="L413">        dataWS.setTokenType(tokenname);</span>
+
+<span class="nc" id="L415">        dataWS.setPassword(null);</span>
+<span class="nc" id="L416">        dataWS.setClearPwd(false);</span>
+<span class="nc" id="L417">        dataWS.setSubjectDN(endEntityInformation.getDN());</span>
+<span class="nc" id="L418">        dataWS.setSubjectAltName(endEntityInformation.getSubjectAltName());</span>
+<span class="nc" id="L419">        dataWS.setEmail(endEntityInformation.getEmail());</span>
+<span class="nc" id="L420">        dataWS.setStatus(endEntityInformation.getStatus());</span>
+<span class="nc" id="L421">        dataWS.setCardNumber(endEntityInformation.getCardNumber());</span>
+<span class="nc" id="L422">        dataWS.setSendNotification(endEntityInformation.getSendNotification());</span>
+        
+<span class="nc" id="L424">        final ExtendedInformation ei = endEntityInformation.getExtendedInformation();</span>
+<span class="nc bnc" id="L425" title="All 2 branches missed.">        if (ei != null) {</span>
+<span class="nc" id="L426">            String startTime = ei.getCustomData(ExtendedInformation.CUSTOM_STARTTIME);</span>
+<span class="nc bnc" id="L427" title="All 6 branches missed.">            if (startTime!=null &amp;&amp; startTime.length()&gt;0 &amp;&amp; !startTime.matches(&quot;^\\d+:\\d?\\d:\\d?\\d$&quot;)) {</span>
+                try {
+                    // Always respond with the time formatted in a neutral time zone
+<span class="nc" id="L430">                    startTime = ValidityDate.getISO8601FromImpliedUTC(startTime, ValidityDate.TIMEZONE_UTC);</span>
+<span class="nc" id="L431">                } catch (ParseException e) {</span>
+<span class="nc" id="L432">                    log.info(&quot;Failed to convert &quot; + ExtendedInformation.CUSTOM_STARTTIME + &quot; to ISO8601 format.&quot;);</span>
+<span class="nc" id="L433">                }</span>
+            }
+<span class="nc" id="L435">            dataWS.setStartTime(startTime);</span>
+<span class="nc" id="L436">            String endTime = ei.getCustomData(ExtendedInformation.CUSTOM_ENDTIME);</span>
+<span class="nc bnc" id="L437" title="All 6 branches missed.">            if (endTime!=null &amp;&amp; endTime.length()&gt;0 &amp;&amp; !endTime.matches(&quot;^\\d+:\\d?\\d:\\d?\\d$&quot;)) {</span>
+                try {
+                    // Always respond with the time formatted in a neutral time zone
+<span class="nc" id="L440">                    endTime = ValidityDate.getISO8601FromImpliedUTC(endTime, ValidityDate.TIMEZONE_UTC);</span>
+<span class="nc" id="L441">                } catch (ParseException e) {</span>
+<span class="nc" id="L442">                    log.info(&quot;Failed to convert &quot; + ExtendedInformation.CUSTOM_ENDTIME + &quot; to ISO8601 format.&quot;);</span>
+<span class="nc" id="L443">                }</span>
+            }
+<span class="nc" id="L445">            dataWS.setEndTime(endTime);</span>
+            // Fill custom data in extended information
+            @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L448">            final HashMap&lt;String, ?&gt; data = (HashMap&lt;String,?&gt;)ei.getData();</span>
+<span class="nc bnc" id="L449" title="All 2 branches missed.">            if (data != null) {</span>
+<span class="nc" id="L450">                final List&lt;ExtendedInformationWS&gt; extendedInfo = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L451">                final Set&lt;String&gt; set = data.keySet();</span>
+<span class="nc bnc" id="L452" title="All 2 branches missed.">                for (Iterator&lt;String&gt; iterator = set.iterator(); iterator.hasNext();) {</span>
+<span class="nc" id="L453">                    final String key = iterator.next();</span>
+<span class="nc" id="L454">                    final String value = ei.getMapData(key);</span>
+<span class="nc bnc" id="L455" title="All 2 branches missed.">                    if (value != null) {</span>
+<span class="nc" id="L456">                        extendedInfo.add(new ExtendedInformationWS (key, value));               </span>
+                    }
+<span class="nc" id="L458">                }</span>
+<span class="nc" id="L459">                dataWS.setExtendedInformation(extendedInfo);</span>
+            }
+        }
+
+<span class="nc" id="L463">        return dataWS;</span>
+	}
+	
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	@Override
+	public UserDataVOWS convertEndEntityInformation(final EndEntityInformation endEntityInformation) throws EjbcaException, CADoesntExistsException {
+<span class="nc" id="L469">        final String username = endEntityInformation.getUsername();</span>
+		// No need to check CA authorization here, we are only converting the user input. The actual authorization check in CA is done when 
+		// trying to add/edit the user
+<span class="nc" id="L472">		final String caname = caSession.getCAInfoInternal(endEntityInformation.getCAId(), null, true).getName();	</span>
+
+<span class="nc" id="L474">		final String endentityprofilename = endEntityProfileSession.getEndEntityProfileName(endEntityInformation.getEndEntityProfileId());</span>
+<span class="nc bnc" id="L475" title="All 2 branches missed.">		if (endentityprofilename == null){</span>
+<span class="nc" id="L476">			final String message = &quot;Error End Entity profile id &quot; + endEntityInformation.getEndEntityProfileId() + &quot; does not exist. User: &quot;+username;</span>
+<span class="nc" id="L477">			log.error(message);</span>
+<span class="nc" id="L478">			throw new EjbcaException(ErrorCode.EE_PROFILE_NOT_EXISTS, message);</span>
+		}
+
+<span class="nc" id="L481">        final String certificateprofilename = certificateProfileSession.getCertificateProfileName(endEntityInformation.getCertificateProfileId());</span>
+<span class="nc bnc" id="L482" title="All 2 branches missed.">		if (certificateprofilename == null){</span>
+<span class="nc" id="L483">		    final String message = &quot;Error Certificate profile id &quot; + endEntityInformation.getCertificateProfileId() + &quot; does not exist. User: &quot;+username;</span>
+<span class="nc" id="L484">			log.error(message);</span>
+<span class="nc" id="L485">			throw new EjbcaException(ErrorCode.CERT_PROFILE_NOT_EXISTS, message);</span>
+		}
+		
+		final String hardtokenissuername;
+<span class="nc bnc" id="L489" title="All 2 branches missed.">		if (endEntityInformation.getHardTokenIssuerId() != 0){</span>
+<span class="nc" id="L490">		   hardtokenissuername = hardTokenSession.getHardTokenIssuerAlias(endEntityInformation.getHardTokenIssuerId());</span>
+<span class="nc bnc" id="L491" title="All 2 branches missed.">		   if (hardtokenissuername == null){</span>
+<span class="nc" id="L492">		       final String message = &quot;Error Hard Token Issuer id &quot; + endEntityInformation.getHardTokenIssuerId() + &quot; does not exist. User: &quot;+username;</span>
+<span class="nc" id="L493">			   log.error(message);</span>
+<span class="nc" id="L494">			   throw new EjbcaException(ErrorCode.HARD_TOKEN_ISSUER_NOT_EXISTS, message);</span>
+		   }
+		} else {
+<span class="nc" id="L497">		    hardtokenissuername = null;</span>
+		}
+		
+<span class="nc" id="L500">		final String tokenname = getTokenName(endEntityInformation.getTokenType());</span>
+<span class="nc bnc" id="L501" title="All 2 branches missed.">		if (tokenname == null){</span>
+<span class="nc" id="L502">		    final String message = &quot;Error Token Type id &quot; + endEntityInformation.getTokenType() + &quot; does not exist. User: &quot;+username;</span>
+<span class="nc" id="L503">			log.error(message);</span>
+<span class="nc" id="L504">			throw new EjbcaException(ErrorCode.UNKOWN_TOKEN_TYPE, message);</span>
+		}
+<span class="nc" id="L506">		return convertEndEntityInformation(endEntityInformation, caname, endentityprofilename, certificateprofilename, hardtokenissuername, tokenname);</span>
+	}
+
+	private XMLGregorianCalendar dateToXMKGregorianCalendar (Date date) throws DatatypeConfigurationException {
+<span class="nc" id="L510">		GregorianCalendar cal = new GregorianCalendar ();</span>
+<span class="nc" id="L511">		cal.setTime(date);</span>
+<span class="nc" id="L512">		return DatatypeFactory.newInstance ().newXMLGregorianCalendar(cal);</span>
+	}
+
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	@Override
+	public HardTokenDataWS convertHardTokenToWS(HardTokenInformation data, Collection&lt;java.security.cert.Certificate&gt; certificates, boolean includePUK) throws EjbcaException {
+<span class="nc" id="L518">		HardTokenDataWS retval = new HardTokenDataWS();</span>
+<span class="nc" id="L519">		retval.setHardTokenSN(data.getTokenSN());</span>
+<span class="nc" id="L520">		retval.setLabel(data.getHardToken().getLabel());</span>
+<span class="nc" id="L521">		retval.setCopyOfSN(data.getCopyOf());</span>
+<span class="nc" id="L522">		ArrayList&lt;String&gt; copies = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L523" title="All 2 branches missed.">		if (data.getCopies() != null){</span>
+<span class="nc" id="L524">			Iterator&lt;String&gt; iter = data.getCopies().iterator();</span>
+<span class="nc bnc" id="L525" title="All 2 branches missed.">			while (iter.hasNext()){</span>
+<span class="nc" id="L526">				copies.add(iter.next());</span>
+
+			}
+		}
+<span class="nc" id="L530">		retval.setCopies(copies);</span>
+		try {
+<span class="nc" id="L532">			retval.setModifyTime(dateToXMKGregorianCalendar(data.getModifyTime()));</span>
+<span class="nc" id="L533">			retval.setCreateTime(dateToXMKGregorianCalendar(data.getCreateTime()));</span>
+<span class="nc" id="L534">			retval.setEncKeyKeyRecoverable(false);</span>
+
+<span class="nc" id="L536">			Iterator&lt;java.security.cert.Certificate&gt; iter = certificates.iterator();</span>
+<span class="nc bnc" id="L537" title="All 2 branches missed.">			while (iter.hasNext()){</span>
+<span class="nc" id="L538">				retval.getCertificates().add(new Certificate(iter.next()));</span>
+			}
+<span class="nc" id="L540">		} catch (DatatypeConfigurationException e) {</span>
+<span class="nc" id="L541">			log.error(&quot;EJBCA WebService error, getHardToken: &quot;,e);</span>
+<span class="nc" id="L542">			throw new EjbcaException(ErrorCode.INTERNAL_ERROR, e.getMessage());</span>
+<span class="nc" id="L543">		} catch (CertificateEncodingException e) {</span>
+<span class="nc" id="L544">			log.error(&quot;EJBCA WebService error, getHardToken: &quot;,e);</span>
+<span class="nc" id="L545">			throw new EjbcaException(ErrorCode.INTERNAL_ERROR, e.getMessage());</span>
+<span class="nc" id="L546">		}</span>
+
+
+<span class="nc bnc" id="L549" title="All 2 branches missed.">		if (data.getHardToken() instanceof SwedishEIDHardToken){</span>
+<span class="nc" id="L550">			SwedishEIDHardToken ht = (SwedishEIDHardToken) data.getHardToken();</span>
+<span class="nc bnc" id="L551" title="All 2 branches missed.">			if(includePUK){</span>
+<span class="nc" id="L552">			  retval.getPinDatas().add(new PinDataWS(HardTokenConstants.PINTYPE_SIGNATURE,ht.getInitialSignaturePIN(),ht.getSignaturePUK()));</span>
+<span class="nc" id="L553">			  retval.getPinDatas().add(new PinDataWS(HardTokenConstants.PINTYPE_BASIC,ht.getInitialAuthEncPIN(),ht.getAuthEncPUK()));</span>
+			}
+<span class="nc" id="L555">			retval.setTokenType(HardTokenConstants.TOKENTYPE_SWEDISHEID);</span>
+<span class="nc" id="L556">			return retval;</span>
+		}
+<span class="nc bnc" id="L558" title="All 2 branches missed.">		if (data.getHardToken() instanceof EnhancedEIDHardToken){</span>
+<span class="nc" id="L559">			EnhancedEIDHardToken ht = (EnhancedEIDHardToken) data.getHardToken();</span>
+<span class="nc" id="L560">			retval.setEncKeyKeyRecoverable(ht.getEncKeyRecoverable());</span>
+<span class="nc bnc" id="L561" title="All 2 branches missed.">			if(includePUK){</span>
+<span class="nc" id="L562">				retval.getPinDatas().add(new PinDataWS(HardTokenConstants.PINTYPE_SIGNATURE,ht.getInitialSignaturePIN(),ht.getSignaturePUK()));</span>
+<span class="nc" id="L563">				retval.getPinDatas().add(new PinDataWS(HardTokenConstants.PINTYPE_BASIC,ht.getInitialAuthPIN(),ht.getAuthPUK()));</span>
+			}
+<span class="nc" id="L565">			retval.setTokenType(HardTokenConstants.TOKENTYPE_ENHANCEDEID);</span>
+<span class="nc" id="L566">			return retval;</span>
+		}
+<span class="nc bnc" id="L568" title="All 2 branches missed.">		if (data.getHardToken() instanceof TurkishEIDHardToken){</span>
+<span class="nc" id="L569">			TurkishEIDHardToken ht = (TurkishEIDHardToken) data.getHardToken();</span>
+<span class="nc bnc" id="L570" title="All 2 branches missed.">			if(includePUK){</span>
+<span class="nc" id="L571">			  retval.getPinDatas().add(new PinDataWS(HardTokenConstants.PINTYPE_BASIC,ht.getInitialPIN(),ht.getPUK()));</span>
+			}
+<span class="nc" id="L573">			retval.setTokenType(HardTokenConstants.TOKENTYPE_TURKISHEID);</span>
+<span class="nc" id="L574">			return retval;</span>
+		}
+<span class="nc" id="L576">		throw new EjbcaException(ErrorCode.INTERNAL_ERROR,</span>
+		                         &quot;Error: only SwedishEIDHardToken, EnhancedEIDHardToken, TurkishEIDHardToken supported.&quot;);
+	}
+	
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public Query convertUserMatch(AuthenticationToken admin, UserMatch usermatch) throws CADoesntExistsException,
+            AuthorizationDeniedException, EndEntityProfileNotFoundException {
+<span class="nc" id="L584">        Query retval = new Query(Query.TYPE_USERQUERY);		  		</span>
+<span class="nc bnc" id="L585" title="All 5 branches missed.">		switch (usermatch.getMatchwith()){</span>
+		  case UserMatch.MATCH_WITH_ENDENTITYPROFILE:
+<span class="nc" id="L587">			  String endentityprofilename = Integer.toString(endEntityProfileSession.getEndEntityProfileId(usermatch.getMatchvalue()));</span>
+<span class="nc" id="L588">			  retval.add(usermatch.getMatchwith(),usermatch.getMatchtype(),endentityprofilename);</span>
+<span class="nc" id="L589">			  break;</span>
+		  case UserMatch.MATCH_WITH_CERTIFICATEPROFILE:
+<span class="nc" id="L591">			  String certificateprofilename = Integer.toString(certificateProfileSession.getCertificateProfileId(usermatch.getMatchvalue()));</span>
+<span class="nc" id="L592">			  retval.add(usermatch.getMatchwith(),usermatch.getMatchtype(),certificateprofilename);</span>
+<span class="nc" id="L593">			  break;			  </span>
+		  case UserMatch.MATCH_WITH_CA:
+<span class="nc" id="L595">			  String caname = Integer.toString(caSession.getCAInfo(admin,usermatch.getMatchvalue()).getCAId());</span>
+<span class="nc" id="L596">			  retval.add(usermatch.getMatchwith(),usermatch.getMatchtype(),caname);</span>
+<span class="nc" id="L597">			  break;	</span>
+		  case UserMatch.MATCH_WITH_TOKEN:
+<span class="nc" id="L599">			  String tokenname = Integer.toString(getTokenId(admin,usermatch.getMatchvalue()));</span>
+<span class="nc" id="L600">			  retval.add(usermatch.getMatchwith(),usermatch.getMatchtype(),tokenname);</span>
+<span class="nc" id="L601">			  break;</span>
+		  default:		
+<span class="nc" id="L603">			  retval.add(usermatch.getMatchwith(),usermatch.getMatchtype(),usermatch.getMatchvalue());</span>
+			  break;
+		}
+<span class="nc" id="L606">		return retval;</span>
+	}
+	
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	@Override
+	public Collection&lt;java.security.cert.Certificate&gt; returnOnlyValidCertificates(final AuthenticationToken admin, final Collection&lt;java.security.cert.Certificate&gt; certs) {
+<span class="nc" id="L612">        final ArrayList&lt;java.security.cert.Certificate&gt; retval = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L613" title="All 2 branches missed.">        for (java.security.cert.Certificate cert : certs) {</span>
+<span class="nc" id="L614">            boolean isrevoked = certificateStoreSession.isRevoked(CertTools.getIssuerDN(cert),CertTools.getSerialNumber(cert));</span>
+<span class="nc bnc" id="L615" title="All 2 branches missed.">            if (!isrevoked) {</span>
+                try {
+<span class="nc" id="L617">                    CertTools.checkValidity(cert, new Date());</span>
+<span class="nc" id="L618">                    retval.add(cert);</span>
+<span class="nc" id="L619">                } catch (CertificateExpiredException e) {</span>
+<span class="nc" id="L620">                } catch (CertificateNotYetValidException e) {			   </span>
+<span class="nc" id="L621">                }</span>
+            }
+<span class="nc" id="L623">        }</span>
+<span class="nc" id="L624">        return retval;</span>
+    }
+	
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	@Override
+	public List&lt;Certificate&gt; returnAuthorizedCertificates(final AuthenticationToken admin, final Collection&lt;java.security.cert.Certificate&gt; certs,
+	        final boolean validate, final long nowMillis) {
+<span class="nc" id="L631">		final List&lt;Certificate&gt; retval = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L632">		final Map&lt;Integer, Boolean&gt; authorizationCache = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L633">		final Date now = new Date(nowMillis);</span>
+<span class="nc bnc" id="L634" title="All 2 branches missed.">		for (final java.security.cert.Certificate next : certs) {</span>
+			try {
+<span class="nc bnc" id="L636" title="All 2 branches missed.">				if (validate) {</span>
+					// Check validity
+<span class="nc" id="L638">					CertTools.checkValidity(next, now);</span>
+				}
+				// Check authorization
+<span class="nc" id="L641">				final int caid = CertTools.getIssuerDN(next).hashCode();</span>
+<span class="nc" id="L642">				Boolean authorized = authorizationCache.get(caid);</span>
+<span class="nc bnc" id="L643" title="All 2 branches missed.">				if (authorized == null) {</span>
+<span class="nc" id="L644">					authorized = authorizationSession.isAuthorizedNoLogging(admin,StandardRules.CAACCESS.resource() +caid);</span>
+<span class="nc" id="L645">					authorizationCache.put(caid, authorized);</span>
+				}
+<span class="nc bnc" id="L647" title="All 2 branches missed.">				if (authorized.booleanValue()) {</span>
+<span class="nc" id="L648">					retval.add(new Certificate(next));</span>
+				}
+<span class="nc" id="L650">			} catch (CertificateExpiredException | CertificateNotYetValidException e) {</span>
+			    // Drop invalid cert
+<span class="nc" id="L652">			} catch (CertificateEncodingException e) { </span>
+			    // Drop invalid cert
+<span class="nc" id="L654">				log.error(&quot;A defect certificate was detected.&quot;);</span>
+<span class="nc" id="L655">			} </span>
+<span class="nc" id="L656">		}</span>
+<span class="nc" id="L657">		return retval;</span>
+	}
+	
+	private int getTokenId(AuthenticationToken admin, String tokenname) {
+<span class="nc" id="L661">      int returnval = 0;</span>
+      
+      // First check for soft token type
+<span class="nc bnc" id="L664" title="All 2 branches missed.">      for(int i=0;i&lt; softtokennames.length;i++){</span>
+<span class="nc bnc" id="L665" title="All 2 branches missed.">      	if(softtokennames[i].equals(tokenname)){</span>
+<span class="nc" id="L666">      		returnval = softtokenids[i];</span>
+<span class="nc" id="L667">      		break;</span>
+      	}        	
+      }
+<span class="nc bnc" id="L670" title="All 2 branches missed.">      if (returnval == 0) {</span>
+<span class="nc" id="L671">           returnval = hardTokenSession.getHardTokenProfileId(tokenname);</span>
+      }
+
+<span class="nc" id="L674">      return returnval;</span>
+	}
+	
+	private String getTokenName(int tokenid) {
+<span class="nc" id="L678">      String returnval = null;</span>
+      
+      // First check for soft token type
+<span class="nc bnc" id="L681" title="All 2 branches missed.">      for(int i=0;i&lt; softtokenids.length;i++){</span>
+<span class="nc bnc" id="L682" title="All 2 branches missed.">      	if(softtokenids[i] == tokenid){</span>
+<span class="nc" id="L683">      		returnval = softtokennames[i];</span>
+<span class="nc" id="L684">      		break;</span>
+      	}        	
+      }
+<span class="nc bnc" id="L687" title="All 2 branches missed.">      if (returnval == null) {</span>
+<span class="nc" id="L688">           returnval = hardTokenSession.getHardTokenProfileName(tokenid);</span>
+      }
+
+<span class="nc" id="L691">      return returnval;</span>
+	}
+
+	@Override
+	public void resetUserPasswordAndStatus(AuthenticationToken admin, String username, int status) {
+		try {
+<span class="nc" id="L697">			endEntityManagementSession.setPassword(admin, username, null);</span>
+<span class="nc" id="L698">			endEntityManagementSession.setUserStatus(admin, username, status);	</span>
+<span class="nc" id="L699">			log.debug(&quot;Reset user password to null and status to &quot;+status);</span>
+<span class="nc" id="L700">		} catch (Exception e) {</span>
+			// Catch all because this reset method will be called from within other catch clauses
+<span class="nc" id="L702">			log.error(e);</span>
+<span class="nc" id="L703">		}</span>
+<span class="nc" id="L704">	}</span>
+
+	@Override
+	public void checkValidityAndSetUserPassword(AuthenticationToken admin, java.security.cert.Certificate cert, String username, String password) 
+            throws CertificateNotYetValidException, CertificateExpiredException, EndEntityProfileValidationException,
+            AuthorizationDeniedException, NoSuchEndEntityException, ApprovalException, WaitingForApprovalException {
+		try {
+			// Check validity of the certificate after verifying the signature
+<span class="nc" id="L712">			CertTools.checkValidity(cert, new Date());</span>
+<span class="nc" id="L713">			log.debug(&quot;The verifying certificate was valid&quot;);</span>
+			// Verification succeeded, lets set user status to new, the password as passed in and proceed
+<span class="nc" id="L715">			String msg = intres.getLocalizedMessage(&quot;cvc.info.renewallowed&quot;, CertTools.getFingerprintAsString(cert), username);            	</span>
+<span class="nc" id="L716">			log.info(msg);</span>
+<span class="nc" id="L717">			endEntityManagementSession.setPassword(admin, username, password);</span>
+<span class="nc" id="L718">			endEntityManagementSession.setUserStatus(admin, username, EndEntityConstants.STATUS_NEW);</span>
+			// If we managed to verify the certificate we will break out of the loop									
+<span class="nc" id="L720">		} catch (CertificateNotYetValidException e) {</span>
+			// If verification of outer signature fails because the old certificate is not valid, we don't really care, continue as if it was an initial request
+<span class="nc bnc" id="L722" title="All 2 branches missed.">			if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L723">			    log.debug(&quot;Certificate we try to verify outer signature with is not yet valid. SubjectDN: &quot;+CertTools.getSubjectDN(cert));</span>
+			}
+<span class="nc" id="L725">			throw e;</span>
+<span class="nc" id="L726">		} catch (CertificateExpiredException e) {									</span>
+<span class="nc bnc" id="L727" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L728">                log.debug(&quot;Certificate we try to verify outer signature with has expired. SubjectDN: &quot;+CertTools.getSubjectDN(cert));</span>
+            }
+<span class="nc" id="L730">			throw e;</span>
+<span class="nc" id="L731">		}</span>
+<span class="nc" id="L732">	}</span>
+
+	@Override
+	public void caCertResponse(AuthenticationToken admin, String caname, byte[] cert, List&lt;byte[]&gt; cachain, String keystorepwd, boolean futureRollover) 
+	    throws AuthorizationDeniedException, EjbcaException, ApprovalException, WaitingForApprovalException, CertPathValidatorException, CesecoreException, CertificateParsingException {
+<span class="nc" id="L737">        CAInfo cainfo = caSession.getCAInfo(admin, caname);</span>
+        // create response messages, for CVC certificates we use a regular X509ResponseMessage
+<span class="nc" id="L739">        X509ResponseMessage msg = new X509ResponseMessage();</span>
+<span class="nc" id="L740">        msg.setCertificate(CertTools.getCertfromByteArray(cert, java.security.cert.Certificate.class));</span>
+        // Activate the CA's token using the provided keystorepwd if any
+<span class="nc bnc" id="L742" title="All 2 branches missed.">        if (keystorepwd!=null) {</span>
+<span class="nc" id="L743">            cryptoTokenManagementSession.activate(admin, cainfo.getCAToken().getCryptoTokenId(), keystorepwd.toCharArray());</span>
+        }
+<span class="nc" id="L745">        caAdminSession.receiveResponse(admin, cainfo.getCAId(), msg, cachain, null, futureRollover);</span>
+<span class="nc" id="L746">	}</span>
+
+	@Override
+	public byte[] caRenewCertRequest(AuthenticationToken admin, String caname, List&lt;byte[]&gt; cachain, boolean regenerateKeys, boolean usenextkey, boolean activatekey, String keystorepwd) 
+		throws CADoesntExistsException, AuthorizationDeniedException, CertPathValidatorException, CryptoTokenOfflineException, CryptoTokenAuthenticationFailedException {
+<span class="nc" id="L751">		CAInfo cainfo = caSession.getCAInfo(admin, caname);</span>
+<span class="nc" id="L752">		String nextSignKeyAlias = null;   // null means generate new keypair</span>
+<span class="nc bnc" id="L753" title="All 2 branches missed.">		if (!regenerateKeys) {</span>
+<span class="nc" id="L754">		    nextSignKeyAlias = cainfo.getCAToken().getAliasFromPurpose(CATokenConstants.CAKEYPURPOSE_CERTSIGN);</span>
+<span class="nc bnc" id="L755" title="All 2 branches missed.">	        if (usenextkey) {</span>
+<span class="nc" id="L756">	            nextSignKeyAlias = cainfo.getCAToken().getAliasFromPurpose(CATokenConstants.CAKEYPURPOSE_CERTSIGN_NEXT);</span>
+	        }
+		}
+		// Activate used to mean &quot;move nextsignkeyalias to currentsignkeyalias&quot;, we changed the meaning here to be activate the CA's CryptoToken
+<span class="nc bnc" id="L760" title="All 2 branches missed.">		if (activatekey) {</span>
+<span class="nc" id="L761">	        cryptoTokenManagementSession.activate(admin, cainfo.getCAToken().getCryptoTokenId(), keystorepwd.toCharArray());</span>
+		}
+<span class="nc" id="L763">        return caAdminSession.makeRequest(admin, cainfo.getCAId(), cachain, nextSignKeyAlias);</span>
+	}
+	
+	@Override
+	public void importCaCert(AuthenticationToken admin, String caname, byte[] certbytes) throws AuthorizationDeniedException, 
+	        CAExistsException, IllegalCryptoTokenException, CertificateImportException, EjbcaException, CertificateParsingException {
+<span class="nc" id="L769">	    final Collection&lt;CertificateWrapper&gt; cachain = CertTools.bytesToListOfCertificateWrapperOrThrow(certbytes);</span>
+<span class="nc" id="L770">        caAdminSession.importCACertificate(admin, caname, cachain);</span>
+<span class="nc" id="L771">	}</span>
+	
+	@Override
+	public void updateCaCert(AuthenticationToken admin, String caname, byte[] certbytes) throws AuthorizationDeniedException, 
+	        CADoesntExistsException, CertificateImportException, EjbcaException, CertificateParsingException {
+<span class="nc" id="L776">        final Collection&lt;CertificateWrapper&gt; cachain = CertTools.bytesToListOfCertificateWrapperOrThrow(certbytes);</span>
+<span class="nc" id="L777">        final int caid = caSession.getCA(admin, caname).getCAId();</span>
+<span class="nc" id="L778">        caAdminSession.updateCACertificate(admin, caid, cachain);</span>
+<span class="nc" id="L779">	}	    </span>
+	
+	@Override
+	public void rolloverCACert(AuthenticationToken admin, String caname) throws AuthorizationDeniedException, CADoesntExistsException, CryptoTokenOfflineException {
+<span class="nc" id="L783">	    int caid = caSession.getCAInfo(admin, caname).getCAId();</span>
+<span class="nc" id="L784">        caAdminSession.rolloverCA(admin, caid);</span>
+<span class="nc" id="L785">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

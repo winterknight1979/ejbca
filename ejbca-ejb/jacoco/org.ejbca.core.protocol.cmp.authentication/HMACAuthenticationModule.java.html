@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HMACAuthenticationModule.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.cmp.authentication</a> &gt; <span class="el_source">HMACAuthenticationModule.java</span></div><h1>HMACAuthenticationModule.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.cmp.authentication;
+
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.cmp.PKIMessage;
+import org.bouncycastle.asn1.cmp.RevReqContent;
+import org.bouncycastle.asn1.crmf.CertReqMessages;
+import org.bouncycastle.asn1.crmf.CertTemplate;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.X509CAInfo;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.util.CertTools;
+import org.ejbca.config.CmpConfiguration;
+import org.ejbca.core.ejb.ra.EndEntityAccessSession;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.protocol.cmp.CmpMessageHelper;
+import org.ejbca.core.protocol.cmp.CmpPKIBodyConstants;
+import org.ejbca.core.protocol.cmp.CmpPbeVerifyer;
+import org.ejbca.core.protocol.cmp.InvalidCmpProtectionException;
+
+/**
+ * Checks the authentication of the PKIMessage.
+ * 
+ * In RA mode, the authenticity is checked through a shared secret specified either in 
+ * the configuration file or in the CA.
+ * 
+ * In client mode, the authenticity is checked through the clear-text-password of the 
+ * pre-registered end entity from the database. 
+ * 
+ * @version $Id: HMACAuthenticationModule.java 28319 2018-02-19 09:14:59Z andresjakobs $
+ */
+public class HMACAuthenticationModule implements ICMPAuthenticationModule {
+
+<span class="nc" id="L56">    private static final Logger LOG = Logger.getLogger(HMACAuthenticationModule.class);</span>
+<span class="nc" id="L57">    private static final InternalEjbcaResources INTRES = InternalEjbcaResources.getInstance();</span>
+
+    private final AuthenticationToken authenticationToken;
+    private final EndEntityAccessSession endEntityAccessSession;
+    
+    private final String globalSharedSecret;
+    private final CAInfo caInfo;
+    private final String confAlias;
+    private final CmpConfiguration cmpConfiguration;
+    
+<span class="nc" id="L67">    private String password = null;</span>
+<span class="nc" id="L68">    private String errorMessage = null;</span>
+<span class="nc" id="L69">    private CmpPbeVerifyer verifyer = null;</span>
+        
+    public HMACAuthenticationModule(AuthenticationToken authenticationToken, String globalSharedSecret, String confAlias, CmpConfiguration cmpConfiguration, 
+<span class="nc" id="L72">            CAInfo caInfo, EndEntityAccessSession endEntityAccessSession) {</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        this.globalSharedSecret = &quot;-&quot;.equals(globalSharedSecret) ? null : globalSharedSecret;</span>
+<span class="nc" id="L74">        this.confAlias = confAlias;</span>
+<span class="nc" id="L75">        this.caInfo = caInfo;</span>
+<span class="nc" id="L76">        this.cmpConfiguration = cmpConfiguration;</span>
+<span class="nc" id="L77">        this.authenticationToken = authenticationToken;</span>
+<span class="nc" id="L78">        this.endEntityAccessSession = endEntityAccessSession;</span>
+<span class="nc" id="L79">    }</span>
+    
+    @Override
+    public String getName() {
+<span class="nc" id="L83">        return CmpConfiguration.AUTHMODULE_HMAC;</span>
+    }
+    
+    @Override
+    public String getAuthenticationString() {
+<span class="nc" id="L88">        return this.password;</span>
+    }
+    
+    @Override
+    public String getErrorMessage() {
+<span class="nc" id="L93">        return this.errorMessage;</span>
+    }
+    
+    public CmpPbeVerifyer getCmpPbeVerifyer() {
+<span class="nc" id="L97">        return this.verifyer;</span>
+    }
+    
+    /*
+     * Verifies that 'pkiMessage' is sent by a trusted source. 
+     * 
+     * In RA mode:
+     *      - A globally configured shared secret for all CAs will be used to authenticate the message.
+     *      - If the globally shared secret fails, the password set in the CA will be used to authenticate the message.
+     *  In client mode, the clear-text password set in the pre-registered end entity in the database will be used to 
+     *  authenticate the message. 
+     * 
+     * When successful, the authentication string will be set to the password that was successfully used in authenticating the message.
+     */
+    @Override
+    public boolean verifyOrExtract(final PKIMessage pkiMessage, final String username) {
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        if (pkiMessage == null) {</span>
+<span class="nc" id="L114">            this.errorMessage = &quot;No PKIMessage was found&quot;;</span>
+<span class="nc" id="L115">            return false;</span>
+        }
+<span class="nc bnc" id="L117" title="All 4 branches missed.">        if (pkiMessage.getProtection() == null || pkiMessage.getHeader().getProtectionAlg() == null) {</span>
+<span class="nc" id="L118">            this.errorMessage = &quot;PKI Message is not authenticated properly. No HMAC protection was found.&quot;;</span>
+<span class="nc" id="L119">            return false;</span>
+        }
+        try {
+<span class="nc" id="L122">            verifyer = new CmpPbeVerifyer(pkiMessage);</span>
+<span class="nc" id="L123">        } catch (InvalidCmpProtectionException e) {</span>
+<span class="nc" id="L124">            this.errorMessage = e.getMessage();</span>
+<span class="nc" id="L125">            return false;</span>
+<span class="nc" id="L126">        }</span>
+        try {
+<span class="nc bnc" id="L128" title="All 2 branches missed.">            if (this.cmpConfiguration.getRAMode(this.confAlias)) {</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">                if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L130">                    LOG.debug(&quot;Verifying HMAC in RA mode&quot;);</span>
+                }
+                // Check that the value of KeyId from the request is allowed 
+                // Note that this restriction only applies to HMAC and not EndEntityCertificate because in the latter, the use of profiles can be restricted through 
+                // Administrator privileges. Other authentication modules are not used in RA mode
+<span class="nc" id="L135">                final boolean useKeyIdForEndEntityProfile = StringUtils.equals(cmpConfiguration.getRAEEProfile(confAlias), CmpConfiguration.PROFILE_USE_KEYID);</span>
+<span class="nc" id="L136">                final boolean useKeyIdForCertificateProfile = StringUtils.equals(cmpConfiguration.getRACertProfile(confAlias), CmpConfiguration.PROFILE_USE_KEYID);</span>
+<span class="nc bnc" id="L137" title="All 4 branches missed.">                if (useKeyIdForEndEntityProfile || useKeyIdForCertificateProfile) {</span>
+<span class="nc" id="L138">                    final String keyId = CmpMessageHelper.getStringFromOctets(pkiMessage.getHeader().getSenderKID());</span>
+<span class="nc bnc" id="L139" title="All 6 branches missed.">                    if ((useKeyIdForEndEntityProfile &amp;&amp; StringUtils.equals(keyId, EndEntityConstants.EMPTY_ENDENTITYPROFILENAME)) ||</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">                            (useKeyIdForCertificateProfile &amp;&amp; StringUtils.equals(keyId, CertificateProfile.ENDUSERPROFILENAME))) {</span>
+<span class="nc" id="L141">                        errorMessage = &quot;Unaccepted KeyId '&quot; + keyId + &quot;' in CMP request&quot;;</span>
+<span class="nc" id="L142">                        LOG.info(errorMessage);</span>
+<span class="nc" id="L143">                        return false;</span>
+                    }
+                }
+                // If we use a globally configured shared secret for all CAs we check it right away
+<span class="nc bnc" id="L147" title="All 2 branches missed.">                if (globalSharedSecret != null) {</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">                    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L149">                        LOG.debug(&quot;Verifying message using Global Shared secret&quot;);</span>
+                    }
+<span class="nc bnc" id="L151" title="All 2 branches missed.">                    if (performPbeVerification(globalSharedSecret, &quot;cmp.errorauthmessage&quot;, &quot;Global auth secret&quot;)) {</span>
+<span class="nc" id="L152">                        return true;</span>
+                    }
+                }
+                // We failed verification using global shared secret, try the CA secret
+<span class="nc bnc" id="L156" title="All 2 branches missed.">                if (caInfo instanceof X509CAInfo) {</span>
+<span class="nc" id="L157">                    final String authSecret = ((X509CAInfo) caInfo).getCmpRaAuthSecret();</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">                    if (StringUtils.isNotEmpty(authSecret)) {</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">                        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L160">                            LOG.debug(&quot;Verify message using 'CMP RA Authentication Secret' from CA '&quot; + caInfo.getName() + &quot;'.&quot;);</span>
+                        }
+<span class="nc bnc" id="L162" title="All 2 branches missed.">                        if (performPbeVerification(authSecret, &quot;cmp.errorauthmessage&quot;, &quot;Auth secret for CA=&quot; + caInfo.getName())) {</span>
+<span class="nc" id="L163">                            return true;</span>
+                        }
+                    } else {
+<span class="nc bnc" id="L166" title="All 2 branches missed.">                        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L167">                            LOG.debug(&quot;CMP password is null from CA '&quot;+caInfo.getName()+&quot;'.&quot;);</span>
+                        }
+                    }
+                }
+                // We have failed verification with CA authentication secret too.
+<span class="nc" id="L172">                this.errorMessage = &quot;Failed to verify message using both Global Shared Secret and CMP RA Authentication Secret&quot;;</span>
+<span class="nc" id="L173">            } else {</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">                if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L175">                    LOG.debug(&quot;Verifying HMAC in Client mode&quot;);</span>
+                }
+                //If client mode, we try to get the pre-registered endentity from the DB, and if there is a 
+                //clear text password we check HMAC using this password.
+<span class="nc" id="L179">                EndEntityInformation endEntityInformation = null;</span>
+<span class="nc" id="L180">                String subjectDN = null;</span>
+                try {
+<span class="nc bnc" id="L182" title="All 2 branches missed.">                    if (username != null) {</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">                        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L184">                            LOG.debug(&quot;Searching for an end entity with username='&quot; + username + &quot;'.&quot;);</span>
+                        }
+<span class="nc" id="L186">                        endEntityInformation = this.endEntityAccessSession.findUser(authenticationToken, username);</span>
+                    } else {
+                        // No username given, so we try to find from to extract the username by the DN component specified, 
+                        // if not found, it must be found by subject/issuerDN from the certificate request.
+<span class="nc" id="L190">                        final CertTemplate certTemplate = getCertTemplate(pkiMessage);</span>
+<span class="nc" id="L191">                        subjectDN = certTemplate.getSubject().toString();</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">                        if (subjectDN != null) {</span>
+                            final List&lt;EndEntityInformation&gt; endEntityInformations;
+<span class="nc" id="L194">                            final String extractedUsername = getUsernameByDnComponent(subjectDN);</span>
+<span class="nc bnc" id="L195" title="All 2 branches missed.">                            if (StringUtils.isNotBlank(extractedUsername)) {</span>
+<span class="nc" id="L196">                                endEntityInformation = this.endEntityAccessSession.findUser(authenticationToken, username);</span>
+                            }
+<span class="nc bnc" id="L198" title="All 2 branches missed.">                            if (endEntityInformation == null) {</span>
+<span class="nc" id="L199">                                final X500Name issuer = certTemplate.getIssuer();</span>
+<span class="nc bnc" id="L200" title="All 2 branches missed.">                                if (issuer == null) {</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">                                    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L202">                                        LOG.debug(&quot;Searching for an end entity with SubjectDN='&quot; + subjectDN + &quot;'.&quot;);</span>
+                                    }
+<span class="nc" id="L204">                                    endEntityInformations = this.endEntityAccessSession.findUserBySubjectDN(authenticationToken, subjectDN);</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">                                    if (endEntityInformations.size() &gt; 1) {</span>
+<span class="nc" id="L206">                                        LOG.warn(&quot;Multiple end entities with subject DN &quot; + subjectDN + &quot; were found. This may lead to unexpected behavior.&quot;);</span>
+                                    }
+                                } else {
+<span class="nc" id="L209">                                    final String issuerDN = issuer.toString();</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">                                    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L211">                                        LOG.debug(&quot;Searching for an end entity with SubjectDN='&quot; + subjectDN + &quot;' and isserDN='&quot; + issuerDN + &quot;'&quot;);</span>
+                                    }
+<span class="nc" id="L213">                                    endEntityInformations = endEntityAccessSession.findUserBySubjectAndIssuerDN(this.authenticationToken, subjectDN, issuerDN);</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">                                    if (endEntityInformations.size() &gt; 1) {</span>
+<span class="nc" id="L215">                                        LOG.warn(&quot;Multiple end entities with subject DN &quot; + subjectDN + &quot; and issuer DN&quot; + issuerDN</span>
+                                                + &quot; were found. This may lead to unexpected behavior.&quot;);
+                                    }
+                                }                    
+<span class="nc bnc" id="L219" title="All 2 branches missed.">                                if (!endEntityInformations.isEmpty()) {</span>
+<span class="nc" id="L220">                                    endEntityInformation = endEntityInformations.get(0);</span>
+                                }
+                            }
+                        }
+                    }
+<span class="nc" id="L225">                } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L226">                    LOG.info(&quot;Not authorized to search for end entity: &quot; + e.getMessage());</span>
+<span class="nc" id="L227">                }</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">                if (endEntityInformation == null) {</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">                    LOG.info(INTRES.getLocalizedMessage(&quot;ra.errorentitynotexist&quot;, StringUtils.isNotEmpty(username) ? username : subjectDN));</span>
+<span class="nc" id="L230">                    this.errorMessage = INTRES.getLocalizedMessage(&quot;ra.wrongusernameorpassword&quot;);</span>
+<span class="nc" id="L231">                    return false;</span>
+                }
+<span class="nc bnc" id="L233" title="All 2 branches missed.">                if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L234">                    LOG.debug(&quot;Comparing HMAC password authentication for user '&quot; + endEntityInformation.getUsername() + &quot;'.&quot;);</span>
+                }
+<span class="nc" id="L236">                final String eepassword = endEntityInformation.getPassword();</span>
+<span class="nc bnc" id="L237" title="All 2 branches missed.">                if (StringUtils.isEmpty(eepassword)) {</span>
+<span class="nc" id="L238">                    this.errorMessage = &quot;No clear text password for user '&quot; + endEntityInformation.getUsername() + &quot;', not possible to check authentication.&quot;;</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">                    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L240">                        LOG.debug(this.errorMessage);</span>
+                    }
+<span class="nc" id="L242">                    return false;</span>
+                }
+<span class="nc bnc" id="L244" title="All 2 branches missed.">                if (performPbeVerification(eepassword, &quot;cmp.errorauthmessage&quot;, endEntityInformation.getUsername())) {</span>
+<span class="nc" id="L245">                    return true;</span>
+                }
+            }
+<span class="nc" id="L248">        } catch (InvalidKeyException | NoSuchAlgorithmException e) {</span>
+            // We don't want to explain in detail to the client why the configured key on the CA was invalid
+<span class="nc" id="L250">            this.errorMessage = INTRES.getLocalizedMessage(&quot;cmp.errorgeneral&quot;);</span>
+<span class="nc" id="L251">            LOG.info(this.errorMessage, e);</span>
+<span class="nc" id="L252">        } </span>
+<span class="nc" id="L253">        return false;</span>
+    }
+    
+    /**
+     * Try to validate the PKIMessage using the provided shared secret.
+     * 
+     * Saves last error message on failure to validate.
+     * Saves raAuthenticationSecret on successful validation (to be used later when creating response protection)
+     * @param raAuthenticationSecret Secret
+     * @param errorMessageKey Key
+     * @param errorMessageParameter Param 
+     * @return true if the validation was successful.
+     * @throws InvalidKeyException Fail
+     * @throws NoSuchAlgorithmException Fail
+     */
+    private boolean performPbeVerification(final String raAuthenticationSecret, final String errorMessageKey, final String errorMessageParameter)
+            throws InvalidKeyException, NoSuchAlgorithmException {
+<span class="nc bnc" id="L270" title="All 2 branches missed.">        if (verifyer.verify(raAuthenticationSecret)) {</span>
+<span class="nc" id="L271">            this.password = raAuthenticationSecret;</span>
+<span class="nc" id="L272">            return true;</span>
+        } else {
+<span class="nc" id="L274">            String errmsg = INTRES.getLocalizedMessage(errorMessageKey, errorMessageParameter);</span>
+<span class="nc" id="L275">            LOG.info(errmsg);</span>
+<span class="nc bnc" id="L276" title="All 2 branches missed.">            if (verifyer.getErrMsg() != null) {</span>
+<span class="nc" id="L277">                errmsg = verifyer.getErrMsg();</span>
+<span class="nc" id="L278">                LOG.info(errmsg);</span>
+            }
+<span class="nc" id="L280">            this.errorMessage = errmsg;</span>
+        }
+<span class="nc" id="L282">        return false;</span>
+    }
+
+    /**
+     * Returns the certificate template specified in the request impeded in msg.
+     * 
+     * @param msg message
+     * @return the certificate template embedded in msg. Null if no such template was found.
+     */
+    private CertTemplate getCertTemplate(final PKIMessage msg) {
+<span class="nc" id="L292">        final int tagnr = msg.getBody().getType();</span>
+<span class="nc bnc" id="L293" title="All 6 branches missed.">        if(tagnr == CmpPKIBodyConstants.INITIALIZATIONREQUEST </span>
+                || tagnr==CmpPKIBodyConstants.CERTIFICATAIONREQUEST
+                || tagnr==CmpPKIBodyConstants.KEYUPDATEREQUEST) {
+<span class="nc" id="L296">            CertReqMessages reqmsgs = (CertReqMessages) msg.getBody().getContent();</span>
+<span class="nc" id="L297">            return reqmsgs.toCertReqMsgArray()[0].getCertReq().getCertTemplate();</span>
+        }
+<span class="nc bnc" id="L299" title="All 2 branches missed.">        if(tagnr==CmpPKIBodyConstants.REVOCATIONREQUEST) {</span>
+<span class="nc" id="L300">            RevReqContent rev  =(RevReqContent) msg.getBody().getContent();</span>
+<span class="nc" id="L301">            return rev.toRevDetailsArray()[0].getCertDetails();</span>
+        }
+<span class="nc" id="L303">        return null;</span>
+    }
+    
+    /**
+     * Gets the username by the DN component specified in the CMP configuration 'extract username component' 
+     * and adds the RA name generation prefix and postfix.
+     * 
+     * @param dn the DN.
+     * @return the username with RA name generation prefix and postfix.
+     */
+    private String getUsernameByDnComponent(String dn) {
+<span class="nc" id="L314">        final String usernameComp = this.cmpConfiguration.getExtractUsernameComponent(this.confAlias);</span>
+<span class="nc bnc" id="L315" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L316">            LOG.debug(&quot;extractUsernameComponent: &quot;+usernameComp);</span>
+        }
+<span class="nc bnc" id="L318" title="All 2 branches missed.">        if(StringUtils.isNotEmpty(usernameComp)) {</span>
+<span class="nc" id="L319">            String username = CertTools.getPartFromDN(dn,usernameComp);</span>
+<span class="nc" id="L320">            String fix = cmpConfiguration.getRANameGenPrefix(this.confAlias);</span>
+<span class="nc bnc" id="L321" title="All 2 branches missed.">            if (StringUtils.isNotBlank(fix)) {</span>
+<span class="nc" id="L322">                LOG.info(&quot;Preceded RA name prefix '&quot; + fix + &quot;' to username '&quot; + username + &quot;' in CMP vendor mode.&quot;);</span>
+<span class="nc" id="L323">                username = fix + username;</span>
+            }
+<span class="nc" id="L325">            fix = cmpConfiguration.getRANameGenPostfix(this.confAlias);</span>
+<span class="nc bnc" id="L326" title="All 2 branches missed.">            if (StringUtils.isNotBlank( cmpConfiguration.getRANameGenPostfix(this.confAlias))) {</span>
+<span class="nc" id="L327">                LOG.info(&quot;Attached RA name postfix '&quot; + fix + &quot;' to username '&quot; + username + &quot;' in CMP vendor mode.&quot;);</span>
+<span class="nc" id="L328">                username += fix;</span>
+            }
+<span class="nc" id="L330">            return username;</span>
+        }    
+<span class="nc" id="L332">        return null;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

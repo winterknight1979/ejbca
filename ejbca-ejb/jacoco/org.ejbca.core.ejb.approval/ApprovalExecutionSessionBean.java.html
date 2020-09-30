@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApprovalExecutionSessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.approval</a> &gt; <span class="el_source">ApprovalExecutionSessionBean.java</span></div><h1>ApprovalExecutionSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.ejb.approval;
+
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+
+import org.apache.log4j.Logger;
+import org.cesecore.ErrorCode;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.AuthenticationFailedException;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.jndi.JndiConstants;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaModuleTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaServiceTypes;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionLocal;
+import org.ejbca.core.ejb.ra.EndEntityManagementSessionLocal;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.approval.AdminAlreadyApprovedRequestException;
+import org.ejbca.core.model.approval.Approval;
+import org.ejbca.core.model.approval.ApprovalDataText;
+import org.ejbca.core.model.approval.ApprovalDataVO;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.ApprovalRequest;
+import org.ejbca.core.model.approval.ApprovalRequestExecutionException;
+import org.ejbca.core.model.approval.ApprovalRequestExpiredException;
+import org.ejbca.core.model.approval.SelfApprovalException;
+import org.ejbca.core.model.approval.approvalrequests.ActivateCATokenApprovalRequest;
+import org.ejbca.core.model.approval.approvalrequests.AddEndEntityApprovalRequest;
+import org.ejbca.core.model.approval.approvalrequests.ChangeStatusEndEntityApprovalRequest;
+import org.ejbca.core.model.approval.approvalrequests.EditEndEntityApprovalRequest;
+import org.ejbca.core.model.approval.approvalrequests.KeyRecoveryApprovalRequest;
+import org.ejbca.core.model.approval.approvalrequests.RevocationApprovalRequest;
+import org.ejbca.core.model.approval.profile.ApprovalPartition;
+import org.ejbca.core.model.approval.profile.ApprovalProfile;
+import org.ejbca.core.model.approval.profile.ApprovalStep;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+
+/**
+ * Handles execution of approved tasks. Separated from ApprovealSessionBean to avoid
+ * circular dependencies, since execution will require SSBs that originally created the
+ * approval request.
+ * 
+ * @version $Id: ApprovalExecutionSessionBean.java 29010 2018-05-23 13:09:53Z jekaterina_b_helmes $
+ */
+@SuppressWarnings(&quot;deprecation&quot;)
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;ApprovalExecutionSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L74">public class ApprovalExecutionSessionBean implements ApprovalExecutionSessionLocal, ApprovalExecutionSessionRemote {</span>
+
+<span class="nc" id="L76">	private static final Logger log = Logger.getLogger(ApprovalExecutionSessionBean.class);</span>
+<span class="nc" id="L77">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private ApprovalSessionLocal approvalSession;
+    @EJB
+    private ApprovalProfileSessionLocal approvalProfileSession;
+    @EJB
+    private CAAdminSessionLocal caAdminSession;
+    @EJB
+    private EndEntityManagementSessionLocal endEntityManagementSession;
+    @EJB
+    private GlobalConfigurationSessionLocal globalConfigurationSession;
+    @EJB
+    private SecurityEventsLoggerSessionLocal auditSession;
+    
+    @Override
+    public void approve(AuthenticationToken admin, int approvalId, Approval approval) throws ApprovalRequestExpiredException,
+            ApprovalRequestExecutionException, AuthorizationDeniedException, AdminAlreadyApprovedRequestException, 
+            ApprovalException, SelfApprovalException, AuthenticationFailedException {
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L99">            log.trace(&quot;&gt;approve: hash=&quot;+approvalId);</span>
+        }
+<span class="nc" id="L101">        final ApprovalData approvalData = approvalSession.findNonExpiredApprovalDataLocal(approvalId);</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">        if (approvalData == null) {</span>
+<span class="nc" id="L103">            String msg = intres.getLocalizedMessage(&quot;approval.notexist&quot;, approvalId);</span>
+<span class="nc" id="L104">            log.info(msg);</span>
+<span class="nc" id="L105">            throw new ApprovalException(ErrorCode.APPROVAL_REQUEST_ID_NOT_EXIST, msg);</span>
+        }
+<span class="nc" id="L107">        assertAuthorizedToApprove(admin, approvalData.getApprovalDataVO());   </span>
+<span class="nc" id="L108">        checkApprovalPossibility(admin, approvalData, approval);</span>
+<span class="nc" id="L109">		approval.setApprovalAdmin(true, admin);</span>
+        try {
+            //Retrieve the latest non-stale version of the approval profile from the approval request (as the copy of the profile stored in the request may 
+            //contain metadata which was added during the approval process. 
+<span class="nc" id="L113">            final Integer approvalProfileId = approvalData.getApprovalRequest().getApprovalProfile().getProfileId();</span>
+<span class="nc" id="L114">            ApprovalProfile approvalProfile = null;</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">            if(approvalProfileId != null) {</span>
+<span class="nc" id="L116">                approvalProfile = approvalProfileSession.getApprovalProfile(approvalData.getApprovalRequest().getApprovalProfile().getProfileId().intValue());</span>
+            } else {
+<span class="nc" id="L118">                approvalProfile = approvalData.getApprovalDataVO().getApprovalRequest().getApprovalProfile();</span>
+            }
+<span class="nc" id="L120">            final List&lt;Approval&gt; approvalsPerformed = approvalData.getApprovals();</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">            if (approvalData.getStatus() != ApprovalDataVO.STATUS_WAITINGFORAPPROVAL) {</span>
+<span class="nc" id="L122">                throw new ApprovalException(&quot;Wrong status of approval request, expected STATUS_WAITINGFORAPPROVAL(-1): &quot;+approvalData.getStatus());</span>
+            }
+            // Check if the approval is applicable, i.e belongs to and satisfies a certain partition, as well as that all previous steps have been satisfied
+<span class="nc bnc" id="L125" title="All 2 branches missed.">            if (!approvalProfile.isApprovalAuthorized(approvalsPerformed, approval)) {</span>
+<span class="nc" id="L126">                throw new AuthorizationDeniedException(&quot;Administrator &quot; + approval.getAdmin().toString() + &quot; was not authorized to partition &quot; + approval.getPartitionId()</span>
+<span class="nc" id="L127">                                + &quot; in step &quot; + approval.getStepId() + &quot; of approval profile &quot; + approvalProfile.getProfileName());</span>
+            }
+<span class="nc" id="L129">            approvalsPerformed.add(approval);</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">            if (approvalData.hasRequestOrApprovalExpired()) {</span>
+<span class="nc" id="L131">                approvalSession.sendApprovalNotifications(approvalData.getApprovalRequest(), approvalProfile, approvalData, false);</span>
+<span class="nc" id="L132">                throw new ApprovalRequestExpiredException();</span>
+            }
+<span class="nc" id="L134">            final boolean readyToCheckExecution = approvalProfile.canApprovalExecute(approvalsPerformed);</span>
+<span class="nc" id="L135">            approvalSession.setApprovals(approvalData, approvalsPerformed);</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">            if (readyToCheckExecution) {</span>
+                //Kept for legacy reasons to allow for 100% uptime, can be removed once upgrading from 6.6.0 is no longer supported. 
+<span class="nc" id="L138">                approvalData.setRemainingapprovals(0);</span>
+<span class="nc" id="L139">                final ApprovalRequest approvalRequest = approvalData.getApprovalRequest();</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">                if (approvalRequest.isExecutable()) {</span>
+                    try {
+<span class="nc bnc" id="L142" title="All 2 branches missed.">                        if (approvalRequest instanceof ActivateCATokenApprovalRequest) {</span>
+<span class="nc" id="L143">                            ((ActivateCATokenApprovalRequest) approvalRequest).execute(caAdminSession);</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">                        } else if (approvalRequest instanceof AddEndEntityApprovalRequest) {</span>
+<span class="nc" id="L145">                            ((AddEndEntityApprovalRequest) approvalRequest).execute(endEntityManagementSession, </span>
+<span class="nc" id="L146">                                    approvalSession.getIdFromApprovalId(approvalId), admin);</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">                        } else if (approvalRequest instanceof ChangeStatusEndEntityApprovalRequest) {</span>
+<span class="nc" id="L148">                            ((ChangeStatusEndEntityApprovalRequest) approvalRequest).execute(endEntityManagementSession, </span>
+<span class="nc" id="L149">                                    approvalSession.getIdFromApprovalId(approvalId), admin);</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">                        } else if (approvalRequest instanceof EditEndEntityApprovalRequest) {</span>
+<span class="nc" id="L151">                            ((EditEndEntityApprovalRequest) approvalRequest).execute(endEntityManagementSession, </span>
+<span class="nc" id="L152">                                    approvalSession.getIdFromApprovalId(approvalId), admin);</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">                        } else if (approvalRequest instanceof KeyRecoveryApprovalRequest) {</span>
+<span class="nc" id="L154">                            ((KeyRecoveryApprovalRequest) approvalRequest).execute(endEntityManagementSession);</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">                        } else if (approvalRequest instanceof RevocationApprovalRequest) {</span>
+<span class="nc" id="L156">                            ((RevocationApprovalRequest) approvalRequest).execute(endEntityManagementSession, </span>
+<span class="nc" id="L157">                                    approvalSession.getIdFromApprovalId(approvalId), admin);</span>
+                        } else {
+<span class="nc" id="L159">                            approvalRequest.execute();</span>
+                        }
+<span class="nc" id="L161">                        approvalData.setStatus(ApprovalDataVO.STATUS_EXECUTED);</span>
+<span class="nc" id="L162">                    } catch (ApprovalRequestExecutionException e) {</span>
+<span class="nc" id="L163">                        approvalData.setStatus(ApprovalDataVO.STATUS_EXECUTIONFAILED);</span>
+<span class="nc" id="L164">                        throw e;</span>
+<span class="nc" id="L165">                    }</span>
+<span class="nc" id="L166">                    approvalData.setStatus(ApprovalDataVO.STATUS_EXECUTED);</span>
+<span class="nc" id="L167">                    approvalData.setExpireDate(new Date());</span>
+                } else {
+<span class="nc" id="L169">                    approvalData.setStatus(ApprovalDataVO.STATUS_APPROVED);</span>
+<span class="nc" id="L170">                    approvalData.setExpiredate((new Date()).getTime() + approvalRequest.getApprovalValidity());</span>
+                }
+            }
+            // Notify all administrators affected by the work flow update
+<span class="nc" id="L174">            approvalSession.sendApprovalNotifications(approvalData.getApprovalRequest(), approvalProfile, approvalData, false);</span>
+<span class="nc" id="L175">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L176">            details.put(&quot;msg&quot;, intres.getLocalizedMessage(&quot;approval.approved&quot;, approvalData.getId()));</span>
+<span class="nc" id="L177">            List&lt;ApprovalDataText&gt; texts = approvalData.getApprovalRequest().getNewRequestDataAsText(admin);</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">            for (ApprovalDataText text : texts) {</span>
+<span class="nc" id="L179">                details.put(text.getHeader(), text.getData());                    </span>
+<span class="nc" id="L180">            }</span>
+<span class="nc" id="L181">            auditSession.log(EjbcaEventTypes.APPROVAL_APPROVE, EventStatus.SUCCESS, EjbcaModuleTypes.APPROVAL, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L182">                    admin.toString(), String.valueOf(approvalData.getCaid()), null, null, details);</span>
+<span class="nc" id="L183">        } catch (ApprovalRequestExpiredException e) {</span>
+<span class="nc" id="L184">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L185">            details.put(&quot;msg&quot;, intres.getLocalizedMessage(&quot;approval.expired&quot;, approvalData.getId()));</span>
+<span class="nc" id="L186">            auditSession.log(EjbcaEventTypes.APPROVAL_APPROVE, EventStatus.FAILURE, EjbcaModuleTypes.APPROVAL, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L187">                    admin.toString(), String.valueOf(approvalData.getCaid()), null, null, details);</span>
+<span class="nc" id="L188">            throw e;</span>
+<span class="nc" id="L189">        } catch (ApprovalRequestExecutionException e) {</span>
+<span class="nc" id="L190">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L191">            details.put(&quot;msg&quot;, intres.getLocalizedMessage(&quot;approval.errorexecuting&quot;, approvalData.getId()));</span>
+<span class="nc" id="L192">            details.put(&quot;error&quot;, e.getMessage());</span>
+<span class="nc" id="L193">            auditSession.log(EjbcaEventTypes.APPROVAL_APPROVE, EventStatus.FAILURE, EjbcaModuleTypes.APPROVAL, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L194">                    admin.toString(), String.valueOf(approvalData.getCaid()), null, null, details);</span>
+<span class="nc" id="L195">            throw e;</span>
+<span class="nc" id="L196">        }</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L198">            log.trace(&quot;&lt;approve: hash=&quot; + approvalId+&quot;, id=&quot;+approvalData.getId()+&quot;, &quot;+approvalData.getStatus());</span>
+        }
+<span class="nc" id="L200">    }</span>
+
+    @Override
+    public void reject(AuthenticationToken admin, int approvalId, Approval approval)
+            throws ApprovalRequestExpiredException, AuthorizationDeniedException, ApprovalException, AdminAlreadyApprovedRequestException,
+            SelfApprovalException, AuthenticationFailedException {
+<span class="nc" id="L206">        log.trace(&quot;&gt;reject: hash=&quot;+approvalId);</span>
+<span class="nc" id="L207">        final ApprovalData approvalData = approvalSession.findNonExpiredApprovalDataLocal(approvalId);</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">        if (approvalData == null) {</span>
+<span class="nc" id="L209">            String msg = intres.getLocalizedMessage(&quot;approval.notexist&quot;, approvalId);</span>
+<span class="nc" id="L210">            log.info(msg);</span>
+<span class="nc" id="L211">            throw new ApprovalException(ErrorCode.APPROVAL_REQUEST_ID_NOT_EXIST, msg);</span>
+        }
+<span class="nc" id="L213">        assertAuthorizedToApprove(admin, approvalData.getApprovalDataVO());</span>
+<span class="nc" id="L214">        checkApprovalPossibility(admin, approvalData, approval);</span>
+<span class="nc" id="L215">        approval.setApprovalAdmin(false, admin);</span>
+        try {
+            //Retrieve the latest non-stale version of the approval profile from the approval request (as the copy of the profile stored in the request may 
+            //contain metadata which was added during the approval process. 
+<span class="nc" id="L219">            ApprovalProfile approvalProfile = approvalProfileSession.getApprovalProfile(approvalData.getApprovalRequest().getApprovalProfile().getProfileId());</span>
+<span class="nc bnc" id="L220" title="All 2 branches missed.">            if(approvalProfile == null) {</span>
+<span class="nc" id="L221">                approvalProfile = approvalData.getApprovalDataVO().getApprovalRequest().getApprovalProfile();</span>
+            }
+<span class="nc" id="L223">            final List&lt;Approval&gt; approvalsPerformed = approvalData.getApprovals();</span>
+            // Check if the approval is applicable, i.e belongs to and satisfies a certain partition, as well as that all previous steps have been satisfied
+<span class="nc bnc" id="L225" title="All 2 branches missed.">            if (!approvalProfile.isApprovalAuthorized(approvalsPerformed, approval)) {</span>
+<span class="nc" id="L226">                throw new AuthorizationDeniedException(&quot;Administrator &quot; + approval.getAdmin().toString() + &quot; was not authorized to partition &quot; + approval.getPartitionId()</span>
+<span class="nc" id="L227">                                + &quot; in step &quot; + approval.getStepId() + &quot; of approval profile &quot; + approvalProfile.getProfileName());</span>
+            }
+<span class="nc" id="L229">            approvalsPerformed.add(approval);</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">            if (approvalData.hasRequestOrApprovalExpired()) {</span>
+<span class="nc" id="L231">                approvalSession.sendApprovalNotifications(approvalData.getApprovalRequest(), approvalProfile, approvalData, true);</span>
+<span class="nc" id="L232">                throw new ApprovalRequestExpiredException();</span>
+            }
+<span class="nc bnc" id="L234" title="All 2 branches missed.">            if (approvalData.getStatus() != ApprovalDataVO.STATUS_WAITINGFORAPPROVAL) {</span>
+<span class="nc" id="L235">                throw new ApprovalException(&quot;Wrong status of approval request.&quot;);</span>
+            }
+<span class="nc" id="L237">            approvalSession.setApprovals(approvalData, approvalsPerformed);</span>
+            //Retrieve the approval profile just to make sure that the state is still valid
+            //Kept for legacy reasons
+<span class="nc" id="L240">            approvalData.setRemainingapprovals(0);</span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">            if (approvalData.getApprovalRequest().isExecutable()) {</span>
+<span class="nc" id="L242">                approvalData.setStatus(ApprovalDataVO.STATUS_EXECUTIONDENIED);</span>
+<span class="nc" id="L243">                approvalData.setExpireDate(new Date());</span>
+            } else {
+<span class="nc" id="L245">                approvalData.setStatus(ApprovalDataVO.STATUS_REJECTED);</span>
+<span class="nc" id="L246">                approvalData.setExpiredate((new Date()).getTime() + approvalData.getApprovalRequest().getApprovalValidity());</span>
+            }
+<span class="nc" id="L248">            approvalSession.sendApprovalNotifications(approvalData.getApprovalRequest(), approvalProfile, approvalData, false);</span>
+<span class="nc" id="L249">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L250">            details.put(&quot;msg&quot;, intres.getLocalizedMessage(&quot;approval.rejected&quot;, approvalData.getId()));</span>
+<span class="nc" id="L251">            List&lt;ApprovalDataText&gt; texts = approvalData.getApprovalRequest().getNewRequestDataAsText(admin);</span>
+<span class="nc bnc" id="L252" title="All 2 branches missed.">            for (ApprovalDataText text : texts) {</span>
+<span class="nc" id="L253">                details.put(text.getHeader(), text.getData());                    </span>
+<span class="nc" id="L254">            }</span>
+<span class="nc" id="L255">            auditSession.log(EjbcaEventTypes.APPROVAL_REJECT, EventStatus.SUCCESS, EjbcaModuleTypes.APPROVAL, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L256">                    admin.toString(), String.valueOf(approvalData.getCaid()), null, null, details);</span>
+<span class="nc" id="L257">        } catch (ApprovalRequestExpiredException e) {</span>
+<span class="nc" id="L258">            log.info(intres.getLocalizedMessage(&quot;approval.expired&quot;, approvalData.getId()));</span>
+<span class="nc" id="L259">            throw e;</span>
+<span class="nc" id="L260">        }</span>
+<span class="nc" id="L261">        log.trace(&quot;&lt;reject: hash=&quot;+approvalId+&quot;, id=&quot;+approvalData.getId());</span>
+<span class="nc" id="L262">    }</span>
+
+	
+    /** Verifies that an administrator can approve an action, i.e. that it is not the same admin approving the request as made the request originally.
+     * An admin is not allowed to approve his/her own actions.
+     * 
+     * @param admin the administrator that tries to approve the action
+     * @param approvalData the action that the administrator tries to approve
+     * @param approval the new approval to vet
+     * 
+     * @throws AdminAlreadyApprovedRequestException if the admin has already approved the action before
+     * @throws SelfApprovalException if the administrator performing the approval is the same as the one requesting the original action. 
+     */
+    private void checkApprovalPossibility(AuthenticationToken admin, ApprovalData approvalData, Approval approval)
+            throws AdminAlreadyApprovedRequestException, SelfApprovalException {
+        // Check that the approver's principals don't exist among the existing usernames.
+<span class="nc" id="L278">        final ApprovalDataVO approvalInformation = approvalData.getApprovalDataVO();</span>
+<span class="nc" id="L279">        final int approvalId = approvalInformation.getApprovalId();</span>
+<span class="nc bnc" id="L280" title="All 2 branches missed.">        if (approvalInformation.getReqadmincertissuerdn() != null) {</span>
+            // Check that the approver isn't the same as requested the action.
+<span class="nc" id="L282">            AuthenticationToken requester = approvalData.getApprovalRequest().getRequestAdmin();</span>
+<span class="nc bnc" id="L283" title="All 2 branches missed.">            if (admin.equals(requester)) {</span>
+<span class="nc" id="L284">                String msg = intres.getLocalizedMessage(&quot;approval.error.cannotapproveownrequest&quot;, approvalId);</span>
+<span class="nc" id="L285">                log.info(msg);</span>
+<span class="nc" id="L286">                throw new AdminAlreadyApprovedRequestException(msg);</span>
+            }
+        }
+        // Check that his admin has not approved this partition before
+<span class="nc bnc" id="L290" title="All 2 branches missed.">        for (Approval existingApproval : approvalInformation.getApprovals()) {</span>
+<span class="nc bnc" id="L291" title="All 2 branches missed.">            if (existingApproval.getStepId() == approval.getStepId() </span>
+<span class="nc bnc" id="L292" title="All 2 branches missed.">                    &amp;&amp; existingApproval.getPartitionId() == approval.getPartitionId()</span>
+<span class="nc bnc" id="L293" title="All 2 branches missed.">                    &amp;&amp; existingApproval.getAdmin().equals(admin)) {</span>
+<span class="nc" id="L294">                String msg = intres.getLocalizedMessage(&quot;approval.error.alreadyapproved&quot;, approvalId);</span>
+<span class="nc" id="L295">                log.info(msg);</span>
+<span class="nc" id="L296">                throw new AdminAlreadyApprovedRequestException(msg);</span>
+            }
+<span class="nc" id="L298">        }</span>
+        // Check that the admin wasn't the last one who edited the request
+<span class="nc bnc" id="L300" title="All 4 branches missed.">        if (approvalInformation.getApprovalRequest().isEditedByMe(admin) &amp;&amp; !approvalData.getApprovalDataVO().getApprovalProfile().getAllowSelfEdit()) {</span>
+<span class="nc" id="L301">            throw new SelfApprovalException(&quot;Can not approve a request that was last edited by oneself&quot;);</span>
+        }
+       
+
+<span class="nc" id="L305">    }</span>
+    
+    @Override
+    public void assertAuthorizedToApprove(AuthenticationToken admin, final ApprovalDataVO approvalData) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L309" title="All 2 branches missed.">        if (approvalData.getEndEntityProfileId() == ApprovalDataVO.ANY_ENDENTITYPROFILE) {</span>
+<span class="nc bnc" id="L310" title="All 2 branches missed.">            if (!authorizationSession.isAuthorized(admin, AccessRulesConstants.REGULAR_APPROVECAACTION)) {</span>
+<span class="nc" id="L311">                final String msg = intres.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, AccessRulesConstants.REGULAR_APPROVECAACTION,</span>
+                        null);
+<span class="nc" id="L313">                throw new AuthorizationDeniedException(msg);</span>
+            }
+        } else {
+<span class="nc bnc" id="L316" title="All 2 branches missed.">            if (!authorizationSession.isAuthorized(admin, AccessRulesConstants.REGULAR_APPROVEENDENTITY)) {</span>
+<span class="nc" id="L317">                final String msg = intres.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, AccessRulesConstants.REGULAR_APPROVEENDENTITY,</span>
+                        null);
+<span class="nc" id="L319">                throw new AuthorizationDeniedException(msg);</span>
+            }
+<span class="nc" id="L321">            GlobalConfiguration globalConfiguration = (GlobalConfiguration) globalConfigurationSession</span>
+<span class="nc" id="L322">                    .getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID);</span>
+<span class="nc bnc" id="L323" title="All 2 branches missed.">            if (globalConfiguration.getEnableEndEntityProfileLimitations()) {</span>
+<span class="nc bnc" id="L324" title="All 2 branches missed.">                if (!authorizationSession.isAuthorized(admin, AccessRulesConstants.ENDENTITYPROFILEPREFIX + approvalData.getEndEntityProfileId()</span>
+                        + AccessRulesConstants.APPROVE_END_ENTITY)) {
+<span class="nc" id="L326">                    final String msg = intres.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, AccessRulesConstants.ENDENTITYPROFILEPREFIX</span>
+<span class="nc" id="L327">                            + approvalData.getEndEntityProfileId() + AccessRulesConstants.APPROVE_END_ENTITY, null);</span>
+<span class="nc" id="L328">                    throw new AuthorizationDeniedException(msg);</span>
+                }
+            }
+        }
+<span class="nc bnc" id="L332" title="All 2 branches missed.">        if (approvalData.getCAId() != ApprovalDataVO.ANY_CA) {</span>
+<span class="nc bnc" id="L333" title="All 2 branches missed.">            if (!authorizationSession.isAuthorized(admin, StandardRules.CAACCESS.resource() + approvalData.getCAId())) {</span>
+<span class="nc" id="L334">                final String msg = intres.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;,</span>
+<span class="nc" id="L335">                        StandardRules.CAACCESS.resource() + approvalData.getCAId(), null);</span>
+<span class="nc" id="L336">                throw new AuthorizationDeniedException(msg);</span>
+            }
+        }
+        
+        // Check that the admin is allowed in the approval profile
+<span class="nc" id="L341">        boolean allowed = false;</span>
+        final ApprovalStep nextStep;
+<span class="nc" id="L343">        final ApprovalProfile approvalProfile = approvalData.getApprovalProfile();</span>
+        try {
+<span class="nc" id="L345">            nextStep = approvalProfile.getStepBeingEvaluated(approvalData.getApprovals());</span>
+<span class="nc" id="L346">        } catch (AuthenticationFailedException e) {</span>
+<span class="nc" id="L347">            throw new IllegalStateException(e);</span>
+<span class="nc" id="L348">        }</span>
+        
+<span class="nc bnc" id="L350" title="All 2 branches missed.">        if (nextStep != null) {</span>
+<span class="nc" id="L351">            final Map&lt;Integer, ApprovalPartition&gt; partitions = nextStep.getPartitions();</span>
+<span class="nc bnc" id="L352" title="All 2 branches missed.">            for (ApprovalPartition partition : partitions.values()) {</span>
+                try {
+<span class="nc bnc" id="L354" title="All 2 branches missed.">                    if (approvalProfile.canApprovePartition(admin, partition)) {</span>
+<span class="nc" id="L355">                        allowed = true;</span>
+<span class="nc" id="L356">                        break;</span>
+                    }
+<span class="nc" id="L358">                } catch (AuthenticationFailedException e) {</span>
+                    // If this admin cannot approve this partition, check the next partition
+<span class="nc" id="L360">                }</span>
+<span class="nc" id="L361">            }</span>
+        }
+<span class="nc bnc" id="L363" title="All 2 branches missed.">        if (!allowed) {</span>
+<span class="nc" id="L364">            final String msg = intres.getLocalizedMessage(&quot;authorization.notauthorizedtoapprovalrequest&quot;,</span>
+<span class="nc" id="L365">                    admin, approvalData.getApprovalId(), approvalProfile.getProfileId());</span>
+<span class="nc" id="L366">            throw new AuthorizationDeniedException(msg);</span>
+        }
+
+<span class="nc" id="L369">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

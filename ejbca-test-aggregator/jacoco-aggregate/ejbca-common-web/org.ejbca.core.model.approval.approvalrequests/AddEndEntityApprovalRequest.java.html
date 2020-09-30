@@ -57,7 +57,7 @@ import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
 public class AddEndEntityApprovalRequest extends ApprovalRequest {
 
 	private static final long serialVersionUID = -1L;
-<span class="nc" id="L60">	private static final Logger log = Logger.getLogger(AddEndEntityApprovalRequest.class);</span>
+<span class="fc" id="L60">	private static final Logger log = Logger.getLogger(AddEndEntityApprovalRequest.class);</span>
 	private static final int LATEST_VERSION = 1;	
 	
 	private EndEntityInformation userdata;
@@ -68,10 +68,10 @@ public class AddEndEntityApprovalRequest extends ApprovalRequest {
 
     public AddEndEntityApprovalRequest(EndEntityInformation userdata, boolean clearpwd, AuthenticationToken requestAdmin, String requestSignature,
             int cAId, int endEntityProfileId, final ApprovalProfile approvalProfile) {
-<span class="nc" id="L71">    	super(requestAdmin, requestSignature, REQUESTTYPE_SIMPLE, cAId, endEntityProfileId, approvalProfile);</span>
-<span class="nc" id="L72">		this.userdata = userdata;</span>
-<span class="nc" id="L73">		this.clearpwd = clearpwd;</span>
-<span class="nc" id="L74">	}</span>
+<span class="fc" id="L71">    	super(requestAdmin, requestSignature, REQUESTTYPE_SIMPLE, cAId, endEntityProfileId, approvalProfile);</span>
+<span class="fc" id="L72">		this.userdata = userdata;</span>
+<span class="fc" id="L73">		this.clearpwd = clearpwd;</span>
+<span class="fc" id="L74">	}</span>
 
 	@Override
 	public void execute() throws ApprovalRequestExecutionException {

@@ -472,13 +472,13 @@ public class CertificateData extends BaseCertificateData implements Serializable
     
     @Override
     public void setIssuer(String dn) {
-<span class="nc" id="L475">        setIssuerDN(CertTools.stringToBCDNString(dn));</span>
-<span class="nc" id="L476">    }</span>
+<span class="fc" id="L475">        setIssuerDN(CertTools.stringToBCDNString(dn));</span>
+<span class="fc" id="L476">    }</span>
 
     @Override
     public void setSubject(String dn) {
-<span class="nc" id="L480">        setSubjectDN(CertTools.stringToBCDNString(dn));</span>
-<span class="nc" id="L481">    }</span>
+<span class="fc" id="L480">        setSubjectDN(CertTools.stringToBCDNString(dn));</span>
+<span class="fc" id="L481">    }</span>
 
     @Override
     public void setEndEntityProfileId(final Integer endEntityProfileId) {
@@ -495,10 +495,10 @@ public class CertificateData extends BaseCertificateData implements Serializable
 
     @Override
     public boolean equals(Object obj) {
-<span class="nc bnc" id="L498" title="All 2 branches missed.">        if (!(obj instanceof CertificateData)) {</span>
+<span class="pc bpc" id="L498" title="1 of 2 branches missed.">        if (!(obj instanceof CertificateData)) {</span>
 <span class="nc" id="L499">            return false;</span>
         }
-<span class="nc" id="L501">        return equals((CertificateData) obj, true);</span>
+<span class="fc" id="L501">        return equals((CertificateData) obj, true);</span>
     }
 
     public boolean equals(CertificateData certificateData, boolean mode, boolean strictStatus) {
@@ -509,11 +509,11 @@ public class CertificateData extends BaseCertificateData implements Serializable
     }
 
     private boolean equals(CertificateData certificateData, boolean strictStatus) {
-<span class="nc bnc" id="L512" title="All 2 branches missed.">        if (!equalsNonSensitive(certificateData, strictStatus)) {</span>
+<span class="pc bpc" id="L512" title="1 of 2 branches missed.">        if (!equalsNonSensitive(certificateData, strictStatus)) {</span>
 <span class="nc" id="L513">            return false;</span>
         }
-<span class="nc bnc" id="L515" title="All 4 branches missed.">        if ( this.base64Cert==null &amp;&amp; certificateData.base64Cert==null ) {</span>
-<span class="nc" id="L516">            return true; // test before shows that fingerprint is equal and then both objects must refer to same row in Base64CertData</span>
+<span class="pc bpc" id="L515" title="2 of 4 branches missed.">        if ( this.base64Cert==null &amp;&amp; certificateData.base64Cert==null ) {</span>
+<span class="fc" id="L516">            return true; // test before shows that fingerprint is equal and then both objects must refer to same row in Base64CertData</span>
         }
 <span class="nc bnc" id="L518" title="All 4 branches missed.">        if ( this.base64Cert==null || certificateData.base64Cert==null ) {</span>
 <span class="nc" id="L519">            return false; // one is null and the other not null</span>
@@ -525,29 +525,29 @@ public class CertificateData extends BaseCertificateData implements Serializable
     }
 
     private boolean equalsNonSensitive(CertificateData certificateData, boolean strictStatus) {
-<span class="nc bnc" id="L528" title="All 2 branches missed.">        if (!issuerDN.equals(certificateData.issuerDN)) {</span>
+<span class="pc bpc" id="L528" title="1 of 2 branches missed.">        if (!issuerDN.equals(certificateData.issuerDN)) {</span>
 <span class="nc" id="L529">            return false;</span>
         }
-<span class="nc bnc" id="L531" title="All 2 branches missed.">        if (!subjectDN.equals(certificateData.subjectDN)) {</span>
+<span class="pc bpc" id="L531" title="1 of 2 branches missed.">        if (!subjectDN.equals(certificateData.subjectDN)) {</span>
 <span class="nc" id="L532">            return false;</span>
         }
-<span class="nc bnc" id="L534" title="All 2 branches missed.">        if (!fingerprint.equals(certificateData.fingerprint)) {</span>
+<span class="pc bpc" id="L534" title="1 of 2 branches missed.">        if (!fingerprint.equals(certificateData.fingerprint)) {</span>
 <span class="nc" id="L535">            return false;</span>
         }
-<span class="nc bnc" id="L537" title="All 2 branches missed.">        if (!StringUtils.equals(cAFingerprint, certificateData.cAFingerprint)) {</span>
+<span class="pc bpc" id="L537" title="1 of 2 branches missed.">        if (!StringUtils.equals(cAFingerprint, certificateData.cAFingerprint)) {</span>
 <span class="nc" id="L538">            return false;</span>
         }
-<span class="nc bnc" id="L540" title="All 2 branches missed.">        if (!equalsStatus(certificateData, strictStatus)) {</span>
+<span class="pc bpc" id="L540" title="1 of 2 branches missed.">        if (!equalsStatus(certificateData, strictStatus)) {</span>
 <span class="nc" id="L541">            return false;</span>
         }
-<span class="nc bnc" id="L543" title="All 2 branches missed.">        if (type != certificateData.type) {</span>
+<span class="pc bpc" id="L543" title="1 of 2 branches missed.">        if (type != certificateData.type) {</span>
 <span class="nc" id="L544">            return false;</span>
         }
-<span class="nc bnc" id="L546" title="All 2 branches missed.">        if (!serialNumber.equals(certificateData.serialNumber)) {</span>
+<span class="pc bpc" id="L546" title="1 of 2 branches missed.">        if (!serialNumber.equals(certificateData.serialNumber)) {</span>
 <span class="nc" id="L547">            return false;</span>
         }
-<span class="nc bnc" id="L549" title="All 2 branches missed.">        if (notBefore==null) {</span>
-<span class="nc bnc" id="L550" title="All 2 branches missed.">            if (certificateData.notBefore!=null) {</span>
+<span class="pc bpc" id="L549" title="1 of 2 branches missed.">        if (notBefore==null) {</span>
+<span class="pc bpc" id="L550" title="1 of 2 branches missed.">            if (certificateData.notBefore!=null) {</span>
 <span class="nc" id="L551">                return false;</span>
             }
         } else {
@@ -555,29 +555,29 @@ public class CertificateData extends BaseCertificateData implements Serializable
 <span class="nc" id="L555">                return false;</span>
             }
         }
-<span class="nc bnc" id="L558" title="All 2 branches missed.">        if (expireDate != certificateData.expireDate) {</span>
+<span class="pc bpc" id="L558" title="1 of 2 branches missed.">        if (expireDate != certificateData.expireDate) {</span>
 <span class="nc" id="L559">            return false;</span>
         }
-<span class="nc bnc" id="L561" title="All 2 branches missed.">        if (revocationDate != certificateData.revocationDate) {</span>
+<span class="pc bpc" id="L561" title="1 of 2 branches missed.">        if (revocationDate != certificateData.revocationDate) {</span>
 <span class="nc" id="L562">            return false;</span>
         }
-<span class="nc bnc" id="L564" title="All 2 branches missed.">        if (revocationReason != certificateData.revocationReason) {</span>
+<span class="pc bpc" id="L564" title="1 of 2 branches missed.">        if (revocationReason != certificateData.revocationReason) {</span>
 <span class="nc" id="L565">            return false;</span>
         }
-<span class="nc bnc" id="L567" title="All 2 branches missed.">        if (!StringUtils.equals(username, certificateData.username)) {</span>
+<span class="pc bpc" id="L567" title="1 of 2 branches missed.">        if (!StringUtils.equals(username, certificateData.username)) {</span>
 <span class="nc" id="L568">            return false;</span>
         }
-<span class="nc bnc" id="L570" title="All 2 branches missed.">        if (!StringUtils.equals(tag, certificateData.tag)) {</span>
+<span class="pc bpc" id="L570" title="1 of 2 branches missed.">        if (!StringUtils.equals(tag, certificateData.tag)) {</span>
 <span class="nc" id="L571">            return false;</span>
         }
-<span class="nc bnc" id="L573" title="All 4 branches missed.">        if (certificateProfileId == null &amp;&amp; certificateData.certificateProfileId != null) {</span>
+<span class="pc bpc" id="L573" title="2 of 4 branches missed.">        if (certificateProfileId == null &amp;&amp; certificateData.certificateProfileId != null) {</span>
 <span class="nc" id="L574">            return false;</span>
         }
-<span class="nc bnc" id="L576" title="All 4 branches missed.">        if (certificateProfileId != null &amp;&amp; !certificateProfileId.equals(certificateData.certificateProfileId)) {</span>
+<span class="pc bpc" id="L576" title="3 of 4 branches missed.">        if (certificateProfileId != null &amp;&amp; !certificateProfileId.equals(certificateData.certificateProfileId)) {</span>
 <span class="nc" id="L577">            return false;</span>
         }
-<span class="nc bnc" id="L579" title="All 2 branches missed.">        if (endEntityProfileId==null) {</span>
-<span class="nc bnc" id="L580" title="All 2 branches missed.">            if (certificateData.endEntityProfileId!=null) {</span>
+<span class="pc bpc" id="L579" title="1 of 2 branches missed.">        if (endEntityProfileId==null) {</span>
+<span class="pc bpc" id="L580" title="1 of 2 branches missed.">            if (certificateData.endEntityProfileId!=null) {</span>
 <span class="nc" id="L581">                return false;</span>
             }
         } else {
@@ -585,13 +585,13 @@ public class CertificateData extends BaseCertificateData implements Serializable
 <span class="nc" id="L585">                return false;</span>
             }
         }
-<span class="nc bnc" id="L588" title="All 2 branches missed.">        if (updateTime != certificateData.updateTime) {</span>
+<span class="pc bpc" id="L588" title="1 of 2 branches missed.">        if (updateTime != certificateData.updateTime) {</span>
 <span class="nc" id="L589">            return false;</span>
         }
-<span class="nc bnc" id="L591" title="All 2 branches missed.">        if (!StringUtils.equals(subjectAltName, certificateData.subjectAltName)) {</span>
+<span class="pc bpc" id="L591" title="1 of 2 branches missed.">        if (!StringUtils.equals(subjectAltName, certificateData.subjectAltName)) {</span>
 <span class="nc" id="L592">            return false;</span>
         }
-<span class="nc" id="L594">        return true;</span>
+<span class="fc" id="L594">        return true;</span>
     }
 
     @Override

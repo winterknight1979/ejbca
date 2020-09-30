@@ -1,0 +1,559 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>KeyRecoverySessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.keyrecovery</a> &gt; <span class="el_source">KeyRecoverySessionBean.java</span></div><h1>KeyRecoverySessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.ejb.keyrecovery;
+
+import java.nio.charset.StandardCharsets;
+import java.security.KeyPair;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import javax.ejb.EJB;
+import javax.ejb.FinderException;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.apache.log4j.Logger;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.certificates.ca.ApprovalRequestType;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.ca.X509CA;
+import org.cesecore.certificates.certificate.CertificateInfo;
+import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
+import org.cesecore.certificates.certificate.CertificateWrapper;
+import org.cesecore.certificates.certificateprofile.CertificateProfile;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.keys.token.CryptoToken;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.keys.token.CryptoTokenSessionLocal;
+import org.cesecore.keys.util.KeyPairWrapper;
+import org.cesecore.keys.util.KeyTools;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.EJBTools;
+import org.ejbca.core.ejb.approval.ApprovalProfileSessionLocal;
+import org.ejbca.core.ejb.approval.ApprovalSessionLocal;
+import org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaModuleTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaServiceTypes;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionLocal;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.ApprovalExecutorUtil;
+import org.ejbca.core.model.approval.ApprovalOveradableClassName;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.core.model.approval.approvalrequests.KeyRecoveryApprovalRequest;
+import org.ejbca.core.model.approval.profile.ApprovalProfile;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.ca.caadmin.extendedcaservices.KeyRecoveryCAServiceRequest;
+import org.ejbca.core.model.ca.caadmin.extendedcaservices.KeyRecoveryCAServiceResponse;
+import org.ejbca.core.model.keyrecovery.KeyRecoveryInformation;
+
+/**
+ * Stores key recovery data.
+ *
+ * @version $Id: KeyRecoverySessionBean.java 26327 2017-08-16 14:36:31Z henriks $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;KeyRecoverySessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L83">public class KeyRecoverySessionBean implements KeyRecoverySessionLocal, KeyRecoverySessionRemote {</span>
+
+<span class="nc" id="L85">    private static final Logger log = Logger.getLogger(KeyRecoverySessionBean.class);</span>
+    
+    /** Internal localization of logs and errors */
+<span class="nc" id="L88">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+    
+    @PersistenceContext(unitName=&quot;ejbca&quot;)
+    private EntityManager entityManager;
+
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private ApprovalSessionLocal approvalSession;
+    @EJB
+    private ApprovalProfileSessionLocal approvalProfileSession;  
+    @EJB
+    private CertificateProfileSessionLocal certProfileSession;
+    @EJB
+    private CAAdminSessionLocal caAdminSession;
+    @EJB
+    private CaSessionLocal caSession;
+    @EJB
+    private CertificateStoreSessionLocal certificateStoreSession;
+    @EJB
+    private CryptoTokenSessionLocal cryptoTokenSession;
+    @EJB
+    private SecurityEventsLoggerSessionLocal auditSession;
+	
+    /**
+     * @param token The {@link AuthenticationToken} to check. 
+     * @return true if authorized to or /ra_functionality/keyrecovery
+     */
+    private boolean authorizedToAdministrateKeys(AuthenticationToken token) {
+<span class="nc" id="L117">        return authorizationSession.isAuthorizedNoLogging(token, AccessRulesConstants.REGULAR_KEYRECOVERY);</span>
+    }
+
+    @Override
+    public boolean authorizedToKeyRecover(AuthenticationToken admin, int profileid) {
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        return authorizationSession.isAuthorizedNoLogging(admin, AccessRulesConstants.ENDENTITYPROFILEPREFIX + profileid</span>
+                + AccessRulesConstants.KEYRECOVERY_RIGHTS)
+<span class="nc bnc" id="L124" title="All 2 branches missed.">                &amp;&amp; authorizationSession.isAuthorizedNoLogging(admin, AccessRulesConstants.REGULAR_KEYRECOVERY);</span>
+
+    }
+
+    @Override
+    public void checkIfApprovalRequired(AuthenticationToken admin, CertificateWrapper certificateWrapper, String username, int endEntityProfileId, boolean checkNewest) 
+            throws ApprovalException, WaitingForApprovalException, CADoesntExistsException {
+<span class="nc" id="L131">        final Certificate certificate = EJBTools.unwrap(certificateWrapper);</span>
+<span class="nc" id="L132">        final int caid = CertTools.getIssuerDN(certificate).hashCode();</span>
+<span class="nc" id="L133">		final CAInfo cainfo = caSession.getCAInfoInternal(caid);</span>
+<span class="nc" id="L134">        final CertificateInfo certinfo = certificateStoreSession.getCertificateInfo(CertTools.getFingerprintAsString(certificate));</span>
+<span class="nc" id="L135">		final CertificateProfile certProfile = certProfileSession.getCertificateProfile(certinfo.getCertificateProfileId());</span>
+		
+        // Check if approvals is required.
+<span class="nc" id="L138">        final ApprovalProfile approvalProfile = approvalProfileSession.getApprovalProfileForAction(ApprovalRequestType.KEYRECOVER, cainfo, certProfile);</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        if (approvalProfile != null) {    </span>
+<span class="nc" id="L140">			KeyRecoveryApprovalRequest ar = new KeyRecoveryApprovalRequest(certificate,username,checkNewest, admin,null,caid,</span>
+			        endEntityProfileId, approvalProfile);
+<span class="nc bnc" id="L142" title="All 2 branches missed.">			if (ApprovalExecutorUtil.requireApproval(ar, NONAPPROVABLECLASSNAMES_KEYRECOVERY)){</span>
+<span class="nc" id="L143">			    int requestId = approvalSession.addApprovalRequest(admin, ar);</span>
+<span class="nc" id="L144">	            String msg = intres.getLocalizedMessage(&quot;keyrecovery.addedforapproval&quot;);            	</span>
+<span class="nc" id="L145">				throw new WaitingForApprovalException(msg, requestId);</span>
+			}
+        } 
+<span class="nc" id="L148">    }</span>
+    
+    private String getPublicKeyIdFromKey(final CryptoToken cryptoToken, final String keyAlias) throws CryptoTokenOfflineException {
+<span class="nc" id="L151">        return new String(Base64.encode(KeyTools.createSubjectKeyId(cryptoToken.getPublicKey(keyAlias)).getKeyIdentifier(), false), StandardCharsets.US_ASCII);</span>
+    }
+    
+    @Override
+    public boolean addKeyRecoveryData(AuthenticationToken admin, CertificateWrapper certificateWrapper, String username, KeyPairWrapper keyPairWrapper)
+            throws AuthorizationDeniedException {
+<span class="nc bnc" id="L157" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L158">            log.trace(&quot;&gt;addKeyRecoveryData(user: &quot; + username + &quot;)&quot;);</span>
+    	}
+<span class="nc bnc" id="L160" title="All 2 branches missed.">        if (authorizedToAdministrateKeys(admin)) {</span>
+<span class="nc" id="L161">            final Certificate certificate = EJBTools.unwrap(certificateWrapper);</span>
+<span class="nc" id="L162">            final KeyPair keypair = EJBTools.unwrap(keyPairWrapper);</span>
+<span class="nc" id="L163">            final int caid = CertTools.getIssuerDN(certificate).hashCode();</span>
+<span class="nc" id="L164">            final String certSerialNumber = CertTools.getSerialNumberAsString(certificate);</span>
+<span class="nc" id="L165">            boolean returnval = false;</span>
+            try {
+<span class="nc" id="L167">                KeyRecoveryCAServiceResponse response = (KeyRecoveryCAServiceResponse) caAdminSession.extendedService(admin, caid,</span>
+                        new KeyRecoveryCAServiceRequest(KeyRecoveryCAServiceRequest.COMMAND_ENCRYPTKEYS, keypair));
+<span class="nc" id="L169">                entityManager.persist(new org.ejbca.core.ejb.keyrecovery.KeyRecoveryData(CertTools.getSerialNumber(certificate), CertTools</span>
+<span class="nc" id="L170">                        .getIssuerDN(certificate), username, response.getKeyData(), response.getCryptoTokenId(), response.getKeyAlias(), response.getPublicKeyId()));</span>
+                // same method to make hex serno as in KeyRecoveryDataBean
+<span class="nc" id="L172">                String msg = intres.getLocalizedMessage(&quot;keyrecovery.addeddata&quot;, CertTools.getSerialNumber(certificate).toString(16),</span>
+<span class="nc" id="L173">                        CertTools.getIssuerDN(certificate), response.getKeyAlias(), response.getPublicKeyId(), response.getCryptoTokenId());</span>
+<span class="nc" id="L174">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L175">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L176">                auditSession.log(EjbcaEventTypes.KEYRECOVERY_ADDDATA, EventStatus.SUCCESS, EjbcaModuleTypes.KEYRECOVERY, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L177">                        admin.toString(), String.valueOf(caid), certSerialNumber, username, details);</span>
+<span class="nc" id="L178">                returnval = true;</span>
+<span class="nc" id="L179">            } catch (Exception e) {</span>
+<span class="nc" id="L180">                final String msg = intres.getLocalizedMessage(&quot;keyrecovery.erroradddata&quot;, CertTools.getSerialNumber(certificate).toString(16),</span>
+<span class="nc" id="L181">                        CertTools.getIssuerDN(certificate));</span>
+<span class="nc" id="L182">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L183">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L184">                auditSession.log(EjbcaEventTypes.KEYRECOVERY_ADDDATA, EventStatus.FAILURE, EjbcaModuleTypes.KEYRECOVERY, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L185">                        admin.toString(), String.valueOf(caid), certSerialNumber, username, details);</span>
+<span class="nc" id="L186">                log.error(msg, e);</span>
+<span class="nc" id="L187">            }</span>
+<span class="nc" id="L188">            log.trace(&quot;&lt;addKeyRecoveryData()&quot;);</span>
+<span class="nc" id="L189">            return returnval;</span>
+        } else {
+<span class="nc" id="L191">            throw new AuthorizationDeniedException(admin + &quot; not authorized to administer keys&quot;);</span>
+        }
+        
+    }
+    
+    @Override
+    public boolean addKeyRecoveryDataInternal(final AuthenticationToken admin, final CertificateWrapper certificateWrapper, final String username, final KeyPairWrapper keyPairWrapper,
+            final int cryptoTokenId, final String keyAlias) {
+<span class="nc bnc" id="L199" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L200">            log.trace(&quot;&gt;addKeyRecoveryDataInternal(user: &quot; + username + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L202">        final Certificate certificate = EJBTools.unwrap(certificateWrapper);</span>
+<span class="nc" id="L203">        final KeyPair keypair = EJBTools.unwrap(keyPairWrapper);</span>
+<span class="nc" id="L204">        final String certSerialNumber = CertTools.getSerialNumberAsString(certificate);</span>
+<span class="nc" id="L205">        boolean returnval = false;</span>
+        try {
+<span class="nc" id="L207">            final CryptoToken cryptoToken = cryptoTokenSession.getCryptoToken(cryptoTokenId);</span>
+<span class="nc" id="L208">            final String publicKeyId = getPublicKeyIdFromKey(cryptoToken, keyAlias);</span>
+            
+<span class="nc" id="L210">            final byte[] encryptedKeyData = X509CA.encryptKeys(cryptoToken, keyAlias, keypair);</span>
+<span class="nc" id="L211">            entityManager.persist(new org.ejbca.core.ejb.keyrecovery.KeyRecoveryData(CertTools.getSerialNumber(certificate), CertTools</span>
+<span class="nc" id="L212">                            .getIssuerDN(certificate), username, encryptedKeyData, cryptoTokenId, keyAlias, publicKeyId));</span>
+            // same method to make hex serno as in KeyRecoveryDataBean
+<span class="nc" id="L214">            String msg = intres.getLocalizedMessage(&quot;keyrecovery.addeddata&quot;, CertTools.getSerialNumber(certificate).toString(16),</span>
+<span class="nc" id="L215">                    CertTools.getIssuerDN(certificate), keyAlias, publicKeyId, cryptoTokenId);</span>
+<span class="nc" id="L216">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L217">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L218">            auditSession.log(EjbcaEventTypes.KEYRECOVERY_ADDDATA, EventStatus.SUCCESS, EjbcaModuleTypes.KEYRECOVERY, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L219">                            admin.toString(), null, certSerialNumber, username, details);</span>
+<span class="nc" id="L220">            returnval = true;</span>
+<span class="nc" id="L221">        } catch (Exception e) {</span>
+<span class="nc" id="L222">            final String msg = intres.getLocalizedMessage(&quot;keyrecovery.erroradddata&quot;, CertTools.getSerialNumber(certificate).toString(16),</span>
+<span class="nc" id="L223">                    CertTools.getIssuerDN(certificate));</span>
+<span class="nc" id="L224">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L225">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L226">            auditSession.log(EjbcaEventTypes.KEYRECOVERY_ADDDATA, EventStatus.FAILURE, EjbcaModuleTypes.KEYRECOVERY, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L227">                    admin.toString(), null, certSerialNumber, username, details);</span>
+<span class="nc" id="L228">            log.error(msg, e);</span>
+<span class="nc" id="L229">        }</span>
+<span class="nc" id="L230">        log.trace(&quot;&lt;addKeyRecoveryDataInternal()&quot;);</span>
+<span class="nc" id="L231">        return returnval;</span>
+    }
+
+    @Override
+    public void removeKeyRecoveryData(AuthenticationToken admin, CertificateWrapper certificateWrapper) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L236" title="All 2 branches missed.">        if (!authorizedToAdministrateKeys(admin)) {</span>
+<span class="nc" id="L237">            throw new AuthorizationDeniedException(admin + &quot; not authorized to administer keys&quot;);</span>
+        }
+<span class="nc" id="L239">        final Certificate certificate = EJBTools.unwrap(certificateWrapper);</span>
+<span class="nc" id="L240">        final String hexSerial = CertTools.getSerialNumber(certificate).toString(16);</span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L242">            log.trace(&quot;&gt;removeKeyRecoveryData(certificate: &quot; + CertTools.getSerialNumber(certificate).toString(16) +&quot;)&quot;);</span>
+    	}
+<span class="nc" id="L244">        final String dn = CertTools.getIssuerDN(certificate);</span>
+<span class="nc" id="L245">        final int caid = dn.hashCode();</span>
+        try {
+<span class="nc" id="L247">            String username = null;</span>
+<span class="nc" id="L248">        	org.ejbca.core.ejb.keyrecovery.KeyRecoveryData krd = org.ejbca.core.ejb.keyrecovery.KeyRecoveryData.findByPK(entityManager, new KeyRecoveryDataPK(hexSerial, dn));</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">        	if (krd == null) {</span>
+<span class="nc" id="L250">        		throw new FinderException();</span>
+        	}
+<span class="nc" id="L252">            username = krd.getUsername();</span>
+<span class="nc" id="L253">            entityManager.remove(krd);</span>
+<span class="nc" id="L254">            String msg = intres.getLocalizedMessage(&quot;keyrecovery.removeddata&quot;, hexSerial, dn);            	</span>
+<span class="nc" id="L255">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L256">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L257">            auditSession.log(EjbcaEventTypes.KEYRECOVERY_REMOVEDATA, EventStatus.SUCCESS, EjbcaModuleTypes.KEYRECOVERY, EjbcaServiceTypes.EJBCA, admin.toString(), String.valueOf(caid), hexSerial, username, details);</span>
+<span class="nc" id="L258">        } catch (Exception e) {</span>
+<span class="nc" id="L259">            final String msg = intres.getLocalizedMessage(&quot;keyrecovery.errorremovedata&quot;, hexSerial, dn);            	</span>
+<span class="nc" id="L260">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L261">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L262">            auditSession.log(EjbcaEventTypes.KEYRECOVERY_REMOVEDATA, EventStatus.FAILURE, EjbcaModuleTypes.KEYRECOVERY, EjbcaServiceTypes.EJBCA, admin.toString(), String.valueOf(caid), hexSerial, null, details);</span>
+<span class="nc" id="L263">            log.error(msg, e);</span>
+<span class="nc" id="L264">        }</span>
+<span class="nc" id="L265">        log.trace(&quot;&lt;removeKeyRecoveryData()&quot;);</span>
+<span class="nc" id="L266">    }</span>
+
+    @Override
+    public void removeAllKeyRecoveryData(AuthenticationToken admin, String username) {
+<span class="nc bnc" id="L270" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L271">            log.trace(&quot;&gt;removeAllKeyRecoveryData(user: &quot; + username + &quot;)&quot;);</span>
+    	}
+        try {
+<span class="nc" id="L274">        	Collection&lt;org.ejbca.core.ejb.keyrecovery.KeyRecoveryData&gt; result = org.ejbca.core.ejb.keyrecovery.KeyRecoveryData.findByUsername(entityManager, username);</span>
+<span class="nc" id="L275">            Iterator&lt;org.ejbca.core.ejb.keyrecovery.KeyRecoveryData&gt; iter = result.iterator();</span>
+<span class="nc bnc" id="L276" title="All 2 branches missed.">            while (iter.hasNext()) {</span>
+<span class="nc" id="L277">            	entityManager.remove(iter.next());</span>
+            }
+<span class="nc" id="L279">            String msg = intres.getLocalizedMessage(&quot;keyrecovery.removeduser&quot;, username);            	</span>
+<span class="nc" id="L280">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L281">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L282">            auditSession.log(EjbcaEventTypes.KEYRECOVERY_REMOVEDATA, EventStatus.SUCCESS, EjbcaModuleTypes.KEYRECOVERY, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, username, details);</span>
+<span class="nc" id="L283">        } catch (Exception e) {</span>
+<span class="nc" id="L284">            String msg = intres.getLocalizedMessage(&quot;keyrecovery.errorremoveuser&quot;, username);            	</span>
+<span class="nc" id="L285">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L286">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L287">            auditSession.log(EjbcaEventTypes.KEYRECOVERY_REMOVEDATA, EventStatus.FAILURE, EjbcaModuleTypes.KEYRECOVERY, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, username, details);</span>
+<span class="nc" id="L288">        }</span>
+<span class="nc" id="L289">        log.trace(&quot;&lt;removeAllKeyRecoveryData()&quot;);</span>
+<span class="nc" id="L290">    }</span>
+
+    @Override
+    public KeyRecoveryInformation recoverKeys(AuthenticationToken admin, String username, int endEntityProfileId) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L294" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L295">            log.trace(&quot;&gt;keyRecovery(user: &quot; + username + &quot;)&quot;);</span>
+    	}
+<span class="nc" id="L297">        KeyRecoveryInformation returnval = null;</span>
+<span class="nc" id="L298">        X509Certificate certificate = null;</span>
+<span class="nc bnc" id="L299" title="All 2 branches missed.">        if (authorizedToKeyRecover(admin, endEntityProfileId)) { </span>
+<span class="nc" id="L300">        	Collection&lt;KeyRecoveryData&gt; result = KeyRecoveryData.findByUserMark(entityManager, username);</span>
+        	try {
+<span class="nc" id="L302">        		String caidString = null;</span>
+<span class="nc" id="L303">        		String certSerialNumber = null;</span>
+<span class="nc" id="L304">        		String logMsg = null;</span>
+<span class="nc bnc" id="L305" title="All 2 branches missed.">        		for (final KeyRecoveryData krd : result) {</span>
+<span class="nc bnc" id="L306" title="All 2 branches missed.">        			if (returnval == null) {</span>
+<span class="nc" id="L307">        				final int caid = krd.getIssuerDN().hashCode();</span>
+<span class="nc" id="L308">        				caidString = String.valueOf(caid);</span>
+<span class="nc" id="L309">        				final KeyRecoveryCAServiceResponse response = (KeyRecoveryCAServiceResponse) caAdminSession.extendedService(admin, caid,</span>
+<span class="nc" id="L310">        						new KeyRecoveryCAServiceRequest(KeyRecoveryCAServiceRequest.COMMAND_DECRYPTKEYS, krd.getKeyDataAsByteArray(),</span>
+<span class="nc" id="L311">        						        krd.getCryptoTokenId(), krd.getKeyAlias()));</span>
+<span class="nc" id="L312">        				final KeyPair keys = response.getKeyPair();</span>
+<span class="nc" id="L313">        				certificate = (X509Certificate) certificateStoreSession.findCertificateByIssuerAndSerno(krd.getIssuerDN(), krd.getCertificateSN());</span>
+<span class="nc" id="L314">        				returnval = new KeyRecoveryInformation(krd.getCertificateSN(), krd.getIssuerDN(),</span>
+<span class="nc" id="L315">        						krd.getUsername(), krd.getMarkedAsRecoverable(), keys, certificate);</span>
+<span class="nc" id="L316">                		certSerialNumber = CertTools.getSerialNumberAsString(certificate);</span>
+<span class="nc" id="L317">                        logMsg = intres.getLocalizedMessage(&quot;keyrecovery.sentdata&quot;, username, response.getKeyAlias(), response.getPublicKeyId(), response.getCryptoTokenId());                </span>
+        			}
+<span class="nc" id="L319">        		}</span>
+<span class="nc bnc" id="L320" title="All 2 branches missed.">        		if (logMsg == null) {</span>
+<span class="nc" id="L321">                    logMsg = intres.getLocalizedMessage(&quot;keyrecovery.nodata&quot;, username);                        		    </span>
+        		}
+<span class="nc" id="L323">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L324">                details.put(&quot;msg&quot;, logMsg);</span>
+<span class="nc" id="L325">                auditSession.log(EjbcaEventTypes.KEYRECOVERY_SENT, EventStatus.SUCCESS, EjbcaModuleTypes.KEYRECOVERY, EjbcaServiceTypes.EJBCA, admin.toString(), caidString, certSerialNumber, username, details);</span>
+<span class="nc" id="L326">        	} catch (Exception e) {</span>
+<span class="nc" id="L327">        		String msg = intres.getLocalizedMessage(&quot;keyrecovery.errorsenddata&quot;, username);            	</span>
+<span class="nc" id="L328">        		log.error(msg, e);</span>
+<span class="nc" id="L329">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L330">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L331">                auditSession.log(EjbcaEventTypes.KEYRECOVERY_SENT, EventStatus.FAILURE, EjbcaModuleTypes.KEYRECOVERY, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, username, details);</span>
+<span class="nc" id="L332">        	}</span>
+<span class="nc" id="L333">        } else {</span>
+<span class="nc" id="L334">            throw new AuthorizationDeniedException(admin + &quot; not authorized to key recovery for end entity profile id &quot; + endEntityProfileId);</span>
+        }
+<span class="nc bnc" id="L336" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L337">            log.trace(&quot;&lt;keyRecovery()&quot;);</span>
+        }
+<span class="nc" id="L339">        return returnval;</span>
+    }
+    
+    @Override
+    public KeyRecoveryInformation recoverKeysInternal(final AuthenticationToken admin, final String username, final int cryptoTokenId, final String keyAlias) {
+<span class="nc bnc" id="L344" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L345">            log.trace(&quot;&gt;recoverKeysInternal(user: &quot; + username + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L347">        KeyRecoveryInformation returnval = null;</span>
+<span class="nc" id="L348">        Collection&lt;KeyRecoveryData&gt; result = KeyRecoveryData.findByUserMark(entityManager, username);</span>
+        try {
+<span class="nc" id="L350">            String caidString = null;</span>
+<span class="nc" id="L351">            String certSerialNumber = null;</span>
+<span class="nc" id="L352">            String logMsg = null;</span>
+<span class="nc bnc" id="L353" title="All 2 branches missed.">            for (final KeyRecoveryData krd : result) {</span>
+<span class="nc bnc" id="L354" title="All 2 branches missed.">                if (returnval == null) {</span>
+<span class="nc" id="L355">                    final CryptoToken cryptoToken = cryptoTokenSession.getCryptoToken(cryptoTokenId);</span>
+<span class="nc" id="L356">                    final String publicKeyId = getPublicKeyIdFromKey(cryptoToken, keyAlias);</span>
+<span class="nc" id="L357">                    final KeyPair keys = X509CA.decryptKeys(cryptoToken, keyAlias, krd.getKeyDataAsByteArray());</span>
+<span class="nc" id="L358">                    returnval = new KeyRecoveryInformation(krd.getCertificateSN(), krd.getIssuerDN(),</span>
+<span class="nc" id="L359">                            krd.getUsername(), krd.getMarkedAsRecoverable(), keys, null);</span>
+<span class="nc" id="L360">                    certSerialNumber = krd.getCertificateSN().toString(16);</span>
+<span class="nc" id="L361">                    logMsg = intres.getLocalizedMessage(&quot;keyrecovery.sentdata&quot;, username, keyAlias, publicKeyId, cryptoTokenId);                </span>
+                }
+<span class="nc" id="L363">            }</span>
+<span class="nc bnc" id="L364" title="All 2 branches missed.">            if (logMsg == null) {</span>
+<span class="nc" id="L365">                logMsg = intres.getLocalizedMessage(&quot;keyrecovery.nodata&quot;, username);                                    </span>
+            }
+<span class="nc" id="L367">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L368">            details.put(&quot;msg&quot;, logMsg);</span>
+<span class="nc" id="L369">            auditSession.log(EjbcaEventTypes.KEYRECOVERY_SENT, EventStatus.SUCCESS, EjbcaModuleTypes.KEYRECOVERY, EjbcaServiceTypes.EJBCA, admin.toString(), caidString, certSerialNumber, username, details);</span>
+<span class="nc" id="L370">        } catch (Exception e) {</span>
+<span class="nc" id="L371">            String msg = intres.getLocalizedMessage(&quot;keyrecovery.errorsenddata&quot;, username);             </span>
+<span class="nc" id="L372">            log.error(msg, e);</span>
+<span class="nc" id="L373">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L374">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L375">            auditSession.log(EjbcaEventTypes.KEYRECOVERY_SENT, EventStatus.FAILURE, EjbcaModuleTypes.KEYRECOVERY, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, username, details);</span>
+<span class="nc" id="L376">        }</span>
+<span class="nc bnc" id="L377" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L378">            log.trace(&quot;&lt;recoverKeysInternal()&quot;);</span>
+        }
+<span class="nc" id="L380">        return returnval;</span>
+    }
+
+<span class="nc" id="L383">	private static final ApprovalOveradableClassName[] NONAPPROVABLECLASSNAMES_KEYRECOVERY = {</span>
+<span class="nc" id="L384">		new ApprovalOveradableClassName(org.ejbca.core.model.approval.approvalrequests.KeyRecoveryApprovalRequest.class.getName(),null),		</span>
+	};
+	
+	@Override
+    public boolean markNewestAsRecoverable(AuthenticationToken admin, String username, int endEntityProfileId) throws AuthorizationDeniedException, 
+                        ApprovalException, WaitingForApprovalException, CADoesntExistsException {
+<span class="nc bnc" id="L390" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L391">            log.trace(&quot;&gt;markNewestAsRecoverable(user: &quot; + username + &quot;)&quot;);</span>
+    	}
+<span class="nc" id="L393">        boolean returnval = false;</span>
+<span class="nc" id="L394">        long newesttime = 0;</span>
+<span class="nc" id="L395">        KeyRecoveryData newest = null;</span>
+<span class="nc" id="L396">        X509Certificate certificate = null;</span>
+<span class="nc" id="L397">        X509Certificate newestcertificate = null;</span>
+<span class="nc bnc" id="L398" title="All 2 branches missed.">        if (!isUserMarked(username)) {</span>
+<span class="nc" id="L399">            String caidString = null;</span>
+<span class="nc" id="L400">            String certSerialNumber = null;</span>
+<span class="nc" id="L401">        	final Collection&lt;KeyRecoveryData&gt; result = KeyRecoveryData.findByUsername(entityManager, username);</span>
+<span class="nc bnc" id="L402" title="All 2 branches missed.">    		for (final KeyRecoveryData krd : result) {</span>
+<span class="nc" id="L403">        		caidString = String.valueOf(krd.getIssuerDN().hashCode());</span>
+<span class="nc" id="L404">        		certificate = (X509Certificate) certificateStoreSession.findCertificateByIssuerAndSerno(krd.getIssuerDN(), krd.getCertificateSN());</span>
+<span class="nc bnc" id="L405" title="All 2 branches missed.">        		if (certificate != null) {</span>
+<span class="nc bnc" id="L406" title="All 2 branches missed.">        			if (certificate.getNotBefore().getTime() &gt; newesttime) {</span>
+<span class="nc" id="L407">        				newesttime = certificate.getNotBefore().getTime();</span>
+<span class="nc" id="L408">        				newest = krd;</span>
+<span class="nc" id="L409">        				newestcertificate = certificate;</span>
+<span class="nc" id="L410">                		certSerialNumber = CertTools.getSerialNumberAsString(newestcertificate);</span>
+        			}
+        		}
+<span class="nc" id="L413">        	}</span>
+<span class="nc bnc" id="L414" title="All 2 branches missed.">        	if (newest != null) {</span>
+        		// Check that the administrator is authorized to keyrecover
+<span class="nc bnc" id="L416" title="All 2 branches missed.">                if (authorizedToKeyRecover(admin, endEntityProfileId)) {</span>
+                    // Check if approvals is required.            
+<span class="nc" id="L418">                    checkIfApprovalRequired(admin, EJBTools.wrap(newestcertificate), username, endEntityProfileId, true);</span>
+<span class="nc" id="L419">                    newest.setMarkedAsRecoverable(true);</span>
+<span class="nc" id="L420">                    returnval = true;</span>
+                } else {
+<span class="nc" id="L422">                    throw new AuthorizationDeniedException(admin + &quot; not authorized to key recovery for end entity profile id &quot; + endEntityProfileId);</span>
+                }
+        	}
+<span class="nc bnc" id="L425" title="All 2 branches missed.">        	if (returnval) {</span>
+<span class="nc" id="L426">        		String msg = intres.getLocalizedMessage(&quot;keyrecovery.markeduser&quot;, username);            	</span>
+<span class="nc" id="L427">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L428">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L429">                auditSession.log(EjbcaEventTypes.KEYRECOVERY_MARKED, EventStatus.SUCCESS, EjbcaModuleTypes.KEYRECOVERY, EjbcaServiceTypes.EJBCA, admin.toString(), caidString, certSerialNumber, username, details);</span>
+<span class="nc" id="L430">        	} else {</span>
+<span class="nc" id="L431">        		String msg = intres.getLocalizedMessage(&quot;keyrecovery.errormarkuser&quot;, username);</span>
+<span class="nc" id="L432">        		log.info(msg);</span>
+        	}
+        }
+<span class="nc" id="L435">        log.trace(&quot;&lt;markNewestAsRecoverable()&quot;);</span>
+<span class="nc" id="L436">        return returnval;</span>
+    }
+
+	@Override
+    public boolean markAsRecoverable(AuthenticationToken admin, Certificate certificate, int endEntityProfileId) throws AuthorizationDeniedException, 
+                            WaitingForApprovalException, ApprovalException, CADoesntExistsException {
+<span class="nc" id="L442">        final String hexSerial = CertTools.getSerialNumber(certificate).toString(16); // same method to make hex as in KeyRecoveryDataBean</span>
+<span class="nc" id="L443">        final String dn = CertTools.getIssuerDN(certificate);        </span>
+<span class="nc bnc" id="L444" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L445">            log.trace(&quot;&gt;markAsRecoverable(issuer: &quot;+dn+&quot;; certificatesn: &quot; + hexSerial + &quot;)&quot;);</span>
+    	}
+<span class="nc" id="L447">        boolean returnval = false;</span>
+<span class="nc" id="L448">    	org.ejbca.core.ejb.keyrecovery.KeyRecoveryData krd = org.ejbca.core.ejb.keyrecovery.KeyRecoveryData.findByPK(entityManager, new KeyRecoveryDataPK(hexSerial, dn));</span>
+<span class="nc bnc" id="L449" title="All 2 branches missed.">        if (krd != null) {</span>
+<span class="nc" id="L450">            String username = krd.getUsername();</span>
+            // Check that the administrator is authorized to keyrecover
+<span class="nc bnc" id="L452" title="All 2 branches missed.">            if (authorizedToKeyRecover(admin, endEntityProfileId)) {</span>
+                // Check if approvals is required.
+<span class="nc" id="L454">                checkIfApprovalRequired(admin, EJBTools.wrap(certificate), username, endEntityProfileId, false);</span>
+<span class="nc" id="L455">                krd.setMarkedAsRecoverable(true);</span>
+<span class="nc" id="L456">                int caid = krd.getIssuerDN().hashCode();</span>
+<span class="nc" id="L457">                String msg = intres.getLocalizedMessage(&quot;keyrecovery.markedcert&quot;, hexSerial, dn);</span>
+<span class="nc" id="L458">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L459">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L460">                auditSession.log(EjbcaEventTypes.KEYRECOVERY_MARKED, EventStatus.SUCCESS, EjbcaModuleTypes.KEYRECOVERY, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L461">                        admin.toString(), String.valueOf(caid), hexSerial, username, details);</span>
+<span class="nc" id="L462">                returnval = true;</span>
+<span class="nc" id="L463">            } else {</span>
+<span class="nc" id="L464">                throw new AuthorizationDeniedException(admin + &quot; not authorized to key recovery for end entity profile id &quot; + endEntityProfileId);</span>
+            }
+<span class="nc" id="L466">    	} else {</span>
+<span class="nc" id="L467">            String msg = intres.getLocalizedMessage(&quot;keyrecovery.errormarkcert&quot;, hexSerial, dn);            	</span>
+<span class="nc" id="L468">        	log.info(msg + &quot; No key recovery data found on this node.&quot;);</span>
+        } 
+<span class="nc" id="L470">        log.trace(&quot;&lt;markAsRecoverable()&quot;);</span>
+<span class="nc" id="L471">        return returnval;</span>
+    }
+
+	@Override
+    public boolean markAsRecoverableInternal(AuthenticationToken admin, CertificateWrapper certificateWrapper, String username) {
+<span class="nc" id="L476">	    final Certificate certificate = EJBTools.unwrap(certificateWrapper);</span>
+<span class="nc" id="L477">        final String hexSerial = CertTools.getSerialNumber(certificate).toString(16); // same method to make hex as in KeyRecoveryDataBean</span>
+<span class="nc" id="L478">        final String dn = CertTools.getIssuerDN(certificate);   </span>
+<span class="nc bnc" id="L479" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L480">            log.trace(&quot;&gt;markAsRecoverable(issuer: &quot;+dn+&quot;; certificatesn: &quot; + hexSerial + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L482">        boolean returnval = false;</span>
+<span class="nc" id="L483">        org.ejbca.core.ejb.keyrecovery.KeyRecoveryData krd = org.ejbca.core.ejb.keyrecovery.KeyRecoveryData.findByPK(entityManager, new KeyRecoveryDataPK(hexSerial, dn));</span>
+<span class="nc bnc" id="L484" title="All 2 branches missed.">        if (krd != null) {</span>
+<span class="nc" id="L485">                krd.setMarkedAsRecoverable(true);</span>
+<span class="nc" id="L486">                int caid = krd.getIssuerDN().hashCode();</span>
+<span class="nc" id="L487">                String msg = intres.getLocalizedMessage(&quot;keyrecovery.markedcert&quot;, hexSerial, dn);</span>
+<span class="nc" id="L488">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L489">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L490">                auditSession.log(EjbcaEventTypes.KEYRECOVERY_MARKED, EventStatus.SUCCESS, EjbcaModuleTypes.KEYRECOVERY, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L491">                        admin.toString(), String.valueOf(caid), hexSerial, username, details);</span>
+<span class="nc" id="L492">                returnval = true;</span>
+<span class="nc" id="L493">        } else {</span>
+<span class="nc" id="L494">            String msg = intres.getLocalizedMessage(&quot;keyrecovery.errormarkcert&quot;, hexSerial, dn);                </span>
+<span class="nc" id="L495">            log.info(msg);</span>
+        } 
+<span class="nc" id="L497">        log.trace(&quot;&lt;markAsRecoverable()&quot;);</span>
+<span class="nc" id="L498">        return returnval;</span>
+    }
+	
+	@Override
+    public void unmarkUser(AuthenticationToken admin, String username) {
+<span class="nc bnc" id="L503" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L504">            log.trace(&quot;&gt;unmarkUser(user: &quot; + username + &quot;)&quot;);</span>
+    	}
+<span class="nc" id="L506">    	KeyRecoveryData krd = null;</span>
+<span class="nc" id="L507">    	Collection&lt;KeyRecoveryData&gt; result = KeyRecoveryData.findByUserMark(entityManager, username);</span>
+<span class="nc" id="L508">    	Iterator&lt;KeyRecoveryData&gt; i = result.iterator();</span>
+<span class="nc bnc" id="L509" title="All 2 branches missed.">    	while (i.hasNext()) {</span>
+<span class="nc" id="L510">    		krd = i.next();</span>
+<span class="nc" id="L511">    		krd.setMarkedAsRecoverable(false);</span>
+    	}
+<span class="nc" id="L513">        log.trace(&quot;&lt;unmarkUser()&quot;);</span>
+<span class="nc" id="L514">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public boolean isUserMarked(String username) {
+<span class="nc bnc" id="L519" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L520">            log.trace(&quot;&gt;isUserMarked(user: &quot; + username + &quot;)&quot;);</span>
+    	}
+<span class="nc" id="L522">        boolean returnval = false;       </span>
+<span class="nc" id="L523">        Collection&lt;KeyRecoveryData&gt; result = KeyRecoveryData.findByUserMark(entityManager, username);</span>
+<span class="nc bnc" id="L524" title="All 2 branches missed.">        for(KeyRecoveryData krd : result) {</span>
+<span class="nc bnc" id="L525" title="All 2 branches missed.">        	if (krd.getMarkedAsRecoverable()) {</span>
+<span class="nc" id="L526">        		returnval = true;</span>
+<span class="nc" id="L527">        		break;</span>
+        	}
+<span class="nc" id="L529">        }</span>
+<span class="nc bnc" id="L530" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L531">            log.trace(&quot;&lt;isUserMarked(&quot; + returnval + &quot;)&quot;);</span>
+    	}
+<span class="nc" id="L533">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public boolean existsKeys(CertificateWrapper certificateWrapper) {
+<span class="nc" id="L539">        log.trace(&quot;&gt;existsKeys()&quot;);</span>
+<span class="nc" id="L540">        final Certificate certificate = EJBTools.unwrap(certificateWrapper);</span>
+<span class="nc bnc" id="L541" title="All 2 branches missed.">        if (certificate == null) {</span>
+<span class="nc" id="L542">            log.debug(&quot;Key recovery requires a certificate to be present.&quot;);</span>
+<span class="nc" id="L543">            return false;</span>
+        }
+<span class="nc" id="L545">        boolean returnval = false;</span>
+<span class="nc" id="L546">        final String hexSerial = CertTools.getSerialNumber(certificate).toString(16); // same method to make hex as in KeyRecoveryDataBean</span>
+<span class="nc" id="L547">        final String dn = CertTools.getIssuerDN(certificate);</span>
+<span class="nc" id="L548">    	KeyRecoveryData krd = KeyRecoveryData.findByPK(entityManager, new KeyRecoveryDataPK(hexSerial, dn));</span>
+<span class="nc bnc" id="L549" title="All 2 branches missed.">    	if (krd != null) {</span>
+<span class="nc" id="L550">            log.debug(&quot;Found key for user: &quot;+krd.getUsername());</span>
+<span class="nc" id="L551">            returnval = true;</span>
+        }
+<span class="nc bnc" id="L553" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L554">            log.trace(&quot;&lt;existsKeys(&quot; + returnval + &quot;)&quot;);</span>
+    	}
+<span class="nc" id="L556">        return returnval;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

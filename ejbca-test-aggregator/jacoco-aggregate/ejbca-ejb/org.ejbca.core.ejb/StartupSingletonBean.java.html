@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>StartupSingletonBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb</a> &gt; <span class="el_source">StartupSingletonBean.java</span></div><h1>StartupSingletonBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.ejb;
+
+import java.io.ByteArrayInputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.security.CodeSource;
+import java.security.SecureRandom;
+import java.security.Security;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.ejb.ConcurrencyManagement;
+import javax.ejb.ConcurrencyManagementType;
+import javax.ejb.EJB;
+import javax.ejb.Singleton;
+import javax.ejb.Startup;
+import javax.ejb.TransactionManagement;
+import javax.ejb.TransactionManagementType;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.cesecore.audit.AuditDevicesConfig;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.enums.EventTypes;
+import org.cesecore.audit.enums.ModuleTypes;
+import org.cesecore.audit.enums.ServiceTypes;
+import org.cesecore.audit.impl.integrityprotected.AuditRecordData;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.user.matchvalues.AccessMatchValueReverseLookupRegistry;
+import org.cesecore.certificates.certificate.CertificateCreateSessionLocal;
+import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.ocsp.OcspResponseGeneratorSessionLocal;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.keys.token.CryptoTokenFactory;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CryptoProviderTools;
+import org.ejbca.config.EjbcaConfiguration;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaModuleTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaServiceTypes;
+import org.ejbca.core.ejb.authorization.AuthorizationSystemSessionLocal;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionLocal;
+import org.ejbca.core.ejb.ocsp.OcspKeyRenewalSessionLocal;
+import org.ejbca.core.ejb.ra.EndEntityAccessSessionLocal;
+import org.ejbca.core.ejb.ra.EndEntityManagementSessionLocal;
+import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal;
+import org.ejbca.core.ejb.services.ServiceSessionLocal;
+import org.ejbca.core.ejb.upgrade.UpgradeSessionLocal;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.util.DatabaseIndexUtil;
+import org.ejbca.util.JDBCUtil;
+
+/**
+ * Singleton used to start services and perform upgrade tasks at startup.
+ * 
+ * @version $Id: StartupSingletonBean.java 29695 2018-08-21 09:02:17Z henriks $
+ */
+@Singleton
+@Startup
+@ConcurrencyManagement(ConcurrencyManagementType.BEAN)  // No external access to this bean
+@TransactionManagement(TransactionManagementType.BEAN)  // By legacy we create a global config here this way
+<span class="nc" id="L97">public class StartupSingletonBean {</span>
+
+<span class="nc" id="L99">    private static final Logger log = Logger.getLogger(StartupSingletonBean.class);</span>
+<span class="nc" id="L100">    private final AuthenticationToken authenticationToken = new AlwaysAllowLocalAuthenticationToken(&quot;Application internal&quot;);</span>
+    
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private AuthorizationSystemSessionLocal authorizationSystemSession;
+    @EJB
+    private CAAdminSessionLocal caAdminSession;
+    @EJB
+    private CertificateCreateSessionLocal certCreateSession;
+    @EJB
+    private CertificateProfileSessionLocal certificateProfileSession;
+    @EJB
+    private CertificateStoreSessionLocal certificateStoreSession;
+    @EJB
+    private EndEntityAccessSessionLocal endEntityAccessSession;
+    @EJB
+    private EndEntityManagementSessionLocal endEntityManagementSession;
+    @EJB
+    private EndEntityProfileSessionLocal endEntityProfileSession;
+    @EJB
+    private GlobalConfigurationSessionLocal globalConfigurationSession;
+    @EJB
+    private SecurityEventsLoggerSessionLocal logSession;
+    @EJB
+    private OcspKeyRenewalSessionLocal ocspKeyRenewalSession;
+    @EJB
+    private OcspResponseGeneratorSessionLocal ocspResponseGeneratorSession;
+    @EJB
+    private UpgradeSessionLocal upgradeSession;
+    @EJB
+    private ServiceSessionLocal serviceSession;
+
+    @PreDestroy
+    private void shutdown() {
+<span class="nc" id="L135">        String iMsg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;startservice.shutdown&quot;);</span>
+<span class="nc" id="L136">        log.info(iMsg);</span>
+        // Make a log row that EJBCA is stopping
+        //final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();
+        //details.put(&quot;msg&quot;, iMsg);
+        //logSession.log(EjbcaEventTypes.EJBCA_STOPPING, EventStatus.SUCCESS, EjbcaModuleTypes.SERVICE, EjbcaServiceTypes.EJBCA, authenticationToken.toString(), null, null, null, details);                
+<span class="nc" id="L141">    }</span>
+
+    
+    /** Checks that a class is loaded by a classloader that is local to the ejbca.ear deployment.
+     * This check is probably JBoss / WildFly specific but not certain. We want to check this so we can detect if JBoss / WildFly bundles jars that we use so we risk having a version conflict.
+     * 
+     * A classloader that is from the main/core JBoss/WildFly modules is typically printed like:
+     * &lt;code&gt;
+     * org.bouncycastle.jcajce.provider.asymmetric.x509.X509CertificateObject(6034186b).ClassLoader=ModuleClassLoader for Module &quot;org.bouncycastle&quot; from local module loader @649d209a 
+     * &lt;/code&gt; 
+     * while a classloader from the ejbca.ear space is printed like:
+     * &lt;code&gt;
+     * org.bouncycastle.jcajce.provider.asymmetric.x509.X509CertificateObject(362bcba0).ClassLoader=ModuleClassLoader for Module &quot;deployment.ejbca.ear&quot; from Service Module Loader
+     * &lt;/code&gt;
+     * 
+     * @param clazz the class that we want to check which classloader it comes from. For example org.bouncycastle.jcajce.provider.asymmetric.x509.X509CertificateObject.class
+     */
+    private static void checkClassLoaderIsEJBCA(Class&lt;? extends X509Certificate&gt; clazz) {
+<span class="nc" id="L159">        StringBuffer results = new StringBuffer();</span>
+<span class="nc" id="L160">        ClassLoader cl = clazz.getClassLoader();</span>
+<span class="nc" id="L161">        results.append(&quot;\n&quot; + clazz.getName() + &quot;(&quot; + Integer.toHexString(clazz.hashCode()) + &quot;).ClassLoader=&quot; + cl);</span>
+        // We want classes (that we check here) to be loaded from the EJBCA application classloader, and not by the 
+        // JBoss/WildFly main classloader
+<span class="nc bnc" id="L164" title="All 2 branches missed.">        if (results.indexOf(&quot;ejbca.ear&quot;) == -1) {</span>
+<span class="nc" id="L165">            CodeSource clazzCS = clazz.getProtectionDomain().getCodeSource();</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">            if (clazzCS != null) {</span>
+<span class="nc" id="L167">                results.append(&quot;\n++++CodeSource: &quot;+clazzCS);</span>
+            } else {
+<span class="nc" id="L169">                results.append(&quot;\n++++Null CodeSource&quot;);</span>
+            }
+<span class="nc" id="L171">            log.error(&quot;BouncyCastle is not loaded by an EJBCA classloader, version conflict is likely: &quot;+clazz.getName()+&quot;: &quot;+results.toString());            </span>
+<span class="nc" id="L172">        } else {</span>
+<span class="nc" id="L173">            log.info(&quot;BouncyCastle provider is from our ejbca.ear classloader.&quot;);</span>
+        }
+<span class="nc" id="L175">    }</span>
+    /** A test certificate we use to test load a certificate in order to figure out which classloader the
+     * BouncyCaslte Provider is using, i.e. who did Security.addProvider(new BouncyCastleProvider()), if it was us or JBoss/WildFly
+     * @see #checkClassLoaderIsEJBCA
+     * @see #startup()
+     */
+<span class="nc" id="L181">    private static byte[] testcertbytes = Base64.decode((&quot;MIIDATCCAmqgAwIBAgIIczEoghAwc3EwDQYJKoZIhvcNAQEFBQAwLzEPMA0GA1UE&quot;</span>
+            + &quot;AxMGVGVzdENBMQ8wDQYDVQQKEwZBbmFUb20xCzAJBgNVBAYTAlNFMB4XDTAzMDky&quot; + &quot;NDA2NDgwNFoXDTA1MDkyMzA2NTgwNFowMzEQMA4GA1UEAxMHcDEydGVzdDESMBAG&quot;
+            + &quot;A1UEChMJUHJpbWVUZXN0MQswCQYDVQQGEwJTRTCBnTANBgkqhkiG9w0BAQEFAAOB&quot; + &quot;iwAwgYcCgYEAnPAtfpU63/0h6InBmesN8FYS47hMvq/sliSBOMU0VqzlNNXuhD8a&quot;
+            + &quot;3FypGfnPXvjJP5YX9ORu1xAfTNao2sSHLtrkNJQBv6jCRIMYbjjo84UFab2qhhaJ&quot; + &quot;wqJgkQNKu2LHy5gFUztxD8JIuFPoayp1n9JL/gqFDv6k81UnDGmHeFcCARGjggEi&quot;
+            + &quot;MIIBHjAPBgNVHRMBAf8EBTADAQEAMA8GA1UdDwEB/wQFAwMHoAAwOwYDVR0lBDQw&quot; + &quot;MgYIKwYBBQUHAwEGCCsGAQUFBwMCBggrBgEFBQcDBAYIKwYBBQUHAwUGCCsGAQUF&quot;
+            + &quot;BwMHMB0GA1UdDgQWBBTnT1aQ9I0Ud4OEfNJkSOgJSrsIoDAfBgNVHSMEGDAWgBRj&quot; + &quot;e/R2qFQkjqV0pXdEpvReD1eSUTAiBgNVHREEGzAZoBcGCisGAQQBgjcUAgOgCQwH&quot;
+            + &quot;Zm9vQGZvbzASBgNVHSAECzAJMAcGBSkBAQEBMEUGA1UdHwQ+MDwwOqA4oDaGNGh0&quot; + &quot;dHA6Ly8xMjcuMC4wLjE6ODA4MC9lamJjYS93ZWJkaXN0L2NlcnRkaXN0P2NtZD1j&quot;
+            + &quot;cmwwDQYJKoZIhvcNAQEFBQADgYEAU4CCcLoSUDGXJAOO9hGhvxQiwjGD2rVKCLR4&quot; + &quot;emox1mlQ5rgO9sSel6jHkwceaq4A55+qXAjQVsuy76UJnc8ncYX8f98uSYKcjxo/&quot;
+<span class="nc" id="L189">            + &quot;ifn1eHMbL8dGLd5bc2GNBZkmhFIEoDvbfn9jo7phlS8iyvF2YhC4eso8Xb+T7+BZ&quot; + &quot;QUOBOvc=&quot;).getBytes());</span>
+
+    @PostConstruct
+    private void startup() {
+        //
+        // Run all &quot;safe&quot; initializations first, 
+        // i.e. those that does not depend on other running beans, components etc
+
+        // Log a startup message
+<span class="nc" id="L198">        String iMsg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;startservice.startup&quot;, GlobalConfiguration.EJBCA_VERSION);</span>
+<span class="nc" id="L199">        log.info(iMsg);</span>
+
+        // Reinstall BC-provider to help re-deploys to work
+<span class="nc" id="L202">        log.trace(&quot;&gt;init re-installing BC-provider&quot;);</span>
+<span class="nc" id="L203">        CryptoProviderTools.removeBCProvider();</span>
+<span class="nc" id="L204">        CryptoProviderTools.installBCProvider();</span>
+
+        // Run java seed collector, that can take a little time the first time it is run
+<span class="nc" id="L207">        log.trace(&quot;&gt;init initializing random seed&quot;);</span>
+<span class="nc" id="L208">        SecureRandom rand = new SecureRandom();</span>
+<span class="nc" id="L209">        rand.nextInt();</span>
+        
+        //
+        // Start services that requires calling other beans or components
+        //
+        
+        // We really need BC to be installed. This is an attempt to fix a bug where the ServiceSessionBean
+        // crashes from not finding the BC-provider.
+<span class="nc" id="L217">        int waitTime = 0;</span>
+<span class="nc bnc" id="L218" title="All 4 branches missed.">        while (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null &amp;&amp; waitTime++ &lt; 5) {</span>
+<span class="nc" id="L219">            log.info(&quot;Waiting for BC provider to be installed..&quot;);</span>
+            try {
+<span class="nc" id="L221">                Thread.sleep(2000);</span>
+<span class="nc" id="L222">            } catch (InterruptedException e) {</span>
+<span class="nc" id="L223">                Thread.currentThread().interrupt();</span>
+<span class="nc" id="L224">                log.error(&quot;Waiting for BC provider failed.&quot;, e);</span>
+<span class="nc" id="L225">                break;</span>
+<span class="nc" id="L226">            }</span>
+        }
+        // Verify that the classloader uses &quot;our&quot; BC version
+<span class="nc" id="L229">        log.trace(&quot;&gt;init checking classloader of BouncyCastle provider&quot;);</span>
+        try {
+<span class="nc" id="L231">            final CertificateFactory cf = CertTools.getCertificateFactory();</span>
+<span class="nc" id="L232">            final X509Certificate testcert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(testcertbytes));</span>
+<span class="nc" id="L233">            checkClassLoaderIsEJBCA(testcert.getClass());</span>
+<span class="nc" id="L234">        } catch (CertificateException e1) {</span>
+<span class="nc" id="L235">            log.error(&quot;Can not parse certificate, this should never happen: &quot;, e1);</span>
+<span class="nc" id="L236">            throw new IllegalStateException(e1.getMessage());</span>
+<span class="nc" id="L237">        }</span>
+
+        /* 
+         * Trigger ServiceLoader for AuthenticationTokens at startup, since this is a critical function it makes
+         * debugging nicer if the available tokens are shown at startup
+         */
+<span class="nc" id="L243">        log.info(&quot;Registered AuthenticationTokens &quot; + AccessMatchValueReverseLookupRegistry.INSTANCE.getAllTokenTypes().toString());</span>
+        // We have to read CAs into cache (and upgrade them) early, because the log system may use CAs for signing logs
+        
+<span class="nc" id="L246">        log.trace(&quot;&gt;init CryptoTokenFactory just to load those classes that are available&quot;);</span>
+<span class="nc" id="L247">        CryptoTokenFactory.instance();</span>
+        
+<span class="nc" id="L249">        authorizationSession.scheduleBackgroundRefresh();</span>
+        // Load CAs at startup to improve impression of speed the first time a CA is accessed, it takes a little time to load it.
+<span class="nc" id="L251">        log.trace(&quot;&gt;init loading CAs into cache&quot;);</span>
+        try {
+<span class="nc" id="L253">            caAdminSession.initializeAndUpgradeCAs();</span>
+<span class="nc" id="L254">        } catch (Exception e) {</span>
+<span class="nc" id="L255">            log.error(&quot;Error creating CAAdminSession: &quot;, e);</span>
+<span class="nc" id="L256">        }</span>
+
+        // Make a log row that EJBCA is starting
+<span class="nc" id="L259">        Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L260">        details.put(&quot;msg&quot;, iMsg);</span>
+<span class="nc" id="L261">        logSession.log(EjbcaEventTypes.EJBCA_STARTING, EventStatus.SUCCESS, EjbcaModuleTypes.SERVICE, EjbcaServiceTypes.EJBCA, authenticationToken.toString(), null, getHostName(), null, details);               </span>
+
+        // Log the type of security audit configuration that we have enabled.
+<span class="nc" id="L264">        log.trace(&quot;&gt;init security audit device configuration&quot;);</span>
+<span class="nc" id="L265">        final Set&lt;String&gt; loggerIds = AuditDevicesConfig.getAllDeviceIds();</span>
+<span class="nc bnc" id="L266" title="All 2 branches missed.">        if (loggerIds.isEmpty()) {</span>
+<span class="nc" id="L267">            final String msg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;startservices.noauditdevices&quot;);</span>
+<span class="nc" id="L268">            log.info(msg);</span>
+<span class="nc" id="L269">        } else {</span>
+<span class="nc bnc" id="L270" title="All 2 branches missed.">            if (!checkForProtectedAudit(authenticationToken, loggerIds)) {</span>
+                // Make a log row that no integrity protected device is configured
+<span class="nc" id="L272">                final String msg = InternalEjbcaResources.getInstance().getLocalizedMessage(&quot;startservices.noprotectedauditdevices&quot;);</span>
+<span class="nc" id="L273">                final Map&lt;String, Object&gt; logdetails = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L274">                logdetails.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L275">                logSession.log(EventTypes.LOG_MANAGEMENT_CHANGE, EventStatus.VOID, ModuleTypes.SECURITY_AUDIT, ServiceTypes.CORE, authenticationToken.toString(), null, null, null, logdetails);                </span>
+            }
+        }
+
+        // Initialize authorization system, if not done already
+<span class="nc" id="L280">        log.trace(&quot;&gt;init AuthorizationSystemSession to check for initial root role&quot;);</span>
+<span class="nc" id="L281">        final boolean isFreshInstallation = authorizationSystemSession.initializeAuthorizationModule();</span>
+
+<span class="nc" id="L283">        log.trace(&quot;&gt;init calling ServiceSession.load&quot;);</span>
+        try {
+<span class="nc" id="L285">            serviceSession.load();</span>
+<span class="nc" id="L286">        } catch (Exception e) {</span>
+<span class="nc" id="L287">            log.error(&quot;Error init ServiceSession: &quot;, e);</span>
+<span class="nc" id="L288">        }</span>
+        
+        // Load Certificate profiles at startup to upgrade them if needed
+<span class="nc" id="L291">        log.trace(&quot;&gt;init loading CertificateProfile to check for upgrades&quot;);</span>
+        try {
+<span class="nc" id="L293">            certificateProfileSession.initializeAndUpgradeProfiles();</span>
+<span class="nc" id="L294">        } catch (Exception e) {</span>
+<span class="nc" id="L295">            log.error(&quot;Error initializing certificate profiles: &quot;, e);</span>
+<span class="nc" id="L296">        }</span>
+        
+        // Load EndEntity profiles at startup to upgrade them if needed
+        // And add this node to list of nodes
+<span class="nc" id="L300">        log.trace(&quot;&gt;init loading EndEntityProfile to check for upgrades&quot;);</span>
+        try {
+<span class="nc" id="L302">            endEntityProfileSession.initializeAndUpgradeProfiles();         </span>
+<span class="nc" id="L303">        } catch (Exception e) {</span>
+<span class="nc" id="L304">            log.error(&quot;Error initializing end entity profiles: &quot;, e);</span>
+<span class="nc" id="L305">        }</span>
+        
+        // Add this node's hostname to list of nodes
+<span class="nc" id="L308">        log.trace(&quot;&gt;init checking if this node is in the list of nodes&quot;);</span>
+        try {
+            // Requires a transaction in order to create the initial global configuration
+<span class="nc" id="L311">            final GlobalConfiguration config = (GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID);</span>
+<span class="nc" id="L312">            final Set&lt;String&gt; nodes = config.getNodesInCluster();</span>
+<span class="nc" id="L313">            final String hostname = getHostName();</span>
+<span class="nc bnc" id="L314" title="All 4 branches missed.">            if (hostname != null &amp;&amp; !nodes.contains(hostname)) {</span>
+<span class="nc" id="L315">                log.debug(&quot;Adding this node (&quot;+hostname+&quot;) to the list of nodes&quot;);</span>
+<span class="nc" id="L316">                nodes.add(hostname);</span>
+<span class="nc" id="L317">                config.setNodesInCluster(nodes);</span>
+<span class="nc" id="L318">                globalConfigurationSession.saveConfiguration(authenticationToken, config);</span>
+            }
+<span class="nc" id="L320">        } catch (Exception e) {</span>
+<span class="nc" id="L321">            log.error(&quot;Error adding host to node list in global configuration: &quot;, e);</span>
+<span class="nc" id="L322">        } </span>
+
+<span class="nc" id="L324">        log.trace(&quot;&gt;init SignSession to check for unique issuerDN,serialNumber index&quot;);</span>
+        // Call the check for unique index, since first invocation will perform the database
+        // operation and avoid a performance hit for the first request where this is checked.
+<span class="nc" id="L327">        final Boolean unique = DatabaseIndexUtil.isIndexPresentOverColumns(JDBCUtil.getDataSourceOrNull(), &quot;CertificateData&quot;, Arrays.asList(&quot;serialNumber&quot;, &quot;issuerDN&quot;), true);</span>
+<span class="nc bnc" id="L328" title="All 2 branches missed.">        if (unique==null) {</span>
+<span class="nc" id="L329">            log.info(&quot;Unable to read the index meta data from the database. Will detect presence of unique index using conflicting inserts to CertificateData.&quot;);</span>
+            // Fall-back to testing for a unique index on CertificateData using conflicting INSERTs
+<span class="nc" id="L331">            certCreateSession.isUniqueCertificateSerialNumberIndex();</span>
+        } else {
+<span class="nc" id="L333">            certificateStoreSession.setUniqueCertificateSerialNumberIndex(unique);</span>
+        }
+        // Perform (automatic) upgrades, if needed
+<span class="nc" id="L336">        upgradeSession.performPreUpgrade(isFreshInstallation);</span>
+<span class="nc" id="L337">        upgradeSession.performUpgrade();</span>
+        // Start key reload timer
+<span class="nc" id="L339">        ocspResponseGeneratorSession.initTimers();</span>
+        // Start CA certificate cache reload
+<span class="nc" id="L341">        certificateStoreSession.initTimers();</span>
+        // Start legacy background service for renewal of OCSP signers via EJBCA WS calls to CA
+<span class="nc" id="L343">        ocspKeyRenewalSession.startTimer();</span>
+        // Verify that the EJB CLI user (if present) cannot be used to generate certificates
+<span class="nc" id="L345">        final String cliUsername = EjbcaConfiguration.getCliDefaultUser();</span>
+        try {
+<span class="nc" id="L347">            final EndEntityInformation defaultCliUser = endEntityAccessSession.findUser(authenticationToken, cliUsername);</span>
+<span class="nc bnc" id="L348" title="All 4 branches missed.">            if (defaultCliUser!=null &amp;&amp; defaultCliUser.getStatus()==EndEntityConstants.STATUS_NEW) {</span>
+                try {
+<span class="nc" id="L350">                    endEntityManagementSession.setUserStatus(authenticationToken, cliUsername, EndEntityConstants.STATUS_GENERATED);</span>
+<span class="nc" id="L351">                } catch (ApprovalException e) {</span>
+<span class="nc" id="L352">                    log.warn(&quot;The EJBCA CLI user '&quot; + cliUsername + &quot;' could be used for certificate enrollment. Please correct the status manually. Failed with: &quot; + e.getMessage());</span>
+<span class="nc" id="L353">                } catch (NoSuchEndEntityException e) {</span>
+<span class="nc" id="L354">                    log.warn(&quot;The EJBCA CLI user '&quot; + cliUsername + &quot;' could be used for certificate enrollment. Please correct the status manually. Failed with: &quot; + e.getMessage());</span>
+<span class="nc" id="L355">                } catch (WaitingForApprovalException e) {</span>
+<span class="nc" id="L356">                    log.warn(&quot;The EJBCA CLI user '&quot; + cliUsername + &quot;' could be used for certificate enrollment. Please correct the status manually. Failed with: &quot; + e.getMessage());</span>
+<span class="nc" id="L357">                }</span>
+            }
+<span class="nc" id="L359">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L360">            log.warn(&quot;Unable to check if the EJBCA CLI user '&quot; + cliUsername + &quot;' could be used for certificate enrollment. Please check and correct the status manually. Failed with: &quot; + e.getMessage());</span>
+<span class="nc" id="L361">        }</span>
+<span class="nc" id="L362">    }</span>
+    
+
+    /** Method that checks if we have an integrity protected security audit device configured, and in that case logs the configuration startup 
+     * 
+     * @param admin an authentication token used to log the configuration management startup (logged as a change as audit is configured during startup from properties file) 
+     * @param loggerIds the configured loggers among which we look for the protected device
+     * @return true if there is an integrity protected audit device and is was configured during startup (and audit log of this config was made)
+     */
+    private boolean checkForProtectedAudit(AuthenticationToken admin, final Set&lt;String&gt; loggerIds) {
+<span class="nc" id="L372">        boolean ret = false;                                            </span>
+        // See if we have IntegrityProtectedDevice configured, due to class loading constraints we can not use IntegrityProtectedDevice.class.getSimpleName().
+        // This is admin-gui and does not have access to that class
+<span class="nc" id="L375">        final String integrityProtectedName = &quot;IntegrityProtectedDevice&quot;;</span>
+<span class="nc bnc" id="L376" title="All 2 branches missed.">        for (Iterator&lt;String&gt; iterator = loggerIds.iterator(); iterator.hasNext();) {</span>
+<span class="nc" id="L377">            final String id = iterator.next();</span>
+<span class="nc bnc" id="L378" title="All 2 branches missed.">            if (integrityProtectedName.equals(id)) {</span>
+                // Make a log row that integrity protected device is configured
+<span class="nc" id="L380">                final Map&lt;String, Object&gt; logdetails = new LinkedHashMap&lt;&gt;();</span>
+                try {
+                    // Use reflection to get the ProtectedDataConfiguration and make some calls to it.
+                    // This is needed since ProtectedDataConfiguration may not be available during compile time, or runtime
+<span class="nc" id="L384">                    Class&lt;?&gt; c = Class.forName(&quot;org.cesecore.dbprotection.ProtectedDataConfiguration&quot;);</span>
+                    // create instance ProtectedDataConfiguration.instance()
+<span class="nc" id="L386">                    Method instance = c.getMethod(&quot;instance&quot;, (Class[])null);</span>
+                    //Object[] args = new Object[0];
+<span class="nc" id="L388">                    Object config = instance.invoke(null);</span>
+                    // create method ProtectedDataConfiguration.getKeyId(String)
+<span class="nc" id="L390">                    Method getKeyId = c.getMethod(&quot;getKeyId&quot;, String.class);</span>
+                    // create method ProtectedDataConfiguration.getProtectVersion(int)
+<span class="nc" id="L392">                    Method getProtectVersion = c.getMethod(&quot;getProtectVersion&quot;, Integer.TYPE);</span>
+                    // create method ProtectedDataConfiguration.getKeyLabel(int)
+<span class="nc" id="L394">                    Method getKeyLabel = c.getMethod(&quot;getKeyLabel&quot;, Integer.TYPE);</span>
+                    // Call ProtectedDataConfiguration.instance().getKeyId
+<span class="nc" id="L396">                    final String auditTableName = AuditRecordData.class.getSimpleName();</span>
+<span class="nc" id="L397">                    final Integer keyid = (Integer)getKeyId.invoke(config, auditTableName);</span>
+<span class="nc bnc" id="L398" title="All 4 branches missed.">                    if ((keyid != null) &amp;&amp; (keyid &gt; 0)) {</span>
+<span class="nc bnc" id="L399" title="All 2 branches missed.">                        if (CesecoreConfiguration.useDatabaseIntegrityProtection(auditTableName)) {</span>
+                            // Call ProtectedDataConfiguration.instance().getProtectVersion
+<span class="nc" id="L401">                            final Integer protectVersion = (Integer)getProtectVersion.invoke(config, keyid);</span>
+                            // Call ProtectedDataConfiguration.instance().getKeyLabel
+<span class="nc" id="L403">                            final String keyLabel = (String)getKeyLabel.invoke(config, keyid);</span>
+<span class="nc" id="L404">                            logdetails.put(&quot;keyid&quot;, keyid);</span>
+<span class="nc" id="L405">                            logdetails.put(&quot;protectVersion&quot;, protectVersion);</span>
+<span class="nc" id="L406">                            logdetails.put(&quot;keyLabel&quot;, keyLabel);</span>
+<span class="nc" id="L407">                            logSession.log(EventTypes.LOG_MANAGEMENT_CHANGE, EventStatus.SUCCESS, ModuleTypes.SECURITY_AUDIT, ServiceTypes.CORE, admin.toString(), null, null, null, logdetails);</span>
+<span class="nc" id="L408">                            ret = true;                                            </span>
+<span class="nc" id="L409">                        } else {</span>
+<span class="nc" id="L410">                            log.debug(&quot;No database integrity protection enabled for AuditRecordData.&quot;);</span>
+                        }
+                    } else {
+<span class="nc" id="L413">                        log.debug(&quot;No keyid configured for AuditRecordData.&quot;);</span>
+                    }
+<span class="nc" id="L415">                } catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L416">                    log.info(&quot;No database integrity protection available in this version of EJBCA.&quot;);</span>
+<span class="nc" id="L417">                } catch (IllegalAccessException e) {</span>
+<span class="nc" id="L418">                    log.info(&quot;No database integrity protection available due to initialization error: &quot;, e);</span>
+<span class="nc" id="L419">                } catch (SecurityException e) {</span>
+<span class="nc" id="L420">                    log.info(&quot;No database integrity protection available due to initialization error: &quot;, e);</span>
+<span class="nc" id="L421">                } catch (NoSuchMethodException e) {</span>
+<span class="nc" id="L422">                    log.info(&quot;No database integrity protection available due to initialization error: &quot;, e);</span>
+<span class="nc" id="L423">                } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L424">                    log.info(&quot;No database integrity protection available due to initialization error: &quot;, e);</span>
+<span class="nc" id="L425">                } catch (InvocationTargetException e) {</span>
+<span class="nc" id="L426">                    log.info(&quot;No database integrity protection available due to initialization error: &quot;, e);</span>
+<span class="nc" id="L427">                }</span>
+            }
+<span class="nc" id="L429">        }</span>
+<span class="nc" id="L430">        return ret;</span>
+    }
+    
+    /**
+     * @return The host's name or null if it could not be determined.
+     */
+    private String getHostName() {
+<span class="nc" id="L437">        String hostname = null;</span>
+        try {
+<span class="nc" id="L439">            InetAddress addr = InetAddress.getLocalHost();    </span>
+            // Get hostname
+<span class="nc" id="L441">            hostname = addr.getHostName();</span>
+<span class="nc" id="L442">        } catch (UnknownHostException e) {</span>
+<span class="nc" id="L443">            log.error(&quot;Hostname could not be determined&quot;, e);</span>
+<span class="nc" id="L444">        }</span>
+<span class="nc" id="L445">        return hostname;</span>
+    }    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

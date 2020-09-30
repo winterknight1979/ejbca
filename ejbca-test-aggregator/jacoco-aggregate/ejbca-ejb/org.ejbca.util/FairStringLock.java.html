@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>FairStringLock.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util</a> &gt; <span class="el_source">FairStringLock.java</span></div><h1>FairStringLock.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.util;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
+
+import org.apache.log4j.Logger;
+
+/**
+ * Util for locking based on a String. This class can of course not do locking distributed over
+ * several JVMs/EJBCA nodes. Currently not used by any classes in EJBCA.
+ * 
+ * Example usage:
+ * 		String username = null;
+ * 		boolean lockedByThisRequest = false;
+ * 		...
+ * 		try {
+ * 			...
+ * 			lockedByThisRequest = true;
+ * 			FairStringLock.getInstance(&quot;SomeFairStringLock&quot;).lock(username);
+ * 			...
+ * 		} finally {
+ * 			if (lockedByThisRequest) {
+ * 				FairStringLock.getInstance(&quot;SomeFairStringLock&quot;).unlock(username);
+ * 			}
+ * 		}
+ * 
+ * @version $Id: FairStringLock.java 22142 2015-11-03 14:15:51Z mikekushner $
+ */
+public class FairStringLock {
+
+<span class="nc" id="L45">	private static final Logger log = Logger.getLogger(FairStringLock.class);</span>
+			
+<span class="nc" id="L47">	private static Map&lt;String, FairStringLock&gt; instanceMap = new HashMap&lt;String, FairStringLock&gt;();</span>
+<span class="nc" id="L48">	private static ReentrantLock instanceMapLock = new ReentrantLock(true);</span>
+	
+<span class="nc" id="L50">	private final Map&lt;String, ReentrantLock&gt; lockMap = new HashMap&lt;String, ReentrantLock&gt;();</span>
+<span class="nc" id="L51">	private final ReentrantLock accessMapLock = new ReentrantLock(true);</span>
+	
+	private final String instanceName;
+
+<span class="nc" id="L55">	private FairStringLock(String instanceName) {</span>
+<span class="nc" id="L56">		this.instanceName = instanceName;</span>
+<span class="nc" id="L57">	}</span>
+	
+	public static FairStringLock getInstance(String instanceName) {
+<span class="nc" id="L60">		instanceMapLock.lock();</span>
+<span class="nc" id="L61">		FairStringLock instance = instanceMap.get(instanceName);</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">		if (instance == null) {</span>
+<span class="nc" id="L63">			instance = new FairStringLock(instanceName);</span>
+<span class="nc" id="L64">			instanceMap.put(instanceName, instance);</span>
+		}
+<span class="nc" id="L66">		instanceMapLock.unlock();</span>
+<span class="nc" id="L67">		return instance;</span>
+	}
+	
+	public void lock(String lockName) {
+<span class="nc bnc" id="L71" title="All 2 branches missed.">		if (lockName == null) {</span>
+<span class="nc" id="L72">			return;</span>
+		}
+<span class="nc" id="L74">		accessMapLock.lock();</span>
+<span class="nc" id="L75">		ReentrantLock reentrantLock = lockMap.get(lockName);</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">		if (reentrantLock == null) {</span>
+<span class="nc" id="L77">			reentrantLock = new ReentrantLock(true);</span>
+<span class="nc" id="L78">			lockMap.put(lockName, reentrantLock);</span>
+<span class="nc" id="L79">			reentrantLock.lock();</span>
+<span class="nc" id="L80">			accessMapLock.unlock();</span>
+		} else {
+<span class="nc" id="L82">			accessMapLock.unlock();</span>
+<span class="nc" id="L83">			boolean gotProperLock = false;</span>
+			do {
+<span class="nc" id="L85">				reentrantLock.lock();</span>
+<span class="nc" id="L86">				accessMapLock.lock();</span>
+<span class="nc" id="L87">				ReentrantLock storedReentrantLock = lockMap.get(lockName);</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">				if (reentrantLock.equals(storedReentrantLock)) {</span>
+<span class="nc" id="L89">					gotProperLock = true;</span>
+				} else {
+<span class="nc bnc" id="L91" title="All 2 branches missed.">					if (storedReentrantLock == null) {</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">						if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L93">							log.debug(&quot;Instance \&quot;&quot; + instanceName + &quot;\&quot; had removed \&quot;&quot; + lockName + &quot;\&quot; while waiting for the lock.&quot;);</span>
+						}
+						// So it was left for garbage collection.. write it back in the map
+<span class="nc" id="L96">						lockMap.put(lockName, reentrantLock);</span>
+					} else {
+<span class="nc bnc" id="L98" title="All 2 branches missed.">						if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L99">							log.debug(&quot;Instance \&quot;&quot; + instanceName + &quot;\&quot; had created a new \&quot;&quot; + lockName + &quot;\&quot; while a waiting for the lock.&quot;);</span>
+						}
+<span class="nc" id="L101">						reentrantLock.unlock();</span>
+<span class="nc" id="L102">						reentrantLock = storedReentrantLock;</span>
+					}
+				}
+<span class="nc" id="L105">				accessMapLock.unlock();</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">			} while (!gotProperLock);</span>
+		}
+<span class="nc" id="L108">	}</span>
+	
+	public void unlock(String lockName) {
+<span class="nc bnc" id="L111" title="All 2 branches missed.">		if (lockName == null) {</span>
+<span class="nc" id="L112">			return;</span>
+		}
+<span class="nc" id="L114">		accessMapLock.lock();</span>
+<span class="nc" id="L115">		ReentrantLock reentrantLock = lockMap.get(lockName);</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">		if (reentrantLock != null) {</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">			if (!reentrantLock.hasQueuedThreads()) {</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">				if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L119">					log.debug(&quot;Instance \&quot;&quot; + instanceName + &quot;\&quot; removed reference \&quot;&quot; + lockName + &quot;\&quot;.&quot;);</span>
+				}
+				// No one is waiting for this lock so leave it for garbage collection
+<span class="nc" id="L122">				lockMap.remove(lockName);</span>
+			}
+<span class="nc" id="L124">			reentrantLock.unlock();</span>
+		} else {
+<span class="nc" id="L126">			log.warn(&quot;Instance \&quot;&quot; + instanceName + &quot;\&quot; tried to unlock an non-existing entry \&quot;&quot; + lockName + &quot;\&quot;&quot;);</span>
+		}
+<span class="nc bnc" id="L128" title="All 2 branches missed.">		if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L129">			log.debug(&quot;Unlocking. Instance \&quot;&quot; + instanceName + &quot;\&quot; is currently containing &quot; + lockMap.keySet().size() + &quot; references.&quot;);</span>
+		}
+<span class="nc" id="L131">		accessMapLock.unlock();</span>
+<span class="nc" id="L132">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

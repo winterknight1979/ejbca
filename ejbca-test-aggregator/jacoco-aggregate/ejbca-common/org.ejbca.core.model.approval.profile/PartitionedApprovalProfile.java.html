@@ -43,18 +43,18 @@ public class PartitionedApprovalProfile extends ApprovalProfileBase {
 
     private static final long serialVersionUID = 6991912129797327010L;
 
-<span class="nc" id="L46">    private static final Logger log = Logger.getLogger(PartitionedApprovalProfile.class);</span>
+<span class="fc" id="L46">    private static final Logger log = Logger.getLogger(PartitionedApprovalProfile.class);</span>
 
-<span class="nc" id="L48">    private static final InternalResources intres = InternalResources.getInstance();</span>
+<span class="fc" id="L48">    private static final InternalResources intres = InternalResources.getInstance();</span>
 
-<span class="nc" id="L50">    public static final RoleInformation ANYBODY = RoleInformation.fromRoleMembers(-1, null, &quot;Anybody&quot;, new ArrayList&lt;RoleMember&gt;());</span>
+<span class="fc" id="L50">    public static final RoleInformation ANYBODY = RoleInformation.fromRoleMembers(-1, null, &quot;Anybody&quot;, new ArrayList&lt;RoleMember&gt;());</span>
 
     public static final int EXECUTION_STEP_ID = 0;
     public static final String PROPERTY_NAME = &quot;name&quot;;
     public static final String PROPERTY_ROLES_WITH_APPROVAL_RIGHTS = &quot;roles_with_approval_rights&quot;;
     public static final String PROPERTY_ROLES_WITH_VIEW_RIGHTS = &quot;roles_with_view_rights&quot;;
 
-<span class="nc" id="L57">    private static final Set&lt;String&gt; predefinedProperties = new HashSet&lt;&gt;(Arrays.asList(PROPERTY_NAME, PROPERTY_ROLES_WITH_APPROVAL_RIGHTS, PROPERTY_ROLES_WITH_VIEW_RIGHTS));</span>
+<span class="fc" id="L57">    private static final Set&lt;String&gt; predefinedProperties = new HashSet&lt;&gt;(Arrays.asList(PROPERTY_NAME, PROPERTY_ROLES_WITH_APPROVAL_RIGHTS, PROPERTY_ROLES_WITH_VIEW_RIGHTS));</span>
 
     /**
      * Note: do not change, may cause problems in deployed installations.
@@ -67,9 +67,9 @@ public class PartitionedApprovalProfile extends ApprovalProfileBase {
 <span class="nc" id="L67">    }</span>
 
     public PartitionedApprovalProfile(final String name) {
-<span class="nc" id="L70">        super(name);</span>
-<span class="nc" id="L71">        initialize();</span>
-<span class="nc" id="L72">    }</span>
+<span class="fc" id="L70">        super(name);</span>
+<span class="fc" id="L71">        initialize();</span>
+<span class="fc" id="L72">    }</span>
 
     /*
      * This method only needs to be called by the factory method (and some unit tests), because it sets a ton of boilerplate stuff which isn't
@@ -77,12 +77,12 @@ public class PartitionedApprovalProfile extends ApprovalProfileBase {
      */
     @Override
     public void initialize() {
-<span class="nc" id="L80">        super.initialize();</span>
+<span class="fc" id="L80">        super.initialize();</span>
         //Default step, which is the default execution step. It contains a single partition, and only a list of approved executors.
-<span class="nc" id="L82">        ApprovalStep executionStep = new ApprovalStep(EXECUTION_STEP_ID);</span>
-<span class="nc" id="L83">        addStep(executionStep);</span>
-<span class="nc" id="L84">        setFirstStep(executionStep.getStepIdentifier());</span>
-<span class="nc" id="L85">    }</span>
+<span class="fc" id="L82">        ApprovalStep executionStep = new ApprovalStep(EXECUTION_STEP_ID);</span>
+<span class="fc" id="L83">        addStep(executionStep);</span>
+<span class="fc" id="L84">        setFirstStep(executionStep.getStepIdentifier());</span>
+<span class="fc" id="L85">    }</span>
 
     @Override
     public String getApprovalProfileLabel() {
@@ -103,17 +103,17 @@ public class PartitionedApprovalProfile extends ApprovalProfileBase {
     @Override
     public boolean canApprovalExecute(final Collection&lt;Approval&gt; approvalsPerformed) throws ApprovalException, AuthenticationFailedException {
         // Walk through all steps and their respective partitions, verify that the collection of approvals satisfies them.
-<span class="nc" id="L106">        ApprovalStep step = getFirstStep();</span>
-<span class="nc bnc" id="L107" title="All 2 branches missed.">        while(step != null) {</span>
-<span class="nc bnc" id="L108" title="All 2 branches missed.">            if(!isStepSatisfied(step, approvalsPerformed)) {</span>
-<span class="nc" id="L109">                return false;</span>
+<span class="fc" id="L106">        ApprovalStep step = getFirstStep();</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">        while(step != null) {</span>
+<span class="fc bfc" id="L108" title="All 2 branches covered.">            if(!isStepSatisfied(step, approvalsPerformed)) {</span>
+<span class="fc" id="L109">                return false;</span>
             }
-<span class="nc" id="L111">            step = getStep(step.getNextStep());</span>
-<span class="nc bnc" id="L112" title="All 4 branches missed.">            if(step != null &amp;&amp; step.equals(getFirstStep())) {</span>
+<span class="fc" id="L111">            step = getStep(step.getNextStep());</span>
+<span class="pc bpc" id="L112" title="1 of 4 branches missed.">            if(step != null &amp;&amp; step.equals(getFirstStep())) {</span>
 <span class="nc" id="L113">                throw new IllegalStateException(&quot;Approval steps have begun referencing each other as a circular array.&quot;);</span>
             }
         }
-<span class="nc" id="L116">        return true;</span>
+<span class="fc" id="L116">        return true;</span>
     }
 
     @Override
@@ -152,15 +152,15 @@ public class PartitionedApprovalProfile extends ApprovalProfileBase {
 
     @Override
     public boolean canApprovePartition(final AuthenticationToken authenticationToken, final ApprovalPartition approvalPartition) throws AuthenticationFailedException {
-<span class="nc bnc" id="L155" title="All 2 branches missed.">        if(approvalPartition != null) {</span>
+<span class="pc bpc" id="L155" title="1 of 2 branches missed.">        if(approvalPartition != null) {</span>
             @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L157">            List&lt;RoleInformation&gt; roles = (List&lt;RoleInformation&gt;) approvalPartition.getProperty(PROPERTY_ROLES_WITH_APPROVAL_RIGHTS).getValues();</span>
-<span class="nc bnc" id="L158" title="All 2 branches missed.">            for (RoleInformation role : roles) {</span>
-<span class="nc bnc" id="L159" title="All 2 branches missed.">                if (log.isTraceEnabled()) {</span>
+<span class="fc" id="L157">            List&lt;RoleInformation&gt; roles = (List&lt;RoleInformation&gt;) approvalPartition.getProperty(PROPERTY_ROLES_WITH_APPROVAL_RIGHTS).getValues();</span>
+<span class="pc bpc" id="L158" title="1 of 2 branches missed.">            for (RoleInformation role : roles) {</span>
+<span class="pc bpc" id="L159" title="1 of 2 branches missed.">                if (log.isTraceEnabled()) {</span>
 <span class="nc" id="L160">                    log.trace(&quot;Checking if authenticationToken '&quot;+authenticationToken+&quot;' matches role &quot;+role.getName());</span>
                 }
-<span class="nc bnc" id="L162" title="All 2 branches missed.">                if (role.equals(ANYBODY)) {</span>
-<span class="nc" id="L163">                    return true;</span>
+<span class="pc bpc" id="L162" title="1 of 2 branches missed.">                if (role.equals(ANYBODY)) {</span>
+<span class="fc" id="L163">                    return true;</span>
                 } else {
                     // Check if authenticationToken matches any of the AccessUserAspects that existed in the Role when the ApprovalProfile was saved.
 <span class="nc bnc" id="L166" title="All 2 branches missed.">                    for (final AccessUserAspect accessUserAspect : role.getAccessUserAspects()) {</span>
@@ -247,37 +247,37 @@ public class PartitionedApprovalProfile extends ApprovalProfileBase {
     @Override
     public boolean isStepSizeFixed() {
         // Partitioned Approval Profiles can have as many steps as you like.
-<span class="nc" id="L250">        return false;</span>
+<span class="fc" id="L250">        return false;</span>
     }
 
     @Override
     protected Class&lt;? extends Profile&gt; getImplementationClass() {
-<span class="nc" id="L255">        return PartitionedApprovalProfile.class;</span>
+<span class="fc" id="L255">        return PartitionedApprovalProfile.class;</span>
     }
 
     @Override
     protected ApprovalPartition addConstantProperties(ApprovalPartition approvalPartition) {
         //All partitions for this profile have some default fields: a name and a list of Roles with access
-<span class="nc" id="L261">        approvalPartition.addProperty(new DynamicUiProperty&lt;String&gt;(PROPERTY_NAME, &quot;&quot;));</span>
+<span class="fc" id="L261">        approvalPartition.addProperty(new DynamicUiProperty&lt;String&gt;(PROPERTY_NAME, &quot;&quot;));</span>
 
         //Add approving roles, with &quot;Anybody&quot; as the default Role.
-<span class="nc" id="L264">        DynamicUiProperty&lt;RoleInformation&gt; approvalRoles = new DynamicUiProperty&lt;RoleInformation&gt;(PROPERTY_ROLES_WITH_APPROVAL_RIGHTS, ANYBODY,</span>
+<span class="fc" id="L264">        DynamicUiProperty&lt;RoleInformation&gt; approvalRoles = new DynamicUiProperty&lt;RoleInformation&gt;(PROPERTY_ROLES_WITH_APPROVAL_RIGHTS, ANYBODY,</span>
                 new HashSet&lt;RoleInformation&gt;());
         //Will make this property into a multi-select instead of single select.
-<span class="nc" id="L267">        approvalRoles.setHasMultipleValues(true);</span>
+<span class="fc" id="L267">        approvalRoles.setHasMultipleValues(true);</span>
         //Tell whatever bean is using this property to fill it with authorized roles.
-<span class="nc" id="L269">        approvalRoles.setPropertyCallback(DynamicUiPropertyCallback.ROLES);</span>
-<span class="nc" id="L270">        approvalPartition.addProperty(approvalRoles);</span>
+<span class="fc" id="L269">        approvalRoles.setPropertyCallback(DynamicUiPropertyCallback.ROLES);</span>
+<span class="fc" id="L270">        approvalPartition.addProperty(approvalRoles);</span>
 
         //Add roles with view rights, with &quot;Anybody&quot; as the default Role.
-<span class="nc" id="L273">        DynamicUiProperty&lt;RoleInformation&gt; viewRoles = new DynamicUiProperty&lt;RoleInformation&gt;(PROPERTY_ROLES_WITH_VIEW_RIGHTS, ANYBODY,</span>
+<span class="fc" id="L273">        DynamicUiProperty&lt;RoleInformation&gt; viewRoles = new DynamicUiProperty&lt;RoleInformation&gt;(PROPERTY_ROLES_WITH_VIEW_RIGHTS, ANYBODY,</span>
                 new HashSet&lt;RoleInformation&gt;());
         //Will make this property into a multi-select instead of single select.
-<span class="nc" id="L276">        viewRoles.setHasMultipleValues(true);</span>
+<span class="fc" id="L276">        viewRoles.setHasMultipleValues(true);</span>
         //Tell whatever bean is using this property to fill it with authorized roles.
-<span class="nc" id="L278">        viewRoles.setPropertyCallback(DynamicUiPropertyCallback.ROLES_VIEW);</span>
-<span class="nc" id="L279">        approvalPartition.addProperty(viewRoles);</span>
-<span class="nc" id="L280">        return approvalPartition;</span>
+<span class="fc" id="L278">        viewRoles.setPropertyCallback(DynamicUiPropertyCallback.ROLES_VIEW);</span>
+<span class="fc" id="L279">        approvalPartition.addProperty(viewRoles);</span>
+<span class="fc" id="L280">        return approvalPartition;</span>
     }
 
     @Override

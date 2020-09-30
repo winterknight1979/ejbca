@@ -40,7 +40,7 @@ public class CmpConfiguration extends ConfigurationBase implements Serializable 
 
     private static final long serialVersionUID = -2787354158199916828L;
 
-<span class="nc" id="L43">    private static final Logger log = Logger.getLogger(CmpConfiguration.class);</span>
+<span class="fc" id="L43">    private static final Logger log = Logger.getLogger(CmpConfiguration.class);</span>
     
     // Constants: Authentication modules
     public static final String AUTHMODULE_REG_TOKEN_PWD         = &quot;RegTokenPwd&quot;;
@@ -86,18 +86,18 @@ public class CmpConfiguration extends ConfigurationBase implements Serializable 
     public static final String PROFILE_DEFAULT = &quot;ProfileDefault&quot;;
     
     // This List is used in the command line handling of updating a config value to ensure a correct value.
-<span class="nc" id="L89">    public static final List&lt;String&gt; CMP_BOOLEAN_KEYS = Arrays.asList(CONFIG_VENDORCERTIFICATEMODE, CONFIG_ALLOWRAVERIFYPOPO, CONFIG_RA_ALLOWCUSTOMCERTSERNO,</span>
+<span class="fc" id="L89">    public static final List&lt;String&gt; CMP_BOOLEAN_KEYS = Arrays.asList(CONFIG_VENDORCERTIFICATEMODE, CONFIG_ALLOWRAVERIFYPOPO, CONFIG_RA_ALLOWCUSTOMCERTSERNO,</span>
                                                         CONFIG_ALLOWAUTOMATICKEYUPDATE, CONFIG_ALLOWUPDATEWITHSAMEKEY, CONFIG_ALLOWSERVERGENERATEDKEYS);
        
-<span class="nc" id="L92">    private final String ALIAS_LIST = &quot;aliaslist&quot;;</span>
+<span class="pc" id="L92">    private final String ALIAS_LIST = &quot;aliaslist&quot;;</span>
     public static final String CMP_CONFIGURATION_ID = &quot;1&quot;;
 
     // Default Values
     public static final float LATEST_VERSION = 8f;
-<span class="nc" id="L97">    public static final String EJBCA_VERSION = InternalConfiguration.getAppVersion();</span>
+<span class="fc" id="L97">    public static final String EJBCA_VERSION = InternalConfiguration.getAppVersion();</span>
     
     // Default values
-<span class="nc" id="L100">    private static final Set&lt;String&gt; DEFAULT_ALIAS_LIST      = new LinkedHashSet&lt;&gt;();</span>
+<span class="fc" id="L100">    private static final Set&lt;String&gt; DEFAULT_ALIAS_LIST      = new LinkedHashSet&lt;&gt;();</span>
     private static final String DEFAULT_DEFAULTCA = &quot;&quot;;
     private static final String DEFAULT_OPERATION_MODE = &quot;client&quot;;
     private static final String DEFAULT_EXTRACT_USERNAME_COMPONENT = &quot;DN&quot;;
@@ -128,8 +128,8 @@ public class CmpConfiguration extends ConfigurationBase implements Serializable 
     
     /** Creates a new instance of CmpConfiguration */
     public CmpConfiguration()  {
-<span class="nc" id="L131">       super();</span>
-<span class="nc" id="L132">    }</span>
+<span class="fc" id="L131">       super();</span>
+<span class="fc" id="L132">    }</span>
     
 <span class="nc" id="L134">    public CmpConfiguration(Serializable dataobj) {</span>
         @SuppressWarnings(&quot;unchecked&quot;)
@@ -157,70 +157,70 @@ public class CmpConfiguration extends ConfigurationBase implements Serializable 
     /** Initializes a new cmp configuration with default values. 
      * @param alias alias*/
     public void initialize(String alias){
-<span class="nc bnc" id="L160" title="All 2 branches missed.">        if(StringUtils.isNotEmpty(alias)) {</span>
-<span class="nc" id="L161">            alias = alias + &quot;.&quot;;</span>
-<span class="nc" id="L162">            data.put(alias + CONFIG_DEFAULTCA, DEFAULT_DEFAULTCA);</span>
-<span class="nc" id="L163">            data.put(alias + CONFIG_RESPONSEPROTECTION, DEFAULT_RESPONSE_PROTECTION);</span>
-<span class="nc" id="L164">            data.put(alias + CONFIG_OPERATIONMODE, DEFAULT_OPERATION_MODE);</span>
-<span class="nc" id="L165">            data.put(alias + CONFIG_AUTHENTICATIONMODULE, DEFAULT_CLIENT_AUTHENTICATION_MODULE);</span>
-<span class="nc" id="L166">            data.put(alias + CONFIG_AUTHENTICATIONPARAMETERS, DEFAULT_CLIENT_AUTHENTICATION_PARAMS);</span>
-<span class="nc" id="L167">            data.put(alias + CONFIG_EXTRACTUSERNAMECOMPONENT, DEFAULT_EXTRACT_USERNAME_COMPONENT);</span>
-<span class="nc" id="L168">            data.put(alias + CONFIG_VENDORCERTIFICATEMODE, DEFAULT_VENDOR_MODE);</span>
-<span class="nc" id="L169">            data.put(alias + CONFIG_VENDORCA, DEFAULT_VENDOR_CA);</span>
-<span class="nc" id="L170">            data.put(alias + CONFIG_RESPONSE_CAPUBS_CA, DEFAULT_RESPONSE_CAPUBS_CA);</span>
-<span class="nc" id="L171">            data.put(alias + CONFIG_RESPONSE_EXTRACERTS_CA, DEFAULT_RESPONSE_EXTRACERTS_CA);</span>
-<span class="nc" id="L172">            data.put(alias + CONFIG_ALLOWRAVERIFYPOPO, DEFAULT_ALLOW_RA_VERIFY_POPO);</span>
-<span class="nc" id="L173">            data.put(alias + CONFIG_RA_NAMEGENERATIONSCHEME, DEFAULT_RA_USERNAME_GENERATION_SCHEME);</span>
-<span class="nc" id="L174">            data.put(alias + CONFIG_RA_NAMEGENERATIONPARAMS, DEFAULT_RA_USERNAME_GENERATION_PARAMS);</span>
-<span class="nc" id="L175">            data.put(alias + CONFIG_RA_NAMEGENERATIONPREFIX, DEFAULT_RA_USERNAME_GENERATION_PREFIX);</span>
-<span class="nc" id="L176">            data.put(alias + CONFIG_RA_NAMEGENERATIONPOSTFIX, DEFAULT_RA_USERNAME_GENERATION_POSTFIX);</span>
-<span class="nc" id="L177">            data.put(alias + CONFIG_RA_PASSWORDGENPARAMS, DEFAULT_RA_PASSWORD_GENERARION_PARAMS);</span>
-<span class="nc" id="L178">            data.put(alias + CONFIG_RA_ALLOWCUSTOMCERTSERNO, DEFAULT_RA_ALLOW_CUSTOM_SERNO);</span>
-<span class="nc" id="L179">            data.put(alias + CONFIG_RA_ENDENTITYPROFILE, &quot;EMPTY&quot;);</span>
-<span class="nc" id="L180">            data.put(alias + CONFIG_RA_ENDENTITYPROFILEID, DEFAULT_RA_EEPROFILE);</span>
-<span class="nc" id="L181">            data.put(alias + CONFIG_RA_CERTIFICATEPROFILE, DEFAULT_RA_CERTPROFILE);</span>
-<span class="nc" id="L182">            data.put(alias + CONFIG_RACANAME, DEFAULT_RA_CANAME);</span>
-<span class="nc" id="L183">            data.put(alias + CONFIG_RACERT_PATH, DEFAULT_RACERT_PATH);</span>
-<span class="nc" id="L184">            data.put(alias + CONFIG_RA_OMITVERIFICATIONSINEEC, DEFAULT_RA_OMITVERIFICATIONSINEEC);</span>
-<span class="nc" id="L185">            data.put(alias + CONFIG_ALLOWAUTOMATICKEYUPDATE, DEFAULT_KUR_ALLOW_AUTOMATIC_KEYUPDATE);       </span>
-<span class="nc" id="L186">            data.put(alias + CONFIG_ALLOWSERVERGENERATEDKEYS, DEFAULT_ALLOW_SERVERGENERATED_KEYS);       </span>
-<span class="nc" id="L187">            data.put(alias + CONFIG_ALLOWUPDATEWITHSAMEKEY, DEFAULT_KUR_ALLOW_SAME_KEY);</span>
-<span class="nc" id="L188">            data.put(alias + CONFIG_CERTREQHANDLER_CLASS, DEFAULT_CERTREQHANDLER);</span>
+<span class="pc bpc" id="L160" title="1 of 2 branches missed.">        if(StringUtils.isNotEmpty(alias)) {</span>
+<span class="fc" id="L161">            alias = alias + &quot;.&quot;;</span>
+<span class="fc" id="L162">            data.put(alias + CONFIG_DEFAULTCA, DEFAULT_DEFAULTCA);</span>
+<span class="fc" id="L163">            data.put(alias + CONFIG_RESPONSEPROTECTION, DEFAULT_RESPONSE_PROTECTION);</span>
+<span class="fc" id="L164">            data.put(alias + CONFIG_OPERATIONMODE, DEFAULT_OPERATION_MODE);</span>
+<span class="fc" id="L165">            data.put(alias + CONFIG_AUTHENTICATIONMODULE, DEFAULT_CLIENT_AUTHENTICATION_MODULE);</span>
+<span class="fc" id="L166">            data.put(alias + CONFIG_AUTHENTICATIONPARAMETERS, DEFAULT_CLIENT_AUTHENTICATION_PARAMS);</span>
+<span class="fc" id="L167">            data.put(alias + CONFIG_EXTRACTUSERNAMECOMPONENT, DEFAULT_EXTRACT_USERNAME_COMPONENT);</span>
+<span class="fc" id="L168">            data.put(alias + CONFIG_VENDORCERTIFICATEMODE, DEFAULT_VENDOR_MODE);</span>
+<span class="fc" id="L169">            data.put(alias + CONFIG_VENDORCA, DEFAULT_VENDOR_CA);</span>
+<span class="fc" id="L170">            data.put(alias + CONFIG_RESPONSE_CAPUBS_CA, DEFAULT_RESPONSE_CAPUBS_CA);</span>
+<span class="fc" id="L171">            data.put(alias + CONFIG_RESPONSE_EXTRACERTS_CA, DEFAULT_RESPONSE_EXTRACERTS_CA);</span>
+<span class="fc" id="L172">            data.put(alias + CONFIG_ALLOWRAVERIFYPOPO, DEFAULT_ALLOW_RA_VERIFY_POPO);</span>
+<span class="fc" id="L173">            data.put(alias + CONFIG_RA_NAMEGENERATIONSCHEME, DEFAULT_RA_USERNAME_GENERATION_SCHEME);</span>
+<span class="fc" id="L174">            data.put(alias + CONFIG_RA_NAMEGENERATIONPARAMS, DEFAULT_RA_USERNAME_GENERATION_PARAMS);</span>
+<span class="fc" id="L175">            data.put(alias + CONFIG_RA_NAMEGENERATIONPREFIX, DEFAULT_RA_USERNAME_GENERATION_PREFIX);</span>
+<span class="fc" id="L176">            data.put(alias + CONFIG_RA_NAMEGENERATIONPOSTFIX, DEFAULT_RA_USERNAME_GENERATION_POSTFIX);</span>
+<span class="fc" id="L177">            data.put(alias + CONFIG_RA_PASSWORDGENPARAMS, DEFAULT_RA_PASSWORD_GENERARION_PARAMS);</span>
+<span class="fc" id="L178">            data.put(alias + CONFIG_RA_ALLOWCUSTOMCERTSERNO, DEFAULT_RA_ALLOW_CUSTOM_SERNO);</span>
+<span class="fc" id="L179">            data.put(alias + CONFIG_RA_ENDENTITYPROFILE, &quot;EMPTY&quot;);</span>
+<span class="fc" id="L180">            data.put(alias + CONFIG_RA_ENDENTITYPROFILEID, DEFAULT_RA_EEPROFILE);</span>
+<span class="fc" id="L181">            data.put(alias + CONFIG_RA_CERTIFICATEPROFILE, DEFAULT_RA_CERTPROFILE);</span>
+<span class="fc" id="L182">            data.put(alias + CONFIG_RACANAME, DEFAULT_RA_CANAME);</span>
+<span class="fc" id="L183">            data.put(alias + CONFIG_RACERT_PATH, DEFAULT_RACERT_PATH);</span>
+<span class="fc" id="L184">            data.put(alias + CONFIG_RA_OMITVERIFICATIONSINEEC, DEFAULT_RA_OMITVERIFICATIONSINEEC);</span>
+<span class="fc" id="L185">            data.put(alias + CONFIG_ALLOWAUTOMATICKEYUPDATE, DEFAULT_KUR_ALLOW_AUTOMATIC_KEYUPDATE);       </span>
+<span class="fc" id="L186">            data.put(alias + CONFIG_ALLOWSERVERGENERATEDKEYS, DEFAULT_ALLOW_SERVERGENERATED_KEYS);       </span>
+<span class="fc" id="L187">            data.put(alias + CONFIG_ALLOWUPDATEWITHSAMEKEY, DEFAULT_KUR_ALLOW_SAME_KEY);</span>
+<span class="fc" id="L188">            data.put(alias + CONFIG_CERTREQHANDLER_CLASS, DEFAULT_CERTREQHANDLER);</span>
         }
-<span class="nc" id="L190">    }</span>
+<span class="fc" id="L190">    }</span>
     
     // return all the key with an alias
     public static Set&lt;String&gt; getAllAliasKeys(String alias) {
-<span class="nc" id="L194">        alias = alias + &quot;.&quot;;</span>
-<span class="nc" id="L195">        Set&lt;String&gt; keys = new LinkedHashSet&lt;&gt;();</span>
-<span class="nc" id="L196">        keys.add(alias + CONFIG_DEFAULTCA);</span>
-<span class="nc" id="L197">        keys.add(alias + CONFIG_RESPONSEPROTECTION);</span>
-<span class="nc" id="L198">        keys.add(alias + CONFIG_OPERATIONMODE);</span>
-<span class="nc" id="L199">        keys.add(alias + CONFIG_AUTHENTICATIONMODULE);</span>
-<span class="nc" id="L200">        keys.add(alias + CONFIG_AUTHENTICATIONPARAMETERS);</span>
-<span class="nc" id="L201">        keys.add(alias + CONFIG_EXTRACTUSERNAMECOMPONENT);</span>
-<span class="nc" id="L202">        keys.add(alias + CONFIG_VENDORCERTIFICATEMODE);</span>
-<span class="nc" id="L203">        keys.add(alias + CONFIG_VENDORCA);</span>
-<span class="nc" id="L204">        keys.add(alias + CONFIG_RESPONSE_CAPUBS_CA);</span>
-<span class="nc" id="L205">        keys.add(alias + CONFIG_RESPONSE_EXTRACERTS_CA);</span>
-<span class="nc" id="L206">        keys.add(alias + CONFIG_ALLOWRAVERIFYPOPO);</span>
-<span class="nc" id="L207">        keys.add(alias + CONFIG_RA_NAMEGENERATIONSCHEME);</span>
-<span class="nc" id="L208">        keys.add(alias + CONFIG_RA_NAMEGENERATIONPARAMS);</span>
-<span class="nc" id="L209">        keys.add(alias + CONFIG_RA_NAMEGENERATIONPREFIX);</span>
-<span class="nc" id="L210">        keys.add(alias + CONFIG_RA_NAMEGENERATIONPOSTFIX);</span>
-<span class="nc" id="L211">        keys.add(alias + CONFIG_RA_PASSWORDGENPARAMS);</span>
-<span class="nc" id="L212">        keys.add(alias + CONFIG_RA_ALLOWCUSTOMCERTSERNO);</span>
-<span class="nc" id="L213">        keys.add(alias + CONFIG_RA_ENDENTITYPROFILE);</span>
-<span class="nc" id="L214">        keys.add(alias + CONFIG_RA_ENDENTITYPROFILEID);</span>
-<span class="nc" id="L215">        keys.add(alias + CONFIG_RA_CERTIFICATEPROFILE);</span>
-<span class="nc" id="L216">        keys.add(alias + CONFIG_RACANAME);</span>
-<span class="nc" id="L217">        keys.add(alias + CONFIG_RACERT_PATH);</span>
-<span class="nc" id="L218">        keys.add(alias + CONFIG_RA_OMITVERIFICATIONSINEEC);</span>
-<span class="nc" id="L219">        keys.add(alias + CONFIG_ALLOWAUTOMATICKEYUPDATE);       </span>
-<span class="nc" id="L220">        keys.add(alias + CONFIG_ALLOWUPDATEWITHSAMEKEY);</span>
-<span class="nc" id="L221">        keys.add(alias + CONFIG_CERTREQHANDLER_CLASS);</span>
-<span class="nc" id="L222">        keys.add(alias + CONFIG_ALLOWSERVERGENERATEDKEYS);</span>
-<span class="nc" id="L223">        return keys;</span>
+<span class="fc" id="L194">        alias = alias + &quot;.&quot;;</span>
+<span class="fc" id="L195">        Set&lt;String&gt; keys = new LinkedHashSet&lt;&gt;();</span>
+<span class="fc" id="L196">        keys.add(alias + CONFIG_DEFAULTCA);</span>
+<span class="fc" id="L197">        keys.add(alias + CONFIG_RESPONSEPROTECTION);</span>
+<span class="fc" id="L198">        keys.add(alias + CONFIG_OPERATIONMODE);</span>
+<span class="fc" id="L199">        keys.add(alias + CONFIG_AUTHENTICATIONMODULE);</span>
+<span class="fc" id="L200">        keys.add(alias + CONFIG_AUTHENTICATIONPARAMETERS);</span>
+<span class="fc" id="L201">        keys.add(alias + CONFIG_EXTRACTUSERNAMECOMPONENT);</span>
+<span class="fc" id="L202">        keys.add(alias + CONFIG_VENDORCERTIFICATEMODE);</span>
+<span class="fc" id="L203">        keys.add(alias + CONFIG_VENDORCA);</span>
+<span class="fc" id="L204">        keys.add(alias + CONFIG_RESPONSE_CAPUBS_CA);</span>
+<span class="fc" id="L205">        keys.add(alias + CONFIG_RESPONSE_EXTRACERTS_CA);</span>
+<span class="fc" id="L206">        keys.add(alias + CONFIG_ALLOWRAVERIFYPOPO);</span>
+<span class="fc" id="L207">        keys.add(alias + CONFIG_RA_NAMEGENERATIONSCHEME);</span>
+<span class="fc" id="L208">        keys.add(alias + CONFIG_RA_NAMEGENERATIONPARAMS);</span>
+<span class="fc" id="L209">        keys.add(alias + CONFIG_RA_NAMEGENERATIONPREFIX);</span>
+<span class="fc" id="L210">        keys.add(alias + CONFIG_RA_NAMEGENERATIONPOSTFIX);</span>
+<span class="fc" id="L211">        keys.add(alias + CONFIG_RA_PASSWORDGENPARAMS);</span>
+<span class="fc" id="L212">        keys.add(alias + CONFIG_RA_ALLOWCUSTOMCERTSERNO);</span>
+<span class="fc" id="L213">        keys.add(alias + CONFIG_RA_ENDENTITYPROFILE);</span>
+<span class="fc" id="L214">        keys.add(alias + CONFIG_RA_ENDENTITYPROFILEID);</span>
+<span class="fc" id="L215">        keys.add(alias + CONFIG_RA_CERTIFICATEPROFILE);</span>
+<span class="fc" id="L216">        keys.add(alias + CONFIG_RACANAME);</span>
+<span class="fc" id="L217">        keys.add(alias + CONFIG_RACERT_PATH);</span>
+<span class="fc" id="L218">        keys.add(alias + CONFIG_RA_OMITVERIFICATIONSINEEC);</span>
+<span class="fc" id="L219">        keys.add(alias + CONFIG_ALLOWAUTOMATICKEYUPDATE);       </span>
+<span class="fc" id="L220">        keys.add(alias + CONFIG_ALLOWUPDATEWITHSAMEKEY);</span>
+<span class="fc" id="L221">        keys.add(alias + CONFIG_CERTREQHANDLER_CLASS);</span>
+<span class="fc" id="L222">        keys.add(alias + CONFIG_ALLOWSERVERGENERATEDKEYS);</span>
+<span class="fc" id="L223">        return keys;</span>
     }
 
     
@@ -611,9 +611,9 @@ public class CmpConfiguration extends ConfigurationBase implements Serializable 
 <span class="nc" id="L611">        return getValue(key, alias);</span>
     }
     public void setCertReqHandlerClass(String alias, String certReqClass) {
-<span class="nc" id="L614">        String key = alias + &quot;.&quot; + CONFIG_CERTREQHANDLER_CLASS;</span>
-<span class="nc" id="L615">        setValue(key, certReqClass, alias);</span>
-<span class="nc" id="L616">    }</span>
+<span class="fc" id="L614">        String key = alias + &quot;.&quot; + CONFIG_CERTREQHANDLER_CLASS;</span>
+<span class="fc" id="L615">        setValue(key, certReqClass, alias);</span>
+<span class="fc" id="L616">    }</span>
     
     
     public String getValue(String key, String alias) {
@@ -629,10 +629,10 @@ public class CmpConfiguration extends ConfigurationBase implements Serializable 
 <span class="nc" id="L629">        return null;</span>
     }
     public void setValue(String key, String value, String alias) {
-<span class="nc bnc" id="L632" title="All 2 branches missed.">        if(aliasExists(alias)) {</span>
-<span class="nc bnc" id="L633" title="All 2 branches missed.">            if(data.containsKey(key)) {</span>
-<span class="nc" id="L634">                data.put(key, value);</span>
-<span class="nc bnc" id="L635" title="All 2 branches missed.">                if(log.isDebugEnabled()) {</span>
+<span class="pc bpc" id="L632" title="1 of 2 branches missed.">        if(aliasExists(alias)) {</span>
+<span class="pc bpc" id="L633" title="1 of 2 branches missed.">            if(data.containsKey(key)) {</span>
+<span class="fc" id="L634">                data.put(key, value);</span>
+<span class="pc bpc" id="L635" title="1 of 2 branches missed.">                if(log.isDebugEnabled()) {</span>
 <span class="nc" id="L636">                    log.debug(&quot;Edited '&quot; + key + &quot;=&quot; + value + &quot;' in the CMP configuration data&quot;);</span>
                 }
             } else {
@@ -644,7 +644,7 @@ public class CmpConfiguration extends ConfigurationBase implements Serializable 
         } else {
 <span class="nc" id="L645">            log.error(&quot;CMP alias '&quot; + alias + &quot;' does not exist&quot;);</span>
         }
-<span class="nc" id="L647">    }</span>
+<span class="fc" id="L647">    }</span>
    
     public Collection&lt;String&gt; getCmpResponseProtectionList(boolean ramode) {
 <span class="nc" id="L650">        ArrayList&lt;String&gt; pl = new ArrayList&lt;&gt;();</span>
@@ -666,9 +666,9 @@ public class CmpConfiguration extends ConfigurationBase implements Serializable 
 <span class="nc" id="L666">    }</span>
     public Set&lt;String&gt; getAliasList() {
         @SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L669">        Set&lt;String&gt; ret = (Set&lt;String&gt;) data.get(ALIAS_LIST);</span>
+<span class="fc" id="L669">        Set&lt;String&gt; ret = (Set&lt;String&gt;) data.get(ALIAS_LIST);</span>
         
-<span class="nc bnc" id="L671" title="All 2 branches missed.">        return (ret == null ? DEFAULT_ALIAS_LIST : ret);</span>
+<span class="fc bfc" id="L671" title="All 2 branches covered.">        return (ret == null ? DEFAULT_ALIAS_LIST : ret);</span>
     }
     
     public List&lt;String&gt; getSortedAliasList() {
@@ -683,65 +683,65 @@ public class CmpConfiguration extends ConfigurationBase implements Serializable 
     }
     
     public boolean aliasExists(String alias) {
-<span class="nc bnc" id="L686" title="All 2 branches missed.">        if(StringUtils.isNotEmpty(alias)) {</span>
-<span class="nc" id="L687">            Set&lt;String&gt; aliases = getAliasList();</span>
-<span class="nc" id="L688">            return aliases.contains(alias);</span>
+<span class="pc bpc" id="L686" title="1 of 2 branches missed.">        if(StringUtils.isNotEmpty(alias)) {</span>
+<span class="fc" id="L687">            Set&lt;String&gt; aliases = getAliasList();</span>
+<span class="fc" id="L688">            return aliases.contains(alias);</span>
         }
 <span class="nc" id="L690">        return false;</span>
     }
 
     public void addAlias(String alias) {
-<span class="nc bnc" id="L694" title="All 2 branches missed.">        if(log.isDebugEnabled()) {</span>
+<span class="pc bpc" id="L694" title="1 of 2 branches missed.">        if(log.isDebugEnabled()) {</span>
 <span class="nc" id="L695">            log.debug(&quot;Adding CMP alias: &quot; + alias);</span>
         }   
             
-<span class="nc bnc" id="L698" title="All 2 branches missed.">        if(StringUtils.isEmpty(alias)) {</span>
+<span class="pc bpc" id="L698" title="1 of 2 branches missed.">        if(StringUtils.isEmpty(alias)) {</span>
 <span class="nc bnc" id="L699" title="All 2 branches missed.">            if(log.isDebugEnabled()) {</span>
 <span class="nc" id="L700">                log.debug(&quot;No alias is added because no alias was provided.&quot;);</span>
             }
 <span class="nc" id="L702">            return;</span>
         }
             
-<span class="nc" id="L705">        Set&lt;String&gt; aliases = getAliasList();</span>
-<span class="nc bnc" id="L706" title="All 2 branches missed.">        if(aliases.contains(alias)) {</span>
+<span class="fc" id="L705">        Set&lt;String&gt; aliases = getAliasList();</span>
+<span class="pc bpc" id="L706" title="1 of 2 branches missed.">        if(aliases.contains(alias)) {</span>
 <span class="nc bnc" id="L707" title="All 2 branches missed.">            if(log.isDebugEnabled()) {</span>
 <span class="nc" id="L708">                log.debug(&quot;CMP alias '&quot; + alias + &quot;' already exists.&quot;);</span>
             }
 <span class="nc" id="L710">            return;</span>
         }
         
-<span class="nc" id="L713">        initialize(alias);</span>
-<span class="nc" id="L714">        aliases.add(alias);</span>
-<span class="nc" id="L715">        data.put(ALIAS_LIST, aliases);</span>
-<span class="nc" id="L716">    }</span>
+<span class="fc" id="L713">        initialize(alias);</span>
+<span class="fc" id="L714">        aliases.add(alias);</span>
+<span class="fc" id="L715">        data.put(ALIAS_LIST, aliases);</span>
+<span class="fc" id="L716">    }</span>
     public void removeAlias(String alias) {
-<span class="nc bnc" id="L718" title="All 2 branches missed.">        if(log.isDebugEnabled()) {</span>
+<span class="pc bpc" id="L718" title="1 of 2 branches missed.">        if(log.isDebugEnabled()) {</span>
 <span class="nc" id="L719">            log.debug(&quot;Removing CMP alias: &quot; + alias);</span>
         }
         
-<span class="nc bnc" id="L722" title="All 2 branches missed.">        if(StringUtils.isEmpty(alias)) {</span>
+<span class="pc bpc" id="L722" title="1 of 2 branches missed.">        if(StringUtils.isEmpty(alias)) {</span>
 <span class="nc bnc" id="L723" title="All 2 branches missed.">            if(log.isDebugEnabled()) {</span>
 <span class="nc" id="L724">                log.debug(&quot;No alias is removed because no alias was provided.&quot;);</span>
             }
 <span class="nc" id="L726">            return;</span>
         }
         
-<span class="nc" id="L729">        Set&lt;String&gt; aliases = getAliasList();</span>
-<span class="nc bnc" id="L730" title="All 2 branches missed.">        if(!aliases.contains(alias)) {</span>
+<span class="fc" id="L729">        Set&lt;String&gt; aliases = getAliasList();</span>
+<span class="pc bpc" id="L730" title="1 of 2 branches missed.">        if(!aliases.contains(alias)) {</span>
 <span class="nc bnc" id="L731" title="All 2 branches missed.">            if(log.isDebugEnabled()) {</span>
 <span class="nc" id="L732">                log.debug(&quot;CMP alias '&quot; + alias + &quot;' does not exist&quot;);</span>
             }
 <span class="nc" id="L734">            return;</span>
         }
         
-<span class="nc bnc" id="L737" title="All 2 branches missed.">        for(String key : getAllAliasKeys(alias)) {</span>
-<span class="nc" id="L738">            data.remove(key);</span>
-<span class="nc" id="L739">        }</span>
+<span class="fc bfc" id="L737" title="All 2 branches covered.">        for(String key : getAllAliasKeys(alias)) {</span>
+<span class="fc" id="L738">            data.remove(key);</span>
+<span class="fc" id="L739">        }</span>
         // remove old keys from previous versions of EJBCA
-<span class="nc" id="L741">        data.remove(CONFIG_UNIDDATASOURCE);</span>
-<span class="nc" id="L742">        aliases.remove(alias);</span>
-<span class="nc" id="L743">        data.put(ALIAS_LIST, aliases);</span>
-<span class="nc" id="L744">    }</span>
+<span class="fc" id="L741">        data.remove(CONFIG_UNIDDATASOURCE);</span>
+<span class="fc" id="L742">        aliases.remove(alias);</span>
+<span class="fc" id="L743">        data.put(ALIAS_LIST, aliases);</span>
+<span class="fc" id="L744">    }</span>
     public void renameAlias(String oldAlias, String newAlias) {
 <span class="nc bnc" id="L746" title="All 2 branches missed.">        if(log.isDebugEnabled()) {</span>
 <span class="nc" id="L747">            log.debug(&quot;Renaming CMP alias '&quot; + oldAlias + &quot;' to '&quot; + newAlias + &quot;'&quot;);</span>
@@ -842,7 +842,7 @@ public class CmpConfiguration extends ConfigurationBase implements Serializable 
     /** Implementation of UpgradableDataHashMap function getLatestVersion */
     @Override
     public float getLatestVersion(){
-<span class="nc" id="L845">       return LATEST_VERSION;</span>
+<span class="fc" id="L845">       return LATEST_VERSION;</span>
     }
 
     /** Implementation of UpgradableDataHashMap function upgrade. */

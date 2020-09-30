@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RevocationSessionBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.ca.revoke</a> &gt; <span class="el_source">RevocationSessionBean.java</span></div><h1>RevocationSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.ejb.ca.revoke;
+
+import java.security.cert.Certificate;
+import java.util.Collection;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.apache.log4j.Logger;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.enums.ModuleTypes;
+import org.cesecore.audit.enums.ServiceTypes;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.certificate.BaseCertificateData;
+import org.cesecore.certificates.certificate.CertificateDataWrapper;
+import org.cesecore.certificates.certificate.CertificateRevokeException;
+import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
+import org.cesecore.certificates.certificate.NoConflictCertificateStoreSessionLocal;
+import org.cesecore.certificates.crl.CRLInfo;
+import org.cesecore.certificates.crl.CrlStoreSessionLocal;
+import org.cesecore.certificates.crl.RevokedCertInfo;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.util.CertTools;
+import org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
+import org.ejbca.core.ejb.ca.publisher.PublisherSessionLocal;
+import org.ejbca.core.model.InternalEjbcaResources;
+
+/**
+ * Used for evoking certificates in the system, manages revocation by:
+ * - Setting revocation status in the database (using certificate store)
+ * - Publishing revocations to publishers 
+ * 
+ * @version $Id: RevocationSessionBean.java 28699 2018-04-12 19:21:46Z samuellb $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;RevocationSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L60">public class RevocationSessionBean implements RevocationSessionLocal, RevocationSessionRemote {</span>
+
+<span class="nc" id="L62">    private static final Logger log = Logger.getLogger(RevocationSessionBean.class);</span>
+
+    @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+    private EntityManager entityManager;
+
+    @EJB
+    private SecurityEventsLoggerSessionLocal auditSession;
+    @EJB
+    private CertificateStoreSessionLocal certificateStoreSession;
+    @EJB
+    private CrlStoreSessionLocal crlStoreSession;
+    @EJB
+    private NoConflictCertificateStoreSessionLocal noConflictCertificateStoreSession;
+    @EJB
+    private PublisherSessionLocal publisherSession;
+
+    /** Internal localization of logs and errors */
+<span class="nc" id="L79">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public void revokeCertificate(final AuthenticationToken admin, final Certificate cert, final Collection&lt;Integer&gt; publishers, final int reason, final String userDataDN) throws CertificateRevokeException, AuthorizationDeniedException {
+<span class="nc" id="L84">        final Date revokedate = new Date();</span>
+<span class="nc" id="L85">        final CertificateDataWrapper cdw = certificateStoreSession.getCertificateData(CertTools.getFingerprintAsString(cert));</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (cdw != null) { </span>
+<span class="nc" id="L87">            revokeCertificate(admin, cdw, publishers, revokedate, reason, userDataDN);</span>
+        } else {
+<span class="nc" id="L89">            final String msg = intres.getLocalizedMessage(&quot;store.errorfindcertserno&quot;, CertTools.getSerialNumberAsString(cert));              </span>
+<span class="nc" id="L90">            log.info(msg);</span>
+<span class="nc" id="L91">            throw new CertificateRevokeException(msg);</span>
+        }
+<span class="nc" id="L93">    }</span>
+ 
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @Override
+    public void revokeCertificateInNewTransaction(final AuthenticationToken admin, final CertificateDataWrapper cdw,
+            final Collection&lt;Integer&gt; publishers, Date revocationDate, final int reason, final String userDataDN)
+            throws CertificateRevokeException, AuthorizationDeniedException {
+<span class="nc" id="L100">        revokeCertificate(admin, cdw, publishers, revocationDate, reason, userDataDN);</span>
+<span class="nc" id="L101">    }</span>
+    
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public void revokeCertificate(final AuthenticationToken admin, final CertificateDataWrapper cdw, final Collection&lt;Integer&gt; publishers,
+            Date revocationDate, final int reason, final String userDataDN) throws CertificateRevokeException, AuthorizationDeniedException {
+<span class="nc" id="L107">    	final boolean waschanged = noConflictCertificateStoreSession.setRevokeStatus(admin, cdw, getRevocationDate(cdw, revocationDate, reason), reason);</span>
+    	// Only publish the revocation if it was actually performed
+<span class="nc bnc" id="L109" title="All 2 branches missed.">    	if (waschanged) {</span>
+    	    // Since storeSession.findCertificateInfo uses a native query, it does not pick up changes made above
+    	    // that is part if the transaction in the EntityManager, so we need to get the object from the EntityManager.
+<span class="nc" id="L112">    	    final BaseCertificateData certificateData = cdw.getBaseCertificateData();</span>
+<span class="nc" id="L113">    	    final String username = certificateData.getUsername();</span>
+<span class="nc" id="L114">    	    final String password = null;</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">    		if (!RevokedCertInfo.isRevoked(reason)) {</span>
+    			// unrevocation, -1L as revocationDate
+<span class="nc" id="L117">    		    final boolean published = publisherSession.storeCertificate(admin, publishers, cdw, password, userDataDN, null);</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">        		if (published) {</span>
+<span class="nc" id="L119">        			log.info(intres.getLocalizedMessage(&quot;store.republishunrevokedcert&quot;, Integer.valueOf(reason)));</span>
+        		} else {
+<span class="nc" id="L121">        		    final String serialNumber = certificateData.getSerialNumberHex();</span>
+            		// If it is not possible, only log error but continue the operation of not revoking the certificate
+<span class="nc" id="L123">        			final String msg = &quot;Unrevoked cert:&quot; + serialNumber + &quot; reason: &quot; + reason + &quot; Could not be republished.&quot;;</span>
+<span class="nc" id="L124">        			final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L125">                	details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L126">                	final int caid = certificateData.getIssuerDN().hashCode();</span>
+<span class="nc" id="L127">                	auditSession.log(EjbcaEventTypes.REVOKE_UNREVOKEPUBLISH, EventStatus.FAILURE, ModuleTypes.CA, ServiceTypes.CORE, admin.toString(), String.valueOf(caid), serialNumber, username, details);</span>
+        		}    			
+<span class="nc" id="L129">    		} else {</span>
+    			// revocation
+<span class="nc" id="L131">                publisherSession.storeCertificate(admin, publishers, cdw, password, userDataDN, null);</span>
+    		}
+    	}
+<span class="nc" id="L134">    }</span>
+
+    /** @param cdw CDW
+     * @param revocationDate Date
+     * @param reason Reason
+     * @return revocationDate as is, or null if unrevoking a certificate that's not on a base CRL in on hold state. */
+    private Date getRevocationDate(final CertificateDataWrapper cdw, final Date revocationDate, final int reason) {
+<span class="nc bnc" id="L141" title="All 6 branches missed.">        if (revocationDate == null || (reason != RevokedCertInfo.NOT_REVOKED &amp;&amp; reason != RevokedCertInfo.REVOCATION_REASON_REMOVEFROMCRL) ||</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">                (cdw.getBaseCertificateData().getRevocationReason() != RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD)) {</span>
+<span class="nc" id="L143">            return revocationDate; // return unmodified</span>
+        }
+        
+<span class="nc" id="L146">        final String issuerDN = cdw.getBaseCertificateData().getIssuerDN();</span>
+<span class="nc" id="L147">        final CRLInfo baseCrlInfo = crlStoreSession.getLastCRLInfo(issuerDN, false);</span>
+<span class="nc bnc" id="L148" title="All 4 branches missed.">        if (baseCrlInfo == null || baseCrlInfo.getCreateDate().before(revocationDate)) { // if not on base CRL</span>
+<span class="nc" id="L149">            return null;</span>
+        } else {
+<span class="nc" id="L151">            return revocationDate;</span>
+        }
+    }
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

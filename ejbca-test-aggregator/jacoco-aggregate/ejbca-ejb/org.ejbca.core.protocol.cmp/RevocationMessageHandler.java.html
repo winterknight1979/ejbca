@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RevocationMessageHandler.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.cmp</a> &gt; <span class="el_source">RevocationMessageHandler.java</span></div><h1>RevocationMessageHandler.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.cmp;
+
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.cert.X509Certificate;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1Enumerated;
+import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1Integer;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.cmp.PKIBody;
+import org.bouncycastle.asn1.cmp.PKIMessage;
+import org.bouncycastle.asn1.cmp.RevDetails;
+import org.bouncycastle.asn1.cmp.RevReqContent;
+import org.bouncycastle.asn1.crmf.CertTemplate;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.Extensions;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSession;
+import org.cesecore.certificates.ca.CA;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.catoken.CATokenConstants;
+import org.cesecore.certificates.certificate.CertificateStoreSession;
+import org.cesecore.certificates.certificate.request.FailInfo;
+import org.cesecore.certificates.certificate.request.ResponseMessage;
+import org.cesecore.certificates.certificate.request.ResponseStatus;
+import org.cesecore.certificates.crl.RevokedCertInfo;
+import org.cesecore.certificates.util.AlgorithmTools;
+import org.cesecore.keys.token.CryptoToken;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.keys.token.CryptoTokenSessionLocal;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+import org.ejbca.config.CmpConfiguration;
+import org.ejbca.core.ejb.EjbBridgeSessionLocal;
+import org.ejbca.core.ejb.authentication.web.WebAuthenticationProviderSessionLocal;
+import org.ejbca.core.ejb.ra.EndEntityAccessSession;
+import org.ejbca.core.ejb.ra.EndEntityManagementSession;
+import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.approval.ApprovalException;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.core.model.ra.AlreadyRevokedException;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileNotFoundException;
+import org.ejbca.core.protocol.cmp.authentication.HMACAuthenticationModule;
+import org.ejbca.core.protocol.cmp.authentication.ICMPAuthenticationModule;
+import org.ejbca.core.protocol.cmp.authentication.VerifyPKIMessage;
+
+/**
+ * Message handler for the CMP revocation request messages
+ * 
+ * @version $Id: RevocationMessageHandler.java 29745 2018-08-25 21:35:37Z anatom $
+ */
+public class RevocationMessageHandler extends BaseCmpMessageHandler implements ICmpMessageHandler {
+	
+<span class="nc" id="L76">	private static final Logger LOG = Logger.getLogger(RevocationMessageHandler.class);</span>
+    /** Internal localization of logs and errors */
+<span class="nc" id="L78">    private static final InternalEjbcaResources INTRES = InternalEjbcaResources.getInstance();</span>
+	
+	/** Parameter used to determine the type of protection for the response message */
+<span class="nc" id="L81">	private String responseProtection = null;</span>
+	
+	private EndEntityManagementSession endEntityManagementSession;
+    private CertificateStoreSession certificateStoreSession;
+    private AuthorizationSession authorizationSession;
+    private EndEntityAccessSession endEntityAccessSession;
+    private WebAuthenticationProviderSessionLocal authenticationProviderSession;
+    private CryptoTokenSessionLocal cryptoTokenSession;
+	
+    public RevocationMessageHandler(final AuthenticationToken authenticationToken, final CmpConfiguration cmpConfiguration, final String configAlias,
+    		final EjbBridgeSessionLocal ejbBridgeSession, final CryptoTokenSessionLocal cryptoTokenSession) {
+<span class="nc" id="L92">        super(authenticationToken, cmpConfiguration, configAlias, ejbBridgeSession);</span>
+<span class="nc" id="L93">        this.responseProtection = this.cmpConfiguration.getResponseProtection(this.confAlias);</span>
+<span class="nc" id="L94">        this.endEntityManagementSession = ejbBridgeSession.getEndEntityManagementSession();</span>
+<span class="nc" id="L95">        this.certificateStoreSession = ejbBridgeSession.getCertificateStoreSession();</span>
+<span class="nc" id="L96">        this.authorizationSession = ejbBridgeSession.getAuthorizationSession();</span>
+<span class="nc" id="L97">        this.endEntityAccessSession = ejbBridgeSession.getEndEntityAccessSession();</span>
+<span class="nc" id="L98">        this.authenticationProviderSession = ejbBridgeSession.getWebAuthenticationProviderSession();</span>
+<span class="nc" id="L99">        this.cryptoTokenSession = cryptoTokenSession;</span>
+<span class="nc" id="L100">    }</span>
+
+	public ResponseMessage handleMessage(final BaseCmpMessage msg, boolean authenticated) {
+<span class="nc bnc" id="L103" title="All 2 branches missed.">		if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L104">			LOG.trace(&quot;&gt;handleMessage&quot;);</span>
+		}
+		
+        // Try to find a HMAC/SHA1 protection key
+<span class="nc" id="L108">        final String keyId = CmpMessageHelper.getStringFromOctets(msg.getHeader().getSenderKID());</span>
+<span class="nc" id="L109">        CA ca = null;</span>
+        try {
+<span class="nc" id="L111">            ca = getRecipientCA(msg, keyId);</span>
+<span class="nc" id="L112">        } catch (EndEntityProfileNotFoundException e) {</span>
+<span class="nc" id="L113">            final String errMsg = (INTRES.getLocalizedMessage(CMP_ERRORGENERAL, e.getMessage()));</span>
+<span class="nc" id="L114">            LOG.info(errMsg, e);</span>
+<span class="nc" id="L115">            return CmpMessageHelper.createUnprotectedErrorMessage(msg, FailInfo.INCORRECT_DATA, errMsg);</span>
+<span class="nc" id="L116">        } catch (CADoesntExistsException e) {</span>
+<span class="nc" id="L117">            final String errMsg = &quot;CA with DN '&quot; + msg.getHeader().getRecipient().getName().toString() + &quot;' is unknown&quot;;</span>
+<span class="nc" id="L118">            LOG.info(errMsg);</span>
+<span class="nc" id="L119">            return CmpMessageHelper.createUnprotectedErrorMessage(msg, FailInfo.BAD_REQUEST, errMsg);</span>
+<span class="nc" id="L120">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L121">            LOG.info(INTRES.getLocalizedMessage(CMP_ERRORGENERAL, e.getMessage()), e);</span>
+<span class="nc" id="L122">            return CmpMessageHelper.createUnprotectedErrorMessage(msg, FailInfo.INCORRECT_DATA, e.getMessage());</span>
+<span class="nc" id="L123">        }</span>
+		
+		// if version == 1 it is cmp1999 and we should not return a message back
+<span class="nc" id="L126">		ResponseStatus status = ResponseStatus.FAILURE;</span>
+<span class="nc" id="L127">		FailInfo failInfo = FailInfo.BAD_MESSAGE_CHECK;</span>
+<span class="nc" id="L128">		String failText = null;</span>
+
+		//Verify the authenticity of the message
+<span class="nc" id="L131">		final VerifyPKIMessage messageVerifyer = new VerifyPKIMessage(ca.getCAInfo(), this.confAlias, admin, caSession, endEntityAccessSession, certificateStoreSession, </span>
+		        authorizationSession, endEntityProfileSession, certificateProfileSession, authenticationProviderSession, endEntityManagementSession, this.cmpConfiguration);
+<span class="nc" id="L133">		ICMPAuthenticationModule authenticationModule = messageVerifyer.getUsedAuthenticationModule(msg.getMessage(), null, authenticated);</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">		if(authenticationModule == null) {</span>
+<span class="nc" id="L135">	          LOG.info(messageVerifyer.getErrorMessage());</span>
+<span class="nc" id="L136">	          return CmpMessageHelper.createUnprotectedErrorMessage(msg, FailInfo.BAD_REQUEST, messageVerifyer.getErrorMessage());</span>
+		}
+
+		// If authentication was correct, we will now try to find the certificate to revoke
+<span class="nc" id="L140">		final PKIMessage pkiMessage = msg.getMessage();</span>
+<span class="nc" id="L141">		final PKIBody pkiBody = pkiMessage.getBody();</span>
+<span class="nc" id="L142">		final RevReqContent rr = (RevReqContent) pkiBody.getContent();</span>
+		RevDetails rd;
+		try {
+<span class="nc" id="L145">		    rd = rr.toRevDetailsArray()[0];</span>
+<span class="nc" id="L146">		} catch(Exception e) {</span>
+<span class="nc" id="L147">		    LOG.debug(&quot;Could not parse the revocation request. Trying to parse it as novosec generated message.&quot;);</span>
+<span class="nc" id="L148">		    rd = CmpMessageHelper.getNovosecRevDetails(rr);</span>
+<span class="nc" id="L149">		    LOG.debug(&quot;Succeeded in parsing the novosec generated request.&quot;);</span>
+<span class="nc" id="L150">		}</span>
+<span class="nc" id="L151">		final CertTemplate ct = rd.getCertDetails();</span>
+<span class="nc" id="L152">		final ASN1Integer serno = ct.getSerialNumber();</span>
+<span class="nc" id="L153">		final X500Name issuer = ct.getIssuer();</span>
+		// Get the revocation reason if it exists, it is optional. 
+<span class="nc" id="L155">		int reason = RevokedCertInfo.REVOCATION_REASON_UNSPECIFIED;</span>
+        // CRL Entry Extensions is the only thing allowed in CMPv2
+<span class="nc" id="L157">		final Extensions crlExt = rd.getCrlEntryDetails();</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">		if (crlExt != null) {</span>
+<span class="nc" id="L159">		    final Extension ext = crlExt.getExtension(Extension.reasonCode);</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">		    if (ext != null) {</span>
+		        try {
+<span class="nc" id="L162">		            final ASN1InputStream ai = new ASN1InputStream(ext.getExtnValue().getOctets());</span>
+<span class="nc" id="L163">		            final ASN1Primitive obj = ai.readObject();</span>
+<span class="nc" id="L164">		            final ASN1Enumerated crlreason = ASN1Enumerated.getInstance(obj);</span>
+		            // RevokedCertInfo.REVOCATION_REASON_AACOMPROMISE are the same integer values as the CRL reason extension code
+<span class="nc" id="L166">		            reason = crlreason.getValue().intValue();</span>
+<span class="nc bnc" id="L167" title="All 2 branches missed.">		            if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L168">		                LOG.debug(&quot;CRLReason extension: &quot;+reason);</span>
+		            }
+<span class="nc" id="L170">		            ai.close();</span>
+<span class="nc" id="L171">		        } catch (IOException e) {</span>
+<span class="nc" id="L172">		            LOG.info(INTRES.getLocalizedMessage(CMP_ERRORGENERAL, e.getMessage()), e);</span>
+<span class="nc" id="L173">		            return CmpMessageHelper.createUnprotectedErrorMessage(msg, FailInfo.INCORRECT_DATA, e.getMessage());</span>
+<span class="nc" id="L174">		        }</span>
+		    } else {
+<span class="nc bnc" id="L176" title="All 2 branches missed.">		        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L177">		            LOG.debug(&quot;No CRL reason code extension present.&quot;);</span>
+		        }
+		    }
+<span class="nc" id="L180">		} else {</span>
+<span class="nc bnc" id="L181" title="All 2 branches missed.">		    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L182">		        LOG.debug(&quot;No CRL entry extensions present&quot;);</span>
+		    }
+		}
+		
+<span class="nc bnc" id="L186" title="All 4 branches missed.">		if (serno != null &amp;&amp; issuer != null) {</span>
+<span class="nc" id="L187">		    final String iMsg = INTRES.getLocalizedMessage(&quot;cmp.receivedrevreq&quot;, CertTools.stringToBCDNString(issuer.toString()), serno.getValue().toString(16));</span>
+<span class="nc" id="L188">		    LOG.info(iMsg);</span>
+		    try {
+<span class="nc" id="L190">		        endEntityManagementSession.revokeCert(admin, serno.getValue(), CertTools.stringToBCDNString(issuer.toString()), reason);</span>
+<span class="nc" id="L191">		        status = ResponseStatus.SUCCESS;</span>
+<span class="nc" id="L192">		    } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L193">		        failInfo = FailInfo.NOT_AUTHORIZED;</span>
+<span class="nc" id="L194">		        final String errMsg = INTRES.getLocalizedMessage(&quot;cmp.errornotauthrevoke&quot;, CertTools.stringToBCDNString(issuer.toString()), serno.getValue().toString(16));</span>
+<span class="nc" id="L195">		        failText = errMsg; </span>
+<span class="nc" id="L196">		        LOG.info(failText);</span>
+<span class="nc" id="L197">		    } catch (NoSuchEndEntityException e) {</span>
+<span class="nc" id="L198">		        failInfo = FailInfo.BAD_CERTIFICATE_ID;</span>
+<span class="nc" id="L199">		        final String errMsg = INTRES.getLocalizedMessage(&quot;cmp.errorcertnofound&quot;, CertTools.stringToBCDNString(issuer.toString()), serno.getValue().toString(16));</span>
+<span class="nc" id="L200">		        failText = errMsg; </span>
+                // This is already info logged in endEntityManagementSession.revokeCert
+                // LOG.info(failText);
+<span class="nc" id="L203">		    } catch (WaitingForApprovalException e) {</span>
+<span class="nc" id="L204">		        status = ResponseStatus.GRANTED_WITH_MODS;</span>
+<span class="nc" id="L205">		    } catch (ApprovalException e) {</span>
+<span class="nc" id="L206">		        failInfo = FailInfo.BAD_REQUEST;</span>
+<span class="nc" id="L207">		        final String errMsg = INTRES.getLocalizedMessage(&quot;cmp.erroralreadyrequested&quot;);</span>
+<span class="nc" id="L208">		        failText = errMsg; </span>
+<span class="nc" id="L209">		        LOG.info(failText);</span>
+<span class="nc" id="L210">		    } catch (AlreadyRevokedException e) {</span>
+<span class="nc" id="L211">		        failInfo = FailInfo.CERT_REVOKED;</span>
+<span class="nc" id="L212">		        final String errMsg = INTRES.getLocalizedMessage(&quot;cmp.erroralreadyrevoked&quot;);</span>
+<span class="nc" id="L213">		        failText = errMsg; </span>
+		        // This is already info logged in endEntityManagementSession.revokeCert
+		        // LOG.info(failText);
+<span class="nc" id="L216">		    }</span>
+<span class="nc" id="L217">		} else {</span>
+<span class="nc" id="L218">		    failInfo = FailInfo.BAD_CERTIFICATE_ID;</span>
+<span class="nc" id="L219">            final String errMsg = INTRES.getLocalizedMessage(&quot;cmp.errormissingissuerrevoke&quot;,</span>
+<span class="nc bnc" id="L220" title="All 2 branches missed.">                    (issuer != null ? issuer.toString() : &quot;&lt;no issuer in request&gt;&quot;),</span>
+<span class="nc bnc" id="L221" title="All 2 branches missed.">                    (serno != null ? serno.getValue().toString(16) : &quot;&lt;no serial number in request&gt;&quot;));</span>
+<span class="nc" id="L222">		    failText = errMsg; </span>
+<span class="nc" id="L223">		    LOG.info(failText);</span>
+		}
+		
+<span class="nc bnc" id="L226" title="All 2 branches missed.">		if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L227">		    LOG.debug(&quot;Creating a PKI revocation message response: &quot;+responseProtection);</span>
+		}
+<span class="nc" id="L229">		final CmpRevokeResponseMessage rresp = new CmpRevokeResponseMessage();</span>
+<span class="nc" id="L230">		rresp.setRecipientNonce(msg.getSenderNonce());</span>
+<span class="nc" id="L231">		rresp.setSenderNonce(new String(Base64.encode(CmpMessageHelper.createSenderNonce())));</span>
+		// The revocation message may have had an empty recipient, in which case we got the recipient from the CMP configuration (see above)
+<span class="nc bnc" id="L233" title="All 2 branches missed.">		if (StringUtils.isEmpty(msg.getRecipient().getName().toString())) {</span>
+<span class="nc" id="L234">		    final X509Certificate cacert = (X509Certificate)ca.getCACertificate();</span>
+<span class="nc" id="L235">		    final GeneralName sender = new GeneralName(X500Name.getInstance(cacert.getSubjectX500Principal().getEncoded()));</span>
+<span class="nc" id="L236">		    rresp.setSender(sender);</span>
+<span class="nc" id="L237">		} else {</span>
+<span class="nc" id="L238">	        rresp.setSender(msg.getRecipient());		    </span>
+		}
+<span class="nc" id="L240">		rresp.setRecipient(msg.getSender());</span>
+<span class="nc" id="L241">		rresp.setTransactionId(msg.getTransactionId());</span>
+<span class="nc" id="L242">		rresp.setFailInfo(failInfo);</span>
+<span class="nc" id="L243">		rresp.setFailText(failText);</span>
+<span class="nc" id="L244">		rresp.setStatus(status);</span>
+
+<span class="nc bnc" id="L246" title="All 2 branches missed.">		if (StringUtils.equals(responseProtection, &quot;pbe&quot;)) {</span>
+<span class="nc" id="L247">		    final HMACAuthenticationModule hmacmodule = (HMACAuthenticationModule) authenticationModule;</span>
+<span class="nc" id="L248">		    final String owfAlg = hmacmodule.getCmpPbeVerifyer().getOwfOid();</span>
+<span class="nc" id="L249">		    final String macAlg = hmacmodule.getCmpPbeVerifyer().getMacOid();</span>
+<span class="nc" id="L250">		    final int iterationCount = 1024;</span>
+<span class="nc" id="L251">		    final String cmpRaAuthSecret = hmacmodule.getAuthenticationString();</span>
+		    
+<span class="nc bnc" id="L253" title="All 6 branches missed.">		    if (owfAlg != null &amp;&amp; macAlg != null &amp;&amp; cmpRaAuthSecret != null) {</span>
+		        // Set all protection parameters
+<span class="nc bnc" id="L255" title="All 2 branches missed.">		        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L256">		            LOG.debug(responseProtection+&quot;, &quot;+owfAlg+&quot;, &quot;+macAlg+&quot;, &quot;+keyId+&quot;, &quot;+cmpRaAuthSecret);</span>
+		        }
+<span class="nc" id="L258">		        rresp.setPbeParameters(keyId, cmpRaAuthSecret, owfAlg, macAlg, iterationCount);</span>
+		    }
+<span class="nc bnc" id="L260" title="All 2 branches missed.">		} else if(StringUtils.equals(responseProtection, &quot;signature&quot;)) {</span>
+		    try {
+<span class="nc" id="L262">		        final CryptoToken cryptoToken = cryptoTokenSession.getCryptoToken(ca.getCAToken().getCryptoTokenId());</span>
+<span class="nc" id="L263">		        final String aliasCertSign = ca.getCAToken().getAliasFromPurpose(CATokenConstants.CAKEYPURPOSE_CERTSIGN);</span>
+<span class="nc" id="L264">		        rresp.setSignKeyInfo(ca.getCertificateChain(), cryptoToken.getPrivateKey(aliasCertSign), cryptoToken.getSignProviderName());</span>
+<span class="nc bnc" id="L265" title="All 2 branches missed.">                if(msg.getHeader().getProtectionAlg() != null) {</span>
+<span class="nc" id="L266">                    rresp.setPreferredDigestAlg(AlgorithmTools.getDigestFromSigAlg(msg.getHeader().getProtectionAlg().getAlgorithm().getId()));</span>
+                }
+<span class="nc" id="L268">		    } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L269">		        LOG.error(e.getLocalizedMessage(), e);</span>
+<span class="nc" id="L270">		    }</span>
+		}
+		try {
+<span class="nc" id="L273">		    rresp.create();</span>
+<span class="nc" id="L274">		} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchProviderException e) {</span>
+<span class="nc" id="L275">		    LOG.error(INTRES.getLocalizedMessage(&quot;cmp.errorgeneral&quot;), e);</span>
+<span class="nc" id="L276">        }</span>
+<span class="nc" id="L277">		return rresp;</span>
+	}
+
+    private CA getRecipientCA(final BaseCmpMessage msg, final String keyId)
+            throws EndEntityProfileNotFoundException, CADoesntExistsException, AuthorizationDeniedException {
+        CA ca;
+<span class="nc" id="L283">        final String caDN = msg.getRecipient().getName().toString();</span>
+<span class="nc" id="L284">        int caId = 0;</span>
+<span class="nc bnc" id="L285" title="All 2 branches missed.">        if (StringUtils.isEmpty(caDN)) {</span>
+<span class="nc" id="L286">            LOG.debug(&quot;Empty DN in header.recipient, get CA from CMP configuration&quot;);</span>
+<span class="nc" id="L287">            int eeProfileId = getUsedEndEntityProfileId(keyId);</span>
+<span class="nc" id="L288">            caId = getUsedCaId(keyId, eeProfileId);</span>
+<span class="nc bnc" id="L289" title="All 2 branches missed.">            if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L290">                LOG.debug(&quot;caId from CMP Profile is &quot;+caId+&quot;, with eeProfileId &quot;+eeProfileId);</span>
+            }
+<span class="nc" id="L292">        } else {</span>
+<span class="nc bnc" id="L293" title="All 2 branches missed.">            if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L294">                LOG.debug(&quot;Get recipient CA from recipient: &quot;+caDN);</span>
+            }
+<span class="nc" id="L296">            caId = CertTools.stringToBCDNString(caDN).hashCode();</span>
+<span class="nc bnc" id="L297" title="All 2 branches missed.">            if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L298">                LOG.debug(&quot;CA DN is '&quot;+caDN+&quot;' and resulting caId is &quot;+caId+&quot;, after CertTools.stringToBCDNString conversion.&quot;);</span>
+            }
+        }
+<span class="nc" id="L301">        ca = caSession.getCA(admin, caId);</span>
+<span class="nc bnc" id="L302" title="All 2 branches missed.">        if(ca == null) {</span>
+<span class="nc" id="L303">            throw new CADoesntExistsException(&quot;CA with ID &quot; + caId + &quot; does not exist.&quot;);</span>
+        }
+<span class="nc" id="L305">        return ca;</span>
+    }  
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

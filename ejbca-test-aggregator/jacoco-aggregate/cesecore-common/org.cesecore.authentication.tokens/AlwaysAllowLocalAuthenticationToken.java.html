@@ -49,8 +49,8 @@ public class AlwaysAllowLocalAuthenticationToken extends NestableAuthenticationT
 <span class="fc" id="L49">    }</span>
 
     public AlwaysAllowLocalAuthenticationToken(final String username) {
-<span class="nc" id="L52">        super(new HashSet&lt;Principal&gt;(Arrays.asList(new UsernamePrincipal(username))), null);</span>
-<span class="nc" id="L53">    }</span>
+<span class="fc" id="L52">        super(new HashSet&lt;Principal&gt;(Arrays.asList(new UsernamePrincipal(username))), null);</span>
+<span class="fc" id="L53">    }</span>
 
     @Override
     public boolean matches(AccessUserAspect accessUser) {

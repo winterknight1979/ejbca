@@ -34,10 +34,13 @@ org.cesecore.util.provider
 org.cesecore.util.ui
 org.ejbca.core
 org.ejbca.core.ejb.authentication.cli
+org.ejbca.core.ejb.ca.publisher
 org.ejbca.core.ejb.profiles
 org.ejbca.core.ejb.ra
+org.ejbca.core.ejb.rest
 org.ejbca.core.model
 org.ejbca.core.model.approval
+org.ejbca.core.model.approval.profile
 org.ejbca.core.model.ca.publisher
 org.ejbca.core.model.ca.publisher.custpubl1
 org.ejbca.core.model.ra
@@ -45,6 +48,7 @@ org.ejbca.core.model.ra.raadmin
 org.ejbca.core.model.validation
 org.ejbca.core.protocol.cmp
 org.ejbca.core.protocol.scep
+org.ejbca.core.protocol.unid
 org.ejbca.core.protocol.ws
 org.ejbca.core.protocol.ws.client
 org.ejbca.database
@@ -52,4 +56,5 @@ org.ejbca.ui.web
 org.ejbca.ui.web.pub
 org.ejbca.util
 org.ejbca.util.crypto
+org.ejbca.util.dn
 org.ejbca.util.query

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ServiceDataSessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.services</a> &gt; <span class="el_source">ServiceDataSessionBean.java</span></div><h1>ServiceDataSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.ejb.services;
+
+import java.util.List;
+
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.util.QueryResultWrapper;
+import org.ejbca.core.model.services.ServiceConfiguration;
+
+/**
+ * Session bean for the Service Data table.
+ *
+ * @version $Id: ServiceDataSessionBean.java 19901 2014-09-30 14:29:38Z anatom $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;ServiceDataSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L35">public class ServiceDataSessionBean implements ServiceDataSessionLocal, ServiceDataSessionRemote {</span>
+
+    @PersistenceContext(unitName = &quot;ejbca&quot;)
+    private EntityManager entityManager;
+
+    @Override
+    public void addServiceData(Integer id, String name, ServiceConfiguration serviceConfiguration) {
+<span class="nc" id="L42">        entityManager.persist(new ServiceData(id, name, serviceConfiguration));</span>
+<span class="nc" id="L43">    }</span>
+    
+    /* 
+     * This method need &quot;RequiresNew&quot; transaction handling, because we want to
+     * make sure that the timer runs the next time even if the execution fails.
+     */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @Override
+    public boolean updateServiceConfiguration(String name, ServiceConfiguration serviceConfiguration) {
+<span class="nc" id="L52">    	ServiceData serviceData = findByName(name);</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">    	if (serviceData != null) {</span>
+<span class="nc" id="L54">        	serviceData.setServiceConfiguration(serviceConfiguration);</span>
+<span class="nc" id="L55">    		return true;</span>
+    	}
+<span class="nc" id="L57">    	return false;</span>
+    }
+    
+    @Override
+    public void removeServiceData(Integer id) {
+<span class="nc" id="L62">    	ServiceData sd = findById(id);</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">    	if (sd != null) {</span>
+<span class="nc" id="L64">    		entityManager.remove(sd);</span>
+    	}
+<span class="nc" id="L66">    }</span>
+
+    @Override
+    public ServiceData findByName(String name) {
+<span class="nc" id="L70">        final Query query = entityManager.createQuery(&quot;SELECT a FROM ServiceData a WHERE a.name=:name&quot;);</span>
+<span class="nc" id="L71">        query.setParameter(&quot;name&quot;, name);</span>
+<span class="nc" id="L72">        return (ServiceData) QueryResultWrapper.getSingleResult(query);</span>
+    }
+
+    @Override
+    public ServiceData findById(Integer id) {
+<span class="nc" id="L77">        return entityManager.find(ServiceData.class, id);</span>
+    }
+    
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    @Override
+    public String findNameById(Integer id) {
+<span class="nc" id="L83">        final Query query = entityManager.createQuery(&quot;SELECT a.name FROM ServiceData a WHERE a.id=:id&quot;);</span>
+<span class="nc" id="L84">        query.setParameter(&quot;id&quot;, id);</span>
+<span class="nc" id="L85">        return (String) QueryResultWrapper.getSingleResult(query);</span>
+    }
+    
+    @SuppressWarnings(&quot;unchecked&quot;)
+    @Override
+    public List&lt;ServiceData&gt; findAll() {
+<span class="nc" id="L91">        Query query = entityManager.createQuery(&quot;SELECT a FROM ServiceData a&quot;);</span>
+<span class="nc" id="L92">        return query.getResultList();</span>
+    }
+ 
+    @Override
+	public boolean updateTimestamps(Integer serviceId, long oldRunTimeStamp, long oldNextRunTimeStamp, long newRunTimeStamp, long newNextRunTimeStamp) {
+<span class="nc" id="L97">    	return ServiceData.updateTimestamps(entityManager, serviceId, oldRunTimeStamp, oldNextRunTimeStamp, newRunTimeStamp, newNextRunTimeStamp);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

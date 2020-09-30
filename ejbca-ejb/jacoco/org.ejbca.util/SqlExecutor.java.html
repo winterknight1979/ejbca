@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SqlExecutor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util</a> &gt; <span class="el_source">SqlExecutor.java</span></div><h1>SqlExecutor.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+ 
+package org.ejbca.util;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
+/** Class to execute a file full of sql commands. Useful for running update scripts.
+ * @version $Id: SqlExecutor.java 22142 2015-11-03 14:15:51Z mikekushner $
+ */
+public class SqlExecutor {
+<span class="nc" id="L36">    static Logger log = Logger.getLogger(SqlExecutor.class);</span>
+
+<span class="nc" id="L38">    private Connection con = null;</span>
+<span class="nc" id="L39">    private int commands = 0;</span>
+<span class="nc" id="L40">    private int errors = 0;</span>
+<span class="nc" id="L41">    private boolean continueOnSqlError = false;</span>
+    public Connection getConnection() {
+<span class="nc" id="L43">        return this.con;</span>
+    }
+    public void setContinueOnSqlError(boolean cont) {
+<span class="nc" id="L46">        this.continueOnSqlError = cont;</span>
+<span class="nc" id="L47">    }</span>
+    public int getErrors() {
+<span class="nc" id="L49">        return this.errors;</span>
+    }
+    /** Creates a new SqlExecutor. Caller is responsible for releasing the connection
+     * @param connection Connection
+     * @param continueOnSQLError bool
+     */
+<span class="nc" id="L55">    public SqlExecutor(Connection connection, boolean continueOnSQLError) {</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L57">            log.trace(&quot;&gt; SqlExecutor(&quot; + connection + &quot;,&quot; + continueOnSQLError+ &quot;)&quot;);</span>
+    	}
+<span class="nc" id="L59">        con = connection;</span>
+//        try {
+//            con.setAutoCommit(false);            
+//        } catch (SQLException ignore) {}
+<span class="nc" id="L63">        this.continueOnSqlError = continueOnSQLError;</span>
+<span class="nc" id="L64">        log.trace(&quot;&lt; SqlExecutor()&quot;);</span>
+<span class="nc" id="L65">    }</span>
+    
+    /** Runs a single sql update command
+     * 
+     * @param command the sql command to execute
+     * @return the result returned from executeUpdate
+     * @throws SQLException fail
+     */
+    public int runCommand(String command) throws SQLException {
+<span class="nc bnc" id="L74" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L75">            log.trace(&quot;&gt; runCommand: &quot; + command);</span>
+    	}
+<span class="nc" id="L77">        int res = executeCommand(command);</span>
+<span class="nc" id="L78">        log.debug(++commands + &quot; commands executed with &quot; + errors + &quot; errors&quot;);</span>
+<span class="nc" id="L79">        commands = 0;</span>
+<span class="nc" id="L80">        errors = 0;</span>
+<span class="nc" id="L81">        log.trace(&quot;&lt; runCommand&quot;);</span>
+<span class="nc" id="L82">        return res;</span>
+    }
+    public void runCommandFile(File file) throws SQLException, FileNotFoundException, IOException {
+<span class="nc bnc" id="L85" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L86">            log.trace(&quot;&gt; runCommandFile: &quot; + file.getPath());</span>
+    	}
+<span class="nc" id="L88">        Reader rdr = new FileReader(file);</span>
+<span class="nc" id="L89">        runCommands(rdr);</span>
+<span class="nc" id="L90">        log.trace(&quot;&lt; runCommandFile()&quot;);</span>
+<span class="nc" id="L91">    }</span>
+    
+    /** Reads sql statements from the Reader object aqnd executes one statement at a time.
+     * Statements can be on one or more lines and must be terminated by ';'
+     * 
+     * @param rdr Reader object to read commends from.
+     * @throws SQLException thrown on sql errors if continueOnSqlError is set to false.
+     * @throws IOException if the reader object is invalid.
+     */
+    public void runCommands(Reader rdr) throws SQLException, IOException {
+<span class="nc" id="L101">        log.trace(&quot;&gt;runCommands&quot;);</span>
+<span class="nc" id="L102">        BufferedReader br = new BufferedReader(rdr);</span>
+<span class="nc" id="L103">        Timestamp start = new Timestamp(System.currentTimeMillis());</span>
+        try {
+            String temp;
+<span class="nc" id="L106">            final StringBuilder strBuf = new StringBuilder();</span>
+<span class="nc" id="L107">            commands = 0;</span>
+<span class="nc" id="L108">            List&lt;String&gt; list = new LinkedList&lt;String&gt;();</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">            while ((temp = br.readLine()) != null) {</span>
+<span class="nc bnc" id="L110" title="All 4 branches missed.">            	if (!temp.startsWith(&quot;#&quot;) &amp;&amp; !temp.startsWith(&quot;--&quot;)) { // Don't include comments and SQL comments</span>
+<span class="nc" id="L111">            		list.add(temp);</span>
+            	}
+<span class="nc bnc" id="L113" title="All 2 branches missed.">                if (!temp.endsWith(&quot;;&quot;)) {</span>
+<span class="nc" id="L114">                    continue;</span>
+                }
+            }
+<span class="nc" id="L117">            Iterator&lt;String&gt; it = list.iterator();</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">            while (it.hasNext()) {</span>
+<span class="nc" id="L119">                temp = it.next();</span>
+<span class="nc" id="L120">                temp = temp.trim();</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">                if (temp.length() != 0) {</span>
+<span class="nc" id="L122">                    strBuf.append(temp);</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">                    if (temp.endsWith(&quot;;&quot;)) {</span>
+                        // end of command, remove the ';' and execute
+<span class="nc" id="L125">                        char ch = ' ';</span>
+<span class="nc" id="L126">                        strBuf.setCharAt(strBuf.length() - 1, ch);</span>
+<span class="nc" id="L127">                        executeCommand(strBuf.toString());</span>
+<span class="nc" id="L128">                        commands++;</span>
+<span class="nc" id="L129">                        strBuf.setLength(0);</span>
+<span class="nc" id="L130">                    } else {</span>
+                        // continue to read the command
+<span class="nc" id="L132">                        strBuf.append(&quot; &quot;);</span>
+                    }
+                }
+            }            
+        } finally {
+<span class="nc bnc" id="L137" title="All 2 branches missed.">            if (br != null) { br.close(); }            </span>
+        }
+<span class="nc" id="L139">        Timestamp stop = new Timestamp(System.currentTimeMillis());</span>
+<span class="nc" id="L140">        log.debug(&quot;Execution started: &quot; + start.toString());</span>
+<span class="nc" id="L141">        log.debug(&quot;Execution stopped: &quot; + stop.toString());</span>
+<span class="nc" id="L142">        log.debug(commands + &quot; commands executed with &quot; + errors + &quot; errors&quot;);</span>
+<span class="nc" id="L143">        commands = 0;</span>
+<span class="nc" id="L144">        errors = 0;</span>
+<span class="nc" id="L145">        log.trace(&quot;&lt;runCommands&quot;);</span>
+<span class="nc" id="L146">    }</span>
+    
+    /** Executes an sql update. 
+     * SQL INSERT, UPDATE or DELETE statement; or an SQL statement that returns nothing, such as a DDL statement. 
+     * 
+     * @param sql String holding the SQL.
+     * @return number of rows updates (returned by executeUpdate)
+     * @throws SQLException fail
+     */
+    private int executeCommand(String sql) throws SQLException {
+<span class="nc bnc" id="L156" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L157">            log.trace(&quot;&gt; executeCommand: &quot; + sql);</span>
+    	}
+<span class="nc" id="L159">        Statement stmt = null;</span>
+<span class="nc" id="L160">        int res = 0;</span>
+        try {
+<span class="nc" id="L162">            stmt = con.createStatement();</span>
+<span class="nc" id="L163">            res = stmt.executeUpdate(sql);</span>
+<span class="nc" id="L164">        } catch (SQLException exception) {</span>
+<span class="nc" id="L165">            log.error(&quot;Exception: &quot; + exception.getMessage() + &quot;, sql: &quot;+ sql);</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">            if (!this.continueOnSqlError) {</span>
+<span class="nc" id="L167">                throw exception;</span>
+            }
+<span class="nc" id="L169">            errors++;</span>
+        } finally {
+<span class="nc bnc" id="L171" title="All 2 branches missed.">            if (stmt != null) {</span>
+<span class="nc" id="L172">                stmt.close();</span>
+            }            
+        }
+<span class="nc" id="L175">        log.trace(&quot;&lt; executeCommand&quot;);</span>
+<span class="nc" id="L176">        return res;</span>
+    } // executeCommand
+    
+  /* commit and rollback commands not needed when running inside a session bean that handles transactions for us */
+  /*  
+  public void commit() throws SQLException {
+        log.trace(&quot;&gt; commit&quot;);
+        if (con != null)
+            con.commit();
+        else {
+            log.error(&quot;Connection == null vid commit()&quot;);
+        }
+        log.trace(&quot;&lt; commit&quot;);
+    }
+    
+    public void rollback() throws SQLException {
+        log.trace(&quot;&gt; rollback&quot;);
+        if (con != null)
+            con.rollback();
+        else {
+            log.error(&quot;Connection == null vid rollback()&quot;);
+        }
+        log.trace(&quot;&lt; rollback&quot;);
+    }
+    */    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

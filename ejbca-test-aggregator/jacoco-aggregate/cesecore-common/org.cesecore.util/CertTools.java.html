@@ -3471,10 +3471,10 @@ import com.novell.ldap.LDAPDN;
      * @param oid OID
      * @return the PKCS#10's extension of the specified OID or null if no such extension exists */
     public static Extension getExtension(final PKCS10CertificationRequest pkcs10CertificateRequest, String oid) {
-<span class="nc bnc" id="L3474" title="All 4 branches missed.">        if (pkcs10CertificateRequest != null &amp;&amp; oid != null) {</span>
-<span class="nc" id="L3475">            final Extensions extensions = getPKCS10Extensions(pkcs10CertificateRequest);</span>
-<span class="nc bnc" id="L3476" title="All 2 branches missed.">            if (extensions!=null) {</span>
-<span class="nc" id="L3477">                return extensions.getExtension(new ASN1ObjectIdentifier(oid));</span>
+<span class="pc bpc" id="L3474" title="2 of 4 branches missed.">        if (pkcs10CertificateRequest != null &amp;&amp; oid != null) {</span>
+<span class="fc" id="L3475">            final Extensions extensions = getPKCS10Extensions(pkcs10CertificateRequest);</span>
+<span class="pc bpc" id="L3476" title="1 of 2 branches missed.">            if (extensions!=null) {</span>
+<span class="fc" id="L3477">                return extensions.getExtension(new ASN1ObjectIdentifier(oid));</span>
             }
         }
 <span class="nc" id="L3480">        return null;</span>
@@ -3483,11 +3483,11 @@ import com.novell.ldap.LDAPDN;
     /** @param pkcs10CertificateRequest PKCS10 request
      * @return the first found extensions or null if PKCSObjectIdentifiers.pkcs_9_at_extensionRequest was not present in the PKCS#10 */
     private static Extensions getPKCS10Extensions(final PKCS10CertificationRequest pkcs10CertificateRequest) {
-<span class="nc" id="L3486">        final Attribute[] attributes = pkcs10CertificateRequest.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);</span>
-<span class="nc bnc" id="L3487" title="All 2 branches missed.">        for (final Attribute attribute : attributes) {</span>
-<span class="nc" id="L3488">            final ASN1Set attributeValues = attribute.getAttrValues();</span>
-<span class="nc bnc" id="L3489" title="All 2 branches missed.">            if (attributeValues.size()&gt;0) {</span>
-<span class="nc" id="L3490">                return Extensions.getInstance(attributeValues.getObjectAt(0));</span>
+<span class="fc" id="L3486">        final Attribute[] attributes = pkcs10CertificateRequest.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);</span>
+<span class="pc bpc" id="L3487" title="1 of 2 branches missed.">        for (final Attribute attribute : attributes) {</span>
+<span class="fc" id="L3488">            final ASN1Set attributeValues = attribute.getAttrValues();</span>
+<span class="pc bpc" id="L3489" title="1 of 2 branches missed.">            if (attributeValues.size()&gt;0) {</span>
+<span class="fc" id="L3490">                return Extensions.getInstance(attributeValues.getObjectAt(0));</span>
             }
         }
 <span class="nc" id="L3493">        return null;</span>
@@ -3615,8 +3615,8 @@ import com.novell.ldap.LDAPDN;
      */
     public static byte[] generateSHA256Fingerprint(byte[] ba) {
         try {
-<span class="nc" id="L3618">            MessageDigest md = MessageDigest.getInstance(&quot;SHA-256&quot;);</span>
-<span class="nc" id="L3619">            return md.digest(ba);</span>
+<span class="fc" id="L3618">            MessageDigest md = MessageDigest.getInstance(&quot;SHA-256&quot;);</span>
+<span class="fc" id="L3619">            return md.digest(ba);</span>
 <span class="nc" id="L3620">        } catch (NoSuchAlgorithmException nsae) {</span>
 <span class="nc" id="L3621">            log.error(&quot;SHA-256 algorithm not supported&quot;, nsae);</span>
         }
@@ -4343,21 +4343,21 @@ import com.novell.ldap.LDAPDN;
      * @return PKCS10CertificateRequest object
      */
     public static PKCS10CertificationRequest getCertificateRequestFromPem(final String pemEncodedCsr){
-<span class="nc bnc" id="L4346" title="All 2 branches missed.">        if(pemEncodedCsr == null){</span>
+<span class="pc bpc" id="L4346" title="1 of 2 branches missed.">        if(pemEncodedCsr == null){</span>
 <span class="nc" id="L4347">            return null;</span>
         }
-<span class="nc" id="L4349">        PKCS10CertificationRequest csr = null;</span>
-<span class="nc" id="L4350">        final ByteArrayInputStream pemStream = new ByteArrayInputStream(pemEncodedCsr.getBytes(StandardCharsets.UTF_8));</span>
-<span class="nc" id="L4351">        try (PEMParser pemParser = new PEMParser(new BufferedReader(new InputStreamReader(pemStream)));) {</span>
-<span class="nc" id="L4352">            final Object parsedObj = pemParser.readObject();</span>
-<span class="nc bnc" id="L4353" title="All 2 branches missed.">            if (parsedObj instanceof PKCS10CertificationRequest) {</span>
-<span class="nc" id="L4354">                csr = (PKCS10CertificationRequest) parsedObj;</span>
+<span class="fc" id="L4349">        PKCS10CertificationRequest csr = null;</span>
+<span class="fc" id="L4350">        final ByteArrayInputStream pemStream = new ByteArrayInputStream(pemEncodedCsr.getBytes(StandardCharsets.UTF_8));</span>
+<span class="fc" id="L4351">        try (PEMParser pemParser = new PEMParser(new BufferedReader(new InputStreamReader(pemStream)));) {</span>
+<span class="fc" id="L4352">            final Object parsedObj = pemParser.readObject();</span>
+<span class="pc bpc" id="L4353" title="1 of 2 branches missed.">            if (parsedObj instanceof PKCS10CertificationRequest) {</span>
+<span class="fc" id="L4354">                csr = (PKCS10CertificationRequest) parsedObj;</span>
             }
 <span class="nc" id="L4356">        } catch (IOException | DecoderException e) {//IOException that will be wrapped as (runtime) DecoderException</span>
 <span class="nc" id="L4357">            log.info(&quot;IOException while decoding certificate request from PEM: &quot; + e.getMessage());</span>
 <span class="nc" id="L4358">            log.debug(&quot;IOException while decoding certificate request from PEM.&quot;, e);</span>
-<span class="nc" id="L4359">        }</span>
-<span class="nc" id="L4360">        return csr;</span>
+<span class="fc" id="L4359">        }</span>
+<span class="fc" id="L4360">        return csr;</span>
     }
 
     /**

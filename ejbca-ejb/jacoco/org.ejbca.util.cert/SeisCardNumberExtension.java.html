@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SeisCardNumberExtension.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util.cert</a> &gt; <span class="el_source">SeisCardNumberExtension.java</span></div><h1>SeisCardNumberExtension.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.util.cert;
+
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.DERPrintableString;
+import org.cesecore.certificates.certificate.certextensions.standard.SeisCardNumber;
+import org.cesecore.util.CertTools;
+
+/**
+ * A class for reading values from SeisCardNumber extension.
+ *
+ * @author  Tomas Gustavsson
+ * @version $Id: SeisCardNumberExtension.java 19901 2014-09-30 14:29:38Z anatom $
+ */
+public class SeisCardNumberExtension extends CertTools {
+
+<span class="nc" id="L33">    private static Logger log = Logger.getLogger(SeisCardNumberExtension.class);</span>
+    
+    /**
+     * inhibits creation of new SubjectDirAttrExtension
+     */
+    private SeisCardNumberExtension() {
+    }
+
+    /**
+     * CardNumber EXTENSION ::= {
+     *       SYNTAX        CardNumber
+     *       IDENTIFIED BY id-seis-pe-cn}
+     *       -- id-seis-pe-cn is defined in Annex A
+     * CardNumber ::= PrintableString 	 *
+     * 
+	 * @param certificate containing card number
+	 * @return String containing card number. 
+	 * @throws java.lang.Exception fail
+	 */
+	public static String getSeisCardNumber(Certificate certificate) throws Exception {
+<span class="nc" id="L53">		log.debug(&quot;Search for CardNumber&quot;);</span>
+<span class="nc" id="L54">        String ret = null;</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">        if (certificate instanceof X509Certificate) {</span>
+<span class="nc" id="L56">			X509Certificate x509cert = (X509Certificate) certificate;</span>
+<span class="nc" id="L57">	        ASN1Primitive obj = CertTools.getExtensionValue(x509cert, SeisCardNumber.OID_CARDNUMBER);</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">	        if (obj == null) {</span>
+<span class="nc" id="L59">	            return null;</span>
+	        }
+<span class="nc" id="L61">	        DERPrintableString number = (DERPrintableString)obj;</span>
+<span class="nc" id="L62">	        ret = number.getString();</span>
+        }
+<span class="nc" id="L64">        return ret;            </span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SimpleMock.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util</a> &gt; <span class="el_source">SimpleMock.java</span></div><h1>SimpleMock.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.util;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Simple class for mocking an interface that can return pre-configured values
+ * or throw defined Exceptions.&lt;br&gt;
+ * &lt;br&gt;
+ * The mocked object will treat two methods with the same name, but different
+ * signatures as the same. (E.g. getInt() and getInt(String x) will be treated
+ * the same.)&lt;br&gt;
+ * &lt;br&gt;
+ * Example usage:&lt;br&gt;
+ * &lt;pre&gt;
+ *  SomeInterface x = new SimpleMock(SomeInterface.class) {{
+ *  	map(&quot;getInt&quot;, 1); // Override method getInt(...)
+ *  	map(&quot;throwsException&quot;, new Exception(&quot;TestException&quot;)); // Override method throwsException(...)
+ *  }}.mock();
+ *  x.getInt(&quot;parameter 1&quot;, 2, &quot;parameter 3&quot;);	// Will return 1
+ *  &lt;/pre&gt;
+ *
+ *  Unmapped methods will return the following defaults:
+ *  &lt;ul&gt;
+ *   &lt;li&gt;boolean: false&lt;/li&gt;
+ *   &lt;li&gt;char: '\0'&lt;/li&gt;
+ *   &lt;li&gt;byte: 0&lt;/li&gt;
+ *   &lt;li&gt;short: 0&lt;/li&gt;
+ *   &lt;li&gt;int: 0&lt;/li&gt;
+ *   &lt;li&gt;long: 0&lt;/li&gt;
+ *   &lt;li&gt;float: 0.0&lt;/li&gt;
+ *   &lt;li&gt;double: 0.0&lt;/li&gt;
+ *   &lt;li&gt;Object: null&lt;/li&gt;
+ *  &lt;/ul&gt;
+ *  
+ *  @version $Id: SimpleMock.java 22142 2015-11-03 14:15:51Z mikekushner $
+ */
+public class SimpleMock {
+	
+	final Class&lt;?&gt; c;
+<span class="nc" id="L60">	final Map&lt;String, Object&gt; map = new HashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L61">	final List&lt;String&gt; methodNames = new ArrayList&lt;String&gt;();</span>
+
+	/** @param c is the interface to mock */
+<span class="nc" id="L64">	public SimpleMock(Class&lt;?&gt; c) {</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">		if (!c.isInterface()) {</span>
+<span class="nc" id="L66">			throw new RuntimeException(c.getName() + &quot; is not an interface.&quot;);</span>
+		}
+<span class="nc" id="L68">		this.c = c;</span>
+<span class="nc" id="L69">		Class&lt;?&gt; thisInterface = c;</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">		while (thisInterface != null) {</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">			for (Method m : c.getMethods()) {</span>
+<span class="nc" id="L72">				methodNames.add(m.getName());</span>
+			}
+<span class="nc" id="L74">			thisInterface = c.getSuperclass();</span>
+		}
+<span class="nc" id="L76">	}</span>
+	
+	/**
+	 * Adds a mapping between a method-name and return value
+	 * @param methodName Method
+	 * @param valueOrException Obj
+	 */
+	public void map(String methodName, Object valueOrException) {
+<span class="nc bnc" id="L84" title="All 2 branches missed.">		if (!methodNames.contains(methodName)) {</span>
+<span class="nc" id="L85">			throw new RuntimeException(new NoSuchMethodException(methodName));</span>
+		}
+<span class="nc" id="L87">		map.put(methodName, valueOrException);</span>
+<span class="nc" id="L88">	}</span>
+	
+	@SuppressWarnings(&quot;unchecked&quot;)
+	public &lt;T&gt; T mock() {
+<span class="nc" id="L92">		Class&lt;?&gt;[] cs = {c};</span>
+<span class="nc" id="L93">		return (T) Proxy.newProxyInstance(c.getClassLoader(), cs, new MockInvocationHandler(map));</span>
+	}
+
+	/**
+	 * Injects &quot;value&quot; into a (private) field named &quot;fieldName&quot; of &quot;target&quot; or
+	 * the first one of &quot;target&quot;'s super classes where &quot;fieldName&quot; exists.
+	 * @param target Target
+	 * @param fieldName Name
+	 * @param value Value
+	 */
+    public static void inject(Object target, String fieldName, Object value) {
+		try {
+<span class="nc" id="L105">			Field field = null;</span>
+<span class="nc" id="L106">			Class&lt;?&gt; targetClass = target.getClass();</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">			while (targetClass != null) {</span>
+				try {
+<span class="nc" id="L109">					field = targetClass.getDeclaredField(fieldName);</span>
+<span class="nc" id="L110">					break;</span>
+<span class="nc" id="L111">				} catch (NoSuchFieldException e) {</span>
+				}
+<span class="nc" id="L113">				targetClass = targetClass.getSuperclass();</span>
+			}
+<span class="nc bnc" id="L115" title="All 2 branches missed.">			if (targetClass == null) {</span>
+<span class="nc" id="L116">				throw new NoSuchFieldException(fieldName);</span>
+			}
+<span class="nc" id="L118">	        field.setAccessible(true);</span>
+<span class="nc" id="L119">	        field.set(target, value);</span>
+<span class="nc" id="L120">		} catch (SecurityException e) {</span>
+<span class="nc" id="L121">			throw new RuntimeException(e);</span>
+<span class="nc" id="L122">		} catch (NoSuchFieldException e) {</span>
+<span class="nc" id="L123">			throw new RuntimeException(e);</span>
+<span class="nc" id="L124">		} catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L125">			throw new RuntimeException(e);</span>
+<span class="nc" id="L126">		} catch (IllegalAccessException e) {</span>
+<span class="nc" id="L127">			throw new RuntimeException(e);</span>
+<span class="nc" id="L128">		}</span>
+<span class="nc" id="L129">    }</span>
+
+	private class MockInvocationHandler implements InvocationHandler {
+
+		final Map&lt;String, Object&gt; map;
+		
+<span class="nc" id="L135">		public MockInvocationHandler(Map&lt;String, Object&gt; map) {</span>
+<span class="nc" id="L136">			this.map = map;</span>
+<span class="nc" id="L137">		}</span>
+		
+		@Override
+		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+			// Check if we should return a mapped value
+<span class="nc" id="L142">			final String methodName = method.getName();</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">			if (map.containsKey(methodName)) {</span>
+<span class="nc" id="L144">				final Object returnValue = map.get(methodName);</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">				if (returnValue instanceof Throwable) {</span>
+<span class="nc" id="L146">					throw (Throwable)returnValue;</span>
+				} else {
+<span class="nc" id="L148">					return returnValue;</span>
+				}
+			}
+			// No mapped value was configured, so return the default for this return type
+<span class="nc" id="L152">			final Class&lt;?&gt; returnType = method.getReturnType();</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">			if (returnType.isPrimitive()) {</span>
+				// We cannot return null if it is a primitive type.
+<span class="nc" id="L155">				final String returnTypeName = returnType.getName();</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">				if (&quot;boolean&quot;.equals(returnTypeName)) {</span>
+<span class="nc" id="L157">					return false;</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">				} else if (&quot;char&quot;.equals(returnTypeName)) {</span>
+<span class="nc" id="L159">					return '\0';</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">				} else if (&quot;byte&quot;.equals(returnTypeName)) {</span>
+<span class="nc" id="L161">					return (byte)0;</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">				} else if (&quot;short&quot;.equals(returnTypeName)) {</span>
+<span class="nc" id="L163">					return (short)0;</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">				} else if (&quot;int&quot;.equals(returnTypeName)) {</span>
+<span class="nc" id="L165">					return (int)0;</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">				} else if (&quot;long&quot;.equals(returnTypeName)) {</span>
+<span class="nc" id="L167">					return (long)0L;</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">				} else if (&quot;float&quot;.equals(returnTypeName)) {</span>
+<span class="nc" id="L169">					return (float)0.0F;</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">				} else if (&quot;double&quot;.equals(returnTypeName)) {</span>
+<span class="nc" id="L171">					return (double)0.0D;</span>
+				}
+			}
+<span class="nc" id="L174">			return null;</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

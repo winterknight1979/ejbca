@@ -250,7 +250,7 @@ public class LookAheadObjectInputStream extends ObjectInputStream {
     
     public static boolean isClassAlwaysWhiteListed(final Class&lt;?&gt; c) {
 <span class="pc bpc" id="L252" title="1 of 2 branches missed.">        final Class&lt;?&gt; classType = c.isArray() ? c.getComponentType() : c;</span>
-<span class="pc bpc" id="L253" title="1 of 6 branches missed.">        return classType.equals(String.class) || classType.isPrimitive() || Boolean.class.isAssignableFrom(classType) ||</span>
+<span class="fc bfc" id="L253" title="All 6 branches covered.">        return classType.equals(String.class) || classType.isPrimitive() || Boolean.class.isAssignableFrom(classType) ||</span>
 <span class="fc bfc" id="L254" title="All 4 branches covered.">                Number.class.isAssignableFrom(classType) || Character.class.isAssignableFrom(classType);</span>
     }
     

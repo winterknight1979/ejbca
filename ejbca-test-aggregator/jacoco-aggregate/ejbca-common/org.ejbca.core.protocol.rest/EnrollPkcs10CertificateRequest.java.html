@@ -32,30 +32,30 @@ public class EnrollPkcs10CertificateRequest implements Serializable {
 
 
     public String getCertificateRequest() {
-<span class="nc" id="L35">        return certificateRequest;</span>
+<span class="fc" id="L35">        return certificateRequest;</span>
     }
 
     public String getCertificateProfileName() {
-<span class="nc" id="L39">        return certificateProfileName;</span>
+<span class="fc" id="L39">        return certificateProfileName;</span>
     }
 
     public String getEndEntityProfileName() {
-<span class="nc" id="L43">        return endEntityProfileName;</span>
+<span class="fc" id="L43">        return endEntityProfileName;</span>
     }
 
     public String getCertificateAuthorityName() {
-<span class="nc" id="L47">        return certificateAuthorityName;</span>
+<span class="fc" id="L47">        return certificateAuthorityName;</span>
     }
     
     public String getUsername() {
-<span class="nc" id="L51">        return username;</span>
+<span class="fc" id="L51">        return username;</span>
     }
 
     public String getPassword() {
-<span class="nc" id="L55">        return password;</span>
+<span class="fc" id="L55">        return password;</span>
     }
 
-<span class="nc" id="L58">    public static class Builder {</span>
+<span class="fc" id="L58">    public static class Builder {</span>
         private String certificateRequest;
         private String certificateProfileName;
         private String endEntityProfileName;
@@ -64,28 +64,28 @@ public class EnrollPkcs10CertificateRequest implements Serializable {
         private String password;
 
         public Builder certificateRequest(String certificateRequest) {
-<span class="nc" id="L67">            this.certificateRequest = certificateRequest;</span>
-<span class="nc" id="L68">            return this;</span>
+<span class="fc" id="L67">            this.certificateRequest = certificateRequest;</span>
+<span class="fc" id="L68">            return this;</span>
         }
 
         public Builder certificateProfileName(String certificateProfileName) {
-<span class="nc" id="L72">            this.certificateProfileName = certificateProfileName;</span>
-<span class="nc" id="L73">            return this;</span>
+<span class="fc" id="L72">            this.certificateProfileName = certificateProfileName;</span>
+<span class="fc" id="L73">            return this;</span>
         }
 
         public Builder endEntityProfileName(String endEntityProfileName) {
-<span class="nc" id="L77">            this.endEntityProfileName = endEntityProfileName;</span>
-<span class="nc" id="L78">            return this;</span>
+<span class="fc" id="L77">            this.endEntityProfileName = endEntityProfileName;</span>
+<span class="fc" id="L78">            return this;</span>
         }
 
         public Builder certificateAuthorityName(String certificateAuthorityName) {
-<span class="nc" id="L82">            this.certificateAuthorityName = certificateAuthorityName;</span>
-<span class="nc" id="L83">            return this;</span>
+<span class="fc" id="L82">            this.certificateAuthorityName = certificateAuthorityName;</span>
+<span class="fc" id="L83">            return this;</span>
         }
 
         public Builder username(String username) {
-<span class="nc" id="L87">            this.username = username;</span>
-<span class="nc" id="L88">            return this;</span>
+<span class="fc" id="L87">            this.username = username;</span>
+<span class="fc" id="L88">            return this;</span>
         }
 
         public Builder password(String password) {
@@ -94,17 +94,17 @@ public class EnrollPkcs10CertificateRequest implements Serializable {
         }
 
         public EnrollPkcs10CertificateRequest build() {
-<span class="nc" id="L97">            return new EnrollPkcs10CertificateRequest(this);</span>
+<span class="fc" id="L97">            return new EnrollPkcs10CertificateRequest(this);</span>
         }
     }
     
-<span class="nc" id="L101">    private EnrollPkcs10CertificateRequest(Builder builder) {</span>
-<span class="nc" id="L102">        this.certificateRequest = builder.certificateRequest;</span>
-<span class="nc" id="L103">        this.certificateProfileName = builder.certificateProfileName;</span>
-<span class="nc" id="L104">        this.endEntityProfileName = builder.endEntityProfileName;</span>
-<span class="nc" id="L105">        this.certificateAuthorityName = builder.certificateAuthorityName;</span>
-<span class="nc" id="L106">        this.username = builder.username;</span>
-<span class="nc" id="L107">        this.password = builder.password;</span>
-<span class="nc" id="L108">    }</span>
+<span class="fc" id="L101">    private EnrollPkcs10CertificateRequest(Builder builder) {</span>
+<span class="fc" id="L102">        this.certificateRequest = builder.certificateRequest;</span>
+<span class="fc" id="L103">        this.certificateProfileName = builder.certificateProfileName;</span>
+<span class="fc" id="L104">        this.endEntityProfileName = builder.endEntityProfileName;</span>
+<span class="fc" id="L105">        this.certificateAuthorityName = builder.certificateAuthorityName;</span>
+<span class="fc" id="L106">        this.username = builder.username;</span>
+<span class="fc" id="L107">        this.password = builder.password;</span>
+<span class="fc" id="L108">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

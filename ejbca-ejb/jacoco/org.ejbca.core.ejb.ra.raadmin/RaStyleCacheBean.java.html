@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RaStyleCacheBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.ra.raadmin</a> &gt; <span class="el_source">RaStyleCacheBean.java</span></div><h1>RaStyleCacheBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.ejb.ra.raadmin;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.ConcurrencyManagement;
+import javax.ejb.ConcurrencyManagementType;
+import javax.ejb.EJB;
+import javax.ejb.Singleton;
+import javax.ejb.Startup;
+import javax.ejb.TransactionManagement;
+import javax.ejb.TransactionManagementType;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.config.RaStyleInfo;
+import org.ejbca.core.model.era.RaMasterApiProxyBeanLocal;
+
+/**
+ * Global cache of RaStyleInfos fetched via Peers. Each entry is mapped to an administrator, containing its available custom RA Styles (CSS files and logo).
+ * This cache prevents multiple requests over the Peers protocol when an administrator loads the RA page and style resources are requested by the servlet filter
+ * (RaStyleRequestFilter). Since style archives may be very heavy to transfer, a check for changes is sent via Peers before reloading the styles.
+ * 
+ * @version $Id: RaStyleCacheBean.java 27422 2017-12-05 14:05:42Z bastianf $
+ */
+@Singleton
+@Startup
+@ConcurrencyManagement(ConcurrencyManagementType.BEAN)
+@TransactionManagement(TransactionManagementType.BEAN)
+public class RaStyleCacheBean {
+
+    @EJB
+    private RaMasterApiProxyBeanLocal raMasterApiProxyBean;
+    
+<span class="nc" id="L50">    private final Logger log = Logger.getLogger(RaStyleCacheBean.class);</span>
+    
+    private Map&lt;AuthenticationToken, List&lt;RaStyleInfo&gt;&gt; raStyleCache;
+    private Map&lt;AuthenticationToken, Long&gt; lastUpdateMap;
+    
+    @PostConstruct
+    public void initialize() {
+<span class="nc" id="L57">        raStyleCache = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L58">        lastUpdateMap = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L60">            log.info(this.getClass().getName() + &quot; initialized&quot;);</span>
+        }
+<span class="nc" id="L62">    }</span>
+    
+<span class="nc" id="L64">    public RaStyleCacheBean() {}</span>
+    
+    public void invalidateCache() {
+<span class="nc" id="L67">        raStyleCache = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L68">        lastUpdateMap = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L69">    }</span>
+    
+    /**
+     * Checks if administrators actual available RA Styles differentiate from the cached styles
+     * @param authenticationToken of the requesting administrator
+     * @return true if cache is invalid and requires update
+     */
+    public boolean needsUpdate(AuthenticationToken authenticationToken) {
+<span class="nc" id="L77">        List&lt;RaStyleInfo&gt; cachedStyle = raStyleCache.get(authenticationToken);</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        if (cachedStyle != null) {</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">            return raMasterApiProxyBean.getAvailableCustomRaStyles(authenticationToken, cachedStyle.hashCode()) != null;</span>
+        }
+<span class="nc" id="L81">        return true;</span>
+    }
+    
+    /**
+     * Returns custom RA Styles associated with the role of the requesting administrator. If the administrator has requested
+     * styles very recently, the same content will be returned to prevent requests via Peers for for every resource request
+     * e.g. in a page load in the RA web.
+     * @param authenticationToken of the requesting administrator
+     * @return List of custom RA styles available for the requesting administrator
+     */
+    public List&lt;RaStyleInfo&gt; getAvailableRaStyles(AuthenticationToken authenticationToken) {
+        List&lt;RaStyleInfo&gt; availableRaStyles;
+<span class="nc" id="L93">        long now = System.currentTimeMillis();</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">        if (raStyleCache.containsKey(authenticationToken)) {</span>
+<span class="nc" id="L95">            List&lt;RaStyleInfo&gt; cachedStyles = raStyleCache.get(authenticationToken);</span>
+            // This prevents lookup over Peers for every requested resource in a page load.
+<span class="nc bnc" id="L97" title="All 2 branches missed.">            if (now - getLastUpdate(authenticationToken) &lt; 1000) {</span>
+<span class="nc" id="L98">                return cachedStyles;</span>
+            }
+            // Check for changes
+<span class="nc" id="L101">            availableRaStyles = raMasterApiProxyBean.getAvailableCustomRaStyles(authenticationToken, cachedStyles.hashCode());</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">            if (availableRaStyles == null) {</span>
+                // No changes, use cached styles
+<span class="nc" id="L104">                availableRaStyles = cachedStyles;</span>
+            } else {
+<span class="nc" id="L106">                raStyleCache.put(authenticationToken, availableRaStyles);</span>
+            }
+<span class="nc" id="L108">        } else {</span>
+            // Full reload of styles
+<span class="nc" id="L110">            availableRaStyles = raMasterApiProxyBean.getAvailableCustomRaStyles(authenticationToken, 0);</span>
+<span class="nc" id="L111">            raStyleCache.put(authenticationToken, availableRaStyles);</span>
+        }
+<span class="nc" id="L113">        lastUpdateMap.put(authenticationToken, now);</span>
+<span class="nc" id="L114">        return availableRaStyles;</span>
+    }
+    
+    /** @return returns Map of all cached RA Styles*/
+    public Map&lt;AuthenticationToken, List&lt;RaStyleInfo&gt;&gt; getCachedAdminStylesMap() {
+<span class="nc" id="L119">        return raStyleCache;</span>
+    }
+    
+    /** @param authenticationToken Token
+     * @return last time the administrator requested styles from this cache */
+    public long getLastUpdate(AuthenticationToken authenticationToken) {
+<span class="nc" id="L125">        Long lastUpdate = lastUpdateMap.get(authenticationToken);</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        return lastUpdate == null ? -1 : lastUpdate;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

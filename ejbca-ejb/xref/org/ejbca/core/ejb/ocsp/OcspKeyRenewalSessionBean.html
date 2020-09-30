@@ -1,0 +1,629 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>OcspKeyRenewalSessionBean xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../../apidocs/org/ejbca/core/ejb/ocsp/OcspKeyRenewalSessionBean.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <em class="jxr_javadoccomment">/*************************************************************************</em>
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <em class="jxr_javadoccomment"> *  EJBCA Community: The OpenSource Certificate Authority                *</em>
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <em class="jxr_javadoccomment"> *  This software is free software; you can redistribute it and/or       *</em>
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <em class="jxr_javadoccomment"> *  modify it under the terms of the GNU Lesser General Public           *</em>
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <em class="jxr_javadoccomment"> *  License as published by the Free Software Foundation; either         *</em>
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <em class="jxr_javadoccomment"> *  version 2.1 of the License, or any later version.                    *</em>
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_javadoccomment"> *  See terms of license at gnu.org.                                     *</em>
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <em class="jxr_javadoccomment"> *************************************************************************/</em>
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">package</strong> org.ejbca.core.ejb.ocsp;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> java.io.ByteArrayInputStream;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> java.net.MalformedURLException;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> java.net.URL;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> java.security.InvalidAlgorithmParameterException;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> java.security.InvalidKeyException;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> java.security.InvalidParameterException;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> java.security.KeyManagementException;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> java.security.KeyStoreException;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> java.security.NoSuchAlgorithmException;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> java.security.PublicKey;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> java.security.cert.CertificateEncodingException;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> java.security.cert.CertificateException;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> java.security.cert.CertificateFactory;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> java.security.cert.X509Certificate;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayList;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> java.util.Collection;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> java.util.Date;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> java.util.HashMap;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> java.util.HashSet;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> java.util.Map;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> java.util.Random;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> java.util.Set;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> javax.annotation.PostConstruct;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> javax.annotation.Resource;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> javax.ejb.EJB;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> javax.ejb.NoSuchObjectLocalException;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> javax.ejb.SessionContext;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> javax.ejb.Stateless;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> javax.ejb.Timeout;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> javax.ejb.Timer;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">import</strong> javax.ejb.TimerConfig;
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <strong class="jxr_keyword">import</strong> javax.ejb.TimerService;
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <strong class="jxr_keyword">import</strong> javax.ejb.TransactionAttribute;
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <strong class="jxr_keyword">import</strong> javax.ejb.TransactionAttributeType;
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  <strong class="jxr_keyword">import</strong> javax.net.ssl.HttpsURLConnection;
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  <strong class="jxr_keyword">import</strong> javax.net.ssl.KeyManager;
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  <strong class="jxr_keyword">import</strong> javax.net.ssl.SSLContext;
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  <strong class="jxr_keyword">import</strong> javax.net.ssl.SSLSocketFactory;
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>  <strong class="jxr_keyword">import</strong> javax.net.ssl.TrustManager;
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  <strong class="jxr_keyword">import</strong> javax.net.ssl.X509KeyManager;
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  <strong class="jxr_keyword">import</strong> javax.net.ssl.X509TrustManager;
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>  <strong class="jxr_keyword">import</strong> javax.security.auth.x500.X500Principal;
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>  <strong class="jxr_keyword">import</strong> javax.xml.namespace.QName;
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  <strong class="jxr_keyword">import</strong> org.apache.commons.lang.StringUtils;
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>  <strong class="jxr_keyword">import</strong> org.apache.log4j.Logger;
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>  <strong class="jxr_keyword">import</strong> org.bouncycastle.util.encoders.Base64;
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>  <strong class="jxr_keyword">import</strong> org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>  <strong class="jxr_keyword">import</strong> org.cesecore.authentication.tokens.AuthenticationToken;
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>  <strong class="jxr_keyword">import</strong> org.cesecore.authentication.tokens.UsernamePrincipal;
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>  <strong class="jxr_keyword">import</strong> org.cesecore.authorization.AuthorizationDeniedException;
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.endentity.EndEntityConstants;
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.ocsp.OcspResponseGeneratorSessionLocal;
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.ocsp.cache.OcspSigningCache;
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.ocsp.cache.OcspSigningCacheEntry;
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>  <strong class="jxr_keyword">import</strong> org.cesecore.config.OcspConfiguration;
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>  <strong class="jxr_keyword">import</strong> org.cesecore.internal.InternalResources;
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>  <strong class="jxr_keyword">import</strong> org.cesecore.jndi.JndiConstants;
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>  <strong class="jxr_keyword">import</strong> org.cesecore.keybind.CertificateImportException;
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>  <strong class="jxr_keyword">import</strong> org.cesecore.keybind.InternalKeyBinding;
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>  <strong class="jxr_keyword">import</strong> org.cesecore.keybind.InternalKeyBindingMgmtSessionLocal;
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>  <strong class="jxr_keyword">import</strong> org.cesecore.keybind.InternalKeyBindingStatus;
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>  <strong class="jxr_keyword">import</strong> org.cesecore.keybind.InternalKeyBindingTrustEntry;
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>  <strong class="jxr_keyword">import</strong> org.cesecore.keybind.impl.AuthenticationKeyBinding;
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>  <strong class="jxr_keyword">import</strong> org.cesecore.keybind.impl.ClientX509KeyManager;
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>  <strong class="jxr_keyword">import</strong> org.cesecore.keys.token.CryptoToken;
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>  <strong class="jxr_keyword">import</strong> org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>  <strong class="jxr_keyword">import</strong> org.cesecore.keys.token.CryptoTokenOfflineException;
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>  <strong class="jxr_keyword">import</strong> org.cesecore.keys.token.KeyRenewalFailedException;
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>  <strong class="jxr_keyword">import</strong> org.cesecore.keys.util.KeyTools;
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>  <strong class="jxr_keyword">import</strong> org.cesecore.util.CertTools;
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>  <strong class="jxr_keyword">import</strong> org.cesecore.util.provider.X509TrustManagerAcceptAll;
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.protocol.ws.client.gen.CertificateResponse;
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.protocol.ws.client.gen.EjbcaWS;
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.protocol.ws.client.gen.EjbcaWSService;
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.protocol.ws.client.gen.NameAndId;
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.protocol.ws.client.gen.UserDataVOWS;
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.protocol.ws.client.gen.UserMatch;
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.protocol.ws.common.CertificateHelper;
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>  <strong class="jxr_keyword">import</strong> org.ejbca.util.passgen.PasswordGeneratorFactory;
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>  <strong class="jxr_keyword">import</strong> org.ejbca.util.query.BasicMatch;
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>  
+<a class="jxr_linenumber" name="L100" href="#L100">100</a> <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L101" href="#L101">101</a> <em class="jxr_javadoccomment"> * @version $Id: OcspKeyRenewalSessionBean.java 26145 2017-07-10 10:45:12Z mikekushner $</em>
+<a class="jxr_linenumber" name="L102" href="#L102">102</a> <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L103" href="#L103">103</a> @Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + <span class="jxr_string">"OcspKeyRenewalSessionRemote"</span>)
+<a class="jxr_linenumber" name="L104" href="#L104">104</a> @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+<a class="jxr_linenumber" name="L105" href="#L105">105</a> <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="OcspKeyRenewalSessionBean" href="../../../../../org/ejbca/core/ejb/ocsp/OcspKeyRenewalSessionBean.html#OcspKeyRenewalSessionBean">OcspKeyRenewalSessionBean</a> <strong class="jxr_keyword">implements</strong> OcspKeyRenewalSessionLocal, OcspKeyRenewalSessionRemote {
+<a class="jxr_linenumber" name="L106" href="#L106">106</a> 
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger log = Logger.getLogger(OcspKeyRenewalSessionBean.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L108" href="#L108">108</a> 
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> InternalResources intres = InternalResources.getInstance();
+<a class="jxr_linenumber" name="L110" href="#L110">110</a> 
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> NO_SAFETY_MARGIN = Long.MAX_VALUE/1000;
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>     
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">volatile</strong> Integer timerId = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L114" href="#L114">114</a> 
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>     <em class="jxr_comment">// TODO: See if we can create local business methods for all calls where this is required</em>
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> AuthenticationToken authenticationToken = <strong class="jxr_keyword">new</strong> AlwaysAllowLocalAuthenticationToken(<strong class="jxr_keyword">new</strong> UsernamePrincipal(
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>             <span class="jxr_string">"OCSP key renewal"</span>));
+<a class="jxr_linenumber" name="L118" href="#L118">118</a> 
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>     @EJB
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>     <strong class="jxr_keyword">private</strong> OcspResponseGeneratorSessionLocal ocspResponseGeneratorSession;
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>     @EJB
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>     <strong class="jxr_keyword">private</strong> InternalKeyBindingMgmtSessionLocal internalKeyBindingMgmtSession;
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>     @EJB
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>     <strong class="jxr_keyword">private</strong> CryptoTokenManagementSessionLocal cryptoTokenManagementSession;
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>     @EJB
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>     <strong class="jxr_keyword">private</strong> CertificateStoreSessionLocal certificateStoreSession;
+<a class="jxr_linenumber" name="L127" href="#L127">127</a>     
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>     @Resource
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>     <strong class="jxr_keyword">private</strong> SessionContext sessionContext;
+<a class="jxr_linenumber" name="L130" href="#L130">130</a> 
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>     <em class="jxr_comment">/* When the sessionContext is injected, the timerService should be looked up.</em>
+<a class="jxr_linenumber" name="L132" href="#L132">132</a> <em class="jxr_comment">     * This is due to the Glassfish EJB verifier complaining. </em>
+<a class="jxr_linenumber" name="L133" href="#L133">133</a> <em class="jxr_comment">     */</em>
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>     <strong class="jxr_keyword">private</strong> TimerService timerService;
+<a class="jxr_linenumber" name="L135" href="#L135">135</a> 
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>     @PostConstruct
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> postConstruct() {
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>         timerService = sessionContext.getTimerService();
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>         <em class="jxr_comment">//Just do this once</em>
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>         <strong class="jxr_keyword">if</strong> (timerId == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>             <strong class="jxr_keyword">synchronized</strong> (<strong class="jxr_keyword">this</strong>) {
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>                 <strong class="jxr_keyword">if</strong> (timerId == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>                     <em class="jxr_comment">// Any weak random number is fine</em>
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>                     timerId = <strong class="jxr_keyword">new</strong> Random().nextInt();
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>                 }
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>             }
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>         }
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>     }
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>     
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L151" href="#L151">151</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L152" href="#L152">152</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L153" href="#L153">153</a> <em class="jxr_javadoccomment">     * @param signerSubjectDN signerSubjectDN subject DN of the signing key to be renewed. The string "all" will result in all keys being renewed</em>
+<a class="jxr_linenumber" name="L154" href="#L154">154</a> <em class="jxr_javadoccomment">     * @param safetyMargin the number of seconds before actual expiration that a keystore should be renewed</em>
+<a class="jxr_linenumber" name="L155" href="#L155">155</a> <em class="jxr_javadoccomment">     * @throws CryptoTokenOfflineException if Crypto Token is not available or connected, or key with alias does not exist.</em>
+<a class="jxr_linenumber" name="L156" href="#L156">156</a> <em class="jxr_javadoccomment">     * @throws InvalidKeyException if the public key in the tokenAndChain can not be used to verify a string signed by the private key, because the key </em>
+<a class="jxr_linenumber" name="L157" href="#L157">157</a> <em class="jxr_javadoccomment">     * is wrong or the signature operation fails for other reasons such as a NoSuchAlgorithmException or SignatureException.</em>
+<a class="jxr_linenumber" name="L158" href="#L158">158</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">synchronized</strong> <strong class="jxr_keyword">void</strong> renewKeyStores(String signerSubjectDN, <strong class="jxr_keyword">long</strong> safetyMargin) <strong class="jxr_keyword">throws</strong> InvalidKeyException,
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>             CryptoTokenOfflineException {
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>         <em class="jxr_comment">//Cancel all running timers</em>
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>         cancelTimers();
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>             <strong class="jxr_keyword">final</strong> EjbcaWS ejbcaWS = getEjbcaWS();
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>             <strong class="jxr_keyword">if</strong> (ejbcaWS == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>                 <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>                     log.debug(<span class="jxr_string">"Could not locate a suitable web service for automatic OCSP key/certificate renewal."</span>);
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>                 }
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>                 <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>             }
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>             <strong class="jxr_keyword">final</strong> X500Principal target;
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>                 target = signerSubjectDN.trim().equalsIgnoreCase(RENEW_ALL_KEYS) ? <strong class="jxr_keyword">null</strong> : <strong class="jxr_keyword">new</strong> X500Principal(signerSubjectDN);
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>             } <strong class="jxr_keyword">catch</strong> (IllegalArgumentException e) {
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>                 log.error(intres.getLocalizedMessage(<span class="jxr_string">"ocsp.rekey.triggered.dn.not.valid"</span>, signerSubjectDN));
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>                 <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>             }
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>             <strong class="jxr_keyword">final</strong> StringBuffer matched = <strong class="jxr_keyword">new</strong> StringBuffer();
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>             <strong class="jxr_keyword">final</strong> StringBuffer unMatched = <strong class="jxr_keyword">new</strong> StringBuffer();
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>             <strong class="jxr_keyword">final</strong> Set&lt;Integer&gt; processedOcspKeyBindingIds = <strong class="jxr_keyword">new</strong> HashSet&lt;Integer&gt;();
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> OcspSigningCacheEntry ocspSigningCacheEntry : OcspSigningCache.INSTANCE.getEntries()) {
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>                 <em class="jxr_comment">// Only perform renewal for non CA signing key OCSP signers</em>
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>                 <strong class="jxr_keyword">if</strong> (!ocspSigningCacheEntry.isUsingSeparateOcspSigningCertificate()) {
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>                     <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>                 }
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>                 <em class="jxr_comment">// Only perform renewal once for each OcspKeyBinding.</em>
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>                 <em class="jxr_comment">// (the cache can map each OcspKeyBinding multiple times by SHA-1, SHA-256 and as default responder)</em>
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>                 <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> ocspKeyBindingId = ocspSigningCacheEntry.getOcspKeyBinding().getId();
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>                 <strong class="jxr_keyword">if</strong> (!processedOcspKeyBindingIds.add(Integer.valueOf(ocspKeyBindingId))) {
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>                     <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>                         log.debug(<span class="jxr_string">"Skipping renewal processing of OcspKeyBinding with id "</span> + ocspKeyBindingId + <span class="jxr_string">" that was already processed."</span>);
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>                     }
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>                     <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>                 }
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>                 <strong class="jxr_keyword">final</strong> X509Certificate ocspSigningCertificate = ocspSigningCacheEntry.getOcspSigningCertificate();
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>                 <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeLeftBeforeRenewal = ocspSigningCertificate.getNotAfter().getTime()-<strong class="jxr_keyword">new</strong> Date().getTime();
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>                 <strong class="jxr_keyword">if</strong> (timeLeftBeforeRenewal &lt; (1000 * safetyMargin)) {
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>                     <strong class="jxr_keyword">final</strong> X500Principal src = ocspSigningCertificate.getSubjectX500Principal();
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>                     <strong class="jxr_keyword">if</strong> (target != <strong class="jxr_keyword">null</strong> &amp;&amp; !src.equals(target)) {
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>                         unMatched.append(<span class="jxr_string">" '"</span> + src.getName() + '\'');
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>                         <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>                     }
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>                     matched.append(<span class="jxr_string">" '"</span> + ocspSigningCertificate.getIssuerX500Principal().getName() + '\'');
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>                     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>                         renewKeyStore(ejbcaWS, ocspSigningCacheEntry);
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>                     } <strong class="jxr_keyword">catch</strong> (KeyRenewalFailedException e) {
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>                         String msg = intres.getLocalizedMessage(<span class="jxr_string">"ocsp.rekey.failed.unknown.reason"</span>, target, e.getLocalizedMessage());
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>                         log.error(msg, e);
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>                         <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>                     }
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>                 }
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>             }
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>             <strong class="jxr_keyword">if</strong> (matched.length() &lt; 1 &amp;&amp; target != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>                 log.error(intres.getLocalizedMessage(<span class="jxr_string">"ocsp.rekey.triggered.dn.not.existing"</span>, target.getName(), unMatched));
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>                 <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>             }
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>             log.info(intres.getLocalizedMessage(<span class="jxr_string">"ocsp.rekey.triggered"</span>, matched));
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>         } <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>             <em class="jxr_comment">//Set new timer to run, even if something breaks.</em>
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>             addTimer(OcspConfiguration.getRekeyingUpdateTimeInSeconds());
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>         }
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>     }
+<a class="jxr_linenumber" name="L223" href="#L223">223</a> 
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>     @Override
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">synchronized</strong> <strong class="jxr_keyword">void</strong> renewKeyStores(String signerSubjectDN) <strong class="jxr_keyword">throws</strong> KeyStoreException, CryptoTokenOfflineException,
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>             InvalidKeyException {
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>         renewKeyStores(signerSubjectDN, NO_SAFETY_MARGIN);
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>     }
+<a class="jxr_linenumber" name="L229" href="#L229">229</a> 
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L231" href="#L231">231</a> <em class="jxr_javadoccomment">     * Generate a new key pair and request a new certificate for this key pair using EJBCA WS.</em>
+<a class="jxr_linenumber" name="L232" href="#L232">232</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L233" href="#L233">233</a> <em class="jxr_javadoccomment">     * @param ejbcaWS a reference to the remote EJBCA WS</em>
+<a class="jxr_linenumber" name="L234" href="#L234">234</a> <em class="jxr_javadoccomment">     * @param ocspSigningCacheEntry the cached OCSP signing entry backed by an OcspKeyBinding</em>
+<a class="jxr_linenumber" name="L235" href="#L235">235</a> <em class="jxr_javadoccomment">     * @throws InvalidKeyException if the new public key can not be used to verify a string signed by the private key, because the key is wrong or </em>
+<a class="jxr_linenumber" name="L236" href="#L236">236</a> <em class="jxr_javadoccomment">     * the signature operation fails for other reasons such as a NoSuchAlgorithmException or SignatureException.</em>
+<a class="jxr_linenumber" name="L237" href="#L237">237</a> <em class="jxr_javadoccomment">     * @throws CryptoTokenOfflineException if Crypto Token is not available or connected, or key with alias does not exist.</em>
+<a class="jxr_linenumber" name="L238" href="#L238">238</a> <em class="jxr_javadoccomment">     * @throws KeyRenewalFailedException if any error occurs during signing</em>
+<a class="jxr_linenumber" name="L239" href="#L239">239</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L240" href="#L240">240</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> renewKeyStore(EjbcaWS ejbcaWS, OcspSigningCacheEntry ocspSigningCacheEntry) <strong class="jxr_keyword">throws</strong> InvalidKeyException, CryptoTokenOfflineException, KeyRenewalFailedException {
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>         <em class="jxr_comment">//Generate the new key pair</em>
+<a class="jxr_linenumber" name="L242" href="#L242">242</a>         <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> internalKeyBindingId = ocspSigningCacheEntry.getOcspKeyBinding().getId();
+<a class="jxr_linenumber" name="L243" href="#L243">243</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L244" href="#L244">244</a>             internalKeyBindingMgmtSession.generateNextKeyPair(authenticationToken, internalKeyBindingId);
+<a class="jxr_linenumber" name="L245" href="#L245">245</a>         } <strong class="jxr_keyword">catch</strong> (InvalidAlgorithmParameterException e) {
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> KeyRenewalFailedException(e);
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>         } <strong class="jxr_keyword">catch</strong> (AuthorizationDeniedException e) {
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> KeyRenewalFailedException(e);
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>         }
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>         <em class="jxr_comment">//Sign the new keypair</em>
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>         <strong class="jxr_keyword">final</strong> X509Certificate signedCertificate = signCertificateByCa(ejbcaWS, ocspSigningCacheEntry);
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>             internalKeyBindingMgmtSession.importCertificateForInternalKeyBinding(authenticationToken, internalKeyBindingId, signedCertificate.getEncoded());
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>         } <strong class="jxr_keyword">catch</strong> (CertificateEncodingException e) {
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> KeyRenewalFailedException(e);
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>         } <strong class="jxr_keyword">catch</strong> (CertificateImportException e) {
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> KeyRenewalFailedException(e);
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>         } <strong class="jxr_keyword">catch</strong> (AuthorizationDeniedException e) {
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> KeyRenewalFailedException(e);
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>         }
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>         <em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="L262" href="#L262">262</a> <em class="jxr_comment">         * Replace the alias and the chain at this step. If anything bad happened prior to this step the old alias and </em>
+<a class="jxr_linenumber" name="L263" href="#L263">263</a> <em class="jxr_comment">         * chain are still active, and no harm done. </em>
+<a class="jxr_linenumber" name="L264" href="#L264">264</a> <em class="jxr_comment">         */</em>
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>         ocspResponseGeneratorSession.reloadOcspSigningCache();
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>     }
+<a class="jxr_linenumber" name="L267" href="#L267">267</a> 
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L269" href="#L269">269</a> <em class="jxr_javadoccomment">     * Get user data for the EJBCA user that will be used when creating the cert for the new key.</em>
+<a class="jxr_linenumber" name="L270" href="#L270">270</a> <em class="jxr_javadoccomment">     * @param ejbcaWS WS</em>
+<a class="jxr_linenumber" name="L271" href="#L271">271</a> <em class="jxr_javadoccomment">     * @param signingCertificate The OCSP signing certificate to get the end entity for</em>
+<a class="jxr_linenumber" name="L272" href="#L272">272</a> <em class="jxr_javadoccomment">     * @param caId the ID of the OCSP signing certificate issuing CA</em>
+<a class="jxr_linenumber" name="L273" href="#L273">273</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L274" href="#L274">274</a> <em class="jxr_javadoccomment">     * @return the data</em>
+<a class="jxr_linenumber" name="L275" href="#L275">275</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>     <strong class="jxr_keyword">private</strong> UserDataVOWS getUserDataVOWS(EjbcaWS ejbcaWS, <strong class="jxr_keyword">final</strong> X509Certificate signingCertificate, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> caId) {
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>         <strong class="jxr_keyword">final</strong> UserMatch match = <strong class="jxr_keyword">new</strong> UserMatch();
+<a class="jxr_linenumber" name="L278" href="#L278">278</a>         <strong class="jxr_keyword">final</strong> String subjectDN = CertTools.getSubjectDN(signingCertificate);
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>         <strong class="jxr_keyword">final</strong> String caName = getCAName(ejbcaWS, caId);
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>         <strong class="jxr_keyword">if</strong> (caName == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> InvalidParameterException(<span class="jxr_string">"No CA found for ID: "</span> + caId);
+<a class="jxr_linenumber" name="L282" href="#L282">282</a>         }
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>         match.setMatchtype(BasicMatch.MATCH_TYPE_EQUALS);
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>         match.setMatchvalue(subjectDN);
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>         match.setMatchwith(org.ejbca.util.query.UserMatch.MATCH_WITH_DN);
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>         <strong class="jxr_keyword">final</strong> List&lt;UserDataVOWS&gt; users;
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>             users = ejbcaWS.findUser(match);
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>         } <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>             log.error(<span class="jxr_string">"WS not working"</span>, e);
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>         }
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>         <strong class="jxr_keyword">if</strong> (users == <strong class="jxr_keyword">null</strong> || users.size() &lt; 1) {
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>             log.error(intres.getLocalizedMessage(<span class="jxr_string">"ocsp.no.user.with.subject.dn"</span>, subjectDN));
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>         }
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>         log.debug(<span class="jxr_string">"at least one user found for cert with DN: "</span> + subjectDN + <span class="jxr_string">" Trying to match it with CA name: "</span> + caName);
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>         UserDataVOWS result = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L299" href="#L299">299</a>         <strong class="jxr_keyword">for</strong> (UserDataVOWS userData : users) {
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>             <strong class="jxr_keyword">if</strong> (caName.equals(userData.getCaName())) {
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>                 result = userData;
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>                 <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>             }
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>         }
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>         <strong class="jxr_keyword">if</strong> (result == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>             log.error(<span class="jxr_string">"No user found for certificate '"</span> + subjectDN + <span class="jxr_string">"' on CA '"</span> + caName + <span class="jxr_string">"'."</span>);
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>         }
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>         <strong class="jxr_keyword">return</strong> result;
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>     }
+<a class="jxr_linenumber" name="L311" href="#L311">311</a> 
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L313" href="#L313">313</a> <em class="jxr_javadoccomment">     * setting status of EJBCA user to new and setting password of user.</em>
+<a class="jxr_linenumber" name="L314" href="#L314">314</a> <em class="jxr_javadoccomment">     * @param ejbcaWS from {@link #getEjbcaWS()}</em>
+<a class="jxr_linenumber" name="L315" href="#L315">315</a> <em class="jxr_javadoccomment">     * @param userData from {@link #getUserDataVOWS}</em>
+<a class="jxr_linenumber" name="L316" href="#L316">316</a> <em class="jxr_javadoccomment">     * @return true if success</em>
+<a class="jxr_linenumber" name="L317" href="#L317">317</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> editUser(EjbcaWS ejbcaWS, UserDataVOWS userData) {
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>         userData.setStatus(EndEntityConstants.STATUS_NEW);
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>         userData.setPassword(PasswordGeneratorFactory.getInstance(PasswordGeneratorFactory.PASSWORDTYPE_LETTERSANDDIGITS).getNewPassword(12, 12));
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>         userData.setTokenType(UserDataVOWS.TOKEN_TYPE_USERGENERATED);
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>             ejbcaWS.editUser(userData);
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>         } <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>             log.error(<span class="jxr_string">"Problem to edit user."</span>, e);
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>             <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>         }
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>     }
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L331" href="#L331">331</a> <em class="jxr_javadoccomment">     * Get the CA name</em>
+<a class="jxr_linenumber" name="L332" href="#L332">332</a> <em class="jxr_javadoccomment">     * @param ejbcaWS WS</em>
+<a class="jxr_linenumber" name="L333" href="#L333">333</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L334" href="#L334">334</a> <em class="jxr_javadoccomment">     * @param caId The ID of the sought CA</em>
+<a class="jxr_linenumber" name="L335" href="#L335">335</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L336" href="#L336">336</a> <em class="jxr_javadoccomment">     * @return the name</em>
+<a class="jxr_linenumber" name="L337" href="#L337">337</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>     <strong class="jxr_keyword">private</strong> String getCAName(EjbcaWS ejbcaWS, <strong class="jxr_keyword">int</strong> caId) {
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>         <strong class="jxr_keyword">final</strong> Map&lt;Integer, String&gt; mCA = <strong class="jxr_keyword">new</strong> HashMap&lt;Integer, String&gt;();
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>             <strong class="jxr_keyword">for</strong> (NameAndId nameAndId : ejbcaWS.getAvailableCAs()) {
+<a class="jxr_linenumber" name="L342" href="#L342">342</a>                 mCA.put(Integer.valueOf(nameAndId.getId()), nameAndId.getName());
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>                 log.debug(<span class="jxr_string">"CA. id: "</span> + nameAndId.getId() + <span class="jxr_string">" name: "</span> + nameAndId.getName());
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>             }
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>         } <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a class="jxr_linenumber" name="L346" href="#L346">346</a>             log.error(<span class="jxr_string">"WS not working"</span>, e);
+<a class="jxr_linenumber" name="L347" href="#L347">347</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>         }
+<a class="jxr_linenumber" name="L349" href="#L349">349</a>         <strong class="jxr_keyword">return</strong> mCA.get(Integer.valueOf(caId));
+<a class="jxr_linenumber" name="L350" href="#L350">350</a>     }
+<a class="jxr_linenumber" name="L351" href="#L351">351</a> 
+<a class="jxr_linenumber" name="L352" href="#L352">352</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L353" href="#L353">353</a> <em class="jxr_javadoccomment">     * This method sends a keypair off to be signed by the CA that issued the original keychain.</em>
+<a class="jxr_linenumber" name="L354" href="#L354">354</a> <em class="jxr_javadoccomment">     * @param ejbcaWS WS</em>
+<a class="jxr_linenumber" name="L355" href="#L355">355</a> <em class="jxr_javadoccomment">     * @param ocspSigningCacheEntry Entry </em>
+<a class="jxr_linenumber" name="L356" href="#L356">356</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L357" href="#L357">357</a> <em class="jxr_javadoccomment">     * @return a certificate that has been signed by the CA. </em>
+<a class="jxr_linenumber" name="L358" href="#L358">358</a> <em class="jxr_javadoccomment">     * @throws KeyRenewalFailedException if any error occurs during signing</em>
+<a class="jxr_linenumber" name="L359" href="#L359">359</a> <em class="jxr_javadoccomment">     * @throws CryptoTokenOfflineException  Fail</em>
+<a class="jxr_linenumber" name="L360" href="#L360">360</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L361" href="#L361">361</a>     @SuppressWarnings(<span class="jxr_string">"unchecked"</span>)
+<a class="jxr_linenumber" name="L362" href="#L362">362</a>     <strong class="jxr_keyword">private</strong> X509Certificate signCertificateByCa(EjbcaWS ejbcaWS, OcspSigningCacheEntry ocspSigningCacheEntry) <strong class="jxr_keyword">throws</strong> KeyRenewalFailedException,
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>             CryptoTokenOfflineException {
+<a class="jxr_linenumber" name="L364" href="#L364">364</a>         <em class="jxr_comment">/* Construct a certification request in order to have the new keystore certified by the CA. </em>
+<a class="jxr_linenumber" name="L365" href="#L365">365</a> <em class="jxr_comment">         */</em>
+<a class="jxr_linenumber" name="L366" href="#L366">366</a>         <em class="jxr_comment">//final int caId = CertTools.stringToBCDNString(tokenAndChain.getCaCertificate().getSubjectDN().toString()).hashCode();</em>
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>         <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> caId = CertTools.getSubjectDN(ocspSigningCacheEntry.getCaCertificateChain().get(0)).hashCode();
+<a class="jxr_linenumber" name="L368" href="#L368">368</a>         <strong class="jxr_keyword">final</strong> X509Certificate ocspSigningCertificate = ocspSigningCacheEntry.getOcspSigningCertificate();
+<a class="jxr_linenumber" name="L369" href="#L369">369</a>         <strong class="jxr_keyword">final</strong> UserDataVOWS userData = getUserDataVOWS(ejbcaWS, ocspSigningCertificate, caId);
+<a class="jxr_linenumber" name="L370" href="#L370">370</a>         <strong class="jxr_keyword">if</strong> (userData == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L371" href="#L371">371</a>             <strong class="jxr_keyword">final</strong> String msg = <span class="jxr_string">"User data for certificate with subject DN '"</span> + CertTools.getSubjectDN(ocspSigningCertificate) + <span class="jxr_string">"' was not found."</span>;
+<a class="jxr_linenumber" name="L372" href="#L372">372</a>             log.error(msg);
+<a class="jxr_linenumber" name="L373" href="#L373">373</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> KeyRenewalFailedException(msg);
+<a class="jxr_linenumber" name="L374" href="#L374">374</a>         }
+<a class="jxr_linenumber" name="L375" href="#L375">375</a>         editUser(ejbcaWS, userData);
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>         <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> internalKeyBindingId = ocspSigningCacheEntry.getOcspKeyBinding().getId();
+<a class="jxr_linenumber" name="L377" href="#L377">377</a>         <strong class="jxr_keyword">final</strong> byte[] pkcs10CertificationRequest;
+<a class="jxr_linenumber" name="L378" href="#L378">378</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L379" href="#L379">379</a>             pkcs10CertificationRequest = internalKeyBindingMgmtSession.generateCsrForNextKey(authenticationToken, internalKeyBindingId, <strong class="jxr_keyword">null</strong>);
+<a class="jxr_linenumber" name="L380" href="#L380">380</a>         } <strong class="jxr_keyword">catch</strong> (AuthorizationDeniedException e) {
+<a class="jxr_linenumber" name="L381" href="#L381">381</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> KeyRenewalFailedException(e);
+<a class="jxr_linenumber" name="L382" href="#L382">382</a>         }
+<a class="jxr_linenumber" name="L383" href="#L383">383</a>         CertificateResponse certificateResponse;
+<a class="jxr_linenumber" name="L384" href="#L384">384</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L385" href="#L385">385</a>             certificateResponse = ejbcaWS.pkcs10Request(userData.getUsername(), userData.getPassword(),
+<a class="jxr_linenumber" name="L386" href="#L386">386</a>                     <strong class="jxr_keyword">new</strong> String(Base64.encode(pkcs10CertificationRequest)), <strong class="jxr_keyword">null</strong>, CertificateHelper.RESPONSETYPE_CERTIFICATE);
+<a class="jxr_linenumber" name="L387" href="#L387">387</a>         } <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a class="jxr_linenumber" name="L388" href="#L388">388</a>             <em class="jxr_comment">//Way too many silly exceptions to handle, wrap instead.</em>
+<a class="jxr_linenumber" name="L389" href="#L389">389</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> KeyRenewalFailedException(e);
+<a class="jxr_linenumber" name="L390" href="#L390">390</a>         }
+<a class="jxr_linenumber" name="L391" href="#L391">391</a>         <strong class="jxr_keyword">if</strong> (certificateResponse == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L392" href="#L392">392</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> KeyRenewalFailedException(<span class="jxr_string">"Certificate Response was not received"</span>);
+<a class="jxr_linenumber" name="L393" href="#L393">393</a>         }
+<a class="jxr_linenumber" name="L394" href="#L394">394</a> 
+<a class="jxr_linenumber" name="L395" href="#L395">395</a>         Collection&lt;X509Certificate&gt; certificates;
+<a class="jxr_linenumber" name="L396" href="#L396">396</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L397" href="#L397">397</a>             certificates = (Collection&lt;X509Certificate&gt;) CertificateFactory.getInstance(<span class="jxr_string">"X.509"</span>).generateCertificates(
+<a class="jxr_linenumber" name="L398" href="#L398">398</a>                     <strong class="jxr_keyword">new</strong> ByteArrayInputStream(Base64.decode(certificateResponse.getData())));
+<a class="jxr_linenumber" name="L399" href="#L399">399</a>         } <strong class="jxr_keyword">catch</strong> (CertificateException e) {
+<a class="jxr_linenumber" name="L400" href="#L400">400</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> KeyRenewalFailedException(e);
+<a class="jxr_linenumber" name="L401" href="#L401">401</a>         }
+<a class="jxr_linenumber" name="L402" href="#L402">402</a>         <strong class="jxr_keyword">final</strong> byte[] publicKeyBytes;
+<a class="jxr_linenumber" name="L403" href="#L403">403</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L404" href="#L404">404</a>             publicKeyBytes = internalKeyBindingMgmtSession.getNextPublicKeyForInternalKeyBinding(authenticationToken, internalKeyBindingId);
+<a class="jxr_linenumber" name="L405" href="#L405">405</a>         } <strong class="jxr_keyword">catch</strong> (AuthorizationDeniedException e) {
+<a class="jxr_linenumber" name="L406" href="#L406">406</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> KeyRenewalFailedException(e);
+<a class="jxr_linenumber" name="L407" href="#L407">407</a>         }
+<a class="jxr_linenumber" name="L408" href="#L408">408</a>         <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L409" href="#L409">409</a>             log.debug(<span class="jxr_string">"Number of certificates returned from WS: "</span> + certificates.size());
+<a class="jxr_linenumber" name="L410" href="#L410">410</a>         }
+<a class="jxr_linenumber" name="L411" href="#L411">411</a>         X509Certificate signedCertificate = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L412" href="#L412">412</a>         <strong class="jxr_keyword">final</strong> X509Certificate caCertificate = ocspSigningCacheEntry.getCaCertificateChain().get(0);
+<a class="jxr_linenumber" name="L413" href="#L413">413</a>         <strong class="jxr_keyword">final</strong> PublicKey caCertificatePublicKey = caCertificate.getPublicKey();
+<a class="jxr_linenumber" name="L414" href="#L414">414</a>         <strong class="jxr_keyword">for</strong> (X509Certificate certificate : certificates) {
+<a class="jxr_linenumber" name="L415" href="#L415">415</a>             <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L416" href="#L416">416</a>                 log.debug(<span class="jxr_string">"Verifying certificate with SubjectDN : '"</span> + CertTools.getSubjectDN(certificate) +
+<a class="jxr_linenumber" name="L417" href="#L417">417</a>                         <span class="jxr_string">"' using public key from CA certificate with subject '"</span> + CertTools.getSubjectDN(caCertificate) +<span class="jxr_string">"'."</span>);
+<a class="jxr_linenumber" name="L418" href="#L418">418</a>             }
+<a class="jxr_linenumber" name="L419" href="#L419">419</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L420" href="#L420">420</a>                 certificate.verify(caCertificatePublicKey);
+<a class="jxr_linenumber" name="L421" href="#L421">421</a>             } <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a class="jxr_linenumber" name="L422" href="#L422">422</a>                 <em class="jxr_comment">//Ugly, but inherited from legacy code</em>
+<a class="jxr_linenumber" name="L423" href="#L423">423</a>                 signedCertificate = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L424" href="#L424">424</a>                 log.error(<span class="jxr_string">"Exception was caught when verifying certificate"</span>, e);
+<a class="jxr_linenumber" name="L425" href="#L425">425</a>                 <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L426" href="#L426">426</a>             }
+<a class="jxr_linenumber" name="L427" href="#L427">427</a>             <em class="jxr_comment">// Comparing public keys is dependent on provider used, so we must ensure same provider is used for the public keys</em>
+<a class="jxr_linenumber" name="L428" href="#L428">428</a>             <em class="jxr_comment">// Otherwise this will fail, even though it should work</em>
+<a class="jxr_linenumber" name="L429" href="#L429">429</a>             <em class="jxr_comment">// Both certPublicKey and nextPublicKey is obtained using KeyTools.getPublicKeyFromBytes, which uses the BC provider</em>
+<a class="jxr_linenumber" name="L430" href="#L430">430</a>             <strong class="jxr_keyword">final</strong> PublicKey certPublicKey = KeyTools.getPublicKeyFromBytes(certificate.getPublicKey().getEncoded());
+<a class="jxr_linenumber" name="L431" href="#L431">431</a>             <strong class="jxr_keyword">final</strong> PublicKey nextPublicKey = KeyTools.getPublicKeyFromBytes(publicKeyBytes);
+<a class="jxr_linenumber" name="L432" href="#L432">432</a>             <strong class="jxr_keyword">if</strong> (nextPublicKey.equals(certPublicKey)) {
+<a class="jxr_linenumber" name="L433" href="#L433">433</a>                 signedCertificate = certificate;
+<a class="jxr_linenumber" name="L434" href="#L434">434</a>                 <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L435" href="#L435">435</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L436" href="#L436">436</a>                 log.debug(<span class="jxr_string">"Matching public keys failed: "</span>);
+<a class="jxr_linenumber" name="L437" href="#L437">437</a>                 log.debug(<span class="jxr_string">"Certificate public key: "</span>+certificate.getPublicKey());
+<a class="jxr_linenumber" name="L438" href="#L438">438</a>                 log.debug(<span class="jxr_string">"Next public key: "</span>+nextPublicKey);
+<a class="jxr_linenumber" name="L439" href="#L439">439</a>             }
+<a class="jxr_linenumber" name="L440" href="#L440">440</a>         }
+<a class="jxr_linenumber" name="L441" href="#L441">441</a>         <strong class="jxr_keyword">if</strong> (signedCertificate == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L442" href="#L442">442</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> KeyRenewalFailedException(<span class="jxr_string">"No certificate signed by correct CA generated."</span>);
+<a class="jxr_linenumber" name="L443" href="#L443">443</a>         }
+<a class="jxr_linenumber" name="L444" href="#L444">444</a>         <strong class="jxr_keyword">return</strong> signedCertificate;
+<a class="jxr_linenumber" name="L445" href="#L445">445</a>     }
+<a class="jxr_linenumber" name="L446" href="#L446">446</a> 
+<a class="jxr_linenumber" name="L447" href="#L447">447</a>     <em class="jxr_javadoccomment">/** @return the EJBCA WS object. */</em>
+<a class="jxr_linenumber" name="L448" href="#L448">448</a>     <strong class="jxr_keyword">private</strong> EjbcaWS getEjbcaWS() {
+<a class="jxr_linenumber" name="L449" href="#L449">449</a>         String webUrl = OcspConfiguration.getEjbcawsracliUrl();
+<a class="jxr_linenumber" name="L450" href="#L450">450</a>         <strong class="jxr_keyword">if</strong> (StringUtils.isEmpty(webUrl)) {
+<a class="jxr_linenumber" name="L451" href="#L451">451</a>             <em class="jxr_comment">// Automatic renewal is not enabled</em>
+<a class="jxr_linenumber" name="L452" href="#L452">452</a>             <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L453" href="#L453">453</a>                 log.debug(<span class="jxr_string">"Automatic OCSP key/certificate renewal is not enabled, "</span>+OcspConfiguration.REKEYING_WSURL+<span class="jxr_string">" is empty."</span>);
+<a class="jxr_linenumber" name="L454" href="#L454">454</a>             }
+<a class="jxr_linenumber" name="L455" href="#L455">455</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L456" href="#L456">456</a>         }
+<a class="jxr_linenumber" name="L457" href="#L457">457</a>         <strong class="jxr_keyword">final</strong> SSLSocketFactory sslSocketFactory = getSSLSocketFactory();
+<a class="jxr_linenumber" name="L458" href="#L458">458</a>         <strong class="jxr_keyword">if</strong> (sslSocketFactory == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L459" href="#L459">459</a>             log.warn(<span class="jxr_string">"No AuthenticationKeyBinding is configured. Unable to authenticate to EJBCA WebService."</span>);
+<a class="jxr_linenumber" name="L460" href="#L460">460</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L461" href="#L461">461</a>         }
+<a class="jxr_linenumber" name="L462" href="#L462">462</a>         HttpsURLConnection.setDefaultSSLSocketFactory(sslSocketFactory);
+<a class="jxr_linenumber" name="L463" href="#L463">463</a>         <strong class="jxr_keyword">final</strong> URL ws_url;
+<a class="jxr_linenumber" name="L464" href="#L464">464</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L465" href="#L465">465</a>             ws_url = <strong class="jxr_keyword">new</strong> URL(webUrl + <span class="jxr_string">"?wsdl"</span>);
+<a class="jxr_linenumber" name="L466" href="#L466">466</a>         } <strong class="jxr_keyword">catch</strong> (MalformedURLException e) {
+<a class="jxr_linenumber" name="L467" href="#L467">467</a>             log.warn(<span class="jxr_string">"Problem with URL: '"</span> + webUrl + <span class="jxr_string">"'"</span>, e);
+<a class="jxr_linenumber" name="L468" href="#L468">468</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L469" href="#L469">469</a>         }
+<a class="jxr_linenumber" name="L470" href="#L470">470</a>         <strong class="jxr_keyword">final</strong> QName qname = <strong class="jxr_keyword">new</strong> QName(<span class="jxr_string">"http://ws.protocol.core.ejbca.org/"</span>, <span class="jxr_string">"EjbcaWSService"</span>);
+<a class="jxr_linenumber" name="L471" href="#L471">471</a>         <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L472" href="#L472">472</a>             log.debug(<span class="jxr_string">"web service. URL: "</span> + ws_url + <span class="jxr_string">" QName: "</span> + qname);
+<a class="jxr_linenumber" name="L473" href="#L473">473</a>         }
+<a class="jxr_linenumber" name="L474" href="#L474">474</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> EjbcaWSService(ws_url, qname).getEjbcaWSPort();
+<a class="jxr_linenumber" name="L475" href="#L475">475</a>     }
+<a class="jxr_linenumber" name="L476" href="#L476">476</a>     
+<a class="jxr_linenumber" name="L477" href="#L477">477</a>     <strong class="jxr_keyword">private</strong> SSLSocketFactory getSSLSocketFactory() {
+<a class="jxr_linenumber" name="L478" href="#L478">478</a>         <strong class="jxr_keyword">final</strong> List&lt;Integer&gt; authenticationKeyBindingIds = internalKeyBindingMgmtSession.getInternalKeyBindingIds(authenticationToken, AuthenticationKeyBinding.IMPLEMENTATION_ALIAS);
+<a class="jxr_linenumber" name="L479" href="#L479">479</a>         AuthenticationKeyBinding authenticationKeyBinding = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L480" href="#L480">480</a>         <strong class="jxr_keyword">for</strong> (Integer internalKeyBindingId : authenticationKeyBindingIds) {
+<a class="jxr_linenumber" name="L481" href="#L481">481</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L482" href="#L482">482</a>                 <strong class="jxr_keyword">final</strong> InternalKeyBinding internalKeyBinding = internalKeyBindingMgmtSession.getInternalKeyBindingReference(authenticationToken, internalKeyBindingId);
+<a class="jxr_linenumber" name="L483" href="#L483">483</a>                 <strong class="jxr_keyword">if</strong> (internalKeyBinding.getStatus().equals(InternalKeyBindingStatus.ACTIVE)) {
+<a class="jxr_linenumber" name="L484" href="#L484">484</a>                     <em class="jxr_comment">// Use first active one</em>
+<a class="jxr_linenumber" name="L485" href="#L485">485</a>                     authenticationKeyBinding = (AuthenticationKeyBinding) internalKeyBinding;
+<a class="jxr_linenumber" name="L486" href="#L486">486</a>                     <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L487" href="#L487">487</a>                 }
+<a class="jxr_linenumber" name="L488" href="#L488">488</a>             } <strong class="jxr_keyword">catch</strong> (AuthorizationDeniedException e) {
+<a class="jxr_linenumber" name="L489" href="#L489">489</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(e);
+<a class="jxr_linenumber" name="L490" href="#L490">490</a>             }
+<a class="jxr_linenumber" name="L491" href="#L491">491</a>         }
+<a class="jxr_linenumber" name="L492" href="#L492">492</a>         <strong class="jxr_keyword">if</strong> (authenticationKeyBinding == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L493" href="#L493">493</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L494" href="#L494">494</a>         }
+<a class="jxr_linenumber" name="L495" href="#L495">495</a>         <strong class="jxr_keyword">final</strong> CryptoToken cryptoToken = cryptoTokenManagementSession.getCryptoToken(authenticationKeyBinding.getCryptoTokenId());
+<a class="jxr_linenumber" name="L496" href="#L496">496</a>         <strong class="jxr_keyword">final</strong> X509Certificate sslCertificate = (X509Certificate) certificateStoreSession.findCertificateByFingerprint(authenticationKeyBinding.getCertificateId());
+<a class="jxr_linenumber" name="L497" href="#L497">497</a>         <strong class="jxr_keyword">final</strong> List&lt;X509Certificate&gt; chain = <strong class="jxr_keyword">new</strong> ArrayList&lt;X509Certificate&gt;();
+<a class="jxr_linenumber" name="L498" href="#L498">498</a>         chain.add(sslCertificate);
+<a class="jxr_linenumber" name="L499" href="#L499">499</a>         chain.addAll(getCaCertificateChain(sslCertificate));
+<a class="jxr_linenumber" name="L500" href="#L500">500</a>         <strong class="jxr_keyword">final</strong> List&lt;X509Certificate&gt; trustedCertificates = getListOfTrustedCertificates(authenticationKeyBinding.getTrustedCertificateReferences());
+<a class="jxr_linenumber" name="L501" href="#L501">501</a>         <strong class="jxr_keyword">final</strong> String alias = authenticationKeyBinding.getKeyPairAlias();
+<a class="jxr_linenumber" name="L502" href="#L502">502</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L503" href="#L503">503</a>             <strong class="jxr_keyword">final</strong> TrustManager trustManagers[];
+<a class="jxr_linenumber" name="L504" href="#L504">504</a>             <strong class="jxr_keyword">if</strong> (trustedCertificates == <strong class="jxr_keyword">null</strong> || trustedCertificates.isEmpty()) {
+<a class="jxr_linenumber" name="L505" href="#L505">505</a>                 trustManagers = <strong class="jxr_keyword">new</strong> X509TrustManager[] {<strong class="jxr_keyword">new</strong> X509TrustManagerAcceptAll()};
+<a class="jxr_linenumber" name="L506" href="#L506">506</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L507" href="#L507">507</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"Configurable trust not yet implemented."</span>);
+<a class="jxr_linenumber" name="L508" href="#L508">508</a>             }
+<a class="jxr_linenumber" name="L509" href="#L509">509</a>             <strong class="jxr_keyword">final</strong> KeyManager keyManagers[] = <strong class="jxr_keyword">new</strong> X509KeyManager[] { <strong class="jxr_keyword">new</strong> ClientX509KeyManager(alias, cryptoToken.getPrivateKey(alias), chain) };
+<a class="jxr_linenumber" name="L510" href="#L510">510</a>             <em class="jxr_comment">// Now construct a SSLContext using these (possibly wrapped) KeyManagers, and the TrustManagers.</em>
+<a class="jxr_linenumber" name="L511" href="#L511">511</a>             <em class="jxr_comment">// We still use a null SecureRandom, indicating that the defaults should be used.</em>
+<a class="jxr_linenumber" name="L512" href="#L512">512</a>             <strong class="jxr_keyword">final</strong> SSLContext context = SSLContext.getInstance(<span class="jxr_string">"TLS"</span>);
+<a class="jxr_linenumber" name="L513" href="#L513">513</a>             context.init(keyManagers, trustManagers, <strong class="jxr_keyword">null</strong>);
+<a class="jxr_linenumber" name="L514" href="#L514">514</a>             <em class="jxr_comment">// Finally, we get a SocketFactory, and pass it on.</em>
+<a class="jxr_linenumber" name="L515" href="#L515">515</a>             <strong class="jxr_keyword">return</strong> context.getSocketFactory();
+<a class="jxr_linenumber" name="L516" href="#L516">516</a>         } <strong class="jxr_keyword">catch</strong> (KeyManagementException e) {
+<a class="jxr_linenumber" name="L517" href="#L517">517</a>             e.printStackTrace();
+<a class="jxr_linenumber" name="L518" href="#L518">518</a>         } <strong class="jxr_keyword">catch</strong> (NoSuchAlgorithmException e) {
+<a class="jxr_linenumber" name="L519" href="#L519">519</a>             e.printStackTrace();
+<a class="jxr_linenumber" name="L520" href="#L520">520</a>         } <strong class="jxr_keyword">catch</strong> (CryptoTokenOfflineException e) {
+<a class="jxr_linenumber" name="L521" href="#L521">521</a>             e.printStackTrace();
+<a class="jxr_linenumber" name="L522" href="#L522">522</a>         }
+<a class="jxr_linenumber" name="L523" href="#L523">523</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L524" href="#L524">524</a>     }
+<a class="jxr_linenumber" name="L525" href="#L525">525</a>     
+<a class="jxr_linenumber" name="L526" href="#L526">526</a>     <strong class="jxr_keyword">private</strong> List&lt;X509Certificate&gt; getListOfTrustedCertificates(List&lt;InternalKeyBindingTrustEntry&gt; trustedCertificateReferences) {
+<a class="jxr_linenumber" name="L527" href="#L527">527</a>         <strong class="jxr_keyword">if</strong> (trustedCertificateReferences == <strong class="jxr_keyword">null</strong> || trustedCertificateReferences.isEmpty()) {
+<a class="jxr_linenumber" name="L528" href="#L528">528</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L529" href="#L529">529</a>         }
+<a class="jxr_linenumber" name="L530" href="#L530">530</a>         <em class="jxr_comment">// TODO: Here we need to lookup all the trusted certificates from the provided references so a X509TrustManager can do verification later</em>
+<a class="jxr_linenumber" name="L531" href="#L531">531</a>         log.warn(<span class="jxr_string">"Trusted references was non-empty, but will be ignored. (Not yet implemented.)"</span>);
+<a class="jxr_linenumber" name="L532" href="#L532">532</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L533" href="#L533">533</a>     }
+<a class="jxr_linenumber" name="L534" href="#L534">534</a> 
+<a class="jxr_linenumber" name="L535" href="#L535">535</a>     <em class="jxr_comment">// TODO: This method also exists in OcspResponseGenSSB.. merge! to method call in certificateStoreSession</em>
+<a class="jxr_linenumber" name="L536" href="#L536">536</a>     <strong class="jxr_keyword">private</strong> List&lt;X509Certificate&gt; getCaCertificateChain(<strong class="jxr_keyword">final</strong> X509Certificate leafCertificate) {
+<a class="jxr_linenumber" name="L537" href="#L537">537</a>         <strong class="jxr_keyword">final</strong> List&lt;X509Certificate&gt; caCertificateChain = <strong class="jxr_keyword">new</strong> ArrayList&lt;X509Certificate&gt;();
+<a class="jxr_linenumber" name="L538" href="#L538">538</a>         X509Certificate currentLevelCertificate = leafCertificate;
+<a class="jxr_linenumber" name="L539" href="#L539">539</a>         <strong class="jxr_keyword">while</strong> (!CertTools.getIssuerDN(currentLevelCertificate).equals(CertTools.getSubjectDN(currentLevelCertificate))) {
+<a class="jxr_linenumber" name="L540" href="#L540">540</a>             <strong class="jxr_keyword">final</strong> String issuerDn = CertTools.getIssuerDN(currentLevelCertificate);
+<a class="jxr_linenumber" name="L541" href="#L541">541</a>             currentLevelCertificate = certificateStoreSession.findLatestX509CertificateBySubject(issuerDn);
+<a class="jxr_linenumber" name="L542" href="#L542">542</a>             <strong class="jxr_keyword">if</strong> (currentLevelCertificate == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L543" href="#L543">543</a>                 log.warn(<span class="jxr_string">"Unable to build certificate chain for OCSP signing certificate with Subject DN '"</span> +
+<a class="jxr_linenumber" name="L544" href="#L544">544</a>                         CertTools.getSubjectDN(leafCertificate) + <span class="jxr_string">"'. CA with Subject DN '"</span> + issuerDn + <span class="jxr_string">"' is missing in the database."</span>);
+<a class="jxr_linenumber" name="L545" href="#L545">545</a>                 <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L546" href="#L546">546</a>             }
+<a class="jxr_linenumber" name="L547" href="#L547">547</a>             caCertificateChain.add(currentLevelCertificate);
+<a class="jxr_linenumber" name="L548" href="#L548">548</a>         }
+<a class="jxr_linenumber" name="L549" href="#L549">549</a>         <strong class="jxr_keyword">return</strong> caCertificateChain;
+<a class="jxr_linenumber" name="L550" href="#L550">550</a>     }
+<a class="jxr_linenumber" name="L551" href="#L551">551</a> 
+<a class="jxr_linenumber" name="L552" href="#L552">552</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L553" href="#L553">553</a> <em class="jxr_javadoccomment">     * When the timer expires, this method will check through the cache and automatically renew keystore matching the predefined criteria, </em>
+<a class="jxr_linenumber" name="L554" href="#L554">554</a> <em class="jxr_javadoccomment">     * and which expire within the designated time frame.</em>
+<a class="jxr_linenumber" name="L555" href="#L555">555</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L556" href="#L556">556</a> <em class="jxr_javadoccomment">     * According to JSR 220 FR (18.2.2), this method may not throw any exceptions.</em>
+<a class="jxr_linenumber" name="L557" href="#L557">557</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L558" href="#L558">558</a> <em class="jxr_javadoccomment">     * Glassfish 2.1.1:</em>
+<a class="jxr_linenumber" name="L559" href="#L559">559</a> <em class="jxr_javadoccomment">     * "Timeout method ....timeoutHandler(javax.ejb.Timer)must have TX attribute of TX_REQUIRES_NEW or TX_REQUIRED or TX_NOT_SUPPORTED"</em>
+<a class="jxr_linenumber" name="L560" href="#L560">560</a> <em class="jxr_javadoccomment">     * JBoss 5.1.0.GA: We cannot mix timer updates with our EJBCA DataSource transactions. </em>
+<a class="jxr_linenumber" name="L561" href="#L561">561</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L562" href="#L562">562</a> <em class="jxr_javadoccomment">     * @param timer The timer whose expiration caused this notification.</em>
+<a class="jxr_linenumber" name="L563" href="#L563">563</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L564" href="#L564">564</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L565" href="#L565">565</a>     @Timeout
+<a class="jxr_linenumber" name="L566" href="#L566">566</a>     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+<a class="jxr_linenumber" name="L567" href="#L567">567</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> timeoutHandler(Timer timer) {
+<a class="jxr_linenumber" name="L568" href="#L568">568</a>         <strong class="jxr_keyword">long</strong> rekeyingUpdateTime = OcspConfiguration.getRekeyingUpdateTimeInSeconds();
+<a class="jxr_linenumber" name="L569" href="#L569">569</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L570" href="#L570">570</a>             renewKeyStores(RENEW_ALL_KEYS, OcspConfiguration.getRekeyingSafetyMarginInSeconds());
+<a class="jxr_linenumber" name="L571" href="#L571">571</a>         } <strong class="jxr_keyword">catch</strong> (InvalidKeyException e) {
+<a class="jxr_linenumber" name="L572" href="#L572">572</a>             log.error(<span class="jxr_string">"A cached crypto token contains an invalid key pair. Stopping timers."</span>, e);
+<a class="jxr_linenumber" name="L573" href="#L573">573</a>         } <strong class="jxr_keyword">catch</strong> (CryptoTokenOfflineException e) {
+<a class="jxr_linenumber" name="L574" href="#L574">574</a>             <em class="jxr_comment">//Rescheduling is handled in a finally clause in OcspKeyRenewalSessionBean.renewKeyStores(String, long)</em>
+<a class="jxr_linenumber" name="L575" href="#L575">575</a>             log.error(<span class="jxr_string">"Crypto token was offline or unavailable during automatic update. Rescheduling a new timer in "</span> + rekeyingUpdateTime + <span class="jxr_string">" seconds."</span>, e);
+<a class="jxr_linenumber" name="L576" href="#L576">576</a>         }    
+<a class="jxr_linenumber" name="L577" href="#L577">577</a>         
+<a class="jxr_linenumber" name="L578" href="#L578">578</a>     }
+<a class="jxr_linenumber" name="L579" href="#L579">579</a> 
+<a class="jxr_linenumber" name="L580" href="#L580">580</a>     @Override
+<a class="jxr_linenumber" name="L581" href="#L581">581</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> startTimer() {
+<a class="jxr_linenumber" name="L582" href="#L582">582</a>         cancelTimers();
+<a class="jxr_linenumber" name="L583" href="#L583">583</a>         addTimer(OcspConfiguration.getRekeyingUpdateTimeInSeconds());
+<a class="jxr_linenumber" name="L584" href="#L584">584</a>     }
+<a class="jxr_linenumber" name="L585" href="#L585">585</a>     
+<a class="jxr_linenumber" name="L586" href="#L586">586</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L587" href="#L587">587</a> <em class="jxr_javadoccomment">     * Adds a timer to the bean</em>
+<a class="jxr_linenumber" name="L588" href="#L588">588</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L589" href="#L589">589</a> <em class="jxr_javadoccomment">     * @param intervalInSeconds the time from now for the next timer to fire</em>
+<a class="jxr_linenumber" name="L590" href="#L590">590</a> <em class="jxr_javadoccomment">     * @return timer</em>
+<a class="jxr_linenumber" name="L591" href="#L591">591</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L592" href="#L592">592</a>     <em class="jxr_comment">// We don't want the appserver to persist/update the timer in the same transaction if they are stored in different non XA DataSources. This method</em>
+<a class="jxr_linenumber" name="L593" href="#L593">593</a>     <em class="jxr_comment">// should not be run from within a transaction.</em>
+<a class="jxr_linenumber" name="L594" href="#L594">594</a>     <strong class="jxr_keyword">private</strong> Timer addTimer(<strong class="jxr_keyword">long</strong> intervalInSeconds) {
+<a class="jxr_linenumber" name="L595" href="#L595">595</a>         <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L596" href="#L596">596</a>             log.debug(<span class="jxr_string">"addTimer: "</span> + timerId+<span class="jxr_string">", "</span>+intervalInSeconds);
+<a class="jxr_linenumber" name="L597" href="#L597">597</a>         }
+<a class="jxr_linenumber" name="L598" href="#L598">598</a>         <strong class="jxr_keyword">return</strong> timerService.createSingleActionTimer(intervalInSeconds*1000, <strong class="jxr_keyword">new</strong> TimerConfig(timerId, false));
+<a class="jxr_linenumber" name="L599" href="#L599">599</a>     }
+<a class="jxr_linenumber" name="L600" href="#L600">600</a> 
+<a class="jxr_linenumber" name="L601" href="#L601">601</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L602" href="#L602">602</a> <em class="jxr_javadoccomment">     * This method cancels all timers associated with this bean.</em>
+<a class="jxr_linenumber" name="L603" href="#L603">603</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L604" href="#L604">604</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> cancelTimers() {
+<a class="jxr_linenumber" name="L605" href="#L605">605</a>         Collection&lt;Timer&gt; timers = timerService.getTimers();
+<a class="jxr_linenumber" name="L606" href="#L606">606</a>         <strong class="jxr_keyword">for</strong> (Timer timer : timers) {
+<a class="jxr_linenumber" name="L607" href="#L607">607</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L608" href="#L608">608</a>                 timer.cancel();
+<a class="jxr_linenumber" name="L609" href="#L609">609</a>             } <strong class="jxr_keyword">catch</strong> (NoSuchObjectLocalException e) {
+<a class="jxr_linenumber" name="L610" href="#L610">610</a>             	<strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L611" href="#L611">611</a>             	    log.debug(<span class="jxr_string">"Timer was already expired or canceled: "</span>+timer.getInfo());
+<a class="jxr_linenumber" name="L612" href="#L612">612</a>             	}
+<a class="jxr_linenumber" name="L613" href="#L613">613</a>             }
+<a class="jxr_linenumber" name="L614" href="#L614">614</a>         }
+<a class="jxr_linenumber" name="L615" href="#L615">615</a>     }
+<a class="jxr_linenumber" name="L616" href="#L616">616</a> }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2020. All rights reserved.</div>
+</body>
+</html>

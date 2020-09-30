@@ -1,0 +1,895 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PublisherSessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.ca.publisher</a> &gt; <span class="el_source">PublisherSessionBean.java</span></div><h1>PublisherSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.ejb.ca.publisher;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeSet;
+
+import javax.ejb.CreateException;
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.certificate.BaseCertificateData;
+import org.cesecore.certificates.certificate.CertificateDataWrapper;
+import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.common.exception.ReferencesToItemExistException;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.util.Base64GetHashMap;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.ProfileID;
+import org.cesecore.util.SecureXMLDecoder;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaModuleTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaServiceTypes;
+import org.ejbca.core.ejb.ca.caadmin.CAAdminSessionLocal;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.ca.publisher.ActiveDirectoryPublisher;
+import org.ejbca.core.model.ca.publisher.BasePublisher;
+import org.ejbca.core.model.ca.publisher.CustomPublisherContainer;
+import org.ejbca.core.model.ca.publisher.GeneralPurposeCustomPublisher;
+import org.ejbca.core.model.ca.publisher.LdapPublisher;
+import org.ejbca.core.model.ca.publisher.LdapSearchPublisher;
+import org.ejbca.core.model.ca.publisher.LegacyValidationAuthorityPublisher;
+import org.ejbca.core.model.ca.publisher.MultiGroupPublisher;
+import org.ejbca.core.model.ca.publisher.PublisherConnectionException;
+import org.ejbca.core.model.ca.publisher.PublisherConst;
+import org.ejbca.core.model.ca.publisher.PublisherDoesntExistsException;
+import org.ejbca.core.model.ca.publisher.PublisherException;
+import org.ejbca.core.model.ca.publisher.PublisherExistsException;
+import org.ejbca.core.model.ca.publisher.PublisherQueueVolatileInformation;
+
+/**
+ * Handles management of Publishers.
+ * 
+ * @version $Id: PublisherSessionBean.java 34163 2020-01-02 15:00:17Z samuellb $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;PublisherSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L87">public class PublisherSessionBean implements PublisherSessionLocal, PublisherSessionRemote {</span>
+
+<span class="nc" id="L89">    private static final Logger log = Logger.getLogger(PublisherSessionBean.class);</span>
+
+    /** Internal localization of logs and errors */
+<span class="nc" id="L92">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+
+    @PersistenceContext(unitName = &quot;ejbca&quot;)
+    private EntityManager entityManager;
+
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private CAAdminSessionLocal caAdminSession;
+    @EJB
+    private CertificateProfileSessionLocal certificateProfileSession;
+    @EJB
+    private CertificateStoreSessionLocal certificateStoreSession;
+    @EJB
+    private GlobalConfigurationSessionLocal globalConfigurationSession;
+    @EJB
+    private PublisherQueueSessionLocal publisherQueueSession;
+    @EJB
+    private SecurityEventsLoggerSessionLocal auditSession;
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public void flushPublisherCache() {
+<span class="nc" id="L115">        PublisherCache.INSTANCE.flush();</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L117">            log.debug(&quot;Flushed Publisher cache.&quot;);</span>
+        }
+<span class="nc" id="L119">    }</span>
+
+    @Override
+    public boolean storeCertificate(AuthenticationToken admin, Collection&lt;Integer&gt; publisherids, CertificateDataWrapper certWrapper,
+            String password, String userDN, ExtendedInformation extendedinformation) throws AuthorizationDeniedException {
+<span class="nc" id="L124">        final BaseCertificateData certificateData = certWrapper.getBaseCertificateData();</span>
+<span class="nc" id="L125">        final int caid = certificateData.getIssuerDN().hashCode();</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(admin, StandardRules.CAACCESS.resource() + caid)) {</span>
+<span class="nc" id="L127">            final String msg = intres.getLocalizedMessage(&quot;caadmin.notauthorizedtoca&quot;, admin.toString(), caid);</span>
+<span class="nc" id="L128">            throw new AuthorizationDeniedException(msg);</span>
+        }
+<span class="nc bnc" id="L130" title="All 2 branches missed.">        if (publisherids == null) {</span>
+<span class="nc" id="L131">            return true;</span>
+        }
+<span class="nc" id="L133">        final int status = certificateData.getStatus();</span>
+<span class="nc" id="L134">        final int revocationReason = certificateData.getRevocationReason();</span>
+<span class="nc" id="L135">        final String username = certificateData.getUsername();</span>
+<span class="nc" id="L136">        boolean returnval = true;</span>
+<span class="nc" id="L137">        final List&lt;BasePublisher&gt; publishersToTryDirect = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L138">        final List&lt;BasePublisher&gt; publishersToQueuePending = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L139">        final List&lt;BasePublisher&gt; publishersToQueueSuccess = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">        for (final Integer id : publisherids) {</span>
+<span class="nc" id="L141">            BasePublisher publ = getPublisherInternal(id, null, true);</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">            if (publ != null) {</span>
+                // If the publisher will not publish the certificate, break out directly and do not call the publisher or queue the certificate
+<span class="nc bnc" id="L144" title="All 2 branches missed.">                if (publ.willPublishCertificate(status, revocationReason)) {</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">                    if (publ.getOnlyUseQueue()) {</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">                        if (publ.getUseQueueForCertificates()) {</span>
+<span class="nc" id="L147">                            publishersToQueuePending.add(publ);</span>
+                            // Publishing to the queue directly is not considered a successful write to the publisher (since we don't know that it will be)
+<span class="nc" id="L149">                            returnval = false;</span>
+                        } else {
+                            // NOOP: This publisher is configured to only write to the queue, but not for certificates
+                        }
+                    } else {
+<span class="nc" id="L154">                        publishersToTryDirect.add(publ);</span>
+                    }
+                } else {
+<span class="nc bnc" id="L157" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L158">                        log.debug(&quot;Not storing or queuing certificate for Publisher with id &quot; + id + &quot; because publisher will not publish it.&quot;);</span>
+                    }
+                }
+            } else {
+<span class="nc" id="L162">                String msg = intres.getLocalizedMessage(&quot;publisher.nopublisher&quot;, id);</span>
+<span class="nc" id="L163">                log.info(msg);</span>
+<span class="nc" id="L164">                returnval = false;</span>
+            }
+<span class="nc" id="L166">        }</span>
+<span class="nc" id="L167">        final String fingerprint = certificateData.getFingerprint();</span>
+<span class="nc" id="L168">        final List&lt;Object&gt; publisherResults = publisherQueueSession.storeCertificateNonTransactionalInternal(publishersToTryDirect, admin,</span>
+                certWrapper, password, userDN, extendedinformation);
+<span class="nc" id="L170">        final String certSerno = certificateData.getSerialNumberHex();</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">        for (int i = 0; i &lt; publishersToTryDirect.size(); i++) {</span>
+<span class="nc" id="L172">            final Object publisherResult = publisherResults.get(i);</span>
+<span class="nc" id="L173">            final BasePublisher publ = publishersToTryDirect.get(i);</span>
+<span class="nc" id="L174">            final int id = publ.getPublisherId();</span>
+<span class="nc" id="L175">            final String name = getPublisherName(id);</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">            if (!(publisherResult instanceof PublisherException)) {</span>
+<span class="nc" id="L177">                final String msg = intres.getLocalizedMessage(&quot;publisher.store&quot;, certificateData.getSubjectDnNeverNull(), name);</span>
+<span class="nc" id="L178">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L179">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L180">                auditSession.log(EjbcaEventTypes.PUBLISHER_STORE_CERTIFICATE, EventStatus.SUCCESS, EjbcaModuleTypes.PUBLISHER,</span>
+<span class="nc" id="L181">                        EjbcaServiceTypes.EJBCA, admin.toString(), null, certSerno, username, details);</span>
+<span class="nc bnc" id="L182" title="All 4 branches missed.">                if (publ.getKeepPublishedInQueue() &amp;&amp; publ.getUseQueueForCertificates()) {</span>
+<span class="nc" id="L183">                    publishersToQueueSuccess.add(publ);</span>
+                }
+<span class="nc" id="L185">            } else {</span>
+<span class="nc" id="L186">                final String msg = intres.getLocalizedMessage(&quot;publisher.errorstore&quot;, name, fingerprint);</span>
+<span class="nc" id="L187">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L188">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L189">                details.put(&quot;error&quot;, ((PublisherException) publisherResult).getMessage());</span>
+<span class="nc" id="L190">                auditSession.log(EjbcaEventTypes.PUBLISHER_STORE_CERTIFICATE, EventStatus.FAILURE, EjbcaModuleTypes.PUBLISHER,</span>
+<span class="nc" id="L191">                        EjbcaServiceTypes.EJBCA, admin.toString(), null, certSerno, username, details);</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">                if (publ.getUseQueueForCertificates()) {</span>
+<span class="nc" id="L193">                    publishersToQueuePending.add(publ);</span>
+                }
+<span class="nc" id="L195">                returnval = false;</span>
+            }
+        }
+<span class="nc" id="L198">        addQueueData(publishersToQueueSuccess, username, password, extendedinformation, userDN, fingerprint, status, PublisherConst.STATUS_SUCCESS);</span>
+<span class="nc" id="L199">        addQueueData(publishersToQueuePending, username, password, extendedinformation, userDN, fingerprint, status, PublisherConst.STATUS_PENDING);</span>
+<span class="nc" id="L200">        return returnval;</span>
+    }
+
+    @Override
+    public boolean storeCertificate(AuthenticationToken admin, Collection&lt;Integer&gt; publisherids, String fingerprint,
+            String password, String userDN, ExtendedInformation extendedinformation) throws AuthorizationDeniedException {
+<span class="nc" id="L206">        final CertificateDataWrapper certificateDataWrapper = certificateStoreSession.getCertificateData(fingerprint);</span>
+<span class="nc" id="L207">        return storeCertificate(admin, publisherids, certificateDataWrapper, password, userDN, extendedinformation);</span>
+    }
+
+    private void addQueueData(final List&lt;BasePublisher&gt; publishersToQueue, final String username, final String password,
+            final ExtendedInformation extendedInformation, final String userDN, final String fingerprint, final int status, final int publisherStatus) {
+<span class="nc bnc" id="L212" title="All 2 branches missed.">        for (final BasePublisher publ : publishersToQueue) {</span>
+<span class="nc" id="L213">            final int id = publ.getPublisherId();</span>
+<span class="nc" id="L214">            final String name = getPublisherName(id);</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L216">                log.debug(&quot;KeepPublishedInQueue: &quot; + publ.getKeepPublishedInQueue());</span>
+<span class="nc" id="L217">                log.debug(&quot;UseQueueForCertificates: &quot; + publ.getUseQueueForCertificates());</span>
+            }
+            // Write to the publisher queue either for audit reasons or to be able try again
+<span class="nc" id="L220">            PublisherQueueVolatileInformation pqvd = new PublisherQueueVolatileInformation();</span>
+<span class="nc" id="L221">            pqvd.setUsername(username);</span>
+<span class="nc" id="L222">            pqvd.setPassword(password);</span>
+<span class="nc" id="L223">            pqvd.setExtendedInformation(extendedInformation);</span>
+<span class="nc" id="L224">            pqvd.setUserDN(userDN);</span>
+            try {
+<span class="nc" id="L226">                publisherQueueSession.addQueueData(id, PublisherConst.PUBLISH_TYPE_CERT, fingerprint, pqvd, publisherStatus);</span>
+<span class="nc" id="L227">                final String msg = intres.getLocalizedMessage(&quot;publisher.storequeue&quot;, name, fingerprint, status);</span>
+<span class="nc" id="L228">                log.info(msg);</span>
+<span class="nc" id="L229">            } catch (CreateException e) {</span>
+<span class="nc" id="L230">                final String msg = intres.getLocalizedMessage(&quot;publisher.errorstorequeue&quot;, name, fingerprint, status);</span>
+<span class="nc" id="L231">                log.info(msg, e);</span>
+<span class="nc" id="L232">            }</span>
+<span class="nc" id="L233">        }</span>
+<span class="nc" id="L234">    }</span>
+
+    @Override
+    public boolean storeCRL(AuthenticationToken admin, Collection&lt;Integer&gt; publisherids, byte[] incrl, String cafp, int number, String issuerDn)
+            throws AuthorizationDeniedException {
+<span class="nc bnc" id="L239" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L240">            log.trace(&quot;&gt;storeCRL&quot;);</span>
+        }
+<span class="nc" id="L242">        int caid = CertTools.stringToBCDNString(issuerDn).hashCode();</span>
+<span class="nc bnc" id="L243" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(admin, StandardRules.CAACCESS.resource() + caid)) {</span>
+<span class="nc" id="L244">            final String msg = intres.getLocalizedMessage(&quot;caadmin.notauthorizedtoca&quot;, admin.toString(), caid);</span>
+<span class="nc" id="L245">            throw new AuthorizationDeniedException(msg);</span>
+        }
+
+<span class="nc" id="L248">        boolean returnval = true;</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">        for (Integer id : publisherids) {</span>
+<span class="nc" id="L250">            int publishStatus = PublisherConst.STATUS_PENDING;</span>
+<span class="nc" id="L251">            final BasePublisher publ = getPublisherInternal(id, null, true);</span>
+<span class="nc bnc" id="L252" title="All 2 branches missed.">            if (publ != null) {</span>
+<span class="nc" id="L253">                final String name = getPublisherName(id);</span>
+                // If it should be published directly
+<span class="nc bnc" id="L255" title="All 2 branches missed.">                if (!publ.getOnlyUseQueue()) {</span>
+                    try {
+                        try {
+<span class="nc bnc" id="L258" title="All 2 branches missed.">                            if (publisherQueueSession.storeCRLNonTransactional(publ, admin, incrl, cafp, number, issuerDn)) {</span>
+<span class="nc" id="L259">                                publishStatus = PublisherConst.STATUS_SUCCESS;</span>
+                            }
+<span class="nc" id="L261">                        } catch (EJBException e) {</span>
+<span class="nc" id="L262">                            final Throwable t = e.getCause();</span>
+<span class="nc bnc" id="L263" title="All 2 branches missed.">                            if (t instanceof PublisherException) {</span>
+<span class="nc" id="L264">                                throw (PublisherException) t;</span>
+                            } else {
+<span class="nc" id="L266">                                throw e;</span>
+                            }
+<span class="nc" id="L268">                        }</span>
+<span class="nc" id="L269">                        final String msg = intres.getLocalizedMessage(&quot;publisher.store&quot;, &quot;CRL&quot;, name);</span>
+<span class="nc" id="L270">                        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L271">                        details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L272">                        auditSession.log(EjbcaEventTypes.PUBLISHER_STORE_CRL, EventStatus.SUCCESS, EjbcaModuleTypes.PUBLISHER,</span>
+<span class="nc" id="L273">                                EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L274">                    } catch (PublisherException pe) {</span>
+<span class="nc" id="L275">                        final String msg = intres.getLocalizedMessage(&quot;publisher.errorstore&quot;, name, &quot;CRL&quot;);</span>
+<span class="nc" id="L276">                        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L277">                        details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L278">                        details.put(&quot;error&quot;, pe.getMessage());</span>
+<span class="nc" id="L279">                        auditSession.log(EjbcaEventTypes.PUBLISHER_STORE_CRL, EventStatus.FAILURE, EjbcaModuleTypes.PUBLISHER,</span>
+<span class="nc" id="L280">                                EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L281">                    }</span>
+                }
+<span class="nc bnc" id="L283" title="All 2 branches missed.">                if (publishStatus != PublisherConst.STATUS_SUCCESS) {</span>
+<span class="nc" id="L284">                    returnval = false;</span>
+                }
+<span class="nc bnc" id="L286" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L287">                    log.debug(&quot;KeepPublishedInQueue: &quot; + publ.getKeepPublishedInQueue());</span>
+<span class="nc" id="L288">                    log.debug(&quot;UseQueueForCRLs: &quot; + publ.getUseQueueForCRLs());</span>
+                }
+<span class="nc bnc" id="L290" title="All 6 branches missed.">                if ((publishStatus != PublisherConst.STATUS_SUCCESS || publ.getKeepPublishedInQueue()) &amp;&amp; publ.getUseQueueForCRLs()) {</span>
+                    // Write to the publisher queue either for audit reasons or
+                    // to be able try again
+<span class="nc" id="L293">                    final PublisherQueueVolatileInformation pqvd = new PublisherQueueVolatileInformation();</span>
+<span class="nc" id="L294">                    pqvd.setUserDN(issuerDn);</span>
+<span class="nc" id="L295">                    String fp = CertTools.getFingerprintAsString(incrl);</span>
+                    try {
+<span class="nc" id="L297">                        publisherQueueSession.addQueueData(id.intValue(), PublisherConst.PUBLISH_TYPE_CRL, fp, pqvd, PublisherConst.STATUS_PENDING);</span>
+<span class="nc" id="L298">                        String msg = intres.getLocalizedMessage(&quot;publisher.storequeue&quot;, name, fp, &quot;CRL&quot;);</span>
+<span class="nc" id="L299">                        log.info(msg);</span>
+<span class="nc" id="L300">                    } catch (CreateException e) {</span>
+<span class="nc" id="L301">                        String msg = intres.getLocalizedMessage(&quot;publisher.errorstorequeue&quot;, name, fp, &quot;CRL&quot;);</span>
+<span class="nc" id="L302">                        log.info(msg, e);</span>
+<span class="nc" id="L303">                    }</span>
+                }
+<span class="nc" id="L305">            } else {</span>
+<span class="nc" id="L306">                String msg = intres.getLocalizedMessage(&quot;publisher.nopublisher&quot;, id);</span>
+<span class="nc" id="L307">                log.info(msg);</span>
+<span class="nc" id="L308">                returnval = false;</span>
+            }
+<span class="nc" id="L310">        }</span>
+<span class="nc bnc" id="L311" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L312">            log.trace(&quot;&lt;storeCRL&quot;);</span>
+        }
+<span class="nc" id="L314">        return returnval;</span>
+    }
+
+    @Override
+    public void testConnection(int publisherid) throws PublisherConnectionException { // NOPMD: this is not a JUnit test
+<span class="nc bnc" id="L319" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L320">            log.trace(&quot;&gt;testConnection(id: &quot; + publisherid + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L322">        PublisherData pdl = PublisherData.findById(entityManager, Integer.valueOf(publisherid));</span>
+<span class="nc bnc" id="L323" title="All 2 branches missed.">        if (pdl != null) {</span>
+<span class="nc" id="L324">            String name = pdl.getName();</span>
+            try {
+<span class="nc" id="L326">                getPublisher(pdl).testConnection();</span>
+<span class="nc" id="L327">                String msg = intres.getLocalizedMessage(&quot;publisher.testedpublisher&quot;, name);</span>
+<span class="nc" id="L328">                log.info(msg);</span>
+<span class="nc" id="L329">            } catch (PublisherConnectionException pe) {</span>
+<span class="nc" id="L330">                String msg = intres.getLocalizedMessage(&quot;publisher.errortestpublisher&quot;, name);</span>
+<span class="nc" id="L331">                log.info(msg);</span>
+<span class="nc" id="L332">                throw new PublisherConnectionException(pe.getMessage());</span>
+<span class="nc" id="L333">            }</span>
+<span class="nc" id="L334">        } else {</span>
+<span class="nc" id="L335">            String msg = intres.getLocalizedMessage(&quot;publisher.nopublisher&quot;, Integer.valueOf(publisherid));</span>
+<span class="nc" id="L336">            log.info(msg);</span>
+        }
+<span class="nc bnc" id="L338" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L339">            log.trace(&quot;&lt;testConnection(id: &quot; + publisherid + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L341">    }</span>
+
+    @Override
+    public int addPublisher(AuthenticationToken admin, String name, BasePublisher publisher) throws PublisherExistsException,
+            AuthorizationDeniedException {
+<span class="nc bnc" id="L346" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L347">            log.trace(&quot;&gt;addPublisher(name: &quot; + name + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L349">        int id = findFreePublisherId();</span>
+<span class="nc" id="L350">        addPublisher(admin, id, name, publisher);</span>
+<span class="nc bnc" id="L351" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L352">            log.trace(&quot;&lt;addPublisher()&quot;);</span>
+        }
+<span class="nc" id="L354">        return id;</span>
+    }
+
+    @Override
+    public void addPublisher(AuthenticationToken admin, int id, String name, BasePublisher publisher) throws PublisherExistsException,
+            AuthorizationDeniedException {
+<span class="nc bnc" id="L360" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L361">            log.trace(&quot;&gt;addPublisher(name: &quot; + name + &quot;, id: &quot; + id + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L363">        addPublisherInternal(admin, id, name, publisher);</span>
+<span class="nc" id="L364">        final String msg = intres.getLocalizedMessage(&quot;publisher.addedpublisher&quot;, name);</span>
+<span class="nc" id="L365">        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L366">        details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L367">        auditSession.log(EjbcaEventTypes.PUBLISHER_CREATION, EventStatus.SUCCESS, EjbcaModuleTypes.PUBLISHER, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L368">                admin.toString(), null, null, null, details);</span>
+<span class="nc bnc" id="L369" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L370">            log.trace(&quot;&lt;addPublisher()&quot;);</span>
+        }
+<span class="nc" id="L372">    }</span>
+
+    @Override
+    public void addPublisherFromData(AuthenticationToken admin, int id, String name, Map&lt;?, ?&gt; data) throws PublisherExistsException,
+            AuthorizationDeniedException {
+<span class="nc" id="L377">        final BasePublisher publisher = constructPublisher(((Integer) (data.get(BasePublisher.TYPE))).intValue());</span>
+<span class="nc bnc" id="L378" title="All 2 branches missed.">        if (publisher != null) {</span>
+<span class="nc" id="L379">            publisher.setPublisherId(id);</span>
+<span class="nc" id="L380">            publisher.setName(name);</span>
+<span class="nc" id="L381">            publisher.loadData(data);</span>
+<span class="nc" id="L382">            addPublisher(admin, id, name, publisher);</span>
+        }
+<span class="nc" id="L384">    }</span>
+
+    private void addPublisherInternal(AuthenticationToken admin, int id, String name, BasePublisher publisher) throws AuthorizationDeniedException,
+            PublisherExistsException {
+<span class="nc" id="L388">        authorizedToEditPublishers(admin);</span>
+<span class="nc bnc" id="L389" title="All 2 branches missed.">        if (PublisherData.findByName(entityManager, name) == null) {</span>
+<span class="nc bnc" id="L390" title="All 2 branches missed.">            if (PublisherData.findById(entityManager, Integer.valueOf(id)) == null) {</span>
+<span class="nc" id="L391">                entityManager.persist(new PublisherData(Integer.valueOf(id), name, publisher));</span>
+            } else {
+<span class="nc" id="L393">                final String msg = intres.getLocalizedMessage(&quot;publisher.erroraddpublisher&quot;, id);</span>
+<span class="nc" id="L394">                log.info(msg);</span>
+<span class="nc" id="L395">                throw new PublisherExistsException();</span>
+            }
+        } else {
+<span class="nc" id="L398">            final String msg = intres.getLocalizedMessage(&quot;publisher.erroraddpublisher&quot;, name);</span>
+<span class="nc" id="L399">            log.info(msg);</span>
+<span class="nc" id="L400">            throw new PublisherExistsException();</span>
+        }
+<span class="nc" id="L402">    }</span>
+
+    @Override
+    public void changePublisher(AuthenticationToken admin, String name, BasePublisher publisher) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L406" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L407">            log.trace(&quot;&gt;changePublisher(name: &quot; + name + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L409">        authorizedToEditPublishers(admin);</span>
+
+<span class="nc" id="L411">        PublisherData htp = PublisherData.findByName(entityManager, name);</span>
+<span class="nc bnc" id="L412" title="All 2 branches missed.">        if (htp != null) {</span>
+<span class="nc" id="L413">            final Map&lt;Object, Object&gt; diff = getPublisher(htp).diff(publisher);</span>
+<span class="nc" id="L414">            htp.setPublisher(publisher);</span>
+            // Since loading a Publisher is quite complex, we simple purge the cache here
+<span class="nc" id="L416">            PublisherCache.INSTANCE.removeEntry(htp.getId());</span>
+<span class="nc" id="L417">            final String msg = intres.getLocalizedMessage(&quot;publisher.changedpublisher&quot;, name);</span>
+<span class="nc" id="L418">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L419">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc bnc" id="L420" title="All 2 branches missed.">            for (Map.Entry&lt;Object, Object&gt; entry : diff.entrySet()) {</span>
+                // Strip passwords from log
+<span class="nc" id="L422">                final String key = entry.getKey().toString();</span>
+<span class="nc" id="L423">                String value = entry.getValue().toString();</span>
+<span class="nc bnc" id="L424" title="All 2 branches missed.">                if (key.contains(LdapPublisher.LOGINPASSWORD)) {</span>
+<span class="nc" id="L425">                    value = &quot;hidden&quot;;</span>
+                }
+<span class="nc" id="L427">                details.put(key, value);</span>
+<span class="nc" id="L428">            }</span>
+<span class="nc" id="L429">            auditSession.log(EjbcaEventTypes.PUBLISHER_CHANGE, EventStatus.SUCCESS, EjbcaModuleTypes.PUBLISHER, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L430">                    admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L431">        } else {</span>
+<span class="nc" id="L432">            String msg = intres.getLocalizedMessage(&quot;publisher.errorchangepublisher&quot;, name);</span>
+<span class="nc" id="L433">            log.info(msg);</span>
+        }
+<span class="nc bnc" id="L435" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L436">            log.trace(&quot;&lt;changePublisher()&quot;);</span>
+        }
+<span class="nc" id="L438">    }</span>
+
+    @Override
+    public void clonePublisher(AuthenticationToken admin, String oldname, String newname) throws PublisherDoesntExistsException,
+            AuthorizationDeniedException, PublisherExistsException {
+<span class="nc bnc" id="L443" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L444">            log.trace(&quot;&gt;clonePublisher(name: &quot; + oldname + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L446">        BasePublisher publisherdata = null;</span>
+<span class="nc" id="L447">        PublisherData htp = PublisherData.findByName(entityManager, oldname);</span>
+<span class="nc bnc" id="L448" title="All 2 branches missed.">        if (htp == null) {</span>
+<span class="nc" id="L449">            throw new PublisherDoesntExistsException(&quot;Could not find publisher &quot; + oldname);</span>
+        }
+        try {
+<span class="nc" id="L452">            publisherdata = (BasePublisher) getPublisher(htp).clone();</span>
+<span class="nc" id="L453">            addPublisherInternal(admin, findFreePublisherId(), newname, publisherdata);</span>
+<span class="nc" id="L454">            final String msg = intres.getLocalizedMessage(&quot;publisher.clonedpublisher&quot;, newname, oldname);</span>
+<span class="nc" id="L455">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L456">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L457">            auditSession.log(EjbcaEventTypes.PUBLISHER_CREATION, EventStatus.SUCCESS, EjbcaModuleTypes.PUBLISHER, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L458">                    admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L459">        } catch (PublisherExistsException f) {</span>
+<span class="nc" id="L460">            final String msg = intres.getLocalizedMessage(&quot;publisher.errorclonepublisher&quot;, newname, oldname);</span>
+<span class="nc" id="L461">            log.info(msg);</span>
+<span class="nc" id="L462">            throw f;</span>
+<span class="nc" id="L463">        } catch (CloneNotSupportedException e) {</span>
+            // Severe error, should never happen
+<span class="nc" id="L465">            throw new EJBException(e);</span>
+<span class="nc" id="L466">        }</span>
+<span class="nc bnc" id="L467" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L468">            log.trace(&quot;&lt;clonePublisher()&quot;);</span>
+        }
+<span class="nc" id="L470">    }</span>
+
+    @Override
+    public void removePublisherInternal(AuthenticationToken admin, String name) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L474" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L475">            log.trace(&quot;&gt;removePublisherInternal(name: &quot; + name + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L477">        authorizedToEditPublishers(admin);</span>
+        try {
+<span class="nc" id="L479">            PublisherData htp = PublisherData.findByName(entityManager, name);</span>
+<span class="nc bnc" id="L480" title="All 2 branches missed.">            if (htp == null) {</span>
+<span class="nc bnc" id="L481" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L482">                    log.debug(&quot;Trying to remove a publisher that does not exist: &quot; + name);</span>
+                }
+            } else {
+<span class="nc" id="L485">                entityManager.remove(htp);</span>
+                // Purge the cache here
+<span class="nc" id="L487">                PublisherCache.INSTANCE.removeEntry(htp.getId());</span>
+<span class="nc" id="L488">                final String msg = intres.getLocalizedMessage(&quot;publisher.removedpublisher&quot;, name);</span>
+<span class="nc" id="L489">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L490">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L491">                auditSession.log(EjbcaEventTypes.PUBLISHER_REMOVAL, EventStatus.SUCCESS, EjbcaModuleTypes.PUBLISHER, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L492">                        admin.toString(), null, null, null, details);</span>
+            }
+<span class="nc" id="L494">        } catch (Exception e) {</span>
+<span class="nc" id="L495">            String msg = intres.getLocalizedMessage(&quot;publisher.errorremovepublisher&quot;, name);</span>
+<span class="nc" id="L496">            log.info(msg, e);</span>
+<span class="nc" id="L497">        }</span>
+<span class="nc" id="L498">        log.trace(&quot;&lt;removePublisherInternal()&quot;);</span>
+<span class="nc" id="L499">    }</span>
+
+    @Override
+    public void removePublisher(final AuthenticationToken admin, final String name) throws AuthorizationDeniedException, ReferencesToItemExistException {
+<span class="nc bnc" id="L503" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L504">            log.trace(&quot;&gt;removePublisher(name: &quot; + name + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L506">        checkPublisherInUse(name);</span>
+<span class="nc" id="L507">        removePublisherInternal(admin, name);</span>
+<span class="nc" id="L508">        log.trace(&quot;&lt;removePublisher()&quot;);</span>
+<span class="nc" id="L509">    }</span>
+
+    /**
+     * Checks if the given publisher is in use, and throws AuthorizationDeniedException with an informative error message if so. 
+     * @param name Name of publisher
+     * @throws ReferencesToItemExistException If in use by CAs, profiles or Multi Group Publishers.
+     */
+    private void checkPublisherInUse(final String name) throws ReferencesToItemExistException {
+<span class="nc" id="L517">        final List&lt;String&gt; inUseBy = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L518">        int publisherId = getPublisherId(name);</span>
+<span class="nc bnc" id="L519" title="All 2 branches missed.">        if (caAdminSession.exitsPublisherInCAs(publisherId)) {</span>
+<span class="nc" id="L520">            inUseBy.add(&quot;one or more CAs&quot;);</span>
+        }
+<span class="nc bnc" id="L522" title="All 2 branches missed.">        if (certificateProfileSession.existsPublisherIdInCertificateProfiles(publisherId)) {</span>
+<span class="nc" id="L523">            inUseBy.add(&quot;one or more Certificate Profiles&quot;);</span>
+        }
+<span class="nc bnc" id="L525" title="All 2 branches missed.">        for (final Entry&lt;Integer, BasePublisher&gt; entry : getAllPublishersInternal().entrySet()) {</span>
+<span class="nc" id="L526">            final BasePublisher publisher = entry.getValue();</span>
+<span class="nc bnc" id="L527" title="All 2 branches missed.">            if (publisher instanceof MultiGroupPublisher) {</span>
+<span class="nc" id="L528">                final List&lt;TreeSet&lt;Integer&gt;&gt; publisherGroups = ((MultiGroupPublisher) publisher).getPublisherGroups();</span>
+<span class="nc bnc" id="L529" title="All 2 branches missed.">                for (final TreeSet&lt;Integer&gt; group : publisherGroups) {</span>
+<span class="nc bnc" id="L530" title="All 2 branches missed.">                    if (group.contains(publisherId)) {</span>
+<span class="nc" id="L531">                        inUseBy.add(&quot;publisher '&quot; + publisher.getName() + &quot;'&quot;);</span>
+<span class="nc" id="L532">                        break;</span>
+                    }
+<span class="nc" id="L534">                }</span>
+            }
+<span class="nc" id="L536">        }</span>
+
+<span class="nc bnc" id="L538" title="All 2 branches missed.">        if (!inUseBy.isEmpty()) {</span>
+<span class="nc" id="L539">            final String message = &quot;Publisher &quot; + name + &quot; can't be deleted because it's in use by: &quot; +</span>
+<span class="nc" id="L540">                    StringUtils.join(inUseBy, &quot;, &quot;);</span>
+<span class="nc" id="L541">            log.info(message);</span>
+<span class="nc" id="L542">            throw new ReferencesToItemExistException(message);</span>
+        }
+<span class="nc" id="L544">    }</span>
+
+    @Override
+    public void renamePublisher(AuthenticationToken admin, String oldname, String newname) throws PublisherExistsException,
+            AuthorizationDeniedException {
+<span class="nc bnc" id="L549" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L550">            log.trace(&quot;&gt;renamePublisher(from &quot; + oldname + &quot; to &quot; + newname + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L552">        authorizedToEditPublishers(admin);</span>
+<span class="nc" id="L553">        boolean success = false;</span>
+<span class="nc bnc" id="L554" title="All 2 branches missed.">        if (PublisherData.findByName(entityManager, newname) == null) {</span>
+<span class="nc" id="L555">            PublisherData htp = PublisherData.findByName(entityManager, oldname);</span>
+<span class="nc bnc" id="L556" title="All 2 branches missed.">            if (htp != null) {</span>
+<span class="nc" id="L557">                htp.setName(newname);</span>
+<span class="nc" id="L558">                success = true;</span>
+                // Since loading a Publisher is quite complex, we simple purge the cache here
+<span class="nc" id="L560">                PublisherCache.INSTANCE.removeEntry(htp.getId());</span>
+            }
+        }
+<span class="nc bnc" id="L563" title="All 2 branches missed.">        if (success) {</span>
+<span class="nc" id="L564">            String msg = intres.getLocalizedMessage(&quot;publisher.renamedpublisher&quot;, oldname, newname);</span>
+<span class="nc" id="L565">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L566">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L567">            auditSession.log(EjbcaEventTypes.PUBLISHER_RENAME, EventStatus.SUCCESS, EjbcaModuleTypes.PUBLISHER, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L568">                    admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L569">        } else {</span>
+<span class="nc" id="L570">            String msg = intres.getLocalizedMessage(&quot;publisher.errorrenamepublisher&quot;, oldname, newname);</span>
+<span class="nc" id="L571">            log.info(msg);</span>
+<span class="nc" id="L572">            throw new PublisherExistsException();</span>
+        }
+<span class="nc bnc" id="L574" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L575">            log.trace(&quot;&lt;renamePublisher()&quot;);</span>
+        }
+<span class="nc" id="L577">    }</span>
+    
+    @Override
+    public Map&lt;Integer, BasePublisher&gt; getAllPublishersInternal() {
+<span class="nc" id="L581">        final Map&lt;Integer, BasePublisher&gt; returnval = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L582" title="All 2 branches missed.">        for (PublisherData publisherData : PublisherData.findAll(entityManager)) {</span>
+<span class="nc" id="L583">            final BasePublisher publisher = getPublisher(publisherData);</span>
+<span class="nc" id="L584">            returnval.put(publisherData.getId(), publisher);</span>
+<span class="nc" id="L585">        }</span>
+<span class="nc" id="L586">        return returnval;</span>
+    }
+
+    @Override
+    public Map&lt;Integer, BasePublisher&gt; getAllPublishers() {
+<span class="nc" id="L591">        final Map&lt;Integer, BasePublisher&gt; returnval = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L592">        final boolean enabled = ((GlobalConfiguration)  globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID)).getEnableExternalScripts();</span>
+<span class="nc" id="L593">        BasePublisher publisher = null;</span>
+<span class="nc bnc" id="L594" title="All 2 branches missed.">        for (PublisherData publisherData : PublisherData.findAll(entityManager)) {</span>
+<span class="nc" id="L595">            publisher = getPublisher(publisherData);</span>
+<span class="nc bnc" id="L596" title="All 6 branches missed.">            if (publisher != null &amp;&amp; enabled || !GeneralPurposeCustomPublisher.class.getName().equals(publisher.getRawData().get(CustomPublisherContainer.CLASSPATH))) {</span>
+<span class="nc" id="L597">                returnval.put(publisherData.getId(), publisher);</span>
+            }
+<span class="nc" id="L599">        }</span>
+<span class="nc" id="L600">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public HashMap&lt;Integer, String&gt; getPublisherIdToNameMap() {
+<span class="nc" id="L606">        final HashMap&lt;Integer, String&gt; returnval = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L607">        final boolean enabled = ((GlobalConfiguration)  globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID)).getEnableExternalScripts();</span>
+<span class="nc" id="L608">        BasePublisher publisher = null;</span>
+<span class="nc bnc" id="L609" title="All 2 branches missed.">        for (PublisherData publisherData : PublisherData.findAll(entityManager)) {</span>
+<span class="nc" id="L610">            publisher = getPublisher(publisherData);</span>
+<span class="nc bnc" id="L611" title="All 4 branches missed.">            if (enabled || !GeneralPurposeCustomPublisher.class.getName().equals(publisher.getRawData().get(CustomPublisherContainer.CLASSPATH))) {</span>
+<span class="nc" id="L612">                returnval.put(publisherData.getId(), publisherData.getName());</span>
+            }
+<span class="nc" id="L614">        }</span>
+<span class="nc" id="L615">        return returnval;</span>
+    }
+
+    @Override
+    public HashMap&lt;String, Integer&gt; getPublisherNameToIdMap() {
+<span class="nc" id="L620">        final HashMap&lt;String, Integer&gt; returnval = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L621">        final boolean enabled = ((GlobalConfiguration)  globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID)).getEnableExternalScripts();</span>
+        BasePublisher publisher;
+<span class="nc bnc" id="L623" title="All 2 branches missed.">        for (PublisherData publisherData : PublisherData.findAll(entityManager)) {</span>
+<span class="nc" id="L624">            publisher = getPublisher(publisherData);</span>
+<span class="nc bnc" id="L625" title="All 4 branches missed.">            if (enabled || !GeneralPurposeCustomPublisher.class.getName().equals(publisher.getRawData().get(CustomPublisherContainer.CLASSPATH))) {</span>
+<span class="nc" id="L626">                returnval.put(publisherData.getName(), publisherData.getId());</span>
+            }
+<span class="nc" id="L628">        }</span>
+<span class="nc" id="L629">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public BasePublisher getPublisher(String name) {
+<span class="nc" id="L635">        return getPublisherInternal(-1, name, true);</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public BasePublisher getPublisher(int id) {
+<span class="nc" id="L641">        return getPublisherInternal(id, null, true);</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public int getPublisherUpdateCount(int publisherid) {
+<span class="nc" id="L647">        int returnval = 0;</span>
+<span class="nc" id="L648">        PublisherData pd = PublisherData.findById(entityManager, Integer.valueOf(publisherid));</span>
+<span class="nc bnc" id="L649" title="All 2 branches missed.">        if (pd != null) {</span>
+<span class="nc" id="L650">            returnval = pd.getUpdateCounter();</span>
+        }
+<span class="nc" id="L652">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public int getPublisherId(String name) {
+        // Get publisher to ensure it is in the cache, or read
+<span class="nc" id="L659">        final BasePublisher pub = getPublisherInternal(-1, name, true);</span>
+<span class="nc bnc" id="L660" title="All 2 branches missed.">        final int ret = (pub != null) ? pub.getPublisherId() : 0;</span>
+<span class="nc" id="L661">        return ret;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public String getPublisherName(int id) {
+<span class="nc bnc" id="L667" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L668">            log.trace(&quot;&gt;getPublisherName(id: &quot; + id + &quot;)&quot;);</span>
+        }
+        // Get publisher to ensure it is in the cache, or read
+<span class="nc" id="L671">        final BasePublisher pub = getPublisherInternal(id, null, true);</span>
+<span class="nc bnc" id="L672" title="All 2 branches missed.">        final String ret = (pub != null) ? pub.getName() : null;</span>
+<span class="nc bnc" id="L673" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L674">            log.trace(&quot;&lt;getPublisherName(): &quot; + ret);</span>
+        }
+<span class="nc" id="L676">        return ret;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public Map&lt;?, ?&gt; getPublisherData(int id) throws PublisherDoesntExistsException {
+<span class="nc bnc" id="L682" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L683">            log.trace(&quot;&gt;getPublisherData(id: &quot; + id + &quot;)&quot;);</span>
+        }
+
+<span class="nc" id="L686">        final BasePublisher pub = getPublisherInternal(id, null, true);</span>
+<span class="nc bnc" id="L687" title="All 2 branches missed.">        if (pub == null) {</span>
+<span class="nc" id="L688">            throw new PublisherDoesntExistsException(&quot;Publisher with id &quot; + id + &quot; doesn't exist&quot;);</span>
+        }
+<span class="nc" id="L690">        return (Map&lt;?, ?&gt;) pub.saveData();</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public String testAllConnections() {
+<span class="nc bnc" id="L696" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L697">            log.trace(&quot;&gt;testAllConnections&quot;);</span>
+        }
+<span class="nc" id="L699">        String returnval = &quot;&quot;;</span>
+<span class="nc" id="L700">        Iterator&lt;PublisherData&gt; i = PublisherData.findAll(entityManager).iterator();</span>
+<span class="nc bnc" id="L701" title="All 2 branches missed.">        while (i.hasNext()) {</span>
+<span class="nc" id="L702">            PublisherData pdl = i.next();</span>
+<span class="nc" id="L703">            String name = pdl.getName();</span>
+            try {
+<span class="nc" id="L705">                getPublisher(pdl).testConnection();</span>
+<span class="nc" id="L706">            } catch (PublisherConnectionException pe) {</span>
+<span class="nc" id="L707">                String msg = intres.getLocalizedMessage(&quot;publisher.errortestpublisher&quot;, name);</span>
+<span class="nc" id="L708">                log.info(msg);</span>
+<span class="nc" id="L709">                returnval += &quot;\n&quot; + msg;</span>
+<span class="nc" id="L710">            }</span>
+<span class="nc" id="L711">        }</span>
+<span class="nc bnc" id="L712" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L713">            log.trace(&quot;&lt;testAllConnections&quot;);</span>
+        }
+<span class="nc" id="L715">        return returnval;</span>
+    }
+
+    private int findFreePublisherId() {
+<span class="nc" id="L719">        final ProfileID.DB db = new ProfileID.DB() {</span>
+            @Override
+            public boolean isFree(int i) {
+<span class="nc bnc" id="L722" title="All 2 branches missed.">                return PublisherData.findById(PublisherSessionBean.this.entityManager, i) == null;</span>
+            }
+        };
+<span class="nc" id="L725">        return ProfileID.getNotUsedID(db);</span>
+    }
+
+    /**
+     * Internal method for getting Publisher, to avoid code duplication. Tries to find the Publisher even if the id is wrong due to CA certificate DN not being
+     * the same as CA DN. Uses PublisherCache directly if configured to do so.
+     * 
+     * Note! No authorization checks performed in this internal method
+     * 
+     * @param id
+     *            numerical id of Publisher that we search for, or -1 if a name is to be used instead
+     * @param name
+     *            human readable name of Publisher, used instead of id if id == -1, can be null if id != -1
+     * @param fromCache if we should use the cache or return a new, decoupled, instance from the database, to be used when you need
+     *             a completely distinct object, for edit, and not a shared cached instance.
+     * @return BasePublisher value object or null if it does not exist
+     */
+    private BasePublisher getPublisherInternal(int id, final String name, boolean fromCache) {
+<span class="nc bnc" id="L743" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L744">            log.trace(&quot;&gt;getPublisherInternal: &quot; + id + &quot;, &quot; + name);</span>
+        }
+<span class="nc" id="L746">        Integer idValue = Integer.valueOf(id);</span>
+<span class="nc bnc" id="L747" title="All 2 branches missed.">        if (id == -1) {</span>
+<span class="nc" id="L748">            idValue = PublisherCache.INSTANCE.getNameToIdMap().get(name);</span>
+        }
+<span class="nc" id="L750">        BasePublisher returnval = null;</span>
+        // If we should read from cache, and we have an id to use in the cache, and the cache does not need to be updated
+<span class="nc bnc" id="L752" title="All 6 branches missed.">        if (fromCache &amp;&amp; idValue != null &amp;&amp; !PublisherCache.INSTANCE.shouldCheckForUpdates(idValue)) {</span>
+            // Get from cache (or null)
+<span class="nc" id="L754">            returnval = PublisherCache.INSTANCE.getEntry(idValue);</span>
+        }
+
+        // if we selected to not read from cache, or if the cache did not contain this entry
+<span class="nc bnc" id="L758" title="All 2 branches missed.">        if (returnval == null) {</span>
+<span class="nc bnc" id="L759" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L760">                log.debug(&quot;Publisher with ID &quot; + idValue + &quot; and/or name '&quot; + name + &quot;' will be checked for updates.&quot;);</span>
+            }
+            // We need to read from database because we specified to not get from cache or we don't have anything in the cache
+            final PublisherData pd;
+<span class="nc bnc" id="L764" title="All 2 branches missed.">            if (name != null) {</span>
+<span class="nc" id="L765">                pd = PublisherData.findByName(entityManager, name);</span>
+            } else {
+<span class="nc" id="L767">                pd = PublisherData.findById(entityManager, idValue);</span>
+            }
+<span class="nc bnc" id="L769" title="All 2 branches missed.">            if (pd != null) {</span>
+<span class="nc" id="L770">                returnval = getPublisher(pd);</span>
+<span class="nc" id="L771">                final int digest = pd.getProtectString(0).hashCode();</span>
+                // The cache compares the database data with what is in the cache
+                // If database is different from cache, replace it in the cache
+<span class="nc" id="L774">                PublisherCache.INSTANCE.updateWith(pd.getId(), digest, pd.getName(), returnval);</span>
+<span class="nc" id="L775">            } else {</span>
+                // Ensure that it is removed from cache if it exists
+<span class="nc bnc" id="L777" title="All 2 branches missed.">                if (idValue != null) {</span>
+<span class="nc" id="L778">                    PublisherCache.INSTANCE.removeEntry(idValue);</span>
+                }
+            }
+        }
+<span class="nc bnc" id="L782" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc bnc" id="L783" title="All 2 branches missed.">            log.trace(&quot;&lt;getPublisherInternal: &quot; + id + &quot;, &quot; + name + &quot;: &quot; + (returnval == null ? &quot;null&quot; : &quot;not null&quot;));</span>
+        }
+<span class="nc" id="L785">        return returnval;</span>
+    }
+    
+    private HashMap&lt;?, ?&gt; parseDataMapFromPublisher(final PublisherData publisherData) {
+<span class="nc" id="L789">        final String data = publisherData.getData();</span>
+<span class="nc" id="L790">        try (SecureXMLDecoder decoder = new SecureXMLDecoder(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8)))) {</span>
+<span class="nc" id="L791">            return (HashMap&lt;?, ?&gt;) decoder.readObject();</span>
+<span class="nc" id="L792">        } catch (IOException e) {</span>
+<span class="nc" id="L793">            final String msg = &quot;Failed to parse PublisherData data map in database: &quot; + e.getMessage();</span>
+<span class="nc bnc" id="L794" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L795">                log.debug(msg + &quot;. Data:\n&quot; + data);</span>
+            }
+<span class="nc" id="L797">            throw new IllegalStateException(msg, e);</span>
+        }
+    }
+
+    /** @param pData Data
+     * @return the publisher data and updates it if necessary. */
+    private BasePublisher getPublisher(final PublisherData pData) {
+<span class="nc" id="L804">        BasePublisher publisher = pData.getCachedPublisher();</span>
+<span class="nc bnc" id="L805" title="All 2 branches missed.">        if (publisher == null) {</span>
+<span class="nc" id="L806">            HashMap&lt;?, ?&gt; h = parseDataMapFromPublisher(pData);</span>
+            // Handle Base64 encoded string values
+<span class="nc" id="L808">            HashMap&lt;?, ?&gt; data = new Base64GetHashMap(h);</span>
+
+<span class="nc" id="L810">            publisher = constructPublisher(((Integer) (data.get(BasePublisher.TYPE))).intValue());</span>
+<span class="nc bnc" id="L811" title="All 2 branches missed.">            if (publisher != null) {</span>
+<span class="nc" id="L812">                publisher.setPublisherId(pData.getId());</span>
+<span class="nc" id="L813">                publisher.setName(pData.getName());</span>
+<span class="nc" id="L814">                publisher.loadData(data);</span>
+            }
+        }
+<span class="nc" id="L817">        return publisher;</span>
+    }
+
+    @SuppressWarnings(&quot;deprecation&quot;)
+    private BasePublisher constructPublisher(final int publisherType) {
+<span class="nc bnc" id="L822" title="All 7 branches missed.">        switch (publisherType) {</span>
+        case PublisherConst.TYPE_LDAPPUBLISHER:
+<span class="nc" id="L824">            return new LdapPublisher();</span>
+        case PublisherConst.TYPE_LDAPSEARCHPUBLISHER:
+<span class="nc" id="L826">            return new LdapSearchPublisher();</span>
+        case PublisherConst.TYPE_ADPUBLISHER:
+<span class="nc" id="L828">            return new ActiveDirectoryPublisher();</span>
+        case PublisherConst.TYPE_VAPUBLISHER:
+            //Attempt to create the legacy publisher if available, if not return null. 
+            try {
+<span class="nc" id="L832">                return (BasePublisher) Class.forName(LegacyValidationAuthorityPublisher.OLD_VA_PUBLISHER_QUALIFIED_NAME).newInstance();</span>
+<span class="nc" id="L833">            } catch (InstantiationException e) {</span>
+<span class="nc" id="L834">                return null;</span>
+<span class="nc" id="L835">            } catch (IllegalAccessException e) {</span>
+<span class="nc" id="L836">                return null;</span>
+<span class="nc" id="L837">            } catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L838">                return null;</span>
+            }
+        case PublisherConst.TYPE_MULTIGROUPPUBLISHER:
+<span class="nc" id="L841">            return new MultiGroupPublisher();</span>
+        case PublisherConst.TYPE_CUSTOMPUBLISHERCONTAINER:
+<span class="nc" id="L843">            return new CustomPublisherContainer();</span>
+        default:
+<span class="nc" id="L845">            throw new IllegalStateException(&quot;Invalid or unimplemented publisher type &quot; + publisherType);</span>
+        }
+    }
+
+    private void authorizedToEditPublishers(AuthenticationToken admin) throws AuthorizationDeniedException {
+        // We need to check that admin also have rights to edit publishers
+<span class="nc bnc" id="L851" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(admin, AccessRulesConstants.REGULAR_EDITPUBLISHER)) {</span>
+<span class="nc" id="L852">            final String msg = intres.getLocalizedMessage(&quot;store.editpublishernotauthorized&quot;, admin.toString());</span>
+<span class="nc" id="L853">            throw new AuthorizationDeniedException(msg);</span>
+        }
+<span class="nc" id="L855">    }</span>
+
+    @SuppressWarnings(&quot;deprecation&quot;)
+    @Override
+    public int adhocUpgradeTo6_3_1_1() {
+<span class="nc" id="L860">        int numberOfUpgradedPublishers = 0;</span>
+<span class="nc bnc" id="L861" title="All 2 branches missed.">        for (PublisherData publisherData : PublisherData.findAll(entityManager)) {</span>
+            // Extract the data payload instead of the BasePublisher since the original BasePublisher implementation might no longer
+            // be on the classpath
+<span class="nc" id="L864">            HashMap&lt;?, ?&gt; h = parseDataMapFromPublisher(publisherData);</span>
+            // Handle Base64 encoded string values
+            @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L867">            HashMap&lt;Object, Object&gt; data = new Base64GetHashMap(h);</span>
+<span class="nc bnc" id="L868" title="All 2 branches missed.">            if (PublisherConst.TYPE_VAPUBLISHER == ((Integer) data.get(BasePublisher.TYPE)).intValue()) {</span>
+<span class="nc" id="L869">                numberOfUpgradedPublishers++;</span>
+<span class="nc" id="L870">                publisherData.setPublisher(new LegacyValidationAuthorityPublisher(data));</span>
+                //Purge the entry from the cache
+<span class="nc" id="L872">                PublisherCache.INSTANCE.removeEntry(publisherData.getId());</span>
+            }           
+<span class="nc" id="L874">        }</span>
+<span class="nc" id="L875">        return numberOfUpgradedPublishers;</span>
+    }
+
+    @SuppressWarnings(&quot;deprecation&quot;)
+    @Override
+    public boolean isOldVaPublisherPresent() {
+<span class="nc bnc" id="L881" title="All 2 branches missed.">        for (PublisherData publisherData : PublisherData.findAll(entityManager)) {</span>
+            // Extract the data payload instead of the BasePublisher since the original BasePublisher implementation might no longer
+            // be on the classpath
+<span class="nc" id="L884">            HashMap&lt;?, ?&gt; h = parseDataMapFromPublisher(publisherData);</span>
+            // Handle Base64 encoded string values
+            @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L887">            HashMap&lt;Object, Object&gt; data = new Base64GetHashMap(h);</span>
+<span class="nc bnc" id="L888" title="All 2 branches missed.">            if (PublisherConst.TYPE_VAPUBLISHER == ((Integer) data.get(BasePublisher.TYPE)).intValue()) {</span>
+<span class="nc" id="L889">                return true;</span>
+            }           
+<span class="nc" id="L891">        }</span>
+<span class="nc" id="L892">        return false;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

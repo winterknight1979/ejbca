@@ -77,7 +77,7 @@ import org.ejbca.core.protocol.cmp.authentication.RegTokenPasswordExtractor;
  */
 public class CrmfRequestMessage extends BaseCmpMessage implements ICrmfRequestMessage {
 	
-<span class="nc" id="L80">	private static final Logger log = Logger.getLogger(CrmfRequestMessage.class);</span>
+<span class="fc" id="L80">	private static final Logger log = Logger.getLogger(CrmfRequestMessage.class);</span>
 	
     /**
      * Determines if a de-serialized file is compatible with this class.
@@ -90,39 +90,39 @@ public class CrmfRequestMessage extends BaseCmpMessage implements ICrmfRequestMe
      */
     static final long serialVersionUID = 1002L;
 
-<span class="nc" id="L93">    public static final ASN1ObjectIdentifier id_regCtrl_protocolEncrKey  = CRMFObjectIdentifiers.id_regCtrl.branch(&quot;6&quot;);</span>
+<span class="fc" id="L93">    public static final ASN1ObjectIdentifier id_regCtrl_protocolEncrKey  = CRMFObjectIdentifiers.id_regCtrl.branch(&quot;6&quot;);</span>
 
-<span class="nc" id="L95">    private int requestType = 0;</span>
-<span class="nc" id="L96">    private int requestId = 0;</span>
-<span class="nc" id="L97">    private String b64SenderNonce = null;</span>
-<span class="nc" id="L98">    private String b64TransId = null;</span>
+<span class="pc" id="L95">    private int requestType = 0;</span>
+<span class="pc" id="L96">    private int requestId = 0;</span>
+<span class="pc" id="L97">    private String b64SenderNonce = null;</span>
+<span class="pc" id="L98">    private String b64TransId = null;</span>
     /** Default CA DN */
-<span class="nc" id="L100">    private String defaultCADN = null;</span>
-<span class="nc" id="L101">    private boolean allowRaVerifyPopo = false;</span>
-<span class="nc" id="L102">    private String extractUsernameComponent = null;</span>
+<span class="pc" id="L100">    private String defaultCADN = null;</span>
+<span class="pc" id="L101">    private boolean allowRaVerifyPopo = false;</span>
+<span class="pc" id="L102">    private String extractUsernameComponent = null;</span>
     /** manually set username */
-<span class="nc" id="L104">    private String username = null;</span>
+<span class="pc" id="L104">    private String username = null;</span>
     /** manually set password */
-<span class="nc" id="L106">    private String password = null;</span>
+<span class="pc" id="L106">    private String password = null;</span>
     /** manually set public and private key, if keys have been server generated */
     private transient KeyPair serverGenKeyPair;
 
     /** Because PKIMessage is not serializable we need to have the serializable bytes save as well, so 
      * we can restore the PKIMessage after serialization/deserialization. */
-<span class="nc" id="L112">    private byte[] pkimsgbytes = null;</span>
-<span class="nc" id="L113">    private transient CertReqMsg req = null;</span>
+<span class="pc" id="L112">    private byte[] pkimsgbytes = null;</span>
+<span class="pc" id="L113">    private transient CertReqMsg req = null;</span>
 
     /** Because CertReqMsg is not serializable we may need to encode/decode bytes if the object is lost during deserialization. 
      * @return message*/
     private CertReqMsg getReq() {
-<span class="nc bnc" id="L118" title="All 2 branches missed.">        if (req == null) {</span>
+<span class="pc bpc" id="L118" title="1 of 2 branches missed.">        if (req == null) {</span>
 <span class="nc" id="L119">            init();</span>
         }
-<span class="nc" id="L121">        return this.req;</span>
+<span class="fc" id="L121">        return this.req;</span>
     }
 
     /** preferred digest algorithm to use in replies, if applicable */
-<span class="nc" id="L125">    private String preferredDigestAlg = CMSSignedGenerator.DIGEST_SHA1;</span>
+<span class="pc" id="L125">    private String preferredDigestAlg = CMSSignedGenerator.DIGEST_SHA1;</span>
 
 <span class="nc" id="L127">    public CrmfRequestMessage() { }</span>
 
@@ -133,75 +133,75 @@ public class CrmfRequestMessage extends BaseCmpMessage implements ICrmfRequestMe
      * @param allowRaVerifyPopo true if we allows the user/RA to specify the POP should not be verified
      * @param extractUsernameComponent Defines which component from the DN should be used as username in EJBCA. Can be CN, UID or nothing. Null means that the username should have been pre-set, or that here it is the same as CN.
      */
-<span class="nc" id="L136">    public CrmfRequestMessage(final PKIMessage pkiMessage, final String defaultCADN, final boolean allowRaVerifyPopo, final String extractUsernameComponent) {</span>
-<span class="nc bnc" id="L137" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="fc" id="L136">    public CrmfRequestMessage(final PKIMessage pkiMessage, final String defaultCADN, final boolean allowRaVerifyPopo, final String extractUsernameComponent) {</span>
+<span class="pc bpc" id="L137" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
 <span class="nc" id="L138">            log.trace(&quot;&gt;CrmfRequestMessage&quot;);</span>
         }
-<span class="nc" id="L140">        setPKIMessage(pkiMessage);</span>
-<span class="nc" id="L141">        this.defaultCADN = defaultCADN;</span>
-<span class="nc" id="L142">        this.allowRaVerifyPopo = allowRaVerifyPopo;</span>
-<span class="nc" id="L143">        this.extractUsernameComponent = extractUsernameComponent;</span>
-<span class="nc" id="L144">        init();</span>
-<span class="nc bnc" id="L145" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="fc" id="L140">        setPKIMessage(pkiMessage);</span>
+<span class="fc" id="L141">        this.defaultCADN = defaultCADN;</span>
+<span class="fc" id="L142">        this.allowRaVerifyPopo = allowRaVerifyPopo;</span>
+<span class="fc" id="L143">        this.extractUsernameComponent = extractUsernameComponent;</span>
+<span class="fc" id="L144">        init();</span>
+<span class="pc bpc" id="L145" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
 <span class="nc" id="L146">            log.trace(&quot;&lt;CrmfRequestMessage&quot;);</span>
         }
-<span class="nc" id="L148">    }</span>
+<span class="fc" id="L148">    }</span>
 
     public PKIMessage getPKIMessage() {
-<span class="nc bnc" id="L151" title="All 2 branches missed.">        if (getMessage() == null) {</span>
+<span class="pc bpc" id="L151" title="1 of 2 branches missed.">        if (getMessage() == null) {</span>
 <span class="nc" id="L152">            setMessage(PKIMessage.getInstance(pkimsgbytes));</span>
         }
-<span class="nc" id="L154">        return getMessage();</span>
+<span class="fc" id="L154">        return getMessage();</span>
     }
 
     public void setPKIMessage(final PKIMessage msg) {
         try {
-<span class="nc" id="L159">            this.pkimsgbytes = msg.toASN1Primitive().getEncoded();</span>
+<span class="fc" id="L159">            this.pkimsgbytes = msg.toASN1Primitive().getEncoded();</span>
 <span class="nc" id="L160">        } catch (IOException e) {</span>
 <span class="nc" id="L161">            log.error(&quot;Error getting encoded bytes from PKIMessage: &quot;, e);</span>
-<span class="nc" id="L162">        }</span>
-<span class="nc" id="L163">        setMessage(msg);</span>
-<span class="nc" id="L164">    }</span>
+<span class="fc" id="L162">        }</span>
+<span class="fc" id="L163">        setMessage(msg);</span>
+<span class="fc" id="L164">    }</span>
 
     private void init() {
-<span class="nc" id="L167">        final PKIBody pkiBody = getPKIMessage().getBody();</span>
-<span class="nc" id="L168">        final PKIHeader pkiHeader = getPKIMessage().getHeader();</span>
-<span class="nc" id="L169">        requestType = pkiBody.getType();</span>
-<span class="nc" id="L170">        final CertReqMessages msgs = getCertReqFromTag(pkiBody, requestType);</span>
+<span class="fc" id="L167">        final PKIBody pkiBody = getPKIMessage().getBody();</span>
+<span class="fc" id="L168">        final PKIHeader pkiHeader = getPKIMessage().getHeader();</span>
+<span class="fc" id="L169">        requestType = pkiBody.getType();</span>
+<span class="fc" id="L170">        final CertReqMessages msgs = getCertReqFromTag(pkiBody, requestType);</span>
         try {
-<span class="nc" id="L172">            this.req = msgs.toCertReqMsgArray()[0];</span>
-<span class="nc" id="L173">        } catch(Exception e) {</span>
-<span class="nc" id="L174">            this.req = CmpMessageHelper.getNovosecCertReqMsg(msgs);</span>
-<span class="nc" id="L175">        }</span>
-<span class="nc" id="L176">        requestId = this.req.getCertReq().getCertReqId().getValue().intValue();</span>
-<span class="nc" id="L177">        setTransactionId(getBase64FromAsn1OctetString(pkiHeader.getTransactionID()));</span>
-<span class="nc" id="L178">        setSenderNonce(getBase64FromAsn1OctetString(pkiHeader.getSenderNonce()));</span>
-<span class="nc" id="L179">        setRecipient(pkiHeader.getRecipient());</span>
-<span class="nc" id="L180">        setSender(pkiHeader.getSender());</span>
-<span class="nc" id="L181">    }</span>
+<span class="fc" id="L172">            this.req = msgs.toCertReqMsgArray()[0];</span>
+<span class="fc" id="L173">        } catch(Exception e) {</span>
+<span class="fc" id="L174">            this.req = CmpMessageHelper.getNovosecCertReqMsg(msgs);</span>
+<span class="fc" id="L175">        }</span>
+<span class="fc" id="L176">        requestId = this.req.getCertReq().getCertReqId().getValue().intValue();</span>
+<span class="fc" id="L177">        setTransactionId(getBase64FromAsn1OctetString(pkiHeader.getTransactionID()));</span>
+<span class="fc" id="L178">        setSenderNonce(getBase64FromAsn1OctetString(pkiHeader.getSenderNonce()));</span>
+<span class="fc" id="L179">        setRecipient(pkiHeader.getRecipient());</span>
+<span class="fc" id="L180">        setSender(pkiHeader.getSender());</span>
+<span class="fc" id="L181">    }</span>
 
     @Override
     public PublicKey getRequestPublicKey() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException {
         // If we have generated a key pair by the server, we should use this one
-<span class="nc bnc" id="L186" title="All 2 branches missed.">        if (serverGenKeyPair != null) {</span>
+<span class="pc bpc" id="L186" title="1 of 2 branches missed.">        if (serverGenKeyPair != null) {</span>
 <span class="nc" id="L187">            return serverGenKeyPair.getPublic();</span>
         }
         // Else, see if we can find one in the request
-<span class="nc" id="L190">        final SubjectPublicKeyInfo keyInfo = getRequestSubjectPublicKeyInfo();</span>
-<span class="nc bnc" id="L191" title="All 2 branches missed.">        if (keyInfo == null) {</span>
+<span class="fc" id="L190">        final SubjectPublicKeyInfo keyInfo = getRequestSubjectPublicKeyInfo();</span>
+<span class="pc bpc" id="L191" title="1 of 2 branches missed.">        if (keyInfo == null) {</span>
             // No public key, which may be OK if we are requesting server generated keys
 <span class="nc" id="L193">            return null;</span>
         }
-<span class="nc" id="L195">        final PublicKey pk = getPublicKey(keyInfo, BouncyCastleProvider.PROVIDER_NAME);</span>
-<span class="nc" id="L196">        return pk;</span>
+<span class="fc" id="L195">        final PublicKey pk = getPublicKey(keyInfo, BouncyCastleProvider.PROVIDER_NAME);</span>
+<span class="fc" id="L196">        return pk;</span>
     }
 
     @Override
     public SubjectPublicKeyInfo getRequestSubjectPublicKeyInfo() {
-<span class="nc" id="L201">        final CertRequest request = getReq().getCertReq();</span>
-<span class="nc" id="L202">        final CertTemplate templ = request.getCertTemplate();</span>
-<span class="nc" id="L203">        final SubjectPublicKeyInfo keyInfo = templ.getPublicKey();</span>
-<span class="nc" id="L204">        return keyInfo;</span>
+<span class="fc" id="L201">        final CertRequest request = getReq().getCertReq();</span>
+<span class="fc" id="L202">        final CertTemplate templ = request.getCertTemplate();</span>
+<span class="fc" id="L203">        final SubjectPublicKeyInfo keyInfo = templ.getPublicKey();</span>
+<span class="fc" id="L204">        return keyInfo;</span>
     }
 
     @SuppressWarnings(&quot;unlikely-arg-type&quot;)
@@ -209,17 +209,17 @@ public class CrmfRequestMessage extends BaseCmpMessage implements ICrmfRequestMe
             NoSuchProviderException, InvalidKeyException {
         // If there is no public key here, but only an empty bit string, it means we have called for server generated keys
         // i.e. no public key to see here...
-<span class="nc bnc" id="L212" title="All 2 branches missed.">        if (subjectPKInfo.getPublicKeyData().equals(DERNull.INSTANCE)) {</span>
+<span class="pc bpc" id="L212" title="1 of 2 branches missed.">        if (subjectPKInfo.getPublicKeyData().equals(DERNull.INSTANCE)) {</span>
 <span class="nc" id="L213">            return null;</span>
         }
         try {
-<span class="nc" id="L216">            final X509EncodedKeySpec xspec = new X509EncodedKeySpec(new DERBitString(subjectPKInfo).getBytes());</span>
-<span class="nc" id="L217">            final AlgorithmIdentifier keyAlg = subjectPKInfo.getAlgorithm();</span>
-<span class="nc" id="L218">            return KeyFactory.getInstance(keyAlg.getAlgorithm().getId(), provider).generatePublic(xspec);</span>
-<span class="nc" id="L219">        } catch (InvalidKeySpecException | IOException e) {</span>
-<span class="nc" id="L220">            final InvalidKeyException newe = new InvalidKeyException(&quot;Error decoding public key.&quot;);</span>
-<span class="nc" id="L221">            newe.initCause(e);</span>
-<span class="nc" id="L222">            throw newe;</span>
+<span class="fc" id="L216">            final X509EncodedKeySpec xspec = new X509EncodedKeySpec(new DERBitString(subjectPKInfo).getBytes());</span>
+<span class="fc" id="L217">            final AlgorithmIdentifier keyAlg = subjectPKInfo.getAlgorithm();</span>
+<span class="fc" id="L218">            return KeyFactory.getInstance(keyAlg.getAlgorithm().getId(), provider).generatePublic(xspec);</span>
+<span class="fc" id="L219">        } catch (InvalidKeySpecException | IOException e) {</span>
+<span class="fc" id="L220">            final InvalidKeyException newe = new InvalidKeyException(&quot;Error decoding public key.&quot;);</span>
+<span class="fc" id="L221">            newe.initCause(e);</span>
+<span class="fc" id="L222">            throw newe;</span>
         }
     }
 
@@ -264,20 +264,20 @@ public class CrmfRequestMessage extends BaseCmpMessage implements ICrmfRequestMe
 
     @Override
     public String getPassword() {
-<span class="nc bnc" id="L267" title="All 2 branches missed.">        if(password != null) {</span>
+<span class="pc bpc" id="L267" title="1 of 2 branches missed.">        if(password != null) {</span>
 <span class="nc" id="L268">            return this.password;</span>
         }
 
-<span class="nc" id="L271">        RegTokenPasswordExtractor regTokenExtractor = new RegTokenPasswordExtractor();</span>
+<span class="fc" id="L271">        RegTokenPasswordExtractor regTokenExtractor = new RegTokenPasswordExtractor();</span>
 
-<span class="nc bnc" id="L273" title="All 2 branches missed.">        if(regTokenExtractor.verifyOrExtract(getPKIMessage(), null)) {</span>
-<span class="nc" id="L274">            this.password = regTokenExtractor.getAuthenticationString();</span>
+<span class="fc bfc" id="L273" title="All 2 branches covered.">        if(regTokenExtractor.verifyOrExtract(getPKIMessage(), null)) {</span>
+<span class="fc" id="L274">            this.password = regTokenExtractor.getAuthenticationString();</span>
         } else {
-<span class="nc bnc" id="L276" title="All 2 branches missed.">            if(log.isDebugEnabled()) {</span>
+<span class="pc bpc" id="L276" title="1 of 2 branches missed.">            if(log.isDebugEnabled()) {</span>
 <span class="nc" id="L277">                log.debug(regTokenExtractor.getErrorMessage());</span>
             }
         }
-<span class="nc" id="L280">        return this.password;</span>
+<span class="fc" id="L280">        return this.password;</span>
     }
 
     /** force a username, i.e. ignore the DN/username in the request 
@@ -288,26 +288,26 @@ public class CrmfRequestMessage extends BaseCmpMessage implements ICrmfRequestMe
 
     @Override
     public String getUsername() {
-<span class="nc" id="L291">        String ret = null;</span>
-<span class="nc bnc" id="L292" title="All 2 branches missed.">        if (username != null) {</span>
+<span class="fc" id="L291">        String ret = null;</span>
+<span class="pc bpc" id="L292" title="1 of 2 branches missed.">        if (username != null) {</span>
 <span class="nc" id="L293">            ret = username;</span>
         } else {
             // We can configure which part of the users DN should be used as username in EJBCA, for example CN or UID
-<span class="nc" id="L296">            String component = extractUsernameComponent;</span>
-<span class="nc bnc" id="L297" title="All 2 branches missed.">            if (StringUtils.isEmpty(component)) {</span>
+<span class="fc" id="L296">            String component = extractUsernameComponent;</span>
+<span class="pc bpc" id="L297" title="1 of 2 branches missed.">            if (StringUtils.isEmpty(component)) {</span>
 <span class="nc" id="L298">                component = &quot;CN&quot;;</span>
             }
-<span class="nc" id="L300">            String name = CertTools.getPartFromDN(getRequestDN(), component);</span>
-<span class="nc bnc" id="L301" title="All 2 branches missed.">            if (name == null) {</span>
+<span class="fc" id="L300">            String name = CertTools.getPartFromDN(getRequestDN(), component);</span>
+<span class="pc bpc" id="L301" title="1 of 2 branches missed.">            if (name == null) {</span>
 <span class="nc" id="L302">                log.error(&quot;No component &quot; + component + &quot; in DN: &quot; + getRequestDN());</span>
             } else {
-<span class="nc" id="L304">                ret = name;</span>
+<span class="fc" id="L304">                ret = name;</span>
             }
         }
-<span class="nc bnc" id="L307" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="pc bpc" id="L307" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
 <span class="nc" id="L308">            log.debug(&quot;Username is: &quot; + ret);</span>
         }
-<span class="nc" id="L310">        return ret;</span>
+<span class="fc" id="L310">        return ret;</span>
     }
 
     public void setIssuerDN(final String issuer) {
@@ -316,18 +316,18 @@ public class CrmfRequestMessage extends BaseCmpMessage implements ICrmfRequestMe
 
     @Override
     public String getIssuerDN() {
-<span class="nc" id="L319">        String ret = null;</span>
-<span class="nc" id="L320">        final CertTemplate templ = getReq().getCertReq().getCertTemplate();</span>
-<span class="nc" id="L321">        final X500Name name = templ.getIssuer();</span>
-<span class="nc bnc" id="L322" title="All 2 branches missed.">        if (name != null) {</span>
-<span class="nc" id="L323">            ret = CertTools.stringToBCDNString(name.toString());</span>
+<span class="fc" id="L319">        String ret = null;</span>
+<span class="fc" id="L320">        final CertTemplate templ = getReq().getCertReq().getCertTemplate();</span>
+<span class="fc" id="L321">        final X500Name name = templ.getIssuer();</span>
+<span class="fc bfc" id="L322" title="All 2 branches covered.">        if (name != null) {</span>
+<span class="fc" id="L323">            ret = CertTools.stringToBCDNString(name.toString());</span>
         } else {
-<span class="nc" id="L325">            ret = defaultCADN;</span>
+<span class="fc" id="L325">            ret = defaultCADN;</span>
         }
-<span class="nc bnc" id="L327" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="pc bpc" id="L327" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
 <span class="nc" id="L328">            log.debug(&quot;Issuer DN is: &quot; + ret);</span>
         }
-<span class="nc" id="L330">        return ret;</span>
+<span class="fc" id="L330">        return ret;</span>
     }
 
     @Override
@@ -364,28 +364,28 @@ public class CrmfRequestMessage extends BaseCmpMessage implements ICrmfRequestMe
 
     @Override
     public String getRequestDN() {
-<span class="nc" id="L367">        String ret = null;</span>
-<span class="nc" id="L368">        final X500Name name = getRequestX500Name();</span>
-<span class="nc bnc" id="L369" title="All 2 branches missed.">        if (name != null) {</span>
-<span class="nc" id="L370">            ret = CertTools.stringToBCDNString(name.toString());</span>
+<span class="fc" id="L367">        String ret = null;</span>
+<span class="fc" id="L368">        final X500Name name = getRequestX500Name();</span>
+<span class="pc bpc" id="L369" title="1 of 2 branches missed.">        if (name != null) {</span>
+<span class="fc" id="L370">            ret = CertTools.stringToBCDNString(name.toString());</span>
         }
-<span class="nc bnc" id="L372" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="pc bpc" id="L372" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
 <span class="nc" id="L373">            log.debug(&quot;Request DN is: &quot; + ret);</span>
         }
-<span class="nc" id="L375">        return ret;</span>
+<span class="fc" id="L375">        return ret;</span>
     }
 
     @Override
     public X500Name getRequestX500Name() {
-<span class="nc" id="L380">        final CertTemplate templ = getReq().getCertReq().getCertTemplate();</span>
-<span class="nc" id="L381">        X500Name name = templ.getSubject();</span>
-<span class="nc bnc" id="L382" title="All 2 branches missed.">        if(name != null) {</span>
-<span class="nc" id="L383">            name = X500Name.getInstance(new CeSecoreNameStyle(), name);</span>
+<span class="fc" id="L380">        final CertTemplate templ = getReq().getCertReq().getCertTemplate();</span>
+<span class="fc" id="L381">        X500Name name = templ.getSubject();</span>
+<span class="pc bpc" id="L382" title="1 of 2 branches missed.">        if(name != null) {</span>
+<span class="fc" id="L383">            name = X500Name.getInstance(new CeSecoreNameStyle(), name);</span>
         }
-<span class="nc bnc" id="L385" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="pc bpc" id="L385" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
 <span class="nc" id="L386">            log.debug(&quot;Request X500Name is: &quot; + name);</span>
         }
-<span class="nc" id="L388">        return name;</span>
+<span class="fc" id="L388">        return name;</span>
     }
 
     @Override
@@ -455,9 +455,9 @@ public class CrmfRequestMessage extends BaseCmpMessage implements ICrmfRequestMe
 
     @Override
     public boolean verify() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException {
-<span class="nc" id="L458">        boolean ret = false;</span>
-<span class="nc" id="L459">        final ProofOfPossession pop = getReq().getPopo();</span>
-<span class="nc bnc" id="L460" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="fc" id="L458">        boolean ret = false;</span>
+<span class="fc" id="L459">        final ProofOfPossession pop = getReq().getPopo();</span>
+<span class="pc bpc" id="L460" title="1 of 2 branches missed.">        if (log.isDebugEnabled()) {</span>
 <span class="nc" id="L461">            log.debug(&quot;allowRaVerifyPopo: &quot; + allowRaVerifyPopo);</span>
 <span class="nc bnc" id="L462" title="All 2 branches missed.">            if (pop != null) {</span>
 <span class="nc bnc" id="L463" title="All 2 branches missed.">                log.debug(&quot;pop.getRaVerified(): &quot; + (pop.getType() == ProofOfPossession.TYPE_RA_VERIFIED));                </span>
@@ -465,7 +465,7 @@ public class CrmfRequestMessage extends BaseCmpMessage implements ICrmfRequestMe
 <span class="nc" id="L465">                log.debug(&quot;No POP in message&quot;);</span>
             }
         }
-<span class="nc bnc" id="L468" title="All 2 branches missed.">        if (pop == null) {</span>
+<span class="pc bpc" id="L468" title="1 of 2 branches missed.">        if (pop == null) {</span>
             // POP can be null only if we don't have a public key in the message, then we request
             // server generated keys, and don't send any POP
             // This can be either no public key info, or public key info with a algId followed by a zero length bitstring
@@ -489,54 +489,54 @@ public class CrmfRequestMessage extends BaseCmpMessage implements ICrmfRequestMe
                 }
 <span class="nc" id="L490">                ret = false;</span>
             }
-<span class="nc bnc" id="L492" title="All 4 branches missed.">        } else if ( allowRaVerifyPopo &amp;&amp; (pop.getType() == ProofOfPossession.TYPE_RA_VERIFIED) ) {</span>
-<span class="nc" id="L493">            ret = true;</span>
-<span class="nc bnc" id="L494" title="All 2 branches missed.">        } else if (pop.getType() == ProofOfPossession.TYPE_SIGNING_KEY) {</span>
+<span class="pc bpc" id="L492" title="1 of 4 branches missed.">        } else if ( allowRaVerifyPopo &amp;&amp; (pop.getType() == ProofOfPossession.TYPE_RA_VERIFIED) ) {</span>
+<span class="fc" id="L493">            ret = true;</span>
+<span class="fc bfc" id="L494" title="All 2 branches covered.">        } else if (pop.getType() == ProofOfPossession.TYPE_SIGNING_KEY) {</span>
             try {
-<span class="nc" id="L496">                final POPOSigningKey sk = (POPOSigningKey) pop.getObject();</span>
-<span class="nc" id="L497">                final POPOSigningKeyInput pski = sk.getPoposkInput();</span>
-<span class="nc" id="L498">                ASN1Encodable protObject = pski;</span>
+<span class="fc" id="L496">                final POPOSigningKey sk = (POPOSigningKey) pop.getObject();</span>
+<span class="fc" id="L497">                final POPOSigningKeyInput pski = sk.getPoposkInput();</span>
+<span class="fc" id="L498">                ASN1Encodable protObject = pski;</span>
                 // Use of POPOSigningKeyInput or not, as described in RFC4211, section 4.1.
-<span class="nc bnc" id="L500" title="All 2 branches missed.">                if (pski == null) {</span>
-<span class="nc bnc" id="L501" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="fc bfc" id="L500" title="All 2 branches covered.">                if (pski == null) {</span>
+<span class="pc bpc" id="L501" title="1 of 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
 <span class="nc" id="L502">                        log.debug(&quot;Using CertRequest as POPO input because POPOSigningKeyInput is missing.&quot;);</span>
                     }
-<span class="nc" id="L504">                    protObject = getReq().getCertReq();</span>
+<span class="fc" id="L504">                    protObject = getReq().getCertReq();</span>
                 } else {
                     // Assume POPOSigningKeyInput with the public key and name, MUST be the same as in the request according to RFC4211
-<span class="nc bnc" id="L507" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="pc bpc" id="L507" title="1 of 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
 <span class="nc" id="L508">                        log.debug(&quot;Using POPOSigningKeyInput as POPO input.&quot;);</span>
                     }
-<span class="nc" id="L510">                    final CertRequest req = getReq().getCertReq();</span>
+<span class="fc" id="L510">                    final CertRequest req = getReq().getCertReq();</span>
                     // If subject is present in cert template it must be the same as in POPOSigningKeyInput
-<span class="nc" id="L512">                    final X500Name subject = req.getCertTemplate().getSubject();</span>
-<span class="nc bnc" id="L513" title="All 4 branches missed.">                    if (subject != null &amp;&amp; !subject.toString().equals(pski.getSender().getName().toString())) {</span>
+<span class="fc" id="L512">                    final X500Name subject = req.getCertTemplate().getSubject();</span>
+<span class="pc bpc" id="L513" title="2 of 4 branches missed.">                    if (subject != null &amp;&amp; !subject.toString().equals(pski.getSender().getName().toString())) {</span>
 <span class="nc" id="L514">                        log.info(&quot;Subject '&quot; + subject.toString() + &quot;', is not equal to '&quot; + pski.getSender().toString() + &quot;'.&quot;);</span>
 <span class="nc" id="L515">                        protObject = null; // pski is not a valid protection object</span>
                     }
                     // If public key is present in cert template it must be the same as in POPOSigningKeyInput
-<span class="nc" id="L518">                    final SubjectPublicKeyInfo pk = req.getCertTemplate().getPublicKey();</span>
-<span class="nc bnc" id="L519" title="All 4 branches missed.">                    if (pk != null &amp;&amp; !Arrays.areEqual(pk.getEncoded(), pski.getPublicKey().getEncoded())) {</span>
+<span class="fc" id="L518">                    final SubjectPublicKeyInfo pk = req.getCertTemplate().getPublicKey();</span>
+<span class="pc bpc" id="L519" title="2 of 4 branches missed.">                    if (pk != null &amp;&amp; !Arrays.areEqual(pk.getEncoded(), pski.getPublicKey().getEncoded())) {</span>
 <span class="nc" id="L520">                        log.info(&quot;Subject key in cert template, is not equal to subject key in POPOSigningKeyInput.&quot;);</span>
 <span class="nc" id="L521">                        protObject = null; // pski is not a valid protection object</span>
                     }
                 }
                 // If a protectObject is present we extract the bytes and verify it
-<span class="nc bnc" id="L525" title="All 2 branches missed.">                if (protObject != null) {</span>
-<span class="nc" id="L526">                    final ByteArrayOutputStream bao = new ByteArrayOutputStream();</span>
-<span class="nc" id="L527">                    new DEROutputStream(bao).writeObject(protObject);</span>
-<span class="nc" id="L528">                    final byte[] protBytes = bao.toByteArray();</span>
-<span class="nc" id="L529">                    final AlgorithmIdentifier algId = sk.getAlgorithmIdentifier();</span>
-<span class="nc bnc" id="L530" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="pc bpc" id="L525" title="1 of 2 branches missed.">                if (protObject != null) {</span>
+<span class="fc" id="L526">                    final ByteArrayOutputStream bao = new ByteArrayOutputStream();</span>
+<span class="fc" id="L527">                    new DEROutputStream(bao).writeObject(protObject);</span>
+<span class="fc" id="L528">                    final byte[] protBytes = bao.toByteArray();</span>
+<span class="fc" id="L529">                    final AlgorithmIdentifier algId = sk.getAlgorithmIdentifier();</span>
+<span class="pc bpc" id="L530" title="1 of 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
 <span class="nc bnc" id="L531" title="All 2 branches missed.">                        log.debug(&quot;POP protection bytes length: &quot; + (protBytes != null ? protBytes.length : &quot;null&quot;));</span>
 <span class="nc" id="L532">                        log.debug(&quot;POP algorithm identifier is: &quot; + algId.getAlgorithm().getId());</span>
                     }
-<span class="nc" id="L534">                    final Signature sig = Signature.getInstance(algId.getAlgorithm().getId(), &quot;BC&quot;);</span>
-<span class="nc" id="L535">                    sig.initVerify(getRequestPublicKey());</span>
-<span class="nc" id="L536">                    sig.update(protBytes);</span>
-<span class="nc" id="L537">                    final DERBitString bs = sk.getSignature();</span>
-<span class="nc" id="L538">                    ret = sig.verify(bs.getBytes());</span>
-<span class="nc bnc" id="L539" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="fc" id="L534">                    final Signature sig = Signature.getInstance(algId.getAlgorithm().getId(), &quot;BC&quot;);</span>
+<span class="fc" id="L535">                    sig.initVerify(getRequestPublicKey());</span>
+<span class="fc" id="L536">                    sig.update(protBytes);</span>
+<span class="fc" id="L537">                    final DERBitString bs = sk.getSignature();</span>
+<span class="fc" id="L538">                    ret = sig.verify(bs.getBytes());</span>
+<span class="pc bpc" id="L539" title="1 of 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
 <span class="nc" id="L540">                        log.debug(&quot;POP verify returns: &quot; + ret);</span>
                     }
                 }
@@ -544,9 +544,9 @@ public class CrmfRequestMessage extends BaseCmpMessage implements ICrmfRequestMe
 <span class="nc" id="L544">                log.error(&quot;Error encoding CertReqMsg: &quot;, e);</span>
 <span class="nc" id="L545">            } catch (SignatureException e) {</span>
 <span class="nc" id="L546">                log.error(&quot;SignatureException verifying POP: &quot;, e);</span>
-<span class="nc" id="L547">            }</span>
+<span class="pc" id="L547">            }</span>
         }
-<span class="nc" id="L549">        return ret;</span>
+<span class="fc" id="L549">        return ret;</span>
     }
 
     @Override
@@ -569,8 +569,8 @@ public class CrmfRequestMessage extends BaseCmpMessage implements ICrmfRequestMe
     }
 
     public void setSenderNonce(final String b64nonce) {
-<span class="nc" id="L572">        this.b64SenderNonce = b64nonce;</span>
-<span class="nc" id="L573">    }</span>
+<span class="fc" id="L572">        this.b64SenderNonce = b64nonce;</span>
+<span class="fc" id="L573">    }</span>
 
     @Override
     public String getSenderNonce() {
@@ -578,8 +578,8 @@ public class CrmfRequestMessage extends BaseCmpMessage implements ICrmfRequestMe
     }
 
     public void setTransactionId(final String b64transid) {
-<span class="nc" id="L581">        this.b64TransId = b64transid;</span>
-<span class="nc" id="L582">    }</span>
+<span class="fc" id="L581">        this.b64TransId = b64transid;</span>
+<span class="fc" id="L582">    }</span>
 
     @Override
     public String getTransactionId() {
@@ -629,11 +629,11 @@ public class CrmfRequestMessage extends BaseCmpMessage implements ICrmfRequestMe
     }
 
     private CertReqMessages getCertReqFromTag(final PKIBody body, final int tag) {
-<span class="nc" id="L632">        CertReqMessages msgs = null;</span>
-<span class="nc bnc" id="L633" title="All 10 branches missed.">        if (tag == 0 || tag == 2 || tag == 7 || tag == 9 || tag == 13) {</span>
-<span class="nc" id="L634">            msgs = (CertReqMessages) body.getContent();</span>
+<span class="fc" id="L632">        CertReqMessages msgs = null;</span>
+<span class="pc bpc" id="L633" title="9 of 10 branches missed.">        if (tag == 0 || tag == 2 || tag == 7 || tag == 9 || tag == 13) {</span>
+<span class="fc" id="L634">            msgs = (CertReqMessages) body.getContent();</span>
         }
-<span class="nc" id="L636">        return msgs;</span>
+<span class="fc" id="L636">        return msgs;</span>
     }
 
     @Override

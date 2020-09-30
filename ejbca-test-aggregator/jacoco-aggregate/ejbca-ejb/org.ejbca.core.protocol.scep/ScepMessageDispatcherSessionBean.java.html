@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ScepMessageDispatcherSessionBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.scep</a> &gt; <span class="el_source">ScepMessageDispatcherSessionBean.java</span></div><h1>ScepMessageDispatcherSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.scep;
+
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.security.SignatureException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Collection;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CAOfflineException;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.ca.IllegalNameException;
+import org.cesecore.certificates.ca.IllegalValidityException;
+import org.cesecore.certificates.ca.InvalidAlgorithmException;
+import org.cesecore.certificates.ca.SignRequestException;
+import org.cesecore.certificates.ca.SignRequestSignatureException;
+import org.cesecore.certificates.certificate.CertificateCreateException;
+import org.cesecore.certificates.certificate.CertificateRevokeException;
+import org.cesecore.certificates.certificate.IllegalKeyException;
+import org.cesecore.certificates.certificate.certextensions.CertificateExtensionException;
+import org.cesecore.certificates.certificate.exception.CertificateSerialNumberException;
+import org.cesecore.certificates.certificate.exception.CustomCertificateSerialNumberException;
+import org.cesecore.certificates.certificate.request.ResponseMessage;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.util.Base64;
+import org.ejbca.config.EjbcaConfiguration;
+import org.ejbca.config.ScepConfiguration;
+import org.ejbca.core.ejb.ca.sign.SignSessionLocal;
+import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.ca.AuthLoginException;
+import org.ejbca.core.model.ca.AuthStatusException;
+import org.ejbca.core.protocol.NoSuchAliasException;
+import org.ejbca.ui.web.protocol.CertificateRenewalException;
+import org.ejbca.core.protocol.scep.ScepOperationPlugin;
+import org.ejbca.core.protocol.scep.ScepResponsePlugin;
+
+/**
+ * 
+ * @version $Id: ScepMessageDispatcherSessionBean.java 28857 2018-05-07 08:35:30Z samuellb $
+ *
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;ScepMessageDispatcherSessionRemote&quot;)
+<span class="nc" id="L72">public class ScepMessageDispatcherSessionBean implements ScepMessageDispatcherSessionLocal, ScepMessageDispatcherSessionRemote {</span>
+
+    /** Internal localization of logs and errors */
+<span class="nc" id="L75">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+<span class="nc" id="L76">    private static final Logger log = Logger.getLogger(ScepMessageDispatcherSessionBean.class);</span>
+    
+    private static final String SCEP_RA_MODE_EXTENSION_CLASSNAME = &quot;org.ejbca.core.protocol.scep.ScepRaModeExtension&quot;;
+    private static final String SCEP_CLIENT_CERTIFICATE_RENEWAL_CLASSNAME = &quot;org.ejbca.core.protocol.scep.ClientCertificateRenewalExtension&quot;;
+    
+<span class="nc" id="L81">    private transient ScepOperationPlugin scepRaModeExtension = null;</span>
+<span class="nc" id="L82">    private transient ScepResponsePlugin scepClientCertificateRenewal = null;</span>
+    
+    @EJB
+    private GlobalConfigurationSessionLocal globalConfigSession;
+    @EJB
+    private SignSessionLocal signSession;
+    @EJB
+    private CaSessionLocal caSession;
+    
+    
+    @PostConstruct
+    public void postConstruct() {
+        try {
+            @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L96">            Class&lt;? extends ScepOperationPlugin&gt; extensionClass = (Class&lt;? extends ScepOperationPlugin&gt;) Class.forName(SCEP_RA_MODE_EXTENSION_CLASSNAME);</span>
+<span class="nc" id="L97">            scepRaModeExtension = extensionClass.getConstructor().newInstance();</span>
+<span class="nc" id="L98">        } catch (ClassNotFoundException | NoSuchMethodException e) {</span>
+<span class="nc" id="L99">            scepRaModeExtension = null;</span>
+<span class="nc" id="L100">        } catch (InstantiationException | InvocationTargetException e) {</span>
+<span class="nc" id="L101">            scepRaModeExtension = null;</span>
+<span class="nc" id="L102">            log.error(SCEP_RA_MODE_EXTENSION_CLASSNAME + &quot; was found, but could not be instanced. &quot; + e.getMessage());</span>
+<span class="nc" id="L103">        } catch (IllegalAccessException e) {</span>
+<span class="nc" id="L104">            scepRaModeExtension = null;</span>
+<span class="nc" id="L105">            log.error(SCEP_RA_MODE_EXTENSION_CLASSNAME + &quot; was found, but could not be instanced. &quot; + e.getMessage());</span>
+<span class="nc" id="L106">        }</span>
+        
+        try {
+            @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L110">            Class&lt;ScepResponsePlugin&gt; extensionClass = (Class&lt;ScepResponsePlugin&gt;) Class.forName(SCEP_CLIENT_CERTIFICATE_RENEWAL_CLASSNAME);</span>
+<span class="nc" id="L111">            scepClientCertificateRenewal = extensionClass.getConstructor().newInstance();</span>
+<span class="nc" id="L112">        } catch (ClassNotFoundException | NoSuchMethodException e) {</span>
+<span class="nc" id="L113">            scepClientCertificateRenewal = null;</span>
+<span class="nc" id="L114">        } catch (InstantiationException | InvocationTargetException e) {</span>
+<span class="nc" id="L115">            scepClientCertificateRenewal = null;</span>
+<span class="nc" id="L116">            log.error(SCEP_CLIENT_CERTIFICATE_RENEWAL_CLASSNAME + &quot; was found, but could not be instanced. &quot; + e.getMessage());</span>
+<span class="nc" id="L117">        } catch (IllegalAccessException e) {</span>
+<span class="nc" id="L118">            scepClientCertificateRenewal = null;</span>
+<span class="nc" id="L119">            log.error(SCEP_CLIENT_CERTIFICATE_RENEWAL_CLASSNAME + &quot; was found, but could not be instanced. &quot; + e.getMessage());</span>
+<span class="nc" id="L120">        }</span>
+<span class="nc" id="L121">    }</span>
+    
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public byte[] dispatchRequest(final AuthenticationToken authenticationToken, final String operation, final String message, final String scepConfigurationAlias) 
+            throws NoSuchAliasException, CADoesntExistsException, AuthorizationDeniedException, NoSuchEndEntityException, CustomCertificateSerialNumberException, 
+            CryptoTokenOfflineException, IllegalKeyException, SignRequestException, SignRequestSignatureException, AuthStatusException, AuthLoginException, IllegalNameException, 
+            CertificateCreateException, CertificateRevokeException, CertificateSerialNumberException, IllegalValidityException, CAOfflineException, InvalidAlgorithmException, 
+            SignatureException, CertificateException, CertificateExtensionException, CertificateRenewalException {
+        
+<span class="nc" id="L131">        ScepConfiguration scepConfig = (ScepConfiguration) this.globalConfigSession.getCachedConfiguration(ScepConfiguration.SCEP_CONFIGURATION_ID);</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">        if(!scepConfig.aliasExists(scepConfigurationAlias)) {</span>
+<span class="nc" id="L133">            throw new NoSuchAliasException();</span>
+        }
+        
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        if (operation.equals(&quot;PKIOperation&quot;)) {</span>
+<span class="nc" id="L137">            byte[] scepmsg = Base64.decode(message.getBytes());</span>
+            // Read the message and get the certificate, this also checks authorization
+<span class="nc" id="L139">            return scepCertRequest(authenticationToken, scepmsg, scepConfigurationAlias, scepConfig);</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">        } else if (operation.equals(&quot;GetCACert&quot;)) {</span>
+            // CA_IDENT is the message for this request to indicate which CA we are talking about
+<span class="nc" id="L142">            final String caname = getCAName(message);</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L144">                log.debug(&quot;Got SCEP cert request for CA '&quot; + caname + &quot;'&quot;);</span>
+            }
+<span class="nc" id="L146">            Collection&lt;Certificate&gt; certs = null;</span>
+<span class="nc" id="L147">            CAInfo cainfo = caSession.getCAInfoInternal(-1, caname, true);</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">            if (cainfo != null) {</span>
+<span class="nc" id="L149">                certs = cainfo.getCertificateChain();</span>
+            }
+<span class="nc bnc" id="L151" title="All 4 branches missed.">            if ((certs != null) &amp;&amp; (certs.size() &gt; 0)) {</span>
+                // CAs certificate is in the first position in the Collection
+<span class="nc" id="L153">                X509Certificate cert = (X509Certificate) certs.iterator().next();</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L155">                    log.debug(&quot;Sent certificate for CA '&quot; + caname + &quot;' to SCEP client.&quot;);</span>
+                }
+<span class="nc" id="L157">                return cert.getEncoded();</span>
+            } else {
+<span class="nc" id="L159">                return null;</span>
+            }
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        } else if (operation.equals(&quot;GetCACertChain&quot;)) {</span>
+            // CA_IDENT is the message for this request to indicate which CA we are talking about
+<span class="nc" id="L163">            final String caname = getCAName(message);</span>
+<span class="nc" id="L164">            log.debug(&quot;Got SCEP pkcs7 request for CA '&quot; + caname + &quot;'. Old client using SCEP draft 18?&quot;);</span>
+
+<span class="nc" id="L166">            CAInfo cainfo = caSession.getCAInfo(authenticationToken, caname);</span>
+<span class="nc" id="L167">            byte[] pkcs7 = signSession.createPKCS7(authenticationToken, cainfo.getCAId(), true);</span>
+<span class="nc bnc" id="L168" title="All 4 branches missed.">            if ((pkcs7 != null) &amp;&amp; (pkcs7.length &gt; 0)) {</span>
+<span class="nc" id="L169">                return pkcs7;</span>
+            } else {
+<span class="nc" id="L171">                return null;</span>
+            }
+<span class="nc bnc" id="L173" title="All 2 branches missed.">        } else if (operation.equals(&quot;GetNextCACert&quot;)) {</span>
+<span class="nc" id="L174">            final String caname = getCAName(message);</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L176">                log.debug(&quot;Got SCEP next cert request for CA '&quot; + caname + &quot;'&quot;);</span>
+            }
+<span class="nc" id="L178">            final CAInfo cainfo = caSession.getCAInfoInternal(-1, caname, true);</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">            if (cainfo == null) {</span>
+<span class="nc" id="L180">                String errMsg = intres.getLocalizedMessage(&quot;scep.errorunknownca&quot;, &quot;cert&quot;);</span>
+<span class="nc" id="L181">                log.error(errMsg);</span>
+<span class="nc" id="L182">                throw new CADoesntExistsException(errMsg);</span>
+            } else {
+<span class="nc bnc" id="L184" title="All 2 branches missed.">                if (caSession.getFutureRolloverCertificate(cainfo.getCAId()) != null) {</span>
+                    // Send full certificate chain of next CA, in SCEP-PKCS7 format 
+<span class="nc bnc" id="L186" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L187">                        log.debug(&quot;Sending next certificate chain for CA '&quot; + caname + &quot;' to SCEP client.&quot;);</span>
+                    }
+<span class="nc" id="L189">                    return signSession.createPKCS7Rollover(authenticationToken, cainfo.getCAId());</span>
+                } else {
+<span class="nc" id="L191">                    return null;</span>
+                }
+            }
+<span class="nc bnc" id="L194" title="All 2 branches missed.">        } else if (operation.equals(&quot;GetCACaps&quot;)) {</span>
+<span class="nc" id="L195">            final String caname = getCAName(message);</span>
+<span class="nc" id="L196">            final CAInfo cainfo = caSession.getCAInfoInternal(-1, caname, true);</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">            if (cainfo != null) {</span>
+<span class="nc bnc" id="L198" title="All 2 branches missed.">                final boolean hasRolloverCert = (caSession.getFutureRolloverCertificate(cainfo.getCAId()) != null);</span>
+                // SCEP draft 23, &quot;4.6.1.  Get Next CA Response Message Format&quot;. 
+                // It SHOULD also remove the GetNextCACert setting from the capabilities until it does have rollover certificates.            
+<span class="nc bnc" id="L201" title="All 2 branches missed.">                return  hasRolloverCert ?</span>
+<span class="nc" id="L202">                        &quot;POSTPKIOperation\nGetNextCACert\nRenewal\nSHA-1&quot;.getBytes() :</span>
+<span class="nc" id="L203">                        &quot;POSTPKIOperation\nRenewal\nSHA-1&quot;.getBytes();</span>
+            } else {
+<span class="nc" id="L205">                final String msg = &quot;CA was not found: &quot;+caname;</span>
+<span class="nc" id="L206">                log.debug(msg);</span>
+<span class="nc" id="L207">                throw new CADoesntExistsException(msg);</span>
+            }
+        } else {
+<span class="nc" id="L210">            log.error(&quot;Invalid parameter '&quot; + operation);</span>
+        }
+<span class="nc" id="L212">        return null;</span>
+    }
+    
+    /** Later SCEP draft say that for GetCACert message is optional. If message is there, it is the CA name
+     * but if message is not provided by the client, some default CA should be used.
+     * @param message the message part for the SCEP get request, can be null or empty string
+     * @return the message parameter or the default CA from ALIAS.defaultca property if message is null or empty.
+     */
+    private String getCAName(final String message) {
+        // If message is a string, return it, but if message is empty return default CA
+<span class="nc bnc" id="L222" title="All 2 branches missed.">        if (StringUtils.isEmpty(message)) {</span>
+<span class="nc" id="L223">            return EjbcaConfiguration.getScepDefaultCA();</span>
+        }
+<span class="nc" id="L225">        return message;</span>
+    }
+    
+    /**
+     * Handles SCEP certificate request
+     * @param administrator Admin
+     *
+     * @param msg buffer holding the SCEP-request (DER encoded).
+     * @param alias the alias of the SCEP configuration
+     * @param scepConfig The SCEP configuration
+     *
+     * @return byte[] containing response to be sent to client.
+     * @throws AuthorizationDeniedException Fail
+     * @throws CertificateExtensionException if msg specified invalid extensions
+     * @throws InvalidAlgorithmException Fail
+     * @throws CAOfflineException Fail
+     * @throws IllegalValidityException Fail
+     * @throws CertificateSerialNumberException Fail 
+     * @throws CertificateRevokeException Fail
+     * @throws CertificateCreateException Fail
+     * @throws IllegalNameException Fail
+     * @throws AuthLoginException Fail
+     * @throws AuthStatusException Fail
+     * @throws SignRequestSignatureException Fail 
+     * @throws SignRequestException Fail
+     * @throws CADoesntExistsException Fail
+     * @throws IllegalKeyException Fail
+     * @throws CryptoTokenOfflineException Fail 
+     * @throws CustomCertificateSerialNumberException Fail
+     * @throws CertificateRenewalException if an error occurs during Client Certificate Renewal
+     * @throws SignatureException if a Client Certificate Renewal request was badly signed. 
+     * @throws CertificateException Fail
+     * @throws NoSuchEndEntityException if end entity wasn't found, and RA mode isn't available. 
+     */
+    private byte[] scepCertRequest(AuthenticationToken administrator, byte[] msg, final String alias, final ScepConfiguration scepConfig)
+            throws AuthorizationDeniedException, CertificateExtensionException, NoSuchEndEntityException, CustomCertificateSerialNumberException,
+            CryptoTokenOfflineException, IllegalKeyException, CADoesntExistsException, SignRequestException, SignRequestSignatureException,
+            AuthStatusException, AuthLoginException, IllegalNameException, CertificateCreateException, CertificateRevokeException,
+            CertificateSerialNumberException, IllegalValidityException, CAOfflineException, InvalidAlgorithmException,
+            CertificateRenewalException, SignatureException, CertificateException {
+<span class="nc" id="L265">      byte[] ret = null;</span>
+<span class="nc bnc" id="L266" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L267">            log.trace(&quot;&gt;getRequestMessage(&quot; + msg.length + &quot; bytes)&quot;);</span>
+        }
+        
+        try {
+<span class="nc" id="L271">            boolean includeCACert = scepConfig.getIncludeCA(alias);</span>
+<span class="nc" id="L272">            final ScepRequestMessage reqmsg = new ScepRequestMessage(msg, includeCACert);        </span>
+<span class="nc" id="L273">            boolean isRAModeOK = scepConfig.getRAMode(alias);</span>
+
+<span class="nc bnc" id="L275" title="All 2 branches missed.">            if (reqmsg.getErrorNo() != 0) {</span>
+<span class="nc" id="L276">                log.error(&quot;Error '&quot; + reqmsg.getErrorNo() + &quot;' receiving Scep request message.&quot;);</span>
+<span class="nc" id="L277">                return null;</span>
+            }
+<span class="nc bnc" id="L279" title="All 2 branches missed.">            if (reqmsg.getMessageType() == ScepRequestMessage.SCEP_TYPE_PKCSREQ) {</span>
+<span class="nc bnc" id="L280" title="All 4 branches missed.">                if (isRAModeOK &amp;&amp; scepRaModeExtension == null) {</span>
+                    // Fail nicely
+<span class="nc" id="L282">                    log.warn(&quot;SCEP RA mode is enabled, but not included in the community version of EJBCA. Unable to continue.&quot;);</span>
+<span class="nc" id="L283">                    return null;</span>
+<span class="nc bnc" id="L284" title="All 2 branches missed.">                } else if (isRAModeOK) {</span>
+<span class="nc bnc" id="L285" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L286">                        log.debug(&quot;SCEP is operating in RA mode: &quot; + isRAModeOK);</span>
+                    }
+<span class="nc bnc" id="L288" title="All 2 branches missed.">                    if (!scepRaModeExtension.performOperation(administrator, reqmsg, scepConfig, alias)) {</span>
+<span class="nc" id="L289">                        String errmsg = &quot;Error. Failed to add or edit user: &quot; + reqmsg.getUsername();</span>
+<span class="nc" id="L290">                        log.error(errmsg);</span>
+<span class="nc" id="L291">                        return null;</span>
+                    }
+                }
+<span class="nc bnc" id="L294" title="All 4 branches missed.">                if (scepClientCertificateRenewal != null &amp;&amp; scepConfig.getClientCertificateRenewal(alias)) {</span>
+<span class="nc bnc" id="L295" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L296">                        log.debug(&quot;SCEP client certificate renewal/enrollment with alias '&quot;+alias+&quot;'&quot;);</span>
+                    }
+<span class="nc" id="L298">                    ResponseMessage resp = scepClientCertificateRenewal.performOperation(administrator, reqmsg, scepConfig, alias);</span>
+<span class="nc bnc" id="L299" title="All 2 branches missed.">                    if (resp != null) {</span>
+<span class="nc" id="L300">                        ret = resp.getResponseMessage();</span>
+                    }
+<span class="nc" id="L302">                } else {                </span>
+                    // Get the certificate 
+<span class="nc bnc" id="L304" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L305">                        log.debug(&quot;SCEP certificate enrollment with alias '&quot;+alias+&quot;'&quot;);</span>
+                    }
+<span class="nc" id="L307">                    ResponseMessage resp = signSession.createCertificate(administrator, reqmsg, ScepResponseMessage.class, null);</span>
+<span class="nc bnc" id="L308" title="All 2 branches missed.">                    if (resp != null) {</span>
+<span class="nc" id="L309">                        ret = resp.getResponseMessage();</span>
+                    }
+                }
+            }
+<span class="nc bnc" id="L313" title="All 2 branches missed.">            if (reqmsg.getMessageType() == ScepRequestMessage.SCEP_TYPE_GETCRL) {</span>
+                // create the stupid encrypted CRL message, the below can actually only be made 
+                // at the CA, since CAs private key is needed to decrypt
+<span class="nc" id="L316">                ResponseMessage resp = signSession.getCRL(administrator, reqmsg, ScepResponseMessage.class);</span>
+<span class="nc bnc" id="L317" title="All 2 branches missed.">                if (resp != null) {</span>
+<span class="nc" id="L318">                    ret = resp.getResponseMessage();</span>
+                }
+            }
+<span class="nc" id="L321">        } catch (IOException e) {</span>
+<span class="nc" id="L322">            log.error(&quot;Error receiving ScepMessage: &quot;, e);</span>
+<span class="nc" id="L323">        } </span>
+<span class="nc bnc" id="L324" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc bnc" id="L325" title="All 2 branches missed.">            log.trace(&quot;&lt;getRequestMessage():&quot; + ((ret == null) ? 0 : ret.length));</span>
+        }
+<span class="nc" id="L327">        return ret;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

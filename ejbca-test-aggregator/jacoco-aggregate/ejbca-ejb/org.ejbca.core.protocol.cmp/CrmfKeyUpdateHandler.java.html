@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CrmfKeyUpdateHandler.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.cmp</a> &gt; <span class="el_source">CrmfKeyUpdateHandler.java</span></div><h1>CrmfKeyUpdateHandler.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.cmp;
+
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PublicKey;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
+import java.security.cert.X509Certificate;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.crmf.CertReqMessages;
+import org.bouncycastle.asn1.crmf.CertReqMsg;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSession;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAOfflineException;
+import org.cesecore.certificates.ca.IllegalNameException;
+import org.cesecore.certificates.ca.IllegalValidityException;
+import org.cesecore.certificates.ca.InvalidAlgorithmException;
+import org.cesecore.certificates.ca.SignRequestException;
+import org.cesecore.certificates.ca.SignRequestSignatureException;
+import org.cesecore.certificates.certificate.CertificateCreateException;
+import org.cesecore.certificates.certificate.CertificateRevokeException;
+import org.cesecore.certificates.certificate.CertificateStoreSession;
+import org.cesecore.certificates.certificate.IllegalKeyException;
+import org.cesecore.certificates.certificate.certextensions.CertificateExtensionException;
+import org.cesecore.certificates.certificate.exception.CertificateSerialNumberException;
+import org.cesecore.certificates.certificate.exception.CustomCertificateSerialNumberException;
+import org.cesecore.certificates.certificate.request.FailInfo;
+import org.cesecore.certificates.certificate.request.ResponseMessage;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.certificates.util.AlgorithmTools;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.util.CertTools;
+import org.ejbca.config.CmpConfiguration;
+import org.ejbca.core.EjbcaException;
+import org.ejbca.core.ejb.EjbBridgeSessionLocal;
+import org.ejbca.core.ejb.authentication.web.WebAuthenticationProviderSessionLocal;
+import org.ejbca.core.ejb.ca.sign.SignSession;
+import org.ejbca.core.ejb.ra.EndEntityAccessSession;
+import org.ejbca.core.ejb.ra.EndEntityManagementSession;
+import org.ejbca.core.ejb.ra.NoSuchEndEntityException;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.approval.WaitingForApprovalException;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileValidationException;
+import org.ejbca.core.protocol.cmp.authentication.EndEntityCertificateAuthenticationModule;
+
+/**
+ * Message handler for update messages using the CRMF format for the request itself.
+ * 
+ * @version $Id: CrmfKeyUpdateHandler.java 28298 2018-02-15 12:29:17Z anatom $
+ */
+public class CrmfKeyUpdateHandler extends BaseCmpMessageHandler implements ICmpMessageHandler {
+    
+<span class="nc" id="L74">    private static final Logger LOG = Logger.getLogger(CrmfKeyUpdateHandler.class);</span>
+    /** Internal localization of logs and errors */
+<span class="nc" id="L76">    private static final InternalEjbcaResources INTRES = InternalEjbcaResources.getInstance();</span>
+
+    /** strings for error messages defined in internal resources */
+    private static final String CMP_ERRORGENERAL = &quot;cmp.errorgeneral&quot;;
+
+    private final AuthorizationSession authorizationSession;
+    private final CertificateStoreSession certStoreSession;
+    private final EndEntityAccessSession endEntityAccessSession;
+    private final EndEntityManagementSession endEntityManagementSession;
+    private final SignSession signSession;
+    private final WebAuthenticationProviderSessionLocal authenticationProviderSession;
+
+
+    public CrmfKeyUpdateHandler(final AuthenticationToken authenticationToken, final CmpConfiguration cmpConfiguration, final String configAlias,
+    		final EjbBridgeSessionLocal ejbBridgeSession) {
+<span class="nc" id="L91">        super(authenticationToken, cmpConfiguration, configAlias, ejbBridgeSession);</span>
+<span class="nc" id="L92">        this.signSession = ejbBridgeSession.getSignSession();</span>
+<span class="nc" id="L93">        this.endEntityAccessSession = ejbBridgeSession.getEndEntityAccessSession();</span>
+<span class="nc" id="L94">        this.certStoreSession = ejbBridgeSession.getCertificateStoreSession();</span>
+<span class="nc" id="L95">        this.authorizationSession = ejbBridgeSession.getAuthorizationSession();</span>
+<span class="nc" id="L96">        this.authenticationProviderSession = ejbBridgeSession.getWebAuthenticationProviderSession();</span>
+<span class="nc" id="L97">        this.endEntityManagementSession = ejbBridgeSession.getEndEntityManagementSession();</span>
+<span class="nc" id="L98">    }</span>
+
+    /*
+     * Handles the CMP message
+     * 
+     * Expects the CMP message to be a CrmfRequestMessage. The message is authenticated using 
+     * EndEntityCertificateAuthenticationModule in client mode. It used the attached certificate 
+     * to find then End Entity which this certificate belongs to and requesting for a new certificate 
+     * to be generated. 
+     * 
+     * If automatic update of the key (same as certificate renewal), the end entity's status is set to 
+     * 'NEW' before processing the request. If using the same old keys in the new certificate is not allowed, 
+     * a check is made to insure the the key specified in the request is not the same as the key of the attached 
+     * certificate.
+     * 
+     * The KeyUpdateRequest is processed only in client mode.
+     */
+    @Override
+    public ResponseMessage handleMessage(final BaseCmpMessage cmpRequestMessage, final boolean authenticated) {
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L118">            LOG.trace(&quot;&gt;handleMessage&quot;);</span>
+        }
+        // NOTE. If we will issue the new certificate using another CertificateProfile and/or CA than the ones specified 
+        // in the end entity (prior to receiving the request), update the authorization check in 
+        // EndEntityCertificateAuthenticationModule.isAuthorizedAdmin() to check authorization to the right CertProfile and CA
+<span class="nc" id="L123">        final boolean raMode = this.cmpConfiguration.getRAMode(this.confAlias);</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L125">            LOG.debug(&quot;CMP running on RA mode: &quot; + raMode);</span>
+        }
+<span class="nc" id="L127">        ResponseMessage resp = null;</span>
+        try {
+<span class="nc" id="L129">            CrmfRequestMessage crmfreq = null;</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">            if (cmpRequestMessage instanceof CrmfRequestMessage) {</span>
+<span class="nc" id="L131">                crmfreq = (CrmfRequestMessage) cmpRequestMessage;</span>
+<span class="nc" id="L132">                crmfreq.getMessage();</span>
+
+<span class="nc" id="L134">                EndEntityCertificateAuthenticationModule eecmodule = null;</span>
+<span class="nc" id="L135">                X509Certificate oldCert = null;</span>
+                        
+                // Find the subjectDN to look for
+<span class="nc" id="L138">                String subjectDN = null;</span>
+<span class="nc" id="L139">                String issuerDN = null;</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">                if(raMode) {                    </span>
+                    // Check that EndEntityCertificate authentication module is set
+<span class="nc bnc" id="L142" title="All 2 branches missed.">                    if(!cmpConfiguration.isInAuthModule(confAlias, CmpConfiguration.AUTHMODULE_ENDENTITY_CERTIFICATE)) {</span>
+<span class="nc" id="L143">                        String errmsg = &quot;EndEntityCertificate authentication module is not configured. For a KeyUpdate request to be authentication in RA mode, EndEntityCertificate &quot; +</span>
+                        		&quot;authentication module has to be set and configured&quot;;
+<span class="nc" id="L145">                        LOG.info(errmsg);</span>
+<span class="nc" id="L146">                        return CmpMessageHelper.createUnprotectedErrorMessage(cmpRequestMessage, FailInfo.BAD_REQUEST, errmsg);</span>
+                    }
+                    // Check PKIMessage authentication
+<span class="nc" id="L149">                    String authparameter = cmpConfiguration.getAuthenticationParameter(CmpConfiguration.AUTHMODULE_ENDENTITY_CERTIFICATE, confAlias);</span>
+<span class="nc" id="L150">                    eecmodule = new EndEntityCertificateAuthenticationModule(admin, authparameter, </span>
+                            confAlias, cmpConfiguration, authenticated, caSession, certStoreSession, authorizationSession, endEntityProfileSession, certificateProfileSession,
+                            endEntityAccessSession, authenticationProviderSession, endEntityManagementSession);
+<span class="nc bnc" id="L153" title="All 2 branches missed.">                    if(!eecmodule.verifyOrExtract(crmfreq.getPKIMessage(), null)) {</span>
+<span class="nc" id="L154">                        LOG.info(eecmodule.getErrorMessage());</span>
+<span class="nc" id="L155">                        return CmpMessageHelper.createUnprotectedErrorMessage(cmpRequestMessage, FailInfo.BAD_REQUEST, eecmodule.getErrorMessage());</span>
+                    } else {
+<span class="nc bnc" id="L157" title="All 2 branches missed.">                        if(LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L158">                            LOG.debug(&quot;The CMP KeyUpdate request for SubjectDN '&quot; + crmfreq.getSubjectDN() +&quot;' was verified successfully&quot;);</span>
+                        }
+                    }
+<span class="nc" id="L161">                    oldCert = certStoreSession.findLatestX509CertificateBySubject(crmfreq.getSubjectDN());</span>
+                    
+<span class="nc" id="L163">                    CertReqMessages kur = (CertReqMessages) crmfreq.getPKIMessage().getBody().getContent();</span>
+                    CertReqMsg certmsg;
+                    try {
+<span class="nc" id="L166">                        certmsg = kur.toCertReqMsgArray()[0];</span>
+<span class="nc" id="L167">                    } catch(Exception e) {</span>
+<span class="nc" id="L168">                        LOG.debug(&quot;Could not parse the revocation request. Trying to parse it as novosec generated message.&quot;);</span>
+<span class="nc" id="L169">                        certmsg = CmpMessageHelper.getNovosecCertReqMsg(kur);</span>
+<span class="nc" id="L170">                        LOG.debug(&quot;Succeeded in parsing the novosec generated request.&quot;);</span>
+<span class="nc" id="L171">                    }</span>
+<span class="nc" id="L172">                    X500Name dn = certmsg.getCertReq().getCertTemplate().getSubject();</span>
+<span class="nc bnc" id="L173" title="All 2 branches missed.">                    if(dn != null) {</span>
+<span class="nc" id="L174">                        subjectDN = dn.toString();</span>
+                    }
+<span class="nc" id="L176">                    dn = certmsg.getCertReq().getCertTemplate().getIssuer();</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">                    if(dn != null) {</span>
+<span class="nc" id="L178">                        issuerDN = dn.toString();</span>
+                    }
+<span class="nc" id="L180">                } else {</span>
+                    // Client mode
+                    
+<span class="nc" id="L183">                    eecmodule = new EndEntityCertificateAuthenticationModule(admin, null, </span>
+                            confAlias, cmpConfiguration, authenticated, caSession, certStoreSession, authorizationSession, endEntityProfileSession, certificateProfileSession, 
+                            endEntityAccessSession, authenticationProviderSession, endEntityManagementSession);
+<span class="nc bnc" id="L186" title="All 2 branches missed.">                    if(!eecmodule.verifyOrExtract(crmfreq.getPKIMessage(), null)) {</span>
+<span class="nc" id="L187">                        LOG.info(eecmodule.getErrorMessage());</span>
+<span class="nc" id="L188">                        return CmpMessageHelper.createUnprotectedErrorMessage(cmpRequestMessage, FailInfo.BAD_REQUEST, eecmodule.getErrorMessage());</span>
+                    }
+<span class="nc" id="L190">                    oldCert = (X509Certificate) eecmodule.getExtraCert();</span>
+                    
+<span class="nc" id="L192">                    subjectDN = oldCert.getSubjectDN().toString(); </span>
+<span class="nc" id="L193">                    issuerDN = oldCert.getIssuerDN().toString();</span>
+                }
+
+<span class="nc bnc" id="L196" title="All 2 branches missed.">                if(subjectDN == null) {</span>
+<span class="nc" id="L197">                    final String errMsg = &quot;Cannot find a SubjectDN in the request&quot;;</span>
+<span class="nc" id="L198">                    LOG.info(errMsg);</span>
+<span class="nc" id="L199">                    return CmpMessageHelper.createUnprotectedErrorMessage(cmpRequestMessage, FailInfo.BAD_REQUEST, errMsg);</span>
+                }
+                
+                // Find the end entity that the certificate belongs to                
+<span class="nc bnc" id="L203" title="All 2 branches missed.">                if(LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L204">                    LOG.debug(&quot;Looking for an end entity with subjectDN: &quot; + subjectDN);</span>
+                }
+<span class="nc" id="L206">                EndEntityInformation endEntityInformation = null;</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">                if(issuerDN == null) {</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">                    if(LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L209">                        LOG.debug(&quot;The CMP KeyUpdateRequest did not specify an issuer&quot;);</span>
+                    }
+<span class="nc" id="L211">                    final List&lt;EndEntityInformation&gt; endEntityInformations = endEntityAccessSession.findUserBySubjectDN(admin, subjectDN);</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">                    if (!endEntityInformations.isEmpty()) {</span>
+<span class="nc" id="L213">                        endEntityInformation = endEntityInformations.get(0);</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">                        if (endEntityInformations.size() &gt; 1) {</span>
+<span class="nc" id="L215">                            LOG.warn(&quot;Multiple end entities with subject DN &quot; + subjectDN + &quot; were found. This may lead to unexpected behavior.&quot;);</span>
+                        }
+                    }
+<span class="nc" id="L218">                } else {</span>
+<span class="nc" id="L219">                    final List&lt;EndEntityInformation&gt; endEntityInformations = endEntityAccessSession.findUserBySubjectAndIssuerDN(admin, subjectDN, issuerDN);</span>
+<span class="nc bnc" id="L220" title="All 2 branches missed.">                    if (!endEntityInformations.isEmpty()) {</span>
+<span class="nc" id="L221">                        endEntityInformation = endEntityInformations.get(0);</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">                        if (endEntityInformations.size() &gt; 1) {</span>
+<span class="nc" id="L223">                            LOG.warn(&quot;Multiple end entities with subject DN &quot; + subjectDN + &quot; and issuer DN&quot; + issuerDN</span>
+                                    + &quot; were found. This may lead to unexpected behavior.&quot;);
+                        }
+                    }
+                }
+<span class="nc bnc" id="L228" title="All 2 branches missed.">                if(endEntityInformation == null) {</span>
+<span class="nc" id="L229">                    final String errMsg = INTRES.getLocalizedMessage(&quot;cmp.infonouserfordn&quot;, subjectDN);</span>
+<span class="nc" id="L230">                    LOG.info(errMsg);</span>
+<span class="nc" id="L231">                    return CmpMessageHelper.createUnprotectedErrorMessage(cmpRequestMessage, FailInfo.BAD_MESSAGE_CHECK, errMsg);</span>
+                }
+<span class="nc bnc" id="L233" title="All 2 branches missed.">                if(LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L234">                    LOG.debug(&quot;Found user '&quot; + endEntityInformation.getUsername() + &quot;'&quot;);</span>
+                }
+            
+                /*
+                 * Check the status of the certificate that should be updated.
+                 * 
+                 * RFC4210 states in ch. 5.3.5:
+                 * &quot;[...] This message is intended to be used to request updates to existing (non-revoked and non-expired) certificates [...]&quot; 
+                 */
+<span class="nc bnc" id="L243" title="All 2 branches missed.">                if(certStoreSession.isRevoked(CertTools.getIssuerDN(oldCert), CertTools.getSerialNumber(oldCert))) {</span>
+<span class="nc" id="L244">                    String errorMessage = &quot;Certificate for end entity with username &quot; + endEntityInformation.getUsername() + &quot; with subject DN &quot; + subjectDN</span>
+                            + &quot; is revoked. Unable to perform key update.&quot;;
+<span class="nc bnc" id="L246" title="All 2 branches missed.">                    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L247">                        LOG.debug(errorMessage);</span>
+                    }
+<span class="nc" id="L249">                    return CmpMessageHelper.createUnprotectedErrorMessage(cmpRequestMessage, FailInfo.BAD_REQUEST, errorMessage);</span>
+                }
+                try {
+<span class="nc" id="L252">                    oldCert.checkValidity();</span>
+<span class="nc" id="L253">                } catch (CertificateExpiredException e) {</span>
+<span class="nc" id="L254">                    String errorMessage = &quot;Certificate for end entity with username &quot; + endEntityInformation.getUsername() + &quot; with subject DN &quot;</span>
+                            + subjectDN + &quot; is expired. Unable to perform key update.&quot;;
+<span class="nc bnc" id="L256" title="All 2 branches missed.">                    if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L257">                        LOG.debug(errorMessage);</span>
+                    }
+<span class="nc" id="L259">                    return CmpMessageHelper.createUnprotectedErrorMessage(cmpRequestMessage, FailInfo.BAD_REQUEST, errorMessage);</span>
+<span class="nc" id="L260">                } catch(CertificateNotYetValidException e) {</span>
+                    //A not yet valid certificate is still valid for update according to the RFC. 
+<span class="nc" id="L262">                }</span>
+                        
+                // The password that should be used to obtain the new certificate
+<span class="nc bnc" id="L265" title="All 2 branches missed.">                String password = StringUtils.isNotEmpty(endEntityInformation.getPassword()) ? endEntityInformation.getPassword() : eecmodule.getAuthenticationString();</span>
+                
+                // Set the appropriate parameters in the end entity
+<span class="nc" id="L268">                endEntityInformation.setPassword(password);</span>
+<span class="nc" id="L269">                endEntityManagementSession.changeUser(admin, endEntityInformation, false);</span>
+<span class="nc bnc" id="L270" title="All 2 branches missed.">                if(this.cmpConfiguration.getKurAllowAutomaticUpdate(this.confAlias)) {</span>
+<span class="nc bnc" id="L271" title="All 2 branches missed.">                    if(LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L272">                        LOG.debug(&quot;Setting the end entity status to 'NEW'. Username: &quot; + endEntityInformation.getUsername());</span>
+                    }    
+<span class="nc" id="L274">                    endEntityManagementSession.setUserStatus(admin, endEntityInformation.getUsername(), EndEntityConstants.STATUS_NEW);</span>
+                } else {
+<span class="nc bnc" id="L276" title="All 2 branches missed.">                    if(LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L277">                        LOG.debug(&quot;Not setting the end entity status to 'NEW', because KUR Automatic Key Update is not allowed. Username: &quot; + endEntityInformation.getUsername());</span>
+                    }                    
+                }
+                
+                // Set the appropriate parameters in the request
+<span class="nc" id="L282">                crmfreq.setUsername(endEntityInformation.getUsername());</span>
+<span class="nc" id="L283">                crmfreq.setPassword(password);</span>
+<span class="nc bnc" id="L284" title="All 2 branches missed.">                if(crmfreq.getHeader().getProtectionAlg() != null) {</span>
+<span class="nc" id="L285">                    crmfreq.setPreferredDigestAlg(AlgorithmTools.getDigestFromSigAlg(crmfreq.getHeader().getProtectionAlg().getAlgorithm().getId()));</span>
+                }
+
+                // Check the public key, whether it is allowed to use the old keys or not.
+<span class="nc bnc" id="L289" title="All 2 branches missed.">                if(!this.cmpConfiguration.getKurAllowSameKey(this.confAlias)) {</span>
+<span class="nc" id="L290">                    PublicKey certPublicKey = oldCert.getPublicKey();</span>
+<span class="nc" id="L291">                    PublicKey requestPublicKey = crmfreq.getRequestPublicKey();</span>
+<span class="nc bnc" id="L292" title="All 2 branches missed.">                    if(LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L293">                        LOG.debug(&quot;Not allowing update with same key, comparing keys.&quot;);</span>
+<span class="nc bnc" id="L294" title="All 2 branches missed.">                        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L295">                            LOG.trace(&quot;OldKey: &quot;+certPublicKey.toString());</span>
+<span class="nc" id="L296">                            LOG.trace(&quot;NewKey: &quot;+requestPublicKey.toString());</span>
+                        }
+                    }
+<span class="nc bnc" id="L299" title="All 2 branches missed.">                    if(certPublicKey.equals(requestPublicKey)) {</span>
+<span class="nc" id="L300">                        final String errMsg = &quot;Invalid key. The public key in the KeyUpdateRequest is the same as the public key in the existing end entity certificate&quot;;</span>
+<span class="nc" id="L301">                        LOG.info(errMsg);</span>
+<span class="nc" id="L302">                        return CmpMessageHelper.createUnprotectedErrorMessage(cmpRequestMessage, FailInfo.BAD_MESSAGE_CHECK, errMsg);</span>
+                    }
+                }
+
+                // Process the request
+<span class="nc" id="L307">                resp = signSession.createCertificate(admin, crmfreq, org.ejbca.core.protocol.cmp.CmpResponseMessage.class, endEntityInformation);               </span>
+
+<span class="nc bnc" id="L309" title="All 2 branches missed.">                if (resp == null) {</span>
+<span class="nc" id="L310">                    final String errMsg = INTRES.getLocalizedMessage(&quot;cmp.errornullresp&quot;);</span>
+<span class="nc" id="L311">                    LOG.info(errMsg);</span>
+<span class="nc" id="L312">                    resp = CmpMessageHelper.createUnprotectedErrorMessage(cmpRequestMessage, FailInfo.BAD_MESSAGE_CHECK, errMsg);</span>
+                }
+<span class="nc" id="L314">            } else {</span>
+<span class="nc" id="L315">                final String errMsg = INTRES.getLocalizedMessage(&quot;cmp.errornocmrfreq&quot;);</span>
+<span class="nc" id="L316">                LOG.info(errMsg);</span>
+<span class="nc" id="L317">                resp = CmpMessageHelper.createUnprotectedErrorMessage(cmpRequestMessage, FailInfo.BAD_MESSAGE_CHECK, errMsg);</span>
+            }
+
+<span class="nc" id="L320">        } catch (AuthorizationDeniedException | CADoesntExistsException | EndEntityProfileValidationException | InvalidAlgorithmException | CAOfflineException | IllegalValidityException | CertificateSerialNumberException</span>
+                |  CustomCertificateSerialNumberException | CryptoTokenOfflineException | IllegalKeyException
+                | SignRequestException | SignRequestSignatureException | IllegalNameException | CertificateCreateException
+                | CertificateRevokeException | NoSuchEndEntityException | EjbcaException | CertificateExtensionException | WaitingForApprovalException e) {
+<span class="nc" id="L324">            final String errMsg = INTRES.getLocalizedMessage(CMP_ERRORGENERAL, e.getMessage());</span>
+<span class="nc" id="L325">            LOG.info(errMsg, e);</span>
+<span class="nc" id="L326">            resp = CmpMessageHelper.createUnprotectedErrorMessage(cmpRequestMessage, FailInfo.BAD_REQUEST, e.getMessage());</span>
+<span class="nc" id="L327">        } catch (InvalidKeyException | NoSuchProviderException | NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L328">            final String errMsg = INTRES.getLocalizedMessage(CMP_ERRORGENERAL, e.getMessage());</span>
+<span class="nc" id="L329">            LOG.info(&quot;Error while reading the public key of the extraCert attached to the CMP request&quot;);</span>
+<span class="nc" id="L330">            LOG.info(errMsg, e);</span>
+<span class="nc" id="L331">            resp = CmpMessageHelper.createUnprotectedErrorMessage(cmpRequestMessage, FailInfo.BAD_REQUEST, e.getMessage());</span>
+<span class="nc" id="L332">        }</span>
+
+<span class="nc bnc" id="L334" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L335">            LOG.trace(&quot;&lt;handleMessage&quot;);</span>
+        }
+<span class="nc" id="L337">        return resp;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

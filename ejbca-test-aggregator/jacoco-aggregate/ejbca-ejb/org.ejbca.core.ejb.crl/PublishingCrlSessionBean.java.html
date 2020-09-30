@@ -1,0 +1,719 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>PublishingCrlSessionBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.crl</a> &gt; <span class="el_source">PublishingCrlSessionBean.java</span></div><h1>PublishingCrlSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.ejb.crl;
+
+import java.security.cert.CRLException;
+import java.security.cert.Certificate;
+import java.security.cert.X509CRL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.FinderException;
+import javax.ejb.SessionContext;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+
+import org.apache.log4j.Logger;
+import org.cesecore.CesecoreException;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.enums.EventTypes;
+import org.cesecore.audit.enums.ModuleTypes;
+import org.cesecore.audit.enums.ServiceTypes;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.UsernamePrincipal;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.certificates.ca.CA;
+import org.cesecore.certificates.ca.CAConstants;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CAOfflineException;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.ca.X509CA;
+import org.cesecore.certificates.ca.X509CAInfo;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificate.CertificateData;
+import org.cesecore.certificates.certificate.CertificateDataSessionLocal;
+import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
+import org.cesecore.certificates.certificate.NoConflictCertificateStoreSessionLocal;
+import org.cesecore.certificates.crl.CRLInfo;
+import org.cesecore.certificates.crl.CrlCreateSessionLocal;
+import org.cesecore.certificates.crl.CrlStoreSessionLocal;
+import org.cesecore.certificates.crl.RevokedCertInfo;
+import org.cesecore.internal.InternalResources;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.CompressedCollection;
+import org.cesecore.util.CryptoProviderTools;
+import org.ejbca.core.ejb.ca.publisher.PublisherSessionLocal;
+
+/**
+ * This session bean provides a bridge between EJBCA and CESecore by incorporating CRL creation (CESeCore) with publishing (EJBCA)
+ * into a single atomic action.
+ *
+ * @version $Id: PublishingCrlSessionBean.java 34193 2020-01-07 15:18:15Z samuellb $
+ *
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;PublishingCrlSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L81">public class PublishingCrlSessionBean implements PublishingCrlSessionLocal, PublishingCrlSessionRemote {</span>
+
+<span class="nc" id="L83">    private static final Logger log = Logger.getLogger(PublishingCrlSessionBean.class);</span>
+    /** Internal localization of logs and errors */
+<span class="nc" id="L85">    private static final InternalResources intres = InternalResources.getInstance();</span>
+
+    @Resource
+    private SessionContext sessionContext;
+
+    @EJB
+    private CaSessionLocal caSession;
+    @EJB
+    private CertificateDataSessionLocal certificateDataSession;
+    @EJB
+    private CertificateStoreSessionLocal certificateStoreSession;
+    @EJB
+    private CrlCreateSessionLocal crlCreateSession;
+    @EJB
+    private CrlStoreSessionLocal crlSession;
+    @EJB
+    private NoConflictCertificateStoreSessionLocal noConflictCertificateStoreSession;
+    @EJB
+    private PublisherSessionLocal publisherSession;
+    @EJB
+    private SecurityEventsLoggerSessionLocal logSession;
+
+    private PublishingCrlSessionLocal publishingCrlSession;
+
+    @PostConstruct
+    public void postConstruct() {
+<span class="nc" id="L111">        publishingCrlSession = sessionContext.getBusinessObject(PublishingCrlSessionLocal.class);</span>
+        // Install BouncyCastle provider if not available
+<span class="nc" id="L113">        CryptoProviderTools.installBCProviderIfNotAvailable();</span>
+<span class="nc" id="L114">    }</span>
+
+    @Override
+    public int createCRLs(AuthenticationToken admin) throws AuthorizationDeniedException {
+<span class="nc" id="L118">        return createCRLs(admin, null, 0);</span>
+    }
+
+    @Override
+    public int createDeltaCRLs(AuthenticationToken admin) throws AuthorizationDeniedException {
+<span class="nc" id="L123">        return createDeltaCRLs(admin, null, 0);</span>
+    }
+
+    @Override
+    public int createCRLs(final AuthenticationToken admin, final Collection&lt;Integer&gt; caids, final long addtocrloverlaptime) throws AuthorizationDeniedException {
+        final Collection&lt;Integer&gt; caIdsToProcess;
+<span class="nc bnc" id="L129" title="All 4 branches missed.">        if (caids==null || caids.contains(Integer.valueOf(CAConstants.ALLCAS))) {</span>
+<span class="nc" id="L130">            caIdsToProcess = caSession.getAllCaIds();</span>
+        } else {
+<span class="nc" id="L132">            caIdsToProcess = caids;</span>
+        }
+<span class="nc" id="L134">        int createdcrls = 0;</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">        for (final int caid : caIdsToProcess) {</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L137">                log.debug(&quot;createCRLs for caid: &quot; + caid);</span>
+            }
+            try {
+<span class="nc bnc" id="L140" title="All 2 branches missed.">                if (publishingCrlSession.createCRLNewTransactionConditioned(admin, caid, addtocrloverlaptime)) {</span>
+<span class="nc" id="L141">                    createdcrls++;</span>
+                }
+<span class="nc" id="L143">            } catch (CryptoTokenOfflineException | CAOfflineException | CADoesntExistsException e) {</span>
+                // Don't fail all generation just because one of the CAs had token offline or similar.
+                // Continue working with the others, but log an error message in system logs, use error logging
+                // since it might be something that should call for attention of the operators, CRL generation is important.
+<span class="nc" id="L147">                String msg = intres.getLocalizedMessage(&quot;createcrl.errorcreate&quot;, caid, e.getMessage());</span>
+<span class="nc" id="L148">                log.error(msg, e);</span>
+<span class="nc" id="L149">            }</span>
+<span class="nc" id="L150">        }</span>
+<span class="nc" id="L151">        return createdcrls;</span>
+    }
+
+    @Override
+    public int createDeltaCRLs(final AuthenticationToken admin, final Collection&lt;Integer&gt; caids, long crloverlaptime) throws AuthorizationDeniedException {
+        final Collection&lt;Integer&gt; caIdsToProcess;
+<span class="nc bnc" id="L157" title="All 4 branches missed.">        if (caids==null || caids.contains(Integer.valueOf(CAConstants.ALLCAS))) {</span>
+<span class="nc" id="L158">            caIdsToProcess = caSession.getAllCaIds();</span>
+        } else {
+<span class="nc" id="L160">            caIdsToProcess = caids;</span>
+        }
+<span class="nc" id="L162">        int createddeltacrls = 0;</span>
+<span class="nc bnc" id="L163" title="All 2 branches missed.">        for (final int caid : caIdsToProcess) {</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L165">                log.debug(&quot;createDeltaCRLs for caid: &quot; + caid);</span>
+            }
+            try {
+<span class="nc bnc" id="L168" title="All 2 branches missed.">                if (publishingCrlSession.createDeltaCRLnewTransactionConditioned(admin, caid, crloverlaptime)) {</span>
+<span class="nc" id="L169">                    createddeltacrls++;</span>
+                }
+<span class="nc" id="L171">            } catch (CesecoreException e) {</span>
+                // Don't fail all generation just because one of the CAs had token offline or similar.
+                // Continue working with the others, but log a warning message in system logs.
+<span class="nc" id="L174">                final String msg = intres.getLocalizedMessage(&quot;createcrl.errorcreate&quot;, caid, e.getMessage());</span>
+<span class="nc" id="L175">                log.error(msg, e);</span>
+<span class="nc" id="L176">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L177">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L178">                logSession.log(EventTypes.CRL_CREATION, EventStatus.FAILURE, ModuleTypes.CRL, ServiceTypes.CORE, admin.toString(), String.valueOf(caid), null, null, details);</span>
+<span class="nc" id="L179">            }</span>
+<span class="nc" id="L180">        }</span>
+<span class="nc" id="L181">        return createddeltacrls;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @Override
+    public boolean createCRLNewTransactionConditioned(AuthenticationToken admin, int caid, long addtocrloverlaptime) throws CryptoTokenOfflineException, CADoesntExistsException, AuthorizationDeniedException, CAOfflineException {
+<span class="nc" id="L187">        boolean ret = false;</span>
+<span class="nc" id="L188">        final Date now = new Date();</span>
+        // Get CA checks authorization to the CA
+<span class="nc" id="L190">        final CA ca = caSession.getCA(admin, caid);</span>
+<span class="nc" id="L191">        final CAInfo cainfo = ca.getCAInfo();</span>
+        try {
+<span class="nc bnc" id="L193" title="All 2 branches missed.">            if (cainfo.getStatus() == CAConstants.CA_EXTERNAL) {</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L195">                    log.debug(&quot;Not trying to generate CRL for external CA &quot;+cainfo.getName());</span>
+                }
+<span class="nc bnc" id="L197" title="All 2 branches missed.">            } else if (cainfo.getStatus() == CAConstants.CA_WAITING_CERTIFICATE_RESPONSE) {</span>
+<span class="nc bnc" id="L198" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L199">                    log.debug(&quot;Not trying to generate CRL for CA &quot;+cainfo.getName() +&quot; awaiting certificate response.&quot;);</span>
+                }
+<span class="nc bnc" id="L201" title="All 2 branches missed.">            } else if (cainfo.getStatus() == CAConstants.CA_REVOKED) {</span>
+<span class="nc bnc" id="L202" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L203">                    log.debug(&quot;Not trying to generate CRL for CA &quot;+cainfo.getName() +&quot; that is revoked.&quot;);</span>
+                }
+<span class="nc bnc" id="L205" title="All 2 branches missed.">            } else if (cainfo.getStatus() == CAConstants.CA_UNINITIALIZED) {</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L207">                    log.debug(&quot;Not trying to generate CRL for CA &quot;+cainfo.getName() +&quot; that is uninitialized.&quot;);</span>
+                }
+            } else {
+<span class="nc bnc" id="L210" title="All 2 branches missed.">                if (cainfo instanceof X509CAInfo) {</span>
+<span class="nc" id="L211">                    final Certificate cacert = getCaCertificate(cainfo);</span>
+                    // Don't create CRLs if the CA has expired
+<span class="nc bnc" id="L213" title="All 4 branches missed.">                    if (cacert != null &amp;&amp; CertTools.getNotAfter(cacert).after(now)) {</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">                        if (cainfo.getStatus() == CAConstants.CA_OFFLINE )  {</span>
+                            // Normal event to not create CRLs for CAs that are deliberately set off line
+<span class="nc" id="L216">                            String msg = intres.getLocalizedMessage(&quot;createcrl.caoffline&quot;, cainfo.getName(), Integer.valueOf(cainfo.getCAId()));</span>
+<span class="nc" id="L217">                            log.info(msg);</span>
+<span class="nc" id="L218">                        } else {</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">                            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L220">                                log.debug(&quot;Checking to see if CA '&quot;+cainfo.getName()+&quot;' (&quot;+cainfo.getCAId()+&quot;) needs CRL generation.&quot;);</span>
+                            }
+<span class="nc" id="L222">                            final String certSubjectDN = CertTools.getSubjectDN(cacert);</span>
+<span class="nc" id="L223">                            final CRLInfo lastBaseCrlInfo = crlSession.getLastCRLInfo(certSubjectDN, false);</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">                            if (log.isDebugEnabled()) {</span>
+<span class="nc bnc" id="L225" title="All 2 branches missed.">                                if (lastBaseCrlInfo == null) {</span>
+<span class="nc" id="L226">                                    log.debug(&quot;Crlinfo was null&quot;);</span>
+                                } else {
+<span class="nc" id="L228">                                    log.debug(&quot;Read crlinfo for CA: &quot;+cainfo.getName()+&quot;, lastNumber=&quot;+lastBaseCrlInfo.getLastCRLNumber()+&quot;, expireDate=&quot;+lastBaseCrlInfo.getExpireDate());</span>
+                                }
+                            }
+<span class="nc" id="L231">                            long crlissueinterval = cainfo.getCRLIssueInterval();</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">                            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L233">                                log.debug(&quot;crlissueinterval=&quot;+crlissueinterval);</span>
+<span class="nc" id="L234">                                log.debug(&quot;crloverlaptime=&quot;+cainfo.getCRLOverlapTime());</span>
+<span class="nc" id="L235">                                log.debug(&quot;addtocrloverlaptime=&quot;+addtocrloverlaptime);</span>
+<span class="nc" id="L236">                                log.debug(&quot;now=&quot;+now.getTime());</span>
+                            }
+                            // Overlaptime from CA configuration, and addtocrloverlaptime is the service poll time if a CRL Update Service is used
+                            // the initial value here is used as long as crlissueinterval == 0
+<span class="nc" id="L240">                            long overlap = cainfo.getCRLOverlapTime() + addtocrloverlaptime; </span>
+                            // nextScheduledUpdate is the calculated time when EJBCA should issue a new CRL, based on the settings. Normally _not_ the same as nextUpdate in the
+                            // CRL, which is the time a CRL expires. We always want to issue a CRL before the old one expires, at least &quot;overlap&quot; time before.
+                            // if lastBaseCrlInfo == null, there is no CRL at all and we must issue a CRL ASAP
+<span class="nc" id="L244">                            long nextScheduledUpdate = 0;</span>
+<span class="nc bnc" id="L245" title="All 2 branches missed.">                            if (lastBaseCrlInfo != null) {</span>
+<span class="nc bnc" id="L246" title="All 2 branches missed.">                                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L247">                                    log.debug(&quot;lastCRLCreateTime=&quot;+lastBaseCrlInfo.getCreateDate().getTime());</span>
+<span class="nc" id="L248">                                    log.debug(&quot;lastCRLExpireTime=&quot;+lastBaseCrlInfo.getExpireDate().getTime());</span>
+                                }
+                                // CRL issueinterval from CA configuration. If this is 0, we should only issue a CRL when
+                                // the old one is about to expire, i.e. when currenttime + overlaptime &gt; expiredate
+                                // if isseuinterval is &gt; 0 we will issue a new CRL when currenttime &gt; createtime + issueinterval
+<span class="nc" id="L253">                                nextScheduledUpdate = lastBaseCrlInfo.getExpireDate().getTime(); // Default if crlissueinterval == 0</span>
+<span class="nc bnc" id="L254" title="All 2 branches missed.">                                if (crlissueinterval &gt; 0) {</span>
+<span class="nc" id="L255">                                    long u = lastBaseCrlInfo.getCreateDate().getTime() + crlissueinterval;</span>
+                                    // If this period for some reason (we missed to issue some?) is larger than when the CRL expires
+                                    // we need to issue one when the CRL expires, but normally we want to generate one now if crlissueinterval kicks in
+<span class="nc bnc" id="L258" title="All 2 branches missed.">                                    if ((u + overlap) &lt; nextScheduledUpdate) {</span>
+<span class="nc" id="L259">                                        nextScheduledUpdate = u;</span>
+                                        // When we issue CRLs before the real expiration date we don't use overlap, but we need to consider the
+                                        // service poll time to not miss generating some CRLs when we use a crlissueinterval and run the CRL Update Worker
+<span class="nc" id="L262">                                        overlap = addtocrloverlaptime;</span>
+                                    }
+                                }
+<span class="nc bnc" id="L265" title="All 2 branches missed.">                                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L266">                                    log.debug(&quot;Calculated nextScheduledUpdate to &quot;+nextScheduledUpdate);</span>
+                                }
+                            } else {
+                                // If crlinfo is null (no crl issued yet) nextUpdate will be 0 and a new CRL should be generated
+<span class="nc" id="L270">                                String msg = intres.getLocalizedMessage(&quot;createcrl.crlinfonull&quot;, cainfo.getName());</span>
+<span class="nc" id="L271">                                log.info(msg);</span>
+                            }
+<span class="nc bnc" id="L273" title="All 2 branches missed.">                            if (now.getTime() + overlap &gt;= nextScheduledUpdate) {</span>
+<span class="nc bnc" id="L274" title="All 2 branches missed.">                                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L275">                                    log.debug(&quot;Creating CRL for CA, because:&quot;+(now.getTime()+overlap)+&quot; &gt;= &quot;+nextScheduledUpdate);</span>
+                                }
+<span class="nc bnc" id="L277" title="All 2 branches missed.">                                if (internalCreateCRL(admin, ca, lastBaseCrlInfo) != null) {</span>
+<span class="nc" id="L278">                                    ret = true;</span>
+                                }
+                            }
+<span class="nc" id="L281">                        }</span>
+<span class="nc bnc" id="L282" title="All 2 branches missed.">                    } else if (cacert != null) {</span>
+<span class="nc bnc" id="L283" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L284">                            log.debug(&quot;Not creating CRL for expired CA &quot;+cainfo.getName()+&quot;. CA subjectDN='&quot;+CertTools.getSubjectDN(cacert)+&quot;', expired: &quot;+CertTools.getNotAfter(cacert));</span>
+                        }
+                    } else {
+<span class="nc bnc" id="L287" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L288">                            log.debug(&quot;Not creating CRL for CA without CA certificate: &quot;+cainfo.getName());</span>
+                        }
+                    }
+                }
+            }
+<span class="nc" id="L293">        } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L294">            log.warn(&quot;Crypto token is offline for CA &quot;+caid+&quot; generating CRL.&quot;);</span>
+<span class="nc" id="L295">            throw e;</span>
+<span class="nc" id="L296">        }</span>
+<span class="nc" id="L297">        return ret;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @Override
+    public boolean createDeltaCRLnewTransactionConditioned(AuthenticationToken admin, int caid, long crloverlaptime) throws CryptoTokenOfflineException, CAOfflineException, CADoesntExistsException, AuthorizationDeniedException {
+<span class="nc" id="L303">        boolean ret = false;</span>
+<span class="nc" id="L304">        final Date now = new Date();</span>
+<span class="nc" id="L305">        final CA ca = caSession.getCA(admin, caid);</span>
+<span class="nc" id="L306">        final CAInfo cainfo = ca.getCAInfo();</span>
+        try{
+<span class="nc bnc" id="L308" title="All 2 branches missed.">            if (cainfo.getStatus() == CAConstants.CA_EXTERNAL) {</span>
+<span class="nc bnc" id="L309" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L310">                    log.debug(&quot;Not trying to generate delta CRL for external CA &quot;+cainfo.getName());</span>
+                }
+<span class="nc bnc" id="L312" title="All 2 branches missed.">            } else if (cainfo.getStatus() == CAConstants.CA_WAITING_CERTIFICATE_RESPONSE) {</span>
+<span class="nc bnc" id="L313" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L314">                    log.debug(&quot;Not trying to generate delta CRL for CA &quot;+cainfo.getName() +&quot; awaiting certificate response.&quot;);</span>
+                }
+<span class="nc bnc" id="L316" title="All 2 branches missed.">            } else if (cainfo.getStatus() == CAConstants.CA_REVOKED) {</span>
+<span class="nc bnc" id="L317" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L318">                    log.debug(&quot;Not trying to generate delta CRL for CA &quot;+cainfo.getName() +&quot; that is revoked.&quot;);</span>
+                }
+<span class="nc bnc" id="L320" title="All 2 branches missed.">            } else if (cainfo.getStatus() == CAConstants.CA_UNINITIALIZED) {</span>
+<span class="nc bnc" id="L321" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L322">                    log.debug(&quot;Not trying to generate delta CRL for CA &quot;+cainfo.getName() +&quot; that is uninitialized.&quot;);</span>
+                }
+            } else {
+<span class="nc bnc" id="L325" title="All 2 branches missed.">                if (cainfo instanceof X509CAInfo) {</span>
+<span class="nc" id="L326">                    final Certificate cacert = getCaCertificate(cainfo);</span>
+                    // Don't create CRLs if the CA has expired
+<span class="nc bnc" id="L328" title="All 4 branches missed.">                    if (cacert != null &amp;&amp; CertTools.getNotAfter(cacert).after(now)) {</span>
+<span class="nc bnc" id="L329" title="All 2 branches missed.">                        if (cainfo.getDeltaCRLPeriod() &gt; 0) {</span>
+<span class="nc bnc" id="L330" title="All 2 branches missed.">                            if (cainfo.getStatus() == CAConstants.CA_OFFLINE) {</span>
+                                // Normal event to not create CRLs for CAs that are deliberately set off line
+<span class="nc" id="L332">                                String msg = intres.getLocalizedMessage(&quot;createcrl.caoffline&quot;, cainfo.getName(), Integer.valueOf(cainfo.getCAId()));</span>
+<span class="nc" id="L333">                                log.info(msg);</span>
+<span class="nc" id="L334">                            } else {</span>
+<span class="nc bnc" id="L335" title="All 2 branches missed.">                                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L336">                                    log.debug(&quot;Checking to see if CA '&quot;+cainfo.getName()+&quot;' needs Delta CRL generation.&quot;);</span>
+                                }
+<span class="nc" id="L338">                                final String certSubjectDN = CertTools.getSubjectDN(cacert);</span>
+<span class="nc" id="L339">                                final CRLInfo lastDeltaCrlInfo = crlSession.getLastCRLInfo(certSubjectDN, true);</span>
+<span class="nc bnc" id="L340" title="All 2 branches missed.">                                if (log.isDebugEnabled()) {</span>
+<span class="nc bnc" id="L341" title="All 2 branches missed.">                                    if (lastDeltaCrlInfo == null) {</span>
+<span class="nc" id="L342">                                        log.debug(&quot;DeltaCrlinfo was null&quot;);</span>
+                                    } else {
+<span class="nc" id="L344">                                        log.debug(&quot;Read deltacrlinfo for CA: &quot;+cainfo.getName()+&quot;, lastNumber=&quot;+lastDeltaCrlInfo.getLastCRLNumber()+&quot;, expireDate=&quot;+lastDeltaCrlInfo.getExpireDate());</span>
+                                    }
+                                }
+<span class="nc bnc" id="L347" title="All 4 branches missed.">                                if (lastDeltaCrlInfo == null || (now.getTime() + crloverlaptime) &gt;= lastDeltaCrlInfo.getExpireDate().getTime()){</span>
+<span class="nc" id="L348">                                    final CRLInfo lastBaseCrlInfo = crlSession.getLastCRLInfo(certSubjectDN, false);</span>
+<span class="nc bnc" id="L349" title="All 2 branches missed.">                                    if (lastBaseCrlInfo != null) {</span>
+<span class="nc bnc" id="L350" title="All 2 branches missed.">                                        if (internalCreateDeltaCRL(admin, ca, lastBaseCrlInfo) != null) {</span>
+<span class="nc" id="L351">                                            ret = true;</span>
+                                        }
+                                    } else {
+<span class="nc" id="L354">                                        log.info(&quot;No full CRL exists when trying to generate delta CRL for caid &quot;+caid);</span>
+                                    }
+                                }
+<span class="nc" id="L357">                            }</span>
+                        }
+<span class="nc bnc" id="L359" title="All 2 branches missed.">                    } else if (cacert != null) {</span>
+<span class="nc bnc" id="L360" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L361">                            log.debug(&quot;Not creating delta CRL for expired CA &quot;+cainfo.getName()+&quot;. CA subjectDN='&quot;+CertTools.getSubjectDN(cacert)+&quot;', expired: &quot;+CertTools.getNotAfter(cacert));</span>
+                        }
+                    } else {
+<span class="nc bnc" id="L364" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L365">                            log.debug(&quot;Not creating delta CRL for CA without CA certificate: &quot;+cainfo.getName());</span>
+                        }
+                    }
+                }
+            }
+<span class="nc" id="L370">        } catch (CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L371">            log.warn(&quot;Crypto token is offline for CA &quot;+caid+&quot; generating CRL.&quot;);</span>
+<span class="nc" id="L372">            throw e;</span>
+<span class="nc" id="L373">        }</span>
+<span class="nc" id="L374">        return ret;</span>
+    }
+
+    @Override
+    public boolean forceCRL(final AuthenticationToken admin, final int caid) throws CADoesntExistsException, AuthorizationDeniedException, CryptoTokenOfflineException, CAOfflineException {
+<span class="nc" id="L379">        final CA ca = caSession.getCA(admin, caid);</span>
+<span class="nc" id="L380">        final CRLInfo lastBaseCrlInfo = crlSession.getLastCRLInfo(CertTools.getSubjectDN(getCaCertificate(ca.getCAInfo())), false);</span>
+<span class="nc bnc" id="L381" title="All 2 branches missed.">        return internalCreateCRL(admin, ca, lastBaseCrlInfo) != null;</span>
+    }
+
+    @Override
+    public boolean forceDeltaCRL(final AuthenticationToken admin, final int caid) throws CADoesntExistsException, AuthorizationDeniedException, CryptoTokenOfflineException, CAOfflineException {
+<span class="nc" id="L386">        final CA ca = caSession.getCA(admin, caid);</span>
+<span class="nc" id="L387">        final CRLInfo lastBaseCrlInfo = crlSession.getLastCRLInfo(CertTools.getSubjectDN(getCaCertificate(ca.getCAInfo())), false);</span>
+        // if no full CRL has been generated we can't create a delta CRL
+<span class="nc" id="L389">        boolean ret = false;</span>
+<span class="nc bnc" id="L390" title="All 2 branches missed.">        if (lastBaseCrlInfo != null) {</span>
+<span class="nc" id="L391">            CAInfo cainfo = ca.getCAInfo();</span>
+<span class="nc bnc" id="L392" title="All 2 branches missed.">            if (cainfo.getDeltaCRLPeriod() &gt; 0) {</span>
+<span class="nc" id="L393">                byte[] crl = internalCreateDeltaCRL(admin, ca, lastBaseCrlInfo);</span>
+<span class="nc bnc" id="L394" title="All 2 branches missed.">                ret = (crl != null);</span>
+            }
+<span class="nc" id="L396">        } else {</span>
+<span class="nc" id="L397">            log.info(&quot;No full CRL exists when trying to generate (force) delta CRL for caid &quot;+caid);</span>
+        }
+<span class="nc" id="L399">        return ret;</span>
+    }
+
+    /**
+     * Generates a new CRL by looking in the database for revoked certificates
+     * and generating a CRL. This method also &quot;archives&quot; certificates when after
+     * they are no longer needed in the CRL.
+     * Generates the CRL and stores it in the database.
+     *
+     * @param admin administrator performing the task
+     * @param ca the CA this operation regards
+     * @param lastBaseCrlInfo Info
+     * @return fingerprint (primary key) of the generated CRL or null if
+     *            generation failed
+     * @throws CAOfflineException Fail
+     * @throws CryptoTokenOfflineException Fail
+     * @throws AuthorizationDeniedException Fail
+     * @throws javax.ejb.EJBException if a communications- or system error occurs
+     */
+    private String internalCreateCRL(final AuthenticationToken admin, final CA ca, final CRLInfo lastBaseCrlInfo) throws CAOfflineException, CryptoTokenOfflineException, AuthorizationDeniedException {
+<span class="nc bnc" id="L419" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L420">            log.trace(&quot;&gt;internalCreateCRL()&quot;);</span>
+        }
+<span class="nc bnc" id="L422" title="All 2 branches missed.">        if (ca == null) {</span>
+<span class="nc" id="L423">            throw new EJBException(&quot;No CA specified.&quot;);</span>
+        }
+<span class="nc" id="L425">        final CAInfo cainfo = ca.getCAInfo();</span>
+<span class="nc" id="L426">        String ret = null;</span>
+<span class="nc" id="L427">        Collection&lt;RevokedCertInfo&gt; revokedCertificates = null;</span>
+        try {
+<span class="nc" id="L429">            final Certificate cacert = getCaCertificate(cainfo);</span>
+            // DN from the CA issuing the CRL to be used when searching for the CRL in the database.
+<span class="nc bnc" id="L431" title="All 2 branches missed.">            final String caCertSubjectDN = cacert==null ? null : CertTools.getSubjectDN(cacert);</span>
+            // We can not create a CRL for a CA that is waiting for certificate response
+<span class="nc bnc" id="L433" title="All 4 branches missed.">            if ( caCertSubjectDN!=null &amp;&amp; cainfo.getStatus()==CAConstants.CA_ACTIVE )  {</span>
+                // Find all revoked certificates for a complete CRL
+<span class="nc bnc" id="L435" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L436">                    final long freeMemory = Runtime.getRuntime().maxMemory() - Runtime.getRuntime().totalMemory() + Runtime.getRuntime().freeMemory();</span>
+<span class="nc" id="L437">                    log.debug(&quot;Listing revoked certificates. Free memory=&quot; + freeMemory);</span>
+                }
+<span class="nc" id="L439">                revokedCertificates = noConflictCertificateStoreSession.listRevokedCertInfo(caCertSubjectDN, -1);</span>
+
+                //if X509 CA is marked as it has gone through Name Change add certificates revoked with old names
+<span class="nc bnc" id="L442" title="All 4 branches missed.">                if(ca.getCAType()==CAInfo.CATYPE_X509 &amp;&amp; ((X509CA)ca).getNameChanged()){</span>
+<span class="nc" id="L443">                    log.info(&quot;The CA with SubjectDN &quot; + ca.getSubjectDN() + &quot; has been gone through ICAO Name Change. Collecting all revocation information published by this CA with previous names has started.&quot;);</span>
+<span class="nc" id="L444">                    Collection&lt;Certificate&gt; renewedCertificateChain = ca.getRenewedCertificateChain();</span>
+<span class="nc" id="L445">                    Collection&lt;RevokedCertInfo&gt; revokedCertificatesBeforeLastCANameChange = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L446" title="All 2 branches missed.">                    if(renewedCertificateChain != null){</span>
+<span class="nc" id="L447">                        Collection&lt;String&gt; differentSubjectDNs = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L448">                        differentSubjectDNs.add(caCertSubjectDN);</span>
+<span class="nc bnc" id="L449" title="All 2 branches missed.">                        for(Certificate renewedCertificate : renewedCertificateChain){</span>
+<span class="nc" id="L450">                            String renewedCertificateSubjectDN = CertTools.getSubjectDN(renewedCertificate);</span>
+<span class="nc bnc" id="L451" title="All 2 branches missed.">                            if(!differentSubjectDNs.contains(renewedCertificateSubjectDN)){</span>
+<span class="nc" id="L452">                                log.info(&quot;Collecting revocation information for &quot; + renewedCertificateSubjectDN + &quot; and merging them with ones for &quot; + caCertSubjectDN);</span>
+<span class="nc" id="L453">                                differentSubjectDNs.add(renewedCertificateSubjectDN);</span>
+<span class="nc" id="L454">                                Collection&lt;RevokedCertInfo&gt; revokedCertInfo = noConflictCertificateStoreSession.listRevokedCertInfo(renewedCertificateSubjectDN, -1);</span>
+<span class="nc bnc" id="L455" title="All 2 branches missed.">                                for(RevokedCertInfo tmp : revokedCertInfo){ //for loop is necessary because revokedCertInfo.toArray is not supported...</span>
+<span class="nc" id="L456">                                    revokedCertificatesBeforeLastCANameChange.add(tmp);</span>
+<span class="nc" id="L457">                                }</span>
+                            }
+<span class="nc" id="L459">                        }</span>
+                    }
+                    //Make sure new compressed collection is created if revokedCertificatesBeforeLastCANameChange need to be added!
+<span class="nc" id="L462">                    Collection&lt;RevokedCertInfo&gt; revokedCertificatesAfterLastCANameChange = revokedCertificates;</span>
+<span class="nc" id="L463">                    revokedCertificates = new CompressedCollection&lt;&gt;(RevokedCertInfo.class);</span>
+<span class="nc bnc" id="L464" title="All 2 branches missed.">                    if(!revokedCertificatesBeforeLastCANameChange.isEmpty()){</span>
+<span class="nc" id="L465">                        revokedCertificates.addAll(revokedCertificatesBeforeLastCANameChange);</span>
+                    }
+<span class="nc" id="L467">                    revokedCertificates.addAll(revokedCertificatesAfterLastCANameChange);</span>
+                }
+
+<span class="nc bnc" id="L470" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L471">                    final long freeMemory = Runtime.getRuntime().maxMemory() - Runtime.getRuntime().totalMemory() + Runtime.getRuntime().freeMemory();</span>
+<span class="nc" id="L472">                    log.debug(&quot;Found &quot;+revokedCertificates.size()+&quot; revoked certificates. Free memory=&quot; + freeMemory);</span>
+                }
+                // Go through them and create a CRL, at the same time archive expired certificates, unless configured not to do so (keep expired certificates on CRL)
+                //
+                // Archiving is only done for full CRLs, not delta CRLs.
+                // RFC5280, section 3.3, states that a certificate must not be removed from the CRL until it has appeared on at least one full CRL.
+                // RFC5280, section 5: A full and complete CRL lists all unexpired certificates issued by a CA that have been revoked for any reason.
+                // See RFC5280 section 5.2.4, specifically:
+                //  If a certificate revocation notice first appears on a delta CRL, then
+                //  it is possible for the certificate validity period to expire before
+                //  the next complete CRL for the same scope is issued.  In this case,
+                //  the revocation notice MUST be included in all subsequent delta CRLs
+                //  until the revocation notice is included on at least one explicitly
+                //  issued complete CRL for this scope
+<span class="nc" id="L486">                final Date now = new Date();</span>
+<span class="nc bnc" id="L487" title="All 2 branches missed.">                final Date lastCrlCreationDate = lastBaseCrlInfo==null ? now : lastBaseCrlInfo.getCreateDate();</span>
+<span class="nc" id="L488">                final AuthenticationToken archiveAdmin = new AlwaysAllowLocalAuthenticationToken(new UsernamePrincipal(&quot;CrlCreateSession.archive_expired&quot;));</span>
+<span class="nc" id="L489">                final boolean keepexpiredcertsoncrl = cainfo.getKeepExpiredCertsOnCRL();</span>
+<span class="nc bnc" id="L490" title="All 2 branches missed.">                if (keepexpiredcertsoncrl) {</span>
+<span class="nc" id="L491">                    log.info(&quot;KeepExpiredCertsOnCRL is enabled, we will not archive expired certificate but will keep them on the CRL (for ever growing): &quot; + keepexpiredcertsoncrl);</span>
+                }
+<span class="nc bnc" id="L493" title="All 2 branches missed.">                for (final RevokedCertInfo revokedCertInfo : revokedCertificates) {</span>
+                    // We want to include certificates that was revoked after the last CRL was issued, but before this one
+                    // so the revoked certs are included in ONE CRL at least. See RFC5280 section 3.3.
+                    // If chosen to keep expired certificates on CRL, we will NOT do this but keep them (ISO 9594-8 par. 8.5.2.12)
+<span class="nc bnc" id="L497" title="All 4 branches missed.">                    if ( !keepexpiredcertsoncrl &amp;&amp; revokedCertInfo.getExpireDate().before(lastCrlCreationDate) ) {</span>
+                        // Certificate has expired, set status to archived in the database
+<span class="nc bnc" id="L499" title="All 2 branches missed.">                        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L500">                            final long freeMemory = Runtime.getRuntime().maxMemory() - Runtime.getRuntime().totalMemory() + Runtime.getRuntime().freeMemory();</span>
+<span class="nc" id="L501">                            log.debug(&quot;Archiving certificate with fp=&quot;+revokedCertInfo.getCertificateFingerprint()+&quot;. Free memory=&quot; + freeMemory);</span>
+                        }
+<span class="nc" id="L503">                        noConflictCertificateStoreSession.setStatus(archiveAdmin, revokedCertInfo.getCertificateFingerprint(), CertificateConstants.CERT_ARCHIVED);</span>
+                    } else {
+<span class="nc bnc" id="L505" title="All 2 branches missed.">                        if (!revokedCertInfo.isRevocationDateSet()) {</span>
+<span class="nc" id="L506">                            revokedCertInfo.setRevocationDate(now);</span>
+                            // FIXME should use noConflictCertificateStoreSession! (or can we skip this code? when can isRevocationDateSet return false?)
+//                            noConflictCertificateStoreSession.setRevocationData(revokedCertInfo.getCertificateFingerprint(), now);
+<span class="nc" id="L509">                            CertificateData certdata = certificateDataSession.findByFingerprint(revokedCertInfo.getCertificateFingerprint());</span>
+<span class="nc bnc" id="L510" title="All 2 branches missed.">                            if (certdata == null) {</span>
+<span class="nc" id="L511">                                throw new FinderException(&quot;No certificate with fingerprint &quot; + revokedCertInfo.getCertificateFingerprint());</span>
+                            }
+                            // Set revocation date in the database
+<span class="nc" id="L514">                            certdata.setRevocationDate(now);</span>
+                            // FIXME update to database!
+                        }
+                    }
+<span class="nc" id="L518">                }</span>
+                // a full CRL
+<span class="nc" id="L520">                final byte[] crlBytes = generateAndStoreCRL(admin, ca, revokedCertificates, lastBaseCrlInfo, false);</span>
+<span class="nc bnc" id="L521" title="All 2 branches missed.">                if (crlBytes != null) {</span>
+<span class="nc" id="L522">                    ret = CertTools.getFingerprintAsString(crlBytes);</span>
+                }
+                // This debug logging is very very heavy if you have large CRLs. Please don't use it :-)
+                //              if (log.isDebugEnabled()) {
+                //              X509CRL crl = CertTools.getCRLfromByteArray(crlBytes);
+                //              debug(&quot;Created CRL with expire date: &quot;+crl.getNextUpdate());
+                //              FileOutputStream fos = new FileOutputStream(&quot;c:\\java\\srvtestcrl.der&quot;);
+                //              fos.write(crl.getEncoded());
+                //              fos.close();
+                //              }
+<span class="nc" id="L532">            } else {</span>
+<span class="nc" id="L533">                String msg = intres.getLocalizedMessage(&quot;createcrl.errornotactive&quot;, cainfo.getName(), Integer.valueOf(cainfo.getCAId()), cainfo.getStatus());</span>
+<span class="nc" id="L534">                log.info(msg);</span>
+<span class="nc" id="L535">                throw new CAOfflineException(msg);</span>
+            }
+<span class="nc" id="L537">        } catch (FinderException e) {</span>
+            // Should really not happen
+<span class="nc" id="L539">            log.error(e);</span>
+<span class="nc" id="L540">            throw new EJBException(e);</span>
+        } finally {
+            // Special treatment of our CompressedCollection to ensure that we release all resources
+<span class="nc bnc" id="L543" title="All 2 branches missed.">            if (revokedCertificates!=null) {</span>
+<span class="nc" id="L544">                revokedCertificates.clear();</span>
+            }
+        }
+<span class="nc bnc" id="L547" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L548">            log.trace(&quot;&lt;internalCreateCRL()&quot;);</span>
+        }
+<span class="nc" id="L550">        return ret;</span>
+    }
+
+    /**
+     * Generates a new Delta CRL by looking in the database for revoked
+     * certificates since the last complete CRL issued and generating a CRL with
+     * the difference. If either of baseCrlNumber or baseCrlCreateTime is -1
+     * this method will try to query the database for the last complete CRL.
+     * Generates the CRL and stores it in the database.
+     *
+     * @param admin administrator performing the task
+     * @param ca the CA this operation regards
+     * @param lastBaseCrlInfo
+     *            base crl number to be put in the delta CRL, this is the CRL
+     *            number of the previous complete CRL. If value is -1 the value
+     *            is fetched by querying the database looking for the last
+     *            complete CRL. And the time the base CRL was issued. If value is -1 the value is
+     *            fetched by querying the database looking for the last complete
+     *            CRL.
+     * @return the bytes of the Delta CRL generated or null of no delta CRL was
+     *         generated.
+     * @throws CryptoTokenOfflineException Fail
+     * @throws CAOfflineException Fail
+     * @throws AuthorizationDeniedException Fail
+     * @throws javax.ejb.EJBException if a communications- or system error occurs
+     */
+    private byte[] internalCreateDeltaCRL(final AuthenticationToken admin, final CA ca, final CRLInfo lastBaseCrlInfo) throws CryptoTokenOfflineException, CAOfflineException, AuthorizationDeniedException {
+<span class="nc bnc" id="L577" title="All 2 branches missed.">        if (ca == null) {</span>
+<span class="nc" id="L578">            throw new EJBException(&quot;No CA specified.&quot;);</span>
+        }
+<span class="nc" id="L580">        final CAInfo cainfo = ca.getCAInfo();</span>
+<span class="nc bnc" id="L581" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L582">                log.trace(&quot;&gt;internalCreateDeltaCRL: &quot;+cainfo.getSubjectDN());</span>
+        }
+<span class="nc" id="L584">        byte[] crlBytes = null;</span>
+<span class="nc" id="L585">        Collection&lt;RevokedCertInfo&gt; revcertinfos = null;</span>
+<span class="nc" id="L586">        CompressedCollection&lt;RevokedCertInfo&gt; certs = null;</span>
+        try {
+<span class="nc" id="L588">            final Certificate cacert = getCaCertificate(cainfo);</span>
+<span class="nc bnc" id="L589" title="All 2 branches missed.">            final String caCertSubjectDN = cacert==null ? null : CertTools.getSubjectDN(cacert);</span>
+            // We can not create a CRL for a CA that is waiting for certificate response
+<span class="nc bnc" id="L591" title="All 4 branches missed.">            if ( caCertSubjectDN!=null &amp;&amp; cainfo.getStatus()==CAConstants.CA_ACTIVE ) {</span>
+                // Find all revoked certificates
+<span class="nc" id="L593">                revcertinfos = noConflictCertificateStoreSession.listRevokedCertInfo(caCertSubjectDN, lastBaseCrlInfo.getCreateDate().getTime());</span>
+
+                // if X509 CA is marked as it has gone through Name Change add certificates revoked with old names
+<span class="nc bnc" id="L596" title="All 4 branches missed.">                if(ca.getCAType()==CAInfo.CATYPE_X509 &amp;&amp; ((X509CA)ca).getNameChanged()){</span>
+<span class="nc bnc" id="L597" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L598">                        log.debug(&quot;Gathering all revocation information published by this CA (&quot;+ca.getName()+&quot;:&quot;+ca.getCAId()+&quot;) since its beginning. Important only if CA has gone undergone name change&quot;);</span>
+                    }
+<span class="nc" id="L600">                    Collection&lt;Certificate&gt; renewedCertificateChain = ca.getRenewedCertificateChain();</span>
+<span class="nc" id="L601">                    Collection&lt;RevokedCertInfo&gt; revokedCertificatesBeforeLastCANameChange = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L602" title="All 2 branches missed.">                    if(renewedCertificateChain != null){</span>
+<span class="nc" id="L603">                        Collection&lt;String&gt; differentSubjectDNs = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L604">                        differentSubjectDNs.add(caCertSubjectDN);</span>
+<span class="nc bnc" id="L605" title="All 2 branches missed.">                        for(Certificate renewedCertificate : renewedCertificateChain){</span>
+<span class="nc" id="L606">                            String renewedCertificateSubjectDN = CertTools.getSubjectDN(renewedCertificate);</span>
+
+<span class="nc bnc" id="L608" title="All 2 branches missed.">                            if(!differentSubjectDNs.contains(renewedCertificateSubjectDN)){</span>
+<span class="nc bnc" id="L609" title="All 2 branches missed.">                                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L610">                                    log.debug(&quot;Collecting revocation information for renewed certificate '&quot; + renewedCertificateSubjectDN + &quot;' and merging them with ones for &quot; + caCertSubjectDN);</span>
+                                }
+<span class="nc" id="L612">                                differentSubjectDNs.add(renewedCertificateSubjectDN);</span>
+<span class="nc" id="L613">                                Collection&lt;RevokedCertInfo&gt; revokedCertInfo = noConflictCertificateStoreSession.listRevokedCertInfo(renewedCertificateSubjectDN, -1);</span>
+<span class="nc bnc" id="L614" title="All 2 branches missed.">                                for(RevokedCertInfo tmp : revokedCertInfo){ //for loop is necessary because revokedCertInfo.toArray is not supported...</span>
+<span class="nc" id="L615">                                    revokedCertificatesBeforeLastCANameChange.add(tmp);</span>
+<span class="nc" id="L616">                                }</span>
+                            }
+<span class="nc" id="L618">                        }</span>
+                    }
+                    //Make sure new compressed collection is created if revokedCertificatesBeforeLastCANameChange need to be added!
+<span class="nc" id="L621">                    Collection&lt;RevokedCertInfo&gt; revokedCertificatesAfterLastCANameChange = revcertinfos;</span>
+<span class="nc" id="L622">                    revcertinfos = new CompressedCollection&lt;&gt;(RevokedCertInfo.class);</span>
+<span class="nc bnc" id="L623" title="All 2 branches missed.">                    if(!revokedCertificatesBeforeLastCANameChange.isEmpty()){</span>
+<span class="nc" id="L624">                        revcertinfos.addAll(revokedCertificatesBeforeLastCANameChange);</span>
+                    }
+<span class="nc" id="L626">                    revcertinfos.addAll(revokedCertificatesAfterLastCANameChange);</span>
+                }
+
+<span class="nc bnc" id="L629" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L630">                    log.debug(&quot;Found &quot;+revcertinfos.size()+&quot; revoked certificates.&quot;);</span>
+                }
+                // Go through them and create a CRL, i.e. add to cert list to be included in CRL
+<span class="nc" id="L633">                certs = new CompressedCollection&lt;&gt;(RevokedCertInfo.class);</span>
+<span class="nc bnc" id="L634" title="All 2 branches missed.">                for (final RevokedCertInfo ci : revcertinfos) {</span>
+<span class="nc bnc" id="L635" title="All 2 branches missed.">                    if (ci.getRevocationDate() == null) {</span>
+<span class="nc" id="L636">                        ci.setRevocationDate(new Date());</span>
+                    }
+<span class="nc" id="L638">                    certs.add(ci);</span>
+<span class="nc" id="L639">                }</span>
+<span class="nc" id="L640">                revcertinfos.clear();  // Release unused resources</span>
+                // create a delta CRL
+<span class="nc" id="L642">                crlBytes = generateAndStoreCRL(admin, ca, certs, lastBaseCrlInfo, true);</span>
+<span class="nc bnc" id="L643" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L644">                    X509CRL crl = CertTools.getCRLfromByteArray(crlBytes);</span>
+<span class="nc" id="L645">                    log.debug(&quot;Created delta CRL with expire date: &quot;+crl.getNextUpdate());</span>
+<span class="nc" id="L646">                }</span>
+            } else {
+<span class="nc" id="L648">                String msg = intres.getLocalizedMessage(&quot;createcrl.errornotactive&quot;, cainfo.getName(), Integer.valueOf(cainfo.getCAId()), cainfo.getStatus());</span>
+<span class="nc" id="L649">                log.info(msg);</span>
+<span class="nc" id="L650">                throw new CAOfflineException(msg);</span>
+            }
+<span class="nc" id="L652">        } catch (CRLException e) {</span>
+            // Should really not happen
+<span class="nc" id="L654">            log.error(e);</span>
+<span class="nc" id="L655">            throw new EJBException(e);</span>
+        } finally {
+            // Special treatment of our CompressedCollections to ensure that we release all resources
+<span class="nc bnc" id="L658" title="All 2 branches missed.">            if (revcertinfos!=null) {</span>
+<span class="nc" id="L659">                revcertinfos.clear();</span>
+            }
+<span class="nc bnc" id="L661" title="All 2 branches missed.">            if (certs!=null) {</span>
+<span class="nc" id="L662">                certs.clear();</span>
+            }
+        }
+<span class="nc bnc" id="L665" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L666">            log.trace(&quot;&lt;internalCreateDeltaCRL: &quot;+cainfo.getSubjectDN());</span>
+        }
+<span class="nc" id="L668">        return crlBytes;</span>
+    }
+
+    private byte[] generateAndStoreCRL(final AuthenticationToken admin, final CA ca, final Collection&lt;RevokedCertInfo&gt; certs, final CRLInfo lastBaseCrlInfo, final boolean delta) throws CryptoTokenOfflineException, AuthorizationDeniedException {
+         // Hard and error-prone to do that.
+<span class="nc bnc" id="L673" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L674">            log.debug(&quot;Storing CRL in publishers&quot;);</span>
+        }
+<span class="nc" id="L676">        final String cafp = CertTools.getFingerprintAsString(ca.getCACertificate());</span>
+<span class="nc" id="L677">        String certSubjectDN = CertTools.getSubjectDN(ca.getCACertificate());</span>
+
+<span class="nc bnc" id="L679" title="All 2 branches missed.">        int fullcrlnumber = lastBaseCrlInfo==null ? 0 : lastBaseCrlInfo.getLastCRLNumber();</span>
+        //If this is the first time to create CRL for CA that has gone through Name Change process make sure
+        //that first CRL will continue CRL numbering where CA left before the last Name Change process
+<span class="nc bnc" id="L682" title="All 4 branches missed.">        if (ca.getCAType()==CAInfo.CATYPE_X509 &amp;&amp; ((X509CA)ca).getNameChanged()) {</span>
+<span class="nc bnc" id="L683" title="All 2 branches missed.">            if (lastBaseCrlInfo == null) {</span>
+<span class="nc" id="L684">                Certificate lastRenewedCACertificate = null;</span>
+<span class="nc" id="L685">                List&lt;Certificate&gt; renewedCertificateChain = ca.getRenewedCertificateChain();</span>
+<span class="nc bnc" id="L686" title="All 2 branches missed.">                if(renewedCertificateChain == null){</span>
+<span class="nc" id="L687">                    throw new IllegalStateException(&quot;Was not able to retrieve renewed certificate chain for CA = &quot; + ca.getName() + &quot;. Could not proceed with generating and storing CRL&quot;);</span>
+                }
+<span class="nc" id="L689">                lastRenewedCACertificate = renewedCertificateChain.get(renewedCertificateChain.size()-1);</span>
+<span class="nc" id="L690">                String lastRenewedCACertificateSubjectDN = CertTools.getSubjectDN(lastRenewedCACertificate);</span>
+<span class="nc bnc" id="L691" title="All 2 branches missed.">                if(!lastRenewedCACertificateSubjectDN.equalsIgnoreCase(certSubjectDN)){</span>
+<span class="nc bnc" id="L692" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L693">                        log.debug(&quot;First creation of CRL detected for CA &quot;+ca.getName()+&quot; after CA has gone through Name Change process. Continuing CRL number left with old CA name &quot; + lastRenewedCACertificateSubjectDN);</span>
+                    }
+<span class="nc" id="L695">                    certSubjectDN = lastRenewedCACertificateSubjectDN;</span>
+                    // Since we don't have a fullcrlnumber from the renewed CA, use the full crlnumber from the old CA that we are changing from
+<span class="nc" id="L697">                    fullcrlnumber = crlSession.getLastCRLNumber(certSubjectDN, false);</span>
+                }else{
+<span class="nc" id="L699">                    throw new IllegalStateException(&quot;CA &quot; + ca.getName() + &quot; is marked as it has gone through CA Name Change process but old name seems the same as new one! Could not proceed with generating and storing CRL&quot;);</span>
+                }
+<span class="nc" id="L701">            } else {</span>
+<span class="nc" id="L702">                log.debug(&quot;CA &quot;+ca.getName()+&quot; has gone through CA Name Change process, but this is not the first CRL to be generated. Not getting CRL number from old CA name.&quot;);</span>
+            }
+        }
+
+<span class="nc" id="L706">        final int deltacrlnumber = crlSession.getLastCRLNumber(certSubjectDN, true);</span>
+        // nextCrlNumber: The highest number of last CRL (full or delta) and increased by 1 (both full CRLs and deltaCRLs share the same series of CRL Number)
+<span class="nc bnc" id="L708" title="All 2 branches missed.">        final int nextCrlNumber = ( fullcrlnumber &gt; deltacrlnumber ? fullcrlnumber : deltacrlnumber ) +1;</span>
+<span class="nc bnc" id="L709" title="All 2 branches missed.">        final byte[] crlBytes = crlCreateSession.generateAndStoreCRL(admin, ca, certs, delta?fullcrlnumber:-1, nextCrlNumber);</span>
+<span class="nc" id="L710">        this.publisherSession.storeCRL(admin, ca.getCRLPublishers(), crlBytes, cafp, nextCrlNumber, certSubjectDN);</span>
+<span class="nc" id="L711">        return crlBytes;</span>
+    }
+
+    private Certificate getCaCertificate(final CAInfo caInfo) {
+<span class="nc" id="L715">        final Collection&lt;Certificate&gt; certificateChain = caInfo.getCertificateChain();</span>
+<span class="nc bnc" id="L716" title="All 2 branches missed.">        return certificateChain.isEmpty() ? null : certificateChain.iterator().next();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OCSPUnidExtension.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ocsp.extension.unid</a> &gt; <span class="el_source">OCSPUnidExtension.java</span></div><h1>OCSPUnidExtension.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.ocsp.extension.unid;
+
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.DEROctetString;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.cert.ocsp.CertificateStatus;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.ocsp.extension.OCSPExtension;
+import org.cesecore.certificates.ocsp.extension.OCSPExtensionType;
+import org.cesecore.keybind.InternalKeyBinding;
+import org.cesecore.keybind.InternalKeyBindingTrustEntry;
+import org.cesecore.util.CertTools;
+import org.ejbca.core.ejb.unidfnr.UnidfnrSessionLocal;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.util.EjbLocalHelper;
+
+/** ASN.1 OCSP extension used to map a UNID to a Fnr, OID for this extension is 2.16.578.1.16.3.2
+ * 
+ * @version $Id: OCSPUnidExtension.java 29359 2018-06-26 13:55:38Z mikekushner $
+ *
+ */
+<span class="nc" id="L47">public class OCSPUnidExtension implements OCSPExtension {</span>
+
+    public static final String OCSP_UNID_OID = &quot;2.16.578.1.16.3.2&quot;;
+    public static final String OCSP_UNID_NAME = &quot;UnId Fnr&quot;;
+    
+<span class="nc" id="L52">	private static final Logger log = Logger.getLogger(OCSPUnidExtension.class);</span>
+    /** Internal localization of logs and errors */
+<span class="nc" id="L54">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+    
+    private CaSessionLocal caSession;
+    private UnidfnrSessionLocal unidfnrSession;
+    
+<span class="nc" id="L59">    private int errCode = UnidFnrOCSPExtensionCode.ERROR_NO_ERROR.getValue();</span>
+    
+    @Override
+    public String getOid() {
+<span class="nc" id="L63">        return OCSP_UNID_OID;</span>
+    }
+    
+    @Override
+    public String getName() {
+<span class="nc" id="L68">        return OCSP_UNID_NAME;</span>
+    }
+    
+    @Override
+    public Set&lt;OCSPExtensionType&gt; getExtensionType() {
+<span class="nc" id="L73">        return EnumSet.of(OCSPExtensionType.RESPONSE);</span>
+    }
+    
+	@Override
+	public void init() {
+        // Nothings need to be done here
+<span class="nc" id="L79">	}</span>
+	
+	@Override
+	public Map&lt;ASN1ObjectIdentifier, Extension&gt; process(X509Certificate[] requestCertificates, String remoteAddress, String remoteHost,
+            X509Certificate cert, CertificateStatus status, InternalKeyBinding internalKeyBinding) {
+
+<span class="nc" id="L85">	    String serialNumber = null;</span>
+<span class="nc" id="L86">        String fnr = null;</span>
+        
+        // Check authorization first
+<span class="nc bnc" id="L89" title="All 2 branches missed.">        if (!checkAuthorization(requestCertificates, remoteAddress, remoteHost, internalKeyBinding.getTrustedCertificateReferences())) {</span>
+<span class="nc" id="L90">        	errCode = UnidFnrOCSPExtensionCode.ERROR_UNAUTHORIZED.getValue();</span>
+<span class="nc" id="L91">        	return null;</span>
+        }
+        // If the certificate is revoked, we must not return an FNR
+<span class="nc bnc" id="L94" title="All 2 branches missed.">        if (status != null) {</span>
+<span class="nc" id="L95">            errCode = UnidFnrOCSPExtensionCode.ERROR_CERT_REVOKED.getValue();</span>
+<span class="nc" id="L96">            return null;</span>
+        }
+        
+        // The Unid is in the DN component serialNumber
+<span class="nc" id="L100">        serialNumber = CertTools.getPartFromDN(cert.getSubjectDN().getName(), &quot;SN&quot;);</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">        if (serialNumber != null) {</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L103">                log.debug(&quot;Found serialNumber: &quot; + serialNumber);</span>
+            }
+<span class="nc" id="L105">            String iMsg = intres.getLocalizedMessage(&quot;ocsp.receivedunidreq&quot;, remoteAddress, remoteHost, serialNumber);</span>
+<span class="nc" id="L106">            log.info(iMsg);</span>
+
+            // Make sure unidfnrSession is loaded properly in all environments before using it.
+<span class="nc bnc" id="L109" title="All 2 branches missed.">            if (unidfnrSession == null) {</span>
+<span class="nc" id="L110">                unidfnrSession = new EjbLocalHelper().getUnidfnrSession();</span>
+            }
+<span class="nc" id="L112">            fnr = unidfnrSession.fetchUnidFnrData(serialNumber);</span>
+<span class="nc" id="L113">        } else {</span>
+<span class="nc" id="L114">            String errMsg = intres.getLocalizedMessage(&quot;ocsp.errorunidnosnindn&quot;, cert.getSubjectDN().getName());</span>
+<span class="nc" id="L115">            log.error(errMsg);</span>
+<span class="nc" id="L116">            errCode = UnidFnrOCSPExtensionCode.ERROR_NO_SERIAL_IN_DN.getValue();</span>
+<span class="nc" id="L117">            return null;</span>
+        }
+        
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        if (fnr == null) {</span>
+<span class="nc" id="L121">			String errMsg = intres.getLocalizedMessage(&quot;ocsp.errorunidnosnmapping&quot;, serialNumber);</span>
+<span class="nc" id="L122">            log.error(errMsg);</span>
+<span class="nc" id="L123">        	errCode = UnidFnrOCSPExtensionCode.ERROR_NO_FNR_MAPPING.getValue();</span>
+<span class="nc" id="L124">        	return null;</span>
+        }
+
+<span class="nc" id="L127">        String successMsg = intres.getLocalizedMessage(&quot;ocsp.returnedunidresponse&quot;, remoteAddress, remoteHost, serialNumber);</span>
+<span class="nc" id="L128">        log.info(successMsg);</span>
+        
+<span class="nc" id="L130">        return generateUnidFnrOCSPResponce(fnr);</span>
+	}
+	
+	/** Returns the last error that occurred during process(), when process returns null
+	 * 
+	 * @return error code as defined by implementing class
+	 */
+	public int getLastErrorCode() {
+<span class="nc" id="L138">		return errCode;</span>
+	}
+	
+	private boolean checkAuthorization(X509Certificate[] certificates, String remoteAddress, String remoteHost, List&lt;InternalKeyBindingTrustEntry&gt; bindingTrustEntries) {
+<span class="nc bnc" id="L142" title="All 2 branches missed.">        if (certificates == null) {</span>
+<span class="nc" id="L143">    		String errMsg = intres.getLocalizedMessage(&quot;ocsp.errornoclientauth&quot;, remoteAddress, remoteHost);</span>
+<span class="nc" id="L144">            log.error(errMsg);</span>
+<span class="nc" id="L145">            return false;</span>
+        }
+        // The certificate of the entity is nr 0
+<span class="nc" id="L148">        X509Certificate cert = certificates[0];</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">        if (cert == null) {</span>
+<span class="nc" id="L150">    		String errMsg = intres.getLocalizedMessage(&quot;ocsp.errornoclientauth&quot;, remoteAddress, remoteHost);</span>
+<span class="nc" id="L151">            log.error(errMsg);</span>
+<span class="nc" id="L152">            return false;</span>
+        }
+        
+        // Check if the certificate is authorized to access the Fnr
+<span class="nc" id="L156">        boolean serialExists = false;</span>
+<span class="nc" id="L157">        final String issuerDN = CertTools.getIssuerDN(cert);</span>
+        
+        // Make sure caSession is loaded properly in all environments before using it.
+<span class="nc bnc" id="L160" title="All 2 branches missed.">        if (caSession == null) {</span>
+<span class="nc" id="L161">            caSession = new EjbLocalHelper().getCaSession();</span>
+        }
+        
+<span class="nc" id="L164">        final CAInfo caInfo = caSession.getCAInfoInternal(issuerDN.hashCode());</span>
+        
+<span class="nc bnc" id="L166" title="All 2 branches missed.">        for (final InternalKeyBindingTrustEntry bindingTrustEntry : bindingTrustEntries) {</span>
+            // Match
+<span class="nc" id="L168">            final BigInteger trustEntrySerial = bindingTrustEntry.fetchCertificateSerialNumber(); </span>
+<span class="nc bnc" id="L169" title="All 6 branches missed.">            if ((trustEntrySerial == null || trustEntrySerial.equals(cert.getSerialNumber())) &amp;&amp; caInfo.getCAId() == bindingTrustEntry.getCaId()) {</span>
+<span class="nc" id="L170">                serialExists = true;</span>
+            }
+<span class="nc" id="L172">        }</span>
+        
+<span class="nc bnc" id="L174" title="All 2 branches missed.">        if (serialExists) {</span>
+            // If we found in the hashmap the same key with issuer and serialnumber, we know we got it. 
+            // Just verify it as well to be damn sure
+<span class="nc" id="L177">            final Certificate cacert = caInfo.getCertificateChain().get(0);</span>
+            try {
+<span class="nc" id="L179">                cert.verify(cacert.getPublicKey());</span>
+<span class="nc" id="L180">            } catch (Exception e) {</span>
+<span class="nc" id="L181">        		String errMsg = intres.getLocalizedMessage(&quot;ocsp.errorverifycert&quot;);</span>
+<span class="nc" id="L182">                log.error(errMsg, e);</span>
+<span class="nc" id="L183">                return false;</span>
+<span class="nc" id="L184">            }</span>
+            // If verify was successful we know if was good!
+<span class="nc" id="L186">            return true;</span>
+        }
+        
+<span class="nc" id="L189">		String errMsg = intres.getLocalizedMessage(&quot;ocsp.erroruntrustedclientauth&quot;, remoteAddress, remoteHost);</span>
+<span class="nc" id="L190">        log.error(errMsg);</span>
+<span class="nc" id="L191">		return false;</span>
+	}
+
+    private Map&lt;ASN1ObjectIdentifier, Extension&gt; generateUnidFnrOCSPResponce(final String fnr) {
+<span class="nc" id="L195">        FnrFromUnidExtension ext = new FnrFromUnidExtension(fnr);</span>
+<span class="nc" id="L196">        HashMap&lt;ASN1ObjectIdentifier, Extension&gt; unidOCSPResponse = new HashMap&lt;ASN1ObjectIdentifier, Extension&gt;();</span>
+        try {
+<span class="nc" id="L198">            unidOCSPResponse.put(FnrFromUnidExtension.FnrFromUnidOid, new Extension(FnrFromUnidExtension.FnrFromUnidOid, false, new DEROctetString(ext)));</span>
+<span class="nc" id="L199">        } catch (IOException e) {</span>
+<span class="nc" id="L200">            throw new IllegalStateException(&quot;Unexpected IOException caught.&quot;, e);</span>
+<span class="nc" id="L201">        }</span>
+<span class="nc" id="L202">        return unidOCSPResponse;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

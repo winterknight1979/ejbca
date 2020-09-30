@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ConfirmationMessageHandler.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.cmp</a> &gt; <span class="el_source">ConfirmationMessageHandler.java</span></div><h1>ConfirmationMessageHandler.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.cmp;
+
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.cert.X509Certificate;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.cmp.PKIHeader;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.X509CAInfo;
+import org.cesecore.certificates.ca.catoken.CAToken;
+import org.cesecore.certificates.ca.catoken.CATokenConstants;
+import org.cesecore.certificates.certificate.request.ResponseMessage;
+import org.cesecore.certificates.util.AlgorithmTools;
+import org.cesecore.keys.token.CryptoToken;
+import org.cesecore.keys.token.CryptoTokenOfflineException;
+import org.cesecore.keys.token.CryptoTokenSessionLocal;
+import org.cesecore.util.Base64;
+import org.cesecore.util.CertTools;
+import org.ejbca.config.CmpConfiguration;
+import org.ejbca.core.ejb.EjbBridgeSessionLocal;
+
+/**
+ * Message handler for certificate request confirmation message.
+ * 
+ * According to RFC 4210 4.2.2.2:
+ *  &quot;Where verification of the cert confirmation message fails, the RA/CA
+ *   MUST revoke the newly issued certificate if it has been published or
+ *   otherwise made available.&quot;
+ * 
+ * However, EJBCA does not keep track of the transaction and always responds
+ * with a ResponseStatus.SUCCESS Certificate Confirmation ACK.
+ * 
+ * @version $Id: ConfirmationMessageHandler.java 27740 2018-01-05 07:24:53Z mikekushner $
+ */
+public class ConfirmationMessageHandler extends BaseCmpMessageHandler implements ICmpMessageHandler {
+	
+<span class="nc" id="L58">	private static final Logger LOG = Logger.getLogger(ConfirmationMessageHandler.class);</span>
+	
+	/** Parameter used to determine the type of protection for the response message */
+<span class="nc" id="L61">	private String responseProtection = null;</span>
+    private CryptoTokenSessionLocal cryptoTokenSession;
+    
+    public ConfirmationMessageHandler(final AuthenticationToken authenticationToken, final CmpConfiguration cmpConfiguration, final String configAlias,
+    		final EjbBridgeSessionLocal ejbBridgeSession, final CryptoTokenSessionLocal cryptoTokenSession) {
+<span class="nc" id="L66">        super(authenticationToken, cmpConfiguration, configAlias, ejbBridgeSession);</span>
+<span class="nc" id="L67">        this.responseProtection = this.cmpConfiguration.getResponseProtection(this.confAlias);</span>
+<span class="nc" id="L68">        this.cryptoTokenSession = cryptoTokenSession;</span>
+<span class="nc" id="L69">    }</span>
+	
+    public ResponseMessage handleMessage(BaseCmpMessage cmpRequestMessage, boolean authenticated) {
+<span class="nc bnc" id="L72" title="All 2 branches missed.">		if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L73">			LOG.trace(&quot;&gt;handleMessage&quot;);</span>
+		}
+<span class="nc" id="L75">		int version = cmpRequestMessage.getHeader().getPvno().getValue().intValue();</span>
+<span class="nc" id="L76">		CmpConfirmResponseMessage cresp = null;</span>
+		// if version == 1 it is cmp1999 and we should not return a message back
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        if (version == PKIHeader.CMP_1999) {</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">            if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L80">                LOG.debug(&quot;Cmp1999 - Not creating a PKI confirm message response&quot;);</span>
+            }
+<span class="nc bnc" id="L82" title="All 2 branches missed.">        } else if (version &gt; PKIHeader.CMP_1999) {</span>
+			// Creating the confirm message response
+<span class="nc bnc" id="L84" title="All 2 branches missed.">			if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L85">				LOG.debug(&quot;Creating a PKI confirm message response, responseProtection=&quot;+responseProtection);</span>
+			}
+<span class="nc" id="L87">			cresp = new CmpConfirmResponseMessage();</span>
+<span class="nc" id="L88">			cresp.setRecipientNonce(cmpRequestMessage.getSenderNonce());</span>
+<span class="nc" id="L89">			cresp.setSenderNonce(new String(Base64.encode(CmpMessageHelper.createSenderNonce())));</span>
+<span class="nc" id="L90">			cresp.setSender(cmpRequestMessage.getRecipient());</span>
+<span class="nc" id="L91">			cresp.setRecipient(cmpRequestMessage.getSender());</span>
+<span class="nc" id="L92">			cresp.setTransactionId(cmpRequestMessage.getTransactionId());</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">			if (StringUtils.equals(responseProtection, &quot;pbe&quot;)) {</span>
+			    try {
+<span class="nc" id="L95">                    setPbeParameters(cresp, cmpRequestMessage, authenticated);</span>
+<span class="nc" id="L96">                } catch (InvalidCmpProtectionException e) {</span>
+<span class="nc" id="L97">                    throw new IllegalArgumentException(e);</span>
+<span class="nc" id="L98">                }</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">			} else if (StringUtils.equals(responseProtection, &quot;signature&quot;)) {</span>
+<span class="nc" id="L100">			    signResponse(cresp, cmpRequestMessage);</span>
+			}
+            try {
+<span class="nc" id="L103">                cresp.create();</span>
+<span class="nc" id="L104">            } catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchProviderException e) {</span>
+<span class="nc" id="L105">                LOG.error(&quot;Exception during CMP processing: &quot;, e);</span>
+<span class="nc" id="L106">            }						</span>
+		} else {
+<span class="nc bnc" id="L108" title="All 2 branches missed.">			if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L109">				LOG.debug(&quot;Not Cmp1999 or Cmp2000 or later - Not creating a PKI confirm message response&quot;);</span>
+			}
+		}
+<span class="nc" id="L112">		return cresp;</span>
+	}
+	
+	private void setPbeParameters(final BaseCmpMessage cmpResponseMessage, final BaseCmpMessage cmpRequestMessage, final boolean authenticated) throws InvalidCmpProtectionException {
+<span class="nc" id="L116">        final String keyId = CmpMessageHelper.getStringFromOctets(cmpRequestMessage.getHeader().getSenderKID());</span>
+<span class="nc" id="L117">        String sharedSecret = cmpConfiguration.getAuthenticationParameter(CmpConfiguration.AUTHMODULE_HMAC, confAlias);</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">        if(StringUtils.equals(sharedSecret, &quot;-&quot;)) {</span>
+            try {
+<span class="nc" id="L120">                final X509CAInfo cainfo = getCAInfo(cmpRequestMessage.getRecipient().getName().toString());</span>
+<span class="nc" id="L121">                sharedSecret = cainfo.getCmpRaAuthSecret();</span>
+<span class="nc" id="L122">            } catch (CADoesntExistsException e) {</span>
+<span class="nc" id="L123">                LOG.error(&quot;Exception during CMP response protection: &quot;, e);</span>
+<span class="nc" id="L124">            }</span>
+        }
+        // We don't need to check the shared secret in client mode (= the EndEntiy password) because PBE protection is only supported in RA mode
+<span class="nc" id="L127">        CmpPbeVerifyer verifyer = new CmpPbeVerifyer(cmpRequestMessage.getMessage());</span>
+<span class="nc" id="L128">        String owfAlg = verifyer.getOwfOid();</span>
+<span class="nc" id="L129">        String macAlg = verifyer.getMacOid();</span>
+<span class="nc" id="L130">        int iterationCount = verifyer.getIterationCount();</span>
+<span class="nc" id="L131">        cmpResponseMessage.setPbeParameters(keyId, sharedSecret, owfAlg, macAlg, iterationCount);</span>
+<span class="nc" id="L132">	}</span>
+	
+	private void signResponse(CmpConfirmResponseMessage cresp, BaseCmpMessage cmpRequestMessage) {
+        try {
+            // Get the CA that should sign the response
+<span class="nc" id="L137">            X509CAInfo caInfo = getCAInfo(cmpRequestMessage.getRecipient().getName().toString());</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">            if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L139">                LOG.debug(&quot;Using CA '&quot; + caInfo.getName() + &quot;' to sign Certificate Confirm message&quot;);</span>
+            }
+<span class="nc" id="L141">            X509Certificate cacert = (X509Certificate) caInfo.getCertificateChain().iterator().next();</span>
+            // We use the actual asn.1 encoding from the cacert subjectDN here. This ensures that the DN is exactly as 
+            // encoded in the certificate (which it should be).
+            // If we use only the cainfo.getSubjectDN we will get &quot;EJBCA encoding&quot;, and this may not be the same if the 
+            // CA certificate comes from an external CA that encodes thing differently than EJBCA.
+<span class="nc" id="L146">            cresp.setSender(new GeneralName(X500Name.getInstance(cacert.getSubjectX500Principal().getEncoded())));</span>
+<span class="nc" id="L147">            final CAToken caToken = caInfo.getCAToken();</span>
+<span class="nc" id="L148">            final CryptoToken cryptoToken = cryptoTokenSession.getCryptoToken(caToken.getCryptoTokenId());</span>
+<span class="nc" id="L149">            cresp.setSignKeyInfo(caInfo.getCertificateChain(), cryptoToken.getPrivateKey(</span>
+<span class="nc" id="L150">                    caToken.getAliasFromPurpose(CATokenConstants.CAKEYPURPOSE_CERTSIGN)), </span>
+<span class="nc" id="L151">                    cryptoToken.getSignProviderName());</span>
+<span class="nc" id="L152">            final AlgorithmIdentifier protectionAlgorithm = cmpRequestMessage.getHeader().getProtectionAlg();</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">            if (protectionAlgorithm != null) {</span>
+<span class="nc" id="L154">                cresp.setPreferredDigestAlg(AlgorithmTools.getDigestFromSigAlg(protectionAlgorithm.getAlgorithm().getId()));</span>
+            }
+<span class="nc" id="L156">        } catch (CADoesntExistsException | CryptoTokenOfflineException e) {</span>
+<span class="nc" id="L157">            LOG.error(&quot;Exception during CMP response signing: &quot; + e.getMessage(), e);            </span>
+<span class="nc" id="L158">        }</span>
+<span class="nc" id="L159">    }</span>
+    
+    private X509CAInfo getCAInfo(final String caDn) throws CADoesntExistsException {
+<span class="nc" id="L162">        CAInfo caInfo = null;</span>
+<span class="nc bnc" id="L163" title="All 2 branches missed.">        if (caDn == null) {</span>
+<span class="nc" id="L164">            final String caDnDefault = CertTools.stringToBCDNString(this.cmpConfiguration.getCMPDefaultCA(this.confAlias));</span>
+<span class="nc" id="L165">            caInfo = caSession.getCAInfoInternal(caDnDefault.hashCode(), null, true);</span>
+<span class="nc" id="L166">        } else {</span>
+<span class="nc" id="L167">            final String caDnNormalized = CertTools.stringToBCDNString(caDn);</span>
+            
+<span class="nc" id="L169">                caInfo = caSession.getCAInfoInternal(caDnNormalized.hashCode(), null, true);</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">            if(caInfo == null) {</span>
+<span class="nc" id="L171">                final String caDnDefault = CertTools.stringToBCDNString(this.cmpConfiguration.getCMPDefaultCA(this.confAlias));</span>
+<span class="nc" id="L172">                LOG.info(&quot;Could not find Recipient CA with DN '&quot; + caDnNormalized + &quot;'.&quot; +</span>
+<span class="nc" id="L173">                        &quot; Trying to use CMP DefaultCA instead with DN '&quot; + caDnDefault + &quot;' (&quot; + caDnDefault.hashCode() + &quot;).&quot;);</span>
+<span class="nc" id="L174">                caInfo = caSession.getCAInfoInternal(caDnDefault.hashCode(), null, true);</span>
+            }
+        }
+<span class="nc bnc" id="L177" title="All 2 branches missed.">        if (!(caInfo instanceof X509CAInfo)) {</span>
+<span class="nc" id="L178">            throw new CADoesntExistsException(&quot;Incorrect CA type.&quot;);</span>
+        }
+<span class="nc" id="L180">        return (X509CAInfo) caInfo;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

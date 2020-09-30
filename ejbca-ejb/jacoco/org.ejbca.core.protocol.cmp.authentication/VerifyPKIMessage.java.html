@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>VerifyPKIMessage.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.cmp.authentication</a> &gt; <span class="el_source">VerifyPKIMessage.java</span></div><h1>VerifyPKIMessage.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.cmp.authentication;
+
+import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.cmp.PKIMessage;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationSession;
+import org.cesecore.certificates.ca.CAInfo;
+import org.cesecore.certificates.ca.CaSession;
+import org.cesecore.certificates.certificate.CertificateStoreSession;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSession;
+import org.ejbca.config.CmpConfiguration;
+import org.ejbca.core.ejb.authentication.web.WebAuthenticationProviderSessionLocal;
+import org.ejbca.core.ejb.ra.EndEntityAccessSession;
+import org.ejbca.core.ejb.ra.EndEntityManagementSession;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSession;
+
+/**
+ * Verifies a CMP message using a suitable authentication module.
+ * 
+ * The authentication modules are specified as properties in the CmpConfiguration.
+ * 
+ * @version $Id: VerifyPKIMessage.java 25797 2017-05-04 15:52:00Z jeklund $
+ */
+public class VerifyPKIMessage {
+    
+<span class="nc" id="L39">    private static final Logger log = Logger.getLogger(VerifyPKIMessage.class);</span>
+    
+    private final CAInfo caInfo;
+<span class="nc" id="L42">    private String errorMessage = null;</span>
+    private final String confAlias;
+    private final CmpConfiguration cmpConfiguration;
+    private final AuthenticationToken authenticationToken;
+    
+    private final CaSession caSession;
+    private final EndEntityAccessSession endEntityAccessSession;
+    private final CertificateStoreSession certificateStoreSession;
+    private final AuthorizationSession authorizationSession;
+    private final EndEntityProfileSession endEntityProfileSession;
+    private final CertificateProfileSession certificateProfileSession;
+    private final WebAuthenticationProviderSessionLocal authenticationProviderSession;
+    private final EndEntityManagementSession endEntityManagementSession;
+
+    public VerifyPKIMessage(final CAInfo cainfo, final String confAlias, final AuthenticationToken admin, final CaSession caSession, final EndEntityAccessSession endEntityAccessSession, 
+            final CertificateStoreSession certificateStoreSession, final AuthorizationSession authorizationSession, final EndEntityProfileSession endEntityProfileSession, final CertificateProfileSession certificateProfileSession,  
+            final WebAuthenticationProviderSessionLocal authenticationProviderSession, final EndEntityManagementSession endEntityManagementSession, 
+<span class="nc" id="L59">            final CmpConfiguration cmpConfiguration) {</span>
+<span class="nc" id="L60">        this.caInfo = cainfo;</span>
+<span class="nc" id="L61">        this.confAlias = confAlias;</span>
+<span class="nc" id="L62">        this.authenticationToken = admin;</span>
+<span class="nc" id="L63">        this.caSession = caSession;</span>
+<span class="nc" id="L64">        this.endEntityAccessSession = endEntityAccessSession;</span>
+<span class="nc" id="L65">        this.certificateStoreSession = certificateStoreSession;</span>
+<span class="nc" id="L66">        this.authorizationSession = authorizationSession;</span>
+<span class="nc" id="L67">        this.endEntityProfileSession = endEntityProfileSession;</span>
+<span class="nc" id="L68">        this.certificateProfileSession = certificateProfileSession;</span>
+<span class="nc" id="L69">        this.authenticationProviderSession = authenticationProviderSession;</span>
+<span class="nc" id="L70">        this.endEntityManagementSession = endEntityManagementSession;</span>
+<span class="nc" id="L71">        this.cmpConfiguration = cmpConfiguration;</span>
+<span class="nc" id="L72">    }</span>
+    
+    /**
+     * Returns the error message resulted in failing to verify the PKIMessage. The error message  is set in the 
+     * getUsedAuthenticationModule() method.
+     * 
+     * @return the error message as String. Null if the verification succeeded.
+     */
+    public String getErrorMessage() {
+<span class="nc" id="L81">        return this.errorMessage;</span>
+    }
+    
+    /**
+     * Verifies the authenticity of the PKIMessage
+     * 
+     * @param pkiMessage PKIMessage to verify
+     * @param username that the PKIMessage should match or null
+     * @param authenticated if the CMP message has already been authenticated in another way or not
+     * @return The authentication module that succeeded in authenticating msg. Null if message authentication failed using all 
+     * configured authentication modules.
+     */
+    public ICMPAuthenticationModule getUsedAuthenticationModule(final PKIMessage pkiMessage, final String username, boolean authenticated) {
+<span class="nc" id="L94">        final String authModules = this.cmpConfiguration.getAuthenticationModule(this.confAlias);</span>
+<span class="nc" id="L95">        final String authparameters = this.cmpConfiguration.getAuthenticationParameters(this.confAlias);</span>
+<span class="nc" id="L96">        final String modules[] = authModules.split(&quot;;&quot;);</span>
+<span class="nc" id="L97">        final String params[] = authparameters.split(&quot;;&quot;);</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (modules.length != params.length) {</span>
+<span class="nc" id="L99">            log.error(&quot;The number of authentication modules does not match the number of authentication parameters. &quot; +</span>
+                    modules.length + &quot; modules - &quot; + params.length + &quot; paramters&quot;);
+<span class="nc" id="L101">            this.errorMessage = &quot;CMP module configuration error.&quot;;</span>
+<span class="nc" id="L102">            return null;</span>
+        }
+<span class="nc" id="L104">        boolean raMode = this.cmpConfiguration.getRAMode(this.confAlias);</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">        for (int i=0; i&lt;modules.length; i++) {</span>
+<span class="nc" id="L106">            final String moduleName = modules[i].trim();</span>
+<span class="nc" id="L107">            final String moduleParameter = params[i].trim();</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L109">                log.debug(&quot;Trying to verify the message using CMP authentication module '&quot; + moduleName + &quot;' with parameter '&quot; + moduleParameter + &quot;'&quot;);</span>
+            }
+<span class="nc" id="L111">            final ICMPAuthenticationModule module = getAuthModule(raMode, moduleName, moduleParameter, pkiMessage, authenticated);</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">            if (module != null) {</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">                if (module.verifyOrExtract(pkiMessage, username)) {</span>
+<span class="nc" id="L114">                    log.info(&quot;PKIMessage was successfully authenticated using &quot; + module.getName());</span>
+<span class="nc" id="L115">                    return module;</span>
+                } else {
+<span class="nc bnc" id="L117" title="All 2 branches missed.">                    if (module.getErrorMessage() != null) {</span>
+<span class="nc" id="L118">                        errorMessage = module.getErrorMessage();</span>
+                    }
+                }
+            }
+        }
+<span class="nc bnc" id="L123" title="All 2 branches missed.">        if (this.errorMessage == null) {</span>
+<span class="nc" id="L124">            this.errorMessage = &quot;Failed to authentication PKIMessage using authentication modules: &quot; + authModules;</span>
+        }
+<span class="nc" id="L126">        return null;</span>
+    }
+    
+    /** @param raMode Mode
+     * @param module Module
+     * @param parameter Param
+     * @param pkiMessage PKI
+     * @param authenticated Auth
+     * @return The requested authentication module or null if no such module is implemented. */
+    private ICMPAuthenticationModule getAuthModule(final boolean raMode, final String module, final String parameter, final PKIMessage pkiMessage, final boolean authenticated) {
+<span class="nc bnc" id="L136" title="All 5 branches missed.">        switch (module) {</span>
+        case CmpConfiguration.AUTHMODULE_HMAC:
+<span class="nc" id="L138">            return new HMACAuthenticationModule(authenticationToken, parameter, confAlias, cmpConfiguration, caInfo, endEntityAccessSession);</span>
+        case CmpConfiguration.AUTHMODULE_ENDENTITY_CERTIFICATE:
+<span class="nc" id="L140">            return new EndEntityCertificateAuthenticationModule(authenticationToken, parameter, confAlias, cmpConfiguration, authenticated,</span>
+                    caSession, certificateStoreSession, authorizationSession, endEntityProfileSession, certificateProfileSession,
+                    endEntityAccessSession, authenticationProviderSession, endEntityManagementSession);
+        case CmpConfiguration.AUTHMODULE_REG_TOKEN_PWD:
+<span class="nc bnc" id="L144" title="All 2 branches missed.">            if (raMode) {</span>
+<span class="nc" id="L145">                this.errorMessage = &quot;The authentication module '&quot; + module + &quot;' cannot be used in RA mode&quot;;</span>
+<span class="nc" id="L146">                break;</span>
+            }
+<span class="nc" id="L148">            return new RegTokenPasswordExtractor();</span>
+        case CmpConfiguration.AUTHMODULE_DN_PART_PWD:
+<span class="nc bnc" id="L150" title="All 2 branches missed.">            if (raMode) {</span>
+<span class="nc" id="L151">                this.errorMessage = &quot;The authentication module '&quot; + module + &quot;' cannot be used in RA mode&quot;;</span>
+<span class="nc" id="L152">                break;</span>
+            }
+<span class="nc" id="L154">            return new DnPartPasswordExtractor(parameter);</span>
+        default:
+<span class="nc" id="L156">            this.errorMessage = &quot;Unrecognized authentication module: &quot; + module;</span>
+        }
+<span class="nc" id="L158">        log.info(this.errorMessage);</span>
+<span class="nc" id="L159">        return null;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

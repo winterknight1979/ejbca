@@ -1,0 +1,694 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>EndEntityProfileSessionBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.ra.raadmin</a> &gt; <span class="el_source">EndEntityProfileSessionBean.java</span></div><h1>EndEntityProfileSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.ejb.ra.raadmin;
+
+import java.beans.XMLEncoder;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.util.ProfileID;
+import org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaModuleTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaServiceTypes;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfile;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileExistsException;
+import org.ejbca.core.model.ra.raadmin.EndEntityProfileNotFoundException;
+
+/**
+ * Session bean for handling EndEntityProfiles
+ *
+ * @version $Id: EndEntityProfileSessionBean.java 29434 2018-07-03 06:49:23Z mikekushner $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;EndEntityProfileSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L68">public class EndEntityProfileSessionBean implements EndEntityProfileSessionLocal, EndEntityProfileSessionRemote {</span>
+
+<span class="nc" id="L70">    private static final Logger LOG = Logger.getLogger(EndEntityProfileSessionBean.class);</span>
+
+    /** Internal localization of logs and errors */
+<span class="nc" id="L73">    private static final InternalEjbcaResources INTRES = InternalEjbcaResources.getInstance();</span>
+
+    @PersistenceContext(unitName = &quot;ejbca&quot;)
+    private EntityManager entityManager;
+
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private CaSessionLocal caSession;
+    @EJB
+    private SecurityEventsLoggerSessionLocal auditSession;
+    @EJB
+    private CertificateProfileSessionLocal certificateProfileSession;
+
+    @Override
+    public int addEndEntityProfile(final AuthenticationToken admin, final String profilename, final EndEntityProfile profile) throws AuthorizationDeniedException, EndEntityProfileExistsException {
+<span class="nc" id="L89">        int endEntityProfileId = findFreeEndEntityProfileId();</span>
+<span class="nc" id="L90">        addEndEntityProfile(admin, endEntityProfileId, profilename, profile);</span>
+<span class="nc" id="L91">        return endEntityProfileId;</span>
+    }
+
+    @Override
+    public void addEndEntityProfile(final AuthenticationToken admin, final int profileid, final String profilename, final EndEntityProfile profile) throws AuthorizationDeniedException, EndEntityProfileExistsException {
+<span class="nc bnc" id="L96" title="All 2 branches missed.">        if (profilename.trim().equalsIgnoreCase(EndEntityConstants.EMPTY_ENDENTITYPROFILENAME)) {</span>
+<span class="nc" id="L97">            final String msg = INTRES.getLocalizedMessage(&quot;ra.erroraddprofilefixed&quot;, profilename, EndEntityConstants.EMPTY_ENDENTITYPROFILENAME);</span>
+<span class="nc" id="L98">            LOG.info(msg);</span>
+<span class="nc" id="L99">            throw new EndEntityProfileExistsException(msg);</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        } else if (!isFreeEndEntityProfileId(profileid)) {</span>
+<span class="nc" id="L101">        	final String msg = INTRES.getLocalizedMessage(&quot;ra.erroraddprofileexists&quot;, profilename);</span>
+<span class="nc" id="L102">            LOG.info(msg);</span>
+<span class="nc" id="L103">            throw new EndEntityProfileExistsException(msg);</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        } else if (EndEntityProfileData.findByProfileName(entityManager, profilename) != null) {</span>
+<span class="nc" id="L105">        	final String msg = INTRES.getLocalizedMessage(&quot;ra.erroraddprofileexists&quot;, profilename);</span>
+<span class="nc" id="L106">        	LOG.info(msg);</span>
+<span class="nc" id="L107">            throw new EndEntityProfileExistsException(msg);</span>
+        } else {
+            // Check authorization before adding
+<span class="nc" id="L110">            authorizedToEditProfile(admin, profile);</span>
+            try {
+<span class="nc" id="L112">                entityManager.persist(new EndEntityProfileData(Integer.valueOf(profileid), profilename, profile));</span>
+<span class="nc" id="L113">                flushProfileCache();</span>
+<span class="nc" id="L114">                final String msg = INTRES.getLocalizedMessage(&quot;ra.addedprofile&quot;, profilename);</span>
+<span class="nc" id="L115">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L116">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L117">                auditSession.log(EjbcaEventTypes.RA_ADDEEPROFILE, EventStatus.SUCCESS, EjbcaModuleTypes.RA, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L118">            } catch (Exception e) {</span>
+<span class="nc" id="L119">            	final String msg = INTRES.getLocalizedMessage(&quot;ra.erroraddprofile&quot;, profilename);</span>
+<span class="nc" id="L120">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L121">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L122">                details.put(&quot;error&quot;, e.getMessage());</span>
+<span class="nc" id="L123">                auditSession.log(EjbcaEventTypes.RA_ADDEEPROFILE, EventStatus.FAILURE, EjbcaModuleTypes.RA, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L124">            }</span>
+        }
+<span class="nc" id="L126">    }</span>
+
+    @Override
+    public void changeEndEntityProfile(final AuthenticationToken admin, final String profilename, final EndEntityProfile profile) throws AuthorizationDeniedException, EndEntityProfileNotFoundException {
+<span class="nc" id="L130">        internalChangeEndEntityProfileNoFlushCache(admin, profilename, profile);</span>
+<span class="nc" id="L131">        flushProfileCache();</span>
+<span class="nc" id="L132">    }</span>
+
+    @Override
+    public void cloneEndEntityProfile(final AuthenticationToken admin, final String orgname, final String newname) throws AuthorizationDeniedException, EndEntityProfileExistsException {
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        if (newname.trim().equalsIgnoreCase(EndEntityConstants.EMPTY_ENDENTITYPROFILENAME)) {</span>
+<span class="nc" id="L137">        	final String msg = INTRES.getLocalizedMessage(&quot;ra.errorcloneprofile&quot;, newname, orgname);</span>
+<span class="nc" id="L138">        	LOG.info(msg);</span>
+<span class="nc" id="L139">            throw new EndEntityProfileExistsException();</span>
+        }
+<span class="nc bnc" id="L141" title="All 2 branches missed.">        if (EndEntityProfileData.findByProfileName(entityManager, newname) == null) {</span>
+<span class="nc" id="L142">        	final EndEntityProfileData pdl = EndEntityProfileData.findByProfileName(entityManager, orgname);</span>
+<span class="nc" id="L143">            boolean success = false;</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">            if (pdl != null) {</span>
+                // Check authorization before cloning
+<span class="nc" id="L146">                final EndEntityProfile profile = pdl.getProfile();</span>
+<span class="nc" id="L147">                authorizedToEditProfile(admin, profile);</span>
+            	try {
+<span class="nc" id="L149">            		final int profileid = findFreeEndEntityProfileId();</span>
+<span class="nc" id="L150">            		entityManager.persist(new EndEntityProfileData(profileid, newname, (EndEntityProfile)profile.clone()));</span>
+<span class="nc" id="L151">            		flushProfileCache();</span>
+<span class="nc" id="L152">            		final String msg = INTRES.getLocalizedMessage(&quot;ra.clonedprofile&quot;, newname, orgname);</span>
+<span class="nc" id="L153">                    final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L154">                    details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L155">                    auditSession.log(EjbcaEventTypes.RA_ADDEEPROFILE, EventStatus.SUCCESS, EjbcaModuleTypes.RA, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L156">            		success = true;</span>
+<span class="nc" id="L157">            	} catch (CloneNotSupportedException e) {</span>
+<span class="nc" id="L158">            		LOG.error(&quot;Cloe not supported?: &quot;, e);</span>
+<span class="nc" id="L159">            	}</span>
+            }
+<span class="nc bnc" id="L161" title="All 2 branches missed.">            if (!success) {</span>
+<span class="nc" id="L162">            	final String msg = INTRES.getLocalizedMessage(&quot;ra.errorcloneprofile&quot;, newname, orgname);</span>
+<span class="nc" id="L163">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L164">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L165">                auditSession.log(EjbcaEventTypes.RA_ADDEEPROFILE, EventStatus.FAILURE, EjbcaModuleTypes.RA, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+            }
+<span class="nc" id="L167">        } else {</span>
+<span class="nc" id="L168">        	final String msg = INTRES.getLocalizedMessage(&quot;ra.errorcloneprofile&quot;, newname, orgname);</span>
+<span class="nc" id="L169">        	LOG.info(msg);</span>
+<span class="nc" id="L170">            throw new EndEntityProfileExistsException();</span>
+        }
+<span class="nc" id="L172">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public List&lt;String&gt; getEndEntityProfilesUsingCertificateProfile(final int certificateProfileId) {
+<span class="nc" id="L177">        String[] availprofiles = null;</span>
+<span class="nc" id="L178">        List&lt;String&gt; result = new ArrayList&lt;String&gt;();</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">        for(EndEntityProfileData profileData : EndEntityProfileData.findAll(entityManager)) {</span>
+<span class="nc" id="L180">            availprofiles = profileData.getProfile().getValue(EndEntityProfile.AVAILCERTPROFILES, 0).split(EndEntityProfile.SPLITCHAR);</span>
+<span class="nc bnc" id="L181" title="All 2 branches missed.">            for (String profileId : availprofiles) {</span>
+<span class="nc bnc" id="L182" title="All 2 branches missed.">                if (Integer.parseInt(profileId) == certificateProfileId) {</span>
+<span class="nc" id="L183">                    result.add(profileData.getProfileName());</span>
+<span class="nc" id="L184">                    break;</span>
+                }
+            }
+<span class="nc" id="L187">        }</span>
+<span class="nc" id="L188">        return result;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public boolean existsCAInEndEntityProfiles(final int caid) {
+<span class="nc" id="L194">        String[] availablecas = null;</span>
+<span class="nc" id="L195">        boolean exists = false;</span>
+<span class="nc" id="L196">        final Collection&lt;EndEntityProfileData&gt; result = EndEntityProfileData.findAll(entityManager);</span>
+<span class="nc" id="L197">        final Iterator&lt;EndEntityProfileData&gt; i = result.iterator();</span>
+<span class="nc bnc" id="L198" title="All 4 branches missed.">        while (i.hasNext() &amp;&amp; !exists) {</span>
+<span class="nc" id="L199">        	final EndEntityProfileData ep = i.next();</span>
+<span class="nc" id="L200">            availablecas = ep.getProfile().getValue(EndEntityProfile.AVAILCAS, 0).split(EndEntityProfile.SPLITCHAR);</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">            for (int j = 0; j &lt; availablecas.length; j++) {</span>
+<span class="nc bnc" id="L202" title="All 2 branches missed.">                if (StringUtils.isNotEmpty(availablecas[j])) {</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">                    if (Integer.parseInt(availablecas[j]) == caid) {</span>
+<span class="nc" id="L204">                        exists = true;</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">                        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L206">                            LOG.debug(&quot;CA exists in entity profile &quot; + ep.getProfileName());</span>
+                        }
+                        break;
+                    }
+<span class="nc bnc" id="L210" title="All 2 branches missed.">                } else if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L211">                    LOG.debug(&quot;One of the availableCAs is empty string, fishy, but we ignore it. EE profile: &quot;+ep.getProfileName());</span>
+                }
+            }
+<span class="nc" id="L214">        }</span>
+<span class="nc" id="L215">        return exists;</span>
+    }
+
+    @Override
+    public int findFreeEndEntityProfileId() {
+<span class="nc" id="L220">        final ProfileID.DB db = new ProfileID.DB() {</span>
+            @Override
+            public boolean isFree(int i) {
+<span class="nc bnc" id="L223" title="All 2 branches missed.">                return EndEntityProfileData.findById(EndEntityProfileSessionBean.this.entityManager, i)==null;</span>
+            }
+        };
+<span class="nc" id="L226">        return ProfileID.getNotUsedID(db);</span>
+    }
+
+    @Override
+    public void flushProfileCache() {
+<span class="nc bnc" id="L231" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L232">            LOG.trace(&quot;&gt;flushProfileCache&quot;);</span>
+        }
+<span class="nc" id="L234">        EndEntityProfileCache.INSTANCE.updateProfileCache(entityManager, true);</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L236">            LOG.debug(&quot;Flushed profile cache&quot;);</span>
+        }
+<span class="nc" id="L238">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public EndEntityProfile getEndEntityProfile(final String profilename) {
+<span class="nc bnc" id="L243" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L244">            LOG.trace(&quot;&gt;getEndEntityProfile(&quot; + profilename + &quot;)&quot;);</span>
+        }
+
+<span class="nc" id="L247">        EndEntityProfile returnval = getEndEntityProfileNoClone(profilename);</span>
+        try {
+<span class="nc bnc" id="L249" title="All 2 branches missed.">            if (returnval != null) {</span>
+<span class="nc" id="L250">                returnval = (EndEntityProfile)returnval.clone();</span>
+            }
+<span class="nc" id="L252">        } catch (CloneNotSupportedException e) {</span>
+<span class="nc" id="L253">            LOG.error(&quot;Should never happen: &quot;, e);</span>
+<span class="nc" id="L254">            throw new RuntimeException(e);</span>
+<span class="nc" id="L255">        }</span>
+<span class="nc bnc" id="L256" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc bnc" id="L257" title="All 2 branches missed.">            LOG.trace(&quot;&lt;getEndEntityProfile(&quot; + profilename + &quot;): &quot; + (returnval == null ? &quot;null&quot; : &quot;not null&quot;));</span>
+        }
+<span class="nc" id="L259">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public EndEntityProfile getEndEntityProfileNoClone(final String profilename) {
+<span class="nc bnc" id="L265" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L266">            LOG.trace(&quot;&gt;getEndEntityProfileNoClone(&quot; + profilename + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L268">        EndEntityProfile returnval = null;</span>
+<span class="nc bnc" id="L269" title="All 2 branches missed.">        if (profilename.equals(EndEntityConstants.EMPTY_ENDENTITYPROFILENAME)) {</span>
+<span class="nc" id="L270">            returnval = new EndEntityProfile(true);</span>
+        } else {
+<span class="nc" id="L272">            final Integer id = EndEntityProfileCache.INSTANCE.getNameIdMapCache(entityManager).get(profilename);</span>
+<span class="nc bnc" id="L273" title="All 2 branches missed.">            if (id != null) {</span>
+<span class="nc" id="L274">                returnval = getEndEntityProfileNoClone(id);</span>
+            }
+        }
+<span class="nc bnc" id="L277" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc bnc" id="L278" title="All 2 branches missed.">            LOG.trace(&quot;&lt;getEndEntityProfileNoClone(&quot; + profilename + &quot;): &quot; + (returnval == null ? &quot;null&quot; : &quot;not null&quot;));</span>
+        }
+<span class="nc" id="L280">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public Collection&lt;Integer&gt; getAuthorizedEndEntityProfileIds(final AuthenticationToken admin, String endentityAccessRule) {
+<span class="nc" id="L286">    	final ArrayList&lt;Integer&gt; returnval = new ArrayList&lt;Integer&gt;();</span>
+<span class="nc" id="L287">    	final HashSet&lt;Integer&gt; authorizedcaids = new HashSet&lt;Integer&gt;(caSession.getAuthorizedCaIds(admin));</span>
+<span class="nc" id="L288">    	final HashSet&lt;Integer&gt; allcaids = new HashSet&lt;Integer&gt;(caSession.getAllCaIds());</span>
+		// If this is the special value ALLCAs we are authorized
+<span class="nc" id="L290">    	authorizedcaids.add(Integer.valueOf(SecConst.ALLCAS));</span>
+
+<span class="nc" id="L292">    	final boolean rootAccess = authorizationSession.isAuthorizedNoLogging(admin, StandardRules.ROLE_ROOT.resource());</span>
+        // We have to manually add the EMPTY end entity profile because it is not included in the profile cache
+<span class="nc bnc" id="L294" title="All 2 branches missed.">        if (authorizationSession.isAuthorizedNoLogging(admin, AccessRulesConstants.ENDENTITYPROFILEBASE + &quot;/&quot; + EndEntityConstants.EMPTY_END_ENTITY_PROFILE + endentityAccessRule)) {</span>
+<span class="nc" id="L295">            returnval.add(EndEntityConstants.EMPTY_END_ENTITY_PROFILE);</span>
+        }
+<span class="nc bnc" id="L297" title="All 2 branches missed.">        for (final Entry&lt;Integer, EndEntityProfile&gt; entry : EndEntityProfileCache.INSTANCE.getProfileCache(entityManager).entrySet()) {</span>
+            // Check if all profiles available CAs exists in authorizedcaids.
+<span class="nc" id="L299">            final String availableCasString = entry.getValue().getValue(EndEntityProfile.AVAILCAS, 0);</span>
+<span class="nc" id="L300">            boolean authorizedToProfile = false;</span>
+            // Check authorization for the endentityAccessRule here. The built in EMPTY EE profile is obviously not included in the cache, so added manually above
+<span class="nc bnc" id="L302" title="All 2 branches missed.">            if (authorizationSession.isAuthorizedNoLogging(admin, AccessRulesConstants.ENDENTITYPROFILEBASE + &quot;/&quot; + entry.getKey().toString() + endentityAccessRule)) {</span>
+<span class="nc" id="L303">                authorizedToProfile = true;</span>
+<span class="nc bnc" id="L304" title="All 2 branches missed.">                if (StringUtils.isNotBlank(availableCasString)) {</span>
+<span class="nc bnc" id="L305" title="All 2 branches missed.">                    for (final String caidString : availableCasString.split(EndEntityProfile.SPLITCHAR)) {</span>
+                        try {
+<span class="nc" id="L307">                            final int caIdInt = Integer.parseInt(caidString);</span>
+                            // with root rule access you can edit profiles with missing CA ids
+<span class="nc bnc" id="L309" title="All 6 branches missed.">                            if (!authorizedcaids.contains(caIdInt) &amp;&amp; (!rootAccess || allcaids.contains(caIdInt))) {</span>
+<span class="nc" id="L310">                                authorizedToProfile = false;</span>
+<span class="nc bnc" id="L311" title="All 2 branches missed.">                                if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L312">                                    LOG.debug(&quot;Profile &quot; + entry.getKey().toString() + &quot; not authorized to CA with ID &quot; + caIdInt);</span>
+                                }
+<span class="nc" id="L314">                                break;</span>
+                            }
+<span class="nc" id="L316">                        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L317">                            throw new IllegalStateException(</span>
+                                    &quot;CA ID was stored in an end entity profile as something other than a number: &quot; + caidString, e);
+<span class="nc" id="L319">                        }</span>
+                    }
+<span class="nc bnc" id="L321" title="All 2 branches missed.">                    if (authorizedToProfile) {</span>
+<span class="nc" id="L322">                        returnval.add(entry.getKey());</span>
+                    }
+                }
+            }
+
+<span class="nc" id="L327">        }</span>
+<span class="nc" id="L328">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public List&lt;Integer&gt; getAuthorizedEndEntityProfileIdsWithMissingCAs(final AuthenticationToken admin) {
+<span class="nc" id="L334">        final ArrayList&lt;Integer&gt; returnval = new ArrayList&lt;Integer&gt;();</span>
+<span class="nc" id="L335">        final HashSet&lt;Integer&gt; allcaids = new HashSet&lt;Integer&gt;(caSession.getAllCaIds());</span>
+<span class="nc" id="L336">        allcaids.add(Integer.valueOf(SecConst.ALLCAS));</span>
+<span class="nc bnc" id="L337" title="All 2 branches missed.">        if (!authorizationSession.isAuthorizedNoLogging(admin, StandardRules.ROLE_ROOT.resource())) {</span>
+            // we can only see profiles with missing CA Ids if we have root rule access
+<span class="nc" id="L339">            return returnval;</span>
+        }
+
+        try {
+<span class="nc bnc" id="L343" title="All 2 branches missed.">            for (final Entry&lt;Integer, EndEntityProfile&gt; entry : EndEntityProfileCache.INSTANCE.getProfileCache(entityManager).entrySet()) {</span>
+<span class="nc" id="L344">                final String availableCasString = entry.getValue().getValue(EndEntityProfile.AVAILCAS, 0);</span>
+<span class="nc bnc" id="L345" title="All 2 branches missed.">                if (availableCasString != null) {</span>
+<span class="nc" id="L346">                    boolean nonExistingCA = false;</span>
+<span class="nc bnc" id="L347" title="All 2 branches missed.">                    for (final String caidString : availableCasString.split(EndEntityProfile.SPLITCHAR)) {</span>
+<span class="nc" id="L348">                        final int caIdInt = Integer.parseInt(caidString);</span>
+<span class="nc bnc" id="L349" title="All 2 branches missed.">                        if (!allcaids.contains(caIdInt)) {</span>
+<span class="nc" id="L350">                            nonExistingCA = true;</span>
+                        }
+                    }
+<span class="nc bnc" id="L353" title="All 2 branches missed.">                    if (nonExistingCA) {</span>
+<span class="nc" id="L354">                        returnval.add(entry.getKey());</span>
+                    }
+                }
+<span class="nc" id="L357">            }</span>
+<span class="nc" id="L358">        } catch (Exception e) {</span>
+<span class="nc" id="L359">            LOG.error(INTRES.getLocalizedMessage(&quot;ra.errorgetids&quot;), e);</span>
+<span class="nc" id="L360">        }</span>
+<span class="nc" id="L361">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public EndEntityProfile getEndEntityProfile(final int id) {
+<span class="nc bnc" id="L367" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L368">            LOG.trace(&quot;&gt;getEndEntityProfile(&quot; + id + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L370">        EndEntityProfile returnval = getEndEntityProfileNoClone(id);</span>
+        try {
+<span class="nc bnc" id="L372" title="All 2 branches missed.">            if (returnval != null) {</span>
+<span class="nc" id="L373">                returnval = (EndEntityProfile)returnval.clone();</span>
+            }
+<span class="nc" id="L375">        } catch (CloneNotSupportedException e) {</span>
+<span class="nc" id="L376">            LOG.error(&quot;Should never happen: &quot;, e);</span>
+<span class="nc" id="L377">            throw new RuntimeException(e);</span>
+<span class="nc" id="L378">        }</span>
+<span class="nc bnc" id="L379" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc bnc" id="L380" title="All 2 branches missed.">            LOG.trace(&quot;&lt;getEndEntityProfile(id): &quot; + (returnval == null ? &quot;null&quot; : &quot;not null&quot;));</span>
+        }
+<span class="nc" id="L382">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public Map&lt;String, Integer&gt; getAvailableCertificateProfiles(final AuthenticationToken admin, final int entityProfileId) throws EndEntityProfileNotFoundException {
+<span class="nc" id="L388">        final EndEntityProfile profile = getEndEntityProfileNoClone(entityProfileId);</span>
+<span class="nc" id="L389">        final TreeMap&lt;String,Integer&gt; result = new TreeMap&lt;&gt;();</span>
+<span class="nc bnc" id="L390" title="All 2 branches missed.">        if (profile != null) {</span>
+<span class="nc" id="L391">            final Collection&lt;Integer&gt; ids = profile.getAvailableCertificateProfileIds();</span>
+<span class="nc bnc" id="L392" title="All 2 branches missed.">            for (int id : ids) {</span>
+<span class="nc" id="L393">                result.put(certificateProfileSession.getCertificateProfileName(id), id);</span>
+<span class="nc" id="L394">            }</span>
+<span class="nc" id="L395">        } else {</span>
+<span class="nc" id="L396">            throw new EndEntityProfileNotFoundException(&quot;End entity profile with ID &quot; + entityProfileId + &quot; could not be found.&quot;);</span>
+        }
+<span class="nc bnc" id="L398" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L399">            LOG.debug(&quot;Found &quot; + result + &quot; certificate profiles for end entity profile with ID &quot; + entityProfileId + &quot; requested by &quot; + admin.getUniqueId());</span>
+        }
+<span class="nc" id="L401">        return result;</span>
+    }
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public Map&lt;String, Integer&gt; getAvailableCasInProfile(final AuthenticationToken admin, final int entityProfileId)
+            throws AuthorizationDeniedException, EndEntityProfileNotFoundException {
+<span class="nc" id="L408">        final EndEntityProfile profile = getEndEntityProfileNoClone(entityProfileId);</span>
+<span class="nc" id="L409">        final TreeMap&lt;String,Integer&gt; result = new TreeMap&lt;&gt;();</span>
+<span class="nc bnc" id="L410" title="All 2 branches missed.">        if (profile != null) {</span>
+<span class="nc" id="L411">            final Collection&lt;Integer&gt; ids = profile.getAvailableCAs();</span>
+<span class="nc" id="L412">            final HashMap&lt;Integer,String&gt; map = caSession.getCAIdToNameMap();</span>
+            String name;
+<span class="nc bnc" id="L414" title="All 2 branches missed.">            for (int id : ids) {</span>
+<span class="nc" id="L415">                name = map.get(id);</span>
+<span class="nc bnc" id="L416" title="All 2 branches missed.">                if (name != null) {</span>
+<span class="nc" id="L417">                    result.put(name, id);</span>
+                }
+<span class="nc" id="L419">            }</span>
+<span class="nc" id="L420">        } else {</span>
+<span class="nc" id="L421">            throw new EndEntityProfileNotFoundException(&quot;End entity profile with ID &quot; + entityProfileId + &quot; could not be found.&quot;);</span>
+        }
+<span class="nc bnc" id="L423" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L424">            LOG.debug(&quot;Found &quot; + result + &quot; CAs for end entity profile with ID &quot; + entityProfileId + &quot; requested by &quot; + admin.getUniqueId());</span>
+        }
+<span class="nc" id="L426">        return result;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public EndEntityProfile getEndEntityProfileNoClone(final int id) {
+<span class="nc bnc" id="L432" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L433">            LOG.trace(&quot;&gt;getEndEntityProfileNoClone(&quot; + id + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L435">        EndEntityProfile returnval = null;</span>
+<span class="nc bnc" id="L436" title="All 2 branches missed.">        if (id == EndEntityConstants.EMPTY_END_ENTITY_PROFILE) {</span>
+<span class="nc" id="L437">            returnval = new EndEntityProfile(true);</span>
+        } else {
+            // We need to clone the profile, otherwise the cache contents will be modifyable from the outside
+<span class="nc" id="L440">            returnval = EndEntityProfileCache.INSTANCE.getProfileCache(entityManager).get(Integer.valueOf(id));</span>
+        }
+<span class="nc bnc" id="L442" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc bnc" id="L443" title="All 2 branches missed.">            LOG.trace(&quot;&lt;getEndEntityProfileNoClone(id): &quot; + (returnval == null ? &quot;null&quot; : &quot;not null&quot;));</span>
+        }
+<span class="nc" id="L445">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public int getEndEntityProfileId(final String profilename) throws EndEntityProfileNotFoundException {
+<span class="nc bnc" id="L451" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L452">            LOG.trace(&quot;&gt;getEndEntityProfileId(&quot; + profilename + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L454">        final Integer id = EndEntityProfileCache.INSTANCE.getNameIdMapCache(entityManager).get(profilename.trim());</span>
+<span class="nc bnc" id="L455" title="All 2 branches missed.">        if (id != null) {</span>
+<span class="nc" id="L456">            int result = id.intValue();</span>
+<span class="nc bnc" id="L457" title="All 2 branches missed.">            if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L458">                LOG.trace(&quot;&lt;getEndEntityProfileId(&quot; + profilename + &quot;): &quot; + result);</span>
+            }
+<span class="nc" id="L460">            return result;</span>
+        } else {
+<span class="nc" id="L462">            throw new EndEntityProfileNotFoundException(&quot;End Entity Profile of name \&quot;&quot; + profilename + &quot;\&quot; was not found&quot;);</span>
+        }
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public String getEndEntityProfileName(final int id) {
+<span class="nc bnc" id="L469" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L470">            LOG.trace(&quot;&gt;getEndEntityProfilename(&quot; + id + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L472">        final String returnval = EndEntityProfileCache.INSTANCE.getIdNameMapCache(entityManager).get(Integer.valueOf(id));</span>
+<span class="nc bnc" id="L473" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L474">            LOG.trace(&quot;&lt;getEndEntityProfilename(&quot; + id + &quot;): &quot; + returnval);</span>
+        }
+<span class="nc" id="L476">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public Map&lt;Integer, String&gt; getEndEntityProfileIdToNameMap() {
+<span class="nc bnc" id="L482" title="All 2 branches missed.">        if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L483">            LOG.trace(&quot;&gt;&lt;getEndEntityProfileIdToNameMap&quot;);</span>
+        }
+<span class="nc" id="L485">        return EndEntityProfileCache.INSTANCE.getIdNameMapCache(entityManager);</span>
+    }
+
+    @Override
+    public void initializeAndUpgradeProfiles() {
+<span class="nc" id="L490">    	final Collection&lt;EndEntityProfileData&gt; result = EndEntityProfileData.findAll(entityManager);</span>
+<span class="nc" id="L491">    	final Iterator&lt;EndEntityProfileData&gt; iter = result.iterator();</span>
+<span class="nc bnc" id="L492" title="All 2 branches missed.">        while (iter.hasNext()) {</span>
+<span class="nc" id="L493">        	final EndEntityProfileData pdata = iter.next();</span>
+<span class="nc bnc" id="L494" title="All 2 branches missed.">            if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L495">            	final String name = pdata.getProfileName();</span>
+<span class="nc" id="L496">                LOG.debug(&quot;Loaded end entity profile: &quot; + name);</span>
+            }
+<span class="nc" id="L498">            pdata.upgradeProfile();</span>
+<span class="nc" id="L499">        }</span>
+<span class="nc" id="L500">        flushProfileCache();</span>
+<span class="nc" id="L501">    }</span>
+
+    @Override
+    public void internalChangeEndEntityProfileNoFlushCache(final AuthenticationToken admin, final String profilename, final EndEntityProfile profile)
+            throws AuthorizationDeniedException, EndEntityProfileNotFoundException {
+<span class="nc" id="L506">	final EndEntityProfileData pdl = EndEntityProfileData.findByProfileName(entityManager, profilename);</span>
+<span class="nc bnc" id="L507" title="All 2 branches missed.">        if (pdl == null) {</span>
+<span class="nc" id="L508">        	final String msg = INTRES.getLocalizedMessage(&quot;ra.errorchangeprofile&quot;, profilename);</span>
+<span class="nc" id="L509">        	LOG.info(msg);</span>
+<span class="nc" id="L510">        	throw new EndEntityProfileNotFoundException(&quot;End entity profile of name \&quot;&quot; + profilename + &quot;\&quot; not found.&quot;);</span>
+        } else {
+            // Check authorization before editing
+<span class="nc" id="L513">            authorizedToEditProfile(admin, profile);</span>
+            // Get the diff of what changed
+<span class="nc" id="L515">            Map&lt;Object, Object&gt; diff = pdl.getProfile().diff(profile);</span>
+<span class="nc" id="L516">            pdl.setProfile(profile);</span>
+<span class="nc" id="L517">            final String msg = INTRES.getLocalizedMessage(&quot;ra.changedprofile&quot;, profilename);</span>
+<span class="nc" id="L518">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L519">            details.put(&quot;msg&quot;, msg);</span>
+        	// Log diff
+<span class="nc bnc" id="L521" title="All 2 branches missed.">            for (Map.Entry&lt;Object, Object&gt; entry : diff.entrySet()) {</span>
+<span class="nc" id="L522">                details.put(entry.getKey().toString(), entry.getValue().toString());</span>
+<span class="nc" id="L523">            }</span>
+<span class="nc" id="L524">            auditSession.log(EjbcaEventTypes.RA_EDITEEPROFILE, EventStatus.SUCCESS, EjbcaModuleTypes.RA, EjbcaServiceTypes.EJBCA, admin.toString(),</span>
+                    null, null, null, details);
+        }
+<span class="nc" id="L527">    }</span>
+
+    @Override
+    public void removeEndEntityProfile(final AuthenticationToken admin, final String profilename) throws AuthorizationDeniedException {
+<span class="nc" id="L531">    	final EndEntityProfileData pdl = EndEntityProfileData.findByProfileName(entityManager, profilename);</span>
+<span class="nc bnc" id="L532" title="All 2 branches missed.">    		if (pdl == null) {</span>
+<span class="nc bnc" id="L533" title="All 2 branches missed.">    			if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L534">    				LOG.debug(&quot;Trying to remove an end entity profile that does not exist: &quot;+profilename);</span>
+    			}
+    		} else {
+    		    // Check authorization before removing
+<span class="nc" id="L538">                authorizedToEditProfile(admin, pdl.getProfile());</span>
+    		    try {
+<span class="nc" id="L540">    		        entityManager.remove(pdl);</span>
+<span class="nc" id="L541">    		        flushProfileCache();</span>
+<span class="nc" id="L542">    		        final String msg = INTRES.getLocalizedMessage(&quot;ra.removedprofile&quot;, profilename);</span>
+<span class="nc" id="L543">    		        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L544">    		        details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L545">    		        auditSession.log(EjbcaEventTypes.RA_REMOVEEEPROFILE, EventStatus.SUCCESS, EjbcaModuleTypes.RA, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L546">    		    } catch (Exception e) {</span>
+<span class="nc" id="L547">    		        LOG.error(&quot;Error was caught when trying to remove end entity profile &quot; + profilename, e);</span>
+<span class="nc" id="L548">    		        final String msg = INTRES.getLocalizedMessage(&quot;ra.errorremoveprofile&quot;, profilename);</span>
+<span class="nc" id="L549">    		        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L550">    		        details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L551">    		        details.put(&quot;error&quot;, e.getMessage());</span>
+<span class="nc" id="L552">    		        auditSession.log(EjbcaEventTypes.RA_REMOVEEEPROFILE, EventStatus.FAILURE, EjbcaModuleTypes.RA, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L553">    		    }</span>
+    		}
+<span class="nc" id="L555">    }</span>
+
+    @Override
+    public void renameEndEntityProfile(final AuthenticationToken admin, final String oldprofilename, final String newprofilename) throws AuthorizationDeniedException, EndEntityProfileExistsException {
+<span class="nc bnc" id="L559" title="All 4 branches missed.">        if (newprofilename.trim().equalsIgnoreCase(EndEntityConstants.EMPTY_ENDENTITYPROFILENAME) || oldprofilename.trim().equalsIgnoreCase(EndEntityConstants.EMPTY_ENDENTITYPROFILENAME)) {</span>
+<span class="nc" id="L560">        	final String msg = INTRES.getLocalizedMessage(&quot;ra.errorrenameprofile&quot;, oldprofilename, newprofilename);</span>
+<span class="nc" id="L561">        	LOG.info(msg);</span>
+<span class="nc" id="L562">            throw new EndEntityProfileExistsException();</span>
+        }
+<span class="nc bnc" id="L564" title="All 2 branches missed.">        if (EndEntityProfileData.findByProfileName(entityManager, newprofilename) == null) {</span>
+<span class="nc" id="L565">        	final EndEntityProfileData pdl = EndEntityProfileData.findByProfileName(entityManager, oldprofilename);</span>
+<span class="nc bnc" id="L566" title="All 2 branches missed.">            if (pdl == null) {</span>
+<span class="nc" id="L567">            	final String msg = INTRES.getLocalizedMessage(&quot;ra.errorrenameprofile&quot;, oldprofilename, newprofilename);</span>
+<span class="nc" id="L568">            	LOG.info(msg);</span>
+<span class="nc" id="L569">            } else {</span>
+                // Check authorization before renaming
+<span class="nc" id="L571">                authorizedToEditProfile(admin, pdl.getProfile());</span>
+<span class="nc" id="L572">                pdl.setProfileName(newprofilename);</span>
+<span class="nc" id="L573">                flushProfileCache();</span>
+<span class="nc" id="L574">                final String msg = INTRES.getLocalizedMessage(&quot;ra.renamedprofile&quot;, oldprofilename, newprofilename);</span>
+<span class="nc" id="L575">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L576">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L577">                auditSession.log(EjbcaEventTypes.RA_RENAMEEEPROFILE, EventStatus.SUCCESS, EjbcaModuleTypes.RA, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+            }
+<span class="nc" id="L579">        } else {</span>
+<span class="nc" id="L580">        	final String msg = INTRES.getLocalizedMessage(&quot;ra.errorrenameprofile&quot;, oldprofilename, newprofilename);</span>
+<span class="nc" id="L581">        	LOG.info(msg);</span>
+<span class="nc" id="L582">            throw new EndEntityProfileExistsException();</span>
+        }
+<span class="nc" id="L584">    }</span>
+
+    @Override
+    public void authorizedToProfileCas(final AuthenticationToken admin, final EndEntityProfile profile) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L588" title="All 2 branches missed.">        if (profile == null) {</span>
+<span class="nc" id="L589">            return;</span>
+        }
+<span class="nc" id="L591">        final HashSet&lt;Integer&gt; authorizedcaids = new HashSet&lt;Integer&gt;(caSession.getAuthorizedCaIds(admin));</span>
+<span class="nc" id="L592">        final String availablecasstring = profile.getValue(EndEntityProfile.AVAILCAS, 0);</span>
+<span class="nc bnc" id="L593" title="All 2 branches missed.">        if (StringUtils.isNotEmpty(availablecasstring)) {</span>
+            /*
+             * Go through all available CAs in the profile and check
+             * that the administrator is authorized to all CAs specified
+             * in the profile If ALLCAS is selected in the end entity
+             * profile, we must check that the administrator is
+             * authorized to all CAs in the system.
+             */
+<span class="nc" id="L601">            String[] availablecas = profile.getValue(EndEntityProfile.AVAILCAS, 0).split(EndEntityProfile.SPLITCHAR);</span>
+            /*
+             * If availablecas contains SecConst ALLCAS, change
+             * availablecas /to be a list of all CAs
+             */
+<span class="nc bnc" id="L606" title="All 2 branches missed.">            if (ArrayUtils.contains(availablecas, String.valueOf(SecConst.ALLCAS))) {</span>
+<span class="nc" id="L607">                Collection&lt;Integer&gt; allcaids = caSession.getAllCaIds();</span>
+<span class="nc bnc" id="L608" title="All 2 branches missed.">                if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L609">                    LOG.debug(&quot;Available CAs in end entity profile contains ALLCAS, lising all CAs in the system instead. There are &quot;</span>
+<span class="nc" id="L610">                            + allcaids.size() + &quot; CAs in the system&quot;);</span>
+                }
+<span class="nc" id="L612">                availablecas = new String[allcaids.size()];</span>
+<span class="nc" id="L613">                int index = 0;</span>
+<span class="nc bnc" id="L614" title="All 2 branches missed.">                for (Integer id : allcaids) {</span>
+<span class="nc" id="L615">                    availablecas[index++] = id.toString();</span>
+<span class="nc" id="L616">                }</span>
+            }
+<span class="nc bnc" id="L618" title="All 2 branches missed.">            for (int j = 0; j &lt; availablecas.length; j++) {</span>
+<span class="nc" id="L619">                Integer caid = Integer.valueOf(availablecas[j]);</span>
+<span class="nc bnc" id="L620" title="All 2 branches missed.">                if (!authorizedcaids.contains(caid)) {</span>
+                    // We want to allow removal of the EE profile if the CA does not exists, it can happen that a rogue CAId
+                    // sneaks in under &quot;availableCAs&quot; in the profile. So make a double check here, and let it pass if the CA does not exist
+                    try {
+<span class="nc" id="L624">                        caSession.verifyExistenceOfCA(caid);</span>
+<span class="nc" id="L625">                        final String msg = INTRES.getLocalizedMessage(&quot;caadmin.notauthorizedtoca&quot;, admin.toString(), caid);</span>
+<span class="nc" id="L626">                        throw new AuthorizationDeniedException(msg);</span>
+<span class="nc" id="L627">                    } catch (CADoesntExistsException e) {</span>
+<span class="nc" id="L628">                        LOG.info(&quot;Admin was not authorized to CA &quot;+caid+&quot;, but this CA does not even exist so we allow it.&quot;);</span>
+                    }
+                }
+            }
+        }
+<span class="nc" id="L633">    }</span>
+
+    @Override
+    public byte[] getProfileAsXml(final AuthenticationToken authenticationToken, final int profileId)
+            throws EndEntityProfileNotFoundException, AuthorizationDeniedException {
+<span class="nc" id="L638">        EndEntityProfile profile = null;</span>
+<span class="nc" id="L639">        profile = getEndEntityProfileNoClone(profileId);</span>
+<span class="nc bnc" id="L640" title="All 2 branches missed.">        if (profile == null) {</span>
+<span class="nc" id="L641">            throw new EndEntityProfileNotFoundException(&quot;Could not find end entity profile with ID '&quot; + profileId + &quot;' in the database.&quot;);</span>
+        }
+<span class="nc" id="L643">        authorizedToViewProfile(authenticationToken, profile);</span>
+<span class="nc" id="L644">        try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); XMLEncoder encoder = new XMLEncoder(baos)) {</span>
+<span class="nc" id="L645">            encoder.writeObject(profile.saveData());</span>
+<span class="nc" id="L646">            encoder.close();</span>
+<span class="nc" id="L647">            return baos.toByteArray();</span>
+<span class="nc" id="L648">        } catch (IOException e) {</span>
+<span class="nc" id="L649">            String msg = &quot;Could not encode profile with ID &quot; + profileId + &quot; to XML: &quot; + e.getMessage();</span>
+<span class="nc" id="L650">            LOG.debug(msg, e);</span>
+<span class="nc" id="L651">            throw new IllegalStateException(msg, e);</span>
+        }
+    }
+
+    private boolean isFreeEndEntityProfileId(final int id) {
+<span class="nc" id="L656">        boolean foundfree = false;</span>
+<span class="nc bnc" id="L657" title="All 4 branches missed.">        if ( (id &gt; 1) &amp;&amp; (EndEntityProfileData.findById(entityManager, Integer.valueOf(id)) == null) ) {</span>
+<span class="nc" id="L658">        	foundfree = true;</span>
+        }
+<span class="nc" id="L660">        return foundfree;</span>
+    }
+    
+    /**
+     * Help function that checks if administrator is authorized to view profile.
+     * @param admin Admin
+     * @param profile is the end entity profile or null for EndEntityConstants.EMPTY_END_ENTITY_PROFILE
+     * @throws AuthorizationDeniedException Fail
+     */
+    private void authorizedToViewProfile(final AuthenticationToken admin, final EndEntityProfile profile)  throws AuthorizationDeniedException {
+<span class="nc bnc" id="L670" title="All 4 branches missed.">        if (authorizationSession.isAuthorizedNoLogging(admin, AccessRulesConstants.REGULAR_VIEWENDENTITYPROFILES) &amp;&amp; profile != null) {</span>
+<span class="nc" id="L671">            authorizedToProfileCas(admin, profile);</span>
+        } else {
+<span class="nc" id="L673">            final String msg = INTRES.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, AccessRulesConstants.REGULAR_VIEWENDENTITYPROFILES, admin.toString());</span>
+<span class="nc" id="L674">            throw new AuthorizationDeniedException(msg);</span>
+        }
+<span class="nc" id="L676">    }</span>
+
+    /**
+     * Help function that checks if administrator is authorized to edit profile.
+     * @param admin Admin
+     * @param profile is the end entity profile or null for EndEntityConstants.EMPTY_END_ENTITY_PROFILE
+     * @throws AuthorizationDeniedException Fail
+     */
+    private void authorizedToEditProfile(final AuthenticationToken admin, final EndEntityProfile profile)  throws AuthorizationDeniedException {
+<span class="nc bnc" id="L685" title="All 4 branches missed.">        if (authorizationSession.isAuthorizedNoLogging(admin, AccessRulesConstants.REGULAR_EDITENDENTITYPROFILES) &amp;&amp; profile != null) {</span>
+<span class="nc" id="L686">            authorizedToProfileCas(admin, profile);</span>
+        } else {
+<span class="nc" id="L688">            final String msg = INTRES.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, AccessRulesConstants.REGULAR_EDITENDENTITYPROFILES, admin.toString());</span>
+<span class="nc" id="L689">            throw new AuthorizationDeniedException(msg);</span>
+        }
+<span class="nc" id="L691">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

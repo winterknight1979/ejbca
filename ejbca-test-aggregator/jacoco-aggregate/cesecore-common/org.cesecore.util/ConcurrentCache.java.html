@@ -265,8 +265,8 @@ public final class ConcurrentCache&lt;K,V&gt; {
 <span class="pc bpc" id="L265" title="1 of 2 branches missed.">                if (!cache.containsKey(key)) {</span>
 <span class="fc" id="L266">                    cleanupIfNeeded();</span>
 <span class="fc" id="L267">                    theirSemaphore.wait(timeout);</span>
-<span class="pc bpc" id="L268" title="3 of 4 branches missed.">                    while (!cache.containsKey(key) &amp;&amp; System.currentTimeMillis() &lt; timeAtEntry+timeout) {</span>
-<span class="nc" id="L269">                        theirSemaphore.wait(timeout/10L+1L);</span>
+<span class="fc bfc" id="L268" title="All 4 branches covered.">                    while (!cache.containsKey(key) &amp;&amp; System.currentTimeMillis() &lt; timeAtEntry+timeout) {</span>
+<span class="fc" id="L269">                        theirSemaphore.wait(timeout/10L+1L);</span>
                     }
                 }
 <span class="fc" id="L272">            }</span>
@@ -281,7 +281,7 @@ public final class ConcurrentCache&lt;K,V&gt; {
 <span class="pc bpc" id="L281" title="1 of 2 branches missed.">            log.debug(&quot;Got &quot;+ (entry != null ? entry.value : &quot;null&quot;) + &quot; after waiting for cache&quot;);</span>
 <span class="fc" id="L282">            log.trace(&quot;&lt;ConcurrentCache.openCacheEntry&quot;);</span>
         }
-<span class="pc bpc" id="L284" title="1 of 2 branches missed.">        return entry != null ? new Entry(key, entry) : null;</span>
+<span class="fc bfc" id="L284" title="All 2 branches covered.">        return entry != null ? new Entry(key, entry) : null;</span>
     }
     
     /**
@@ -434,9 +434,9 @@ public final class ConcurrentCache&lt;K,V&gt; {
 <span class="fc" id="L434">            final Iterator&lt;Map.Entry&lt;K,InternalEntry&lt;V&gt;&gt;&gt; iter = cache.entrySet().iterator();</span>
 <span class="fc bfc" id="L435" title="All 2 branches covered.">            while (iter.hasNext()) {</span>
 <span class="fc" id="L436">                final Map.Entry&lt;K,InternalEntry&lt;V&gt;&gt; mapEntry = iter.next();</span>
-<span class="pc bpc" id="L437" title="1 of 2 branches missed.">                if (mapEntry.getValue().expire &lt;= now) {</span>
-<span class="nc" id="L438">                    iter.remove();</span>
-<span class="nc" id="L439">                    numEntries.decrementAndGet();</span>
+<span class="fc bfc" id="L437" title="All 2 branches covered.">                if (mapEntry.getValue().expire &lt;= now) {</span>
+<span class="fc" id="L438">                    iter.remove();</span>
+<span class="fc" id="L439">                    numEntries.decrementAndGet();</span>
 <span class="pc bpc" id="L440" title="1 of 4 branches missed.">                } else if (maxEntries != NO_LIMIT &amp;&amp; random.nextFloat() &lt; ratioToRemove) {</span>
 <span class="fc" id="L441">                    pendingRemoval.add(mapEntry.getKey());</span>
                 }

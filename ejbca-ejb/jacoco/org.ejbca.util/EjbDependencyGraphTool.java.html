@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EjbDependencyGraphTool.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.util</a> &gt; <span class="el_source">EjbDependencyGraphTool.java</span></div><h1>EjbDependencyGraphTool.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.util;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.reflect.Field;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.jar.JarInputStream;
+
+/**
+ * Simple tool that
+ * - expands all JARs in an EAR to a temporary directory
+ * - looks for all {@literal @}Stateless annotated classes
+ * - finds out what {@literal @}Local interfaces the SSBs implement
+ * - looks through all SSBs' for {@literal @}EJB annotated fields and builds a list of dependencies from that for each SSB
+ * - traverses all dependencies to remove implied dependencies (if A-&amp;gt;B,C and B-&amp;gt;C we can just say A-&amp;gt;B-&amp;gt;C)
+ * - outputs dependency tree to console and a .dot-file that can be used to generate a graph.
+ * 
+ * @version $Id: EjbDependencyGraphTool.java 22142 2015-11-03 14:15:51Z mikekushner $
+ */
+<span class="nc" id="L42">public class EjbDependencyGraphTool {</span>
+
+	/** public entry point that spawns and runs a non-static version of this class 
+	 * @param args Args*/
+	public static void main(String[] args) {
+		try {
+<span class="nc" id="L48">			new EjbDependencyGraphTool().run(args);</span>
+<span class="nc" id="L49">		} catch (Exception e) {</span>
+<span class="nc" id="L50">			e.printStackTrace();</span>
+<span class="nc" id="L51">		}</span>
+<span class="nc" id="L52">	}</span>
+
+    private void run(String[] args) throws IOException, ClassNotFoundException {
+<span class="nc bnc" id="L55" title="All 2 branches missed.">        if (args.length != 2) {</span>
+<span class="nc" id="L56">            log(&quot;Syntax: &lt;EAR file&gt; &lt;output.dot&gt;&quot;);</span>
+        }
+<span class="nc" id="L58">        log(&quot;Extracting JARs form EAR into temp directory..&quot;);</span>
+<span class="nc" id="L59">        final File earFile = new File(args[0]);</span>
+<span class="nc" id="L60">        final JarFile earJarFile = new JarFile(earFile);</span>
+<span class="nc" id="L61">        final JarInputStream earInputStream = new JarInputStream(new FileInputStream(earFile));</span>
+<span class="nc" id="L62">        final List&lt;URL&gt; jarUrls = new ArrayList&lt;URL&gt;();</span>
+<span class="nc" id="L63">        final List&lt;String&gt; interestingClasses = new ArrayList&lt;String&gt;();</span>
+        JarEntry earEntry;
+<span class="nc bnc" id="L65" title="All 2 branches missed.">        while ((earEntry = earInputStream.getNextJarEntry()) != null) {</span>
+<span class="nc bnc" id="L66" title="All 4 branches missed.">            if (earEntry.getName().endsWith(&quot;.jar&quot;) &amp;&amp; !earEntry.getName().contains(&quot;systemtests&quot;)) {</span>
+<span class="nc" id="L67">                final File tempFile = getTempFileFromJar(earJarFile.getInputStream(earEntry));</span>
+<span class="nc" id="L68">                jarUrls.add(tempFile.toURI().toURL());</span>
+<span class="nc" id="L69">                interestingClasses.addAll(getInterestingClasses(tempFile));</span>
+<span class="nc" id="L70">            }</span>
+        }
+<span class="nc" id="L72">        log(&quot;Loading potentially interesting classes..&quot;);</span>
+        @SuppressWarnings(&quot;resource&quot;) //Loader can only be closed on JDK7
+<span class="nc" id="L74">        final URLClassLoader loader = new URLClassLoader(jarUrls.toArray(new URL[0]), this.getClass().getClassLoader()); // NOPMD this is a stand-alone tools, not a part of a JEE application</span>
+        try {
+<span class="nc" id="L76">            List&lt;BeanInfo&gt; ejbs = new ArrayList&lt;BeanInfo&gt;();</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">            for (String className : interestingClasses) {</span>
+<span class="nc" id="L78">                Class&lt;?&gt; c = loader.loadClass(className);</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">                if (c.isAnnotationPresent(javax.ejb.Stateless.class)) {</span>
+<span class="nc" id="L80">                    ejbs.add(new BeanInfo(c));</span>
+                }
+<span class="nc" id="L82">            }</span>
+
+<span class="nc" id="L84">            log(&quot;Translating local interface dependencies into bean dependencies..&quot;);</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">            for (BeanInfo beanInfoToAlter : ejbs) {</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">                for (Class&lt;?&gt; dependingOnIface : beanInfoToAlter.interfaceDependencies) {</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">                    for (BeanInfo beanInfoToMatch : ejbs) {</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">                        for (Class&lt;?&gt; iface : beanInfoToMatch.ifaceClasses) {</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">                            if (dependingOnIface.equals(iface)) {</span>
+<span class="nc" id="L90">                                beanInfoToAlter.beanDependencies.add(beanInfoToMatch);</span>
+                            }
+<span class="nc" id="L92">                        }</span>
+<span class="nc" id="L93">                    }</span>
+<span class="nc" id="L94">                }</span>
+<span class="nc" id="L95">            }</span>
+<span class="nc" id="L96">            log(&quot;Removing implied dependencies..&quot;);</span>
+<span class="nc" id="L97">            boolean moreIterationsRequired = true;</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">            while (moreIterationsRequired) {</span>
+<span class="nc" id="L99">                moreIterationsRequired = false;</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">                for (BeanInfo currentBean : ejbs) {</span>
+                    //log(&quot; processing &quot; + currentBean.beanClass.getSimpleName());
+<span class="nc" id="L102">                    final List&lt;BeanInfo&gt; toRemove = new ArrayList&lt;BeanInfo&gt;();</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">                    for (BeanInfo dependsOn : currentBean.beanDependencies) {</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">                        if (!toRemove.contains(dependsOn)) {</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">                            for (BeanInfo dependsOn2 : currentBean.beanDependencies) {</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">                                if (!toRemove.contains(dependsOn2)) {</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">                                    if (dependsOn.dependsOnBean(dependsOn2, currentBean, 0, 10)) {</span>
+<span class="nc" id="L108">                                        toRemove.add(dependsOn2);</span>
+<span class="nc" id="L109">                                        moreIterationsRequired = true;</span>
+                                    }
+                                }
+<span class="nc" id="L112">                            }</span>
+                        }
+<span class="nc" id="L114">                    }</span>
+<span class="nc" id="L115">                    currentBean.beanDependencies.removeAll(toRemove);</span>
+<span class="nc" id="L116">                }</span>
+            }
+            // Show what we got..
+<span class="nc bnc" id="L119" title="All 2 branches missed.">            for (BeanInfo currentBean : ejbs) {</span>
+<span class="nc" id="L120">                log(currentBean.beanClass.getSimpleName());</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">                for (BeanInfo dep : currentBean.beanDependencies) {</span>
+<span class="nc" id="L122">                    log(&quot; -&amp;gt; &quot; + dep.beanClass.getSimpleName());</span>
+<span class="nc" id="L123">                }</span>
+<span class="nc" id="L124">            }</span>
+            // Create .dot-file
+<span class="nc" id="L126">            final StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L127">            sb.append(&quot;digraph \&quot;&quot; + args[0].substring(args[0].lastIndexOf(&quot;/&quot;) + 1) + &quot;\&quot; {\n&quot;);</span>
+<span class="nc" id="L128">            sb.append(&quot;graph [rankdir=\&quot;BT\&quot;,nslimit=\&quot;5.0\&quot;,mclimit=\&quot;5.0\&quot;];\n&quot;);</span>
+<span class="nc" id="L129">            sb.append(&quot;node [fontsize=\&quot;12\&quot;,fontname=\&quot;Helvetica-Bold\&quot;,shape=box];\n&quot;);</span>
+<span class="nc" id="L130">            sb.append(&quot;edge [style=\&quot;bold\&quot;];\n&quot;);</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">            for (BeanInfo currentBean : ejbs) {</span>
+<span class="nc" id="L132">                sb.append(&quot;\&quot;&quot; + currentBean.beanClass.getSimpleName()</span>
+                        + &quot;\&quot; [fillcolor=\&quot;yellow\&quot;,style=\&quot;filled,bold\&quot;,fontname=\&quot;Helvetica-Bold\&quot;]\n&quot;);
+<span class="nc bnc" id="L134" title="All 2 branches missed.">                for (BeanInfo dep : currentBean.beanDependencies) {</span>
+<span class="nc" id="L135">                    sb.append(&quot;\&quot;&quot; + currentBean.beanClass.getSimpleName() + &quot;\&quot; -&amp;gt; \&quot;&quot; + dep.beanClass.getSimpleName() + &quot;\&quot; [color=\&quot;#000068\&quot;]\n&quot;);</span>
+<span class="nc" id="L136">                }</span>
+<span class="nc" id="L137">            }</span>
+<span class="nc" id="L138">            sb.append(&quot;}\n&quot;);</span>
+<span class="nc" id="L139">            FileOutputStream fos = new FileOutputStream(new File(args[1]));</span>
+            try {
+<span class="nc" id="L141">                fos.write(sb.toString().getBytes());</span>
+            } finally {
+<span class="nc" id="L143">                fos.close();</span>
+            }
+        } finally {
+            //loader.close(); // close is inly available since java 7
+<span class="nc" id="L147">            earInputStream.close();</span>
+<span class="nc" id="L148">            earJarFile.close();</span>
+        }
+<span class="nc" id="L150">	}</span>
+	
+	/** @param jarFile JAR
+	 * @return a list of class-names that end with &quot;SessionBean&quot; (we don't want to load all classes from the EAR into the ClassLoader..) 
+	 * @throws IOException Fail */
+    private List&lt;String&gt; getInterestingClasses(File jarFile) throws IOException {
+<span class="nc" id="L156">        final JarInputStream jarInputStream = new JarInputStream(new FileInputStream(jarFile));</span>
+        try {
+<span class="nc" id="L158">            final List&lt;String&gt; interestingClasses = new ArrayList&lt;String&gt;();</span>
+            JarEntry jarEntry;
+            //log(&quot;    Processing &quot; + jarFile.getName() + &quot;:&quot; + jarFile.length());
+<span class="nc bnc" id="L161" title="All 2 branches missed.">            while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {</span>
+<span class="nc" id="L162">                final String jarEntryName = jarEntry.getName();</span>
+<span class="nc bnc" id="L163" title="All 2 branches missed.">                if (jarEntryName.endsWith(&quot;SessionBean.class&quot;)) {</span>
+<span class="nc" id="L164">                    final String className = jarEntryName.replaceAll(&quot;.class&quot;, &quot;&quot;).replaceAll(&quot;/&quot;, &quot;.&quot;);</span>
+                    //log(&quot;  Matching filename: &quot; + jarEntryName + &quot; -&amp;gt; &quot; + className);
+<span class="nc" id="L166">                    interestingClasses.add(className);</span>
+                }
+<span class="nc" id="L168">            }</span>
+<span class="nc" id="L169">            return interestingClasses;</span>
+        } finally {
+<span class="nc" id="L171">            jarInputStream.close();</span>
+        }
+    }
+
+	/** Write JAR entry to temporary file and return a reference to this file. 
+	 * @param jarInputStream Jar
+	 * @return File
+	 * @throws IOException fail */
+	private File getTempFileFromJar(InputStream jarInputStream) throws IOException {
+<span class="nc" id="L180">		final File tempFile = File.createTempFile(&quot;jee5deps-&quot;, &quot;.jar&quot;);</span>
+<span class="nc" id="L181">		final byte[] buffer = new byte[10*1024*1024];</span>
+<span class="nc" id="L182">		final OutputStream os = new FileOutputStream(tempFile);</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">		while ( jarInputStream.available() &gt; 0) {</span>
+<span class="nc" id="L184">			final int len = jarInputStream.read(buffer);</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">			if (len == -1) {</span>
+<span class="nc" id="L186">				break;</span>
+			}
+<span class="nc" id="L188">			os.write(buffer, 0, len);</span>
+<span class="nc" id="L189">		}</span>
+<span class="nc" id="L190">		os.close();</span>
+<span class="nc" id="L191">		return tempFile;</span>
+	}
+
+	/** Avoids dependencies on other frameworks (like log4j) by using System.out 
+	 * @param s String */
+<span class="nc" id="L196">	private void log(String s) { System.out.println(s); }</span>
+
+	/** Class to represent a SSB and its dependencies. */
+	private class BeanInfo {
+<span class="nc" id="L200">		public final List&lt;Class&lt;?&gt;&gt; interfaceDependencies = new ArrayList&lt;Class&lt;?&gt;&gt;();</span>
+<span class="nc" id="L201">		public final List&lt;BeanInfo&gt; beanDependencies = new ArrayList&lt;BeanInfo&gt;();</span>
+		public final Class&lt;?&gt; beanClass;
+<span class="nc" id="L203">		public final List&lt;Class&lt;?&gt;&gt; ifaceClasses = new ArrayList&lt;Class&lt;?&gt;&gt;();</span>
+
+<span class="nc" id="L205">		public BeanInfo(Class&lt;?&gt; beanClass) {</span>
+<span class="nc" id="L206">			this.beanClass = beanClass;</span>
+			// Find all @Local interfaces that this class implements
+<span class="nc bnc" id="L208" title="All 2 branches missed.">			for (Class&lt;?&gt; iface : beanClass.getInterfaces()) {</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">				if (iface.isAnnotationPresent(javax.ejb.Local.class)) {</span>
+<span class="nc" id="L210">					ifaceClasses.add(iface);</span>
+					//log(&quot; @Stateless &quot; + beanClass.getSimpleName() + &quot; implements @Local &quot; + iface.getSimpleName());
+				}
+			}
+			// Find all @EJB annotated fields and add these classes as dependencies
+<span class="nc bnc" id="L215" title="All 2 branches missed.">			for (Field field : beanClass.getDeclaredFields()) {</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">				if (field.isAnnotationPresent(javax.ejb.EJB.class)) {</span>
+<span class="nc" id="L217">					interfaceDependencies.add(field.getType());</span>
+					//log(&quot;   depends on &quot; + field.getType().getSimpleName());
+<span class="nc bnc" id="L219" title="All 2 branches missed.">					if (field.getType().getName().endsWith(&quot;Remote&quot;)) {</span>
+<span class="nc" id="L220">						log(&quot;   WARNING: depends on &quot; + field.getType().getSimpleName() + &quot;. @Remote interface?&quot;);</span>
+					}
+				}
+			}
+<span class="nc" id="L224">		}</span>
+
+		/** Recurses through all dependencies to find out if beanInfo is present in any dependency 
+		 * @param beanInfo Info
+		 * @param origReqBeanInfo Info 
+		 * @param steps Sterps
+		 * @param maxSteps Max
+		 * @return bool */
+		public boolean dependsOnBean(BeanInfo beanInfo, BeanInfo origReqBeanInfo, int steps, int maxSteps) {
+<span class="nc bnc" id="L233" title="All 2 branches missed.">			if (steps&gt;maxSteps) {</span>
+<span class="nc" id="L234">				return false;	// Don't recurse in loops forever</span>
+			}
+<span class="nc bnc" id="L236" title="All 2 branches missed.">			if (origReqBeanInfo.beanClass.equals(beanInfo.beanClass)) {</span>
+<span class="nc" id="L237">				return false;	// Don't remove circular dependencies</span>
+			}
+<span class="nc bnc" id="L239" title="All 2 branches missed.">			if (beanDependencies.contains(beanInfo)) {</span>
+<span class="nc" id="L240">				return true;</span>
+			}
+<span class="nc bnc" id="L242" title="All 2 branches missed.">			for (BeanInfo bean : beanDependencies) {</span>
+<span class="nc bnc" id="L243" title="All 2 branches missed.">				if (bean.dependsOnBean(beanInfo, origReqBeanInfo, steps++, maxSteps)) {</span>
+<span class="nc" id="L244">					return true;</span>
+				}
+<span class="nc" id="L246">			}</span>
+<span class="nc" id="L247">			return false;</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

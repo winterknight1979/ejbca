@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BlacklistSessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.ca.validation</a> &gt; <span class="el_source">BlacklistSessionBean.java</span></div><h1>BlacklistSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  CESeCore: CE Security Core                                           *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General                  *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.ejb.ca.validation;
+
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.apache.log4j.Logger;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.enums.ServiceTypes;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.util.ProfileID;
+import org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaModuleTypes;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.validation.BlacklistEntry;
+import org.ejbca.core.model.validation.PublicKeyBlacklistEntry;
+import org.ejbca.core.model.validation.PublicKeyBlacklistEntryCache;
+
+/**
+ * Handles management of public key blacklist entries.
+ * 
+ * @version $Id: BlacklistSessionBean.java 26323 2017-08-15 17:24:53Z anatom $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;BlacklistSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L54">public class BlacklistSessionBean implements BlacklistSessionLocal, BlacklistSessionRemote {</span>
+
+    /** Class logger. */
+<span class="nc" id="L57">    private static final Logger log = Logger.getLogger(BlacklistSessionBean.class);</span>
+
+    /** Internal localization of logs and errors */
+<span class="nc" id="L60">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+
+    @PersistenceContext(unitName = &quot;ejbca&quot;)
+    private EntityManager entityManager;
+
+    @EJB
+    private SecurityEventsLoggerSessionLocal auditSession;
+    @EJB
+    private CertificateProfileSessionLocal certificateProfileSession;
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private CaSessionLocal caSession;
+
+    @Override
+    public BlacklistEntry getBlacklistEntry(int id) {
+<span class="nc" id="L76">        return getBlacklistEntryInternal(id, null, null, true);</span>
+    }
+
+    @Override
+    public BlacklistEntry getBlacklistEntry(final String type, final String value) {
+<span class="nc" id="L81">        return getBlacklistEntryInternal(-1, type, value, true);</span>
+    }
+
+    @Override
+    public String getBlacklistEntryFingerprint(int id) {
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L87">            log.trace(&quot;&gt;getBlacklistEntryFingerprint(id: &quot; + id + &quot;)&quot;);</span>
+        }
+        // Get public key blacklist to ensure it is in the cache, or read.
+<span class="nc" id="L90">        final BlacklistEntry entity = getBlacklistEntryInternal(id, null, null, true);</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">        final String result = (entity != null) ? entity.getValue() : null;</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L93">            log.trace(&quot;&lt;getBlacklistEntryFingerprint(): &quot; + result);</span>
+        }
+<span class="nc" id="L95">        return result;</span>
+    }
+
+    @Override
+    public void addBlacklistEntry(AuthenticationToken admin, int id, BlacklistEntry entry)
+            throws AuthorizationDeniedException, BlacklistExistsException {
+<span class="nc bnc" id="L101" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L102">            log.trace(&quot;&gt;addBlacklist(value: &quot; + entry.getValue() + &quot;, id: &quot; + id + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L104">        addBlacklistEntryInternal(admin, id, entry);</span>
+<span class="nc" id="L105">        final String message = intres.getLocalizedMessage(&quot;blacklist.addedpublickeyblacklist&quot;, entry.getValue());</span>
+<span class="nc" id="L106">        final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L107">        details.put(&quot;msg&quot;, message);</span>
+<span class="nc" id="L108">        auditSession.log(EjbcaEventTypes.BLACKLIST_CREATION, EventStatus.SUCCESS, EjbcaModuleTypes.BLACKLIST, ServiceTypes.CORE,</span>
+<span class="nc" id="L109">                admin.toString(), null, null, null, details);</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L111">            log.trace(&quot;&lt;addBlacklist()&quot;);</span>
+        }
+<span class="nc" id="L113">    }</span>
+
+    @Override
+    public void changeBlacklistEntry(AuthenticationToken admin, BlacklistEntry entry)
+            throws AuthorizationDeniedException, BlacklistDoesntExistsException {
+<span class="nc bnc" id="L118" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L119">            log.trace(&quot;&gt;changeBlacklist(value: &quot; + entry.getValue() + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L121">        assertIsAuthorizedToEditBlacklists(admin);</span>
+<span class="nc" id="L122">        BlacklistData dataExists = BlacklistData.findByTypeAndValue(entityManager, entry.getType(), entry.getValue());</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">        if (dataExists != null) {</span>
+<span class="nc" id="L124">            log.debug(&quot;An entry with type and value already exists: &quot;+entry.getType()+&quot;, &quot;+entry.getValue());</span>
+<span class="nc" id="L125">            final String message = intres.getLocalizedMessage(&quot;blacklist.errorchangepublickeyblacklist&quot;, entry.getValue());</span>
+<span class="nc" id="L126">            log.info(message);            </span>
+        }
+<span class="nc" id="L128">        BlacklistData data = BlacklistData.findById(entityManager, entry.getID());</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        if (data != null) {</span>
+<span class="nc" id="L130">            final Map&lt;Object, Object&gt; diff = data.getBlacklistEntry().diff(entry);</span>
+<span class="nc" id="L131">            data.setBlacklistEntry(entry);</span>
+            // Since loading a Blacklist is quite complex, we simple purge the cache here.
+<span class="nc" id="L133">            PublicKeyBlacklistEntryCache.INSTANCE.removeEntry(data.getId());</span>
+<span class="nc" id="L134">            final String message = intres.getLocalizedMessage(&quot;blacklist.changedpublickeyblacklist&quot;, entry.getValue());</span>
+<span class="nc" id="L135">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L136">            details.put(&quot;msg&quot;, message);</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">            for (Map.Entry&lt;Object, Object&gt; mapEntry : diff.entrySet()) {</span>
+<span class="nc" id="L138">                details.put(mapEntry.getKey().toString(), mapEntry.getValue().toString());</span>
+<span class="nc" id="L139">            }</span>
+<span class="nc" id="L140">            auditSession.log(EjbcaEventTypes.BLACKLIST_CHANGE, EventStatus.SUCCESS, EjbcaModuleTypes.BLACKLIST, ServiceTypes.CORE,</span>
+<span class="nc" id="L141">                    admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L142">        } else {</span>
+<span class="nc" id="L143">            final String message = intres.getLocalizedMessage(&quot;blacklist.errorchangepublickeyblacklist&quot;, entry.getValue());</span>
+<span class="nc" id="L144">            log.info(message);</span>
+        }
+<span class="nc bnc" id="L146" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L147">            log.trace(&quot;&lt;changeBlacklist()&quot;);</span>
+        }
+<span class="nc" id="L149">    }</span>
+
+    @Override
+    public void removeBlacklistEntry(AuthenticationToken admin, final String type, final String value)
+            throws AuthorizationDeniedException, BlacklistDoesntExistsException {
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L155">            log.trace(&quot;&gt;removeBlacklist(&quot; + type+&quot;, &quot;+value + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L157">        assertIsAuthorizedToEditBlacklists(admin);</span>
+        String message;
+<span class="nc" id="L159">        BlacklistData data = BlacklistData.findByTypeAndValue(entityManager, type, value);</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">        if (data == null) {</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L162">                log.debug(&quot;Trying to remove a blacklist that does not exist: &quot; + value);</span>
+            }
+<span class="nc" id="L164">            throw new BlacklistDoesntExistsException();</span>
+        } else {
+<span class="nc" id="L166">            entityManager.remove(data);</span>
+            // Purge the cache here.
+<span class="nc" id="L168">            PublicKeyBlacklistEntryCache.INSTANCE.removeEntry(data.getId());</span>
+<span class="nc" id="L169">            message = intres.getLocalizedMessage(&quot;blacklist.removedpublickeyblacklist&quot;, value);</span>
+<span class="nc" id="L170">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L171">            details.put(&quot;msg&quot;, message);</span>
+<span class="nc" id="L172">            auditSession.log(EjbcaEventTypes.BLACKLIST_REMOVAL, EventStatus.SUCCESS, EjbcaModuleTypes.BLACKLIST, ServiceTypes.CORE,</span>
+<span class="nc" id="L173">                    admin.toString(), null, null, null, details);</span>
+        }
+<span class="nc bnc" id="L175" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L176">            log.trace(&quot;&lt;removeBlacklist()&quot;);</span>
+        }
+<span class="nc" id="L178">    }</span>
+
+    @Override
+    public void flushBlacklistEntryCache() {
+<span class="nc" id="L182">        PublicKeyBlacklistEntryCache.INSTANCE.flush();</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L184">            log.debug(&quot;Flushed BlacklistEntry cache.&quot;);</span>
+        }
+<span class="nc" id="L186">    }</span>
+
+    @Override
+    public int addBlacklistEntry(AuthenticationToken admin, BlacklistEntry entry)
+            throws AuthorizationDeniedException, BlacklistExistsException {
+<span class="nc bnc" id="L191" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L192">            log.trace(&quot;&gt;addBlacklist(fingerprint: &quot; + entry.getValue() + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L194">        final int id = findFreeBlacklistId();</span>
+<span class="nc" id="L195">        addBlacklistEntry(admin, id, entry);</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L197">            log.trace(&quot;&lt;addBlacklist()&quot;);</span>
+        }
+<span class="nc" id="L199">        return id;</span>
+    }
+
+    @Override
+    public Map&lt;Integer, String&gt; getBlacklistEntryIdToValueMap() {
+<span class="nc" id="L204">        final HashMap&lt;Integer, String&gt; result = new HashMap&lt;Integer, String&gt;();</span>
+<span class="nc" id="L205">        List&lt;BlacklistData&gt; list = BlacklistData.findAll(entityManager);</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L207">            log.debug(&quot;Found blacklist with &quot; + list.size() + &quot; items.&quot;);</span>
+        }
+<span class="nc bnc" id="L209" title="All 2 branches missed.">        for (BlacklistData data : list) {</span>
+            // TODO: this could populate the cache, and read form the cache
+<span class="nc" id="L211">            result.put(data.getId(), data.getValue());</span>
+<span class="nc" id="L212">        }</span>
+<span class="nc" id="L213">        return result;</span>
+    }
+
+    @Override
+    public int getBlacklistEntryId(final String type, final String value) {
+        // Get object to ensure it is in the cache, or read.
+<span class="nc" id="L219">        final BlacklistEntry entry = getBlacklistEntryInternal(-1, type, value, true);</span>
+<span class="nc" id="L220">        int result = 0;</span>
+<span class="nc bnc" id="L221" title="All 2 branches missed.">        if (null != entry) {</span>
+<span class="nc" id="L222">            result = entry.getID();</span>
+        }
+<span class="nc" id="L224">        return result;</span>
+    }
+
+    /** Adds a public key blacklist or throws an exception. Will not update the cache, it will be read into the cache on next try to read. 
+     * @param admin Admin
+     * @param id ID
+     * @param blacklist Blacklist 
+     * @throws AuthorizationDeniedException Fail
+     * @throws BlacklistExistsException Fail */
+    private void addBlacklistEntryInternal(AuthenticationToken admin, int id, BlacklistEntry blacklist) throws AuthorizationDeniedException, BlacklistExistsException {
+<span class="nc" id="L234">        assertIsAuthorizedToEditBlacklists(admin);</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">        if (BlacklistData.findByTypeAndValue(entityManager, blacklist.getType(), blacklist.getValue()) == null</span>
+<span class="nc bnc" id="L236" title="All 2 branches missed.">                &amp;&amp; BlacklistData.findById(entityManager, Integer.valueOf(id)) == null) {</span>
+<span class="nc" id="L237">            blacklist.setID(Integer.valueOf(id));</span>
+<span class="nc" id="L238">            final BlacklistData entity = new BlacklistData(blacklist);</span>
+<span class="nc" id="L239">            entityManager.persist(entity);</span>
+<span class="nc" id="L240">        } else {</span>
+<span class="nc" id="L241">            final String message = intres.getLocalizedMessage(&quot;blacklist.erroraddpublickeyblacklist&quot;, blacklist.getValue());</span>
+<span class="nc" id="L242">            log.info(message);</span>
+<span class="nc" id="L243">            throw new BlacklistExistsException(&quot;Blacklist entry already exists: &quot;+blacklist.getValue());</span>
+        }
+<span class="nc" id="L245">    }</span>
+
+    /** Gets a public key blacklist by cache or database, can return null. 
+     * @param id ID
+     * @param type Type
+     * @param value Value
+     * @param fromCache Cached?
+     * @return Blaclist entry */
+    private BlacklistEntry getBlacklistEntryInternal(int id, final String type, final String value, boolean fromCache) {
+<span class="nc bnc" id="L254" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L255">            log.trace(&quot;&gt;getBlacklistEntryInternal: &quot; + id + &quot;, &quot; + type + &quot;, &quot; + value);</span>
+        }
+<span class="nc" id="L257">        Integer idValue = Integer.valueOf(id);</span>
+<span class="nc bnc" id="L258" title="All 2 branches missed.">        if (id == -1) {</span>
+<span class="nc" id="L259">            idValue = PublicKeyBlacklistEntryCache.INSTANCE.getNameToIdMap().get(value);</span>
+        }
+<span class="nc" id="L261">        BlacklistEntry result = null;</span>
+        // If we should read from cache, and we have an id to use in the cache, and the cache does not need to be updated
+<span class="nc bnc" id="L263" title="All 6 branches missed.">        if (fromCache &amp;&amp; idValue != null &amp;&amp; !PublicKeyBlacklistEntryCache.INSTANCE.shouldCheckForUpdates(idValue)) {</span>
+            // Get from cache (or null)
+<span class="nc" id="L265">            result = PublicKeyBlacklistEntryCache.INSTANCE.getEntry(idValue);</span>
+        }
+
+        // if we selected to not read from cache, or if the cache did not contain this entry
+<span class="nc bnc" id="L269" title="All 2 branches missed.">        if (result == null) {</span>
+<span class="nc bnc" id="L270" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L271">                log.debug(&quot;BlacklistEntry with ID &quot; + idValue + &quot; and/or value '&quot; + value + &quot;' will be checked for updates.&quot;);</span>
+            }
+            // We need to read from database because we specified to not get from cache or we don't have anything in the cache
+<span class="nc" id="L274">            BlacklistData data = null;</span>
+<span class="nc bnc" id="L275" title="All 2 branches missed.">            if (value != null) {</span>
+<span class="nc" id="L276">                data = BlacklistData.findByTypeAndValue(entityManager, type, value);</span>
+<span class="nc bnc" id="L277" title="All 2 branches missed.">            } else if (idValue != null) {</span>
+<span class="nc" id="L278">                data = BlacklistData.findById(entityManager, idValue);</span>
+            }
+<span class="nc bnc" id="L280" title="All 2 branches missed.">            if (data != null) {</span>
+<span class="nc" id="L281">                result = data.getBlacklistEntry();</span>
+<span class="nc" id="L282">                final int digest = data.getProtectString(0).hashCode();</span>
+                // The cache compares the database data with what is in the cache
+                // If database is different from cache, replace it in the cache
+<span class="nc" id="L285">                PublicKeyBlacklistEntry newEntry = new PublicKeyBlacklistEntry(data.getId(), data.getValue(), data.getData());</span>
+<span class="nc" id="L286">                PublicKeyBlacklistEntryCache.INSTANCE.updateWith(data.getId(), digest, data.getValue(), newEntry);</span>
+<span class="nc" id="L287">            } else {</span>
+                // Ensure that it is removed from cache if it exists
+<span class="nc bnc" id="L289" title="All 2 branches missed.">                if (idValue != null) {</span>
+<span class="nc" id="L290">                    PublicKeyBlacklistEntryCache.INSTANCE.removeEntry(idValue);</span>
+                }
+            }
+        }
+<span class="nc bnc" id="L294" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc bnc" id="L295" title="All 2 branches missed.">            log.trace(&quot;&lt;getBlacklistEntryInternal: &quot; + id + &quot;, &quot; + value + &quot;: &quot; + (result == null ? &quot;null&quot; : &quot;not null&quot;));</span>
+        }
+<span class="nc" id="L297">        return result;</span>
+    }
+
+    /** Gets a free ID for the new blacklist instance. 
+     * @return ID*/
+    private int findFreeBlacklistId() {
+<span class="nc" id="L303">        final ProfileID.DB db = new ProfileID.DB() {</span>
+            @Override
+            public boolean isFree(int i) {
+<span class="nc bnc" id="L306" title="All 2 branches missed.">                return BlacklistData.findById(BlacklistSessionBean.this.entityManager, i) == null;</span>
+            }
+        };
+<span class="nc" id="L309">        return ProfileID.getNotUsedID(db);</span>
+    }
+
+    /** Assert the administrator is authorized to edit public key blacklists. 
+     * @param admin Admin
+     * @throws AuthorizationDeniedException if unauthorized */
+    private void assertIsAuthorizedToEditBlacklists(AuthenticationToken admin) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L316" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(admin, StandardRules.BLACKLISTEDIT.resource())) {</span>
+<span class="nc" id="L317">            final String message = intres.getLocalizedMessage(&quot;store.editblacklistnotauthorized&quot;, admin.toString());</span>
+<span class="nc" id="L318">            throw new AuthorizationDeniedException(message);</span>
+        }
+<span class="nc" id="L320">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

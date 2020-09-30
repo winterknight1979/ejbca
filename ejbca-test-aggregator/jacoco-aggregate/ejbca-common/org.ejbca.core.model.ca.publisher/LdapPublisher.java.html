@@ -65,33 +65,33 @@ public class LdapPublisher extends BasePublisher {
 
 
     private static final long serialVersionUID = -584431431033065114L;
-<span class="nc" id="L68">    private static final Logger log = Logger.getLogger(LdapPublisher.class);</span>
+<span class="fc" id="L68">    private static final Logger log = Logger.getLogger(LdapPublisher.class);</span>
 	/** Internal localization of logs and errors */
-<span class="nc" id="L70">	private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+<span class="fc" id="L70">	private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
 
 	public static final float LATEST_VERSION = 12;
 	
 	// Create some constraints used when connecting, disconnecting, reading and storing in LDAP servers
 	/** Use a time limit for generic (non overridden) LDAP operations */
-<span class="nc" id="L76">	protected LDAPConstraints ldapConnectionConstraints = new LDAPConstraints();</span>
+<span class="fc" id="L76">	protected LDAPConstraints ldapConnectionConstraints = new LDAPConstraints();</span>
 	/** Use a time limit for LDAP bind operations */
-<span class="nc" id="L78">	protected LDAPConstraints ldapBindConstraints = new LDAPConstraints();</span>
+<span class="fc" id="L78">	protected LDAPConstraints ldapBindConstraints = new LDAPConstraints();</span>
 	/** Use a time limit for LDAP store operations */
-<span class="nc" id="L80">	protected LDAPConstraints ldapStoreConstraints = new LDAPConstraints();</span>
+<span class="fc" id="L80">	protected LDAPConstraints ldapStoreConstraints = new LDAPConstraints();</span>
 	/** Use a time limit for LDAP disconnect operations */
-<span class="nc" id="L82">	protected LDAPConstraints ldapDisconnectConstraints = new LDAPConstraints();</span>
+<span class="fc" id="L82">	protected LDAPConstraints ldapDisconnectConstraints = new LDAPConstraints();</span>
 	/** Use a time limit when reading from LDAP */
-<span class="nc" id="L84">	protected LDAPSearchConstraints ldapSearchConstraints = new LDAPSearchConstraints();</span>
+<span class="fc" id="L84">	protected LDAPSearchConstraints ldapSearchConstraints = new LDAPSearchConstraints();</span>
 
 	/** The normal ldap publisher will modify attributes in LDAP.
 	 * If you don't want attributes modified, use the LdapSearchPublisher to 
 	 * store certificates in already existing entries. Can be overridden in constructor
 	 * of subclasses.
 	 */
-<span class="nc" id="L91">	protected boolean ADD_MODIFICATION_ATTRIBUTES = true;</span>
+<span class="fc" id="L91">	protected boolean ADD_MODIFICATION_ATTRIBUTES = true;</span>
 
-<span class="nc" id="L93">	public enum ConnectionSecurity {</span>
-<span class="nc" id="L94">		PLAIN, STARTTLS, SSL</span>
+<span class="fc" id="L93">	public enum ConnectionSecurity {</span>
+<span class="fc" id="L94">		PLAIN, STARTTLS, SSL</span>
 	}
 
 	public static final String DEFAULT_USEROBJECTCLASS     = &quot;top;person;organizationalPerson;inetOrgPerson&quot;;
@@ -140,39 +140,39 @@ public class LdapPublisher extends BasePublisher {
 	protected static final String SETUSERPASSWORD          = &quot;setuserpasssword&quot;;
 	
 	/** Arrays used to extract attributes to store in LDAP */
-<span class="nc" id="L143">	protected static final String[] MATCHINGEXTRAATTRIBUTES    = {&quot;CN&quot;,&quot;L&quot;,&quot;OU&quot;};</span>
-<span class="nc" id="L144">	protected static final String[] MATCHINGPERSONALATTRIBUTES = {&quot;ST&quot;,&quot;O&quot;,&quot;uid&quot;,&quot;initials&quot;,&quot;title&quot;,&quot;postalCode&quot;,&quot;businessCategory&quot;,&quot;postalAddress&quot;,&quot;telephoneNumber&quot;};</span>
+<span class="fc" id="L143">	protected static final String[] MATCHINGEXTRAATTRIBUTES    = {&quot;CN&quot;,&quot;L&quot;,&quot;OU&quot;};</span>
+<span class="fc" id="L144">	protected static final String[] MATCHINGPERSONALATTRIBUTES = {&quot;ST&quot;,&quot;O&quot;,&quot;uid&quot;,&quot;initials&quot;,&quot;title&quot;,&quot;postalCode&quot;,&quot;businessCategory&quot;,&quot;postalAddress&quot;,&quot;telephoneNumber&quot;};</span>
 
 
 	public LdapPublisher(){
-<span class="nc" id="L148">		super();</span>
-<span class="nc" id="L149">		data.put(TYPE, Integer.valueOf(PublisherConst.TYPE_LDAPPUBLISHER));</span>
+<span class="fc" id="L148">		super();</span>
+<span class="fc" id="L149">		data.put(TYPE, Integer.valueOf(PublisherConst.TYPE_LDAPPUBLISHER));</span>
 
-<span class="nc" id="L151">		setHostnames(&quot;&quot;);</span>
-<span class="nc" id="L152">		setConnectionSecurity(ConnectionSecurity.STARTTLS);</span>
-<span class="nc" id="L153">		setPort(DEFAULT_PORT);</span>
-<span class="nc" id="L154">		setBaseDN(&quot;&quot;);</span>
-<span class="nc" id="L155">		setLoginDN(&quot;&quot;);</span>
-<span class="nc" id="L156">		setLoginPassword(&quot;&quot;);</span>
-<span class="nc" id="L157">		int connectiontimeout = getConnectionTimeOut();</span>
-<span class="nc" id="L158">		setConnectionTimeOut(connectiontimeout);</span>
-<span class="nc" id="L159">		setCreateNonExistingUsers(true);</span>
-<span class="nc" id="L160">		setModifyExistingUsers(true);     </span>
-<span class="nc" id="L161">		setModifyExistingAttributes(false);</span>
-<span class="nc" id="L162">		setAddNonExistingAttributes(true);</span>
-<span class="nc" id="L163">		setUserObjectClass(DEFAULT_USEROBJECTCLASS);</span>
-<span class="nc" id="L164">		setCAObjectClass(DEFAULT_CAOBJECTCLASS);</span>
-<span class="nc" id="L165">		setUserCertAttribute(DEFAULT_USERCERTATTRIBUTE);</span>
-<span class="nc" id="L166">		setCACertAttribute(DEFAULT_CACERTATTRIBUTE);</span>
-<span class="nc" id="L167">		setCRLAttribute(DEFAULT_CRLATTRIBUTE);</span>
-<span class="nc" id="L168">		setDeltaCRLAttribute(DEFAULT_DELTACRLATTRIBUTE);</span>
-<span class="nc" id="L169">		setARLAttribute(DEFAULT_ARLATTRIBUTE);     </span>
-<span class="nc" id="L170">		setUseFieldInLdapDN(new ArrayList&lt;Integer&gt;());</span>
+<span class="fc" id="L151">		setHostnames(&quot;&quot;);</span>
+<span class="fc" id="L152">		setConnectionSecurity(ConnectionSecurity.STARTTLS);</span>
+<span class="fc" id="L153">		setPort(DEFAULT_PORT);</span>
+<span class="fc" id="L154">		setBaseDN(&quot;&quot;);</span>
+<span class="fc" id="L155">		setLoginDN(&quot;&quot;);</span>
+<span class="fc" id="L156">		setLoginPassword(&quot;&quot;);</span>
+<span class="fc" id="L157">		int connectiontimeout = getConnectionTimeOut();</span>
+<span class="fc" id="L158">		setConnectionTimeOut(connectiontimeout);</span>
+<span class="fc" id="L159">		setCreateNonExistingUsers(true);</span>
+<span class="fc" id="L160">		setModifyExistingUsers(true);     </span>
+<span class="fc" id="L161">		setModifyExistingAttributes(false);</span>
+<span class="fc" id="L162">		setAddNonExistingAttributes(true);</span>
+<span class="fc" id="L163">		setUserObjectClass(DEFAULT_USEROBJECTCLASS);</span>
+<span class="fc" id="L164">		setCAObjectClass(DEFAULT_CAOBJECTCLASS);</span>
+<span class="fc" id="L165">		setUserCertAttribute(DEFAULT_USERCERTATTRIBUTE);</span>
+<span class="fc" id="L166">		setCACertAttribute(DEFAULT_CACERTATTRIBUTE);</span>
+<span class="fc" id="L167">		setCRLAttribute(DEFAULT_CRLATTRIBUTE);</span>
+<span class="fc" id="L168">		setDeltaCRLAttribute(DEFAULT_DELTACRLATTRIBUTE);</span>
+<span class="fc" id="L169">		setARLAttribute(DEFAULT_ARLATTRIBUTE);     </span>
+<span class="fc" id="L170">		setUseFieldInLdapDN(new ArrayList&lt;Integer&gt;());</span>
 		// By default use only one certificate for each user
-<span class="nc" id="L172">		setAddMultipleCertificates(false);</span>
-<span class="nc" id="L173">		setRemoveRevokedCertificates(true);</span>
-<span class="nc" id="L174">		setRemoveUsersWhenCertRevoked(false);</span>
-<span class="nc" id="L175">	}</span>
+<span class="fc" id="L172">		setAddMultipleCertificates(false);</span>
+<span class="fc" id="L173">		setRemoveRevokedCertificates(true);</span>
+<span class="fc" id="L174">		setRemoveUsersWhenCertRevoked(false);</span>
+<span class="fc" id="L175">	}</span>
 
 	// Public Methods
 
@@ -953,16 +953,16 @@ public class LdapPublisher extends BasePublisher {
 	 *  @param hostnames the hostname of ldap server.
 	 */        
 	public void setHostnames(String hostnames){
-<span class="nc" id="L956">		data.put(HOSTNAMES, hostnames);	</span>
-<span class="nc" id="L957">	}</span>
+<span class="fc" id="L956">		data.put(HOSTNAMES, hostnames);	</span>
+<span class="fc" id="L957">	}</span>
 
 
 	/**
 	 * @param connectionsecurity the type of security to use for LDAP connection.
 	 */
 	public void setConnectionSecurity (ConnectionSecurity connectionsecurity){
-<span class="nc" id="L964">		data.put(CONNECTIONSECURITY, connectionsecurity);</span>
-<span class="nc" id="L965">	}</span>
+<span class="fc" id="L964">		data.put(CONNECTIONSECURITY, connectionsecurity);</span>
+<span class="fc" id="L965">	}</span>
 
 	/**
 	 *  @return the type of security for the LDAP connection.
@@ -997,8 +997,8 @@ public class LdapPublisher extends BasePublisher {
 	 *  @param port the port of ldap server.
 	 */        
 	public void setPort(String port){
-<span class="nc" id="L1000">		data.put(PORT, port);	</span>
-<span class="nc" id="L1001">	}</span>
+<span class="fc" id="L1000">		data.put(PORT, port);	</span>
+<span class="fc" id="L1001">	}</span>
 
 	/**
 	 *  @return the basedn of ldap server.
@@ -1011,8 +1011,8 @@ public class LdapPublisher extends BasePublisher {
 	 *  @param basedn the basedn of ldap server.
 	 */        
 	public void setBaseDN(String basedn){
-<span class="nc" id="L1014">		data.put(BASEDN, basedn);	</span>
-<span class="nc" id="L1015">	}</span>
+<span class="fc" id="L1014">		data.put(BASEDN, basedn);	</span>
+<span class="fc" id="L1015">	}</span>
 
 	/**
 	 *  @return the logindn to the ldap server.
@@ -1025,8 +1025,8 @@ public class LdapPublisher extends BasePublisher {
 	 *  @param logindn the logindn to the ldap server.
 	 */        
 	public void setLoginDN(String logindn){
-<span class="nc" id="L1028">		data.put(LOGINDN, logindn);	</span>
-<span class="nc" id="L1029">	}</span>
+<span class="fc" id="L1028">		data.put(LOGINDN, logindn);	</span>
+<span class="fc" id="L1029">	}</span>
 
 	/**
 	 *  @return the loginpwd to the ldap server.
@@ -1044,9 +1044,9 @@ public class LdapPublisher extends BasePublisher {
 	 */        
 	public void setLoginPassword(String loginpwd){
 	    // Obfuscate password before we store it in the database
-<span class="nc" id="L1047">	    final String pwd = StringTools.obfuscate(loginpwd);</span>
-<span class="nc" id="L1048">		data.put(LOGINPASSWORD, pwd);	</span>
-<span class="nc" id="L1049">	}</span>
+<span class="fc" id="L1047">	    final String pwd = StringTools.obfuscate(loginpwd);</span>
+<span class="fc" id="L1048">		data.put(LOGINPASSWORD, pwd);	</span>
+<span class="fc" id="L1049">	}</span>
 
 	/**
 	 *  @return true if nonexisting users should be created
@@ -1059,8 +1059,8 @@ public class LdapPublisher extends BasePublisher {
 	 *  @param createnonexistingusers if nonexisting users should be created.
 	 */        
 	public void setCreateNonExistingUsers (boolean createnonexistingusers){
-<span class="nc" id="L1062">		data.put(CREATENONEXISTING, Boolean.valueOf(createnonexistingusers));	</span>
-<span class="nc" id="L1063">	}</span>
+<span class="fc" id="L1062">		data.put(CREATENONEXISTING, Boolean.valueOf(createnonexistingusers));	</span>
+<span class="fc" id="L1063">	}</span>
 
 	/**
 	 *  @return true if existing users should be modified.
@@ -1073,8 +1073,8 @@ public class LdapPublisher extends BasePublisher {
 	 *  @param modifyexistingusers if existing users should be modified.
 	 */        
 	public void setModifyExistingUsers (boolean modifyexistingusers){
-<span class="nc" id="L1076">		data.put(MODIFYEXISTING, Boolean.valueOf(modifyexistingusers));	</span>
-<span class="nc" id="L1077">	}</span>
+<span class="fc" id="L1076">		data.put(MODIFYEXISTING, Boolean.valueOf(modifyexistingusers));	</span>
+<span class="fc" id="L1077">	}</span>
 
 	/**
 	 *  @return true if existing user attributes should be modified.
@@ -1088,8 +1088,8 @@ public class LdapPublisher extends BasePublisher {
 	 *  @param modifyexistingattributes if existing user attributes should be modified.
 	 */        
 	public void setModifyExistingAttributes (boolean modifyexistingattributes){
-<span class="nc" id="L1091">		data.put(MODIFYEXISTINGATTR, Boolean.valueOf(modifyexistingattributes));	</span>
-<span class="nc" id="L1092">	}</span>
+<span class="fc" id="L1091">		data.put(MODIFYEXISTINGATTR, Boolean.valueOf(modifyexistingattributes));	</span>
+<span class="fc" id="L1092">	}</span>
 
 	/**
 	 *  @return true if existing user attributes should be added.
@@ -1102,8 +1102,8 @@ public class LdapPublisher extends BasePublisher {
 	 *  @param modifyexistingusers if existing user attributes should be added.
 	 */        
 	public void setAddNonExistingAttributes (boolean modifyexistingusers){
-<span class="nc" id="L1105">		data.put(ADDNONEXISTINGATTR, Boolean.valueOf(modifyexistingusers));	</span>
-<span class="nc" id="L1106">	}</span>
+<span class="fc" id="L1105">		data.put(ADDNONEXISTINGATTR, Boolean.valueOf(modifyexistingusers));	</span>
+<span class="fc" id="L1106">	}</span>
 
 
 	/**
@@ -1117,8 +1117,8 @@ public class LdapPublisher extends BasePublisher {
 	 * @param userobjectclass the user object class in the ldap instance
 	 */        
 	public void setUserObjectClass(String userobjectclass){
-<span class="nc" id="L1120">		data.put(USEROBJECTCLASS, userobjectclass);	</span>
-<span class="nc" id="L1121">	}</span>
+<span class="fc" id="L1120">		data.put(USEROBJECTCLASS, userobjectclass);	</span>
+<span class="fc" id="L1121">	}</span>
 
 	/**
 	 *  @return the CA object class in the ldap instance
@@ -1131,8 +1131,8 @@ public class LdapPublisher extends BasePublisher {
 	 *  @param caobjectclass the CA object class in the ldap instance
 	 */        
 	public void setCAObjectClass(String caobjectclass){
-<span class="nc" id="L1134">		data.put(CAOBJECTCLASS, caobjectclass);	</span>
-<span class="nc" id="L1135">	}</span>
+<span class="fc" id="L1134">		data.put(CAOBJECTCLASS, caobjectclass);	</span>
+<span class="fc" id="L1135">	}</span>
 
 	/**
 	 *  @return the user cert attribute in the ldap instance
@@ -1145,8 +1145,8 @@ public class LdapPublisher extends BasePublisher {
 	 *  @param usercertattribute the user cert attribute in the ldap instance
 	 */        
 	public void setUserCertAttribute(String usercertattribute){
-<span class="nc" id="L1148">		data.put(USERCERTATTRIBUTE, usercertattribute);	</span>
-<span class="nc" id="L1149">	}</span>
+<span class="fc" id="L1148">		data.put(USERCERTATTRIBUTE, usercertattribute);	</span>
+<span class="fc" id="L1149">	}</span>
 
 	/**
 	 *  @return the ca cert attribute in the ldap instance
@@ -1159,8 +1159,8 @@ public class LdapPublisher extends BasePublisher {
 	 *  @param cacertattribute the ca cert attribute in the ldap instance
 	 */        
 	public void setCACertAttribute(String cacertattribute){
-<span class="nc" id="L1162">		data.put(CACERTATTRIBUTE, cacertattribute);	</span>
-<span class="nc" id="L1163">	}</span>
+<span class="fc" id="L1162">		data.put(CACERTATTRIBUTE, cacertattribute);	</span>
+<span class="fc" id="L1163">	}</span>
 
 	/**
 	 *  @return the CRL attribute in the ldap instance
@@ -1173,8 +1173,8 @@ public class LdapPublisher extends BasePublisher {
 	 *  @param crlattribute the CRL attribute in the ldap instance
 	 */        
 	public void setCRLAttribute(String crlattribute){
-<span class="nc" id="L1176">		data.put(CRLATTRIBUTE, crlattribute);	</span>
-<span class="nc" id="L1177">	}</span>
+<span class="fc" id="L1176">		data.put(CRLATTRIBUTE, crlattribute);	</span>
+<span class="fc" id="L1177">	}</span>
 
 	/**  @return the delta CRL attribute in the ldap instance
 	 */
@@ -1191,8 +1191,8 @@ public class LdapPublisher extends BasePublisher {
 	 *  @param deltacrlattribute the delta CRL attribute in the ldap instance
 	 */
 	public void setDeltaCRLAttribute(String deltacrlattribute){
-<span class="nc" id="L1194">		data.put(DELTACRLATTRIBUTE, deltacrlattribute);   </span>
-<span class="nc" id="L1195">	}</span>
+<span class="fc" id="L1194">		data.put(DELTACRLATTRIBUTE, deltacrlattribute);   </span>
+<span class="fc" id="L1195">	}</span>
 
 	/**
 	 *  @return the ARL attribute in the ldap instance
@@ -1205,8 +1205,8 @@ public class LdapPublisher extends BasePublisher {
 	 *  @param arlattribute the ARL attribute in the ldap instance
 	 */        
 	public void setARLAttribute(String arlattribute){
-<span class="nc" id="L1208">		data.put(ARLATTRIBUTE, arlattribute);	</span>
-<span class="nc" id="L1209">	}</span>
+<span class="fc" id="L1208">		data.put(ARLATTRIBUTE, arlattribute);	</span>
+<span class="fc" id="L1209">	}</span>
 
 	/**
 	 * Method getting a collection of DNFieldExtractor constants indicating which
@@ -1233,8 +1233,8 @@ public class LdapPublisher extends BasePublisher {
 	 * @param usefieldinldapdn values
 	 */
 	public void setUseFieldInLdapDN(Collection&lt;Integer&gt; usefieldinldapdn){
-<span class="nc" id="L1236">		data.put(USEFIELDINLDAPDN, usefieldinldapdn);</span>
-<span class="nc" id="L1237">	}    </span>
+<span class="fc" id="L1236">		data.put(USEFIELDINLDAPDN, usefieldinldapdn);</span>
+<span class="fc" id="L1237">	}    </span>
 
 	/**
 	 *  @return true if multiple certificates should be appended to existing user entries, instead of replacing.
@@ -1246,12 +1246,12 @@ public class LdapPublisher extends BasePublisher {
 	 *  @param appendcerts if multiple certificates should be appended to existing user entries, instead of replacing.
 	 */        
 	public void setAddMultipleCertificates (boolean appendcerts){
-<span class="nc" id="L1249">		data.put(ADDMULTIPLECERTIFICATES, Boolean.valueOf(appendcerts)); </span>
-<span class="nc" id="L1250">	}</span>
+<span class="fc" id="L1249">		data.put(ADDMULTIPLECERTIFICATES, Boolean.valueOf(appendcerts)); </span>
+<span class="fc" id="L1250">	}</span>
 
 	public void setRemoveRevokedCertificates( boolean removerevoked ){
-<span class="nc" id="L1253">		data.put(REMOVEREVOKED, Boolean.valueOf(removerevoked));  </span>
-<span class="nc" id="L1254">	}</span>
+<span class="fc" id="L1253">		data.put(REMOVEREVOKED, Boolean.valueOf(removerevoked));  </span>
+<span class="fc" id="L1254">	}</span>
 
 	public boolean getRemoveRevokedCertificates(){
 <span class="nc" id="L1257">		boolean removerevoked = true; //-- default value</span>
@@ -1262,8 +1262,8 @@ public class LdapPublisher extends BasePublisher {
 	}
 
 	public void setRemoveUsersWhenCertRevoked( boolean removeuser ){
-<span class="nc" id="L1265">		data.put(REMOVEUSERONCERTREVOKE, Boolean.valueOf(removeuser));  </span>
-<span class="nc" id="L1266">	}</span>
+<span class="fc" id="L1265">		data.put(REMOVEUSERONCERTREVOKE, Boolean.valueOf(removeuser));  </span>
+<span class="fc" id="L1266">	}</span>
 
 	public boolean getRemoveUsersWhenCertRevoked(){
 <span class="nc" id="L1269">		boolean removeuser = false; //-- default value</span>
@@ -1299,11 +1299,11 @@ public class LdapPublisher extends BasePublisher {
 
 	/** @return timout in milliseconds */
 	public int getConnectionTimeOut() {
-<span class="nc" id="L1302">		int timeout = Integer.parseInt(DEFAULT_TIMEOUT);</span>
-<span class="nc bnc" id="L1303" title="All 2 branches missed.">		if ( data.get(TIMEOUT) != null ) {</span>
+<span class="fc" id="L1302">		int timeout = Integer.parseInt(DEFAULT_TIMEOUT);</span>
+<span class="pc bpc" id="L1303" title="1 of 2 branches missed.">		if ( data.get(TIMEOUT) != null ) {</span>
 <span class="nc" id="L1304">			timeout = Integer.parseInt((String) data.get(TIMEOUT));</span>
 		}
-<span class="nc" id="L1306">		return timeout;</span>
+<span class="fc" id="L1306">		return timeout;</span>
 	}
 	/** @return timout in milliseconds */
 	public int getReadTimeOut() {
@@ -1324,11 +1324,11 @@ public class LdapPublisher extends BasePublisher {
 	
 	/** @param timeout timout in milliseconds */
 	public void setConnectionTimeOut(int timeout) {
-<span class="nc" id="L1327">		data.put(TIMEOUT, Integer.toString(timeout));  </span>
-<span class="nc" id="L1328">		ldapBindConstraints.setTimeLimit(timeout);</span>
-<span class="nc" id="L1329">		ldapConnectionConstraints.setTimeLimit(timeout);</span>
-<span class="nc" id="L1330">		ldapDisconnectConstraints.setTimeLimit(timeout);</span>
-<span class="nc" id="L1331">	}</span>
+<span class="fc" id="L1327">		data.put(TIMEOUT, Integer.toString(timeout));  </span>
+<span class="fc" id="L1328">		ldapBindConstraints.setTimeLimit(timeout);</span>
+<span class="fc" id="L1329">		ldapConnectionConstraints.setTimeLimit(timeout);</span>
+<span class="fc" id="L1330">		ldapDisconnectConstraints.setTimeLimit(timeout);</span>
+<span class="fc" id="L1331">	}</span>
 	/** @param timeout timout in milliseconds */
 	public void setReadTimeOut(int timeout) {
 <span class="nc" id="L1334">		data.put(READTIMEOUT, Integer.toString(timeout));  </span>
@@ -1694,14 +1694,14 @@ public class LdapPublisher extends BasePublisher {
 <span class="nc" id="L1694">		return retval;	</span>
 	}
 
-<span class="nc" id="L1697">	protected static byte[] fakecrlbytes = Base64.decode(</span>
+<span class="fc" id="L1697">	protected static byte[] fakecrlbytes = Base64.decode(</span>
 			(&quot;MIIBKDCBkgIBATANBgkqhkiG9w0BAQUFADAvMQ8wDQYDVQQDEwZUZXN0Q0ExDzAN&quot;+
 					&quot;BgNVBAoTBkFuYVRvbTELMAkGA1UEBhMCU0UXDTA0MDExMjE0MTQyMloXDTA0MDEx&quot;+
 					&quot;MzE0MTQyMlqgLzAtMB8GA1UdIwQYMBaAFK1tyidIzx1qpuj5OjHl/0Ro8xTDMAoG&quot;+
 					&quot;A1UdFAQDAgEBMA0GCSqGSIb3DQEBBQUAA4GBABBSCWRAX8xyWQSuZYqR9MC8t4/V&quot;+
 					&quot;Tp4xTGJeT1OPlCfuyeHyjUdvdjB/TjTgc4EOJ7eIF7aQU8Mp6AcUAKil/qBlrTYa&quot;+
 					&quot;EFVr0WDeh2Aglgm4klAFnoJjDWfjTP1NVFdN4GMizqAz/vdXOY3DaDmkwx24eaRw&quot;+
-<span class="nc" id="L1704">			&quot;7SzqXca4gE7f1GTO&quot;).getBytes());</span>
+<span class="fc" id="L1704">			&quot;7SzqXca4gE7f1GTO&quot;).getBytes());</span>
 
 	/**
 	 * Method to lazy create the fake CRL.
@@ -1737,7 +1737,7 @@ public class LdapPublisher extends BasePublisher {
 	 * @see org.ejbca.core.model.ca.publisher.BasePublisher#getLatestVersion()
 	 */
 	public float getLatestVersion() {		
-<span class="nc" id="L1740">		return LATEST_VERSION;</span>
+<span class="fc" id="L1740">		return LATEST_VERSION;</span>
 	}
 
 	/** 

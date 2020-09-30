@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EjbcaAuditorSessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.audit</a> &gt; <span class="el_source">EjbcaAuditorSessionBean.java</span></div><h1>EjbcaAuditorSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.ejb.audit;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.audit.AuditLogEntry;
+import org.cesecore.audit.enums.ModuleTypes;
+import org.cesecore.audit.impl.integrityprotected.AuditRecordData;
+import org.cesecore.audit.impl.integrityprotected.IntegrityProtectedDevice;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.AuditLogRules;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.config.CesecoreConfiguration;
+
+/**
+ * Workaround for the very complex CESeCore query criteria API.
+ * 
+ * @version $Id: EjbcaAuditorSessionBean.java 25494 2017-03-15 15:27:43Z jeklund $
+ */
+@Stateless
+@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+<span class="nc" id="L48">public class EjbcaAuditorSessionBean implements EjbcaAuditorSessionLocal {</span>
+
+<span class="nc" id="L50">    private static final Logger LOG = Logger.getLogger(EjbcaAuditorSessionBean.class);</span>
+    
+    @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+    private EntityManager entityManager;
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private CaSessionLocal caSession;
+
+    @Override
+    public List&lt;? extends AuditLogEntry&gt; selectAuditLog(final AuthenticationToken token, final String device, final int firstResult, final int maxResults,
+            final String whereClause, final String orderClause, final List&lt;Object&gt; parameters) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        if (!IntegrityProtectedDevice.class.getSimpleName().equals(device)) {</span>
+<span class="nc" id="L63">            throw new UnsupportedOperationException(&quot;selectAuditLog can only be used with &quot; + IntegrityProtectedDevice.class.getSimpleName());</span>
+        }
+        // Require that the caller is authorized to AUDITLOGSELECT just like in org.cesecore.audit.audit.SecurityEventsAuditorSessionBean.selectAuditLogs(...)
+<span class="nc" id="L66">        assertAuthorization(token, AuditLogRules.VIEW.resource());</span>
+        // Assert that parameter is alphanumeric or one of &quot;. ?&lt;&gt;!=&quot;
+<span class="nc" id="L68">        assertLegalSqlString(whereClause, true);</span>
+        // Assert that parameter is alphanumeric or one of &quot;. &quot;
+<span class="nc" id="L70">        assertLegalSqlString(orderClause, false);</span>
+        // Start building the query
+<span class="nc" id="L72">        final StringBuilder queryBuilder = new StringBuilder(&quot;SELECT a FROM &quot;).append(AuditRecordData.class.getSimpleName()).append(&quot; a&quot;);</span>
+        // Optionally add the WHERE clause
+<span class="nc bnc" id="L74" title="All 4 branches missed.">        if (whereClause!=null &amp;&amp; whereClause.length()&gt;0) {</span>
+<span class="nc" id="L75">            queryBuilder.append(&quot; WHERE &quot;).append(whereClause);</span>
+        }
+        // Optionally add the ORDER clause
+<span class="nc bnc" id="L78" title="All 4 branches missed.">        if (orderClause!=null &amp;&amp; orderClause.length()&gt;0) {</span>
+<span class="nc" id="L79">            queryBuilder.append(&quot; ORDER BY &quot;).append(orderClause);</span>
+        }
+<span class="nc" id="L81">        final String queryString = queryBuilder.toString();</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L83">            LOG.debug(&quot;queryString: &quot; + queryString);</span>
+        }
+<span class="nc" id="L85">        final TypedQuery&lt;AuditLogEntry&gt; query = entityManager.createQuery(queryString, AuditLogEntry.class);</span>
+<span class="nc" id="L86">        query.setFirstResult(firstResult);</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        if (maxResults&gt;0) {</span>
+<span class="nc" id="L88">            query.setMaxResults(maxResults);</span>
+        }
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        if (parameters!=null) {</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">            for (int i=0; i&lt;parameters.size(); i++) {</span>
+<span class="nc" id="L92">                query.setParameter(i, parameters.get(i));</span>
+            }
+        }
+
+        //Prune out result pertaining to unauthorized CAs
+<span class="nc" id="L97">        Set&lt;Integer&gt; authorizedCaIds = new HashSet&lt;&gt;(caSession.getAuthorizedCaIds(token));</span>
+<span class="nc" id="L98">        List&lt;AuditLogEntry&gt; resultList = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        for (final AuditLogEntry auditLogEntry : query.getResultList()) {</span>
+            //The following values may leak CA Ids. 
+<span class="nc bnc" id="L101" title="All 2 branches missed.">            if ( auditLogEntry.getModuleTypeValue().equals(ModuleTypes.CA)</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">                 || auditLogEntry.getModuleTypeValue().equals(ModuleTypes.CERTIFICATE)</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">                 || auditLogEntry.getModuleTypeValue().equals(ModuleTypes.CRL)) {</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">                if (!StringUtils.isEmpty(auditLogEntry.getCustomId())) {</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">                    if (!authorizedCaIds.contains(Integer.valueOf(auditLogEntry.getCustomId()))) {</span>
+<span class="nc" id="L106">                        continue;</span>
+                    }
+                }
+            }
+<span class="nc" id="L110">            resultList.add(auditLogEntry);</span>
+<span class="nc" id="L111">        }</span>
+<span class="nc" id="L112">        return resultList;</span>
+        
+    }
+
+    /**
+     * Make sure that the SQL query doesn't contain illegal characters.
+     * A-Z, a-z, 0-9, ' ' and '.' are always allowed.
+     * @param sql SQL
+     * @param isWhere if true we also allow '?', '&lt;', '&gt;', '!' and '='
+     * @throws IllegalArgumentException if an illegal character is found in the sql paramater
+     */
+    private void assertLegalSqlString(final String sql, final boolean isWhere) throws IllegalArgumentException {
+<span class="nc bnc" id="L124" title="All 2 branches missed.">        if (sql==null) {</span>
+<span class="nc" id="L125">            return; // no String is safe</span>
+        }
+<span class="nc bnc" id="L127" title="All 2 branches missed.">        for (int i=0; i&lt;sql.length(); i++) {</span>
+<span class="nc" id="L128">            final char c = sql.charAt(i);</span>
+<span class="nc bnc" id="L129" title="All 16 branches missed.">            if ((c&gt;='0' &amp;&amp; c&lt;='9') || (c&gt;='A' &amp;&amp; c&lt;='Z') || (c&gt;='a' &amp;&amp; c&lt;='z') || c==' ' || c=='.') {</span>
+<span class="nc" id="L130">                continue; // ok</span>
+            }
+<span class="nc bnc" id="L132" title="All 2 branches missed.">            if (isWhere) {</span>
+<span class="nc bnc" id="L133" title="All 10 branches missed.">                if (c=='?' || c=='&lt;' || c=='&gt;' || c=='!' || c=='=') {</span>
+<span class="nc" id="L134">                    continue; // ok</span>
+                }
+            }
+            // Char was not in the white-list.. warn and throw an error!
+<span class="nc" id="L138">            LOG.warn(&quot;Possible SQL injection attempt: &quot; + sql);</span>
+<span class="nc" id="L139">            throw new IllegalArgumentException(c + &quot; is not a legal SQL query character.&quot;);</span>
+        }
+<span class="nc" id="L141">    }</span>
+
+    /** Assert that we are authorized to the requested resource. 
+     * @param token Token
+     * @param accessRule Rule
+     * @throws AuthorizationDeniedException Fail */
+    private void assertAuthorization(final AuthenticationToken token, final String accessRule) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(token, accessRule)) {</span>
+<span class="nc" id="L149">            throw new AuthorizationDeniedException(&quot;not authorized to: &quot;+ token.toString());                </span>
+        } 
+<span class="nc" id="L151">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

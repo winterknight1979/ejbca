@@ -1,0 +1,1016 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>ServiceSessionBean xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../../apidocs/org/ejbca/core/ejb/services/ServiceSessionBean.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <em class="jxr_javadoccomment">/*************************************************************************</em>
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <em class="jxr_javadoccomment"> *  EJBCA Community: The OpenSource Certificate Authority                *</em>
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <em class="jxr_javadoccomment"> *  This software is free software; you can redistribute it and/or       *</em>
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <em class="jxr_javadoccomment"> *  modify it under the terms of the GNU Lesser General Public           *</em>
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <em class="jxr_javadoccomment"> *  License as published by the Free Software Foundation; either         *</em>
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <em class="jxr_javadoccomment"> *  version 2.1 of the License, or any later version.                    *</em>
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_javadoccomment"> *  See terms of license at gnu.org.                                     *</em>
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <em class="jxr_javadoccomment"> *                                                                       *</em>
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <em class="jxr_javadoccomment"> *************************************************************************/</em>
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">package</strong> org.ejbca.core.ejb.services;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> java.io.Serializable;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> java.net.InetAddress;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> java.net.UnknownHostException;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayList;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> java.util.Arrays;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> java.util.Collection;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> java.util.Date;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> java.util.HashMap;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> java.util.HashSet;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> java.util.Iterator;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> java.util.LinkedHashMap;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> java.util.Map;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> javax.annotation.PostConstruct;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> javax.annotation.Resource;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> javax.ejb.EJB;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> javax.ejb.EJBException;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> javax.ejb.FinderException;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> javax.ejb.SessionContext;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> javax.ejb.Stateless;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> javax.ejb.Timeout;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> javax.ejb.Timer;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> javax.ejb.TimerConfig;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> javax.ejb.TimerService;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> javax.ejb.TransactionAttribute;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <strong class="jxr_keyword">import</strong> javax.ejb.TransactionAttributeType;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> org.apache.commons.lang.StringUtils;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> org.apache.log4j.Logger;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> org.cesecore.audit.enums.EventStatus;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">import</strong> org.cesecore.audit.log.InternalSecurityEventsLoggerSessionLocal;
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <strong class="jxr_keyword">import</strong> org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <strong class="jxr_keyword">import</strong> org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <strong class="jxr_keyword">import</strong> org.cesecore.authentication.tokens.AuthenticationToken;
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  <strong class="jxr_keyword">import</strong> org.cesecore.authentication.tokens.UsernamePrincipal;
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  <strong class="jxr_keyword">import</strong> org.cesecore.authorization.AuthorizationSessionLocal;
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.ca.CaSessionLocal;
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.certificateprofile.CertificateProfileSessionLocal;
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.crl.CrlCreateSessionLocal;
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  <strong class="jxr_keyword">import</strong> org.cesecore.certificates.crl.CrlStoreSessionLocal;
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>  <strong class="jxr_keyword">import</strong> org.cesecore.configuration.GlobalConfigurationSessionLocal;
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>  <strong class="jxr_keyword">import</strong> org.cesecore.jndi.JndiConstants;
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  <strong class="jxr_keyword">import</strong> org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  <strong class="jxr_keyword">import</strong> org.cesecore.util.ProfileID;
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.approval.ApprovalProfileSessionLocal;
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.approval.ApprovalSessionLocal;
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.audit.enums.EjbcaModuleTypes;
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.audit.enums.EjbcaServiceTypes;
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.authentication.web.WebAuthenticationProviderSessionLocal;
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.ca.auth.EndEntityAuthenticationSessionLocal;
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.ca.caadmin.CAAdminSessionLocal;
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.ca.publisher.PublisherQueueSessionLocal;
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.ca.publisher.PublisherSessionLocal;
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.ca.sign.SignSessionLocal;
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.crl.ImportCrlSessionLocal;
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.crl.PublishingCrlSessionLocal;
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.hardtoken.HardTokenSessionLocal;
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.keyrecovery.KeyRecoverySessionLocal;
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.ra.CertificateRequestSessionLocal;
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.ra.EndEntityAccessSessionLocal;
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.ra.EndEntityManagementSessionLocal;
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.ra.KeyStoreCreateSessionLocal;
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.ra.raadmin.AdminPreferenceSessionLocal;
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal;
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.model.InternalEjbcaResources;
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.model.authorization.AccessRulesConstants;
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.model.services.BaseWorker;
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.model.services.IInterval;
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.model.services.IWorker;
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.model.services.ServiceConfiguration;
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.model.services.ServiceExecutionFailedException;
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.model.services.ServiceExistsException;
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>  <strong class="jxr_keyword">import</strong> org.ejbca.core.protocol.cmp.CmpMessageDispatcherSessionLocal;
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>  
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>  <em class="jxr_javadoccomment"> * Session bean that handles adding and editing services as displayed in EJBCA. This bean manages the service configuration as stored in the database,</em>
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>  <em class="jxr_javadoccomment"> * and executes services at timeouts triggered by the timeoutHandler.</em>
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>  <em class="jxr_javadoccomment"> * </em>
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>  <em class="jxr_javadoccomment"> * @version $Id: ServiceSessionBean.java 34133 2019-12-19 14:28:28Z anatom $</em>
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>  @Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + <span class="jxr_string">"ServiceSessionRemote"</span>)
+<a class="jxr_linenumber" name="L100" href="#L100">100</a> @TransactionAttribute(TransactionAttributeType.REQUIRED)
+<a class="jxr_linenumber" name="L101" href="#L101">101</a> <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="ServiceSessionBean" href="../../../../../org/ejbca/core/ejb/services/ServiceSessionBean.html#ServiceSessionBean">ServiceSessionBean</a> <strong class="jxr_keyword">implements</strong> ServiceSessionLocal, ServiceSessionRemote {
+<a class="jxr_linenumber" name="L102" href="#L102">102</a> 
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger log = Logger.getLogger(ServiceSessionBean.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L104" href="#L104">104</a> 
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>     <em class="jxr_javadoccomment">/** Internal localization of logs and errors */</em>
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> InternalEjbcaResources intres = InternalEjbcaResources.getInstance();
+<a class="jxr_linenumber" name="L107" href="#L107">107</a> 
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L109" href="#L109">109</a> <em class="jxr_javadoccomment">     * Constant indicating the Id of the "service loader" service. Used in a clustered environment to periodically load available services</em>
+<a class="jxr_linenumber" name="L110" href="#L110">110</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Integer SERVICELOADER_ID = 0;
+<a class="jxr_linenumber" name="L112" href="#L112">112</a> 
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> SERVICELOADER_PERIOD = 5 * 60 * 1000;
+<a class="jxr_linenumber" name="L114" href="#L114">114</a> 
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>     @Resource
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>     <strong class="jxr_keyword">private</strong> SessionContext sessionContext;
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>     <strong class="jxr_keyword">private</strong> TimerService timerService; <em class="jxr_comment">// When the sessionContext is injected, the timerService should be looked up.</em>
+<a class="jxr_linenumber" name="L118" href="#L118">118</a> 
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>     @EJB
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>     <strong class="jxr_keyword">private</strong> AuthorizationSessionLocal authorizationSession;
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>     @EJB
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>     <strong class="jxr_keyword">private</strong> SecurityEventsLoggerSessionLocal auditSession;
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>     @EJB
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>     <strong class="jxr_keyword">private</strong> InternalSecurityEventsLoggerSessionLocal internalAuditSession;
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>     @EJB
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>     <strong class="jxr_keyword">private</strong> ServiceDataSessionLocal serviceDataSession;
+<a class="jxr_linenumber" name="L127" href="#L127">127</a> 
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>     <strong class="jxr_keyword">private</strong> ServiceSessionLocal serviceSession;
+<a class="jxr_linenumber" name="L129" href="#L129">129</a> 
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>     <em class="jxr_comment">// Additional dependencies from the services we executeServiceInTransaction</em>
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>     @EJB
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>     <strong class="jxr_keyword">private</strong> ApprovalSessionLocal approvalSession;
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>     @EJB
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>     <strong class="jxr_keyword">private</strong> ApprovalProfileSessionLocal approvalProfileSession;
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>     @EJB
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>     <strong class="jxr_keyword">private</strong> EndEntityAuthenticationSessionLocal authenticationSession;
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>     @EJB
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>     <strong class="jxr_keyword">private</strong> CAAdminSessionLocal caAdminSession;
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>     @EJB
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>     <strong class="jxr_keyword">private</strong> CaSessionLocal caSession;
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>     @EJB
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>     <strong class="jxr_keyword">private</strong> CertificateProfileSessionLocal certificateProfileSession;
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>     @EJB
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>     <strong class="jxr_keyword">private</strong> CertificateStoreSessionLocal certificateStoreSession;
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>     @EJB
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>     <strong class="jxr_keyword">private</strong> CrlCreateSessionLocal crlCreateSession;
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>     @EJB
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>     <strong class="jxr_keyword">private</strong> CrlStoreSessionLocal crlStoreSession;
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>     @EJB
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>     <strong class="jxr_keyword">private</strong> EndEntityAccessSessionLocal endEntityAccessSession;
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>     @EJB
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>     <strong class="jxr_keyword">private</strong> EndEntityProfileSessionLocal endEntityProfileSession;
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>     @EJB
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>     <strong class="jxr_keyword">private</strong> HardTokenSessionLocal hardTokenSession;
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>     @EJB
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>     <strong class="jxr_keyword">private</strong> KeyRecoverySessionLocal keyRecoverySession;
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>     @EJB
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>     <strong class="jxr_keyword">private</strong> AdminPreferenceSessionLocal raAdminSession;
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>     @EJB
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>     <strong class="jxr_keyword">private</strong> GlobalConfigurationSessionLocal globalConfigurationSession;
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>     @EJB
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>     <strong class="jxr_keyword">private</strong> SignSessionLocal signSession;
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>     @EJB
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>     <strong class="jxr_keyword">private</strong> EndEntityManagementSessionLocal endEntityManagementSession;
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>     @EJB
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>     <strong class="jxr_keyword">private</strong> PublisherQueueSessionLocal publisherQueueSession;
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>     @EJB
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>     <strong class="jxr_keyword">private</strong> PublisherSessionLocal publisherSession;
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>     @EJB
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>     <strong class="jxr_keyword">private</strong> CertificateRequestSessionLocal certificateRequestSession;
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>     @EJB
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>     <strong class="jxr_keyword">private</strong> WebAuthenticationProviderSessionLocal webAuthenticationSession;
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>     @EJB
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>     <strong class="jxr_keyword">private</strong> PublishingCrlSessionLocal publishingCrlSession;
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>     @EJB
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>     <strong class="jxr_keyword">private</strong> CryptoTokenManagementSessionLocal cryptoTokenSession;
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>     @EJB
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>     <strong class="jxr_keyword">private</strong> CmpMessageDispatcherSessionLocal cmpMsgDispatcherSession;
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>     @EJB
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>     <strong class="jxr_keyword">private</strong> ImportCrlSessionLocal importCrlSession;
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>     @EJB
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>     <strong class="jxr_keyword">private</strong> KeyStoreCreateSessionLocal keyStoreCreateSession;
+<a class="jxr_linenumber" name="L183" href="#L183">183</a> 
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>     @PostConstruct
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> ejbCreate() {
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>         timerService = sessionContext.getTimerService();
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>         serviceSession = sessionContext.getBusinessObject(ServiceSessionLocal.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>     }
+<a class="jxr_linenumber" name="L189" href="#L189">189</a> 
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>     @Override
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> addService(AuthenticationToken admin, String name, ServiceConfiguration serviceConfiguration) <strong class="jxr_keyword">throws</strong> ServiceExistsException {
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>         <strong class="jxr_keyword">if</strong> (log.isTraceEnabled()) {
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>             log.trace(<span class="jxr_string">"&gt;addService(name: "</span> + name + <span class="jxr_string">")"</span>);
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>         }
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>         addService(admin, findFreeServiceId(), name, serviceConfiguration);
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>         log.trace(<span class="jxr_string">"&lt;addService()"</span>);
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>     }
+<a class="jxr_linenumber" name="L198" href="#L198">198</a> 
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>     @Override
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> addService(AuthenticationToken admin, <strong class="jxr_keyword">int</strong> id, String name, ServiceConfiguration serviceConfiguration) <strong class="jxr_keyword">throws</strong> ServiceExistsException {
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>         <strong class="jxr_keyword">if</strong> (log.isTraceEnabled()) {
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>             log.trace(<span class="jxr_string">"&gt;addService(name: "</span> + name + <span class="jxr_string">", id: "</span> + id + <span class="jxr_string">")"</span>);
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>         }
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>         <strong class="jxr_keyword">boolean</strong> success = addServiceInternal(admin, id, name, serviceConfiguration);
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>         <strong class="jxr_keyword">if</strong> (success) {
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>             <strong class="jxr_keyword">final</strong> String msg = intres.getLocalizedMessage(<span class="jxr_string">"services.serviceadded"</span>, name);
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>             <strong class="jxr_keyword">final</strong> Map&lt;String, Object&gt; details = <strong class="jxr_keyword">new</strong> LinkedHashMap&lt;String, Object&gt;();
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>             details.put(<span class="jxr_string">"msg"</span>, msg);
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>             auditSession.log(EjbcaEventTypes.SERVICE_ADD, EventStatus.SUCCESS, EjbcaModuleTypes.SERVICE, EjbcaServiceTypes.EJBCA,
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>                     admin.toString(), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, details);
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>             <strong class="jxr_keyword">final</strong> String msg = intres.getLocalizedMessage(<span class="jxr_string">"services.erroraddingservice"</span>, name);
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>             log.info(msg);
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> ServiceExistsException(msg);
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>         }
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>         log.trace(<span class="jxr_string">"&lt;addService()"</span>);
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>     }
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>     
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> addServiceInternal(AuthenticationToken admin, <strong class="jxr_keyword">int</strong> id, String name, ServiceConfiguration serviceConfiguration) <strong class="jxr_keyword">throws</strong> ServiceExistsException {
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>         <strong class="jxr_keyword">boolean</strong> success = false;
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>         <strong class="jxr_keyword">if</strong> (isAuthorizedToEditService(admin)) {
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>             <strong class="jxr_keyword">if</strong> (serviceDataSession.findByName(name) == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>                 <strong class="jxr_keyword">if</strong> (serviceDataSession.findById(Integer.valueOf(id)) == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>                     serviceDataSession.addServiceData(id, name, serviceConfiguration);
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>                     success = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>                 }
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>             }
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>             <strong class="jxr_keyword">final</strong> String msg = intres.getLocalizedMessage(<span class="jxr_string">"services.notauthorizedtoadd"</span>, name);
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>             log.info(msg);
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>         }
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>         <strong class="jxr_keyword">return</strong> success;
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>     }
+<a class="jxr_linenumber" name="L234" href="#L234">234</a> 
+<a class="jxr_linenumber" name="L235" href="#L235">235</a>     @Override
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> cloneService(AuthenticationToken admin, String oldname, String newname) <strong class="jxr_keyword">throws</strong> ServiceExistsException {
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>         <strong class="jxr_keyword">if</strong> (log.isTraceEnabled()) {
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>             log.trace(<span class="jxr_string">"&gt;cloneService(name: "</span> + oldname + <span class="jxr_string">")"</span>);
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>         }
+<a class="jxr_linenumber" name="L240" href="#L240">240</a>         ServiceConfiguration servicedata = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>         ServiceData htp = serviceDataSession.findByName(oldname);
+<a class="jxr_linenumber" name="L242" href="#L242">242</a>         <strong class="jxr_keyword">if</strong> (htp == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L243" href="#L243">243</a>             String msg = <span class="jxr_string">"Error cloning service: No such service found."</span>;
+<a class="jxr_linenumber" name="L244" href="#L244">244</a>             log.error(msg);
+<a class="jxr_linenumber" name="L245" href="#L245">245</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> EJBException(msg);
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>         }
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>             servicedata = (ServiceConfiguration) htp.getServiceConfiguration().clone();
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>             <strong class="jxr_keyword">if</strong> (isAuthorizedToEditService(admin)) {
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>                 addServiceInternal(admin, findFreeServiceId(), newname, servicedata);
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>                 <strong class="jxr_keyword">final</strong> String msg = intres.getLocalizedMessage(<span class="jxr_string">"services.servicecloned"</span>, newname, oldname);
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>                 <strong class="jxr_keyword">final</strong> Map&lt;String, Object&gt; details = <strong class="jxr_keyword">new</strong> LinkedHashMap&lt;String, Object&gt;();
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>                 details.put(<span class="jxr_string">"msg"</span>, msg);
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>                 auditSession.log(EjbcaEventTypes.SERVICE_ADD, EventStatus.SUCCESS, EjbcaModuleTypes.SERVICE, EjbcaServiceTypes.EJBCA,
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>                         admin.toString(), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, details);
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>                 <strong class="jxr_keyword">final</strong> String msg = intres.getLocalizedMessage(<span class="jxr_string">"services.notauthorizedtoedit"</span>, oldname);
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>                 log.info(msg);
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>             }
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>         } <strong class="jxr_keyword">catch</strong> (CloneNotSupportedException e) {
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>             log.error(<span class="jxr_string">"Error cloning service: "</span>, e);
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> EJBException(e);
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>         }
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>         log.trace(<span class="jxr_string">"&lt;cloneService()"</span>);
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>     }
+<a class="jxr_linenumber" name="L266" href="#L266">266</a> 
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>     @Override
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> removeService(AuthenticationToken admin, String name) {
+<a class="jxr_linenumber" name="L270" href="#L270">270</a>         <strong class="jxr_keyword">if</strong> (log.isTraceEnabled()) {
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>             log.trace(<span class="jxr_string">"&gt;removeService(name: "</span> + name + <span class="jxr_string">")"</span>);
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>         }
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>         <strong class="jxr_keyword">boolean</strong> retval = false;
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>             ServiceData htp = serviceDataSession.findByName(name);
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>             <strong class="jxr_keyword">if</strong> (htp == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> FinderException(<span class="jxr_string">"Cannot find service "</span> + name);
+<a class="jxr_linenumber" name="L278" href="#L278">278</a>             }
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>             ServiceConfiguration serviceConfiguration = htp.getServiceConfiguration();
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>             <strong class="jxr_keyword">if</strong> (isAuthorizedToEditService(admin)) {
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>                 IWorker worker = getWorker(serviceConfiguration, name, htp.getRunTimeStamp(), htp.getNextRunTimeStamp());
+<a class="jxr_linenumber" name="L282" href="#L282">282</a>                 <strong class="jxr_keyword">if</strong> (worker != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>                     serviceSession.cancelTimer(htp.getId());
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>                 }
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>                 serviceDataSession.removeServiceData(htp.getId());
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>                 <strong class="jxr_keyword">final</strong> String msg = intres.getLocalizedMessage(<span class="jxr_string">"services.serviceremoved"</span>, name);
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>                 <strong class="jxr_keyword">final</strong> Map&lt;String, Object&gt; details = <strong class="jxr_keyword">new</strong> LinkedHashMap&lt;String, Object&gt;();
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>                 details.put(<span class="jxr_string">"msg"</span>, msg);
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>                 auditSession.log(EjbcaEventTypes.SERVICE_REMOVE, EventStatus.SUCCESS, EjbcaModuleTypes.SERVICE, EjbcaServiceTypes.EJBCA,
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>                         admin.toString(), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, details);
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>                 retval = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>                 <strong class="jxr_keyword">final</strong> String msg = intres.getLocalizedMessage(<span class="jxr_string">"services.notauthorizedtoedit"</span>, name);
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>                 log.info(msg);
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>             }
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>         } <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>             <strong class="jxr_keyword">final</strong> String msg = intres.getLocalizedMessage(<span class="jxr_string">"services.errorremovingservice"</span>, name);
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>             <strong class="jxr_keyword">final</strong> Map&lt;String, Object&gt; details = <strong class="jxr_keyword">new</strong> LinkedHashMap&lt;String, Object&gt;();
+<a class="jxr_linenumber" name="L299" href="#L299">299</a>             details.put(<span class="jxr_string">"msg"</span>, msg);
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>             details.put(<span class="jxr_string">"error"</span>, e.getMessage());
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>             auditSession.log(EjbcaEventTypes.SERVICE_REMOVE, EventStatus.FAILURE, EjbcaModuleTypes.SERVICE, EjbcaServiceTypes.EJBCA,
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>                     admin.toString(), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, details);
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>         }
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>         log.trace(<span class="jxr_string">"&lt;removeService)"</span>);
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>         <strong class="jxr_keyword">return</strong> retval;
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>     }
+<a class="jxr_linenumber" name="L307" href="#L307">307</a> 
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>     @Override
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> renameService(AuthenticationToken admin, String oldname, String newname) <strong class="jxr_keyword">throws</strong> ServiceExistsException {
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>         <strong class="jxr_keyword">if</strong> (log.isTraceEnabled()) {
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>             log.trace(<span class="jxr_string">"&gt;renameService(from "</span> + oldname + <span class="jxr_string">" to "</span> + newname + <span class="jxr_string">")"</span>);
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>         }
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>         <strong class="jxr_keyword">boolean</strong> success = false;
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>         <strong class="jxr_keyword">if</strong> (serviceDataSession.findByName(newname) == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>             ServiceData htp = serviceDataSession.findByName(oldname);
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>             <strong class="jxr_keyword">if</strong> (htp != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L317" href="#L317">317</a>                 <strong class="jxr_keyword">if</strong> (isAuthorizedToEditService(admin)) {
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>                     htp.setName(newname);
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>                     success = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>                 } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>                     <strong class="jxr_keyword">final</strong> String msg = intres.getLocalizedMessage(<span class="jxr_string">"services.notauthorizedtoedit"</span>, oldname);
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>                     log.info(msg);
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>                 }
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>             }
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>         }
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>         <strong class="jxr_keyword">if</strong> (success) {
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>             <strong class="jxr_keyword">final</strong> String msg = intres.getLocalizedMessage(<span class="jxr_string">"services.servicerenamed"</span>, oldname, newname);
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>             <strong class="jxr_keyword">final</strong> Map&lt;String, Object&gt; details = <strong class="jxr_keyword">new</strong> LinkedHashMap&lt;String, Object&gt;();
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>             details.put(<span class="jxr_string">"msg"</span>, msg);
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>             auditSession.log(EjbcaEventTypes.SERVICE_RENAME, EventStatus.SUCCESS, EjbcaModuleTypes.SERVICE, EjbcaServiceTypes.EJBCA,
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>                     admin.toString(), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, details);
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>             <strong class="jxr_keyword">final</strong> String msg = intres.getLocalizedMessage(<span class="jxr_string">"services.errorrenamingservice"</span>, oldname, newname);
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>             log.info(msg);
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> ServiceExistsException(msg);
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>         }
+<a class="jxr_linenumber" name="L337" href="#L337">337</a>         log.trace(<span class="jxr_string">"&lt;renameService()"</span>);
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>     }
+<a class="jxr_linenumber" name="L339" href="#L339">339</a> 
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>     @Override
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>     <strong class="jxr_keyword">public</strong> Collection&lt;Integer&gt; getVisibleServiceIds() {
+<a class="jxr_linenumber" name="L342" href="#L342">342</a>         Collection&lt;Integer&gt; allVisibleServiceIds = <strong class="jxr_keyword">new</strong> ArrayList&lt;Integer&gt;();
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>             Collection&lt;Integer&gt; allServiceIds = getServiceIdToNameMap().keySet();
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> id : allServiceIds) {
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>                 <em class="jxr_comment">// Remove hidden services here..</em>
+<a class="jxr_linenumber" name="L346" href="#L346">346</a>                 <strong class="jxr_keyword">if</strong> (!getServiceConfiguration(id).isHidden()) {
+<a class="jxr_linenumber" name="L347" href="#L347">347</a>                     allVisibleServiceIds.add(Integer.valueOf(id));
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>                 }
+<a class="jxr_linenumber" name="L349" href="#L349">349</a>             }
+<a class="jxr_linenumber" name="L350" href="#L350">350</a> 
+<a class="jxr_linenumber" name="L351" href="#L351">351</a>         <strong class="jxr_keyword">return</strong> allVisibleServiceIds;
+<a class="jxr_linenumber" name="L352" href="#L352">352</a>     }
+<a class="jxr_linenumber" name="L353" href="#L353">353</a> 
+<a class="jxr_linenumber" name="L354" href="#L354">354</a>     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+<a class="jxr_linenumber" name="L355" href="#L355">355</a>     @Override
+<a class="jxr_linenumber" name="L356" href="#L356">356</a>     <strong class="jxr_keyword">public</strong> ServiceConfiguration getService(String name) {
+<a class="jxr_linenumber" name="L357" href="#L357">357</a>         <strong class="jxr_keyword">if</strong> (log.isTraceEnabled()) {
+<a class="jxr_linenumber" name="L358" href="#L358">358</a>             log.trace(<span class="jxr_string">"&gt;getService: "</span> + name);
+<a class="jxr_linenumber" name="L359" href="#L359">359</a>         }
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>         ServiceConfiguration returnval = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L361" href="#L361">361</a>         ServiceData serviceData = serviceDataSession.findByName(name);
+<a class="jxr_linenumber" name="L362" href="#L362">362</a>         <strong class="jxr_keyword">if</strong> (serviceData != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>             returnval = serviceData.getServiceConfiguration();
+<a class="jxr_linenumber" name="L364" href="#L364">364</a>         }
+<a class="jxr_linenumber" name="L365" href="#L365">365</a>         <strong class="jxr_keyword">if</strong> (log.isTraceEnabled()) {
+<a class="jxr_linenumber" name="L366" href="#L366">366</a>             log.trace(<span class="jxr_string">"&lt;getService: "</span> + name);
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>         }
+<a class="jxr_linenumber" name="L368" href="#L368">368</a>         <strong class="jxr_keyword">return</strong> returnval;
+<a class="jxr_linenumber" name="L369" href="#L369">369</a>     }
+<a class="jxr_linenumber" name="L370" href="#L370">370</a> 
+<a class="jxr_linenumber" name="L371" href="#L371">371</a>     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+<a class="jxr_linenumber" name="L372" href="#L372">372</a>     @Override
+<a class="jxr_linenumber" name="L373" href="#L373">373</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getServiceId(String name) {
+<a class="jxr_linenumber" name="L374" href="#L374">374</a>         <strong class="jxr_keyword">int</strong> returnval = 0;
+<a class="jxr_linenumber" name="L375" href="#L375">375</a>         ServiceData serviceData = serviceDataSession.findByName(name);
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>         <strong class="jxr_keyword">if</strong> (serviceData != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L377" href="#L377">377</a>             returnval = serviceData.getId();
+<a class="jxr_linenumber" name="L378" href="#L378">378</a>         }
+<a class="jxr_linenumber" name="L379" href="#L379">379</a>         <strong class="jxr_keyword">return</strong> returnval;
+<a class="jxr_linenumber" name="L380" href="#L380">380</a>     }
+<a class="jxr_linenumber" name="L381" href="#L381">381</a> 
+<a class="jxr_linenumber" name="L382" href="#L382">382</a>     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+<a class="jxr_linenumber" name="L383" href="#L383">383</a>     @Override
+<a class="jxr_linenumber" name="L384" href="#L384">384</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> activateServiceTimer(AuthenticationToken admin, String name) {
+<a class="jxr_linenumber" name="L385" href="#L385">385</a>         <strong class="jxr_keyword">if</strong> (log.isTraceEnabled()) {
+<a class="jxr_linenumber" name="L386" href="#L386">386</a>             log.trace(<span class="jxr_string">"&gt;activateServiceTimer(name: "</span> + name + <span class="jxr_string">")"</span>);
+<a class="jxr_linenumber" name="L387" href="#L387">387</a>         }
+<a class="jxr_linenumber" name="L388" href="#L388">388</a>         ServiceData htp = serviceDataSession.findByName(name);
+<a class="jxr_linenumber" name="L389" href="#L389">389</a>         <strong class="jxr_keyword">if</strong> (htp != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L390" href="#L390">390</a>             ServiceConfiguration serviceConfiguration = htp.getServiceConfiguration();
+<a class="jxr_linenumber" name="L391" href="#L391">391</a>             <strong class="jxr_keyword">if</strong> (isAuthorizedToEditService(admin)) {
+<a class="jxr_linenumber" name="L392" href="#L392">392</a>                 IWorker worker = getWorker(serviceConfiguration, name, htp.getRunTimeStamp(), htp.getNextRunTimeStamp());
+<a class="jxr_linenumber" name="L393" href="#L393">393</a>                 <strong class="jxr_keyword">if</strong> (worker != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L394" href="#L394">394</a>                     serviceSession.cancelTimer(htp.getId());
+<a class="jxr_linenumber" name="L395" href="#L395">395</a>                     <strong class="jxr_keyword">if</strong> (serviceConfiguration.isActive() &amp;&amp; worker.getNextInterval() != IInterval.DONT_EXECUTE) {
+<a class="jxr_linenumber" name="L396" href="#L396">396</a>                         addTimer(worker.getNextInterval() * 1000, htp.getId());
+<a class="jxr_linenumber" name="L397" href="#L397">397</a>                     }
+<a class="jxr_linenumber" name="L398" href="#L398">398</a>                 }
+<a class="jxr_linenumber" name="L399" href="#L399">399</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L400" href="#L400">400</a>                 <strong class="jxr_keyword">final</strong> String msg = intres.getLocalizedMessage(<span class="jxr_string">"services.notauthorizedtoedit"</span>, name);
+<a class="jxr_linenumber" name="L401" href="#L401">401</a>                 log.info(msg);
+<a class="jxr_linenumber" name="L402" href="#L402">402</a>             }
+<a class="jxr_linenumber" name="L403" href="#L403">403</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L404" href="#L404">404</a>             log.error(<span class="jxr_string">"Can not find service: "</span> + name);
+<a class="jxr_linenumber" name="L405" href="#L405">405</a>         }
+<a class="jxr_linenumber" name="L406" href="#L406">406</a>         log.trace(<span class="jxr_string">"&lt;activateServiceTimer()"</span>);
+<a class="jxr_linenumber" name="L407" href="#L407">407</a>     }
+<a class="jxr_linenumber" name="L408" href="#L408">408</a> 
+<a class="jxr_linenumber" name="L409" href="#L409">409</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> findFreeServiceId() {
+<a class="jxr_linenumber" name="L410" href="#L410">410</a>         <strong class="jxr_keyword">final</strong> ProfileID.DB db = <strong class="jxr_keyword">new</strong> ProfileID.DB() {
+<a class="jxr_linenumber" name="L411" href="#L411">411</a>             @Override
+<a class="jxr_linenumber" name="L412" href="#L412">412</a>             <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isFree(<strong class="jxr_keyword">int</strong> i) {
+<a class="jxr_linenumber" name="L413" href="#L413">413</a>                 <strong class="jxr_keyword">return</strong> ServiceSessionBean.<strong class="jxr_keyword">this</strong>.serviceDataSession.findById(Integer.valueOf(i))==<strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L414" href="#L414">414</a>             }
+<a class="jxr_linenumber" name="L415" href="#L415">415</a>         };
+<a class="jxr_linenumber" name="L416" href="#L416">416</a>         <strong class="jxr_keyword">return</strong> ProfileID.getNotUsedID(db);
+<a class="jxr_linenumber" name="L417" href="#L417">417</a>     }
+<a class="jxr_linenumber" name="L418" href="#L418">418</a> 
+<a class="jxr_linenumber" name="L419" href="#L419">419</a>     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+<a class="jxr_linenumber" name="L420" href="#L420">420</a>     @Override
+<a class="jxr_linenumber" name="L421" href="#L421">421</a>     <strong class="jxr_keyword">public</strong> String getServiceName(<strong class="jxr_keyword">int</strong> id) {
+<a class="jxr_linenumber" name="L422" href="#L422">422</a>         <strong class="jxr_keyword">if</strong> (log.isTraceEnabled()) {
+<a class="jxr_linenumber" name="L423" href="#L423">423</a>             log.trace(<span class="jxr_string">"&gt;getServiceName(id: "</span> + id + <span class="jxr_string">")"</span>);
+<a class="jxr_linenumber" name="L424" href="#L424">424</a>         }
+<a class="jxr_linenumber" name="L425" href="#L425">425</a>         String returnval = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L426" href="#L426">426</a>         ServiceData serviceData = serviceDataSession.findById(id);
+<a class="jxr_linenumber" name="L427" href="#L427">427</a>         <strong class="jxr_keyword">if</strong> (serviceData != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L428" href="#L428">428</a>             returnval = serviceData.getName();
+<a class="jxr_linenumber" name="L429" href="#L429">429</a>         }
+<a class="jxr_linenumber" name="L430" href="#L430">430</a>         <strong class="jxr_keyword">if</strong> (log.isTraceEnabled()) {
+<a class="jxr_linenumber" name="L431" href="#L431">431</a>             log.trace(<span class="jxr_string">"&lt;getServiceName()"</span>);
+<a class="jxr_linenumber" name="L432" href="#L432">432</a>         }
+<a class="jxr_linenumber" name="L433" href="#L433">433</a>         <strong class="jxr_keyword">return</strong> returnval;
+<a class="jxr_linenumber" name="L434" href="#L434">434</a>     }
+<a class="jxr_linenumber" name="L435" href="#L435">435</a> 
+<a class="jxr_linenumber" name="L436" href="#L436">436</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L437" href="#L437">437</a> <em class="jxr_javadoccomment">     * Method implemented from the TimerObject and is the main method of this session bean. It calls the work object for each object.</em>
+<a class="jxr_linenumber" name="L438" href="#L438">438</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L439" href="#L439">439</a> <em class="jxr_javadoccomment">     * @param timer timer whose expiration caused this notification.</em>
+<a class="jxr_linenumber" name="L440" href="#L440">440</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L441" href="#L441">441</a>     @Timeout
+<a class="jxr_linenumber" name="L442" href="#L442">442</a>     <em class="jxr_comment">// Glassfish 2.1.1:</em>
+<a class="jxr_linenumber" name="L443" href="#L443">443</a>     <em class="jxr_comment">// "Timeout method ....timeoutHandler(javax.ejb.Timer)must have TX attribute of TX_REQUIRES_NEW or TX_REQUIRED or TX_NOT_SUPPORTED"</em>
+<a class="jxr_linenumber" name="L444" href="#L444">444</a>     <em class="jxr_comment">// JBoss 5.1.0.GA: We cannot mix timer updates with our EJBCA DataSource transactions.</em>
+<a class="jxr_linenumber" name="L445" href="#L445">445</a>     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+<a class="jxr_linenumber" name="L446" href="#L446">446</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> timeoutHandler(Timer timer) {
+<a class="jxr_linenumber" name="L447" href="#L447">447</a>         <strong class="jxr_keyword">if</strong> (log.isTraceEnabled()) {
+<a class="jxr_linenumber" name="L448" href="#L448">448</a>             log.trace(<span class="jxr_string">"&gt;ejbTimeout"</span>);
+<a class="jxr_linenumber" name="L449" href="#L449">449</a>         }
+<a class="jxr_linenumber" name="L450" href="#L450">450</a>         <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> startOfTimeOut = System.currentTimeMillis();
+<a class="jxr_linenumber" name="L451" href="#L451">451</a>         <strong class="jxr_keyword">long</strong> serviceInterval = IInterval.DONT_EXECUTE;
+<a class="jxr_linenumber" name="L452" href="#L452">452</a>         Integer timerInfo = (Integer) timer.getInfo();
+<a class="jxr_linenumber" name="L453" href="#L453">453</a>         <strong class="jxr_keyword">if</strong> (timerInfo.equals(SERVICELOADER_ID)) {
+<a class="jxr_linenumber" name="L454" href="#L454">454</a>             <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L455" href="#L455">455</a>                 log.debug(<span class="jxr_string">"Running the internal Service loader."</span>);
+<a class="jxr_linenumber" name="L456" href="#L456">456</a>             }
+<a class="jxr_linenumber" name="L457" href="#L457">457</a>             load();
+<a class="jxr_linenumber" name="L458" href="#L458">458</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L459" href="#L459">459</a>             String serviceName = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L460" href="#L460">460</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L461" href="#L461">461</a>                 serviceName = serviceDataSession.findNameById(timerInfo);
+<a class="jxr_linenumber" name="L462" href="#L462">462</a>             } <strong class="jxr_keyword">catch</strong> (Throwable t) { <em class="jxr_comment">// NOPMD: we really need to catch everything to not risk hanging somewhere in limbo</em>
+<a class="jxr_linenumber" name="L463" href="#L463">463</a>                 log.warn(<span class="jxr_string">"Exception finding service name: "</span>, t); <em class="jxr_comment">// if this throws, there is a failed database or similar</em>
+<a class="jxr_linenumber" name="L464" href="#L464">464</a>                 <em class="jxr_comment">// Unexpected error (probably database related). We need to reschedule the service with a default interval.</em>
+<a class="jxr_linenumber" name="L465" href="#L465">465</a>                 addTimer(30 * 1000, timerInfo);
+<a class="jxr_linenumber" name="L466" href="#L466">466</a>             }
+<a class="jxr_linenumber" name="L467" href="#L467">467</a>             <strong class="jxr_keyword">if</strong> (serviceName == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L468" href="#L468">468</a>                 <strong class="jxr_keyword">final</strong> String msg = intres.getLocalizedMessage(<span class="jxr_string">"services.servicenotfound"</span>, timerInfo);
+<a class="jxr_linenumber" name="L469" href="#L469">469</a>                 log.info(msg);
+<a class="jxr_linenumber" name="L470" href="#L470">470</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L471" href="#L471">471</a>                 <em class="jxr_comment">// Get interval of worker</em>
+<a class="jxr_linenumber" name="L472" href="#L472">472</a>                 <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L473" href="#L473">473</a>                     serviceInterval = serviceSession.getServiceInterval(timerInfo);
+<a class="jxr_linenumber" name="L474" href="#L474">474</a>                 } <strong class="jxr_keyword">catch</strong> (Throwable t) { <em class="jxr_comment">// NOPMD: we really need to catch everything to not risk hanging somewhere in limbo</em>
+<a class="jxr_linenumber" name="L475" href="#L475">475</a>                     log.warn(<span class="jxr_string">"Exception getting service interval: "</span>, t); <em class="jxr_comment">// if this throws, there is a failed database or similar</em>
+<a class="jxr_linenumber" name="L476" href="#L476">476</a>                     <em class="jxr_comment">// Unexpected error (probably database related). We need to reschedule the service with a default interval.</em>
+<a class="jxr_linenumber" name="L477" href="#L477">477</a>                     addTimer(30 * 1000, timerInfo);
+<a class="jxr_linenumber" name="L478" href="#L478">478</a>                 }
+<a class="jxr_linenumber" name="L479" href="#L479">479</a>                 <em class="jxr_comment">// Reschedule timer</em>
+<a class="jxr_linenumber" name="L480" href="#L480">480</a>                 IWorker worker = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L481" href="#L481">481</a>                 <strong class="jxr_keyword">if</strong> (serviceInterval != IInterval.DONT_EXECUTE) {
+<a class="jxr_linenumber" name="L482" href="#L482">482</a>                     Timer nextTrigger = addTimer(serviceInterval * 1000, timerInfo);
+<a class="jxr_linenumber" name="L483" href="#L483">483</a>                     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L484" href="#L484">484</a>                         <em class="jxr_comment">// Try to acquire lock / see if this node should run</em>
+<a class="jxr_linenumber" name="L485" href="#L485">485</a>                         worker = serviceSession.getWorkerIfItShouldRun(timerInfo, nextTrigger.getNextTimeout().getTime());
+<a class="jxr_linenumber" name="L486" href="#L486">486</a>                     } <strong class="jxr_keyword">catch</strong> (Throwable t) { <em class="jxr_comment">// NOPMD: we really need to catch everything to not risk hanging somewhere in limbo</em>
+<a class="jxr_linenumber" name="L487" href="#L487">487</a>                         <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L488" href="#L488">488</a>                             log.debug(<span class="jxr_string">"Exception: "</span>, t); <em class="jxr_comment">// Don't spam log with stacktraces in normal production cases</em>
+<a class="jxr_linenumber" name="L489" href="#L489">489</a>                         }
+<a class="jxr_linenumber" name="L490" href="#L490">490</a>                     }
+<a class="jxr_linenumber" name="L491" href="#L491">491</a>                     <strong class="jxr_keyword">if</strong> (worker != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L492" href="#L492">492</a>                         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L493" href="#L493">493</a>                             serviceSession.executeServiceInNoTransaction(worker, serviceName);
+<a class="jxr_linenumber" name="L494" href="#L494">494</a>                         } <strong class="jxr_keyword">catch</strong> (RuntimeException e) {
+<a class="jxr_linenumber" name="L495" href="#L495">495</a>                             <em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="L496" href="#L496">496</a> <em class="jxr_comment">                             * If the service worker fails with a RuntimeException we need to</em>
+<a class="jxr_linenumber" name="L497" href="#L497">497</a> <em class="jxr_comment">                             * swallow this here. If we allow it to propagate outside the</em>
+<a class="jxr_linenumber" name="L498" href="#L498">498</a> <em class="jxr_comment">                             * ejbTimeout method it is up to the application server config how it</em>
+<a class="jxr_linenumber" name="L499" href="#L499">499</a> <em class="jxr_comment">                             * should be retried, but we have already scheduled a new try</em>
+<a class="jxr_linenumber" name="L500" href="#L500">500</a> <em class="jxr_comment">                             * previously in this method. We still want to log this as an ERROR</em>
+<a class="jxr_linenumber" name="L501" href="#L501">501</a> <em class="jxr_comment">                             * since it is some kind of catastrophic failure..</em>
+<a class="jxr_linenumber" name="L502" href="#L502">502</a> <em class="jxr_comment">                             */</em>
+<a class="jxr_linenumber" name="L503" href="#L503">503</a>                             log.error(<span class="jxr_string">"Service worker execution failed."</span>, e);
+<a class="jxr_linenumber" name="L504" href="#L504">504</a>                         }
+<a class="jxr_linenumber" name="L505" href="#L505">505</a>                     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L506" href="#L506">506</a>                         <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L507" href="#L507">507</a>                             Object o = timerInfo;
+<a class="jxr_linenumber" name="L508" href="#L508">508</a>                             <strong class="jxr_keyword">if</strong> (serviceName != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L509" href="#L509">509</a>                                 o = serviceName;
+<a class="jxr_linenumber" name="L510" href="#L510">510</a>                             }
+<a class="jxr_linenumber" name="L511" href="#L511">511</a>                             <strong class="jxr_keyword">final</strong> String msg = intres.getLocalizedMessage(<span class="jxr_string">"services.servicerunonothernode"</span>, o);
+<a class="jxr_linenumber" name="L512" href="#L512">512</a>                             log.debug(msg);
+<a class="jxr_linenumber" name="L513" href="#L513">513</a>                         }
+<a class="jxr_linenumber" name="L514" href="#L514">514</a>                     }
+<a class="jxr_linenumber" name="L515" href="#L515">515</a>                     <strong class="jxr_keyword">if</strong> (System.currentTimeMillis() - startOfTimeOut &gt; serviceInterval * 1000) {
+<a class="jxr_linenumber" name="L516" href="#L516">516</a>                         log.warn(<span class="jxr_string">"Service '"</span> + serviceName + <span class="jxr_string">"' took longer than it's configured service interval ("</span>+serviceInterval+<span class="jxr_string">")."</span>
+<a class="jxr_linenumber" name="L517" href="#L517">517</a>                                 + <span class="jxr_string">" This can trigger simultanious service execution on several nodes in a cluster."</span>
+<a class="jxr_linenumber" name="L518" href="#L518">518</a>                                 + <span class="jxr_string">" Increase interval or lower each invocations work load."</span>);
+<a class="jxr_linenumber" name="L519" href="#L519">519</a>                     }
+<a class="jxr_linenumber" name="L520" href="#L520">520</a>                 }
+<a class="jxr_linenumber" name="L521" href="#L521">521</a>             }
+<a class="jxr_linenumber" name="L522" href="#L522">522</a>         }
+<a class="jxr_linenumber" name="L523" href="#L523">523</a>         <strong class="jxr_keyword">if</strong> (log.isTraceEnabled()) {
+<a class="jxr_linenumber" name="L524" href="#L524">524</a>             log.trace(<span class="jxr_string">"&lt;ejbTimeout"</span>);
+<a class="jxr_linenumber" name="L525" href="#L525">525</a>         }
+<a class="jxr_linenumber" name="L526" href="#L526">526</a>     }
+<a class="jxr_linenumber" name="L527" href="#L527">527</a> 
+<a class="jxr_linenumber" name="L528" href="#L528">528</a>     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+<a class="jxr_linenumber" name="L529" href="#L529">529</a>     @Override
+<a class="jxr_linenumber" name="L530" href="#L530">530</a>     <strong class="jxr_keyword">public</strong> IWorker getWorkerIfItShouldRun(<strong class="jxr_keyword">final</strong> Integer serviceId, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> nextTimeout) {
+<a class="jxr_linenumber" name="L531" href="#L531">531</a>         <strong class="jxr_keyword">return</strong> getWorkerIfItShouldRun(serviceId, nextTimeout, false);
+<a class="jxr_linenumber" name="L532" href="#L532">532</a>     }
+<a class="jxr_linenumber" name="L533" href="#L533">533</a>     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+<a class="jxr_linenumber" name="L534" href="#L534">534</a>     @Override
+<a class="jxr_linenumber" name="L535" href="#L535">535</a>     <strong class="jxr_keyword">public</strong> IWorker getWorkerIfItShouldRun(<strong class="jxr_keyword">final</strong> Integer serviceId, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> nextTimeout, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> testRunOnOtherNode) {
+<a class="jxr_linenumber" name="L536" href="#L536">536</a>     	<strong class="jxr_keyword">if</strong> (log.isTraceEnabled()) {
+<a class="jxr_linenumber" name="L537" href="#L537">537</a>     	    log.trace(<span class="jxr_string">"&gt;getWorkerIfItShouldRun: "</span>+serviceId+<span class="jxr_string">", "</span>+nextTimeout+<span class="jxr_string">", "</span>+testRunOnOtherNode);
+<a class="jxr_linenumber" name="L538" href="#L538">538</a>     	}
+<a class="jxr_linenumber" name="L539" href="#L539">539</a>         IWorker worker = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L540" href="#L540">540</a>         ServiceData serviceData = serviceDataSession.findById(serviceId);
+<a class="jxr_linenumber" name="L541" href="#L541">541</a>         ServiceConfiguration serviceConfiguration = serviceData.getServiceConfiguration();
+<a class="jxr_linenumber" name="L542" href="#L542">542</a>         <strong class="jxr_keyword">if</strong> (!serviceConfiguration.isActive()) {
+<a class="jxr_linenumber" name="L543" href="#L543">543</a>             <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L544" href="#L544">544</a>                 log.debug(<span class="jxr_string">"Service "</span> + serviceId + <span class="jxr_string">" is inactive."</span>);
+<a class="jxr_linenumber" name="L545" href="#L545">545</a>             }
+<a class="jxr_linenumber" name="L546" href="#L546">546</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>; <em class="jxr_comment">// Don't return an inactive worker to run</em>
+<a class="jxr_linenumber" name="L547" href="#L547">547</a>         }
+<a class="jxr_linenumber" name="L548" href="#L548">548</a>         String serviceName = serviceData.getName();
+<a class="jxr_linenumber" name="L549" href="#L549">549</a>         <strong class="jxr_keyword">final</strong> String hostname = getHostName();
+<a class="jxr_linenumber" name="L550" href="#L550">550</a>         <strong class="jxr_keyword">if</strong> (shouldRunOnThisNode(hostname, Arrays.asList(serviceConfiguration.getPinToNodes()))) {
+<a class="jxr_linenumber" name="L551" href="#L551">551</a>             <strong class="jxr_keyword">long</strong> oldRunTimeStamp = serviceData.getRunTimeStamp();
+<a class="jxr_linenumber" name="L552" href="#L552">552</a>             <strong class="jxr_keyword">long</strong> oldNextRunTimeStamp = serviceData.getNextRunTimeStamp();
+<a class="jxr_linenumber" name="L553" href="#L553">553</a>             worker = getWorker(serviceConfiguration, serviceName, oldRunTimeStamp, oldNextRunTimeStamp);
+<a class="jxr_linenumber" name="L554" href="#L554">554</a>             <strong class="jxr_keyword">if</strong> (worker.getNextInterval() == IInterval.DONT_EXECUTE) {
+<a class="jxr_linenumber" name="L555" href="#L555">555</a>                 <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L556" href="#L556">556</a>                     log.debug(<span class="jxr_string">"Service "</span>+serviceName+<span class="jxr_string">" has interval IInterval.DONT_EXECUTE."</span>);
+<a class="jxr_linenumber" name="L557" href="#L557">557</a>                 }
+<a class="jxr_linenumber" name="L558" href="#L558">558</a>                 <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>; <em class="jxr_comment">// Don't return an inactive worker to run</em>
+<a class="jxr_linenumber" name="L559" href="#L559">559</a>             }
+<a class="jxr_linenumber" name="L560" href="#L560">560</a>             <em class="jxr_comment">// nextRunDateCheck will typically be the same (or just a millisecond earlier) as now here</em>
+<a class="jxr_linenumber" name="L561" href="#L561">561</a>             <strong class="jxr_keyword">final</strong> Date runDateCheck = <strong class="jxr_keyword">new</strong> Date(oldNextRunTimeStamp); 
+<a class="jxr_linenumber" name="L562" href="#L562">562</a>             <strong class="jxr_keyword">final</strong> Date currentDate = <strong class="jxr_keyword">new</strong> Date();
+<a class="jxr_linenumber" name="L563" href="#L563">563</a>             <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L564" href="#L564">564</a>                 <strong class="jxr_keyword">final</strong> Date nextRunDate = <strong class="jxr_keyword">new</strong> Date(nextTimeout);
+<a class="jxr_linenumber" name="L565" href="#L565">565</a>                 log.debug(<span class="jxr_string">"nextRunDate is:  "</span> + nextRunDate);
+<a class="jxr_linenumber" name="L566" href="#L566">566</a>                 log.debug(<span class="jxr_string">"runDateCheck is: "</span> + runDateCheck);
+<a class="jxr_linenumber" name="L567" href="#L567">567</a>                 log.debug(<span class="jxr_string">"currentDate is:  "</span> + currentDate);
+<a class="jxr_linenumber" name="L568" href="#L568">568</a>             }
+<a class="jxr_linenumber" name="L569" href="#L569">569</a>             <em class="jxr_comment">// Check if this is a service that should run on all nodes, i.e. ignore if it is already running on another node in a cluster</em>
+<a class="jxr_linenumber" name="L570" href="#L570">570</a>             <em class="jxr_comment">// This is used for services that do (lighter) work local to each node, such as HSM keepalive service</em>
+<a class="jxr_linenumber" name="L571" href="#L571">571</a>             <strong class="jxr_keyword">if</strong> (!serviceConfiguration.isRunOnAllNodes()) {
+<a class="jxr_linenumber" name="L572" href="#L572">572</a>                 <em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="L573" href="#L573">573</a> <em class="jxr_comment">                 * Check if the current date is after when the service should run. If a</em>
+<a class="jxr_linenumber" name="L574" href="#L574">574</a> <em class="jxr_comment">                 * service on another cluster node has updated this timestamp already,</em>
+<a class="jxr_linenumber" name="L575" href="#L575">575</a> <em class="jxr_comment">                 * then it will return false and this service will not run. This is a</em>
+<a class="jxr_linenumber" name="L576" href="#L576">576</a> <em class="jxr_comment">                 * semaphore (not the best one admitted) so that services in a cluster</em>
+<a class="jxr_linenumber" name="L577" href="#L577">577</a> <em class="jxr_comment">                 * only runs on one node and don't compete with each other. If a worker</em>
+<a class="jxr_linenumber" name="L578" href="#L578">578</a> <em class="jxr_comment">                 * on one node for instance runs for a very long time, there is a chance</em>
+<a class="jxr_linenumber" name="L579" href="#L579">579</a> <em class="jxr_comment">                 * that another worker on another node will break this semaphore and run</em>
+<a class="jxr_linenumber" name="L580" href="#L580">580</a> <em class="jxr_comment">                 * as well.</em>
+<a class="jxr_linenumber" name="L581" href="#L581">581</a> <em class="jxr_comment">                 */</em>
+<a class="jxr_linenumber" name="L582" href="#L582">582</a>                 <strong class="jxr_keyword">if</strong> (currentDate.after(runDateCheck)) {
+<a class="jxr_linenumber" name="L583" href="#L583">583</a>                     <em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="L584" href="#L584">584</a> <em class="jxr_comment">                     * We only update the nextRunTimeStamp if the service is allowed to run on this node.</em>
+<a class="jxr_linenumber" name="L585" href="#L585">585</a> <em class="jxr_comment">                     * </em>
+<a class="jxr_linenumber" name="L586" href="#L586">586</a> <em class="jxr_comment">                     * However, we need to make sure that no other node has already acquired the semaphore</em>
+<a class="jxr_linenumber" name="L587" href="#L587">587</a> <em class="jxr_comment">                     * if our current database allows non-repeatable reads.</em>
+<a class="jxr_linenumber" name="L588" href="#L588">588</a> <em class="jxr_comment">                     */</em>
+<a class="jxr_linenumber" name="L589" href="#L589">589</a>                     <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> updateTimestamps = serviceDataSession.updateTimestamps(serviceId, oldRunTimeStamp, oldNextRunTimeStamp, runDateCheck.getTime(), nextTimeout);
+<a class="jxr_linenumber" name="L590" href="#L590">590</a>                     <strong class="jxr_keyword">if</strong> (!updateTimestamps || testRunOnOtherNode) {
+<a class="jxr_linenumber" name="L591" href="#L591">591</a>                         <strong class="jxr_keyword">if</strong> (testRunOnOtherNode &amp;&amp; updateTimestamps) {
+<a class="jxr_linenumber" name="L592" href="#L592">592</a>                             log.info(<span class="jxr_string">"testRunOnOtherNode == true, we are returning null even though another node had not updated the database. This node will not run the service "</span>+serviceName+<span class="jxr_string">"."</span>);
+<a class="jxr_linenumber" name="L593" href="#L593">593</a>                         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L594" href="#L594">594</a>                             log.debug(<span class="jxr_string">"Another node had already updated the database at this point. This node will not run the service "</span>+serviceName+<span class="jxr_string">"."</span>);
+<a class="jxr_linenumber" name="L595" href="#L595">595</a>                         }
+<a class="jxr_linenumber" name="L596" href="#L596">596</a>                         worker = <strong class="jxr_keyword">null</strong>; <em class="jxr_comment">// Failed to update the database.                            </em>
+<a class="jxr_linenumber" name="L597" href="#L597">597</a>                     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L598" href="#L598">598</a>                         <strong class="jxr_keyword">if</strong> (log.isTraceEnabled()) {
+<a class="jxr_linenumber" name="L599" href="#L599">599</a>                             log.trace(<span class="jxr_string">"Timestamps updated, service "</span>+serviceName+<span class="jxr_string">" will run: "</span>+currentDate+<span class="jxr_string">", "</span>+runDateCheck);
+<a class="jxr_linenumber" name="L600" href="#L600">600</a>                         }                        
+<a class="jxr_linenumber" name="L601" href="#L601">601</a>                     }
+<a class="jxr_linenumber" name="L602" href="#L602">602</a>                 } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L603" href="#L603">603</a>                     <strong class="jxr_keyword">if</strong> (log.isTraceEnabled()) {
+<a class="jxr_linenumber" name="L604" href="#L604">604</a>                         log.trace(<span class="jxr_string">"!currentDate.after(runDateCheck), service "</span>+serviceName+<span class="jxr_string">" will not run: "</span>+currentDate+<span class="jxr_string">", "</span>+runDateCheck);
+<a class="jxr_linenumber" name="L605" href="#L605">605</a>                     }
+<a class="jxr_linenumber" name="L606" href="#L606">606</a>                     worker = <strong class="jxr_keyword">null</strong>; <em class="jxr_comment">// Don't return a worker, since this node should not run</em>
+<a class="jxr_linenumber" name="L607" href="#L607">607</a>                 }
+<a class="jxr_linenumber" name="L608" href="#L608">608</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L609" href="#L609">609</a>                 <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L610" href="#L610">610</a>                     log.debug(<span class="jxr_string">"Service "</span> + serviceName + <span class="jxr_string">" is set to run on all nodes and will run on this node: \&quot;"</span> + hostname + <span class="jxr_string">"\&quot;, updating timeStamps"</span>);
+<a class="jxr_linenumber" name="L611" href="#L611">611</a>                 }
+<a class="jxr_linenumber" name="L612" href="#L612">612</a>                 <em class="jxr_comment">// Always update timestamp so we have a record of running, and nextTimeout is set for service reload</em>
+<a class="jxr_linenumber" name="L613" href="#L613">613</a>                 serviceDataSession.updateTimestamps(serviceId, oldRunTimeStamp, oldNextRunTimeStamp, runDateCheck.getTime(), nextTimeout);
+<a class="jxr_linenumber" name="L614" href="#L614">614</a>             }
+<a class="jxr_linenumber" name="L615" href="#L615">615</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L616" href="#L616">616</a>             worker = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L617" href="#L617">617</a>             <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L618" href="#L618">618</a>                 log.debug(<span class="jxr_string">"Service "</span> + serviceName + <span class="jxr_string">" will not run on this node: \&quot;"</span> + hostname + <span class="jxr_string">"\&quot;, Pinned to: "</span>
+<a class="jxr_linenumber" name="L619" href="#L619">619</a>                         + Arrays.toString(serviceConfiguration.getPinToNodes()));
+<a class="jxr_linenumber" name="L620" href="#L620">620</a>             }
+<a class="jxr_linenumber" name="L621" href="#L621">621</a>         }
+<a class="jxr_linenumber" name="L622" href="#L622">622</a>         <strong class="jxr_keyword">if</strong> (log.isTraceEnabled()) {
+<a class="jxr_linenumber" name="L623" href="#L623">623</a>             log.trace(<span class="jxr_string">"&lt;getWorkerIfItShouldRun: "</span>+serviceName+<span class="jxr_string">", ret: "</span>+ (worker != <strong class="jxr_keyword">null</strong> ? worker.getClass().getName() : <span class="jxr_string">"null"</span>));
+<a class="jxr_linenumber" name="L624" href="#L624">624</a>         }
+<a class="jxr_linenumber" name="L625" href="#L625">625</a>         <strong class="jxr_keyword">return</strong> worker;
+<a class="jxr_linenumber" name="L626" href="#L626">626</a>     }
+<a class="jxr_linenumber" name="L627" href="#L627">627</a> 
+<a class="jxr_linenumber" name="L628" href="#L628">628</a>     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+<a class="jxr_linenumber" name="L629" href="#L629">629</a>     @Override
+<a class="jxr_linenumber" name="L630" href="#L630">630</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> executeServiceInNoTransaction(IWorker worker, String serviceName) {
+<a class="jxr_linenumber" name="L631" href="#L631">631</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L632" href="#L632">632</a>             <em class="jxr_comment">// Awkward way of letting POJOs get interfaces, but shows dependencies on the EJB level for all used classes. Injection wont work, since</em>
+<a class="jxr_linenumber" name="L633" href="#L633">633</a>             <em class="jxr_comment">// we have circular dependencies!</em>
+<a class="jxr_linenumber" name="L634" href="#L634">634</a>             Map&lt;Class&lt;?&gt;, Object&gt; ejbs = <strong class="jxr_keyword">new</strong> HashMap&lt;Class&lt;?&gt;, Object&gt;();
+<a class="jxr_linenumber" name="L635" href="#L635">635</a>             ejbs.put(ApprovalSessionLocal.<strong class="jxr_keyword">class</strong>, approvalSession);
+<a class="jxr_linenumber" name="L636" href="#L636">636</a>             ejbs.put(ApprovalProfileSessionLocal.<strong class="jxr_keyword">class</strong>, approvalProfileSession);
+<a class="jxr_linenumber" name="L637" href="#L637">637</a>             ejbs.put(EndEntityAuthenticationSessionLocal.<strong class="jxr_keyword">class</strong>, authenticationSession);
+<a class="jxr_linenumber" name="L638" href="#L638">638</a>             ejbs.put(AuthorizationSessionLocal.<strong class="jxr_keyword">class</strong>, authorizationSession);
+<a class="jxr_linenumber" name="L639" href="#L639">639</a>             ejbs.put(CAAdminSessionLocal.<strong class="jxr_keyword">class</strong>, caAdminSession);
+<a class="jxr_linenumber" name="L640" href="#L640">640</a>             ejbs.put(CaSessionLocal.<strong class="jxr_keyword">class</strong>, caSession);
+<a class="jxr_linenumber" name="L641" href="#L641">641</a>             ejbs.put(CertificateProfileSessionLocal.<strong class="jxr_keyword">class</strong>, certificateProfileSession);
+<a class="jxr_linenumber" name="L642" href="#L642">642</a>             ejbs.put(CertificateStoreSessionLocal.<strong class="jxr_keyword">class</strong>, certificateStoreSession);
+<a class="jxr_linenumber" name="L643" href="#L643">643</a>             ejbs.put(CrlCreateSessionLocal.<strong class="jxr_keyword">class</strong>, crlCreateSession);
+<a class="jxr_linenumber" name="L644" href="#L644">644</a>             ejbs.put(CrlStoreSessionLocal.<strong class="jxr_keyword">class</strong>, crlStoreSession);
+<a class="jxr_linenumber" name="L645" href="#L645">645</a>             ejbs.put(EndEntityProfileSessionLocal.<strong class="jxr_keyword">class</strong>, endEntityProfileSession);
+<a class="jxr_linenumber" name="L646" href="#L646">646</a>             ejbs.put(HardTokenSessionLocal.<strong class="jxr_keyword">class</strong>, hardTokenSession);
+<a class="jxr_linenumber" name="L647" href="#L647">647</a>             ejbs.put(SecurityEventsLoggerSessionLocal.<strong class="jxr_keyword">class</strong>, auditSession);
+<a class="jxr_linenumber" name="L648" href="#L648">648</a>             ejbs.put(InternalSecurityEventsLoggerSessionLocal.<strong class="jxr_keyword">class</strong>, internalAuditSession);
+<a class="jxr_linenumber" name="L649" href="#L649">649</a>             ejbs.put(KeyRecoverySessionLocal.<strong class="jxr_keyword">class</strong>, keyRecoverySession);
+<a class="jxr_linenumber" name="L650" href="#L650">650</a>             ejbs.put(AdminPreferenceSessionLocal.<strong class="jxr_keyword">class</strong>, raAdminSession);
+<a class="jxr_linenumber" name="L651" href="#L651">651</a>             ejbs.put(GlobalConfigurationSessionLocal.<strong class="jxr_keyword">class</strong>, globalConfigurationSession);
+<a class="jxr_linenumber" name="L652" href="#L652">652</a>             ejbs.put(SignSessionLocal.<strong class="jxr_keyword">class</strong>, signSession);
+<a class="jxr_linenumber" name="L653" href="#L653">653</a>             ejbs.put(EndEntityManagementSessionLocal.<strong class="jxr_keyword">class</strong>, endEntityManagementSession);
+<a class="jxr_linenumber" name="L654" href="#L654">654</a>             ejbs.put(PublisherQueueSessionLocal.<strong class="jxr_keyword">class</strong>, publisherQueueSession);
+<a class="jxr_linenumber" name="L655" href="#L655">655</a>             ejbs.put(PublisherSessionLocal.<strong class="jxr_keyword">class</strong>, publisherSession);
+<a class="jxr_linenumber" name="L656" href="#L656">656</a>             ejbs.put(CertificateRequestSessionLocal.<strong class="jxr_keyword">class</strong>, certificateRequestSession);
+<a class="jxr_linenumber" name="L657" href="#L657">657</a>             ejbs.put(EndEntityAccessSessionLocal.<strong class="jxr_keyword">class</strong>, endEntityAccessSession);
+<a class="jxr_linenumber" name="L658" href="#L658">658</a>             ejbs.put(WebAuthenticationProviderSessionLocal.<strong class="jxr_keyword">class</strong>, webAuthenticationSession);
+<a class="jxr_linenumber" name="L659" href="#L659">659</a>             ejbs.put(PublishingCrlSessionLocal.<strong class="jxr_keyword">class</strong>, publishingCrlSession);
+<a class="jxr_linenumber" name="L660" href="#L660">660</a>             ejbs.put(CryptoTokenManagementSessionLocal.<strong class="jxr_keyword">class</strong>, cryptoTokenSession);
+<a class="jxr_linenumber" name="L661" href="#L661">661</a>             ejbs.put(CmpMessageDispatcherSessionLocal.<strong class="jxr_keyword">class</strong>, cmpMsgDispatcherSession);
+<a class="jxr_linenumber" name="L662" href="#L662">662</a>             ejbs.put(ImportCrlSessionLocal.<strong class="jxr_keyword">class</strong>, importCrlSession);
+<a class="jxr_linenumber" name="L663" href="#L663">663</a>             ejbs.put(KeyStoreCreateSessionLocal.<strong class="jxr_keyword">class</strong>, keyStoreCreateSession);
+<a class="jxr_linenumber" name="L664" href="#L664">664</a>             worker.work(ejbs);
+<a class="jxr_linenumber" name="L665" href="#L665">665</a>             <strong class="jxr_keyword">final</strong> String msg = intres.getLocalizedMessage(<span class="jxr_string">"services.serviceexecuted"</span>, serviceName);
+<a class="jxr_linenumber" name="L666" href="#L666">666</a>             log.info(msg);
+<a class="jxr_linenumber" name="L667" href="#L667">667</a>         } <strong class="jxr_keyword">catch</strong> (ServiceExecutionFailedException e) {
+<a class="jxr_linenumber" name="L668" href="#L668">668</a>             <strong class="jxr_keyword">final</strong> String msg = intres.getLocalizedMessage(<span class="jxr_string">"services.serviceexecutionfailed"</span>, serviceName);
+<a class="jxr_linenumber" name="L669" href="#L669">669</a>             log.info(msg, e);
+<a class="jxr_linenumber" name="L670" href="#L670">670</a>         }
+<a class="jxr_linenumber" name="L671" href="#L671">671</a>     }
+<a class="jxr_linenumber" name="L672" href="#L672">672</a> 
+<a class="jxr_linenumber" name="L673" href="#L673">673</a>     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+<a class="jxr_linenumber" name="L674" href="#L674">674</a>     @Override
+<a class="jxr_linenumber" name="L675" href="#L675">675</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> changeService(AuthenticationToken admin, String name, ServiceConfiguration serviceConfiguration, <strong class="jxr_keyword">boolean</strong> noLogging) {
+<a class="jxr_linenumber" name="L676" href="#L676">676</a>         <strong class="jxr_keyword">if</strong> (log.isTraceEnabled()) {
+<a class="jxr_linenumber" name="L677" href="#L677">677</a>             log.trace(<span class="jxr_string">"&gt;changeService(name: "</span> + name + <span class="jxr_string">")"</span>);
+<a class="jxr_linenumber" name="L678" href="#L678">678</a>         }
+<a class="jxr_linenumber" name="L679" href="#L679">679</a>         <strong class="jxr_keyword">if</strong> (isAuthorizedToEditService(admin)) {
+<a class="jxr_linenumber" name="L680" href="#L680">680</a>             ServiceData oldservice = serviceDataSession.findByName(name);
+<a class="jxr_linenumber" name="L681" href="#L681">681</a>             <strong class="jxr_keyword">if</strong> (oldservice != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L682" href="#L682">682</a>                 <strong class="jxr_keyword">final</strong> Map&lt;Object, Object&gt; diff = oldservice.getServiceConfiguration().diff(serviceConfiguration);
+<a class="jxr_linenumber" name="L683" href="#L683">683</a>                 <strong class="jxr_keyword">if</strong> (serviceDataSession.updateServiceConfiguration(name, serviceConfiguration)) {
+<a class="jxr_linenumber" name="L684" href="#L684">684</a>                     <strong class="jxr_keyword">final</strong> String msg = intres.getLocalizedMessage(<span class="jxr_string">"services.serviceedited"</span>, name);
+<a class="jxr_linenumber" name="L685" href="#L685">685</a>                     <strong class="jxr_keyword">if</strong> (noLogging) {
+<a class="jxr_linenumber" name="L686" href="#L686">686</a>                         log.info(msg);
+<a class="jxr_linenumber" name="L687" href="#L687">687</a>                     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L688" href="#L688">688</a>                         <strong class="jxr_keyword">final</strong> Map&lt;String, Object&gt; details = <strong class="jxr_keyword">new</strong> LinkedHashMap&lt;String, Object&gt;();
+<a class="jxr_linenumber" name="L689" href="#L689">689</a>                         details.put(<span class="jxr_string">"msg"</span>, msg);
+<a class="jxr_linenumber" name="L690" href="#L690">690</a>                         <strong class="jxr_keyword">for</strong> (Map.Entry&lt;Object, Object&gt; entry : diff.entrySet()) {
+<a class="jxr_linenumber" name="L691" href="#L691">691</a>                             details.put(entry.getKey().toString(), entry.getValue().toString());
+<a class="jxr_linenumber" name="L692" href="#L692">692</a>                         }
+<a class="jxr_linenumber" name="L693" href="#L693">693</a>                         auditSession.log(EjbcaEventTypes.SERVICE_EDIT, EventStatus.SUCCESS, EjbcaModuleTypes.SERVICE, EjbcaServiceTypes.EJBCA,
+<a class="jxr_linenumber" name="L694" href="#L694">694</a>                                 admin.toString(), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, details);
+<a class="jxr_linenumber" name="L695" href="#L695">695</a>                     }
+<a class="jxr_linenumber" name="L696" href="#L696">696</a>                 } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L697" href="#L697">697</a>                     String msg = intres.getLocalizedMessage(<span class="jxr_string">"services.serviceedited"</span>, name);
+<a class="jxr_linenumber" name="L698" href="#L698">698</a>                     <strong class="jxr_keyword">if</strong> (noLogging) {
+<a class="jxr_linenumber" name="L699" href="#L699">699</a>                         log.error(msg);
+<a class="jxr_linenumber" name="L700" href="#L700">700</a>                     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L701" href="#L701">701</a>                         <strong class="jxr_keyword">final</strong> Map&lt;String, Object&gt; details = <strong class="jxr_keyword">new</strong> LinkedHashMap&lt;String, Object&gt;();
+<a class="jxr_linenumber" name="L702" href="#L702">702</a>                         details.put(<span class="jxr_string">"msg"</span>, msg);
+<a class="jxr_linenumber" name="L703" href="#L703">703</a>                         auditSession.log(EjbcaEventTypes.SERVICE_EDIT, EventStatus.FAILURE, EjbcaModuleTypes.SERVICE, EjbcaServiceTypes.EJBCA,
+<a class="jxr_linenumber" name="L704" href="#L704">704</a>                                 admin.toString(), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>, details);
+<a class="jxr_linenumber" name="L705" href="#L705">705</a>                     }
+<a class="jxr_linenumber" name="L706" href="#L706">706</a>                 }
+<a class="jxr_linenumber" name="L707" href="#L707">707</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L708" href="#L708">708</a>                 log.error(<span class="jxr_string">"Can not find service to change: "</span> + name);
+<a class="jxr_linenumber" name="L709" href="#L709">709</a>             }
+<a class="jxr_linenumber" name="L710" href="#L710">710</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L711" href="#L711">711</a>             String msg = intres.getLocalizedMessage(<span class="jxr_string">"services.notauthorizedtoedit"</span>, name);
+<a class="jxr_linenumber" name="L712" href="#L712">712</a>             log.info(msg);
+<a class="jxr_linenumber" name="L713" href="#L713">713</a>         }
+<a class="jxr_linenumber" name="L714" href="#L714">714</a>         log.trace(<span class="jxr_string">"&lt;changeService()"</span>);
+<a class="jxr_linenumber" name="L715" href="#L715">715</a>     }
+<a class="jxr_linenumber" name="L716" href="#L716">716</a>     
+<a class="jxr_linenumber" name="L717" href="#L717">717</a>     <em class="jxr_comment">// We don't want the appserver to persist/update the timer in the same transaction if they are stored in different non XA DataSources</em>
+<a class="jxr_linenumber" name="L718" href="#L718">718</a>     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+<a class="jxr_linenumber" name="L719" href="#L719">719</a>     @Override
+<a class="jxr_linenumber" name="L720" href="#L720">720</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> load() {
+<a class="jxr_linenumber" name="L721" href="#L721">721</a>         <em class="jxr_comment">// Get all services</em>
+<a class="jxr_linenumber" name="L722" href="#L722">722</a>         Collection&lt;Timer&gt; currentTimers = timerService.getTimers();
+<a class="jxr_linenumber" name="L723" href="#L723">723</a>         Iterator&lt;Timer&gt; iter = currentTimers.iterator();
+<a class="jxr_linenumber" name="L724" href="#L724">724</a>         HashSet&lt;Serializable&gt; existingTimers = <strong class="jxr_keyword">new</strong> HashSet&lt;Serializable&gt;();
+<a class="jxr_linenumber" name="L725" href="#L725">725</a>         <strong class="jxr_keyword">while</strong> (iter.hasNext()) {
+<a class="jxr_linenumber" name="L726" href="#L726">726</a>             Timer timer = iter.next();
+<a class="jxr_linenumber" name="L727" href="#L727">727</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L728" href="#L728">728</a>                 Serializable info = timer.getInfo();
+<a class="jxr_linenumber" name="L729" href="#L729">729</a>                 existingTimers.add(info);
+<a class="jxr_linenumber" name="L730" href="#L730">730</a>             } <strong class="jxr_keyword">catch</strong> (Throwable e) { <em class="jxr_comment">// NOPMD: we really need to catch everything to not risk hanging somewhere in limbo</em>
+<a class="jxr_linenumber" name="L731" href="#L731">731</a>                 <em class="jxr_comment">// EJB 2.1 only?: We need this try because weblogic seems to ... suck ...</em>
+<a class="jxr_linenumber" name="L732" href="#L732">732</a>                 log.debug(<span class="jxr_string">"Error invoking timer.getInfo(): "</span>, e);
+<a class="jxr_linenumber" name="L733" href="#L733">733</a>             }
+<a class="jxr_linenumber" name="L734" href="#L734">734</a>         }
+<a class="jxr_linenumber" name="L735" href="#L735">735</a> 
+<a class="jxr_linenumber" name="L736" href="#L736">736</a>         <em class="jxr_comment">// Get new services and add timeouts</em>
+<a class="jxr_linenumber" name="L737" href="#L737">737</a>         Map&lt;Integer, Long&gt; newTimeouts = serviceSession.getNewServiceTimeouts(existingTimers);
+<a class="jxr_linenumber" name="L738" href="#L738">738</a>         <strong class="jxr_keyword">for</strong> (Integer id : newTimeouts.keySet()) {
+<a class="jxr_linenumber" name="L739" href="#L739">739</a>             addTimer(newTimeouts.get(id), id);
+<a class="jxr_linenumber" name="L740" href="#L740">740</a>         }
+<a class="jxr_linenumber" name="L741" href="#L741">741</a> 
+<a class="jxr_linenumber" name="L742" href="#L742">742</a>         <strong class="jxr_keyword">if</strong> (!existingTimers.contains(SERVICELOADER_ID)) {
+<a class="jxr_linenumber" name="L743" href="#L743">743</a>             <em class="jxr_comment">// load the service timer</em>
+<a class="jxr_linenumber" name="L744" href="#L744">744</a>             addTimer(SERVICELOADER_PERIOD, SERVICELOADER_ID);
+<a class="jxr_linenumber" name="L745" href="#L745">745</a>         }
+<a class="jxr_linenumber" name="L746" href="#L746">746</a>     }
+<a class="jxr_linenumber" name="L747" href="#L747">747</a> 
+<a class="jxr_linenumber" name="L748" href="#L748">748</a>     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+<a class="jxr_linenumber" name="L749" href="#L749">749</a>     @Override
+<a class="jxr_linenumber" name="L750" href="#L750">750</a>     <strong class="jxr_keyword">public</strong> Map&lt;Integer, Long&gt; getNewServiceTimeouts(HashSet&lt;Serializable&gt; existingTimers) {
+<a class="jxr_linenumber" name="L751" href="#L751">751</a>         Map&lt;Integer, Long&gt; ret = <strong class="jxr_keyword">new</strong> HashMap&lt;Integer, Long&gt;();
+<a class="jxr_linenumber" name="L752" href="#L752">752</a>         HashMap&lt;Integer, String&gt; idToNameMap = getServiceIdToNameMap();
+<a class="jxr_linenumber" name="L753" href="#L753">753</a>         Collection&lt;Integer&gt; allServices = idToNameMap.keySet();
+<a class="jxr_linenumber" name="L754" href="#L754">754</a>         Iterator&lt;Integer&gt; iter2 = allServices.iterator();
+<a class="jxr_linenumber" name="L755" href="#L755">755</a>         <strong class="jxr_keyword">while</strong> (iter2.hasNext()) {
+<a class="jxr_linenumber" name="L756" href="#L756">756</a>             Integer id = iter2.next();
+<a class="jxr_linenumber" name="L757" href="#L757">757</a>             ServiceData htp = serviceDataSession.findById(id);
+<a class="jxr_linenumber" name="L758" href="#L758">758</a>             <strong class="jxr_keyword">if</strong> (htp != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L759" href="#L759">759</a>                 <strong class="jxr_keyword">if</strong> (!existingTimers.contains(id)) {
+<a class="jxr_linenumber" name="L760" href="#L760">760</a>                     ServiceConfiguration serviceConfiguration = htp.getServiceConfiguration();
+<a class="jxr_linenumber" name="L761" href="#L761">761</a>                     IWorker worker = getWorker(serviceConfiguration, idToNameMap.get(id), htp.getRunTimeStamp(), htp.getNextRunTimeStamp());
+<a class="jxr_linenumber" name="L762" href="#L762">762</a>                     <strong class="jxr_keyword">if</strong> (worker != <strong class="jxr_keyword">null</strong> &amp;&amp; serviceConfiguration.isActive() &amp;&amp; worker.getNextInterval() != IInterval.DONT_EXECUTE) {
+<a class="jxr_linenumber" name="L763" href="#L763">763</a>                         ret.put(id, Long.valueOf((worker.getNextInterval()) * 1000));
+<a class="jxr_linenumber" name="L764" href="#L764">764</a>                     }
+<a class="jxr_linenumber" name="L765" href="#L765">765</a>                 }
+<a class="jxr_linenumber" name="L766" href="#L766">766</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L767" href="#L767">767</a>                 <em class="jxr_comment">// Service does not exist, strange, but no panic.</em>
+<a class="jxr_linenumber" name="L768" href="#L768">768</a>                 log.debug(<span class="jxr_string">"Can not find service with id "</span> + id);
+<a class="jxr_linenumber" name="L769" href="#L769">769</a>             }
+<a class="jxr_linenumber" name="L770" href="#L770">770</a>         }
+<a class="jxr_linenumber" name="L771" href="#L771">771</a>         <strong class="jxr_keyword">return</strong> ret;
+<a class="jxr_linenumber" name="L772" href="#L772">772</a>     }
+<a class="jxr_linenumber" name="L773" href="#L773">773</a> 
+<a class="jxr_linenumber" name="L774" href="#L774">774</a>     <em class="jxr_comment">// We don't want the appserver to persist/update the timer in the same transaction if they are stored in different non XA DataSources</em>
+<a class="jxr_linenumber" name="L775" href="#L775">775</a>     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+<a class="jxr_linenumber" name="L776" href="#L776">776</a>     @Override
+<a class="jxr_linenumber" name="L777" href="#L777">777</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> unload() {
+<a class="jxr_linenumber" name="L778" href="#L778">778</a>         log.debug(<span class="jxr_string">"Unloading all timers."</span>);
+<a class="jxr_linenumber" name="L779" href="#L779">779</a>         <em class="jxr_comment">// Get all services</em>
+<a class="jxr_linenumber" name="L780" href="#L780">780</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> Timer timer : timerService.getTimers()) {
+<a class="jxr_linenumber" name="L781" href="#L781">781</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L782" href="#L782">782</a>                 timer.cancel();
+<a class="jxr_linenumber" name="L783" href="#L783">783</a>             } <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a class="jxr_linenumber" name="L784" href="#L784">784</a>                 <em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="L785" href="#L785">785</a> <em class="jxr_comment">                 * EJB 2.1 only?: We need to catch this because Weblogic 10</em>
+<a class="jxr_linenumber" name="L786" href="#L786">786</a> <em class="jxr_comment">                 * throws an exception if we have not scheduled this timer, so</em>
+<a class="jxr_linenumber" name="L787" href="#L787">787</a> <em class="jxr_comment">                 * we don't have anything to cancel. Only weblogic though...</em>
+<a class="jxr_linenumber" name="L788" href="#L788">788</a> <em class="jxr_comment">                 */</em>
+<a class="jxr_linenumber" name="L789" href="#L789">789</a>                 log.info(<span class="jxr_string">"Caught exception canceling timer: "</span> + e.getMessage());
+<a class="jxr_linenumber" name="L790" href="#L790">790</a>             }
+<a class="jxr_linenumber" name="L791" href="#L791">791</a>         }
+<a class="jxr_linenumber" name="L792" href="#L792">792</a>     }
+<a class="jxr_linenumber" name="L793" href="#L793">793</a> 
+<a class="jxr_linenumber" name="L794" href="#L794">794</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L795" href="#L795">795</a> <em class="jxr_javadoccomment">     * Adds a timer to the bean</em>
+<a class="jxr_linenumber" name="L796" href="#L796">796</a> <em class="jxr_javadoccomment">     * @param interval Interval</em>
+<a class="jxr_linenumber" name="L797" href="#L797">797</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L798" href="#L798">798</a> <em class="jxr_javadoccomment">     * @param id the id of the timer</em>
+<a class="jxr_linenumber" name="L799" href="#L799">799</a> <em class="jxr_javadoccomment">     * @return Timer</em>
+<a class="jxr_linenumber" name="L800" href="#L800">800</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L801" href="#L801">801</a>     <em class="jxr_comment">// We don't want the appserver to persist/update the timer in the same transaction if they are stored in different non XA DataSources. This method</em>
+<a class="jxr_linenumber" name="L802" href="#L802">802</a>     <em class="jxr_comment">// should not be run from within a transaction.</em>
+<a class="jxr_linenumber" name="L803" href="#L803">803</a>     <strong class="jxr_keyword">private</strong> Timer addTimer(<strong class="jxr_keyword">long</strong> interval, Integer id) {
+<a class="jxr_linenumber" name="L804" href="#L804">804</a>         <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L805" href="#L805">805</a>             log.debug(<span class="jxr_string">"addTimer: "</span> + id);
+<a class="jxr_linenumber" name="L806" href="#L806">806</a>         }
+<a class="jxr_linenumber" name="L807" href="#L807">807</a>         <strong class="jxr_keyword">return</strong> timerService.createSingleActionTimer(interval, <strong class="jxr_keyword">new</strong> TimerConfig(id, false));
+<a class="jxr_linenumber" name="L808" href="#L808">808</a>     }
+<a class="jxr_linenumber" name="L809" href="#L809">809</a> 
+<a class="jxr_linenumber" name="L810" href="#L810">810</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L811" href="#L811">811</a> <em class="jxr_javadoccomment">     * Cancels all existing timeouts for this id.</em>
+<a class="jxr_linenumber" name="L812" href="#L812">812</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L813" href="#L813">813</a> <em class="jxr_javadoccomment">     * @param id the id of the timer</em>
+<a class="jxr_linenumber" name="L814" href="#L814">814</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L815" href="#L815">815</a>     <em class="jxr_comment">// We don't want the appserver to persist/update the timer in the same transaction if they are stored in different non XA DataSources. This method</em>
+<a class="jxr_linenumber" name="L816" href="#L816">816</a>     <em class="jxr_comment">// should not be run from within a transaction.</em>
+<a class="jxr_linenumber" name="L817" href="#L817">817</a>     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+<a class="jxr_linenumber" name="L818" href="#L818">818</a>     @Override
+<a class="jxr_linenumber" name="L819" href="#L819">819</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> cancelTimer(Integer id) {
+<a class="jxr_linenumber" name="L820" href="#L820">820</a>         <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L821" href="#L821">821</a>             log.debug(<span class="jxr_string">"cancelTimer: "</span> + id);
+<a class="jxr_linenumber" name="L822" href="#L822">822</a>         }
+<a class="jxr_linenumber" name="L823" href="#L823">823</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> Timer next : timerService.getTimers()) {
+<a class="jxr_linenumber" name="L824" href="#L824">824</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L825" href="#L825">825</a>                 <strong class="jxr_keyword">if</strong> (id.equals(next.getInfo())) {
+<a class="jxr_linenumber" name="L826" href="#L826">826</a>                     next.cancel();
+<a class="jxr_linenumber" name="L827" href="#L827">827</a>                     <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L828" href="#L828">828</a>                 }
+<a class="jxr_linenumber" name="L829" href="#L829">829</a>             } <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a class="jxr_linenumber" name="L830" href="#L830">830</a>                 <em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="L831" href="#L831">831</a> <em class="jxr_comment">                 * EJB 2.1 only?: We need to catch this because Weblogic 10</em>
+<a class="jxr_linenumber" name="L832" href="#L832">832</a> <em class="jxr_comment">                 * throws an exception if we have not scheduled this timer, so</em>
+<a class="jxr_linenumber" name="L833" href="#L833">833</a> <em class="jxr_comment">                 * we don't have anything to cancel. Only weblogic though...</em>
+<a class="jxr_linenumber" name="L834" href="#L834">834</a> <em class="jxr_comment">                 */</em>
+<a class="jxr_linenumber" name="L835" href="#L835">835</a>                 log.error(<span class="jxr_string">"Caught exception canceling timer: "</span> + e.getMessage(), e);
+<a class="jxr_linenumber" name="L836" href="#L836">836</a>             }
+<a class="jxr_linenumber" name="L837" href="#L837">837</a>         }
+<a class="jxr_linenumber" name="L838" href="#L838">838</a>     }
+<a class="jxr_linenumber" name="L839" href="#L839">839</a> 
+<a class="jxr_linenumber" name="L840" href="#L840">840</a>     <em class="jxr_comment">// Use an internal admin, allow all, to initialize the service, the service must be allowed to work on everything</em>
+<a class="jxr_linenumber" name="L841" href="#L841">841</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> AuthenticationToken intAdmin = <strong class="jxr_keyword">new</strong> AlwaysAllowLocalAuthenticationToken(<strong class="jxr_keyword">new</strong> UsernamePrincipal(<span class="jxr_string">"ServiceSession"</span>));
+<a class="jxr_linenumber" name="L842" href="#L842">842</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L843" href="#L843">843</a> <em class="jxr_javadoccomment">     * Method that creates a worker from the service configuration.</em>
+<a class="jxr_linenumber" name="L844" href="#L844">844</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L845" href="#L845">845</a> <em class="jxr_javadoccomment">     * @param serviceConfiguration Config</em>
+<a class="jxr_linenumber" name="L846" href="#L846">846</a> <em class="jxr_javadoccomment">     * @param serviceName Name</em>
+<a class="jxr_linenumber" name="L847" href="#L847">847</a> <em class="jxr_javadoccomment">     * @param runTimeStamp the time this service runs</em>
+<a class="jxr_linenumber" name="L848" href="#L848">848</a> <em class="jxr_javadoccomment">     * @param nextRunTimeStamp the time this service will run next time</em>
+<a class="jxr_linenumber" name="L849" href="#L849">849</a> <em class="jxr_javadoccomment">     * @return a worker object or null if the worker is misconfigured.</em>
+<a class="jxr_linenumber" name="L850" href="#L850">850</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L851" href="#L851">851</a>     <strong class="jxr_keyword">private</strong> IWorker getWorker(ServiceConfiguration serviceConfiguration, String serviceName, <strong class="jxr_keyword">long</strong> runTimeStamp, <strong class="jxr_keyword">long</strong> nextRunTimeStamp) {
+<a class="jxr_linenumber" name="L852" href="#L852">852</a>         IWorker worker = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L853" href="#L853">853</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L854" href="#L854">854</a>             String clazz = serviceConfiguration.getWorkerClassPath();
+<a class="jxr_linenumber" name="L855" href="#L855">855</a>             <strong class="jxr_keyword">if</strong> (StringUtils.isNotEmpty(clazz)) {
+<a class="jxr_linenumber" name="L856" href="#L856">856</a>                 worker = (IWorker) Thread.currentThread().getContextClassLoader().loadClass(clazz).getConstructor().newInstance();
+<a class="jxr_linenumber" name="L857" href="#L857">857</a>                 worker.init(intAdmin, serviceConfiguration, serviceName, runTimeStamp, nextRunTimeStamp);
+<a class="jxr_linenumber" name="L858" href="#L858">858</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L859" href="#L859">859</a>                 log.info(<span class="jxr_string">"Worker has empty classpath for service "</span> + serviceName);
+<a class="jxr_linenumber" name="L860" href="#L860">860</a>             }
+<a class="jxr_linenumber" name="L861" href="#L861">861</a>         } <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a class="jxr_linenumber" name="L862" href="#L862">862</a>             <em class="jxr_comment">// Only display a real error if it is a worker that we are actually</em>
+<a class="jxr_linenumber" name="L863" href="#L863">863</a>             <em class="jxr_comment">// using</em>
+<a class="jxr_linenumber" name="L864" href="#L864">864</a>             <strong class="jxr_keyword">if</strong> (serviceConfiguration.isActive()) {
+<a class="jxr_linenumber" name="L865" href="#L865">865</a>                 log.error(<span class="jxr_string">"Worker is misconfigured, check the classpath"</span>, e);
+<a class="jxr_linenumber" name="L866" href="#L866">866</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L867" href="#L867">867</a>                 log.info(<span class="jxr_string">"Worker is misconfigured, check the classpath: "</span> + e.getMessage());
+<a class="jxr_linenumber" name="L868" href="#L868">868</a>             }
+<a class="jxr_linenumber" name="L869" href="#L869">869</a>         }
+<a class="jxr_linenumber" name="L870" href="#L870">870</a>         <strong class="jxr_keyword">return</strong> worker;
+<a class="jxr_linenumber" name="L871" href="#L871">871</a>     }
+<a class="jxr_linenumber" name="L872" href="#L872">872</a> 
+<a class="jxr_linenumber" name="L873" href="#L873">873</a>     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+<a class="jxr_linenumber" name="L874" href="#L874">874</a>     @Override
+<a class="jxr_linenumber" name="L875" href="#L875">875</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">long</strong> getServiceInterval(Integer serviceId) {
+<a class="jxr_linenumber" name="L876" href="#L876">876</a>         <strong class="jxr_keyword">long</strong> ret = IInterval.DONT_EXECUTE;
+<a class="jxr_linenumber" name="L877" href="#L877">877</a>         ServiceData htp = serviceDataSession.findById(serviceId);
+<a class="jxr_linenumber" name="L878" href="#L878">878</a>         <strong class="jxr_keyword">if</strong> (htp != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L879" href="#L879">879</a>             ServiceConfiguration serviceConfiguration = htp.getServiceConfiguration();
+<a class="jxr_linenumber" name="L880" href="#L880">880</a>             <strong class="jxr_keyword">if</strong> (serviceConfiguration.isActive()) {
+<a class="jxr_linenumber" name="L881" href="#L881">881</a>                 IWorker worker = getWorker(serviceConfiguration, <span class="jxr_string">"temp"</span>, 0, 0); <em class="jxr_comment">// A bit dirty, but it works..</em>
+<a class="jxr_linenumber" name="L882" href="#L882">882</a>                 <strong class="jxr_keyword">if</strong> (worker != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L883" href="#L883">883</a>                     ret = worker.getNextInterval();
+<a class="jxr_linenumber" name="L884" href="#L884">884</a>                 }
+<a class="jxr_linenumber" name="L885" href="#L885">885</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L886" href="#L886">886</a>                 <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L887" href="#L887">887</a>                     log.debug(<span class="jxr_string">"Service "</span> + serviceId + <span class="jxr_string">" is inactive."</span>);
+<a class="jxr_linenumber" name="L888" href="#L888">888</a>                 }
+<a class="jxr_linenumber" name="L889" href="#L889">889</a>             }
+<a class="jxr_linenumber" name="L890" href="#L890">890</a>         }
+<a class="jxr_linenumber" name="L891" href="#L891">891</a>         <strong class="jxr_keyword">return</strong> ret;
+<a class="jxr_linenumber" name="L892" href="#L892">892</a>     }
+<a class="jxr_linenumber" name="L893" href="#L893">893</a> 
+<a class="jxr_linenumber" name="L894" href="#L894">894</a>     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+<a class="jxr_linenumber" name="L895" href="#L895">895</a>     @Override
+<a class="jxr_linenumber" name="L896" href="#L896">896</a>     <strong class="jxr_keyword">public</strong> ServiceConfiguration getServiceConfiguration(<strong class="jxr_keyword">int</strong> id) {
+<a class="jxr_linenumber" name="L897" href="#L897">897</a>         <strong class="jxr_keyword">if</strong> (log.isTraceEnabled()) {
+<a class="jxr_linenumber" name="L898" href="#L898">898</a>             log.trace(<span class="jxr_string">"&gt;getServiceConfiguration: "</span> + id);
+<a class="jxr_linenumber" name="L899" href="#L899">899</a>         }
+<a class="jxr_linenumber" name="L900" href="#L900">900</a>         ServiceConfiguration returnval = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L901" href="#L901">901</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L902" href="#L902">902</a>             ServiceData serviceData = serviceDataSession.findById(Integer.valueOf(id));
+<a class="jxr_linenumber" name="L903" href="#L903">903</a>             <strong class="jxr_keyword">if</strong> (serviceData != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L904" href="#L904">904</a>                 returnval = serviceData.getServiceConfiguration();
+<a class="jxr_linenumber" name="L905" href="#L905">905</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L906" href="#L906">906</a>                 <strong class="jxr_keyword">if</strong> (log.isDebugEnabled()) {
+<a class="jxr_linenumber" name="L907" href="#L907">907</a>                     log.debug(<span class="jxr_string">"Returnval is null for service id: "</span> + id);
+<a class="jxr_linenumber" name="L908" href="#L908">908</a>                 }
+<a class="jxr_linenumber" name="L909" href="#L909">909</a>             }
+<a class="jxr_linenumber" name="L910" href="#L910">910</a>         } <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a class="jxr_linenumber" name="L911" href="#L911">911</a>             <em class="jxr_comment">// return null if we cant find it, if it is not due to underlying</em>
+<a class="jxr_linenumber" name="L912" href="#L912">912</a>             <em class="jxr_comment">// database error</em>
+<a class="jxr_linenumber" name="L913" href="#L913">913</a>             log.debug(<span class="jxr_string">"Got an Exception for service with id "</span> + id + <span class="jxr_string">": "</span> + e.getMessage());
+<a class="jxr_linenumber" name="L914" href="#L914">914</a>             <em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="L915" href="#L915">915</a> <em class="jxr_comment">             * If we don't re-throw here it will be treated as the service id</em>
+<a class="jxr_linenumber" name="L916" href="#L916">916</a> <em class="jxr_comment">             * does not exist and the service will not be rescheduled to run.</em>
+<a class="jxr_linenumber" name="L917" href="#L917">917</a> <em class="jxr_comment">             */</em>
+<a class="jxr_linenumber" name="L918" href="#L918">918</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> EJBException(e);
+<a class="jxr_linenumber" name="L919" href="#L919">919</a>         }
+<a class="jxr_linenumber" name="L920" href="#L920">920</a>         <strong class="jxr_keyword">if</strong> (log.isTraceEnabled()) {
+<a class="jxr_linenumber" name="L921" href="#L921">921</a>             log.trace(<span class="jxr_string">"&lt;getServiceConfiguration: "</span> + id);
+<a class="jxr_linenumber" name="L922" href="#L922">922</a>         }
+<a class="jxr_linenumber" name="L923" href="#L923">923</a>         <strong class="jxr_keyword">return</strong> returnval;
+<a class="jxr_linenumber" name="L924" href="#L924">924</a>     }
+<a class="jxr_linenumber" name="L925" href="#L925">925</a> 
+<a class="jxr_linenumber" name="L926" href="#L926">926</a>     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+<a class="jxr_linenumber" name="L927" href="#L927">927</a>     @Override
+<a class="jxr_linenumber" name="L928" href="#L928">928</a>     <strong class="jxr_keyword">public</strong> HashMap&lt;Integer, String&gt; getServiceIdToNameMap() {
+<a class="jxr_linenumber" name="L929" href="#L929">929</a>         HashMap&lt;Integer, String&gt; returnval = <strong class="jxr_keyword">new</strong> HashMap&lt;Integer, String&gt;();
+<a class="jxr_linenumber" name="L930" href="#L930">930</a>         Collection&lt;ServiceData&gt; result = serviceDataSession.findAll();
+<a class="jxr_linenumber" name="L931" href="#L931">931</a>         <strong class="jxr_keyword">for</strong>(ServiceData next : result) {
+<a class="jxr_linenumber" name="L932" href="#L932">932</a>             returnval.put(next.getId(), next.getName());
+<a class="jxr_linenumber" name="L933" href="#L933">933</a>         }
+<a class="jxr_linenumber" name="L934" href="#L934">934</a>         <strong class="jxr_keyword">return</strong> returnval;
+<a class="jxr_linenumber" name="L935" href="#L935">935</a>     }
+<a class="jxr_linenumber" name="L936" href="#L936">936</a> 
+<a class="jxr_linenumber" name="L937" href="#L937">937</a>     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+<a class="jxr_linenumber" name="L938" href="#L938">938</a>     @Override
+<a class="jxr_linenumber" name="L939" href="#L939">939</a>     <strong class="jxr_keyword">public</strong> List&lt;String&gt; getServicesUsingCertificateProfile(Integer certificateProfileId) {
+<a class="jxr_linenumber" name="L940" href="#L940">940</a>         List&lt;String&gt; result = <strong class="jxr_keyword">new</strong> ArrayList&lt;String&gt;();
+<a class="jxr_linenumber" name="L941" href="#L941">941</a>         <em class="jxr_comment">//Since the service types are embedded in the data objects there is no more elegant way to to this.</em>
+<a class="jxr_linenumber" name="L942" href="#L942">942</a>         List&lt;ServiceData&gt; allServices = serviceDataSession.findAll();
+<a class="jxr_linenumber" name="L943" href="#L943">943</a>         <strong class="jxr_keyword">for</strong> (ServiceData service : allServices) {
+<a class="jxr_linenumber" name="L944" href="#L944">944</a>             String certificateProfiles = service.getServiceConfiguration().getWorkerProperties()
+<a class="jxr_linenumber" name="L945" href="#L945">945</a>                     .getProperty(BaseWorker.PROP_CERTIFICATE_PROFILE_IDS_TO_CHECK);
+<a class="jxr_linenumber" name="L946" href="#L946">946</a>             <strong class="jxr_keyword">if</strong> (certificateProfiles != <strong class="jxr_keyword">null</strong> &amp;&amp; !certificateProfiles.equals(<span class="jxr_string">""</span>)) {
+<a class="jxr_linenumber" name="L947" href="#L947">947</a>                 <strong class="jxr_keyword">for</strong> (String certificateProfile : certificateProfiles.split(<span class="jxr_string">";"</span>)) {
+<a class="jxr_linenumber" name="L948" href="#L948">948</a>                     <strong class="jxr_keyword">if</strong> (certificateProfile.equals(certificateProfileId.toString())) {
+<a class="jxr_linenumber" name="L949" href="#L949">949</a>                         result.add(service.getName());
+<a class="jxr_linenumber" name="L950" href="#L950">950</a>                         <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L951" href="#L951">951</a>                     }
+<a class="jxr_linenumber" name="L952" href="#L952">952</a>                 }
+<a class="jxr_linenumber" name="L953" href="#L953">953</a>             }
+<a class="jxr_linenumber" name="L954" href="#L954">954</a>         }
+<a class="jxr_linenumber" name="L955" href="#L955">955</a>         <strong class="jxr_keyword">return</strong> result;
+<a class="jxr_linenumber" name="L956" href="#L956">956</a>     }
+<a class="jxr_linenumber" name="L957" href="#L957">957</a>     
+<a class="jxr_linenumber" name="L958" href="#L958">958</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L959" href="#L959">959</a> <em class="jxr_javadoccomment">     * Method to check if an admin is authorized to edit a service. Allow access for /services/edit</em>
+<a class="jxr_linenumber" name="L960" href="#L960">960</a> <em class="jxr_javadoccomment">     * @param admin Admin</em>
+<a class="jxr_linenumber" name="L961" href="#L961">961</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L962" href="#L962">962</a> <em class="jxr_javadoccomment">     * @return true if the administrator is authorized</em>
+<a class="jxr_linenumber" name="L963" href="#L963">963</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L964" href="#L964">964</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> isAuthorizedToEditService(AuthenticationToken admin) {
+<a class="jxr_linenumber" name="L965" href="#L965">965</a>        <strong class="jxr_keyword">return</strong> authorizationSession.isAuthorizedNoLogging(admin, AccessRulesConstants.SERVICES_EDIT);            
+<a class="jxr_linenumber" name="L966" href="#L966">966</a>     }
+<a class="jxr_linenumber" name="L967" href="#L967">967</a> 
+<a class="jxr_linenumber" name="L968" href="#L968">968</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L969" href="#L969">969</a> <em class="jxr_javadoccomment">     * Return true if the service should run on the node given the list of nodes it is pinned to. An empty list means that the service is not pinned</em>
+<a class="jxr_linenumber" name="L970" href="#L970">970</a> <em class="jxr_javadoccomment">     * to any particular node and should run on all.</em>
+<a class="jxr_linenumber" name="L971" href="#L971">971</a> <em class="jxr_javadoccomment">     * @param hostname Host</em>
+<a class="jxr_linenumber" name="L972" href="#L972">972</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L973" href="#L973">973</a> <em class="jxr_javadoccomment">     * @param nodes list of nodes the service is pinned to</em>
+<a class="jxr_linenumber" name="L974" href="#L974">974</a> <em class="jxr_javadoccomment">     * @return true if the service should run on this node</em>
+<a class="jxr_linenumber" name="L975" href="#L975">975</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L976" href="#L976">976</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> shouldRunOnThisNode(<strong class="jxr_keyword">final</strong> String hostname, <strong class="jxr_keyword">final</strong> List&lt;String&gt; nodes) {
+<a class="jxr_linenumber" name="L977" href="#L977">977</a>         <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> result;
+<a class="jxr_linenumber" name="L978" href="#L978">978</a>         <strong class="jxr_keyword">if</strong> (nodes == <strong class="jxr_keyword">null</strong> || nodes.isEmpty()) {
+<a class="jxr_linenumber" name="L979" href="#L979">979</a>             result = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L980" href="#L980">980</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (hostname == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L981" href="#L981">981</a>             result = false;
+<a class="jxr_linenumber" name="L982" href="#L982">982</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L983" href="#L983">983</a>             result = nodes.contains(hostname);
+<a class="jxr_linenumber" name="L984" href="#L984">984</a>         }
+<a class="jxr_linenumber" name="L985" href="#L985">985</a>         <strong class="jxr_keyword">return</strong> result;
+<a class="jxr_linenumber" name="L986" href="#L986">986</a>     }
+<a class="jxr_linenumber" name="L987" href="#L987">987</a> 
+<a class="jxr_linenumber" name="L988" href="#L988">988</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L989" href="#L989">989</a> <em class="jxr_javadoccomment">     * @return The host's name or null if it could not be determined.</em>
+<a class="jxr_linenumber" name="L990" href="#L990">990</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L991" href="#L991">991</a>     <strong class="jxr_keyword">private</strong> String getHostName() {
+<a class="jxr_linenumber" name="L992" href="#L992">992</a>         String hostname = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L993" href="#L993">993</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L994" href="#L994">994</a>             InetAddress addr = InetAddress.getLocalHost();
+<a class="jxr_linenumber" name="L995" href="#L995">995</a>             <em class="jxr_comment">// Get hostname</em>
+<a class="jxr_linenumber" name="L996" href="#L996">996</a>             hostname = addr.getHostName();
+<a class="jxr_linenumber" name="L997" href="#L997">997</a>         } <strong class="jxr_keyword">catch</strong> (UnknownHostException e) {
+<a class="jxr_linenumber" name="L998" href="#L998">998</a>             log.error(<span class="jxr_string">"Hostname could not be determined"</span>, e);
+<a class="jxr_linenumber" name="L999" href="#L999">999</a>         }
+<a class="jxr_linenumber" name="L1000" href="#L1000">1000</a>         <strong class="jxr_keyword">return</strong> hostname;
+<a class="jxr_linenumber" name="L1001" href="#L1001">1001</a>     }
+<a class="jxr_linenumber" name="L1002" href="#L1002">1002</a> 
+<a class="jxr_linenumber" name="L1003" href="#L1003">1003</a> }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2020. All rights reserved.</div>
+</body>
+</html>

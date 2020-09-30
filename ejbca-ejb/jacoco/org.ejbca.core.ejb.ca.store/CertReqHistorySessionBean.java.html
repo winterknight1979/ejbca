@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CertReqHistorySessionBean.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.ca.store</a> &gt; <span class="el_source">CertReqHistorySessionBean.java</span></div><h1>CertReqHistorySessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.ejb.ca.store;
+
+import java.math.BigInteger;
+import java.security.cert.Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.apache.log4j.Logger;
+import org.cesecore.certificates.certificate.CertificateDataSessionLocal;
+import org.cesecore.certificates.certificate.CertificateInfo;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.util.CertTools;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.ca.store.CertReqHistory;
+
+/**
+ * Stores and manages CertReqHistory entries in the database.
+ * CertReqHistory keeps a snapshot of the user data that was used to issue a specific certificate.
+ *
+ * @version $Id: CertReqHistorySessionBean.java 28759 2018-04-20 13:50:37Z samuellb $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;CertReqHistorySessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+<span class="nc" id="L48">public class CertReqHistorySessionBean implements CertReqHistorySessionRemote, CertReqHistorySessionLocal {</span>
+
+<span class="nc" id="L50">    private final static Logger log = Logger.getLogger(CertReqHistorySessionBean.class);</span>
+    /** Internal localization of logs and errors */
+<span class="nc" id="L52">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+    
+    @PersistenceContext(unitName=&quot;ejbca&quot;)
+    private EntityManager entityManager;
+    @EJB
+    private CertificateDataSessionLocal certificateDataSession;
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public void addCertReqHistoryData(Certificate cert, EndEntityInformation endEntityInformation){
+<span class="nc" id="L62">    	final String issuerDN = CertTools.getIssuerDN(cert);</span>
+<span class="nc" id="L63">    	final String username = endEntityInformation.getUsername();</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L65">        	log.trace(&quot;&gt;addCertReqHistoryData(&quot; + CertTools.getSerialNumberAsString(cert) + &quot;, &quot; + issuerDN + &quot;, &quot; + username + &quot;)&quot;);</span>
+    	}
+        try {
+<span class="nc" id="L68">        	entityManager.persist(new CertReqHistoryData(cert, issuerDN, endEntityInformation));</span>
+<span class="nc" id="L69">        	log.info(intres.getLocalizedMessage(&quot;store.storehistory&quot;, username));</span>
+<span class="nc" id="L70">        } catch (Exception e) {</span>
+<span class="nc" id="L71">        	log.error(intres.getLocalizedMessage(&quot;store.errorstorehistory&quot;, endEntityInformation.getUsername()));</span>
+<span class="nc" id="L72">            throw new EJBException(e);</span>
+<span class="nc" id="L73">        }</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L75">    		log.trace(&quot;&lt;addCertReqHistoryData()&quot;);</span>
+        }
+<span class="nc" id="L77">    }</span>
+    
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public void removeCertReqHistoryData(String certFingerprint){
+<span class="nc bnc" id="L82" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L83">        	log.trace(&quot;&gt;removeCertReqHistData(&quot; + certFingerprint + &quot;)&quot;);</span>
+    	}
+        try {          
+<span class="nc" id="L86">        	String msg = intres.getLocalizedMessage(&quot;store.removehistory&quot;, certFingerprint);</span>
+<span class="nc" id="L87">        	log.info(msg);</span>
+<span class="nc" id="L88">            CertReqHistoryData crh = CertReqHistoryData.findById(entityManager, certFingerprint);</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">            if (crh == null) {</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">            	if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L91">            		log.debug(&quot;Trying to remove CertReqHistory that does not exist: &quot;+certFingerprint);                		</span>
+            	}
+            } else {
+<span class="nc" id="L94">            	entityManager.remove(crh);</span>
+            }
+<span class="nc" id="L96">        } catch (Exception e) {</span>
+<span class="nc" id="L97">        	String msg = intres.getLocalizedMessage(&quot;store.errorremovehistory&quot;, certFingerprint);</span>
+<span class="nc" id="L98">        	log.info(msg);</span>
+<span class="nc" id="L99">            throw new EJBException(e);</span>
+<span class="nc" id="L100">        }</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L102">    		log.trace(&quot;&lt;removeCertReqHistData()&quot;);</span>
+    	}
+<span class="nc" id="L104">    }</span>
+    
+    // getCertReqHistory() might perform database updates, so we always need to run this in a transaction
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public CertReqHistory retrieveCertReqHistory(BigInteger certificateSN, String issuerDN){
+<span class="nc" id="L110">    	CertReqHistory retval = null;</span>
+<span class="nc" id="L111">    	Collection&lt;CertReqHistoryData&gt; result = CertReqHistoryData.findByIssuerDNSerialNumber(entityManager, issuerDN, certificateSN.toString());</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">    	if(result.iterator().hasNext()) {</span>
+<span class="nc" id="L113">    		retval = result.iterator().next().getCertReqHistory();</span>
+    	}
+<span class="nc" id="L115">    	return retval;</span>
+    }
+
+    // getCertReqHistory() might perform database updates, so we always need to run this in a transaction
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public List&lt;CertReqHistory&gt; retrieveCertReqHistory(String username){
+<span class="nc" id="L122">    	ArrayList&lt;CertReqHistory&gt; retval = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L123">    	Collection&lt;CertReqHistoryData&gt; result = CertReqHistoryData.findByUsername(entityManager, username);</span>
+<span class="nc" id="L124">    	Iterator&lt;CertReqHistoryData&gt; iter = result.iterator();</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">    	while(iter.hasNext()) {</span>
+<span class="nc" id="L126">    		retval.add(iter.next().getCertReqHistory());</span>
+    	}
+<span class="nc" id="L128">    	return retval;</span>
+    }
+    
+    @Override
+    public CertificateInfo findFirstCertificateInfo(final String issuerDN, final BigInteger serno) {
+<span class="nc" id="L133">    	return certificateDataSession.findFirstCertificateInfo(CertTools.stringToBCDNString(issuerDN), serno.toString());</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

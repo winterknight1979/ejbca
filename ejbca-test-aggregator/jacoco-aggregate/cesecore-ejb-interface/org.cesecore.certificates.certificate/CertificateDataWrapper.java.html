@@ -35,10 +35,10 @@ public class CertificateDataWrapper implements CertificateWrapper, Comparable&lt
     private final byte[] certificateBytes;
 <span class="pc" id="L36">    private transient Certificate certificate = null;</span>
 
-<span class="nc" id="L38">    public CertificateDataWrapper(final Certificate certificate, final CertificateData certificateData, final Base64CertData base64CertData) {</span>
-<span class="nc" id="L39">        this.certificate = certificate;</span>
-<span class="nc bnc" id="L40" title="All 2 branches missed.">        if (certificate==null) {</span>
-<span class="nc" id="L41">            this.certificateBytes = null;</span>
+<span class="fc" id="L38">    public CertificateDataWrapper(final Certificate certificate, final CertificateData certificateData, final Base64CertData base64CertData) {</span>
+<span class="fc" id="L39">        this.certificate = certificate;</span>
+<span class="pc bpc" id="L40" title="1 of 2 branches missed.">        if (certificate==null) {</span>
+<span class="fc" id="L41">            this.certificateBytes = null;</span>
         } else {
             try {
 <span class="nc" id="L44">                this.certificateBytes = certificate.getEncoded();</span>
@@ -46,17 +46,17 @@ public class CertificateDataWrapper implements CertificateWrapper, Comparable&lt
 <span class="nc" id="L46">                throw new IllegalStateException(e);</span>
 <span class="nc" id="L47">            }</span>
         }
-<span class="nc bnc" id="L49" title="All 2 branches missed.">        if (certificateData != null) {</span>
-<span class="nc" id="L50">            this.certificateData = new CertificateData(certificateData);</span>
+<span class="pc bpc" id="L49" title="1 of 2 branches missed.">        if (certificateData != null) {</span>
+<span class="fc" id="L50">            this.certificateData = new CertificateData(certificateData);</span>
         } else {
 <span class="nc" id="L52">            this.certificateData = null;</span>
         }
-<span class="nc bnc" id="L54" title="All 2 branches missed.">        if (base64CertData != null) {</span>
-<span class="nc" id="L55">            this.base64CertData = new Base64CertData(base64CertData);</span>
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">        if (base64CertData != null) {</span>
+<span class="fc" id="L55">            this.base64CertData = new Base64CertData(base64CertData);</span>
         } else {
 <span class="nc" id="L57">            this.base64CertData = null;</span>
         }
-<span class="nc" id="L59">    }</span>
+<span class="fc" id="L59">    }</span>
 
 <span class="fc" id="L61">    public CertificateDataWrapper(final CertificateData certificateData, final Base64CertData base64CertData) {</span>
 <span class="fc" id="L62">        this.certificate = certificateData.getCertificate(base64CertData);</span>
@@ -145,11 +145,11 @@ public class CertificateDataWrapper implements CertificateWrapper, Comparable&lt
 
     @Override
     public boolean equals(final Object other) {
-<span class="nc bnc" id="L148" title="All 2 branches missed.">        if (!(other instanceof CertificateDataWrapper)) {</span>
+<span class="pc bpc" id="L148" title="1 of 2 branches missed.">        if (!(other instanceof CertificateDataWrapper)) {</span>
 <span class="nc" id="L149">            return false;</span>
         }
-<span class="nc" id="L151">        final CertificateDataWrapper otherCertData = (CertificateDataWrapper) other;</span>
-<span class="nc" id="L152">        return certificateData.equals(otherCertData.getCertificateData());</span>
+<span class="fc" id="L151">        final CertificateDataWrapper otherCertData = (CertificateDataWrapper) other;</span>
+<span class="fc" id="L152">        return certificateData.equals(otherCertData.getCertificateData());</span>
     }
 
     @Override

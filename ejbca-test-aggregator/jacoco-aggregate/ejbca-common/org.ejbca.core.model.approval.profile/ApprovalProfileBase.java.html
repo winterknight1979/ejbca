@@ -304,43 +304,43 @@ public abstract class ApprovalProfileBase extends ProfileBase implements Approva
 
     @Override
     public void addStep(ApprovalStep step) throws NonModifiableApprovalProfileException {
-<span class="nc bnc" id="L307" title="All 2 branches missed.">        if (isStepSizeFixed()) {</span>
+<span class="pc bpc" id="L307" title="1 of 2 branches missed.">        if (isStepSizeFixed()) {</span>
             //No operation, and method should not have been called without a prior check.
 <span class="nc" id="L309">            throw new NonModifiableApprovalProfileException(</span>
                     &quot;Attempted adding a step to an approval profile implementation which does not support it.&quot;);
         } else {
-<span class="nc" id="L312">            getSteps().put(step.getStepIdentifier(), step);</span>
-<span class="nc bnc" id="L313" title="All 4 branches missed.">            if (log.isDebugEnabled() &amp;&amp; !StringUtils.isEmpty(getProfileName())) {</span>
+<span class="fc" id="L312">            getSteps().put(step.getStepIdentifier(), step);</span>
+<span class="pc bpc" id="L313" title="3 of 4 branches missed.">            if (log.isDebugEnabled() &amp;&amp; !StringUtils.isEmpty(getProfileName())) {</span>
                 //This method may be called from the factory when creating archetypes, so don't debug log that case.
 <span class="nc" id="L315">                log.debug(&quot;Added step with ID &quot; + step.getStepIdentifier() + &quot; to profile &quot; + getProfileName());</span>
             }
             //All steps must have one partition minimum. This will also add standard fields from the underlying profile implementation
-<span class="nc bnc" id="L318" title="All 2 branches missed.">            if (step.getPartitions().size() == 0) {</span>
-<span class="nc" id="L319">                addPartition(step.getStepIdentifier());</span>
+<span class="pc bpc" id="L318" title="1 of 2 branches missed.">            if (step.getPartitions().size() == 0) {</span>
+<span class="fc" id="L319">                addPartition(step.getStepIdentifier());</span>
             }
         }
-<span class="nc" id="L322">        saveTransientObjects();</span>
-<span class="nc" id="L323">    }</span>
+<span class="fc" id="L322">        saveTransientObjects();</span>
+<span class="fc" id="L323">    }</span>
 
     @Override
     public ApprovalStep addStepFirst() {
         int identifier;
         do {
-<span class="nc" id="L329">            identifier = ProfileID.getRandomIdNumber();</span>
-<span class="nc bnc" id="L330" title="All 2 branches missed.">        } while(getSteps().containsKey(identifier));</span>
-<span class="nc" id="L331">        ApprovalStep newStep = new ApprovalStep(identifier);</span>
-<span class="nc" id="L332">        addStep(newStep);</span>
-<span class="nc bnc" id="L333" title="All 2 branches missed.">        if (getSteps().size() == 1) {</span>
+<span class="fc" id="L329">            identifier = ProfileID.getRandomIdNumber();</span>
+<span class="pc bpc" id="L330" title="1 of 2 branches missed.">        } while(getSteps().containsKey(identifier));</span>
+<span class="fc" id="L331">        ApprovalStep newStep = new ApprovalStep(identifier);</span>
+<span class="fc" id="L332">        addStep(newStep);</span>
+<span class="pc bpc" id="L333" title="1 of 2 branches missed.">        if (getSteps().size() == 1) {</span>
 <span class="nc" id="L334">            setFirstStep(newStep.getStepIdentifier());</span>
 <span class="nc" id="L335">            return newStep;</span>
         }
         //Set the order.
-<span class="nc" id="L338">        ApprovalStep previousFirstStep = steps.get(getFirstStepId());</span>
-<span class="nc" id="L339">        setFirstStep(newStep.getStepIdentifier());</span>
-<span class="nc" id="L340">        newStep.setNextStep(previousFirstStep.getStepIdentifier());</span>
-<span class="nc" id="L341">        previousFirstStep.setPreviousStep(newStep.getStepIdentifier());</span>
-<span class="nc" id="L342">        saveTransientObjects();</span>
-<span class="nc" id="L343">        return newStep;</span>
+<span class="fc" id="L338">        ApprovalStep previousFirstStep = steps.get(getFirstStepId());</span>
+<span class="fc" id="L339">        setFirstStep(newStep.getStepIdentifier());</span>
+<span class="fc" id="L340">        newStep.setNextStep(previousFirstStep.getStepIdentifier());</span>
+<span class="fc" id="L341">        previousFirstStep.setPreviousStep(newStep.getStepIdentifier());</span>
+<span class="fc" id="L342">        saveTransientObjects();</span>
+<span class="fc" id="L343">        return newStep;</span>
     }
 
     @Override
@@ -407,8 +407,8 @@ public abstract class ApprovalProfileBase extends ProfileBase implements Approva
 
     @Override
     public ApprovalStep getStep(Integer identifier) {
-<span class="pc bpc" id="L410" title="1 of 2 branches missed.">        if(identifier == null) {</span>
-<span class="nc" id="L411">            return null;</span>
+<span class="fc bfc" id="L410" title="All 2 branches covered.">        if(identifier == null) {</span>
+<span class="fc" id="L411">            return null;</span>
         }
 <span class="fc" id="L413">        return getSteps().get(identifier);</span>
 
@@ -425,7 +425,7 @@ public abstract class ApprovalProfileBase extends ProfileBase implements Approva
 
     @Override
     public ApprovalStep getFirstStep() {
-<span class="nc" id="L428">        return getSteps().get(getFirstStepId());</span>
+<span class="fc" id="L428">        return getSteps().get(getFirstStepId());</span>
     }
 
     @Override
@@ -504,25 +504,25 @@ public abstract class ApprovalProfileBase extends ProfileBase implements Approva
      */
     protected boolean isStepSatisfied(final ApprovalStep approvalStep, final Collection&lt;Approval&gt; approvalsPerformed)
             throws AuthenticationFailedException {
-<span class="nc bnc" id="L507" title="All 2 branches missed.">        PARTITION_LOOP: for (ApprovalPartition partition : approvalStep.getPartitions().values()) {</span>
-<span class="nc bnc" id="L508" title="All 2 branches missed.">            for (Approval approval : approvalsPerformed) {</span>
-<span class="nc bnc" id="L509" title="All 4 branches missed.">                if (approval.getStepId() == approvalStep.getStepIdentifier() &amp;&amp; partition.getPartitionIdentifier() == approval.getPartitionId()) {</span>
+<span class="fc bfc" id="L507" title="All 2 branches covered.">        PARTITION_LOOP: for (ApprovalPartition partition : approvalStep.getPartitions().values()) {</span>
+<span class="fc bfc" id="L508" title="All 2 branches covered.">            for (Approval approval : approvalsPerformed) {</span>
+<span class="fc bfc" id="L509" title="All 4 branches covered.">                if (approval.getStepId() == approvalStep.getStepIdentifier() &amp;&amp; partition.getPartitionIdentifier() == approval.getPartitionId()) {</span>
                     //While we already have checked the credentials of all partitions, doing so is cheap and a good double check.
-<span class="nc bnc" id="L511" title="All 2 branches missed.">                    if (canApprovePartition(approval.getAdmin(), partition)) {</span>
-<span class="nc" id="L512">                        continue PARTITION_LOOP;</span>
+<span class="pc bpc" id="L511" title="1 of 2 branches missed.">                    if (canApprovePartition(approval.getAdmin(), partition)) {</span>
+<span class="fc" id="L512">                        continue PARTITION_LOOP;</span>
                     }
                 }
-<span class="nc" id="L515">            }</span>
+<span class="fc" id="L515">            }</span>
             //If we've gotten to the bottom of a partition without satisfying it's conditions, we're done
-<span class="nc" id="L517">            return false;</span>
+<span class="fc" id="L517">            return false;</span>
         }
         //If we've made it through all the partitions
-<span class="nc" id="L520">        return true;</span>
+<span class="fc" id="L520">        return true;</span>
     }
 
     @Override
     public int getNumberOfApprovalsRequired(final int stepIdentifier, final int partitionIdentifier) {
-<span class="pc bpc" id="L525" title="1 of 2 branches missed.">    	if (log.isTraceEnabled()) {</span>
+<span class="fc bfc" id="L525" title="All 2 branches covered.">    	if (log.isTraceEnabled()) {</span>
 <span class="fc" id="L526">    	    log.trace(&quot;&gt;getNumberOfApprovalsRequired: &quot;+stepIdentifier+&quot;, &quot;+partitionIdentifier);</span>
     	}
 <span class="fc" id="L528">        final DynamicUiProperty&lt;? extends Serializable&gt; numberOfRequiredApprovals = getStep(stepIdentifier).getPartition(partitionIdentifier).getProperty(PROPERTY_NUMBER_OF_REQUIRED_APPROVALS);</span>
@@ -533,7 +533,7 @@ public abstract class ApprovalProfileBase extends ProfileBase implements Approva
 <span class="nc" id="L533">            return 1;   // Default to 1 required approval per partition</span>
         }
 <span class="fc" id="L535">        final int ret = (Integer) numberOfRequiredApprovals.getValue();</span>
-<span class="pc bpc" id="L536" title="1 of 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="fc bfc" id="L536" title="All 2 branches covered.">        if (log.isTraceEnabled()) {</span>
 <span class="fc" id="L537">            log.trace(&quot;&lt;getNumberOfApprovalsRequired: &quot;+ret);</span>
         }
 <span class="fc" id="L539">        return ret;</span>

@@ -1,0 +1,690 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>EndEntityAccessSessionBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.ra</a> &gt; <span class="el_source">EndEntityAccessSessionBean.java</span></div><h1>EndEntityAccessSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.ejb.ra;
+
+import java.math.BigInteger;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.UsernamePrincipal;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.certificates.ca.CADoesntExistsException;
+import org.cesecore.certificates.ca.CaSessionLocal;
+import org.cesecore.certificates.certificate.CertificateConstants;
+import org.cesecore.certificates.certificate.CertificateStoreSessionLocal;
+import org.cesecore.certificates.certificate.CertificateWrapper;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.certificates.endentity.EndEntityInformation;
+import org.cesecore.config.GlobalCesecoreConfiguration;
+import org.cesecore.configuration.GlobalConfigurationSessionLocal;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.util.CertTools;
+import org.cesecore.util.EJBTools;
+import org.cesecore.util.StringTools;
+import org.ejbca.config.GlobalConfiguration;
+import org.ejbca.core.EjbcaException;
+import org.ejbca.core.ejb.ra.raadmin.EndEntityProfileSessionLocal;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.SecConst;
+import org.ejbca.core.model.authorization.AccessRulesConstants;
+import org.ejbca.core.model.ra.NotFoundException;
+import org.ejbca.core.model.ra.RAAuthorization;
+import org.ejbca.util.crypto.SupportedPasswordHashAlgorithm;
+import org.ejbca.util.query.BasicMatch;
+import org.ejbca.util.query.IllegalQueryException;
+import org.ejbca.util.query.Query;
+import org.ejbca.util.query.UserMatch;
+
+/**
+ * @version $Id: EndEntityAccessSessionBean.java 29301 2018-06-21 10:27:38Z andresjakobs $
+ * 
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;EndEntityAccessSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+<span class="nc" id="L75">public class EndEntityAccessSessionBean implements EndEntityAccessSessionLocal, EndEntityAccessSessionRemote {</span>
+
+    /** Columns in the database used in select. */
+    private static final String USERDATA_CREATED_COL = &quot;timeCreated&quot;;
+
+<span class="nc" id="L80">    private static final Logger log = Logger.getLogger(EndEntityAccessSessionBean.class);</span>
+    /** Internal localization of logs and errors */
+<span class="nc" id="L82">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+
+    @PersistenceContext(unitName = &quot;ejbca&quot;)
+    private EntityManager entityManager;
+
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private CaSessionLocal caSession;
+    @EJB
+    private EndEntityProfileSessionLocal endEntityProfileSession;
+    @EJB
+    private GlobalConfigurationSessionLocal globalConfigurationSession;
+    @EJB
+    private CertificateStoreSessionLocal certificateStoreSession;
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public AbstractMap.SimpleEntry&lt;String, SupportedPasswordHashAlgorithm&gt; getPasswordAndHashAlgorithmForUser(String username)
+            throws NotFoundException {
+<span class="nc" id="L102">        UserData user = findByUsername(username);</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        if (user == null) {</span>
+<span class="nc" id="L104">            throw new NotFoundException(&quot;End Entity of name &quot; + username + &quot; not found in database&quot;);</span>
+        } else {
+<span class="nc" id="L106">            return new AbstractMap.SimpleEntry&lt;String, SupportedPasswordHashAlgorithm&gt;(user.getPasswordHash(), user.findHashAlgorithm());</span>
+        }
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public List&lt;EndEntityInformation&gt; findUserBySubjectDN(final AuthenticationToken admin, final String subjectdn)
+            throws AuthorizationDeniedException {
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L115">            log.trace(&quot;&gt;findUserBySubjectDN(&quot; + subjectdn + &quot;)&quot;);</span>
+        }
+        // String used in SQL so strip it
+<span class="nc" id="L118">        final String dn = CertTools.stringToBCDNString(StringTools.strip(subjectdn));</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L120">            log.debug(&quot;Looking for users with subjectdn: &quot; + dn);</span>
+        }
+<span class="nc" id="L122">        final TypedQuery&lt;UserData&gt; query = entityManager.createQuery(&quot;SELECT a FROM UserData a WHERE a.subjectDN=:subjectDN&quot;, UserData.class);</span>
+<span class="nc" id="L123">        query.setParameter(&quot;subjectDN&quot;, dn);</span>
+<span class="nc" id="L124">        final List&lt;UserData&gt; dataList =  query.getResultList();</span>
+        
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        if (dataList.size() == 0) {</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L128">                log.debug(&quot;Cannot find user with subjectdn: &quot; + dn);</span>
+            }
+        }
+<span class="nc" id="L131">        final List&lt;EndEntityInformation&gt; result = new ArrayList&lt;EndEntityInformation&gt;();</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">        for (UserData data : dataList) {</span>
+<span class="nc" id="L133">            result.add(convertUserDataToEndEntityInformation(admin, data, null));</span>
+<span class="nc" id="L134">        }</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L136">            log.trace(&quot;&lt;findUserBySubjectDN(&quot; + subjectdn + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L138">        return result;</span>
+    }
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public List&lt;UserData&gt; findNewOrKeyrecByHardTokenIssuerId(int hardTokenIssuerId, int maxResults) {
+<span class="nc" id="L144">        final TypedQuery&lt;UserData&gt; query = entityManager</span>
+<span class="nc" id="L145">                .createQuery(&quot;SELECT a FROM UserData a WHERE a.hardTokenIssuerId=:hardTokenIssuerId AND a.tokenType&gt;=:tokenType AND (a.status=:status1 OR a.status=:status2)&quot;, UserData.class);</span>
+<span class="nc" id="L146">        query.setParameter(&quot;hardTokenIssuerId&quot;, hardTokenIssuerId);</span>
+<span class="nc" id="L147">        query.setParameter(&quot;tokenType&quot;, SecConst.TOKEN_HARD_DEFAULT);</span>
+<span class="nc" id="L148">        query.setParameter(&quot;status1&quot;, EndEntityConstants.STATUS_NEW);</span>
+<span class="nc" id="L149">        query.setParameter(&quot;status2&quot;, EndEntityConstants.STATUS_KEYRECOVERY);</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">        if (maxResults &gt; 0) {</span>
+<span class="nc" id="L151">            query.setMaxResults(maxResults);</span>
+        }
+<span class="nc" id="L153">        return query.getResultList();</span>
+    }
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public List&lt;String&gt; findSubjectDNsByCaIdAndNotUsername(final int caId, final String username,
+            final String serialnumber) {
+<span class="nc" id="L160">        final TypedQuery&lt;String&gt; query = entityManager</span>
+<span class="nc" id="L161">                .createQuery(&quot;SELECT a.subjectDN FROM UserData a WHERE a.caId=:caId AND a.username!=:username AND a.subjectDN LIKE :serial&quot;, String.class);</span>
+<span class="nc" id="L162">        query.setParameter(&quot;caId&quot;, caId);</span>
+<span class="nc" id="L163">        query.setParameter(&quot;username&quot;, username);</span>
+<span class="nc" id="L164">        query.setParameter(&quot;serial&quot;, &quot;%SN=&quot;+ serialnumber + &quot;%&quot;);</span>
+<span class="nc" id="L165">        return query.getResultList();</span>
+    }
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public List&lt;EndEntityInformation&gt; findUserBySubjectAndIssuerDN(final AuthenticationToken admin, final String subjectdn, final String issuerdn)
+            throws AuthorizationDeniedException {
+<span class="nc bnc" id="L172" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L173">            log.trace(&quot;&gt;findUserBySubjectAndIssuerDN(&quot; + subjectdn + &quot;, &quot; + issuerdn + &quot;)&quot;);</span>
+        }
+        // String used in SQL so strip it
+<span class="nc" id="L176">        final String dn = CertTools.stringToBCDNString(StringTools.strip(subjectdn));</span>
+<span class="nc" id="L177">        final String issuerDN = CertTools.stringToBCDNString(StringTools.strip(issuerdn));</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L179">            log.debug(&quot;Looking for users with subjectdn: &quot; + dn + &quot;, issuerdn : &quot; + issuerDN);</span>
+        }
+        
+<span class="nc" id="L182">        final TypedQuery&lt;UserData&gt; query = entityManager.createQuery(&quot;SELECT a FROM UserData a WHERE a.subjectDN=:subjectDN AND a.caId=:caId&quot;, UserData.class);</span>
+<span class="nc" id="L183">        query.setParameter(&quot;subjectDN&quot;, dn);</span>
+<span class="nc" id="L184">        query.setParameter(&quot;caId&quot;, issuerDN.hashCode());</span>
+<span class="nc" id="L185">        final List&lt;UserData&gt; dataList = query.getResultList();</span>
+<span class="nc bnc" id="L186" title="All 2 branches missed.">        if (dataList.size() == 0) {</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L188">                log.debug(&quot;Cannot find user with subjectdn: &quot; + dn + &quot;, issuerdn : &quot; + issuerDN);</span>
+            }
+        }
+<span class="nc" id="L191">        final List&lt;EndEntityInformation&gt; result = new ArrayList&lt;EndEntityInformation&gt;();</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">        for (UserData data : dataList) {</span>
+<span class="nc" id="L193">            result.add(convertUserDataToEndEntityInformation(admin, data, null));</span>
+<span class="nc" id="L194">        }</span>
+<span class="nc bnc" id="L195" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L196">            log.trace(&quot;&lt;findUserBySubjectAndIssuerDN(&quot; + subjectdn + &quot;, &quot; + issuerDN + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L198">        return result;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public EndEntityInformation findUser(final String username) {
+        try {
+<span class="nc" id="L205">            return findUser(new AlwaysAllowLocalAuthenticationToken(new UsernamePrincipal(&quot;Internal search for End Entity&quot;)), username);</span>
+<span class="nc" id="L206">        } catch (AuthorizationDeniedException e) {</span>
+<span class="nc" id="L207">            throw new IllegalStateException(&quot;Always allow token was denied authorization.&quot;, e);</span>
+        }
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public EndEntityInformation findUser(final AuthenticationToken admin, final String username) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L214" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L215">            log.trace(&quot;&gt;findUser(&quot; + username + &quot;)&quot;);</span>
+        }        
+<span class="nc" id="L217">        final UserData data = findByUsername(username);</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">        if (data == null) {</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L220">                log.debug(&quot;Cannot find user with username='&quot; + username + &quot;'&quot;);</span>
+            }
+        }
+<span class="nc" id="L223">        final EndEntityInformation ret = convertUserDataToEndEntityInformation(admin, data, username);</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc bnc" id="L225" title="All 2 branches missed.">            log.trace(&quot;&lt;findUser(&quot; + username + &quot;): &quot; + (ret == null ? &quot;null&quot; : ret.getDN()));</span>
+        }
+<span class="nc" id="L227">        return ret;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public UserData findByUsername(String username) {
+<span class="nc bnc" id="L233" title="All 2 branches missed.">        if (username == null) {</span>
+<span class="nc" id="L234">            return null;</span>
+        }
+<span class="nc" id="L236">        return entityManager.find(UserData.class, username);</span>
+    }
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public List&lt;EndEntityInformation&gt; findUserByEmail(AuthenticationToken admin, String email) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L242" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L243">            log.trace(&quot;&gt;findUserByEmail(&quot; + email + &quot;)&quot;);</span>
+        }
+<span class="nc bnc" id="L245" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L246">            log.debug(&quot;Looking for user with email: &quot; + email);</span>
+        }
+        
+<span class="nc" id="L249">        final TypedQuery&lt;UserData&gt; query = entityManager.createQuery(&quot;SELECT a FROM UserData a WHERE a.subjectEmail=:subjectEmail&quot;, UserData.class);</span>
+<span class="nc" id="L250">        query.setParameter(&quot;subjectEmail&quot;, email);</span>
+<span class="nc" id="L251">        final List&lt;UserData&gt; result =  query.getResultList();</span>
+<span class="nc bnc" id="L252" title="All 2 branches missed.">        if (result.size() == 0) {</span>
+<span class="nc bnc" id="L253" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L254">                log.debug(&quot;Cannot find user with Email='&quot; + email + &quot;'&quot;);</span>
+            }
+        }
+<span class="nc" id="L257">        final List&lt;EndEntityInformation&gt; returnval = new ArrayList&lt;EndEntityInformation&gt;();</span>
+<span class="nc bnc" id="L258" title="All 2 branches missed.">        for (final UserData data : result) {</span>
+<span class="nc" id="L259">            if (((GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID))</span>
+<span class="nc bnc" id="L260" title="All 2 branches missed.">                    .getEnableEndEntityProfileLimitations()) {</span>
+                // Check if administrator is authorized to view user.
+<span class="nc bnc" id="L262" title="All 2 branches missed.">                if (!authorizedToEndEntityProfile(admin, data.getEndEntityProfileId(), AccessRulesConstants.VIEW_END_ENTITY)) {</span>
+<span class="nc" id="L263">                    continue;</span>
+                }
+            }
+<span class="nc bnc" id="L266" title="All 2 branches missed.">            if (!authorizedToCA(admin, data.getCaId())) {</span>
+<span class="nc" id="L267">                continue;</span>
+            }
+<span class="nc" id="L269">            returnval.add(convertUserDataToEndEntityInformation(admin, data, null));</span>
+
+<span class="nc" id="L271">        }</span>
+<span class="nc bnc" id="L272" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L273">            log.trace(&quot;&lt;findUserByEmail(&quot; + email + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L275">        return returnval;</span>
+    }
+
+    /** 
+     * @param admin Admin
+     * @param data Data
+     * @param requestedUsername User 
+     * @return the userdata value object if admin is authorized. Does not leak username if auth fails. 
+     * 
+     * @throws AuthorizationDeniedException if the admin was not authorized to the end entity profile or issuing CA
+     */
+    private EndEntityInformation convertUserDataToEndEntityInformation(final AuthenticationToken admin, final UserData data,
+            final String requestedUsername) throws AuthorizationDeniedException {
+<span class="nc bnc" id="L288" title="All 2 branches missed.">        if (data != null) {</span>
+<span class="nc" id="L289">            if (((GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID))</span>
+<span class="nc bnc" id="L290" title="All 2 branches missed.">                    .getEnableEndEntityProfileLimitations()) {</span>
+                // Check if administrator is authorized to view user.
+<span class="nc bnc" id="L292" title="All 2 branches missed.">                if (!authorizedToEndEntityProfile(admin, data.getEndEntityProfileId(), AccessRulesConstants.VIEW_END_ENTITY)) {</span>
+<span class="nc bnc" id="L293" title="All 2 branches missed.">                    if (requestedUsername == null) {</span>
+<span class="nc" id="L294">                        final String msg = intres.getLocalizedMessage(&quot;ra.errorauthprofile&quot;, Integer.valueOf(data.getEndEntityProfileId()),</span>
+<span class="nc" id="L295">                                admin.toString());</span>
+<span class="nc" id="L296">                        throw new AuthorizationDeniedException(msg);</span>
+                    } else {
+<span class="nc" id="L298">                        final String msg = intres.getLocalizedMessage(&quot;ra.errorauthprofileexist&quot;, Integer.valueOf(data.getEndEntityProfileId()),</span>
+<span class="nc" id="L299">                                requestedUsername, admin.toString());</span>
+<span class="nc" id="L300">                        throw new AuthorizationDeniedException(msg);</span>
+                    }
+                }
+            }
+<span class="nc bnc" id="L304" title="All 2 branches missed.">            if (!authorizedToCA(admin, data.getCaId())) {</span>
+<span class="nc bnc" id="L305" title="All 2 branches missed.">                if (requestedUsername == null) {</span>
+<span class="nc" id="L306">                    final String msg = intres.getLocalizedMessage(&quot;ra.errorauthca&quot;, Integer.valueOf(data.getCaId()), admin.toString());</span>
+<span class="nc" id="L307">                    throw new AuthorizationDeniedException(msg);</span>
+                } else {
+<span class="nc" id="L309">                    final String msg = intres.getLocalizedMessage(&quot;ra.errorauthcaexist&quot;, Integer.valueOf(data.getCaId()), requestedUsername,</span>
+<span class="nc" id="L310">                            admin.toString());</span>
+<span class="nc" id="L311">                    throw new AuthorizationDeniedException(msg);</span>
+                }
+            }
+<span class="nc" id="L314">            return data.toEndEntityInformation();</span>
+        }
+<span class="nc" id="L316">        return null;</span>
+    }
+
+    private boolean authorizedToEndEntityProfile(AuthenticationToken admin, int profileid, String rights) {
+<span class="nc" id="L320">        boolean returnval = false;</span>
+<span class="nc bnc" id="L321" title="All 2 branches missed.">        if (profileid == EndEntityConstants.EMPTY_END_ENTITY_PROFILE</span>
+<span class="nc bnc" id="L322" title="All 4 branches missed.">                &amp;&amp; (rights.equals(AccessRulesConstants.CREATE_END_ENTITY) || rights.equals(AccessRulesConstants.EDIT_END_ENTITY))) {</span>
+<span class="nc bnc" id="L323" title="All 2 branches missed.">            if (authorizationSession.isAuthorizedNoLogging(admin, StandardRules.ROLE_ROOT.resource())) {</span>
+<span class="nc" id="L324">                returnval = true;</span>
+            } else {
+<span class="nc" id="L326">                log.info(&quot;Admin &quot; + admin.toString() + &quot; was not authorized to resource &quot; + StandardRules.ROLE_ROOT);</span>
+            }
+        } else {
+<span class="nc" id="L329">            returnval = authorizationSession.isAuthorizedNoLogging(admin, AccessRulesConstants.ENDENTITYPROFILEPREFIX + profileid + rights,</span>
+                    AccessRulesConstants.REGULAR_RAFUNCTIONALITY + rights);
+        }
+<span class="nc" id="L332">        return returnval;</span>
+    }
+
+    private boolean authorizedToCA(AuthenticationToken admin, int caid) {
+<span class="nc" id="L336">        boolean returnval = false;</span>
+<span class="nc" id="L337">        returnval = authorizationSession.isAuthorizedNoLogging(admin, StandardRules.CAACCESS.resource() + caid);</span>
+<span class="nc bnc" id="L338" title="All 2 branches missed.">        if (!returnval) {</span>
+<span class="nc" id="L339">            log.info(&quot;Admin &quot; + admin.toString() + &quot; not authorized to resource &quot; + StandardRules.CAACCESS.resource() + caid);</span>
+        }
+<span class="nc" id="L341">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public Collection&lt;EndEntityInformation&gt; findAllUsersByStatus(AuthenticationToken admin, int status) {
+<span class="nc bnc" id="L347" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L348">            log.trace(&quot;&gt;findAllUsersByStatus(&quot; + status + &quot;)&quot;);</span>
+        }
+<span class="nc bnc" id="L350" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L351">            log.debug(&quot;Looking for users with status: &quot; + status);</span>
+        }
+<span class="nc" id="L353">        Query query = new Query(Query.TYPE_USERQUERY);</span>
+<span class="nc" id="L354">        query.add(UserMatch.MATCH_WITH_STATUS, BasicMatch.MATCH_TYPE_EQUALS, Integer.toString(status));</span>
+<span class="nc" id="L355">        Collection&lt;EndEntityInformation&gt; returnval = null;</span>
+        try {
+<span class="nc" id="L357">            returnval = query(admin, query, null, null, 0, AccessRulesConstants.VIEW_END_ENTITY);</span>
+<span class="nc" id="L358">        } catch (IllegalQueryException e) {</span>
+<span class="nc" id="L359">        }</span>
+<span class="nc bnc" id="L360" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L361">            log.debug(&quot;found &quot; + returnval.size() + &quot; user(s) with status=&quot; + status);</span>
+        }
+<span class="nc bnc" id="L363" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L364">            log.trace(&quot;&lt;findAllUsersByStatus(&quot; + status + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L366">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public Collection&lt;EndEntityInformation&gt; findAllUsersByCaId(AuthenticationToken admin, int caid) {
+<span class="nc bnc" id="L372" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L373">            log.trace(&quot;&gt;findAllUsersByCaId(&quot; + caid + &quot;)&quot;);</span>
+        }
+<span class="nc bnc" id="L375" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L376">            log.debug(&quot;Looking for users with caid: &quot; + caid);</span>
+        }
+<span class="nc" id="L378">        Query query = new Query(Query.TYPE_USERQUERY);</span>
+<span class="nc" id="L379">        query.add(UserMatch.MATCH_WITH_CA, BasicMatch.MATCH_TYPE_EQUALS, Integer.toString(caid));</span>
+<span class="nc" id="L380">        Collection&lt;EndEntityInformation&gt; returnval = null;</span>
+        try {
+<span class="nc" id="L382">            returnval = query(admin, query, null, null, 0, AccessRulesConstants.VIEW_END_ENTITY);</span>
+<span class="nc" id="L383">        } catch (IllegalQueryException e) {</span>
+            // Ignore ??
+<span class="nc" id="L385">            log.debug(&quot;Illegal query&quot;, e);</span>
+<span class="nc" id="L386">            returnval = new ArrayList&lt;EndEntityInformation&gt;();</span>
+<span class="nc" id="L387">        }</span>
+<span class="nc bnc" id="L388" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L389">            log.debug(&quot;found &quot; + returnval.size() + &quot; user(s) with caid=&quot; + caid);</span>
+        }
+<span class="nc bnc" id="L391" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L392">            log.trace(&quot;&lt;findAllUsersByCaId(&quot; + caid + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L394">        return returnval;</span>
+    }
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public long countByCaId(int caId) {
+<span class="nc" id="L400">        final javax.persistence.Query query = entityManager.createQuery(&quot;SELECT COUNT(a) FROM UserData a WHERE a.caId=:caId&quot;);</span>
+<span class="nc" id="L401">        query.setParameter(&quot;caId&quot;, caId);</span>
+<span class="nc" id="L402">        return ((Long) query.getSingleResult()).longValue(); // Always returns a result</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public long countByCertificateProfileId(int certificateProfileId) {
+<span class="nc" id="L408">        final javax.persistence.Query query = entityManager.createQuery(&quot;SELECT COUNT(a) FROM UserData a WHERE a.certificateProfileId=:certificateProfileId&quot;);</span>
+<span class="nc" id="L409">        query.setParameter(&quot;certificateProfileId&quot;, certificateProfileId);</span>
+<span class="nc" id="L410">        return ((Long) query.getSingleResult()).longValue(); // Always returns a result</span>
+    }
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public long countByHardTokenIssuerId(int hardTokenIssuerId) {
+<span class="nc" id="L416">        final javax.persistence.Query query = entityManager.createQuery(&quot;SELECT COUNT(a) FROM UserData a WHERE a.hardTokenIssuerId=:hardTokenIssuerId&quot;);</span>
+<span class="nc" id="L417">        query.setParameter(&quot;hardTokenIssuerId&quot;, hardTokenIssuerId);</span>
+<span class="nc" id="L418">        return ((Long) query.getSingleResult()).longValue(); // Always returns a result</span>
+    }
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public long countByHardTokenProfileId(int hardTokenProfileId) {
+<span class="nc" id="L424">        final javax.persistence.Query query = entityManager.createQuery(&quot;SELECT COUNT(a) FROM UserData a WHERE a.tokenType=:tokenType&quot;);</span>
+<span class="nc" id="L425">        query.setParameter(&quot;tokenType&quot;, hardTokenProfileId);</span>
+<span class="nc" id="L426">        return ((Long) query.getSingleResult()).longValue(); // Always returns a result</span>
+    }
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public long countNewOrKeyrecByHardTokenIssuerId(int hardTokenIssuerId) {
+<span class="nc" id="L432">        final javax.persistence.Query query = entityManager</span>
+<span class="nc" id="L433">                .createQuery(&quot;SELECT COUNT(a) FROM UserData a WHERE a.hardTokenIssuerId=:hardTokenIssuerId AND a.tokenType&gt;=:tokenType AND (a.status=:status1 OR a.status=:status2)&quot;);</span>
+<span class="nc" id="L434">        query.setParameter(&quot;hardTokenIssuerId&quot;, hardTokenIssuerId);</span>
+<span class="nc" id="L435">        query.setParameter(&quot;tokenType&quot;, SecConst.TOKEN_HARD_DEFAULT);</span>
+<span class="nc" id="L436">        query.setParameter(&quot;status1&quot;, EndEntityConstants.STATUS_NEW);</span>
+<span class="nc" id="L437">        query.setParameter(&quot;status2&quot;, EndEntityConstants.STATUS_KEYRECOVERY);</span>
+<span class="nc" id="L438">        return ((Long) query.getSingleResult()).longValue(); // Always returns a result</span>
+    }
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public List&lt;EndEntityInformation&gt; findAllBatchUsersByStatusWithLimit(int status) {
+<span class="nc bnc" id="L444" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L445">            log.trace(&quot;&gt;findAllUsersByStatusWithLimit()&quot;);</span>
+        }
+<span class="nc" id="L447">        final javax.persistence.Query query = entityManager</span>
+<span class="nc" id="L448">                .createQuery(&quot;SELECT a FROM UserData a WHERE a.status=:status AND (clearPassword IS NOT NULL)&quot;);</span>
+<span class="nc" id="L449">        query.setParameter(&quot;status&quot;, status);</span>
+<span class="nc" id="L450">        query.setMaxResults(getGlobalCesecoreConfiguration().getMaximumQueryCount());</span>
+        @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L452">        final List&lt;UserData&gt; userDataList = query.getResultList();</span>
+<span class="nc" id="L453">        final List&lt;EndEntityInformation&gt; returnval = new ArrayList&lt;EndEntityInformation&gt;(userDataList.size());</span>
+<span class="nc bnc" id="L454" title="All 2 branches missed.">        for (UserData ud : userDataList) {</span>
+<span class="nc" id="L455">            EndEntityInformation endEntityInformation = ud.toEndEntityInformation();</span>
+<span class="nc bnc" id="L456" title="All 4 branches missed.">            if (endEntityInformation.getPassword() != null &amp;&amp; endEntityInformation.getPassword().length() &gt; 0) {</span>
+<span class="nc" id="L457">                returnval.add(endEntityInformation);</span>
+            }
+<span class="nc" id="L459">        }</span>
+<span class="nc bnc" id="L460" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L461">            log.trace(&quot;&lt;findAllUsersByStatusWithLimit()&quot;);</span>
+        }
+<span class="nc" id="L463">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public Collection&lt;EndEntityInformation&gt; query(final AuthenticationToken admin, final Query query, final String caauthorizationstr,
+            final String endentityprofilestr, final int numberofrows, final String endentityAccessRule) throws IllegalQueryException {
+<span class="nc" id="L470">        boolean authorizedtoanyprofile = true;</span>
+<span class="nc" id="L471">        final String caauthorizationstring = StringTools.strip(caauthorizationstr);</span>
+<span class="nc" id="L472">        final String endentityprofilestring = StringTools.strip(endentityprofilestr);</span>
+<span class="nc" id="L473">        final ArrayList&lt;EndEntityInformation&gt; returnval = new ArrayList&lt;EndEntityInformation&gt;();</span>
+<span class="nc" id="L474">        int fetchsize = getGlobalCesecoreConfiguration().getMaximumQueryCount();</span>
+
+<span class="nc bnc" id="L476" title="All 2 branches missed.">        if (numberofrows != 0) {</span>
+<span class="nc" id="L477">            fetchsize = numberofrows;</span>
+        }
+
+        // Check if query is legal.
+<span class="nc bnc" id="L481" title="All 4 branches missed.">        if (query != null &amp;&amp; !query.isLegalQuery()) {</span>
+<span class="nc" id="L482">            throw new IllegalQueryException();</span>
+        }
+
+<span class="nc" id="L485">        String sqlquery = &quot;&quot;;</span>
+<span class="nc bnc" id="L486" title="All 2 branches missed.">        if (query != null) {</span>
+<span class="nc" id="L487">            sqlquery += query.getQueryString();</span>
+        }
+
+<span class="nc" id="L490">        final GlobalConfiguration globalconfiguration = getGlobalConfiguration();</span>
+<span class="nc" id="L491">        String caauthstring = caauthorizationstring;</span>
+<span class="nc" id="L492">        String endentityauth = endentityprofilestring;</span>
+<span class="nc" id="L493">        RAAuthorization raauthorization = null;</span>
+<span class="nc bnc" id="L494" title="All 4 branches missed.">        if (caauthorizationstring == null || endentityprofilestring == null) {</span>
+<span class="nc" id="L495">            raauthorization = new RAAuthorization(admin, globalConfigurationSession, authorizationSession, caSession, endEntityProfileSession);</span>
+<span class="nc" id="L496">            caauthstring = raauthorization.getCAAuthorizationString();</span>
+<span class="nc bnc" id="L497" title="All 2 branches missed.">            if (globalconfiguration.getEnableEndEntityProfileLimitations()) {</span>
+<span class="nc" id="L498">                endentityauth = raauthorization.getEndEntityProfileAuthorizationString(true, endentityAccessRule);</span>
+            } else {
+<span class="nc" id="L500">                endentityauth = &quot;&quot;;</span>
+            }
+        }
+<span class="nc bnc" id="L503" title="All 2 branches missed.">        if (!StringUtils.isBlank(caauthstring)) {</span>
+<span class="nc bnc" id="L504" title="All 2 branches missed.">            if (StringUtils.isBlank(sqlquery)) {</span>
+<span class="nc" id="L505">                sqlquery += caauthstring;</span>
+            } else {
+<span class="nc" id="L507">                sqlquery = &quot;(&quot; + sqlquery + &quot;) AND &quot; + caauthstring;</span>
+            }
+        } 
+<span class="nc bnc" id="L510" title="All 2 branches missed.">        if (globalconfiguration.getEnableEndEntityProfileLimitations()) {</span>
+<span class="nc bnc" id="L511" title="All 4 branches missed.">            if (endentityauth == null || StringUtils.isBlank(endentityauth)) {</span>
+<span class="nc" id="L512">                authorizedtoanyprofile = false;</span>
+            } else {
+<span class="nc bnc" id="L514" title="All 2 branches missed.">                if (StringUtils.isEmpty(sqlquery)) {</span>
+<span class="nc" id="L515">                    sqlquery += endentityauth;</span>
+                } else {
+<span class="nc" id="L517">                    sqlquery = &quot;(&quot; + sqlquery + &quot;) AND &quot; + endentityauth;</span>
+                }
+            }
+        }
+        // Finally order the return values
+<span class="nc" id="L522">        sqlquery += &quot; ORDER BY &quot; + USERDATA_CREATED_COL + &quot; DESC&quot;;</span>
+<span class="nc bnc" id="L523" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L524">            log.debug(&quot;generated query: &quot; + sqlquery);</span>
+        }
+<span class="nc bnc" id="L526" title="All 2 branches missed.">        if (authorizedtoanyprofile) {</span>
+<span class="nc" id="L527">            final javax.persistence.Query dbQuery = entityManager.createQuery(&quot;SELECT a FROM UserData a WHERE &quot; + sqlquery);</span>
+<span class="nc bnc" id="L528" title="All 2 branches missed.">            if (fetchsize &gt; 0) {</span>
+<span class="nc" id="L529">                dbQuery.setMaxResults(fetchsize);</span>
+            }
+            @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L532">            final List&lt;UserData&gt; userDataList = dbQuery.getResultList();</span>
+<span class="nc bnc" id="L533" title="All 2 branches missed.">            for (UserData userData : userDataList) {</span>
+<span class="nc" id="L534">                returnval.add(userData.toEndEntityInformation());</span>
+<span class="nc" id="L535">            }</span>
+<span class="nc" id="L536">        } else {</span>
+<span class="nc bnc" id="L537" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L538">                log.debug(&quot;authorizedtoanyprofile=false&quot;);</span>
+            }
+        }
+<span class="nc bnc" id="L541" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L542">            log.trace(&quot;&lt;query(): &quot; + returnval.size());</span>
+        }
+<span class="nc" id="L544">        return returnval;</span>
+    }
+
+    private GlobalCesecoreConfiguration getGlobalCesecoreConfiguration() {
+<span class="nc" id="L548">        return (GlobalCesecoreConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalCesecoreConfiguration.CESECORE_CONFIGURATION_ID);</span>
+    }
+
+    /** Gets the Global Configuration from ra admin session bean 
+     * @return Config*/
+    private GlobalConfiguration getGlobalConfiguration() {
+<span class="nc" id="L554">        return (GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID);</span>
+    }    
+    
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public Collection&lt;EndEntityInformation&gt; findAllUsersWithLimit(AuthenticationToken admin) {
+<span class="nc bnc" id="L560" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L561">            log.trace(&quot;&gt;findAllUsersWithLimit()&quot;);</span>
+        }
+<span class="nc" id="L563">        Collection&lt;EndEntityInformation&gt; returnval = null;</span>
+        try {
+<span class="nc" id="L565">            returnval = query(admin, null, null, null, 0, AccessRulesConstants.VIEW_END_ENTITY);</span>
+<span class="nc" id="L566">        } catch (IllegalQueryException e) {</span>
+<span class="nc" id="L567">        }</span>
+<span class="nc bnc" id="L568" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L569">            log.trace(&quot;&lt;findAllUsersWithLimit()&quot;);</span>
+        }
+<span class="nc" id="L571">        return returnval;</span>
+    }
+ 
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public List&lt;EndEntityInformation&gt; findAllUsersByCaIdNoAuth(int caid) {
+<span class="nc bnc" id="L577" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L578">            log.trace(&quot;&gt;findAllUsersByCaIdNoAuth()&quot;);</span>
+        }
+<span class="nc" id="L580">        final TypedQuery&lt;UserData&gt; query = entityManager.createQuery(&quot;SELECT a FROM UserData a WHERE a.caId=:caId&quot;, UserData.class);</span>
+<span class="nc" id="L581">        query.setParameter(&quot;caId&quot;, caid);</span>
+<span class="nc" id="L582">        final List&lt;UserData&gt; userDataList = query.getResultList();</span>
+<span class="nc" id="L583">        final List&lt;EndEntityInformation&gt; returnval = new ArrayList&lt;EndEntityInformation&gt;(userDataList.size());</span>
+<span class="nc bnc" id="L584" title="All 2 branches missed.">        for (UserData ud : userDataList) {</span>
+<span class="nc" id="L585">            returnval.add(ud.toEndEntityInformation());</span>
+<span class="nc" id="L586">        }</span>
+<span class="nc bnc" id="L587" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L588">            log.trace(&quot;&lt;findAllUsersByCaIdNoAuth()&quot;);</span>
+        }
+<span class="nc" id="L590">        return returnval;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public List&lt;UserData&gt; findByEndEntityProfileId(int endentityprofileid) {
+<span class="nc bnc" id="L596" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L597">            log.trace(&quot;&gt;findByEndEntityProfileId(&quot; + endentityprofileid + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L599">        final TypedQuery&lt;UserData&gt; query = entityManager.createQuery(&quot;SELECT a FROM UserData a WHERE a.endEntityProfileId=:endEntityProfileId&quot;, UserData.class);</span>
+<span class="nc" id="L600">        query.setParameter(&quot;endEntityProfileId&quot;, endentityprofileid);</span>
+<span class="nc" id="L601">        List&lt;UserData&gt; found = query.getResultList();        </span>
+<span class="nc bnc" id="L602" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L603">            log.trace(&quot;&lt;findByEndEntityProfileId(&quot; + endentityprofileid + &quot;), found: &quot; + found.size());</span>
+        }
+<span class="nc" id="L605">        return found;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public List&lt;String&gt; findByCertificateProfileId(int certificateprofileid) {
+<span class="nc bnc" id="L611" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L612">            log.trace(&quot;&gt;checkForCertificateProfileId(&quot;+certificateprofileid+&quot;)&quot;);</span>
+        }
+<span class="nc" id="L614">        final javax.persistence.Query query = entityManager.createQuery(&quot;SELECT a FROM UserData a WHERE a.certificateProfileId=:certificateProfileId&quot;);</span>
+<span class="nc" id="L615">        query.setParameter(&quot;certificateProfileId&quot;, certificateprofileid);</span>
+
+<span class="nc" id="L617">        List&lt;String&gt; result = new ArrayList&lt;String&gt;();</span>
+<span class="nc bnc" id="L618" title="All 2 branches missed.">        for(Object userDataObject : query.getResultList()) {</span>
+<span class="nc" id="L619">                result.add(((UserData) userDataObject).getUsername());</span>
+<span class="nc" id="L620">        }</span>
+<span class="nc bnc" id="L621" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L622">            log.trace(&quot;&lt;checkForCertificateProfileId(&quot;+certificateprofileid+&quot;): &quot;+result.size());</span>
+        }
+<span class="nc" id="L624">        return result;</span>
+        
+    }
+
+    @Override
+    public CertificateWrapper getCertificate(AuthenticationToken authenticationToken, String certSNinHex, String issuerDN)
+            throws AuthorizationDeniedException, CADoesntExistsException, EjbcaException {
+<span class="nc" id="L631">        final String bcString = CertTools.stringToBCDNString(issuerDN);</span>
+<span class="nc" id="L632">        final int caId = bcString.hashCode();</span>
+<span class="nc" id="L633">        caSession.verifyExistenceOfCA(caId);</span>
+<span class="nc" id="L634">        final String[] rules = {StandardRules.CAFUNCTIONALITY.resource()+&quot;/view_certificate&quot;, StandardRules.CAACCESS.resource() + caId};</span>
+<span class="nc bnc" id="L635" title="All 2 branches missed.">        if(!authorizationSession.isAuthorizedNoLogging(authenticationToken, rules)) {</span>
+<span class="nc" id="L636">            final String msg = intres.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, Arrays.toString(rules), null);</span>
+<span class="nc" id="L637">            throw new AuthorizationDeniedException(msg);</span>
+        }
+<span class="nc" id="L639">        final Certificate result = certificateStoreSession.findCertificateByIssuerAndSerno(issuerDN, new BigInteger(certSNinHex,16));</span>
+<span class="nc bnc" id="L640" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L641">            log.debug(&quot;Found certificate for issuer '&quot; + issuerDN + &quot;' and SN &quot; + certSNinHex + &quot; for admin &quot; + authenticationToken.getUniqueId());</span>
+        }
+<span class="nc" id="L643">        return EJBTools.wrap(result);</span>
+    }
+    
+    @Override
+    public Collection&lt;CertificateWrapper&gt; findCertificatesByUsername(final AuthenticationToken authenticationToken, final String username, final boolean onlyValid, final long now)
+            throws AuthorizationDeniedException, CertificateEncodingException {
+<span class="nc bnc" id="L649" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L650">            log.debug( &quot;Find certificates by username requested by &quot; + authenticationToken.getUniqueId());</span>
+        }
+        // Check authorization on current CA and profiles and view_end_entity by looking up the end entity.
+<span class="nc bnc" id="L653" title="All 2 branches missed.">        if (findUser(authenticationToken, username) == null) {</span>
+<span class="nc bnc" id="L654" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L655">                log.debug(intres.getLocalizedMessage(&quot;ra.errorentitynotexist&quot;, username));</span>
+            }
+        }
+        // Even if there is no end entity, it might be the case that we don't store UserData, so we still need to check CertificateData.
+        Collection&lt;CertificateWrapper&gt; searchResults;
+<span class="nc bnc" id="L660" title="All 2 branches missed.">        if (onlyValid) {</span>
+            // We will filter out not yet valid certificates later on, but we as the database to not return any expired certificates
+<span class="nc" id="L662">            searchResults = EJBTools.wrapCertCollection(certificateStoreSession.findCertificatesByUsernameAndStatusAfterExpireDate(username, CertificateConstants.CERT_ACTIVE, now));</span>
+        } else {
+<span class="nc" id="L664">            searchResults = certificateStoreSession.findCertificatesByUsername(username);</span>
+        }
+        // Assume the user may have certificates from more than one CA.
+<span class="nc" id="L667">        Certificate certificate = null;</span>
+<span class="nc" id="L668">        int caId = -1;</span>
+<span class="nc" id="L669">        Boolean authorized = null;</span>
+<span class="nc" id="L670">        final Map&lt;Integer, Boolean&gt; authorizationCache = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L671">        final List&lt;CertificateWrapper&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L672" title="All 2 branches missed.">        for (Object searchResult: searchResults) {</span>
+<span class="nc" id="L673">            certificate = ((CertificateWrapper) searchResult).getCertificate();</span>
+<span class="nc" id="L674">            caId = CertTools.getIssuerDN(certificate).hashCode();</span>
+<span class="nc" id="L675">            authorized = authorizationCache.get(caId);</span>
+<span class="nc bnc" id="L676" title="All 2 branches missed.">            if (authorized == null) {</span>
+<span class="nc" id="L677">                authorized = authorizationSession.isAuthorizedNoLogging(authenticationToken, StandardRules.CAACCESS.resource() + caId);</span>
+<span class="nc" id="L678">                authorizationCache.put(caId, authorized);</span>
+            }
+<span class="nc bnc" id="L680" title="All 2 branches missed.">            if (authorized.booleanValue()) {</span>
+<span class="nc" id="L681">                result.add((CertificateWrapper) searchResult);</span>
+            }
+<span class="nc" id="L683">        }</span>
+<span class="nc bnc" id="L684" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L685">            log.debug( &quot;Found &quot; + result.size() + &quot; certificate(s) by username requested by &quot; + authenticationToken.getUniqueId());</span>
+        }
+<span class="nc" id="L687">        return result;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

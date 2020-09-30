@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApprovalOveradableClassName.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.model.approval</a> &gt; <span class="el_source">ApprovalOveradableClassName.java</span></div><h1>ApprovalOveradableClassName.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.model.approval;
+
+import org.apache.log4j.Logger;
+
+/**
+ * Class used in constants for approvalable methods indicating calling classes/methods
+ * that don't need to go through approvals
+ * 
+ * Contains the full classpath and method na,e
+ * 
+ * @author Philip Vendil
+ * $Id: ApprovalOveradableClassName.java 19901 2014-09-30 14:29:38Z anatom $
+ */
+public class ApprovalOveradableClassName {
+	
+<span class="nc" id="L28">	private static final Logger log = Logger.getLogger(ApprovalOveradableClassName.class);</span>
+	
+<span class="nc" id="L30">	String className = null;</span>
+<span class="nc" id="L31">	String methodName = null;</span>
+	
+	/**
+	 * 
+	 * @param className The full name with packages
+	 * @param methodName the method name/ can be null indicating all methods
+	 */
+	public ApprovalOveradableClassName(String className, String methodName) {
+<span class="nc" id="L39">		super();</span>
+<span class="nc" id="L40">		this.className = className;</span>
+<span class="nc" id="L41">		this.methodName = methodName;</span>
+<span class="nc" id="L42">	}</span>
+
+	/**
+	 * @return The full name with packages
+	 */
+	
+	public String getClassName() {
+<span class="nc" id="L49">		return className;</span>
+	}
+
+	public String getMethodName() {
+<span class="nc" id="L53">		return methodName;</span>
+	}
+	
+	/**
+	 * Method that checks if the current classname / method is in the stacktrace
+	 * @param traces Trace
+	 * @return if the class.method exists in trace
+	 */
+	public boolean isInStackTrace(StackTraceElement[] traces){
+		
+<span class="nc" id="L63">		boolean retval = false;</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">		for(int i=0;i&lt;traces.length;i++){</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">		    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L66">		    	log.debug(&quot;Compare &quot; + className + &quot;.&quot; + methodName + &quot; with &quot; + traces[i].getClassName() + &quot;.&quot; +traces[i].getMethodName() );           </span>
+	        }			
+<span class="nc bnc" id="L68" title="All 2 branches missed.">			if(traces[i].getClassName().equals(className)){</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">				if(methodName != null){</span>
+<span class="nc" id="L70">					retval = traces[i].getMethodName().equals(methodName);</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">					if(retval == true){</span>
+<span class="nc" id="L72">						break;</span>
+					}
+				}else{
+<span class="nc" id="L75">					retval = true;</span>
+<span class="nc" id="L76">					break;					</span>
+				}
+			}
+		}
+		
+		
+<span class="nc bnc" id="L82" title="All 2 branches missed.">	    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L83">	    	log.debug(&quot;Result &quot; + retval);           </span>
+        }	
+		
+<span class="nc" id="L86">		return retval;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

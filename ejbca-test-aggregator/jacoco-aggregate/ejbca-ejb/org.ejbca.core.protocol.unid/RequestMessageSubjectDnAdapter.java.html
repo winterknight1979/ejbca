@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RequestMessageSubjectDnAdapter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.unid</a> &gt; <span class="el_source">RequestMessageSubjectDnAdapter.java</span></div><h1>RequestMessageSubjectDnAdapter.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.protocol.unid;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.cert.Certificate;
+import java.util.Date;
+import java.util.List;
+
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.Extensions;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.cesecore.certificates.certificate.request.RequestMessage;
+import org.cesecore.util.CertTools;
+import org.ejbca.core.protocol.cmp.ICrmfRequestMessage;
+
+/**
+ * Changes the DN in an IRequestMessage
+ * @version $Id: RequestMessageSubjectDnAdapter.java 28536 2018-03-21 11:48:07Z aminkh $
+ *
+ */
+public class RequestMessageSubjectDnAdapter implements ICrmfRequestMessage {
+  
+    private static final long serialVersionUID = -4884813822503768798L;
+
+    private final ICrmfRequestMessage original;
+	private transient X500Name dn;
+
+	private void writeObject(ObjectOutputStream stream) throws IOException {
+<span class="nc" id="L50">		stream.defaultWriteObject();</span>
+<span class="nc" id="L51">		stream.writeObject( this.dn.getEncoded() );</span>
+<span class="nc" id="L52">	}</span>
+	private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
+<span class="nc" id="L54">		stream.defaultReadObject();</span>
+<span class="nc" id="L55">		final byte b[] = (byte[])stream.readObject();</span>
+<span class="nc" id="L56">		this.dn = X500Name.getInstance(b);</span>
+<span class="nc" id="L57">	}</span>
+<span class="fc" id="L58">	RequestMessageSubjectDnAdapter(RequestMessage req, X500Name _dn) {</span>
+<span class="fc" id="L59">		this.original = (ICrmfRequestMessage)req;</span>
+<span class="fc" id="L60">		this.dn = _dn;</span>
+<span class="fc" id="L61">	}</span>
+	@Override
+	public String getUsername() {
+<span class="nc" id="L64">		return this.original.getUsername();</span>
+	}
+	@Override
+	public String getPassword() {
+<span class="nc" id="L68">		return this.original.getPassword();</span>
+	}
+	@Override
+	public String getIssuerDN() {
+<span class="nc" id="L72">		return this.original.getIssuerDN();</span>
+	}
+	@Override
+	public BigInteger getSerialNo() {
+<span class="nc" id="L76">		return this.original.getSerialNo();</span>
+	}
+	@Override
+	public String getRequestDN() {
+<span class="nc" id="L80">		final X500Name name = getRequestX500Name();</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">		if ( name==null ) {</span>
+<span class="nc" id="L82">			return null;</span>
+		}
+<span class="nc" id="L84">		return CertTools.stringToBCDNString(name.toString());</span>
+	}
+	@Override
+	public X500Name getRequestX500Name() {
+<span class="fc" id="L88">	    return this.dn;</span>
+	}
+	@Override
+	public String getRequestAltNames() {
+<span class="nc" id="L92">		return this.original.getRequestAltNames();</span>
+	}
+	@Override
+	public Date getRequestValidityNotBefore() {
+<span class="nc" id="L96">		return this.original.getRequestValidityNotBefore();</span>
+	}
+	@Override
+	public Date getRequestValidityNotAfter() {
+<span class="nc" id="L100">		return this.original.getRequestValidityNotAfter();</span>
+	}
+	@Override
+	public Extensions getRequestExtensions() {
+<span class="nc" id="L104">		return this.original.getRequestExtensions();</span>
+	}
+	@Override
+	public String getCRLIssuerDN() {
+<span class="nc" id="L108">		return this.original.getCRLIssuerDN();</span>
+	}
+	@Override
+	public BigInteger getCRLSerialNo() {
+<span class="nc" id="L112">		return this.original.getCRLSerialNo();</span>
+	}
+	@Override
+	public PublicKey getRequestPublicKey() throws InvalidKeyException,
+			NoSuchAlgorithmException, NoSuchProviderException {
+<span class="nc" id="L117">		return this.original.getRequestPublicKey();</span>
+	}
+	@Override
+	public boolean verify() throws InvalidKeyException,
+			NoSuchAlgorithmException, NoSuchProviderException {
+<span class="nc" id="L122">		return this.original.verify();</span>
+	}
+	@Override
+	public boolean requireKeyInfo() {
+<span class="nc" id="L126">		return this.original.requireKeyInfo();</span>
+	}
+	@Override
+	public void setKeyInfo(Certificate cert, PrivateKey key, String provider) {
+<span class="nc" id="L130">		this.original.setKeyInfo(cert, key, provider);</span>
+<span class="nc" id="L131">	}</span>
+	@Override
+	public int getErrorNo() {
+<span class="nc" id="L134">		return this.original.getErrorNo();</span>
+	}
+	@Override
+	public String getErrorText() {
+<span class="nc" id="L138">		return this.original.getErrorText();</span>
+	}
+	@Override
+	public String getSenderNonce() {
+<span class="nc" id="L142">		return this.original.getSenderNonce();</span>
+	}
+	@Override
+	public String getTransactionId() {
+<span class="nc" id="L146">		return this.original.getTransactionId();</span>
+	}
+	@Override
+	public byte[] getRequestKeyInfo() {
+<span class="nc" id="L150">		return this.original.getRequestKeyInfo();</span>
+	}
+	@Override
+	public String getPreferredDigestAlg() {
+<span class="nc" id="L154">		return this.original.getPreferredDigestAlg();</span>
+	}
+	@Override
+	public boolean includeCACert() {
+<span class="nc" id="L158">		return this.original.includeCACert();</span>
+	}
+	@Override
+	public int getRequestType() {
+<span class="nc" id="L162">		return this.original.getRequestType();</span>
+	}
+	@Override
+	public int getRequestId() {
+<span class="nc" id="L166">		return this.original.getRequestId();</span>
+	}
+	
+    @Override
+    public void setResponseKeyInfo(PrivateKey key, String provider) {
+<span class="nc" id="L171">        this.original.setResponseKeyInfo(key, provider);</span>
+<span class="nc" id="L172">    }</span>
+
+	@Override
+	public int getPbeIterationCount() {
+<span class="nc" id="L176">		return this.original.getPbeIterationCount();</span>
+	}
+	@Override
+	public String getPbeDigestAlg() {
+<span class="nc" id="L180">		return this.original.getPbeDigestAlg();</span>
+	}
+	@Override
+	public String getPbeMacAlg() {
+<span class="nc" id="L184">		return this.original.getPbeMacAlg();</span>
+	}
+	@Override
+	public String getPbeKeyId() {
+<span class="nc" id="L188">		return this.original.getPbeKeyId();</span>
+	}
+	@Override
+	public String getPbeKey() {
+<span class="nc" id="L192">		return this.original.getPbeKey();</span>
+	}
+    @Override
+    public boolean isImplicitConfirm() {
+<span class="nc" id="L196">        return this.original.isImplicitConfirm();</span>
+    }
+    @Override
+    public SubjectPublicKeyInfo getRequestSubjectPublicKeyInfo() {
+<span class="nc" id="L200">        return this.original.getRequestSubjectPublicKeyInfo();</span>
+    }
+    @Override
+    public PublicKey getProtocolEncrKey() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException {
+<span class="nc" id="L204">        return this.original.getProtocolEncrKey();</span>
+    }
+    @Override
+    public void setServerGenKeyPair(KeyPair serverGenKeyPair) {
+<span class="nc" id="L208">        this.original.setServerGenKeyPair(serverGenKeyPair);</span>
+<span class="nc" id="L209">    }</span>
+    @Override
+    public KeyPair getServerGenKeyPair() {
+<span class="nc" id="L212">        return this.original.getServerGenKeyPair();</span>
+    }
+    @Override
+    public List&lt;Certificate&gt; getAdditionalCaCertificates() {
+<span class="nc" id="L216">        return this.original.getAdditionalCaCertificates();</span>
+    }
+    @Override
+    public void setAdditionalCaCertificates(final List&lt;Certificate&gt; certificates) {
+<span class="nc" id="L220">        this.original.setAdditionalCaCertificates(certificates);</span>
+<span class="nc" id="L221">    }</span>
+    @Override
+    public List&lt;Certificate&gt; getAdditionalExtraCertsCertificates() {
+<span class="nc" id="L224">        return original.getAdditionalExtraCertsCertificates();</span>
+    }
+    @Override
+    public void setAdditionalExtraCertsCertificates(List&lt;Certificate&gt; certificates) {
+<span class="nc" id="L228">        this.original.setAdditionalExtraCertsCertificates(certificates);</span>
+<span class="nc" id="L229">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

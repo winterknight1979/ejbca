@@ -42,7 +42,7 @@ import org.ejbca.core.model.approval.profile.ApprovalProfile;
 public class ChangeStatusEndEntityApprovalRequest extends ApprovalRequest {
 
 	private static final long serialVersionUID = -1L;
-<span class="nc" id="L45">	private static final Logger log = Logger.getLogger(ChangeStatusEndEntityApprovalRequest.class);</span>
+<span class="fc" id="L45">	private static final Logger log = Logger.getLogger(ChangeStatusEndEntityApprovalRequest.class);</span>
 	private static final int LATEST_VERSION = 1;
 
 	private String username;
@@ -54,24 +54,24 @@ public class ChangeStatusEndEntityApprovalRequest extends ApprovalRequest {
 
     public ChangeStatusEndEntityApprovalRequest(String username, int oldstatus, int newstatus, AuthenticationToken requestAdmin,
             String requestSignature, int cAId, int endEntityProfileId, ApprovalProfile approvalProfile) {
-<span class="nc" id="L57">        super(requestAdmin, requestSignature, REQUESTTYPE_COMPARING, cAId, endEntityProfileId, approvalProfile);</span>
-<span class="nc" id="L58">		this.username = username;</span>
-<span class="nc" id="L59">		this.oldstatus = oldstatus;</span>
-<span class="nc" id="L60">		this.newstatus = newstatus;</span>
-<span class="nc" id="L61">	}</span>
+<span class="fc" id="L57">        super(requestAdmin, requestSignature, REQUESTTYPE_COMPARING, cAId, endEntityProfileId, approvalProfile);</span>
+<span class="fc" id="L58">		this.username = username;</span>
+<span class="fc" id="L59">		this.oldstatus = oldstatus;</span>
+<span class="fc" id="L60">		this.newstatus = newstatus;</span>
+<span class="fc" id="L61">	}</span>
 
 	/** Overrides ApprovalRequest.isAllowedTransition()
 	 * @see ApprovalRequest#isAllowedTransition()
 	 */
     @Override
 	public boolean isAllowedTransition() {
-<span class="nc" id="L68">		boolean ret = false;</span>
+<span class="fc" id="L68">		boolean ret = false;</span>
 		// Allow Keyrecovery transitions until keyrecovery approvals have been implemented.
-<span class="nc bnc" id="L70" title="All 2 branches missed.">		if(newstatus == EndEntityConstants.STATUS_KEYRECOVERY){</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">		if(newstatus == EndEntityConstants.STATUS_KEYRECOVERY){</span>
 <span class="nc" id="L71">			return true;</span>
 		}
-<span class="nc bnc" id="L73" title="All 2 branches missed.">		if (oldstatus == EndEntityConstants.STATUS_GENERATED) {</span>
-<span class="nc bnc" id="L74" title="All 2 branches missed.">			switch (newstatus) {</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">		if (oldstatus == EndEntityConstants.STATUS_GENERATED) {</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">			switch (newstatus) {</span>
 			case EndEntityConstants.STATUS_GENERATED:
 <span class="nc" id="L76">				ret = true;</span>
 <span class="nc" id="L77">				break;</span>
@@ -79,14 +79,14 @@ public class ChangeStatusEndEntityApprovalRequest extends ApprovalRequest {
 				break;
 			}			
 		}
-<span class="nc bnc" id="L82" title="All 2 branches missed.">		if (oldstatus == EndEntityConstants.STATUS_NEW) {</span>
-<span class="nc bnc" id="L83" title="All 5 branches missed.">			switch (newstatus) {</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">		if (oldstatus == EndEntityConstants.STATUS_NEW) {</span>
+<span class="pc bpc" id="L83" title="4 of 5 branches missed.">			switch (newstatus) {</span>
 			case EndEntityConstants.STATUS_NEW:
 <span class="nc" id="L85">				ret = true;</span>
 <span class="nc" id="L86">				break;</span>
 			case EndEntityConstants.STATUS_INPROCESS:
-<span class="nc" id="L88">				ret = true;</span>
-<span class="nc" id="L89">				break;</span>
+<span class="fc" id="L88">				ret = true;</span>
+<span class="fc" id="L89">				break;</span>
 			case EndEntityConstants.STATUS_GENERATED:
 <span class="nc" id="L91">				ret = true;</span>
 <span class="nc" id="L92">				break;</span>
@@ -97,7 +97,7 @@ public class ChangeStatusEndEntityApprovalRequest extends ApprovalRequest {
 				break;
 			}			
 		}
-<span class="nc bnc" id="L100" title="All 2 branches missed.">		if (oldstatus == EndEntityConstants.STATUS_FAILED) {</span>
+<span class="pc bpc" id="L100" title="1 of 2 branches missed.">		if (oldstatus == EndEntityConstants.STATUS_FAILED) {</span>
 <span class="nc bnc" id="L101" title="All 4 branches missed.">			switch (newstatus) {</span>
 			case EndEntityConstants.STATUS_FAILED:
 <span class="nc" id="L103">				ret = true;</span>
@@ -112,22 +112,22 @@ public class ChangeStatusEndEntityApprovalRequest extends ApprovalRequest {
 				break;
 			}			
 		}
-<span class="nc bnc" id="L115" title="All 2 branches missed.">		if (oldstatus == EndEntityConstants.STATUS_INPROCESS) {</span>
-<span class="nc bnc" id="L116" title="All 4 branches missed.">			switch (newstatus) {</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">		if (oldstatus == EndEntityConstants.STATUS_INPROCESS) {</span>
+<span class="pc bpc" id="L116" title="2 of 4 branches missed.">			switch (newstatus) {</span>
 			case EndEntityConstants.STATUS_INPROCESS:
 <span class="nc" id="L118">				ret = true;</span>
 <span class="nc" id="L119">				break;</span>
 			case EndEntityConstants.STATUS_GENERATED:
-<span class="nc" id="L121">				ret = true;</span>
-<span class="nc" id="L122">				break;</span>
+<span class="fc" id="L121">				ret = true;</span>
+<span class="fc" id="L122">				break;</span>
 			case EndEntityConstants.STATUS_FAILED:
-<span class="nc" id="L124">				ret = true;</span>
-<span class="nc" id="L125">				break;</span>
+<span class="fc" id="L124">				ret = true;</span>
+<span class="fc" id="L125">				break;</span>
 			default:
 				break;
 			}			
 		}
-<span class="nc bnc" id="L130" title="All 2 branches missed.">		if (oldstatus == EndEntityConstants.STATUS_KEYRECOVERY) {</span>
+<span class="pc bpc" id="L130" title="1 of 2 branches missed.">		if (oldstatus == EndEntityConstants.STATUS_KEYRECOVERY) {</span>
 <span class="nc bnc" id="L131" title="All 5 branches missed.">			switch (newstatus) {</span>
 			case EndEntityConstants.STATUS_KEYRECOVERY:
 <span class="nc" id="L133">				ret = true;</span>
@@ -145,7 +145,7 @@ public class ChangeStatusEndEntityApprovalRequest extends ApprovalRequest {
 				break;
 			}			
 		}
-<span class="nc" id="L148">		return ret;</span>
+<span class="fc" id="L148">		return ret;</span>
 	}
 
 	@Override

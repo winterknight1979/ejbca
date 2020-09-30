@@ -274,11 +274,11 @@ public class InternalResources implements Serializable {
 <span class="fc" id="L274">            final int placeHolderLength = placeHolder.length();</span>
 <span class="fc" id="L275">            int currentIndex = -placeHolderLength;</span>
 <span class="fc" id="L276">            boolean someThingRemoved = false;</span>
-<span class="pc bpc" id="L277" title="1 of 2 branches missed.">            while ((currentIndex=sb.indexOf(placeHolder, currentIndex+placeHolderLength))!=-1) {</span>
-<span class="nc" id="L278">                sb.delete(currentIndex-1, currentIndex+placeHolderLength);</span>
-<span class="nc" id="L279">                someThingRemoved = true;</span>
+<span class="fc bfc" id="L277" title="All 2 branches covered.">            while ((currentIndex=sb.indexOf(placeHolder, currentIndex+placeHolderLength))!=-1) {</span>
+<span class="fc" id="L278">                sb.delete(currentIndex-1, currentIndex+placeHolderLength);</span>
+<span class="fc" id="L279">                someThingRemoved = true;</span>
             }
-<span class="pc bpc" id="L281" title="1 of 2 branches missed.">            if (!someThingRemoved) {</span>
+<span class="fc bfc" id="L281" title="All 2 branches covered.">            if (!someThingRemoved) {</span>
                 // If a place holder with the current number didn't exist, we assume that the ones with higher doesn't either..
 <span class="fc" id="L283">                break;</span>
             }

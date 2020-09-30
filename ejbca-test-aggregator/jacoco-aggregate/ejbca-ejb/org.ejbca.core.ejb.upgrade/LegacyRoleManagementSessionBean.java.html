@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>LegacyRoleManagementSessionBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.upgrade</a> &gt; <span class="el_source">LegacyRoleManagementSessionBean.java</span></div><h1>LegacyRoleManagementSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.ejb.upgrade;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+
+import org.apache.log4j.Logger;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.enums.EventTypes;
+import org.cesecore.audit.enums.ModuleTypes;
+import org.cesecore.audit.enums.ServiceTypes;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.X509CertificateAuthenticationTokenMetaData;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.authorization.rules.AccessRuleData;
+import org.cesecore.authorization.rules.AccessRuleState;
+import org.cesecore.authorization.user.AccessMatchType;
+import org.cesecore.authorization.user.AccessUserAspectData;
+import org.cesecore.authorization.user.matchvalues.AccessMatchValue;
+import org.cesecore.authorization.user.matchvalues.AccessMatchValueReverseLookupRegistry;
+import org.cesecore.certificates.endentity.EndEntityConstants;
+import org.cesecore.config.CesecoreConfiguration;
+import org.cesecore.internal.InternalResources;
+import org.cesecore.roles.AdminGroupData;
+import org.cesecore.roles.RoleExistsException;
+import org.cesecore.util.ProfileID;
+import org.cesecore.util.QueryResultWrapper;
+import org.ejbca.config.EjbcaConfiguration;
+import org.ejbca.core.ejb.authentication.cli.CliUserAccessMatchValue;
+import org.ejbca.core.ejb.authorization.AuthorizationSystemSession;
+import org.ejbca.core.ejb.ra.UserData;
+
+/**
+ * Implementation of the legacy role management needed by upgrade.
+ * 
+ * @deprecated since EJBCA 6.8.0
+ * @version $Id: LegacyRoleManagementSessionBean.java 27422 2017-12-05 14:05:42Z bastianf $
+ */
+@Deprecated
+@Stateless
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L66">public class LegacyRoleManagementSessionBean implements LegacyRoleManagementSessionLocal {</span>
+
+<span class="nc" id="L68">    private static final Logger log = Logger.getLogger(LegacyRoleManagementSessionBean.class);</span>
+<span class="nc" id="L69">    private static final InternalResources INTERNAL_RESOURCES = InternalResources.getInstance();</span>
+
+    @EJB
+    private SecurityEventsLoggerSessionLocal securityEventsLogger;
+
+    @PersistenceContext(unitName = CesecoreConfiguration.PERSISTENCE_UNIT)
+    private EntityManager entityManager;
+
+    @Override
+    public AdminGroupData create(AuthenticationToken authenticationToken, String roleName) throws RoleExistsException {
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        if (getRole(roleName) == null) {</span>
+<span class="nc" id="L80">            AdminGroupData role = new AdminGroupData(findFreeRoleId(), roleName);</span>
+<span class="nc" id="L81">            entityManager.persist(role);</span>
+<span class="nc" id="L82">            final String msg = INTERNAL_RESOURCES.getLocalizedMessage(&quot;authorization.roleadded&quot;, roleName);</span>
+<span class="nc" id="L83">            securityEventsLogger.log(EventTypes.ROLE_CREATION, EventStatus.SUCCESS, ModuleTypes.ROLES, ServiceTypes.CORE,</span>
+<span class="nc" id="L84">                    authenticationToken.toString(), null, null, null, msg);</span>
+<span class="nc" id="L85">            return role;</span>
+        } else {
+<span class="nc" id="L87">            final String msg = INTERNAL_RESOURCES.getLocalizedMessage(&quot;authorization.erroraddroleexists&quot;, roleName);</span>
+<span class="nc" id="L88">            securityEventsLogger.log(EventTypes.ROLE_CREATION, EventStatus.FAILURE, ModuleTypes.ROLES, ServiceTypes.CORE,</span>
+<span class="nc" id="L89">                    authenticationToken.toString(), null, null, null, msg);</span>
+<span class="nc" id="L90">            throw new RoleExistsException(msg);</span>
+        }
+    }
+
+    private Integer findFreeRoleId() {
+<span class="nc" id="L95">        final ProfileID.DB db = new ProfileID.DB() {</span>
+            @Override
+            public boolean isFree(int i) {
+<span class="nc bnc" id="L98" title="All 2 branches missed.">                return entityManager.find(AdminGroupData.class, i)==null;</span>
+            }
+        };
+<span class="nc" id="L101">        return Integer.valueOf(ProfileID.getNotUsedID(db));</span>
+    }
+
+    @Override
+    public void addAccessRuleDataToRolesWhenAccessIsImplied(final AuthenticationToken authenticationToken, final String skipWhenRecursiveAccessTo,
+            final List&lt;String&gt; requiredAccessRules, final List&lt;String&gt; grantedAccessRules, final boolean grantedAccessRecursive) {
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        for (final AdminGroupData role : getAllRoles()) {</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">            if (role.hasAccessToRule(skipWhenRecursiveAccessTo, true)) {</span>
+                // No need to grant extra privileges to if the specified recursive access is granted to the current role
+<span class="nc" id="L110">                continue;</span>
+            }
+<span class="nc" id="L112">            boolean allGranted = true;</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">            for (final String requiredAccess : requiredAccessRules) {</span>
+                // If a rule will be granted, we don't require access to it just as the legacy code
+<span class="nc bnc" id="L115" title="All 4 branches missed.">                if (!grantedAccessRules.contains(requiredAccess) &amp;&amp; !role.hasAccessToRule(requiredAccess)) {</span>
+<span class="nc" id="L116">                    allGranted = false;</span>
+<span class="nc" id="L117">                    break;</span>
+                }
+<span class="nc" id="L119">            }</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">            if (allGranted) {</span>
+<span class="nc" id="L121">                final List&lt;AccessRuleData&gt; accessRuleDatas = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">                for (final String grantedResource : grantedAccessRules) {</span>
+<span class="nc" id="L123">                    accessRuleDatas.add(new AccessRuleData(role.getRoleName(), grantedResource, AccessRuleState.RULE_ACCEPT, grantedAccessRecursive));</span>
+<span class="nc" id="L124">                }</span>
+<span class="nc" id="L125">                addAccessRulesToRole(authenticationToken, role, accessRuleDatas);</span>
+            }
+<span class="nc" id="L127">        }</span>
+<span class="nc" id="L128">    }</span>
+
+    @Override
+    public AdminGroupData addAccessRulesToRole(AuthenticationToken authenticationToken, final AdminGroupData adminGroupData, final Collection&lt;AccessRuleData&gt; accessRules) {
+        AdminGroupData result;
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        if (!entityManager.contains(adminGroupData)) {</span>
+<span class="nc" id="L134">            result = entityManager.find(AdminGroupData.class, adminGroupData.getPrimaryKey());</span>
+        } else {
+<span class="nc" id="L136">            result = adminGroupData;</span>
+        }
+<span class="nc" id="L138">        Map&lt;Integer, AccessRuleData&gt; rules = result.getAccessRules();</span>
+<span class="nc" id="L139">        Collection&lt;AccessRuleData&gt; rulesAdded = new ArrayList&lt;AccessRuleData&gt;();</span>
+<span class="nc" id="L140">        Collection&lt;AccessRuleData&gt; rulesMerged = new ArrayList&lt;AccessRuleData&gt;();</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">        for (AccessRuleData accessRule : accessRules) {</span>
+            // If this rule isn't persisted, persist it.
+<span class="nc bnc" id="L143" title="All 2 branches missed.">            if (entityManager.find(AccessRuleData.class, accessRule.getPrimaryKey()) == null) {</span>
+<span class="nc" id="L144">                entityManager.persist(accessRule);</span>
+<span class="nc" id="L145">                rulesAdded.add(accessRule);</span>
+            }
+            // If the rule exists, then merely update its values.
+<span class="nc bnc" id="L148" title="All 2 branches missed.">            if (rules.containsKey(accessRule.getPrimaryKey())) {</span>
+<span class="nc" id="L149">                rules.remove(accessRule.getPrimaryKey());</span>
+<span class="nc" id="L150">                accessRule = setAccessRuleDataState(accessRule, accessRule.getInternalState(), accessRule.getRecursive());</span>
+<span class="nc" id="L151">                rulesMerged.add(accessRule);</span>
+            }
+<span class="nc" id="L153">            rules.put(accessRule.getPrimaryKey(), accessRule);</span>
+<span class="nc" id="L154">        }</span>
+<span class="nc" id="L155">        result.setAccessRules(rules);</span>
+<span class="nc" id="L156">        result = entityManager.merge(result);</span>
+<span class="nc" id="L157">        logAccessRulesAdded(authenticationToken, adminGroupData.getRoleName(), rulesAdded);</span>
+<span class="nc" id="L158">        return result;</span>
+    }
+
+    @Override
+    public AdminGroupData addSubjectsToRole(AuthenticationToken authenticationToken, final AdminGroupData adminGroupData, Collection&lt;AccessUserAspectData&gt; accessUserAspectDatas) {
+        final AdminGroupData role;
+<span class="nc bnc" id="L164" title="All 2 branches missed.">        if (!entityManager.contains(adminGroupData)) {</span>
+<span class="nc" id="L165">            role = entityManager.find(AdminGroupData.class, adminGroupData.getPrimaryKey());</span>
+        } else {
+<span class="nc" id="L167">            role = adminGroupData;</span>
+        }
+<span class="nc" id="L169">        Map&lt;Integer, AccessUserAspectData&gt; existingUsers = role.getAccessUsers();</span>
+<span class="nc" id="L170">        final StringBuilder subjectsAdded = new StringBuilder();</span>
+<span class="nc" id="L171">        final StringBuilder subjectsChanged = new StringBuilder();</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">        for (AccessUserAspectData accessUserAspectData : accessUserAspectDatas) {</span>
+<span class="nc" id="L173">            AccessUserAspectData legacyVersion = getAccessUserAspectData(accessUserAspectData.getLegacyPrimaryKey());</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">            if (legacyVersion != null) {</span>
+                //If an aspect exists using the old primary key, remove it so that we can replace it with the new one.
+<span class="nc" id="L176">                entityManager.remove(legacyVersion);</span>
+            }
+<span class="nc bnc" id="L178" title="All 2 branches missed.">            if (getAccessUserAspectData(accessUserAspectData.getPrimaryKey()) == null) {</span>
+                // if userAspect hasn't been persisted, do so.
+<span class="nc" id="L180">                entityManager.persist(accessUserAspectData);</span>
+            }
+<span class="nc bnc" id="L182" title="All 2 branches missed.">            if (existingUsers.containsKey(accessUserAspectData.getPrimaryKey())) {</span>
+<span class="nc" id="L183">                existingUsers.remove(accessUserAspectData.getPrimaryKey());</span>
+<span class="nc" id="L184">                subjectsChanged.append(&quot;[&quot; + accessUserAspectData.toString() + &quot;]&quot;);</span>
+            } else {
+<span class="nc" id="L186">                subjectsAdded.append(&quot;[&quot; + accessUserAspectData.toString() + &quot;]&quot;);</span>
+            }
+<span class="nc" id="L188">            existingUsers.put(accessUserAspectData.getPrimaryKey(), accessUserAspectData);</span>
+<span class="nc" id="L189">        }</span>
+<span class="nc" id="L190">        role.setAccessUsers(existingUsers);</span>
+<span class="nc" id="L191">        AdminGroupData result = entityManager.merge(role);</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">        if (subjectsAdded.length() &gt; 0) {</span>
+<span class="nc" id="L193">            final String msg = INTERNAL_RESOURCES.getLocalizedMessage(&quot;authorization.adminadded&quot;, subjectsAdded, role.getRoleName());</span>
+<span class="nc" id="L194">            securityEventsLogger.log(EventTypes.ROLE_ACCESS_USER_ADDITION, EventStatus.SUCCESS, ModuleTypes.ROLES, ServiceTypes.CORE,</span>
+<span class="nc" id="L195">                    authenticationToken.toString(), null, null, null, msg);</span>
+        }
+<span class="nc bnc" id="L197" title="All 2 branches missed.">        if (subjectsChanged.length() &gt; 0) {</span>
+<span class="nc" id="L198">            final String msg = INTERNAL_RESOURCES.getLocalizedMessage(&quot;authorization.adminchanged&quot;, subjectsChanged, role.getRoleName());</span>
+<span class="nc" id="L199">            securityEventsLogger.log(EventTypes.ROLE_ACCESS_USER_CHANGE, EventStatus.SUCCESS, ModuleTypes.ROLES, ServiceTypes.CORE,</span>
+<span class="nc" id="L200">                    authenticationToken.toString(), null, null, null, msg);</span>
+        }
+<span class="nc" id="L202">        return result;</span>
+    }
+    
+    /** Finds an AccessUserAspectData by its primary key. A primary key can be generated statically from AccessUserAspectData. 
+     * @param primaryKey PK
+     * @return Acccess */
+    private AccessUserAspectData getAccessUserAspectData(final int primaryKey) {
+<span class="nc" id="L209">        return entityManager.find(AccessUserAspectData.class, primaryKey);</span>
+    }
+
+    private void logAccessRulesAdded(AuthenticationToken authenticationToken, String rolename, Collection&lt;AccessRuleData&gt; addedRules) {
+<span class="nc bnc" id="L213" title="All 2 branches missed.">        if (addedRules.size() &gt; 0) {</span>
+<span class="nc" id="L214">            StringBuilder addedRulesMsg = new StringBuilder();</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">            for(AccessRuleData addedRule : addedRules) {</span>
+<span class="nc" id="L216">                addedRulesMsg.append(&quot;[&quot; + addedRule.toString() + &quot;]&quot;);</span>
+<span class="nc" id="L217">            }            </span>
+<span class="nc" id="L218">            final String msg = INTERNAL_RESOURCES.getLocalizedMessage(&quot;authorization.accessrulesadded&quot;, rolename, addedRulesMsg);</span>
+<span class="nc" id="L219">            Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L220">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L221">            securityEventsLogger.log(EventTypes.ROLE_ACCESS_RULE_ADDITION, EventStatus.SUCCESS, ModuleTypes.ROLES, ServiceTypes.CORE,</span>
+<span class="nc" id="L222">                    authenticationToken.toString(), null, null, null, details);</span>
+        }
+<span class="nc" id="L224">    }</span>
+
+    private void removeAccessRuleDatas(Collection&lt;AccessRuleData&gt; accessRules) {
+<span class="nc bnc" id="L227" title="All 2 branches missed.">        for (final AccessRuleData accessRule : accessRules) {</span>
+<span class="nc" id="L228">            entityManager.remove(getAccessRuleDataManaged(accessRule));</span>
+<span class="nc" id="L229">        }</span>
+<span class="nc" id="L230">    }</span>
+
+    private AccessRuleData getAccessRuleDataManaged(final AccessRuleData accessRuleData) {
+<span class="nc bnc" id="L233" title="All 2 branches missed.">        if (entityManager.contains(accessRuleData)) {</span>
+            // If this was already managed, assume that rowVersion is proper
+<span class="nc" id="L235">            return accessRuleData;</span>
+        }
+<span class="nc" id="L237">        return entityManager.find(AccessRuleData.class, accessRuleData.getPrimaryKey());</span>
+    }
+
+    private AccessRuleData setAccessRuleDataState(final AccessRuleData rule, final AccessRuleState state, boolean isRecursive) {
+<span class="nc" id="L241">        AccessRuleData result = getAccessRuleDataManaged(rule);</span>
+<span class="nc" id="L242">        result.setInternalState(state);</span>
+<span class="nc" id="L243">        result.setRecursive(isRecursive);</span>
+<span class="nc" id="L244">        return result;</span>
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public List&lt;AdminGroupData&gt; getAllRoles() {
+<span class="nc" id="L250">        final List&lt;AdminGroupData&gt; allRoles = entityManager.createQuery(&quot;SELECT a FROM AdminGroupData a&quot;, AdminGroupData.class).getResultList();</span>
+<span class="nc bnc" id="L251" title="All 2 branches missed.">        return allRoles != null ? allRoles : new ArrayList&lt;AdminGroupData&gt;();</span>
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public AdminGroupData getRole(final String roleName) {
+<span class="nc" id="L257">        final TypedQuery&lt;AdminGroupData&gt; query = entityManager.createQuery(&quot;SELECT a FROM AdminGroupData a WHERE a.roleName=:roleName&quot;, AdminGroupData.class);</span>
+<span class="nc" id="L258">        query.setParameter(&quot;roleName&quot;, roleName);</span>
+<span class="nc" id="L259">        return QueryResultWrapper.getSingleResult(query);</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Override
+    public void createSuperAdministrator() {
+<span class="nc" id="L265">        final String TEMPORARY_SUPERADMIN_ROLE = &quot;Temporary Super Administrator Group&quot;;</span>
+<span class="nc" id="L266">        final String SUPERADMIN_ROLE = AuthorizationSystemSession.SUPERADMIN_ROLE;</span>
+        // Create the Super Admin
+<span class="nc" id="L268">        AdminGroupData role = getRole(SUPERADMIN_ROLE);</span>
+<span class="nc bnc" id="L269" title="All 2 branches missed.">        if (role == null) {</span>
+<span class="nc" id="L270">            log.debug(&quot;Creating new role '&quot; + SUPERADMIN_ROLE + &quot;'.&quot;);</span>
+<span class="nc" id="L271">            role = new AdminGroupData(1, SUPERADMIN_ROLE);</span>
+<span class="nc" id="L272">            entityManager.persist(role);</span>
+        } else {
+<span class="nc" id="L274">            log.debug(&quot;'&quot; + SUPERADMIN_ROLE + &quot;' already exists, not creating new.&quot;);            </span>
+        }
+<span class="nc" id="L276">        AccessRuleData rule = new AccessRuleData(SUPERADMIN_ROLE, StandardRules.ROLE_ROOT.resource(), AccessRuleState.RULE_ACCEPT, true);</span>
+<span class="nc bnc" id="L277" title="All 2 branches missed.">        if (!role.getAccessRules().containsKey(rule.getPrimaryKey())) {</span>
+<span class="nc" id="L278">            log.debug(&quot;Adding new rule '/' to &quot; + SUPERADMIN_ROLE + &quot;.&quot;);</span>
+<span class="nc" id="L279">            Map&lt;Integer, AccessRuleData&gt; newrules = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L280">            newrules.put(rule.getPrimaryKey(), rule);</span>
+<span class="nc" id="L281">            role.setAccessRules(newrules);</span>
+<span class="nc" id="L282">        } else {</span>
+<span class="nc" id="L283">            log.debug(&quot;rule '/' already exists in &quot; + SUPERADMIN_ROLE + &quot;.&quot;);</span>
+        }
+        // Pick up the aspects from the old temp. super admin group and add them to the new one.
+<span class="nc" id="L286">        Map&lt;Integer, AccessUserAspectData&gt; newUsers = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L287">        AdminGroupData oldSuperAdminRole = getRole(TEMPORARY_SUPERADMIN_ROLE);</span>
+<span class="nc bnc" id="L288" title="All 2 branches missed.">        if (oldSuperAdminRole != null) {</span>
+<span class="nc" id="L289">            Map&lt;Integer, AccessUserAspectData&gt; oldSuperAdminAspects = oldSuperAdminRole.getAccessUsers();</span>
+<span class="nc" id="L290">            Map&lt;Integer, AccessUserAspectData&gt; existingSuperAdminAspects = role.getAccessUsers();</span>
+<span class="nc bnc" id="L291" title="All 2 branches missed.">            for (AccessUserAspectData aspect : oldSuperAdminAspects.values()) {</span>
+<span class="nc" id="L292">                AccessMatchValue matchWith = AccessMatchValueReverseLookupRegistry.INSTANCE.performReverseLookup(</span>
+<span class="nc" id="L293">                        X509CertificateAuthenticationTokenMetaData.TOKEN_TYPE, aspect.getMatchWith());</span>
+<span class="nc" id="L294">                AccessUserAspectData superAdminUserAspect = new AccessUserAspectData(SUPERADMIN_ROLE, aspect.getCaId(), matchWith,</span>
+<span class="nc" id="L295">                        aspect.getMatchTypeAsType(), aspect.getMatchValue());</span>
+<span class="nc bnc" id="L296" title="All 2 branches missed.">                if (existingSuperAdminAspects.containsKey(superAdminUserAspect.getPrimaryKey())) {</span>
+<span class="nc" id="L297">                    log.debug(SUPERADMIN_ROLE + &quot; already contains aspect matching &quot; + aspect.getMatchValue() + &quot; for CA with ID &quot; + aspect.getCaId());</span>
+                } else {
+<span class="nc" id="L299">                    newUsers.put(superAdminUserAspect.getPrimaryKey(), superAdminUserAspect);</span>
+                }
+<span class="nc" id="L301">            }</span>
+        }
+        // Create the CLI Default User
+<span class="nc" id="L304">        Map&lt;Integer, AccessUserAspectData&gt; users = role.getAccessUsers();</span>
+<span class="nc" id="L305">        AccessUserAspectData defaultCliUserAspect = new AccessUserAspectData(SUPERADMIN_ROLE, 0, CliUserAccessMatchValue.USERNAME,</span>
+<span class="nc" id="L306">                AccessMatchType.TYPE_EQUALCASE, EjbcaConfiguration.getCliDefaultUser());</span>
+<span class="nc bnc" id="L307" title="All 2 branches missed.">        if (!users.containsKey(defaultCliUserAspect.getPrimaryKey())) {</span>
+<span class="nc" id="L308">            log.debug(&quot;Adding new AccessUserAspect '&quot;+EjbcaConfiguration.getCliDefaultUser()+&quot;' to &quot; + SUPERADMIN_ROLE + &quot;.&quot;);</span>
+<span class="nc" id="L309">            newUsers.put(defaultCliUserAspect.getPrimaryKey(), defaultCliUserAspect);</span>
+<span class="nc" id="L310">            UserData defaultCliUserData = new UserData(EjbcaConfiguration.getCliDefaultUser(), EjbcaConfiguration.getCliDefaultPassword(), false, &quot;UID=&quot;</span>
+<span class="nc" id="L311">                    + EjbcaConfiguration.getCliDefaultUser(), 0, null, null, null, 0, EndEntityConstants.EMPTY_END_ENTITY_PROFILE, 0, 0, 0, null);</span>
+<span class="nc" id="L312">            defaultCliUserData.setStatus(EndEntityConstants.STATUS_GENERATED);</span>
+<span class="nc bnc" id="L313" title="All 2 branches missed.">            if (entityManager.find(UserData.class, defaultCliUserData.getUsername())==null) {</span>
+<span class="nc" id="L314">                entityManager.persist(defaultCliUserData);</span>
+            }
+<span class="nc" id="L316">        } else {</span>
+<span class="nc" id="L317">            log.debug(&quot;AccessUserAspect '&quot;+EjbcaConfiguration.getCliDefaultUser()+&quot;' already exists in &quot; + SUPERADMIN_ROLE + &quot;.&quot;);            </span>
+        }
+        // Add all created aspects to role
+<span class="nc" id="L320">        role.setAccessUsers(newUsers);</span>
+<span class="nc" id="L321">    }</span>
+
+    @Override
+    public void setTokenTypeWhenNull(final AuthenticationToken authenticationToken) {
+<span class="nc bnc" id="L325" title="All 2 branches missed.">        for (final AdminGroupData role : getAllRoles()) {</span>
+<span class="nc" id="L326">            final Collection&lt;AccessUserAspectData&gt; updatedUsers = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L327" title="All 2 branches missed.">            for (AccessUserAspectData userAspect : role.getAccessUsers().values()) {</span>
+<span class="nc bnc" id="L328" title="All 2 branches missed.">                if (userAspect.getTokenType() == null) {</span>
+<span class="nc" id="L329">                    userAspect.setTokenType(X509CertificateAuthenticationTokenMetaData.TOKEN_TYPE);</span>
+<span class="nc" id="L330">                    updatedUsers.add(userAspect);</span>
+                }
+<span class="nc" id="L332">            }</span>
+<span class="nc" id="L333">            addSubjectsToRole(authenticationToken, role, updatedUsers);</span>
+<span class="nc" id="L334">        }</span>
+<span class="nc" id="L335">    }</span>
+
+    @Override
+    public void deleteRole(AuthenticationToken authenticationToken, String roleName) {
+<span class="nc" id="L339">        final AdminGroupData role = getRole(roleName);</span>
+<span class="nc bnc" id="L340" title="All 2 branches missed.">        if (role != null) {</span>
+<span class="nc" id="L341">            deleteRole(authenticationToken, role);</span>
+        }
+<span class="nc" id="L343">    }</span>
+
+    @Override
+    public void deleteAllRoles(final AuthenticationToken authenticationToken) {
+<span class="nc bnc" id="L347" title="All 2 branches missed.">        for (final AdminGroupData role : getAllRoles()) {</span>
+<span class="nc" id="L348">            deleteRole(authenticationToken, role);</span>
+<span class="nc" id="L349">        }</span>
+<span class="nc" id="L350">    }</span>
+
+    private void deleteRole(final AuthenticationToken authenticationToken, final AdminGroupData role) {
+<span class="nc bnc" id="L353" title="All 2 branches missed.">        for (AccessUserAspectData userAspect : role.getAccessUsers().values()) {</span>
+<span class="nc" id="L354">            entityManager.remove(userAspect);</span>
+<span class="nc" id="L355">        }</span>
+<span class="nc" id="L356">        removeAccessRuleDatas(role.getAccessRules().values());</span>
+<span class="nc" id="L357">        entityManager.remove(role);</span>
+<span class="nc" id="L358">        final String msg = INTERNAL_RESOURCES.getLocalizedMessage(&quot;authorization.roleremoved&quot;, role.getRoleName());</span>
+<span class="nc" id="L359">        securityEventsLogger.log(EventTypes.ROLE_DELETION, EventStatus.SUCCESS, ModuleTypes.ROLES, ServiceTypes.CORE,</span>
+<span class="nc" id="L360">                authenticationToken.toString(), null, null, null, msg);</span>
+<span class="nc" id="L361">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

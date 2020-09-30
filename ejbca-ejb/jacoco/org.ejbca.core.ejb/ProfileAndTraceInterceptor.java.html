@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProfileAndTraceInterceptor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb</a> &gt; <span class="el_source">ProfileAndTraceInterceptor.java</span></div><h1>ProfileAndTraceInterceptor.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.ejb;
+
+import java.util.Arrays;
+
+import javax.interceptor.AroundInvoke;
+import javax.interceptor.InvocationContext;
+
+import org.apache.log4j.Logger;
+
+/**
+ * EJB Interceptor that is normally enabled for all EJBs when EJBCA is running in non-production mode.
+ * 
+ * The Interceptor will perform two tasks when active:
+ * - Trace log all EJB invocations including input and output if Log4J trace-logging is enabled for the invoked methods EJB.
+ * - Collect profiling statistics for all EJB invocations if Log4J debug is enabled for this class.
+ * 
+ * @version $Id: ProfileAndTraceInterceptor.java 29553 2018-08-03 07:46:04Z samuellb $
+ */
+<span class="nc" id="L31">public class ProfileAndTraceInterceptor {</span>
+
+<span class="nc" id="L33">    private static final Logger log = Logger.getLogger(ProfileAndTraceInterceptor.class);</span>
+    
+    @AroundInvoke
+    public Object logger(final InvocationContext invocationContext) throws Exception {
+<span class="nc bnc" id="L37" title="All 2 branches missed.">        if (!log.isDebugEnabled()) {</span>
+<span class="nc" id="L38">            return invocationContext.proceed();</span>
+        }
+<span class="nc" id="L40">        long invocationStartTime = 0;</span>
+<span class="nc" id="L41">        final String targetMethodName = invocationContext.getMethod().getName();</span>
+<span class="nc" id="L42">        final Class&lt;?&gt; targetMethodClass = invocationContext.getTarget().getClass();</span>
+<span class="nc" id="L43">        final Logger targetLogger = Logger.getLogger(targetMethodClass);</span>
+<span class="nc" id="L44">        invocationStartTime = System.nanoTime();</span>
+<span class="nc bnc" id="L45" title="All 2 branches missed.">        if (targetLogger.isTraceEnabled()) {</span>
+<span class="nc" id="L46">            StringBuilder sb = new StringBuilder(&quot;(&quot;);</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">            for (Object obj : invocationContext.getParameters()) {</span>
+<span class="nc bnc" id="L48" title="All 2 branches missed.">                if (sb.length() &gt; 1) {</span>
+<span class="nc" id="L49">                    sb.append(&quot;; &quot;);</span>
+                }
+<span class="nc bnc" id="L51" title="All 2 branches missed.">                if (obj instanceof Object[]) {</span>
+                    // We want to print all arguments, which are stored as an array in the array, 
+                    // and not just the object like [Ljava.lang.String;@2dd07417]
+<span class="nc" id="L54">                    sb.append(Arrays.toString((Object[])obj));</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">                } else if (obj != null) {</span>
+<span class="nc" id="L56">                    sb.append(obj.toString());                    </span>
+                } else {
+<span class="nc" id="L58">                    sb.append(&quot;null&quot;);</span>
+                }
+            }    
+<span class="nc" id="L61">            sb.append(&quot;)&quot;);</span>
+<span class="nc" id="L62">            targetLogger.trace(&quot;&gt;&quot; + targetMethodName + sb.toString());</span>
+        }
+<span class="nc" id="L64">        Object returnValue = null;</span>
+<span class="nc" id="L65">        Exception returnException = null; </span>
+        try {
+<span class="nc" id="L67">            returnValue = invocationContext.proceed();</span>
+<span class="nc" id="L68">        } catch (Exception e) {</span>
+<span class="nc" id="L69">            returnException = e;</span>
+<span class="nc" id="L70">            throw e;</span>
+        } finally {
+<span class="nc" id="L72">            long invocationDuration = -1;</span>
+<span class="nc" id="L73">            invocationDuration = (System.nanoTime() - invocationStartTime) / 1000;</span>
+<span class="nc" id="L74">            final String fullTargetIdentifier = targetMethodClass.getName() + &quot;.&quot; + targetMethodName;</span>
+<span class="nc" id="L75">            ProfilingStats.INSTANCE.add(fullTargetIdentifier, invocationDuration);</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">            if (targetLogger.isTraceEnabled()) {</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">                if (returnException == null) {</span>
+<span class="nc" id="L78">                    targetLogger.trace(&quot;&lt;&quot; + targetMethodName + &quot; took &quot; + invocationDuration + &quot;micros&quot;);</span>
+                } else {
+<span class="nc" id="L80">                    targetLogger.trace(&quot;&lt;&quot; + targetMethodName + &quot; took &quot; + invocationDuration + &quot;micros, threw &quot; + returnException.getClass().getName() + &quot;: &quot; + returnException.getMessage());</span>
+                }
+            }
+        }
+<span class="nc" id="L84">        return returnValue;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

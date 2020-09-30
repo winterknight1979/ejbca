@@ -288,12 +288,12 @@ import org.cesecore.util.CertTools;
      * @param revocationDate revocation date
      */
     public void setRevocationDate(Date revocationDate) {
-<span class="nc bnc" id="L291" title="All 2 branches missed.">        if (revocationDate == null) {</span>
-<span class="nc" id="L292">            setRevocationDate(-1L);</span>
+<span class="fc bfc" id="L291" title="All 2 branches covered.">        if (revocationDate == null) {</span>
+<span class="fc" id="L292">            setRevocationDate(-1L);</span>
         } else {
-<span class="nc" id="L294">            setRevocationDate(revocationDate.getTime());</span>
+<span class="fc" id="L294">            setRevocationDate(revocationDate.getTime());</span>
         }
-<span class="nc" id="L296">    }</span>
+<span class="fc" id="L296">    }</span>
 
     /**
      * return the current class name
@@ -425,10 +425,10 @@ import org.cesecore.util.CertTools;
      * @return status
      */
     public boolean equalsStatus(final BaseCertificateData certificateData, final boolean strict) {
-<span class="nc" id="L428">        final int status = getStatus();</span>
-<span class="nc" id="L429">        final int otherStatus = certificateData.getStatus();</span>
-<span class="nc bnc" id="L430" title="All 2 branches missed.">        if (strict) {</span>
-<span class="nc bnc" id="L431" title="All 2 branches missed.">            return status == otherStatus;</span>
+<span class="fc" id="L428">        final int status = getStatus();</span>
+<span class="fc" id="L429">        final int otherStatus = certificateData.getStatus();</span>
+<span class="pc bpc" id="L430" title="1 of 2 branches missed.">        if (strict) {</span>
+<span class="pc bpc" id="L431" title="1 of 2 branches missed.">            return status == otherStatus;</span>
         }
 <span class="nc bnc" id="L433" title="All 2 branches missed.">        if (status == otherStatus) {</span>
 <span class="nc" id="L434">            return true;</span>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>InternalKeyBindingRulesReference.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.keybind</a> &gt; <span class="el_source">InternalKeyBindingRulesReference.java</span></div><h1>InternalKeyBindingRulesReference.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.ejb.keybind;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.cesecore.authorization.rules.AccessRulePlugin;
+import org.cesecore.keybind.InternalKeyBindingDataSessionLocal;
+import org.cesecore.keybind.InternalKeyBindingMgmtSession;
+import org.cesecore.keybind.InternalKeyBindingMgmtSessionRemote;
+import org.cesecore.keybind.InternalKeyBindingRules;
+import org.cesecore.util.EjbRemoteHelper;
+import org.ejbca.core.model.util.EjbLocalHelper;
+import org.ejbca.core.model.util.LocalLookupException;
+
+/**
+ * Dynamically defined access rules for InternalKeyBindings.
+ * 
+ * @version $Id: InternalKeyBindingRulesReference.java 25609 2017-03-24 00:00:29Z jeklund $
+ */
+<span class="nc" id="L33">public class InternalKeyBindingRulesReference implements AccessRulePlugin {</span>
+
+    @Override
+    public Map&lt;String,String&gt; getRules() {
+<span class="nc" id="L37">        final Map&lt;String,String&gt; allRules = new HashMap&lt;String,String&gt;();</span>
+<span class="nc bnc" id="L38" title="All 2 branches missed.">        for (final InternalKeyBindingRules rule : InternalKeyBindingRules.values()) {</span>
+<span class="nc" id="L39">            allRules.put(rule.resource(), rule.resource());</span>
+        }
+        try {
+<span class="nc" id="L42">            final InternalKeyBindingDataSessionLocal internalKeyBindingDataSession = new EjbLocalHelper().getInternalKeyBindingDataSession();</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">            for (final Entry&lt;String,Integer&gt; entry : internalKeyBindingDataSession.getCachedNameToIdMap().entrySet()) {</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">                for (final InternalKeyBindingRules rule : InternalKeyBindingRules.values()) {</span>
+<span class="nc bnc" id="L45" title="All 2 branches missed.">                    if (!InternalKeyBindingRules.BASE.equals(rule)) {</span>
+<span class="nc" id="L46">                        allRules.put(rule.resource() + &quot;/&quot; + entry.getValue(), rule.resource() + &quot;/&quot; + entry.getKey());</span>
+                    }
+                }
+                
+<span class="nc" id="L50">            }</span>
+<span class="nc" id="L51">        } catch (LocalLookupException e) {</span>
+            //Possibly we're not local, then use the remote interface instead
+<span class="nc" id="L53">            InternalKeyBindingMgmtSession internalKeyBindingMgmtSession = EjbRemoteHelper.INSTANCE.getRemoteSession(InternalKeyBindingMgmtSessionRemote.class);</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">            if(internalKeyBindingMgmtSession == null) {</span>
+                //Fail state, can't continue
+<span class="nc" id="L56">                throw new IllegalStateException(&quot;Can't perform lookup of internal keybindings, can't continue.&quot;);</span>
+            }
+<span class="nc bnc" id="L58" title="All 2 branches missed.">            for (String type : internalKeyBindingMgmtSession.getAvailableTypesAndProperties().keySet()) {</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">                for (int id : internalKeyBindingMgmtSession.getInternalKeyBindingIds(type)) {</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">                    for (InternalKeyBindingRules rule : InternalKeyBindingRules.values()) {</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">                        if (rule != InternalKeyBindingRules.BASE) {</span>
+                            // Don't make the name available remotely
+<span class="nc" id="L63">                            allRules.put(rule.resource() + &quot;/&quot; + id, rule.resource() + &quot;/&quot; + id);</span>
+                        }
+                    }
+<span class="nc" id="L66">                }</span>
+<span class="nc" id="L67">            }</span>
+<span class="nc" id="L68">        }</span>
+<span class="nc" id="L69">        return allRules;</span>
+    }
+
+    @Override
+    public String getCategory() {
+<span class="nc" id="L74">        return &quot;INTERNALKEYBINDINGRULES&quot;;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -21,29 +21,29 @@ import java.util.Map;
  * @version $Id: ApprovalRequestType.java 29813 2018-09-05 15:01:59Z bastianf $
  *
  */
-<span class="nc" id="L24">public enum ApprovalRequestType {</span>
-<span class="nc" id="L25">    ADDEDITENDENTITY(1, &quot;APPROVEADDEDITENDENTITY&quot;),</span>
-<span class="nc" id="L26">    KEYRECOVER(2, &quot;APPROVEKEYRECOVER&quot;),</span>
-<span class="nc" id="L27">    REVOCATION(3, &quot;APPROVEREVOCATION&quot;),</span>
-<span class="nc" id="L28">    ACTIVATECA(4, &quot;APPROVEACTIVATECA&quot;);</span>
+<span class="fc" id="L24">public enum ApprovalRequestType {</span>
+<span class="fc" id="L25">    ADDEDITENDENTITY(1, &quot;APPROVEADDEDITENDENTITY&quot;),</span>
+<span class="fc" id="L26">    KEYRECOVER(2, &quot;APPROVEKEYRECOVER&quot;),</span>
+<span class="fc" id="L27">    REVOCATION(3, &quot;APPROVEREVOCATION&quot;),</span>
+<span class="fc" id="L28">    ACTIVATECA(4, &quot;APPROVEACTIVATECA&quot;);</span>
 
     private final  int integerValue;
     private final String languageString;
-<span class="nc" id="L32">    private static final Map&lt;Integer, ApprovalRequestType&gt; reverseLookupMap = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L32">    private static final Map&lt;Integer, ApprovalRequestType&gt; reverseLookupMap = new HashMap&lt;&gt;();</span>
 
     static {
-<span class="nc bnc" id="L35" title="All 2 branches missed.">        for(ApprovalRequestType approvalRequestType : ApprovalRequestType.values()) {</span>
-<span class="nc" id="L36">            reverseLookupMap.put(approvalRequestType.getIntegerValue(), approvalRequestType);</span>
+<span class="fc bfc" id="L35" title="All 2 branches covered.">        for(ApprovalRequestType approvalRequestType : ApprovalRequestType.values()) {</span>
+<span class="fc" id="L36">            reverseLookupMap.put(approvalRequestType.getIntegerValue(), approvalRequestType);</span>
         }
-<span class="nc" id="L38">    }</span>
+<span class="fc" id="L38">    }</span>
 
-<span class="nc" id="L40">    private ApprovalRequestType(int integerValue, String languageString) {</span>
-<span class="nc" id="L41">        this.integerValue = integerValue;</span>
-<span class="nc" id="L42">        this.languageString = languageString;</span>
-<span class="nc" id="L43">    }</span>
+<span class="fc" id="L40">    private ApprovalRequestType(int integerValue, String languageString) {</span>
+<span class="fc" id="L41">        this.integerValue = integerValue;</span>
+<span class="fc" id="L42">        this.languageString = languageString;</span>
+<span class="fc" id="L43">    }</span>
 
     public int getIntegerValue() {
-<span class="nc" id="L46">        return integerValue;</span>
+<span class="fc" id="L46">        return integerValue;</span>
     }
 
     public String getLanguageString() {

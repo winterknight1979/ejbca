@@ -1,0 +1,538 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>PublisherQueueSessionBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.ca.publisher</a> &gt; <span class="el_source">PublisherQueueSessionBean.java</span></div><h1>PublisherQueueSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.ejb.ca.publisher;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
+import javax.ejb.CreateException;
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.FinderException;
+import javax.ejb.SessionContext;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.apache.log4j.Logger;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.certificates.certificate.BaseCertificateData;
+import org.cesecore.certificates.certificate.CertificateDataWrapper;
+import org.cesecore.certificates.certificate.NoConflictCertificateStoreSessionLocal;
+import org.cesecore.certificates.crl.CRLData;
+import org.cesecore.certificates.endentity.ExtendedInformation;
+import org.cesecore.jndi.JndiConstants;
+import org.ejbca.config.EjbcaConfiguration;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.ca.publisher.BasePublisher;
+import org.ejbca.core.model.ca.publisher.PublisherConst;
+import org.ejbca.core.model.ca.publisher.PublisherException;
+import org.ejbca.core.model.ca.publisher.PublisherQueueData;
+import org.ejbca.core.model.ca.publisher.PublisherQueueVolatileInformation;
+
+/**
+ * Manages publisher queues which contains data to be republished, either because publishing failed or because publishing is done asynchronously.
+ *
+ * @version $Id: PublisherQueueSessionBean.java 30284 2018-10-30 08:45:42Z samuellb $
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;PublisherQueueSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L67">public class PublisherQueueSessionBean implements PublisherQueueSessionLocal {</span>
+
+<span class="nc" id="L69">    private static final Logger log = Logger.getLogger(PublisherQueueSessionBean.class);</span>
+<span class="nc" id="L70">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+<span class="nc" id="L71">    private static final ReentrantLock executorServiceLock = new ReentrantLock(false);</span>
+<span class="nc" id="L72">    private static final AtomicInteger beanInstanceCount = new AtomicInteger(0);</span>
+<span class="nc" id="L73">    private static volatile ExecutorService executorService = null;</span>
+
+    @PersistenceContext(unitName = &quot;ejbca&quot;)
+    private EntityManager entityManager;
+
+    @Resource
+    private SessionContext sessionContext;
+    
+    @EJB
+    private NoConflictCertificateStoreSessionLocal noConflictCertificateStoreSession;
+
+    /** not injected but created in ejbCreate, since it is ourself */
+    private PublisherQueueSessionLocal publisherQueueSession;
+
+    @PostConstruct
+    public void postConstruct() {
+<span class="nc" id="L89">        publisherQueueSession = sessionContext.getBusinessObject(PublisherQueueSessionLocal.class);</span>
+        // Keep track of number of instances of this bean, so we can free the executorService thread pool when the last is destroyed
+<span class="nc" id="L91">        beanInstanceCount.incrementAndGet();</span>
+<span class="nc" id="L92">    }</span>
+
+    @PreDestroy
+    public void preDestroy() {
+        // Shut down the thread pool when the last instance of this SSB is destroyed
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        if (beanInstanceCount.decrementAndGet() == 0) {</span>
+<span class="nc" id="L98">            executorServiceLock.lock();</span>
+            try {
+<span class="nc bnc" id="L100" title="All 2 branches missed.">                if (executorService != null) {</span>
+<span class="nc" id="L101">                    executorService.shutdown();</span>
+<span class="nc" id="L102">                    executorService = null;</span>
+                }
+            } finally {
+<span class="nc" id="L105">                executorServiceLock.unlock();</span>
+            }
+        }
+<span class="nc" id="L108">    }</span>
+
+    /** @return a reference to the &quot;CachedThreadPool&quot; executor service (creating one if needed). */
+    private ExecutorService getExecutorService() {
+<span class="nc bnc" id="L112" title="All 2 branches missed.">        if (executorService == null) {</span>
+<span class="nc" id="L113">            executorServiceLock.lock();</span>
+            try {
+<span class="nc bnc" id="L115" title="All 2 branches missed.">                if (executorService == null) {</span>
+<span class="nc" id="L116">                    executorService = Executors.newCachedThreadPool();</span>
+                }
+            } finally {
+<span class="nc" id="L119">                executorServiceLock.unlock();</span>
+            }
+        }
+<span class="nc" id="L122">        return executorService;</span>
+    }
+
+    @Override
+    public void addQueueData(int publisherId, int publishType, String fingerprint, PublisherQueueVolatileInformation queueData, int publishStatus)
+            throws CreateException {
+<span class="nc bnc" id="L128" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L129">            log.trace(&quot;&gt;addQueueData(publisherId: &quot; + publisherId + &quot;)&quot;);</span>
+        }
+        try {
+<span class="nc" id="L132">            entityManager.persist(new org.ejbca.core.ejb.ca.publisher.PublisherQueueData(publisherId, publishType, fingerprint, queueData,</span>
+                    publishStatus));
+<span class="nc" id="L134">        } catch (Exception e) {</span>
+<span class="nc" id="L135">            throw new CreateException(e.getMessage());</span>
+<span class="nc" id="L136">        }</span>
+<span class="nc" id="L137">        log.trace(&quot;&lt;addQueueData()&quot;);</span>
+<span class="nc" id="L138">    }</span>
+
+    @Override
+    public void removeQueueData(String pk) {
+<span class="nc bnc" id="L142" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L143">            log.trace(&quot;&gt;removeQueueData(pk: &quot; + pk + &quot;)&quot;);</span>
+        }
+        try {
+<span class="nc" id="L146">            org.ejbca.core.ejb.ca.publisher.PublisherQueueData pqd = org.ejbca.core.ejb.ca.publisher.PublisherQueueData.findByPk(entityManager, pk);</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">            if (pqd == null) {</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L149">                    log.debug(&quot;Trying to remove queue data that does not exist: &quot; + pk);</span>
+                }
+            } else {
+<span class="nc" id="L152">                entityManager.remove(pqd);</span>
+            }
+<span class="nc" id="L154">        } catch (Exception e) {</span>
+<span class="nc" id="L155">            log.info(e);</span>
+<span class="nc" id="L156">        }</span>
+<span class="nc" id="L157">        log.trace(&quot;&lt;removeQueueData()&quot;);</span>
+<span class="nc" id="L158">    }</span>
+
+    @Override
+    public Collection&lt;PublisherQueueData&gt; getPendingEntriesForPublisher(int publisherId) {
+<span class="nc bnc" id="L162" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L163">            log.trace(&quot;&gt;getPendingEntriesForPublisher(publisherId: &quot; + publisherId + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L165">        Collection&lt;org.ejbca.core.ejb.ca.publisher.PublisherQueueData&gt; datas = org.ejbca.core.ejb.ca.publisher.PublisherQueueData</span>
+<span class="nc" id="L166">                .findDataByPublisherIdAndStatus(entityManager, publisherId, PublisherConst.STATUS_PENDING, 0);</span>
+<span class="nc bnc" id="L167" title="All 2 branches missed.">        if (datas.isEmpty()) {</span>
+<span class="nc" id="L168">            log.debug(&quot;No publisher queue entries found for publisher &quot; + publisherId);</span>
+        }
+<span class="nc" id="L170">        Collection&lt;PublisherQueueData&gt; ret = new ArrayList&lt;PublisherQueueData&gt;();</span>
+<span class="nc" id="L171">        Iterator&lt;org.ejbca.core.ejb.ca.publisher.PublisherQueueData&gt; iter = datas.iterator();</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">        while (iter.hasNext()) {</span>
+<span class="nc" id="L173">            org.ejbca.core.ejb.ca.publisher.PublisherQueueData d = iter.next();</span>
+<span class="nc" id="L174">            PublisherQueueData pqd = new PublisherQueueData(d.getPk(), new Date(d.getTimeCreated()), new Date(d.getLastUpdate()),</span>
+<span class="nc" id="L175">                    d.getPublishStatus(), d.getTryCounter(), d.getPublishType(), d.getFingerprint(), d.getPublisherId(),</span>
+<span class="nc" id="L176">                    d.getPublisherQueueVolatileData());</span>
+<span class="nc" id="L177">            ret.add(pqd);</span>
+<span class="nc" id="L178">        }</span>
+<span class="nc" id="L179">        log.trace(&quot;&lt;getPendingEntriesForPublisher()&quot;);</span>
+<span class="nc" id="L180">        return ret;</span>
+    }
+
+    @Override
+    public int getPendingEntriesCountForPublisher(int publisherId) {
+<span class="nc" id="L185">        return (int) org.ejbca.core.ejb.ca.publisher.PublisherQueueData.findCountOfPendingEntriesForPublisher(entityManager, publisherId);</span>
+    }
+
+    @Override
+    public int[] getPendingEntriesCountForPublisherInIntervals(int publisherId, int[] lowerBounds, int[] upperBounds) {
+<span class="nc bnc" id="L190" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L191">            log.trace(&quot;&gt;getPendingEntriesCountForPublisherInIntervals(publisherId: &quot; + publisherId + &quot;, lower:&quot; + Arrays.toString(lowerBounds)</span>
+<span class="nc" id="L192">                    + &quot;, upper:&quot; + Arrays.toString(upperBounds) + &quot;)&quot;);</span>
+        }
+<span class="nc bnc" id="L194" title="All 2 branches missed.">        if (lowerBounds.length != upperBounds.length) {</span>
+<span class="nc" id="L195">            throw new IllegalArgumentException(&quot;lowerBounds and upperBounds must have equal length&quot;);</span>
+        }
+<span class="nc" id="L197">        List&lt;Integer&gt; entryCountList = org.ejbca.core.ejb.ca.publisher.PublisherQueueData.findCountOfPendingEntriesForPublisher(entityManager,</span>
+                publisherId, lowerBounds, upperBounds);
+<span class="nc" id="L199">        int[] result = new int[lowerBounds.length];</span>
+<span class="nc bnc" id="L200" title="All 4 branches missed.">        for (int i = 0; i &lt; lowerBounds.length &amp;&amp; i &lt; result.length; i++) {</span>
+<span class="nc" id="L201">            result[i] = entryCountList.get(i).intValue();</span>
+        }
+<span class="nc" id="L203">        log.trace(&quot;&lt;getPendingEntriesCountForPublisherInIntervals()&quot;);</span>
+<span class="nc" id="L204">        return result;</span>
+    }
+
+    @Override
+    public Collection&lt;PublisherQueueData&gt; getPendingEntriesForPublisherWithLimit(int publisherId, int limit, int timeout, String orderBy) {
+<span class="nc bnc" id="L209" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L210">            log.trace(&quot;&gt;getPendingEntriesForPublisherWithLimit(publisherId: &quot; + publisherId + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L212">        Collection&lt;PublisherQueueData&gt; ret = new ArrayList&lt;PublisherQueueData&gt;();</span>
+        //TODO: This code has been modified from JDBC to JPA fetching, which might negatively affect performance. Investigate. 
+<span class="nc" id="L214">        List&lt;org.ejbca.core.ejb.ca.publisher.PublisherQueueData&gt; publisherQueueDataList = org.ejbca.core.ejb.ca.publisher.PublisherQueueData</span>
+<span class="nc" id="L215">                .findDataByPublisherIdAndStatus(entityManager, publisherId, PublisherConst.STATUS_PENDING, limit);</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">        for (org.ejbca.core.ejb.ca.publisher.PublisherQueueData publisherQueueData : publisherQueueDataList) {</span>
+<span class="nc" id="L217">            PublisherQueueData pqd = new PublisherQueueData(publisherQueueData.getPk(), new Date(publisherQueueData.getTimeCreated()), new Date(</span>
+<span class="nc" id="L218">                    publisherQueueData.getLastUpdate()), PublisherConst.STATUS_PENDING, publisherQueueData.getTryCounter(),</span>
+<span class="nc" id="L219">                    publisherQueueData.getPublishType(), publisherQueueData.getFingerprint(), publisherId,</span>
+<span class="nc" id="L220">                    publisherQueueData.getPublisherQueueVolatileData());</span>
+<span class="nc" id="L221">            ret.add(pqd);</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L223">                log.debug(&quot;Return pending record with pk &quot; + publisherQueueData.getPk() + &quot;, and timeCreated &quot;</span>
+<span class="nc" id="L224">                        + new Date(publisherQueueData.getTimeCreated()));</span>
+            }
+<span class="nc" id="L226">        }</span>
+<span class="nc" id="L227">        log.trace(&quot;&lt;getPendingEntriesForPublisherWithLimit()&quot;);</span>
+<span class="nc" id="L228">        return ret;</span>
+    }
+
+    @Override
+    public Collection&lt;PublisherQueueData&gt; getEntriesByFingerprint(String fingerprint) {
+<span class="nc bnc" id="L233" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L234">            log.trace(&quot;&gt;getEntriesByFingerprint(fingerprint: &quot; + fingerprint + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L236">        Collection&lt;PublisherQueueData&gt; ret = new ArrayList&lt;PublisherQueueData&gt;();</span>
+<span class="nc" id="L237">        Collection&lt;org.ejbca.core.ejb.ca.publisher.PublisherQueueData&gt; datas = org.ejbca.core.ejb.ca.publisher.PublisherQueueData</span>
+<span class="nc" id="L238">                .findDataByFingerprint(entityManager, fingerprint);</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">        if (datas.isEmpty()) {</span>
+<span class="nc" id="L240">            log.debug(&quot;No publisher queue entries found for fingerprint &quot; + fingerprint);</span>
+        } else {
+<span class="nc" id="L242">            Iterator&lt;org.ejbca.core.ejb.ca.publisher.PublisherQueueData&gt; iter = datas.iterator();</span>
+<span class="nc bnc" id="L243" title="All 2 branches missed.">            while (iter.hasNext()) {</span>
+<span class="nc" id="L244">                org.ejbca.core.ejb.ca.publisher.PublisherQueueData d = iter.next();</span>
+<span class="nc" id="L245">                PublisherQueueData pqd = new PublisherQueueData(d.getPk(), new Date(d.getTimeCreated()), new Date(d.getLastUpdate()),</span>
+<span class="nc" id="L246">                        d.getPublishStatus(), d.getTryCounter(), d.getPublishType(), d.getFingerprint(), d.getPublisherId(),</span>
+<span class="nc" id="L247">                        d.getPublisherQueueVolatileData());</span>
+<span class="nc" id="L248">                ret.add(pqd);</span>
+<span class="nc" id="L249">            }</span>
+        }
+<span class="nc" id="L251">        log.trace(&quot;&lt;getEntriesByFingerprint()&quot;);</span>
+<span class="nc" id="L252">        return ret;</span>
+    }
+
+    @Override
+    public void updateData(String pk, int status, int tryCounter) {
+<span class="nc bnc" id="L257" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L258">            log.trace(&quot;&gt;updateData(pk: &quot; + pk + &quot;, status: &quot; + status + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L260">        org.ejbca.core.ejb.ca.publisher.PublisherQueueData data = org.ejbca.core.ejb.ca.publisher.PublisherQueueData.findByPk(entityManager, pk);</span>
+<span class="nc bnc" id="L261" title="All 2 branches missed.">        if (data != null) {</span>
+<span class="nc bnc" id="L262" title="All 2 branches missed.">            if (status &gt; 0) {</span>
+<span class="nc" id="L263">                data.setPublishStatus(status);</span>
+            }
+<span class="nc" id="L265">            data.setLastUpdate(new Date().getTime());</span>
+<span class="nc bnc" id="L266" title="All 2 branches missed.">            if (tryCounter &gt; -1) {</span>
+<span class="nc" id="L267">                data.setTryCounter(tryCounter);</span>
+            }
+        } else {
+<span class="nc" id="L270">            log.debug(&quot;Trying to set status on nonexisting data, pk: &quot; + pk);</span>
+        }
+<span class="nc" id="L272">        log.trace(&quot;&lt;updateData()&quot;);</span>
+<span class="nc" id="L273">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    @Override
+    public void plainFifoTryAlwaysLimit100EntriesOrderByTimeCreated(AuthenticationToken admin, int publisherId, BasePublisher publisher) {
+<span class="nc" id="L278">        int successcount = 0;</span>
+        // Repeat this process as long as we actually manage to publish something
+        // this is because when publishing starts to work we want to publish everything in one go, if possible.
+        // However we don't want to publish more than 20000 certificates each time, because we want to commit to the database some time as well.
+<span class="nc" id="L282">        int totalcount = 0;</span>
+        do {
+<span class="nc" id="L284">            successcount = publisherQueueSession.doChunk(admin, publisherId, publisher);</span>
+<span class="nc" id="L285">            totalcount += successcount;</span>
+<span class="nc bnc" id="L286" title="All 4 branches missed.">        } while ((successcount &gt; 0) &amp;&amp; (totalcount &lt; 20000));</span>
+<span class="nc" id="L287">    }</span>
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @Override
+    public int doChunk(AuthenticationToken admin, int publisherId, BasePublisher publisher) {
+<span class="nc" id="L292">        final Collection&lt;PublisherQueueData&gt; c = getPendingEntriesForPublisherWithLimit(publisherId, 100, 60, &quot;order by timeCreated&quot;);</span>
+<span class="nc" id="L293">        return doPublish(admin, publisherId, publisher, c);</span>
+    }
+
+    /** @param admin Admin
+     * @param publisherId ID
+     * @param publisher Pub
+     * @param c Data
+     * @return how many publishes that succeeded */
+    private int doPublish(AuthenticationToken admin, int publisherId, BasePublisher publisher, Collection&lt;PublisherQueueData&gt; c) {
+<span class="nc bnc" id="L302" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L303">            log.debug(&quot;Found &quot; + c.size() + &quot; certificates to republish for publisher &quot; + publisherId);</span>
+        }
+<span class="nc" id="L305">        int successcount = 0;</span>
+<span class="nc" id="L306">        int failcount = 0;</span>
+
+<span class="nc bnc" id="L308" title="All 2 branches missed.">        for (PublisherQueueData pqd : c) {</span>
+
+<span class="nc" id="L310">            String fingerprint = pqd.getFingerprint();</span>
+<span class="nc" id="L311">            int publishType = pqd.getPublishType();</span>
+<span class="nc bnc" id="L312" title="All 2 branches missed.">            if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L313">                log.debug(&quot;Publishing from queue to publisher: &quot; + publisherId + &quot;, fingerprint: &quot; + fingerprint + &quot;, pk: &quot; + pqd.getPk()</span>
+                        + &quot;, type: &quot; + publishType);
+            }
+<span class="nc" id="L316">            PublisherQueueVolatileInformation voldata = pqd.getVolatileData();</span>
+<span class="nc" id="L317">            String password = null;</span>
+<span class="nc" id="L318">            ExtendedInformation ei = null;</span>
+<span class="nc" id="L319">            String userDataDN = null;</span>
+<span class="nc bnc" id="L320" title="All 2 branches missed.">            if (voldata != null) {</span>
+<span class="nc" id="L321">                password = voldata.getPassword();</span>
+<span class="nc" id="L322">                ei = voldata.getExtendedInformation();</span>
+<span class="nc" id="L323">                userDataDN = voldata.getUserDN();</span>
+            }
+<span class="nc" id="L325">            boolean published = false;</span>
+
+            try {
+<span class="nc bnc" id="L328" title="All 2 branches missed.">                if (publishType == PublisherConst.PUBLISH_TYPE_CERT) {</span>
+<span class="nc bnc" id="L329" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L330">                        log.debug(&quot;Publishing Certificate&quot;);</span>
+                    }
+<span class="nc bnc" id="L332" title="All 2 branches missed.">                    if (publisher != null) {</span>
+                        // Read the actual certificate and try to publish it
+                        // again
+                        // TODO: we might need change fetch-type for all but the
+                        // actual cert or a native query w SqlResultSetMapping..
+<span class="nc" id="L337">                        final CertificateDataWrapper certificateDataWrapper = noConflictCertificateStoreSession.getCertificateData(fingerprint);</span>
+<span class="nc bnc" id="L338" title="All 2 branches missed.">                        if (certificateDataWrapper==null) {</span>
+<span class="nc" id="L339">                            throw new FinderException();</span>
+                        }
+                        try {
+<span class="nc" id="L342">                            published = publisherQueueSession.storeCertificateNonTransactional(publisher, admin, certificateDataWrapper, password, userDataDN, ei);</span>
+<span class="nc" id="L343">                        } catch (EJBException e) {</span>
+<span class="nc" id="L344">                            final Throwable t = e.getCause();</span>
+<span class="nc bnc" id="L345" title="All 2 branches missed.">                            if (t instanceof PublisherException) {</span>
+<span class="nc" id="L346">                                throw (PublisherException) t;</span>
+                            } else {
+<span class="nc" id="L348">                                throw e;</span>
+                            }
+<span class="nc" id="L350">                        }</span>
+<span class="nc" id="L351">                    } else {</span>
+<span class="nc" id="L352">                        String msg = intres.getLocalizedMessage(&quot;publisher.nopublisher&quot;, publisherId);</span>
+<span class="nc" id="L353">                        log.info(msg);</span>
+<span class="nc" id="L354">                    }</span>
+<span class="nc bnc" id="L355" title="All 2 branches missed.">                } else if (publishType == PublisherConst.PUBLISH_TYPE_CRL) {</span>
+<span class="nc bnc" id="L356" title="All 2 branches missed.">                    if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L357">                        log.debug(&quot;Publishing CRL&quot;);</span>
+                    }
+
+<span class="nc" id="L360">                    CRLData crlData = CRLData.findByFingerprint(entityManager, fingerprint);</span>
+
+<span class="nc bnc" id="L362" title="All 2 branches missed.">                    if (crlData == null) {</span>
+<span class="nc" id="L363">                        throw new FinderException();</span>
+                    }
+                    try {
+<span class="nc" id="L366">                        published = publisherQueueSession.storeCRLNonTransactional(publisher, admin, crlData.getCRLBytes(),</span>
+<span class="nc" id="L367">                                crlData.getCaFingerprint(), crlData.getCrlNumber(), userDataDN);</span>
+<span class="nc" id="L368">                    } catch (EJBException e) {</span>
+<span class="nc" id="L369">                        final Throwable t = e.getCause();</span>
+<span class="nc bnc" id="L370" title="All 2 branches missed.">                        if (t instanceof PublisherException) {</span>
+<span class="nc" id="L371">                            throw (PublisherException) t;</span>
+                        } else {
+<span class="nc" id="L373">                            throw e;</span>
+                        }
+<span class="nc" id="L375">                    }</span>
+<span class="nc" id="L376">                } else {</span>
+<span class="nc" id="L377">                    String msg = intres.getLocalizedMessage(&quot;publisher.unknowntype&quot;, publishType);</span>
+<span class="nc" id="L378">                    log.error(msg);</span>
+                }
+<span class="nc" id="L380">            } catch (FinderException e) {</span>
+<span class="nc" id="L381">                final String msg = intres.getLocalizedMessage(&quot;publisher.errornocert&quot;, fingerprint) + e.getMessage();</span>
+<span class="nc" id="L382">                log.info(msg);</span>
+<span class="nc" id="L383">            } catch (PublisherException e) {</span>
+                // Publisher session have already logged this error nicely to
+                // getLogSession().log
+<span class="nc" id="L386">                log.debug(e.getMessage());</span>
+                // We failed to publish, update failcount so we can break early
+                // if nothing succeeds but everything fails.
+<span class="nc" id="L389">                failcount++;</span>
+<span class="nc" id="L390">            }</span>
+<span class="nc bnc" id="L391" title="All 2 branches missed.">            if (published) {</span>
+
+<span class="nc bnc" id="L393" title="All 2 branches missed.">                if (publisher.getKeepPublishedInQueue()) {</span>
+                    // Update with information that publishing was successful
+<span class="nc" id="L395">                    updateData(pqd.getPk(), PublisherConst.STATUS_SUCCESS, pqd.getTryCounter());</span>
+                } else {
+                    // We are done with this one.. nuke it!
+<span class="nc" id="L398">                    removeQueueData(pqd.getPk());</span>
+                }
+
+<span class="nc" id="L401">                successcount++; // jipeee update success counter</span>
+            } else {
+                // Update with new tryCounter, but same status as before
+<span class="nc" id="L404">                int tryCount = pqd.getTryCounter() + 1;</span>
+<span class="nc" id="L405">                updateData(pqd.getPk(), pqd.getPublishStatus(), tryCount);</span>
+            }
+            // If we don't manage to publish anything, but fails on all the
+            // first ten ones we expect that this publisher is dead for now. We
+            // don't have to try with every record.
+<span class="nc bnc" id="L410" title="All 4 branches missed.">            if ((successcount == 0) &amp;&amp; (failcount &gt; 10)) {</span>
+<span class="nc bnc" id="L411" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L412">                    log.debug(&quot;Breaking out of publisher loop because everything seems to fail (at least the first 10 entries)&quot;);</span>
+                }
+                break;
+            }
+<span class="nc" id="L416">        }</span>
+
+<span class="nc bnc" id="L418" title="All 2 branches missed.">        if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L419">            log.debug(&quot;Returning from publisher with &quot; + successcount + &quot; entries published successfully.&quot;);</span>
+        }
+<span class="nc" id="L421">        return successcount;</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    @Override
+    public boolean storeCertificateNonTransactional(BasePublisher publisher, AuthenticationToken admin, CertificateDataWrapper certWrapper,
+            String password, String userDN, ExtendedInformation extendedinformation) throws PublisherException {
+<span class="nc bnc" id="L428" title="All 2 branches missed.">        if (publisher.isFullEntityPublishingSupported()) {</span>
+<span class="nc" id="L429">            return publisher.storeCertificate(admin, certWrapper.getCertificateDataOrCopy(), certWrapper.getBase64CertData(), password, userDN, extendedinformation);</span>
+        } else {
+<span class="nc" id="L431">            final BaseCertificateData certificateData = certWrapper.getBaseCertificateData();</span>
+<span class="nc" id="L432">            final String cAFingerprint = certificateData.getCaFingerprint();</span>
+<span class="nc" id="L433">            final int status = certificateData.getStatus();</span>
+<span class="nc" id="L434">            final int type = certificateData.getType();</span>
+<span class="nc" id="L435">            final long revocationDate = certificateData.getRevocationDate();</span>
+<span class="nc" id="L436">            final int revocationReason = certificateData.getRevocationReason();</span>
+<span class="nc" id="L437">            final String username = certificateData.getUsername();</span>
+<span class="nc" id="L438">            final String tag  = certificateData.getTag();</span>
+<span class="nc" id="L439">            final Integer certificateProfileId = certificateData.getCertificateProfileId();</span>
+<span class="nc" id="L440">            final Long updateTime = certificateData.getUpdateTime();</span>
+<span class="nc" id="L441">            return publisher.storeCertificate(admin, certWrapper.getCertificate(), username, password, userDN, cAFingerprint, status, type, revocationDate,</span>
+<span class="nc" id="L442">                    revocationReason, tag, certificateProfileId, updateTime, extendedinformation);</span>
+        }
+    }
+
+    /** Publishers do not run a part of regular transactions and expect to run in auto-commit mode. */
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    @Override
+    public boolean storeCRLNonTransactional(BasePublisher publisher, AuthenticationToken admin, byte[] incrl, String cafp, int number, String userDN)
+            throws PublisherException {
+<span class="nc" id="L451">        return publisher.storeCRL(admin, incrl, cafp, number, userDN);</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    @Override
+    public List&lt;Object&gt; storeCertificateNonTransactionalInternal(final List&lt;BasePublisher&gt; publishers, final AuthenticationToken admin,
+            final CertificateDataWrapper certWrapper, final String password, final String userDN, final ExtendedInformation extendedinformation) {
+<span class="nc" id="L458">        final List&lt;Object&gt; publisherResults = new ArrayList&lt;Object&gt;();</span>
+        @SuppressWarnings(&quot;deprecation&quot;)
+<span class="nc" id="L460">		final boolean parallel = EjbcaConfiguration.isPublishParallelEnabled();</span>
+        // Are we doing parallel publishing (only meaningful if there is more than one publisher configured)?
+<span class="nc bnc" id="L462" title="All 4 branches missed.">        if (parallel &amp;&amp; publishers.size() &gt; 1) {</span>
+<span class="nc" id="L463">            final List&lt;Future&lt;Boolean&gt;&gt; futures = new ArrayList&lt;Future&lt;Boolean&gt;&gt;();</span>
+<span class="nc" id="L464">            BasePublisher publisherFirst = null;</span>
+<span class="nc bnc" id="L465" title="All 2 branches missed.">            for (final BasePublisher publisher : publishers) {</span>
+<span class="nc bnc" id="L466" title="All 2 branches missed.">                if (publisherFirst == null) {</span>
+                    // We will execute the first of the publishers in the main thread...
+<span class="nc" id="L468">                    publisherFirst = publisher;</span>
+                } else {
+                    // ...and the rest of the publishers will be executed in new threads
+<span class="nc" id="L471">                    final Future&lt;Boolean&gt; future = getExecutorService().submit(new Callable&lt;Boolean&gt;() {</span>
+                        @Override
+                        public Boolean call() throws Exception {
+<span class="nc bnc" id="L474" title="All 2 branches missed.">                            if (!storeCertificateNonTransactional(publisher, admin, certWrapper, password, userDN, extendedinformation)) {</span>
+<span class="nc" id="L475">                                throw new PublisherException(&quot;Return code from publisher is false.&quot;);</span>
+                            }
+<span class="nc" id="L477">                            return Boolean.TRUE;</span>
+                        }
+                    });
+<span class="nc" id="L480">                    futures.add(future);</span>
+                }
+<span class="nc" id="L482">            }</span>
+            // Wait at most 300 seconds in total for all the publishers to complete.
+<span class="nc" id="L484">            final long deadline = System.currentTimeMillis() + 300000L;</span>
+            // Execute the first publishing in the calling thread
+            Object publisherResultFirst;
+            try {
+<span class="nc bnc" id="L488" title="All 2 branches missed.">                if (!storeCertificateNonTransactional(publisherFirst, admin, certWrapper, password, userDN, extendedinformation)) {</span>
+<span class="nc" id="L489">                    throw new PublisherException(&quot;Return code from publisher is false.&quot;);</span>
+                }
+<span class="nc" id="L491">                publisherResultFirst = Boolean.TRUE;</span>
+<span class="nc" id="L492">            } catch (Exception e) {</span>
+<span class="nc" id="L493">                publisherResultFirst = getAsPublisherException(e);</span>
+<span class="nc" id="L494">            }</span>
+<span class="nc" id="L495">            publisherResults.add(publisherResultFirst);</span>
+            // Wait for all the background threads to finish and get the result from each invocation
+<span class="nc bnc" id="L497" title="All 2 branches missed.">            for (final Future&lt;Boolean&gt; future : futures) {</span>
+                Object publisherResult;
+                try {
+<span class="nc" id="L500">                    final long maxTimeToWait = Math.max(1000L, deadline - System.currentTimeMillis());</span>
+<span class="nc" id="L501">                    publisherResult = Boolean.valueOf(future.get(maxTimeToWait, TimeUnit.MILLISECONDS));</span>
+<span class="nc" id="L502">                } catch (Exception e) {</span>
+<span class="nc" id="L503">                    publisherResult = getAsPublisherException(e);</span>
+<span class="nc" id="L504">                }</span>
+<span class="nc" id="L505">                publisherResults.add(publisherResult);</span>
+<span class="nc" id="L506">            }</span>
+<span class="nc" id="L507">        } else {</span>
+            // Perform publishing sequentially (old fall back behavior)
+<span class="nc bnc" id="L509" title="All 2 branches missed.">            for (final BasePublisher publisher : publishers) {</span>
+                try {
+<span class="nc bnc" id="L511" title="All 2 branches missed.">                    if (!storeCertificateNonTransactional(publisher, admin, certWrapper, password, userDN, extendedinformation)) {</span>
+<span class="nc" id="L512">                        throw new PublisherException(&quot;Return code from publisher is false.&quot;);</span>
+                    }
+<span class="nc" id="L514">                    publisherResults.add(Boolean.TRUE);</span>
+<span class="nc" id="L515">                } catch (Exception e) {</span>
+<span class="nc" id="L516">                    publisherResults.add(getAsPublisherException(e));</span>
+<span class="nc" id="L517">                }</span>
+<span class="nc" id="L518">            }</span>
+        }
+<span class="nc" id="L520">        return publisherResults;</span>
+    }
+
+    private PublisherException getAsPublisherException(final Exception e) {
+<span class="nc" id="L524">        log.debug(&quot;Publisher threw exception&quot;, e);</span>
+<span class="nc bnc" id="L525" title="All 2 branches missed.">        if (e instanceof PublisherException) {</span>
+<span class="nc" id="L526">            return (PublisherException) e;</span>
+        }
+<span class="nc" id="L528">        Throwable t = e;</span>
+<span class="nc bnc" id="L529" title="All 2 branches missed.">        while (t.getCause() != null) {</span>
+<span class="nc" id="L530">            t = t.getCause();</span>
+<span class="nc bnc" id="L531" title="All 2 branches missed.">            if (t instanceof PublisherException) {</span>
+<span class="nc" id="L532">                return (PublisherException) t;</span>
+            }
+        }
+<span class="nc" id="L535">        return new PublisherException(e.getMessage());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

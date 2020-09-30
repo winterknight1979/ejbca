@@ -659,12 +659,12 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
 
     @SuppressWarnings(&quot;unchecked&quot;)
     public int getSubjectDNFieldOrderLength(){
-<span class="nc" id="L662">    	return ((ArrayList&lt;Integer&gt;) data.get(SUBJECTDNFIELDORDER)).size();</span>
+<span class="fc" id="L662">    	return ((ArrayList&lt;Integer&gt;) data.get(SUBJECTDNFIELDORDER)).size();</span>
     }
 
     @SuppressWarnings(&quot;unchecked&quot;)
     public int getSubjectAltNameFieldOrderLength(){
-<span class="nc" id="L667">    	return ((ArrayList&lt;Integer&gt;) data.get(SUBJECTALTNAMEFIELDORDER)).size();</span>
+<span class="fc" id="L667">    	return ((ArrayList&lt;Integer&gt;) data.get(SUBJECTALTNAMEFIELDORDER)).size();</span>
     }
 
     @SuppressWarnings(&quot;unchecked&quot;)
@@ -693,13 +693,13 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
      * 
      */
     public int[] getSubjectDNFieldsInOrder(final int index) {
-<span class="nc" id="L696">    	final int[] returnval = new int[2];</span>
+<span class="fc" id="L696">    	final int[] returnval = new int[2];</span>
     	@SuppressWarnings(&quot;unchecked&quot;)
-<span class="nc" id="L698">        final ArrayList&lt;Integer&gt; fieldorder = (ArrayList&lt;Integer&gt;) data.get(SUBJECTDNFIELDORDER);</span>
-<span class="nc" id="L699">    	final int i = fieldorder.get(index).intValue();</span>
-<span class="nc" id="L700">    	returnval[NUMBER] = i % NUMBERBOUNDRARY;</span>
-<span class="nc" id="L701">    	returnval[FIELDTYPE] = i / NUMBERBOUNDRARY;</span>
-<span class="nc" id="L702">    	return returnval;</span>
+<span class="fc" id="L698">        final ArrayList&lt;Integer&gt; fieldorder = (ArrayList&lt;Integer&gt;) data.get(SUBJECTDNFIELDORDER);</span>
+<span class="fc" id="L699">    	final int i = fieldorder.get(index).intValue();</span>
+<span class="fc" id="L700">    	returnval[NUMBER] = i % NUMBERBOUNDRARY;</span>
+<span class="fc" id="L701">    	returnval[FIELDTYPE] = i / NUMBERBOUNDRARY;</span>
+<span class="fc" id="L702">    	return returnval;</span>
     }
 
     public int[] getSubjectAltNameFieldsInOrder(final int index) {
@@ -897,7 +897,7 @@ public class EndEntityProfile extends UpgradeableDataHashMap implements Serializ
     }
     
     public String getUsernameDefault() {
-<span class="nc" id="L900">        return getValue(USERNAME, 0);</span>
+<span class="fc" id="L900">        return getValue(USERNAME, 0);</span>
     }
     
     public boolean isUsernameRequired() {

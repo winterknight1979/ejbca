@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AdminPreferenceSessionBean.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">Unit Test Aggregator</a> &gt; <a href="../index.html" class="el_bundle">ejbca-ejb</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.ejb.ra.raadmin</a> &gt; <span class="el_source">AdminPreferenceSessionBean.java</span></div><h1>AdminPreferenceSessionBean.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA Community: The OpenSource Certificate Authority                *
+ *                                                                       *
+ *  This software is free software; you can redistribute it and/or       *
+ *  modify it under the terms of the GNU Lesser General Public           *
+ *  License as published by the Free Software Foundation; either         *
+ *  version 2.1 of the License, or any later version.                    *
+ *                                                                       *
+ *  See terms of license at gnu.org.                                     *
+ *                                                                       *
+ *************************************************************************/
+
+package org.ejbca.core.ejb.ra.raadmin;
+
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.apache.log4j.Logger;
+import org.cesecore.audit.enums.EventStatus;
+import org.cesecore.audit.log.SecurityEventsLoggerSessionLocal;
+import org.cesecore.authentication.tokens.AuthenticationToken;
+import org.cesecore.authentication.tokens.X509CertificateAuthenticationToken;
+import org.cesecore.authorization.AuthorizationDeniedException;
+import org.cesecore.authorization.AuthorizationSessionLocal;
+import org.cesecore.authorization.control.StandardRules;
+import org.cesecore.config.RaStyleInfo;
+import org.cesecore.jndi.JndiConstants;
+import org.cesecore.util.CertTools;
+import org.ejbca.core.ejb.audit.enums.EjbcaEventTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaModuleTypes;
+import org.ejbca.core.ejb.audit.enums.EjbcaServiceTypes;
+import org.ejbca.core.model.InternalEjbcaResources;
+import org.ejbca.core.model.ra.raadmin.AdminPreference;
+
+/**
+ * Stores data used by web server clients.
+ * 
+ * @version $Id: RaAdminSessionBean.java 9579 2010-07-30 18:07:23Z jeklund$
+ */
+@Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + &quot;AdminPreferenceSessionRemote&quot;)
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+<span class="nc" id="L54">public class AdminPreferenceSessionBean implements AdminPreferenceSessionLocal, AdminPreferenceSessionRemote {</span>
+
+    private static final String DEFAULTUSERPREFERENCE = &quot;default&quot;;
+
+<span class="nc" id="L58">    private static final Logger log = Logger.getLogger(AdminPreferenceSessionBean.class);</span>
+    /** Internal localization of logs and errors */
+<span class="nc" id="L60">    private static final InternalEjbcaResources intres = InternalEjbcaResources.getInstance();</span>
+
+    @PersistenceContext(unitName = &quot;ejbca&quot;)
+    private EntityManager entityManager;
+
+    @EJB
+    private AuthorizationSessionLocal authorizationSession;
+    @EJB
+    private SecurityEventsLoggerSessionLocal auditSession;
+    @EJB
+    private RaStyleCacheBean raStyleCacheBean;
+
+    @Override
+    public AdminPreference getAdminPreference(final String certificatefingerprint) {
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L75">            log.trace(&quot;&gt;getAdminPreference()&quot;);</span>
+        }
+<span class="nc" id="L77">        AdminPreference ret = null;</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        if (certificatefingerprint != null) {</span>
+<span class="nc" id="L79">            AdminPreferencesData adminPreferencesData = AdminPreferencesData.findById(entityManager, certificatefingerprint);</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">            if (adminPreferencesData != null) {</span>
+<span class="nc" id="L81">                ret = adminPreferencesData.getAdminPreference();</span>
+            }
+        }
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L85">            log.trace(&quot;&lt;getAdminPreference()&quot;);</span>
+        }
+<span class="nc" id="L87">        return ret;</span>
+    }
+    
+    @Override
+    public Map&lt;String, AdminPreference&gt; getAdminPreferences() {
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L93">            log.trace(&quot;&gt;getAdminPreference()&quot;);</span>
+        }        
+<span class="nc" id="L95">        HashMap&lt;String, AdminPreference&gt; adminPreferences = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L96">        final List&lt;AdminPreferencesData&gt; adminPreferencesData = AdminPreferencesData.findAll(entityManager);</span>
+        
+<span class="nc bnc" id="L98" title="All 4 branches missed.">        if (adminPreferencesData != null &amp;&amp; !adminPreferencesData.isEmpty()) {</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">            for(final AdminPreferencesData adminPreferenceData : adminPreferencesData) {</span>
+<span class="nc" id="L100">                adminPreferences.put(adminPreferenceData.getId(), adminPreferenceData.getAdminPreference());</span>
+<span class="nc" id="L101">            }</span>
+        }
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L104">            log.trace(&quot;&lt;getAdminPreference()&quot;);</span>
+        }        
+<span class="nc" id="L106">        return adminPreferences;</span>
+    }
+
+    @Override
+    public boolean addAdminPreference(final X509CertificateAuthenticationToken admin, final AdminPreference adminpreference) {
+<span class="nc" id="L111">        String certificatefingerprint = CertTools.getFingerprintAsString(admin.getCertificate());</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L113">            log.trace(&quot;&gt;addAdminPreference(fingerprint : &quot; + certificatefingerprint + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L115">        boolean ret = false;</span>
+        // EJB 2.1 only?: We must actually check if there is one before we try
+        // to add it, because wls does not allow us to catch any errors if
+        // creating fails, that sux
+       
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        if (AdminPreferencesData.findById(entityManager, certificatefingerprint) == null) {</span>
+            try {
+<span class="nc" id="L122">                AdminPreferencesData apdata = new AdminPreferencesData(certificatefingerprint, adminpreference);</span>
+<span class="nc" id="L123">                entityManager.persist(apdata);</span>
+<span class="nc" id="L124">                String msg = intres.getLocalizedMessage(&quot;ra.adminprefadded&quot;, apdata.getId());</span>
+<span class="nc" id="L125">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L126">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L127">                auditSession.log(EjbcaEventTypes.RA_ADDADMINPREF, EventStatus.SUCCESS, EjbcaModuleTypes.RA, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L128">                ret = true;</span>
+<span class="nc" id="L129">            } catch (Exception e) {</span>
+<span class="nc" id="L130">                String msg = intres.getLocalizedMessage(&quot;ra.adminprefexists&quot;);</span>
+<span class="nc" id="L131">                log.info(msg, e);</span>
+<span class="nc" id="L132">            }</span>
+        } else {
+<span class="nc" id="L134">            String msg = intres.getLocalizedMessage(&quot;ra.adminprefexists&quot;);</span>
+<span class="nc" id="L135">            log.info(msg);</span>
+        }
+<span class="nc" id="L137">        log.trace(&quot;&lt;addAdminPreference()&quot;);</span>
+<span class="nc" id="L138">        return ret;</span>
+    }
+
+    @Override
+    public boolean changeAdminPreference(final X509CertificateAuthenticationToken admin, final AdminPreference adminpreference) {
+<span class="nc" id="L143">        return updateAdminPreference(admin, adminpreference, true);</span>
+    }
+
+    @Override
+    public boolean changeAdminPreferenceNoLog(final X509CertificateAuthenticationToken admin, final AdminPreference adminpreference) {
+<span class="nc" id="L148">        return updateAdminPreference(admin, adminpreference, false);</span>
+    }
+
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @Override
+    public boolean existsAdminPreference(final String certificatefingerprint) {
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L155">            log.trace(&quot;&gt;existsAdminPreference(fingerprint : &quot; + certificatefingerprint + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L157">        boolean ret = false;</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">        if (certificatefingerprint!=null) {</span>
+<span class="nc" id="L159">            final AdminPreferencesData adminPreferencesData = AdminPreferencesData.findById(entityManager, certificatefingerprint);</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">            if (adminPreferencesData != null) {</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">                if (log.isDebugEnabled()) {</span>
+<span class="nc" id="L162">                    log.debug(&quot;Found admin preferences with id &quot; + adminPreferencesData.getId());</span>
+                }
+<span class="nc" id="L164">                ret = true;</span>
+            }
+        }
+<span class="nc" id="L167">        log.trace(&quot;&lt;existsAdminPreference()&quot;);</span>
+<span class="nc" id="L168">        return ret;</span>
+    }
+
+    @Override
+    public RaStyleInfo getPreferedRaStyleInfo(AuthenticationToken admin) {
+<span class="nc" id="L173">        List&lt;RaStyleInfo&gt; availableRaStyles = getAvailableRaStyleInfos(admin);</span>
+<span class="nc" id="L174">        Integer preferedStyleId = getCurrentRaStyleId(admin);</span>
+        // Administrator hasn't set a preferred style. Use first available
+<span class="nc bnc" id="L176" title="All 4 branches missed.">        if (preferedStyleId == null &amp;&amp; !availableRaStyles.isEmpty()) {</span>
+<span class="nc" id="L177">            return availableRaStyles.get(0);</span>
+        }
+        // Default style will be used
+<span class="nc bnc" id="L180" title="All 4 branches missed.">        if (availableRaStyles.isEmpty() || preferedStyleId == 0) {</span>
+<span class="nc" id="L181">            return null;</span>
+        }
+        
+        // Return the style preferred by administrator
+<span class="nc bnc" id="L185" title="All 2 branches missed.">        for (RaStyleInfo rastyle : availableRaStyles) {</span>
+<span class="nc bnc" id="L186" title="All 2 branches missed.">            if (preferedStyleId == rastyle.getArchiveId()) {</span>
+<span class="nc" id="L187">                return rastyle;</span>
+            }
+<span class="nc" id="L189">        }</span>
+        
+        // Previously set preference is no longer available, return first available.
+<span class="nc" id="L192">        return availableRaStyles.get(0);</span>
+    }
+    
+    @Override
+    public List&lt;RaStyleInfo&gt; getAvailableRaStyleInfos(AuthenticationToken admin) {
+<span class="nc" id="L197">        return raStyleCacheBean.getAvailableRaStyles(admin);</span>
+    }
+
+    @Override
+    public void invalidateRaStyleCache() {
+<span class="nc" id="L202">        raStyleCacheBean.invalidateCache();</span>
+<span class="nc" id="L203">    }</span>
+    
+    @Override
+    public AdminPreference getDefaultAdminPreference() {
+<span class="nc bnc" id="L207" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L208">            log.trace(&quot;&gt;getDefaultAdminPreference()&quot;);</span>
+        }
+<span class="nc" id="L210">        AdminPreference ret = null;</span>
+<span class="nc" id="L211">        AdminPreferencesData apdata = AdminPreferencesData.findById(entityManager, DEFAULTUSERPREFERENCE);</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">        if (apdata != null) {</span>
+<span class="nc" id="L213">            ret = apdata.getAdminPreference();</span>
+        } else {
+            try {
+                // Create new configuration
+<span class="nc" id="L217">                AdminPreferencesData newapdata = new AdminPreferencesData(DEFAULTUSERPREFERENCE, new AdminPreference());</span>
+<span class="nc" id="L218">                entityManager.persist(newapdata);</span>
+<span class="nc" id="L219">                ret = newapdata.getAdminPreference();</span>
+<span class="nc" id="L220">            } catch (Exception e) {</span>
+<span class="nc" id="L221">                throw new EJBException(e);</span>
+<span class="nc" id="L222">            }</span>
+        }
+<span class="nc bnc" id="L224" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L225">            log.trace(&quot;&lt;getDefaultAdminPreference()&quot;);</span>
+        }
+<span class="nc" id="L227">        return ret;</span>
+    }
+
+    @Override
+    public void saveDefaultAdminPreference(final AuthenticationToken admin, final AdminPreference defaultadminpreference)
+            throws AuthorizationDeniedException {
+<span class="nc bnc" id="L233" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L234">            log.trace(&quot;&gt;saveDefaultAdminPreference()&quot;);</span>
+        }
+
+<span class="nc bnc" id="L237" title="All 2 branches missed.">        if (!authorizationSession.isAuthorized(admin, StandardRules.SYSTEMCONFIGURATION_EDIT.resource())) {</span>
+<span class="nc" id="L238">            String msg = intres.getLocalizedMessage(&quot;authorization.notauthorizedtoresource&quot;, StandardRules.SYSTEMCONFIGURATION_EDIT, null);</span>
+<span class="nc" id="L239">            Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L240">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc" id="L241">            auditSession.log(EjbcaEventTypes.RA_DEFAULTADMINPREF, EventStatus.FAILURE, EjbcaModuleTypes.RA, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L242">                    admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L243">            throw new AuthorizationDeniedException(msg);</span>
+        }
+
+<span class="nc" id="L246">        AdminPreferencesData apdata = AdminPreferencesData.findById(entityManager, DEFAULTUSERPREFERENCE);</span>
+<span class="nc bnc" id="L247" title="All 2 branches missed.">        if (apdata != null) {</span>
+<span class="nc" id="L248">            final Map&lt;Object, Object&gt; diff = apdata.getAdminPreference().diff(defaultadminpreference);</span>
+<span class="nc" id="L249">            apdata.setAdminPreference(defaultadminpreference);</span>
+<span class="nc" id="L250">            final String msg = intres.getLocalizedMessage(&quot;ra.defaultadminprefsaved&quot;);</span>
+<span class="nc" id="L251">            final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L252">            details.put(&quot;msg&quot;, msg);</span>
+<span class="nc bnc" id="L253" title="All 2 branches missed.">            for (Map.Entry&lt;Object, Object&gt; entry : diff.entrySet()) {</span>
+<span class="nc" id="L254">                details.put(entry.getKey().toString(), entry.getValue().toString());</span>
+<span class="nc" id="L255">            }</span>
+<span class="nc" id="L256">            auditSession.log(EjbcaEventTypes.RA_DEFAULTADMINPREF, EventStatus.SUCCESS, EjbcaModuleTypes.RA, EjbcaServiceTypes.EJBCA,</span>
+<span class="nc" id="L257">                    admin.toString(), null, null, null, details);</span>
+<span class="nc" id="L258">        } else {</span>
+<span class="nc" id="L259">            final String msg = intres.getLocalizedMessage(&quot;ra.errorsavedefaultadminpref&quot;);</span>
+<span class="nc" id="L260">            log.info(msg);</span>
+<span class="nc" id="L261">            throw new EJBException(msg);</span>
+        }
+<span class="nc bnc" id="L263" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L264">            log.trace(&quot;&lt;saveDefaultAdminPreference()&quot;);</span>
+        }
+<span class="nc" id="L266">    }</span>
+
+    /**
+     * Changes the admin preference in the database. Returns false if admin
+     * preference doesn't exist.
+     * @param admin Admin
+     * @param adminpreference prefs
+     * @param dolog bool
+     * @return bool
+     */
+    private boolean updateAdminPreference(X509CertificateAuthenticationToken admin, AdminPreference adminpreference, boolean dolog) {
+<span class="nc" id="L277">        String certificatefingerprint = CertTools.getFingerprintAsString(admin.getCertificate());</span>
+<span class="nc bnc" id="L278" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L279">            log.trace(&quot;&gt;updateAdminPreference(fingerprint : &quot; + certificatefingerprint + &quot;)&quot;);</span>
+        }
+<span class="nc" id="L281">        boolean ret = false;</span>
+<span class="nc" id="L282">        AdminPreferencesData apdata1 = AdminPreferencesData.findById(entityManager, certificatefingerprint);</span>
+<span class="nc bnc" id="L283" title="All 2 branches missed.">        if (apdata1 != null) {</span>
+<span class="nc" id="L284">            final Map&lt;Object, Object&gt; diff = apdata1.getAdminPreference().diff(adminpreference);</span>
+<span class="nc" id="L285">            apdata1.setAdminPreference(adminpreference);</span>
+            // Earlier we used to remove and re-add the adminpreferences data
+            // I don't know why, but that did not work on Oracle AS, so lets
+            // just do what create does, and setAdminPreference.
+            /*
+             * adminpreferenceshome.remove(certificatefingerprint); try{
+             * AdminPreferencesDataLocal apdata2 =
+             * adminpreferenceshome.findByPrimaryKey(certificatefingerprint);
+             * debug(&quot;Found admin preferences with id: &quot;+apdata2.getId()); }
+             * catch (javax.ejb.FinderException fe) {
+             * debug(&quot;Admin preferences has been removed: &quot;
+             * +certificatefingerprint); }
+             * adminpreferenceshome.create(certificatefingerprint
+             * ,adminpreference); try{ AdminPreferencesDataLocal apdata3 =
+             * adminpreferenceshome.findByPrimaryKey(certificatefingerprint);
+             * debug(&quot;Found admin preferences with id: &quot;+apdata3.getId()); }
+             * catch (javax.ejb.FinderException fe) {
+             * error(&quot;Admin preferences was not created: &quot;
+             * +certificatefingerprint); }
+             */
+<span class="nc bnc" id="L305" title="All 2 branches missed.">            if (dolog) {</span>
+<span class="nc" id="L306">                final String msg = intres.getLocalizedMessage(&quot;ra.changedadminpref&quot;, certificatefingerprint);</span>
+<span class="nc" id="L307">                final Map&lt;String, Object&gt; details = new LinkedHashMap&lt;String, Object&gt;();</span>
+<span class="nc" id="L308">                details.put(&quot;msg&quot;, msg);</span>
+<span class="nc bnc" id="L309" title="All 2 branches missed.">                for (Map.Entry&lt;Object, Object&gt; entry : diff.entrySet()) {</span>
+<span class="nc" id="L310">                    details.put(entry.getKey().toString(), entry.getValue().toString());</span>
+<span class="nc" id="L311">                }</span>
+<span class="nc" id="L312">                auditSession.log(EjbcaEventTypes.RA_EDITADMINPREF, EventStatus.SUCCESS, EjbcaModuleTypes.RA, EjbcaServiceTypes.EJBCA, admin.toString(), null, null, null, details);</span>
+            }
+<span class="nc" id="L314">            ret = true;</span>
+<span class="nc" id="L315">        } else {</span>
+<span class="nc" id="L316">            ret = false;</span>
+<span class="nc bnc" id="L317" title="All 2 branches missed.">            if (dolog) {</span>
+<span class="nc" id="L318">                final String msg = intres.getLocalizedMessage(&quot;ra.adminprefnotfound&quot;, certificatefingerprint);</span>
+<span class="nc" id="L319">                log.info(msg);</span>
+            }
+        }
+<span class="nc bnc" id="L322" title="All 2 branches missed.">        if (log.isTraceEnabled()) {</span>
+<span class="nc" id="L323">            log.trace(&quot;&lt;updateAdminPreference()&quot;);</span>
+        }
+<span class="nc" id="L325">        return ret;</span>
+    }
+
+    @Override
+    public Integer getCurrentRaStyleId(AuthenticationToken admin) {
+        
+<span class="nc bnc" id="L331" title="All 2 branches missed.">        if (!(admin instanceof X509CertificateAuthenticationToken)) {</span>
+<span class="nc" id="L332">            return null;</span>
+        }
+
+<span class="nc" id="L335">        String certificatefingerprint = CertTools.getFingerprintAsString(((X509CertificateAuthenticationToken) admin).getCertificate());</span>
+
+<span class="nc" id="L337">        AdminPreference adminPreference = getAdminPreference(certificatefingerprint);</span>
+
+<span class="nc bnc" id="L339" title="All 2 branches missed.">        if (adminPreference == null) {</span>
+<span class="nc" id="L340">            return null;</span>
+        }
+
+<span class="nc" id="L343">        Integer currentStyleId = adminPreference.getPreferedRaStyleId();</span>
+
+<span class="nc bnc" id="L345" title="All 2 branches missed.">        if (currentStyleId != null) {</span>
+<span class="nc" id="L346">            return currentStyleId;</span>
+        }
+<span class="nc" id="L348">        return null;</span>
+
+    }
+
+    @Override
+    public void setCurrentRaStyleId(int currentStyleId, AuthenticationToken admin) {
+        
+<span class="nc" id="L355">        String certificatefingerprint = CertTools.getFingerprintAsString(((X509CertificateAuthenticationToken) admin).getCertificate());</span>
+
+<span class="nc" id="L357">        AdminPreference adminPreference = getAdminPreference(certificatefingerprint);</span>
+        
+<span class="nc" id="L359">        adminPreference.setPreferedRaStyleId(currentStyleId);</span>
+<span class="nc" id="L360">        updateAdminPreference((X509CertificateAuthenticationToken) admin, adminPreference, false);</span>
+        
+<span class="nc" id="L362">    }</span>
+
+    @Override
+    public Locale getCurrentRaLocale(AuthenticationToken admin) {
+        
+<span class="nc bnc" id="L367" title="All 2 branches missed.">        if (!(admin instanceof X509CertificateAuthenticationToken)) {</span>
+<span class="nc" id="L368">            return null;</span>
+        }
+
+<span class="nc" id="L371">        String certificatefingerprint = CertTools.getFingerprintAsString(((X509CertificateAuthenticationToken) admin).getCertificate());</span>
+
+<span class="nc" id="L373">        AdminPreference adminPreference = getAdminPreference(certificatefingerprint);</span>
+
+<span class="nc bnc" id="L375" title="All 2 branches missed.">        if (adminPreference == null) {</span>
+<span class="nc" id="L376">            return getDefaultAdminPreference().getPreferedRaLanguage();</span>
+        }
+
+<span class="nc" id="L379">        Locale currentLocale = adminPreference.getPreferedRaLanguage();</span>
+
+<span class="nc bnc" id="L381" title="All 2 branches missed.">        if (currentLocale != null) {</span>
+<span class="nc" id="L382">            return currentLocale;</span>
+        }
+
+<span class="nc" id="L385">        return getDefaultAdminPreference().getPreferedRaLanguage();</span>
+    }
+
+    @Override
+    public void setCurrentRaLocale(Locale locale, AuthenticationToken admin) {
+        
+<span class="nc" id="L391">        String certificatefingerprint = CertTools.getFingerprintAsString(((X509CertificateAuthenticationToken) admin).getCertificate());</span>
+        
+<span class="nc" id="L393">        AdminPreference adminPreference = getAdminPreference(certificatefingerprint);</span>
+        
+<span class="nc" id="L395">        adminPreference.setPreferedRaLanguage(locale);</span>
+<span class="nc" id="L396">        updateAdminPreference((X509CertificateAuthenticationToken) admin, adminPreference, false);</span>
+        
+<span class="nc" id="L398">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

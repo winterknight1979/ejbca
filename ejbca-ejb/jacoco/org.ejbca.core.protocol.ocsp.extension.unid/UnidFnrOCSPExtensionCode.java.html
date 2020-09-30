@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UnidFnrOCSPExtensionCode.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">EJBCA EJB Library</a> &gt; <a href="index.source.html" class="el_package">org.ejbca.core.protocol.ocsp.extension.unid</a> &gt; <span class="el_source">UnidFnrOCSPExtensionCode.java</span></div><h1>UnidFnrOCSPExtensionCode.java</h1><pre class="source lang-java linenums">/*************************************************************************
+ *                                                                       *
+ *  EJBCA - Proprietary Modules: Enterprise Certificate Authority        *
+ *                                                                       *
+ *  Copyright (c), PrimeKey Solutions AB. All rights reserved.           *
+ *  The use of the Proprietary Modules are subject to specific           *
+ *  commercial license terms.                                            *
+ *                                                                       *
+ *************************************************************************/
+package org.ejbca.core.protocol.ocsp.extension.unid;
+
+/**
+ * 
+ * @version $Id: UnidFnrOCSPExtensionCode.java 28536 2018-03-21 11:48:07Z aminkh $
+ *
+ */
+<span class="nc" id="L17">public enum UnidFnrOCSPExtensionCode {</span>
+    
+<span class="nc" id="L19">    ERROR_NO_ERROR(0),</span>
+<span class="nc" id="L20">    ERROR_UNKNOWN(1),</span>
+<span class="nc" id="L21">    ERROR_UNAUTHORIZED(2),</span>
+<span class="nc" id="L22">    ERROR_NO_FNR_MAPPING(3),</span>
+<span class="nc" id="L23">    ERROR_NO_SERIAL_IN_DN(4),</span>
+<span class="nc" id="L24">    ERROR_SERVICE_UNAVAILABLE(5),</span>
+<span class="nc" id="L25">    ERROR_CERT_REVOKED(6);</span>
+    
+    private final int errorCode;
+<span class="nc" id="L28">    private UnidFnrOCSPExtensionCode(final int errorCode) {</span>
+<span class="nc" id="L29">        this.errorCode = errorCode;</span>
+<span class="nc" id="L30">    }</span>
+
+    public int getValue() {
+<span class="nc" id="L33">        return errorCode;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>
