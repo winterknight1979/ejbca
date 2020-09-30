@@ -73,6 +73,12 @@ It should explicitly depend on all other modules.</description>
 		
 		<dependency>
 			<groupId>${project.groupId}</groupId>
+			<artifactId>ejbca-ejb</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>${project.groupId}</groupId>
 			<artifactId>ejbca-ws</artifactId>
 			<version>${project.version}</version>
 		</dependency>

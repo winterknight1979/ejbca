@@ -82,7 +82,6 @@
 		<dependency>
 			<groupId>org.ogce</groupId>
 			<artifactId>xpp3</artifactId>
-			<scope>test</scope>
 		</dependency>
 
 
