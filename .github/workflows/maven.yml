@@ -29,6 +29,18 @@ jobs:
     - name: Build packages with Maven
       run: mvn -B package -Pcoverage -Dmaven.test.failure.ignore=false -fae --file pom.xml
     
+    - name: Publish test results
+      uses: scacap/action-surefire-report@v1
+      if: always()
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Publish coverage results
+      uses: codecov/codecov-action@v1
+      if: always()
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
+    
     - name: Build Reports
       run: mvn -Pcoverage -B site site:stage --file pom.xml
     
@@ -42,17 +54,6 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ github.token }}
         
-    - name: Publish test results
-      uses: scacap/action-surefire-report@v1
-      if: always()
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+    
         
-    - name: Publish Unit Test Results
-      uses: EnricoMi/publish-unit-test-result-action@v1.2
-      if: always()
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        check_name: Unit Test Results
-        files: ./**/surefire-reports/*.xml
-        report_individual_runs: true
+  
