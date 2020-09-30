@@ -82,6 +82,7 @@
 		<dependency>
 			<groupId>org.ogce</groupId>
 			<artifactId>xpp3</artifactId>
+			<scope>runtime</scope>
 		</dependency>
 
 

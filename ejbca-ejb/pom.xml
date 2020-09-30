@@ -1,36 +1,30 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
     <groupId>goldeneyes.ejbca</groupId>
     <artifactId>ejbca</artifactId>
     <version>${revision}</version>
   </parent>
-  <artifactId>ejbca-ejb</artifactId>
-  
-  <dependencies>
+
+	<artifactId>ejbca-ejb</artifactId>
+
+	<name>EJBCA EJB Library</name>
+	<description>EJBCA EJB Library</description>
+
+	<dependencies>
 
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>ejbca-ejb-interface</artifactId>
 			<version>${project.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.ogce</groupId>
-					<artifactId>xpp3</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>ejbca-common-web</artifactId>
 			<version>${project.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.ogce</groupId>
-					<artifactId>xpp3</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		
 		<dependency>
@@ -113,8 +107,8 @@
 			
 			</plugins>
 			</build>
-			
-			<reporting>
+
+	<reporting>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -193,6 +187,4 @@
 			</reporting>
 		</profile>
 	</profiles>
-	<name>EJBCA EJB Library</name>
-	<description>EJBCA EJB Library</description>
 </project>

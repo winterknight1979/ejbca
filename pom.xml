@@ -28,18 +28,38 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 	</developers>
 
 	<modules>
-		<module>cesecore-common</module>
+		<!-- Shared resource bundle -->
+	
 		<module>shared-resources</module>
+		
+		<!-- CeSeCore JARs -->
+		
+		<module>cesecore-common</module>
 		<module>cesecore-entity</module>
-		<module>ejbca-test-aggregator</module>
 		<module>cesecore-ejb-interface</module>
 		<module>cesecore-ejb</module>
+		
+		<!-- EJBCA Library JARs -->
+		
 		<module>ejbca-common</module>
 		<module>ejbca-entity</module>
-		<module>ejbca-ws-common</module>
 		<module>ejbca-ejb-interface</module>
 		<module>ejbca-ejb</module>
 		<module>ejbca-common-web</module>
+		<module>ejbca-ws-common</module>
+		<module>ejbca-ws</module>
+		
+		<!-- Edition-Specific library JARs -->
+		
+		<module>edition-specific-interface</module>
+		<module>edition-specific-ejb</module>
+		
+		<!-- CLI Tools -->
+		
+		<module>ejbca-ws-cli</module>
+		
+		<!-- WebApp modules -->
+		
 		<module>publicweb-gui</module>
 		<module>ejbca-renew-war</module>
 		<module>ejbca-scep-war</module>
@@ -47,10 +67,11 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<module>ejbca-cmp-war</module>
 		<module>healthcheck-war</module>
 		<module>clearcache-war</module>
-		<module>ejbca-ws</module>
-		<module>edition-specific-ejb</module>
-		<module>edition-specific-interface</module>
-		<module>ejbca-ws-cli</module>
+		
+		<!-- Test-only modules -->
+		
+		<module>ejbca-test-aggregator</module>
+		
 	</modules>
 
 	<scm>
@@ -415,6 +436,16 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 				<groupId>com.sun.activation</groupId>
 				<artifactId>jakarta.activation</artifactId>
 				<version>1.2.2</version>
+			</dependency>
+			<dependency>
+				<groupId>org.jvnet.staxex</groupId>
+				<artifactId>stax-ex</artifactId>
+				<version>1.8.3</version>
+			</dependency>
+			<dependency>
+				<groupId>com.sun.xml.fastinfoset</groupId>
+				<artifactId>FastInfoset</artifactId>
+				<version>1.2.18</version>
 			</dependency>
 
 		</dependencies>
