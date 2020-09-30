@@ -18,5 +18,5 @@ The V1.4.9 Jar from the original download is therefore included and installed to
 Should PrimeKey release v1.4.9 with source, it will be included here and built as a module.
 
 ![Java CI with Maven](https://github.com/winterknight1979/ejbca/workflows/Java%20CI%20with%20Maven/badge.svg)
-[![codecov](https://codecov.io/gh/winterknight1979/ejbca/branch/master/graph/badge.svg?token=J3QRD54ZIG)](undefined)
+[![codecov](https://codecov.io/gh/winterknight1979/ejbca/branch/master/graph/badge.svg?token=J3QRD54ZIG)](https://codecov.io/gh/winterknight1979/ejbca)
 
