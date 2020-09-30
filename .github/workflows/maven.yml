@@ -43,10 +43,7 @@ jobs:
         GITHUB_TOKEN: ${{ github.token }}
         
     - name: Publish test results
-      uses: EnricoMi/publish-unit-test-result-action@v1.2
+      uses: scacap/action-surefire-report@v1
       if: always()
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        check_name: Unit Test Results
-        files: /**/target/surefire-reports/*.xml
-        report_individual_runs: true
