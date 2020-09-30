@@ -518,7 +518,6 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>3.0.0-M4</version>
 					<configuration>
-						<testFailureIgnore>true</testFailureIgnore>
 						<forkCount>4</forkCount>
 						<reuseForks>false</reuseForks>
 						<rerunFailingTestsCount>2</rerunFailingTestsCount>

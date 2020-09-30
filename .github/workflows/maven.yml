@@ -27,7 +27,7 @@ jobs:
         settings-path: ${{ github.workspace }} # location for the settings.xml file
     
     - name: Build packages with Maven
-      run: mvn -B package -Pcoverage -Dmaven.test.failure.ignore=false -fae --file pom.xml
+      run: mvn -B package -Pcoverage -fae --file pom.xml
     
     - name: Publish test results
       uses: scacap/action-surefire-report@v1
