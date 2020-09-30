@@ -268,6 +268,10 @@ public class AdminPreferenceSessionBean implements AdminPreferenceSessionLocal, 
     /**
      * Changes the admin preference in the database. Returns false if admin
      * preference doesn't exist.
+     * @param admin Admin
+     * @param adminpreference prefs
+     * @param dolog bool
+     * @return bool
      */
     private boolean updateAdminPreference(X509CertificateAuthenticationToken admin, AdminPreference adminpreference, boolean dolog) {
         String certificatefingerprint = CertTools.getFingerprintAsString(admin.getCertificate());

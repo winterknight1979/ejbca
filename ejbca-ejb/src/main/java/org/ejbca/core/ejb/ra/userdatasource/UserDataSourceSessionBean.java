@@ -467,6 +467,9 @@ public class UserDataSourceSessionBean implements UserDataSourceSessionLocal, Us
      *    or
      *    If the userdatasource have "ANYCA" set.
      * 3. The admin is authorized to the fetch or remove rule depending on the remove parameter
+     * @param admin Admin
+     * @param id ID
+     * @param userdatasource data 
      * @param remove if the call is a remove call, othervise fetch authorization is used.
      * @return true if the administrator is authorized
      */
@@ -503,6 +506,9 @@ public class UserDataSourceSessionBean implements UserDataSourceSessionLocal, Us
      * 2. If tha admin is authorized AccessRulesConstants.REGULAR_EDITUSERDATASOURCES
      * 3. Only the superadmin should have edit access to user data sources with 'ANYCA' set
      * 4. Administrators should be authorized to all the user data source applicable cas.
+     * @param admin Admin
+     * @param name name
+     * @param userdatasource Daya
      * 
      * @throws AuthorizationDeniedException if the administrator is not authorized
      */
@@ -539,7 +545,9 @@ public class UserDataSourceSessionBean implements UserDataSourceSessionLocal, Us
         return ProfileID.getNotUsedID(db);
     }
 
-    /** Method that returns the UserDataSource data and updates it if necessary. */
+    /** Method that returns the UserDataSource data and updates it if necessary. 
+     * @param udsData Data
+     * @return Updated */
     private BaseUserDataSource getUserDataSource(UserDataSourceData udsData) {
     	BaseUserDataSource userdatasource = udsData.getCachedUserDataSource();
         if (userdatasource == null) {

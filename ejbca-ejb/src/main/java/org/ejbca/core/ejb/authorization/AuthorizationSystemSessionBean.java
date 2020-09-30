@@ -70,6 +70,7 @@ import org.ejbca.core.model.authorization.AccessRulesConstants;
  *
  * @version $Id: AuthorizationSystemSessionBean.java 27422 2017-12-05 14:05:42Z bastianf $
  */
+@SuppressWarnings("deprecation")
 @Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + "AuthorizationSystemSessionRemote")
 @TransactionAttribute(TransactionAttributeType.SUPPORTS)
 public class AuthorizationSystemSessionBean implements AuthorizationSystemSessionLocal, AuthorizationSystemSessionRemote {

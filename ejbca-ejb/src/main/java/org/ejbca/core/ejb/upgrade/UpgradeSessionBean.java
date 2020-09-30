@@ -15,6 +15,7 @@ package org.ejbca.core.ejb.upgrade;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.net.URL;
 import java.security.cert.Certificate;
@@ -138,6 +139,7 @@ import org.ejbca.util.JDBCUtil;
  *
  * @version $Id: UpgradeSessionBean.java 31276 2019-01-21 23:52:29Z jeklund $
  */
+@SuppressWarnings("deprecation")
 @Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + "UpgradeSessionRemote")
 @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
 public class UpgradeSessionBean implements UpgradeSessionLocal, UpgradeSessionRemote {
@@ -182,7 +184,6 @@ public class UpgradeSessionBean implements UpgradeSessionLocal, UpgradeSessionRe
     private PublisherSessionLocal publisherSession;
     @EJB
     private RoleDataSessionLocal roleDataSession;
-    @SuppressWarnings("deprecation")
     @EJB
     private LegacyRoleManagementSessionLocal legacyRoleManagementSession;
     @EJB
@@ -583,7 +584,6 @@ public class UpgradeSessionBean implements UpgradeSessionLocal, UpgradeSessionRe
      *
      * @return true if the upgrade was successful and false otherwise
      */
-    @SuppressWarnings("deprecation")
     private boolean addEKUAndCustomCertExtensionsAccessRulestoRoles() {
         legacyRoleManagementSession.addAccessRuleDataToRolesWhenAccessIsImplied(authenticationToken, StandardRules.ROLE_ROOT.resource(),
         		Arrays.asList(StandardRules.SYSTEMCONFIGURATION_EDIT.resource()),
@@ -643,7 +643,6 @@ public class UpgradeSessionBean implements UpgradeSessionLocal, UpgradeSessionRe
      * The exact changes performed are documented in the UPGRADE document.
      * @throws UpgradeFailedException if upgrade fails.
      */
-    @SuppressWarnings("deprecation")
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     private void addReadOnlyRules640() throws UpgradeFailedException {
         // Roles with access to /ca_functionality/basic_functions/activate_ca or just /ca_functionality/ (+recursive)
@@ -675,10 +674,9 @@ public class UpgradeSessionBean implements UpgradeSessionLocal, UpgradeSessionRe
      * These are:   View rules for system configuration, EKU config and CCE config
      *
      * Any roles which matched the previous auditor role, or which had edit access to the above will be given view access.
-     * @throws UpgradeFailedException
+     * @throws UpgradeFailedException fail
      *
      */
-    @SuppressWarnings("deprecation")
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     private void addReadOnlyRules642() throws UpgradeFailedException {
         // If role is the old auditor from 6.4.0, grant new view rights
@@ -736,14 +734,14 @@ public class UpgradeSessionBean implements UpgradeSessionLocal, UpgradeSessionRe
         Map<Integer, String> publisherNames = publisherSession.getPublisherIdToNameMap();
         BasePublisherConverter publisherFactory;
         try {
-            publisherFactory = (BasePublisherConverter) Class.forName("org.ejbca.va.publisher.EnterpriseValidationAuthorityPublisherFactoryImpl").newInstance();
-        } catch (InstantiationException e) {
+            publisherFactory = (BasePublisherConverter) Class.forName("org.ejbca.va.publisher.EnterpriseValidationAuthorityPublisherFactoryImpl").getConstructor().newInstance();
+        } catch (InstantiationException | InvocationTargetException e) {
             //Shouldn't happen since we've already checked that we're running Enterprise
             throw new IllegalStateException(e);
         } catch (IllegalAccessException e) {
             //Shouldn't happen since we've already checked that we're running Enterprise
             throw new IllegalStateException(e);
-        } catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
             //Shouldn't happen since we've already checked that we're running Enterprise
             throw new IllegalStateException(e);
         }
@@ -769,7 +767,6 @@ public class UpgradeSessionBean implements UpgradeSessionLocal, UpgradeSessionRe
      *
      * @throws UpgradeFailedException if upgrade fails (rolls back)
      */
-    @SuppressWarnings("deprecation")
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Override
     public void migrateDatabase624() throws UpgradeFailedException {
@@ -838,7 +835,6 @@ public class UpgradeSessionBean implements UpgradeSessionLocal, UpgradeSessionRe
         for(final String cmpAlias : cmpConfiguration.getAliasList()) {
             // Avoid aliases that may already have been upgraded
             if(StringUtils.isEmpty(cmpConfiguration.getRAEEProfile(cmpAlias))) {
-                @SuppressWarnings("deprecation")
                 String endEntityProfileName = cmpConfiguration.getValue(cmpAlias + "." + CmpConfiguration.CONFIG_RA_ENDENTITYPROFILE, cmpAlias);
                 if (!StringUtils.isEmpty(endEntityProfileName)) {
                     try {
@@ -872,7 +868,6 @@ public class UpgradeSessionBean implements UpgradeSessionLocal, UpgradeSessionRe
      *
      * @throws UpgradeFailedException if upgrade fails (rolls back)
      */
-    @SuppressWarnings("deprecation")
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Override
     public void migrateDatabase660() throws UpgradeFailedException {
@@ -1028,7 +1023,6 @@ public class UpgradeSessionBean implements UpgradeSessionLocal, UpgradeSessionRe
      *
      * @throws UpgradeFailedException if upgrade fails (rolls back)
      */
-    @SuppressWarnings("deprecation")
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Override
     public void migrateDatabase680() throws UpgradeFailedException {
@@ -1355,7 +1349,6 @@ public class UpgradeSessionBean implements UpgradeSessionLocal, UpgradeSessionRe
     
     /**
      * Upgrades to EJBCA 6.12.0
-     * @throws InternalKeyBindingNameInUseException 
      * 
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
@@ -1567,7 +1560,6 @@ public class UpgradeSessionBean implements UpgradeSessionLocal, UpgradeSessionRe
     }
 
 
-    @SuppressWarnings("deprecation")
     private boolean postMigrateDatabase680() {
         log.info("Starting post upgrade to 6.8.0.");
         // Verify that there are no TYPE_NOT_EQUALCASE* still in use
@@ -1608,7 +1600,7 @@ public class UpgradeSessionBean implements UpgradeSessionLocal, UpgradeSessionRe
      *
      * If upgrading from 6.6.0 or later, grant access to /ca_functionality/view_certificate for roles with access
      * to ra_functionality/view_end_entity
-     * @param accessRules HashMap of access rules to migrate
+     * @param newAccessRules HashMap of access rules to migrate
      * @param isInstalledOn660OrLater if upgrading from 6.6.0 or later
      * @return HashMap with migrated rule states
      */
@@ -1630,8 +1622,8 @@ public class UpgradeSessionBean implements UpgradeSessionLocal, UpgradeSessionRe
         return newAccessRules;
     }
 
-    /** Add the previously global configuration configured approval notification */
-    @SuppressWarnings("deprecation")
+    /** Add the previously global configuration configured approval notification 
+     * @param newProfile Profile*/
     private void addApprovalNotification(final AccumulativeApprovalProfile newProfile) {
         final GlobalConfiguration gc = (GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID);
         if (gc.getUseApprovalNotifications()) {

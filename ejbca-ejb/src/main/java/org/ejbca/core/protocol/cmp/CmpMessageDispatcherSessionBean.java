@@ -123,6 +123,7 @@ public class CmpMessageDispatcherSessionBean implements CmpMessageDispatcherSess
      * @param authenticationToken the authentication token.
      * @param pkiMessage DER encoded CMP message received from the client.
      * @param pkiHeader DER encoded PKI header of the original CMP message received from the client.
+     * @param cmpConfiguration Config
      * @param cmpConfigurationAlias the CMP alias we want to use for this request.
     *  @param levelOfNesting the level of nesting depth.
      * @return A response message containing the CMP response message or null if there is no message to send back or some internal error has occurred

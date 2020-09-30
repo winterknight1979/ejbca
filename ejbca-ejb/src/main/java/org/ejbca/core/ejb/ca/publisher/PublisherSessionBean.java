@@ -798,7 +798,8 @@ public class PublisherSessionBean implements PublisherSessionLocal, PublisherSes
         }
     }
 
-    /** @return the publisher data and updates it if necessary. */
+    /** @param pData Data
+     * @return the publisher data and updates it if necessary. */
     private BasePublisher getPublisher(final PublisherData pData) {
         BasePublisher publisher = pData.getCachedPublisher();
         if (publisher == null) {

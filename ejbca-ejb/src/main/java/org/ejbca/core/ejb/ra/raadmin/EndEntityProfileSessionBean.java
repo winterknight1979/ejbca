@@ -662,7 +662,9 @@ public class EndEntityProfileSessionBean implements EndEntityProfileSessionLocal
     
     /**
      * Help function that checks if administrator is authorized to view profile.
+     * @param admin Admin
      * @param profile is the end entity profile or null for EndEntityConstants.EMPTY_END_ENTITY_PROFILE
+     * @throws AuthorizationDeniedException Fail
      */
     private void authorizedToViewProfile(final AuthenticationToken admin, final EndEntityProfile profile)  throws AuthorizationDeniedException {
         if (authorizationSession.isAuthorizedNoLogging(admin, AccessRulesConstants.REGULAR_VIEWENDENTITYPROFILES) && profile != null) {
@@ -675,7 +677,9 @@ public class EndEntityProfileSessionBean implements EndEntityProfileSessionLocal
 
     /**
      * Help function that checks if administrator is authorized to edit profile.
+     * @param admin Admin
      * @param profile is the end entity profile or null for EndEntityConstants.EMPTY_END_ENTITY_PROFILE
+     * @throws AuthorizationDeniedException Fail
      */
     private void authorizedToEditProfile(final AuthenticationToken admin, final EndEntityProfile profile)  throws AuthorizationDeniedException {
         if (authorizationSession.isAuthorizedNoLogging(admin, AccessRulesConstants.REGULAR_EDITENDENTITYPROFILES) && profile != null) {

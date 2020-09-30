@@ -148,7 +148,7 @@ public class EndEntityAuthenticationSessionBean implements EndEntityAuthenticati
      * {@link EndEntityConstants#STATUS_GENERATED} if it wasn't that already.
      * This method does nothing if the counter value is set to UNLIMITED (-1).
      * 
-     * @param ei
+     * @param ei Info
      * @param user the unique username of the user
      * @return true if the value was decremented or the status was changed, false if not
      */

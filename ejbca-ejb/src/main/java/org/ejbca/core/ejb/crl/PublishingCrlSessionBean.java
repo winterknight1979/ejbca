@@ -407,9 +407,12 @@ public class PublishingCrlSessionBean implements PublishingCrlSessionLocal, Publ
      *
      * @param admin administrator performing the task
      * @param ca the CA this operation regards
+     * @param lastBaseCrlInfo Info
      * @return fingerprint (primary key) of the generated CRL or null if
      *            generation failed
-     * @throws AuthorizationDeniedException
+     * @throws CAOfflineException Fail
+     * @throws CryptoTokenOfflineException Fail
+     * @throws AuthorizationDeniedException Fail
      * @throws javax.ejb.EJBException if a communications- or system error occurs
      */
     private String internalCreateCRL(final AuthenticationToken admin, final CA ca, final CRLInfo lastBaseCrlInfo) throws CAOfflineException, CryptoTokenOfflineException, AuthorizationDeniedException {
@@ -565,7 +568,9 @@ public class PublishingCrlSessionBean implements PublishingCrlSessionLocal, Publ
      *            CRL.
      * @return the bytes of the Delta CRL generated or null of no delta CRL was
      *         generated.
-     * @throws AuthorizationDeniedException
+     * @throws CryptoTokenOfflineException Fail
+     * @throws CAOfflineException Fail
+     * @throws AuthorizationDeniedException Fail
      * @throws javax.ejb.EJBException if a communications- or system error occurs
      */
     private byte[] internalCreateDeltaCRL(final AuthenticationToken admin, final CA ca, final CRLInfo lastBaseCrlInfo) throws CryptoTokenOfflineException, CAOfflineException, AuthorizationDeniedException {

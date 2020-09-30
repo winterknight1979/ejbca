@@ -793,8 +793,10 @@ public class ServiceSessionBean implements ServiceSessionLocal, ServiceSessionRe
 
     /**
      * Adds a timer to the bean
+     * @param interval Interval
      * 
      * @param id the id of the timer
+     * @return Timer
      */
     // We don't want the appserver to persist/update the timer in the same transaction if they are stored in different non XA DataSources. This method
     // should not be run from within a transaction.
@@ -840,8 +842,8 @@ public class ServiceSessionBean implements ServiceSessionLocal, ServiceSessionRe
     /**
      * Method that creates a worker from the service configuration.
      * 
-     * @param serviceConfiguration
-     * @param serviceName
+     * @param serviceConfiguration Config
+     * @param serviceName Name
      * @param runTimeStamp the time this service runs
      * @param nextRunTimeStamp the time this service will run next time
      * @return a worker object or null if the worker is misconfigured.
@@ -851,7 +853,7 @@ public class ServiceSessionBean implements ServiceSessionLocal, ServiceSessionRe
         try {
             String clazz = serviceConfiguration.getWorkerClassPath();
             if (StringUtils.isNotEmpty(clazz)) {
-                worker = (IWorker) Thread.currentThread().getContextClassLoader().loadClass(clazz).newInstance();
+                worker = (IWorker) Thread.currentThread().getContextClassLoader().loadClass(clazz).getConstructor().newInstance();
                 worker.init(intAdmin, serviceConfiguration, serviceName, runTimeStamp, nextRunTimeStamp);
             } else {
                 log.info("Worker has empty classpath for service " + serviceName);
@@ -955,6 +957,7 @@ public class ServiceSessionBean implements ServiceSessionLocal, ServiceSessionRe
     
     /**
      * Method to check if an admin is authorized to edit a service. Allow access for /services/edit
+     * @param admin Admin
      * 
      * @return true if the administrator is authorized
      */
@@ -965,6 +968,7 @@ public class ServiceSessionBean implements ServiceSessionLocal, ServiceSessionRe
     /**
      * Return true if the service should run on the node given the list of nodes it is pinned to. An empty list means that the service is not pinned
      * to any particular node and should run on all.
+     * @param hostname Host
      * 
      * @param nodes list of nodes the service is pinned to
      * @return true if the service should run on this node

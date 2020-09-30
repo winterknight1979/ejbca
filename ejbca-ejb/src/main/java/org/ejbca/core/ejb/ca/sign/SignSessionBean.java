@@ -167,6 +167,7 @@ import org.ejbca.util.passgen.AllPrintableCharPasswordGenerator;
  *
  * @version $Id: SignSessionBean.java 32628 2019-06-27 09:17:20Z mikekushner $
  */
+@SuppressWarnings("deprecation")
 @Stateless(mappedName = JndiConstants.APP_JNDI_PREFIX + "SignSessionRemote")
 @TransactionAttribute(TransactionAttributeType.REQUIRED)
 public class SignSessionBean implements SignSessionLocal, SignSessionRemote {
@@ -263,6 +264,7 @@ public class SignSessionBean implements SignSessionLocal, SignSessionRemote {
      * @param caId  CA for which we want a PKCS7 certificate chain.
      * @param cert  client certificate which we want encapsulated in a PKCS7 together with
      *              certificate chain, or null
+     * @param includeChain nbool
      * @return The DER-encoded PKCS7 message.
      * @throws CADoesntExistsException if the CA does not exist or is expired, or has an invalid certificate
      * @throws AuthorizationDeniedException if the authentication token wasn't authorized to the CA
@@ -824,9 +826,6 @@ public class SignSessionBean implements SignSessionLocal, SignSessionRemote {
      * @return the certificates public key.
      * @throws CADoesntExistsException if the CA of the certificate does not exist.
      * @throws AuthorizationDeniedException if authorization was denied.
-     * @throws NoSuchAlgorithmException if the key algorithm is unknown.
-     * @throws NoSuchProviderException if the crypto provider could not be found.
-     * @throws InvalidKeySpecException if the keys specification is unknown.
      */
     private PublicKey getCVPublicKey(final AuthenticationToken admin, final Certificate certificate)
             throws CADoesntExistsException, AuthorizationDeniedException {
@@ -1019,9 +1018,9 @@ public class SignSessionBean implements SignSessionLocal, SignSessionRemote {
 
     /** Sets information needed to decrypt a message, if such information is needed(i.e. CA private key for SCEP messages)
      * 
-     * @param cryptoToken
-     * @param req
-     * @param ca
+     * @param cryptoToken token
+     * @param req Req
+     * @param ca CA
      * 
      * @throws CryptoTokenOfflineException if the cryptotoken was unavailable.
      * @throws InvalidKeyException If the key from the request used for verification is invalid.
@@ -1154,10 +1153,10 @@ public class SignSessionBean implements SignSessionLocal, SignSessionRemote {
 
     /**
      * 
-     * @param admin
-     * @param req
-     * @param doLog
-     * @return
+     * @param admin Admin
+     * @param req Req
+     * @param doLog Bool
+     * @return CA
      * @throws CADoesntExistsException if no end entity could be found, and hence no CA which could have created that end entity
      * @throws AuthorizationDeniedException if the authentication token wasn't authorized to the CA in question
      */
@@ -1188,7 +1187,9 @@ public class SignSessionBean implements SignSessionLocal, SignSessionRemote {
     }
 
     /** Finishes user, i.e. set status to generated, if it should do so.
-     * The authentication session is responsible for determining if this should be done or not */
+     * The authentication session is responsible for determining if this should be done or not 
+     * @param ca CA
+     * @param data Data */
     private void finishUser(final CA ca, final EndEntityInformation data) {
         if (data == null) {
             return;
@@ -1223,6 +1224,16 @@ public class SignSessionBean implements SignSessionLocal, SignSessionRemote {
 
     /**
      * Creates the certificate, uses the cesecore method with the same signature but in addition to that calls certreqsession and publishers, and fetches the CT configuration
+     * @param admin Admin
+     * @param endEntityInformation EEI
+     * @param ca CA
+     * @param pk PK
+     * @param keyusage Usage 
+     * @param notBefore Start date
+     * @param notAfter End date
+     * @param extensions Extensions
+     * @param sequence Seq
+     * @return Certt
      * @throws AuthorizationDeniedException (rollback) if admin is not authorized to issue this certificate
      * @throws CertificateCreateException (rollback) if certificate couldn't be created.
      * @throws IllegalKeyException if the public key didn't conform to the constrains of the CA's certificate profile.
@@ -1264,6 +1275,8 @@ public class SignSessionBean implements SignSessionLocal, SignSessionRemote {
     * 
     * @param admin AuthenticationToken used for revoking the certificate
     * @param endEntityInformation EndEntityInformation containing username, DN and certificate profile id
+     * @throws CertificateRevokeException Fail
+     * @throws AuthorizationDeniedException Fail
     */
     private void singleActiveCertificateConstraint(final AuthenticationToken admin, final EndEntityInformation endEntityInformation)
             throws CertificateRevokeException, AuthorizationDeniedException {

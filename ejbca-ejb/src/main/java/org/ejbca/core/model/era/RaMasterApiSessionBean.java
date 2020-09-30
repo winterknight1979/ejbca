@@ -224,6 +224,7 @@ import org.ejbca.util.query.IllegalQueryException;
  *
  * @version $Id: RaMasterApiSessionBean.java 34207 2020-01-08 13:22:50Z samuellb $
  */
+@SuppressWarnings("deprecation")
 @Stateless//(mappedName = JndiConstants.APP_JNDI_PREFIX + "RaMasterApiSessionRemote")
 @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
 public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
@@ -588,7 +589,10 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
         return approvalDataVOs.isEmpty() ? null : approvalDataVOs.get(0);
     }
 
-    /** Gets the complete text representation of a request (unlike ApprovalRequest.getNewRequestDataAsText which doesn't do any database queries) */
+    /** Gets the complete text representation of a request (unlike ApprovalRequest.getNewRequestDataAsText which doesn't do any database queries) 
+     * @param authenticationToken Token
+     * @param approval Approval
+     * @return Data */
     private List<ApprovalDataText> getRequestDataAsText(final AuthenticationToken authenticationToken, final ApprovalDataVO approval) {
         final ApprovalRequest approvalRequest = approval.getApprovalRequest();
         if (approvalRequest instanceof EditEndEntityApprovalRequest) {
@@ -2197,7 +2201,12 @@ public class RaMasterApiSessionBean implements RaMasterApiSessionLocal {
         return keyStoreBytes;
     }
 
-    /** Help function used to check end entity profile authorization. */
+    /** Help function used to check end entity profile authorization. 
+     * @param admin Admin
+     * @param profileid ID
+     * @param rights Rights
+     * @param log Log
+     * @return bool */
     private boolean endEntityAuthorization(AuthenticationToken admin, int profileid, String rights, boolean log) {
         boolean returnval = false;
         if (log) {

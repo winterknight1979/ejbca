@@ -14,6 +14,7 @@
 package org.ejbca.core.ejb.ra;
 
 import java.awt.print.PrinterException;
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -189,7 +190,8 @@ public class EndEntityManagementSessionBean implements EndEntityManagementSessio
     @EJB
     private SecurityEventsLoggerSessionLocal auditSession;
 
-    /** Gets the Global Configuration from ra admin session bean */
+    /** Gets the Global Configuration from ra admin session bean 
+     * @return Config*/
     private GlobalConfiguration getGlobalConfiguration() {
         return (GlobalConfiguration) globalConfigurationSession.getCachedConfiguration(GlobalConfiguration.GLOBAL_CONFIGURATION_ID);
     }
@@ -205,6 +207,9 @@ public class EndEntityManagementSessionBean implements EndEntityManagementSessio
 
     /** Checks CA authorization and logs an official error if not and throws and AuthorizationDeniedException.
      * Does not log access control granted if granted
+     * @param admin Admin
+     * @param caid ID
+     * @throws AuthorizationDeniedException Fail
      */
     private void assertAuthorizedToCA(final AuthenticationToken admin, final int caid) throws AuthorizationDeniedException {
         if (!authorizedToCA(admin, caid)) {
@@ -224,6 +229,11 @@ public class EndEntityManagementSessionBean implements EndEntityManagementSessio
 
     /** Checks EEP authorization and logs an official error if not and throws and AuthorizationDeniedException. 
      * Logs the access control granted if granted. 
+     * @param admin Admin
+     * @param endEntityProfileId Profile 
+     * @param accessRule Rule
+     * @param caId CA
+     * @throws AuthorizationDeniedException Fail
      */
     private void assertAuthorizedToEndEntityProfile(final AuthenticationToken admin, final int endEntityProfileId, final String accessRule,
             final int caId) throws AuthorizationDeniedException {
@@ -295,6 +305,11 @@ public class EndEntityManagementSessionBean implements EndEntityManagementSessio
      * 
      *
      * 
+     * @param admin Admin
+     * @param endEntity EE
+     * @param clearpwd PWD
+     * @param lastApprovingAdmin Approval 
+     * @return EEI
      * @throws ApprovalException if an approval already exists for this request.
      * @throws AuthorizationDeniedException if the admin is not authorized to the CA, or lacks rights to add end entities. 
      * @throws CADoesntExistsException if the CA specified does not exist
@@ -1311,6 +1326,9 @@ public class EndEntityManagementSessionBean implements EndEntityManagementSessio
      * @param username the unique username.
      * @param password the new password to be stored in clear text. Setting password to 'null' effectively deletes any previous clear text password.
      * @param cleartext true gives cleartext password, false hashed
+     * @throws EndEntityProfileValidationException Fail
+     * @throws AuthorizationDeniedException Fail
+     * @throws NoSuchEndEntityException Fail
      */
     private void setPassword(final AuthenticationToken admin, final String username, final String password, final boolean cleartext)
             throws EndEntityProfileValidationException, AuthorizationDeniedException, NoSuchEndEntityException {
@@ -1972,8 +1990,8 @@ public class EndEntityManagementSessionBean implements EndEntityManagementSessio
                                     ICustomNotificationRecipient plugin;
                                     try {
                                         plugin = (ICustomNotificationRecipient) Thread.currentThread()
-                                                .getContextClassLoader().loadClass(customClassName).newInstance();
-                                    } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+                                                .getContextClassLoader().loadClass(customClassName).getConstructor().newInstance();
+                                    } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | InvocationTargetException e) {
                                         throw new MailException("Custom notification class " + customClassName + " could not be instansiated.", e);
                                     }
                                     recipientEmail = plugin.getRecipientEmails(endEntityInformation);
@@ -2118,7 +2136,10 @@ public class EndEntityManagementSessionBean implements EndEntityManagementSessio
      * request counter should be used, the counter is removed.
      * 
      * @param admin administrator
+     * @param onlyRemoveNoUpdate bool
      * @param ei the ExtendedInformation object to modify
+     * @param username User
+     * @param endEntityProfileId ID
      * @return true if ExtendedInformation was changed (i.e. it should be saved), false otherwise
      */
     private boolean resetRequestCounter(final AuthenticationToken admin, final boolean onlyRemoveNoUpdate, final ExtendedInformation ei,

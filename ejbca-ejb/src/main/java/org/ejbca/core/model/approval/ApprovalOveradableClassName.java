@@ -55,7 +55,7 @@ public class ApprovalOveradableClassName {
 	
 	/**
 	 * Method that checks if the current classname / method is in the stacktrace
-	 * @param traces
+	 * @param traces Trace
 	 * @return if the class.method exists in trace
 	 */
 	public boolean isInStackTrace(StackTraceElement[] traces){

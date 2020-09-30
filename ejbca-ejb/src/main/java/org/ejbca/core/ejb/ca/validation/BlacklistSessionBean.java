@@ -224,7 +224,12 @@ public class BlacklistSessionBean implements BlacklistSessionLocal, BlacklistSes
         return result;
     }
 
-    /** Adds a public key blacklist or throws an exception. Will not update the cache, it will be read into the cache on next try to read. */
+    /** Adds a public key blacklist or throws an exception. Will not update the cache, it will be read into the cache on next try to read. 
+     * @param admin Admin
+     * @param id ID
+     * @param blacklist Blacklist 
+     * @throws AuthorizationDeniedException Fail
+     * @throws BlacklistExistsException Fail */
     private void addBlacklistEntryInternal(AuthenticationToken admin, int id, BlacklistEntry blacklist) throws AuthorizationDeniedException, BlacklistExistsException {
         assertIsAuthorizedToEditBlacklists(admin);
         if (BlacklistData.findByTypeAndValue(entityManager, blacklist.getType(), blacklist.getValue()) == null
@@ -239,7 +244,12 @@ public class BlacklistSessionBean implements BlacklistSessionLocal, BlacklistSes
         }
     }
 
-    /** Gets a public key blacklist by cache or database, can return null. */
+    /** Gets a public key blacklist by cache or database, can return null. 
+     * @param id ID
+     * @param type Type
+     * @param value Value
+     * @param fromCache Cached?
+     * @return Blaclist entry */
     private BlacklistEntry getBlacklistEntryInternal(int id, final String type, final String value, boolean fromCache) {
         if (log.isTraceEnabled()) {
             log.trace(">getBlacklistEntryInternal: " + id + ", " + type + ", " + value);
@@ -287,7 +297,8 @@ public class BlacklistSessionBean implements BlacklistSessionLocal, BlacklistSes
         return result;
     }
 
-    /** Gets a free ID for the new blacklist instance. */
+    /** Gets a free ID for the new blacklist instance. 
+     * @return ID*/
     private int findFreeBlacklistId() {
         final ProfileID.DB db = new ProfileID.DB() {
             @Override
@@ -298,7 +309,9 @@ public class BlacklistSessionBean implements BlacklistSessionLocal, BlacklistSes
         return ProfileID.getNotUsedID(db);
     }
 
-    /** Assert the administrator is authorized to edit public key blacklists. */
+    /** Assert the administrator is authorized to edit public key blacklists. 
+     * @param admin Admin
+     * @throws AuthorizationDeniedException if unauthorized */
     private void assertIsAuthorizedToEditBlacklists(AuthenticationToken admin) throws AuthorizationDeniedException {
         if (!authorizationSession.isAuthorized(admin, StandardRules.BLACKLISTEDIT.resource())) {
             final String message = intres.getLocalizedMessage("store.editblacklistnotauthorized", admin.toString());

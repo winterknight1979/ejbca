@@ -45,7 +45,8 @@ public interface CmpVendorMode {
     /**
      * Checks whether authentication by vendor-issued-certificate should be used. It can be used only in client mode and with initialization/certification requests.
      *  
-     * @param reqType
+     * @param reqType type
+     * @param confAlias alias
      * @return 'True' if authentication by vendor-issued-certificate is used. 'False' otherwise
      */
     boolean isVendorCertificateMode(final int reqType, final String confAlias);

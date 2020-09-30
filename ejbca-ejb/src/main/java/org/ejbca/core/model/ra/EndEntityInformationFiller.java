@@ -93,7 +93,7 @@ public class EndEntityInformationFiller {
     /** This method merge subject DN with data from End entity profile.
      * @param subjectDN user Distinguished Name.
      * @param profile user associated profile.
-     * @param email entity email.
+     * @param entityEmail entity email.
      * @return updated DN.
      */
     private static String mergeSubjectDnWithDefaultValues(String subjectDN, EndEntityProfile profile, 
@@ -146,7 +146,7 @@ public class EndEntityInformationFiller {
      * This method merge subject Alt name with data from End entity profile.
      * @param subjectAltName user subject alt name.
      * @param profile user associated profile.
-     * @param email entity email field
+     * @param entityEmail entity email field
      * @return updated subject alt name
      */
     private static String mergeSubjectAltNameWithDefaultValues(String subjectAltName, EndEntityProfile profile, String entityEmail) {

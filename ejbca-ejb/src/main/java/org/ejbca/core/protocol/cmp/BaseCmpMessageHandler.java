@@ -73,7 +73,11 @@ public class BaseCmpMessageHandler {
         this.certificateProfileSession = ejbBridgeSession.getCertificateProfileSession();
     }
 
-	/** @return the CA id to use for a request based on the current configuration, used end entity profile and keyId. */
+	/** @param keyId ID
+	 * @param eeProfileId Profile
+	 * @return the CA id to use for a request based on the current configuration, used end entity profile and keyId. 
+	 * @throws CADoesntExistsException Fail
+	 * @throws AuthorizationDeniedException Fail */
 	protected int getUsedCaId(final String keyId, final int eeProfileId) throws CADoesntExistsException, AuthorizationDeniedException {
 		int ret = 0;
 		final String caName = cmpConfiguration.getRACAName(this.confAlias);
@@ -120,6 +124,7 @@ public class BaseCmpMessageHandler {
     /** 
      * @param keyId the keyId from the request, if there is any
      * @return the end entity profile name to use for a request based on the current configuration and keyId. 
+     * @throws EndEntityProfileNotFoundException Fail
      */
 	protected int getUsedEndEntityProfileId(final String keyId) throws EndEntityProfileNotFoundException {
         final int eeProfileId;
@@ -134,7 +139,10 @@ public class BaseCmpMessageHandler {
     
 
 	/** 
+	 * @param keyId ID
+	 * @param eeProfileId Profile
 	 * @return the certificate profile name to use for a request based on the current configuration and keyId. 
+	 * @throws NotFoundException Fail
 	 */
 	protected String getUsedCertProfileName(final String keyId, final int eeProfileId) throws NotFoundException {
 	    // Get the configured string, may be a profile name or 'KeyId' or 'ProfileDefault'
@@ -163,7 +171,9 @@ public class BaseCmpMessageHandler {
 		}
 		return certificateProfile;
 	}
-	/** @return the certificate profile to use for a request based on the current configuration and keyId. */
+	/** @param certificateProfile Profile
+	 * @return the certificate profile to use for a request based on the current configuration and keyId. 
+	 * @throws NotFoundException Fail */
 	protected int getUsedCertProfileId(final String certificateProfile) throws NotFoundException {
 		final int ret = this.certificateProfileSession.getCertificateProfileId(certificateProfile);					
 		if (ret == 0) {

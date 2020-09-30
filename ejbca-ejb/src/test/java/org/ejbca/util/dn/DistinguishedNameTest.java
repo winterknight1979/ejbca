@@ -72,6 +72,7 @@ public class DistinguishedNameTest {
     /**
      * Test of mergeDN method, of class DistinguishedName.
      * This version tests the merge without override.
+     * @throws Exception Fail
      */
     @Test
     public void testMergeDnWithoutOverride() throws Exception {
@@ -95,6 +96,7 @@ public class DistinguishedNameTest {
     /**
      * Test of mergeDN method, of class DistinguishedName.
      * This version tests the merge with override.
+     * @throws Exception Fail
      */
     @Test
    public void testMergeDnWithOverride() throws Exception {
@@ -118,9 +120,10 @@ public class DistinguishedNameTest {
     /**
      * Test of mergeDN method, of class DistinguishedName.
      * This version tests the merge without override.
+     * @throws Exception fail
      */
     @Test
-    public void testMergeSubjectAltNameWithoutOverrideNotUsingEntityEmail() throws Exception {
+    public void testMergeSubjectAltNameWithoutOverrideNotUsingEntityEmail() throws  Exception {
 
         final String EXPECTED = "RFC822NAME=vkn@linagora.com,IPADDRESS=208.77.188.166,UNIFORMRESOURCEID=other.uri";
         subjectAltName = createNewSubjectAltName();
@@ -136,6 +139,7 @@ public class DistinguishedNameTest {
     /**
      * Test of mergeDN method, of class DistinguishedName.
      * This version tests the merge without override.
+     * @throws Exception Fail
      */
     @Test
     public void testMergeSubjectAltNameWithoutOverrideUsingEntityEmail() throws Exception {
@@ -151,6 +155,7 @@ public class DistinguishedNameTest {
     /**
      * Test of mergeDN method, of class DistinguishedName.
      * This version tests the merge with override.
+     * @throws Exception Fail
      */
     @Test
     public void testMergeSubjectAltNameWithOverrideNotUsingEntityEmail() throws Exception {
@@ -165,9 +170,10 @@ public class DistinguishedNameTest {
     /**
      * Test of mergeDN method, of class DistinguishedName.
      * This version tests the merge with override.
+     * @throws Exception Fail
      */
     @Test
-    public void testMergeSubjectAltNameWithOverrideUsingEntityEmail() throws Exception {
+    public void testMergeSubjectAltNameWithOverrideUsingEntityEmail() throws Exception { 
         final String _OTHER_SUBJECT_ALT_NAME = "IPADDRESS=777.77.777.777,UNIFORMRESOURCEID=other.uri";
 
     	final String EXPECTED = "RFC822NAME=entitymail@linagora.com,IPADDRESS=777.77.777.777,UNIFORMRESOURCEID=other.uri";

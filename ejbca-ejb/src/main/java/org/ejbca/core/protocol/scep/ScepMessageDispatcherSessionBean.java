@@ -14,6 +14,7 @@
 package org.ejbca.core.protocol.scep;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -93,10 +94,10 @@ public class ScepMessageDispatcherSessionBean implements ScepMessageDispatcherSe
         try {
             @SuppressWarnings("unchecked")
             Class<? extends ScepOperationPlugin> extensionClass = (Class<? extends ScepOperationPlugin>) Class.forName(SCEP_RA_MODE_EXTENSION_CLASSNAME);
-            scepRaModeExtension = extensionClass.newInstance();
-        } catch (ClassNotFoundException e) {
+            scepRaModeExtension = extensionClass.getConstructor().newInstance();
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
             scepRaModeExtension = null;
-        } catch (InstantiationException e) {
+        } catch (InstantiationException | InvocationTargetException e) {
             scepRaModeExtension = null;
             log.error(SCEP_RA_MODE_EXTENSION_CLASSNAME + " was found, but could not be instanced. " + e.getMessage());
         } catch (IllegalAccessException e) {
@@ -107,10 +108,10 @@ public class ScepMessageDispatcherSessionBean implements ScepMessageDispatcherSe
         try {
             @SuppressWarnings("unchecked")
             Class<ScepResponsePlugin> extensionClass = (Class<ScepResponsePlugin>) Class.forName(SCEP_CLIENT_CERTIFICATE_RENEWAL_CLASSNAME);
-            scepClientCertificateRenewal = extensionClass.newInstance();
-        } catch (ClassNotFoundException e) {
+            scepClientCertificateRenewal = extensionClass.getConstructor().newInstance();
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
             scepClientCertificateRenewal = null;
-        } catch (InstantiationException e) {
+        } catch (InstantiationException | InvocationTargetException e) {
             scepClientCertificateRenewal = null;
             log.error(SCEP_CLIENT_CERTIFICATE_RENEWAL_CLASSNAME + " was found, but could not be instanced. " + e.getMessage());
         } catch (IllegalAccessException e) {
@@ -226,33 +227,34 @@ public class ScepMessageDispatcherSessionBean implements ScepMessageDispatcherSe
     
     /**
      * Handles SCEP certificate request
+     * @param administrator Admin
      *
      * @param msg buffer holding the SCEP-request (DER encoded).
      * @param alias the alias of the SCEP configuration
      * @param scepConfig The SCEP configuration
      *
      * @return byte[] containing response to be sent to client.
-     * @throws AuthorizationDeniedException 
+     * @throws AuthorizationDeniedException Fail
      * @throws CertificateExtensionException if msg specified invalid extensions
-     * @throws InvalidAlgorithmException 
-     * @throws CAOfflineException 
-     * @throws IllegalValidityException 
-     * @throws CertificateSerialNumberException 
-     * @throws CertificateRevokeException 
-     * @throws CertificateCreateException 
-     * @throws IllegalNameException 
-     * @throws AuthLoginException 
-     * @throws AuthStatusException 
-     * @throws SignRequestSignatureException 
-     * @throws SignRequestException 
-     * @throws CADoesntExistsException 
-     * @throws IllegalKeyException 
-     * @throws CryptoTokenOfflineException 
-     * @throws CustomCertificateSerialNumberException 
+     * @throws InvalidAlgorithmException Fail
+     * @throws CAOfflineException Fail
+     * @throws IllegalValidityException Fail
+     * @throws CertificateSerialNumberException Fail 
+     * @throws CertificateRevokeException Fail
+     * @throws CertificateCreateException Fail
+     * @throws IllegalNameException Fail
+     * @throws AuthLoginException Fail
+     * @throws AuthStatusException Fail
+     * @throws SignRequestSignatureException Fail 
+     * @throws SignRequestException Fail
+     * @throws CADoesntExistsException Fail
+     * @throws IllegalKeyException Fail
+     * @throws CryptoTokenOfflineException Fail 
+     * @throws CustomCertificateSerialNumberException Fail
      * @throws CertificateRenewalException if an error occurs during Client Certificate Renewal
      * @throws SignatureException if a Client Certificate Renewal request was badly signed. 
-     * @throws CertificateException 
-     * @throws {@link NoSuchEndEntityException} if end entity wasn't found, and RA mode isn't available. 
+     * @throws CertificateException Fail
+     * @throws NoSuchEndEntityException if end entity wasn't found, and RA mode isn't available. 
      */
     private byte[] scepCertRequest(AuthenticationToken administrator, byte[] msg, final String alias, final ScepConfiguration scepConfig)
             throws AuthorizationDeniedException, CertificateExtensionException, NoSuchEndEntityException, CustomCertificateSerialNumberException,

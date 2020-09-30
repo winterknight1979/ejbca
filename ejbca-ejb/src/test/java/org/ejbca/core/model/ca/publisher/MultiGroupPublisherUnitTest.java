@@ -56,7 +56,6 @@ import org.junit.runner.RunWith;
 
 /**
  * Unit test for MultiGroupPublisher.
- * @see MultiGroupPublisherSystemTest
  * @version $Id: MultiGroupPublisherUnitTest.java 34224 2020-01-09 13:43:53Z aminkh $
  */
 @RunWith(EasyMockRunner.class)
@@ -117,6 +116,8 @@ public class MultiGroupPublisherUnitTest {
     /**
      * Tests that willPublishCertificate and storeCertificate correctly filters certificates by certificate status.
      * This test tests that certificates that should NOT be published are not published.
+     * @throws AuthorizationDeniedException Fail
+     * @throws PublisherException Fail
      */
     @Test
     public void rejectedSelectivePublishing() throws AuthorizationDeniedException, PublisherException {
@@ -126,6 +127,8 @@ public class MultiGroupPublisherUnitTest {
     /**
      * Tests that willPublishCertificate and storeCertificate correctly filters certificates by certificate status.
      * This test tests that certificates that should NOT be published are not published.
+     * @throws AuthorizationDeniedException Fail
+     * @throws PublisherException Fail
      */
     @Test
     public void acceptedSelectivePublishing() throws AuthorizationDeniedException, PublisherException {
@@ -139,6 +142,8 @@ public class MultiGroupPublisherUnitTest {
      * @param revocationReason To be put in CertificateData
      * @param revocationDate To be put in CertificateData
      * @param expectedWillPublishResult Expected return value from willPublishCertificate
+     * @throws AuthorizationDeniedException Fail
+     * @throws PublisherException Fail
      */
     private void selectivePublishingTest(final int status, final RevocationReasons revocationReason, final Date revocationDate, final boolean expectedWillPublishResult) throws AuthorizationDeniedException, PublisherException {
         // Set up
@@ -178,6 +183,8 @@ public class MultiGroupPublisherUnitTest {
     /**
      * Tests the storeCrl using a mock PublisherSession. It tests with non-existing publisher IDs, which should
      * never happen, but we should not crash if it happens.
+     * @throws PublisherException Fail
+     * @throws AuthorizationDeniedException Fail
      */
     @Test
     public void storeCrl() throws PublisherException, AuthorizationDeniedException {
@@ -209,6 +216,7 @@ public class MultiGroupPublisherUnitTest {
 
     /**
      * Tests happy path for testConnection.
+     * @throws PublisherConnectionException Fail
      */
     @Test
     public void testConnectionHappyPath() throws PublisherConnectionException {
@@ -234,6 +242,7 @@ public class MultiGroupPublisherUnitTest {
 
     /**
      * Tests exception handling in testConnection.
+     * @throws PublisherConnectionException Fail
      */
     @Test
     public void testConnectionFailure() throws PublisherConnectionException {

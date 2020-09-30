@@ -123,7 +123,8 @@ public class ApprovalExecutorUtil {
 		return globallyAllowed;
 	}
 
-	/** @return true if calling stack contains one of the overridableClassNames className,methodName combination. */
+	/** @param overridableClassNames Class names
+	 * @return true if calling stack contains one of the overridableClassNames className,methodName combination. */
 	private static boolean isCalledByOveridableClassnames(final ApprovalOveradableClassName[] overridableClassNames){
 	    final StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
 	    for (final ApprovalOveradableClassName overridableClassName : overridableClassNames) {

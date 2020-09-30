@@ -267,6 +267,7 @@ public class OcspKeyRenewalSessionBean implements OcspKeyRenewalSessionLocal, Oc
 
     /**
      * Get user data for the EJBCA user that will be used when creating the cert for the new key.
+     * @param ejbcaWS WS
      * @param signingCertificate The OCSP signing certificate to get the end entity for
      * @param caId the ID of the OCSP signing certificate issuing CA
      * 
@@ -311,7 +312,7 @@ public class OcspKeyRenewalSessionBean implements OcspKeyRenewalSessionLocal, Oc
     /**
      * setting status of EJBCA user to new and setting password of user.
      * @param ejbcaWS from {@link #getEjbcaWS()}
-     * @param userData from {@link #getUserDataVOWS(EjbcaWS, String)}
+     * @param userData from {@link #getUserDataVOWS}
      * @return true if success
      */
     private boolean editUser(EjbcaWS ejbcaWS, UserDataVOWS userData) {
@@ -328,6 +329,7 @@ public class OcspKeyRenewalSessionBean implements OcspKeyRenewalSessionLocal, Oc
     }
     /**
      * Get the CA name
+     * @param ejbcaWS WS
      * 
      * @param caId The ID of the sought CA
      * 
@@ -349,10 +351,12 @@ public class OcspKeyRenewalSessionBean implements OcspKeyRenewalSessionLocal, Oc
 
     /**
      * This method sends a keypair off to be signed by the CA that issued the original keychain.
+     * @param ejbcaWS WS
+     * @param ocspSigningCacheEntry Entry 
      * 
      * @return a certificate that has been signed by the CA. 
      * @throws KeyRenewalFailedException if any error occurs during signing
-     * @throws CryptoTokenOfflineException 
+     * @throws CryptoTokenOfflineException  Fail
      */
     @SuppressWarnings("unchecked")
     private X509Certificate signCertificateByCa(EjbcaWS ejbcaWS, OcspSigningCacheEntry ocspSigningCacheEntry) throws KeyRenewalFailedException,
@@ -583,6 +587,7 @@ public class OcspKeyRenewalSessionBean implements OcspKeyRenewalSessionLocal, Oc
      * Adds a timer to the bean
      * 
      * @param intervalInSeconds the time from now for the next timer to fire
+     * @return timer
      */
     // We don't want the appserver to persist/update the timer in the same transaction if they are stored in different non XA DataSources. This method
     // should not be run from within a transaction.

@@ -36,7 +36,7 @@ public class WrongTokenTypeException extends EjbcaException {
     }
     /**
      * Constructs an instance of <code>WrongTokenTypeException</code> with the specified cause.
-     * @param msg the detail message.
+     * @param e the detail message.
      */
     public WrongTokenTypeException(Exception e) {
         super(e);

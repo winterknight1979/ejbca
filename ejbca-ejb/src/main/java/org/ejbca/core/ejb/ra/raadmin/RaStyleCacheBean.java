@@ -119,7 +119,8 @@ public class RaStyleCacheBean {
         return raStyleCache;
     }
     
-    /** @return last time the administrator requested styles from this cache */
+    /** @param authenticationToken Token
+     * @return last time the administrator requested styles from this cache */
     public long getLastUpdate(AuthenticationToken authenticationToken) {
         Long lastUpdate = lastUpdateMap.get(authenticationToken);
         return lastUpdate == null ? -1 : lastUpdate;

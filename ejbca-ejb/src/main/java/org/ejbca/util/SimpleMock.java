@@ -77,8 +77,8 @@ public class SimpleMock {
 	
 	/**
 	 * Adds a mapping between a method-name and return value
-	 * @param methodName
-	 * @param valueOrException
+	 * @param methodName Method
+	 * @param valueOrException Obj
 	 */
 	public void map(String methodName, Object valueOrException) {
 		if (!methodNames.contains(methodName)) {
@@ -96,6 +96,9 @@ public class SimpleMock {
 	/**
 	 * Injects "value" into a (private) field named "fieldName" of "target" or
 	 * the first one of "target"'s super classes where "fieldName" exists.
+	 * @param target Target
+	 * @param fieldName Name
+	 * @param value Value
 	 */
     public static void inject(Object target, String fieldName, Object value) {
 		try {

@@ -133,7 +133,10 @@ public class RevocationSessionBean implements RevocationSessionLocal, Revocation
     	}
     }
 
-    /** @return revocationDate as is, or null if unrevoking a certificate that's not on a base CRL in on hold state. */
+    /** @param cdw CDW
+     * @param revocationDate Date
+     * @param reason Reason
+     * @return revocationDate as is, or null if unrevoking a certificate that's not on a base CRL in on hold state. */
     private Date getRevocationDate(final CertificateDataWrapper cdw, final Date revocationDate, final int reason) {
         if (revocationDate == null || (reason != RevokedCertInfo.NOT_REVOKED && reason != RevokedCertInfo.REVOCATION_REASON_REMOVEFROMCRL) ||
                 (cdw.getBaseCertificateData().getRevocationReason() != RevokedCertInfo.REVOCATION_REASON_CERTIFICATEHOLD)) {

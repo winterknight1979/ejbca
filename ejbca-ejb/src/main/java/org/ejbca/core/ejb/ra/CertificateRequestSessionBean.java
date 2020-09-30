@@ -206,6 +206,14 @@ public class CertificateRequestSessionBean implements CertificateRequestSessionR
     }
 
     /**
+     * @param admin Admin
+     * @param userdata User
+     * @param clearpwd PWD
+     * @param fromwebservice bool 
+     * @throws AuthorizationDeniedException fail
+     * @throws EndEntityProfileValidationException fail 
+     * @throws ApprovalException fail
+     * @throws EndEntityExistsException fail 
      * @throws CADoesntExistsException if userdata.caId is not a valid caid. This is checked in editUser or addUserFromWS
      * @throws IllegalNameException  if the Subject DN failed constraints
      * @throws CertificateSerialNumberException if SubjectDN serial number already exists.
@@ -261,8 +269,14 @@ public class CertificateRequestSessionBean implements CertificateRequestSessionR
      * @param msg is the request message processed by the CA
      * @param hardTokenSN is the hard token to associate this or null
      * @param responseType is one of SecConst.CERT_RES_TYPE_...
+     * @param userData Data
      * @return a encoded certificate of the type specified in responseType
-     * @throws AuthorizationDeniedException
+     * @throws EjbcaException fail
+     * @throws CesecoreException fail
+     * @throws CertificateEncodingException fail
+     * @throws CertificateException fail
+     * @throws IOException fail
+     * @throws AuthorizationDeniedException fail
      * @throws CertificateExtensionException if the request message contained invalid extensions
      */
     private byte[] getCertResponseFromPublicKey(AuthenticationToken admin, RequestMessage msg, String hardTokenSN, int responseType,

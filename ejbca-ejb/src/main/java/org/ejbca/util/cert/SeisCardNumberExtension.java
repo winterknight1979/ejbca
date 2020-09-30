@@ -47,7 +47,7 @@ public class SeisCardNumberExtension extends CertTools {
      * 
 	 * @param certificate containing card number
 	 * @return String containing card number. 
-	 * @throws java.lang.Exception
+	 * @throws java.lang.Exception fail
 	 */
 	public static String getSeisCardNumber(Certificate certificate) throws Exception {
 		log.debug("Search for CardNumber");

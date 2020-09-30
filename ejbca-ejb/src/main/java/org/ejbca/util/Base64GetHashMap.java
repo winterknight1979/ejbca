@@ -21,7 +21,7 @@ import org.cesecore.util.StringTools;
 
 /**  Only used for backwards compatibility with earlier versions of EJBCA
  * @see org.cesecore.util.Base64PutHashMap
- * @deprecated
+ * @deprecated use org.cesecore.util.Base64PutHashMap instead
  * 
  * @version $Id: Base64GetHashMap.java 23091 2016-03-29 12:04:12Z samuellb $
  */

@@ -15,6 +15,7 @@ package org.ejbca.core.model.era;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -154,6 +155,7 @@ import org.ejbca.util.query.IllegalQueryException;
  *
  * @version $Id: RaMasterApiProxyBean.java 29784 2018-08-30 08:20:30Z tarmo_r_helmes $
  */
+@SuppressWarnings("deprecation")
 @Singleton
 @Startup
 @DependsOn("StartupSingletonBean")
@@ -192,7 +194,11 @@ public class RaMasterApiProxyBean implements RaMasterApiProxyBeanLocal {
     public RaMasterApiProxyBean() {
     }
 
-    /** Constructor for use from JUnit tests */
+    /** Constructor for use from JUnit tests 
+     * @param raMasterApiSession Session
+     * @param globalConfigurationSession Config
+     * @param keyRecoverySession Recovery
+     * @param raMasterApis API*/
     public RaMasterApiProxyBean(final RaMasterApiSessionLocal raMasterApiSession,
             final GlobalConfigurationSessionLocal globalConfigurationSession,
             final KeyRecoverySessionLocal keyRecoverySession,
@@ -212,19 +218,19 @@ public class RaMasterApiProxyBean implements RaMasterApiProxyBeanLocal {
         try {
             // Load downstream peer implementation if available in this version of EJBCA
             final Class<?> c = Class.forName("org.ejbca.peerconnector.ra.RaMasterApiPeerDownstreamImpl");
-            implementations.add((RaMasterApi) c.newInstance());
-        } catch (ClassNotFoundException e) {
+            implementations.add((RaMasterApi) c.getConstructor().newInstance());
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
             log.debug("RaMasterApi over Peers is not available on this system.");
-        } catch (InstantiationException | IllegalAccessException e) {
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             log.warn("Failed to instantiate RaMasterApi over Peers: " + e.getMessage());
         }
         try {
             // Load upstream peer implementation if available in this version of EJBCA
             final Class<?> c = Class.forName("org.ejbca.peerconnector.ra.RaMasterApiPeerUpstreamImpl");
-            implementations.add((RaMasterApi) c.newInstance());
-        } catch (ClassNotFoundException e) {
+            implementations.add((RaMasterApi) c.getConstructor().newInstance());
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
             log.debug("RaMasterApi over Peers is not available on this system.");
-        } catch (InstantiationException | IllegalAccessException e) {
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             log.warn("Failed to instantiate RaMasterApi over Peers: " + e.getMessage());
         }
         implementations.add(raMasterApiSession);

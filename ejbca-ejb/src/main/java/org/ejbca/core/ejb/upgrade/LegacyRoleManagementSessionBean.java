@@ -202,7 +202,9 @@ public class LegacyRoleManagementSessionBean implements LegacyRoleManagementSess
         return result;
     }
     
-    /** Finds an AccessUserAspectData by its primary key. A primary key can be generated statically from AccessUserAspectData. */
+    /** Finds an AccessUserAspectData by its primary key. A primary key can be generated statically from AccessUserAspectData. 
+     * @param primaryKey PK
+     * @return Acccess */
     private AccessUserAspectData getAccessUserAspectData(final int primaryKey) {
         return entityManager.find(AccessUserAspectData.class, primaryKey);
     }

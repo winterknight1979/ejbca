@@ -219,7 +219,9 @@ public class ApprovalSessionBean implements ApprovalSessionLocal, ApprovalSessio
         }
     }
     
-    /** Updates the ApprovalData from the given approval request, and initializes the list of approvals to an empty list. */
+    /** Updates the ApprovalData from the given approval request, and initializes the list of approvals to an empty list. 
+     * @param approvalData Data
+     * @param approvalRequest Request */
     @SuppressWarnings("deprecation")
     private void updateApprovalData(final ApprovalData approvalData, final ApprovalRequest approvalRequest) {
         approvalData.setApprovalid(approvalRequest.generateApprovalId());
@@ -619,7 +621,14 @@ public class ApprovalSessionBean implements ApprovalSessionLocal, ApprovalSessio
         }
     }
     
-    /** Send approval notification to the partition owner if it has notifications enabled. */
+    /** Send approval notification to the partition owner if it has notifications enabled. 
+     * @param approvalRequest Request
+     * @param approvalProfile Profile
+     * @param requestId ID
+     * @param approvalStepId Step ID 
+     * @param approvalPartition Partition
+     * @param approvalPartitionWorkflowState State 
+     * @param lastApproval Last approval */
     private void sendApprovalNotification(final ApprovalRequest approvalRequest, final ApprovalProfile approvalProfile, final int requestId, final int approvalStepId, final ApprovalPartition approvalPartition,
             final ApprovalPartitionWorkflowState approvalPartitionWorkflowState, final Approval lastApproval) {
         
@@ -742,6 +751,8 @@ public class ApprovalSessionBean implements ApprovalSessionLocal, ApprovalSessio
 
     /**
      * Method used to mark an non-executable approval as done if the last step is performed will the status be set as expired.
+     * @param approvalData Data
+     * @param step Step
      * 
      * @throws ApprovalRequestExpiredException if the step have already been executed
      */
@@ -764,6 +775,7 @@ public class ApprovalSessionBean implements ApprovalSessionLocal, ApprovalSessio
 
     /**
      * Method used by the requestadmin to check if an approval request have been approved
+     * @param approvalData Data
      * @param step the number of the step to check. 
      * @return 0 (ApprovalDataVO.STATUS_APROVED) if approved, the number of approvals left if still waiting for approval, otherwise the ApprovalDataVO.STATUS constants indicating the status.
      * @throws ApprovalRequestExpiredException if the request or approval have expired, the status will be EXPIREDANDNOTIFIED in this case.
@@ -881,12 +893,14 @@ public class ApprovalSessionBean implements ApprovalSessionLocal, ApprovalSessio
         return EjbcaConfiguration.getApprovalDefaultMaxExtensionTime();
     }
        
-    /** @return the found entity instance or null if the entity does not exist */
+    /** @param id ID
+     * @return the found entity instance or null if the entity does not exist */
     private ApprovalData findById(final Integer id) {
         return entityManager.find(ApprovalData.class, id);
     }
     
-    /** @return return the query results as a List. */
+    /** @param approvalid ID
+     * @return return the query results as a List. */
     private List<ApprovalData> findByApprovalId(final int approvalid) {
         final TypedQuery<ApprovalData> query = entityManager.createQuery("SELECT a FROM ApprovalData a WHERE a.approvalid=:approvalId",
                 ApprovalData.class);
@@ -894,7 +908,8 @@ public class ApprovalSessionBean implements ApprovalSessionLocal, ApprovalSessio
         return query.getResultList();
     }
     
-    /** @return return the query results as a List. */
+    /** @param approvalid ID
+     * @return return the query results as a List. */
     private List<ApprovalData> findByApprovalIdNonExpired(final int approvalid) {
         final TypedQuery<ApprovalData> query = entityManager.createQuery(
                 "SELECT a FROM ApprovalData a WHERE a.approvalid=:approvalId AND (a.status>" + ApprovalDataVO.STATUS_EXPIRED + ")",
@@ -903,7 +918,10 @@ public class ApprovalSessionBean implements ApprovalSessionLocal, ApprovalSessio
         return query.getResultList();
     }
 
-    /** @return return the query results as a List<ApprovalData>. */
+    /** @param index Index
+     * @param numberofrows No. of rows to fetch
+     * @param customQuery Query
+     * @return return the query results as a List<ApprovalData>. */
     private List<ApprovalData> findByCustomQuery(final int index, final int numberofrows, final String customQuery) {
         final List<ApprovalData> ret = new ArrayList<ApprovalData>();
         /* Hibernate on DB2 wont allow us to "SELECT *" in combination with setMaxResults.
