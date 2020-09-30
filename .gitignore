@@ -4,4 +4,5 @@
 *.settings
 *.classpath
 target
+build.log
 *.DS_STORE

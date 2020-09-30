@@ -26,9 +26,13 @@ jobs:
         server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
     
+    # We always want to build the whole project, even if some unit tests fail
+    # We therefore run Maven with -fn and grep the log file for the failure message to set the exit status.
     - name: Build packages with Maven
-      run: mvn -B package -Pcoverage -fae --file pom.xml
-    
+      run: mvn -B package -Pcoverage -fn --file pom.xml | tee build.log
+    - name: Check for build fail
+      run: grep -L "There are test failures" build.xml
+      
     - name: Publish test results
       uses: scacap/action-surefire-report@v1
       if: always()
