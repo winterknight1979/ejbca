@@ -639,7 +639,15 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 					</execution>
 				</executions>
 			</plugin>
-		</plugins>
+            	<plugin>
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-maven-plugin</artifactId>
+                                <version>4.0.4</version>
+                                <configuration>
+                                    <goalPrefix>spotbugs</goalPrefix>
+                                </configuration>
+			</plugin>
+                    </plugins>
 	</build>
 
 	<reporting>
@@ -730,7 +738,10 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 			<plugin>
 				<groupId>com.github.spotbugs</groupId>
 				<artifactId>spotbugs-maven-plugin</artifactId>
-				<version>4.0.4</version>
+                                <version>4.0.4</version>
+                                <configuration>
+                                    <goalPrefix>spotbugs</goalPrefix>
+                                </configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
