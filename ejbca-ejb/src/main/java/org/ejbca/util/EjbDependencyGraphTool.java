@@ -31,10 +31,10 @@ import java.util.jar.JarInputStream;
 /**
  * Simple tool that
  * - expands all JARs in an EAR to a temporary directory
- * - looks for all <at>Stateless annotated classes
- * - finds out what <at>Local interfaces the SSBs implement
- * - looks through all SSBs' for <at>EJB annotated fields and builds a list of dependencies from that for each SSB
- * - traverses all dependencies to remove implied dependencies (if A->B,C and B->C we can just say A->B->C)
+ * - looks for all {@literal @}Stateless annotated classes
+ * - finds out what {@literal @}Local interfaces the SSBs implement
+ * - looks through all SSBs' for {@literal @}EJB annotated fields and builds a list of dependencies from that for each SSB
+ * - traverses all dependencies to remove implied dependencies (if A-&gt;B,C and B-&gt;C we can just say A-&gt;B-&gt;C)
  * - outputs dependency tree to console and a .dot-file that can be used to generate a graph.
  * 
  * @version $Id: EjbDependencyGraphTool.java 22142 2015-11-03 14:15:51Z mikekushner $
@@ -119,7 +119,7 @@ public class EjbDependencyGraphTool {
             for (BeanInfo currentBean : ejbs) {
                 log(currentBean.beanClass.getSimpleName());
                 for (BeanInfo dep : currentBean.beanDependencies) {
-                    log(" -> " + dep.beanClass.getSimpleName());
+                    log(" -&gt; " + dep.beanClass.getSimpleName());
                 }
             }
             // Create .dot-file
@@ -132,7 +132,7 @@ public class EjbDependencyGraphTool {
                 sb.append("\"" + currentBean.beanClass.getSimpleName()
                         + "\" [fillcolor=\"yellow\",style=\"filled,bold\",fontname=\"Helvetica-Bold\"]\n");
                 for (BeanInfo dep : currentBean.beanDependencies) {
-                    sb.append("\"" + currentBean.beanClass.getSimpleName() + "\" -> \"" + dep.beanClass.getSimpleName() + "\" [color=\"#000068\"]\n");
+                    sb.append("\"" + currentBean.beanClass.getSimpleName() + "\" -&gt; \"" + dep.beanClass.getSimpleName() + "\" [color=\"#000068\"]\n");
                 }
             }
             sb.append("}\n");
@@ -162,7 +162,7 @@ public class EjbDependencyGraphTool {
                 final String jarEntryName = jarEntry.getName();
                 if (jarEntryName.endsWith("SessionBean.class")) {
                     final String className = jarEntryName.replaceAll(".class", "").replaceAll("/", ".");
-                    //log("  Matching filename: " + jarEntryName + " -> " + className);
+                    //log("  Matching filename: " + jarEntryName + " -&gt; " + className);
                     interestingClasses.add(className);
                 }
             }

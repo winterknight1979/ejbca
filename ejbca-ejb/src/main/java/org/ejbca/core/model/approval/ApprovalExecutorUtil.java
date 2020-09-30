@@ -40,9 +40,9 @@ private static final ApprovalOveradableClassName[] NONAPPROVABLECLASSNAMES_SETUS
 		new ApprovalOveradableClassName("se.primeKey.cardPersonalization.ra.connection.ejbca.EjbcaConnection",null)
 	};
     
-3. Transitions that are always allowed. For some approval methods there are transitions that never require approval. For example when status for a user changes from new->inprocess, or inprocess->generated.
+3. Transitions that are always allowed. For some approval methods there are transitions that never require approval. For example when status for a user changes from new-&gt;inprocess, or inprocess-&gt;generated.
 These rules are configured, hard coded, within the ApprovalRequest, which is the entity that knows about the transitions best. 
-For example in ChangeStatusEndEntityApprovalRequest the status transitions from new->inprocess or inprocess->generated never required approval.
+For example in ChangeStatusEndEntityApprovalRequest the status transitions from new-&gt;inprocess or inprocess-&gt;generated never required approval.
 The code checking used by the programmer to determine if approval is required is once again ApprovalExecutorUtil. 
 
 Checking rules

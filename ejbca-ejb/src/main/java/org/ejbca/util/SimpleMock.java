@@ -24,13 +24,13 @@ import java.util.Map;
 
 /**
  * Simple class for mocking an interface that can return pre-configured values
- * or throw defined Exceptions.<br/>
- * <br/>
+ * or throw defined Exceptions.<br>
+ * <br>
  * The mocked object will treat two methods with the same name, but different
  * signatures as the same. (E.g. getInt() and getInt(String x) will be treated
- * the same.)<br/>
- * <br/>
- * Example usage:<br/>
+ * the same.)<br>
+ * <br>
+ * Example usage:<br>
  * <pre>
  *  SomeInterface x = new SimpleMock(SomeInterface.class) {{
  *  	map("getInt", 1); // Override method getInt(...)

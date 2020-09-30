@@ -231,7 +231,7 @@ public class DistinguishedName extends LdapName {
         }
     }
 
-    /** Translate component name (ejbca name -> x509).
+    /** Translate component name (ejbca name -&gt; x509).
      * @param name to translate.
      * @return translated name.
      */

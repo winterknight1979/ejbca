@@ -349,7 +349,7 @@ public class RemoteVerifyServlet extends HttpServlet {
      *   </pre>
      * </li>
      * </ul>
-     * </p>
+     * 
      *
      * @param req DOCUMENT ME!
      * @param res DOCUMENT ME!
