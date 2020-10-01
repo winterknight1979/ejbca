@@ -40,7 +40,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<module>cesecore-ejb</module>
 		
 		<!-- EJBCA Library JARs -->
-		
+		<module>ejbca-properties</module>
 		<module>ejbca-common</module>
 		<module>ejbca-entity</module>
 		<module>ejbca-ejb-interface</module>
@@ -71,6 +71,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<!-- Test-only modules -->
 		
 		<module>ejbca-test-aggregator</module>
+
 		
 	</modules>
 
@@ -642,8 +643,8 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
             	<plugin>
 				<groupId>com.github.spotbugs</groupId>
 				<artifactId>spotbugs-maven-plugin</artifactId>
-                                <version>4.0.4</version>
-                                <configuration>
+				<version>4.0.4</version>
+				<configuration>
                                     <goalPrefix>spotbugs</goalPrefix>
                                 </configuration>
 			</plugin>
@@ -738,8 +739,8 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 			<plugin>
 				<groupId>com.github.spotbugs</groupId>
 				<artifactId>spotbugs-maven-plugin</artifactId>
-                                <version>4.0.4</version>
-                                <configuration>
+				<version>4.0.4</version>
+				<configuration>
                                     <goalPrefix>spotbugs</goalPrefix>
                                 </configuration>
 			</plugin>
@@ -760,6 +761,9 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 						<groupId>org.jacoco</groupId>
 						<artifactId>jacoco-maven-plugin</artifactId>
 						<version>0.8.6</version>
+						<configuration>
+							<append>true</append>
+						</configuration>
 						<executions>
 							<execution>
 								<goals>

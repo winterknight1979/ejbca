@@ -3,42 +3,18 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-    <groupId>goldeneyes.ejbca</groupId>
-    <artifactId>ejbca</artifactId>
-    <version>${revision}</version>
-  </parent>
+		<groupId>goldeneyes.ejbca</groupId>
+		<artifactId>ejbca</artifactId>
+		<version>${revision}</version>
+	</parent>
 
-	<artifactId>ejbca-ejb</artifactId>
+	<artifactId>ejbca-properties</artifactId>
 
-	<name>EJBCA EJB Library</name>
-	<description>EJBCA EJB Library</description>
+	<name>The EJBCA properties files</name>
+	<description>This module contains the .properties files used by ejbca-ejb and
+  ejbca-ws-ejb</description>
 
 	<dependencies>
-	
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>ejbca-properties</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>ejbca-ejb-interface</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>ejbca-common-web</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>ejbca-ws-cli</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>shared-resources</artifactId>
@@ -85,34 +61,74 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<version>3.0.0</version>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.8</version>
+				<configuration>
+					<target>
+						<copy todir="${project.build.directory}/classes"
+							file="${project.build.directory}/maven-shared-archive-resource/internal.properties">
+							<filterchain>
+								<replacestring
+									from="#datasource.jndi-name-prefix="
+									to="datasource.jndi-name-prefix=${datasource.jndi-name-prefix}" />
+							</filterchain>
+						</copy>
+					</target>
+				</configuration>
 				<executions>
 					<execution>
-						<id>Generate Service Manifest</id>
-						<phase>process-test-classes</phase>
+						<id>Copy internal resources</id>
+						<phase>process-resources</phase>
 						<goals>
-							<goal>java</goal>
+							<goal>run</goal>
 						</goals>
-						<configuration>
-							<mainClass>com.primekey.anttools.ServiceManifestBuilder</mainClass>
-							<classpathScope>compile</classpathScope>
-							<arguments>
-								<argument>${project.build.directory}/classes</argument>
-								<argument>
-									org.cesecore.authorization.rules.AccessRulePlugin;org.cesecore.certificates.ocsp.extension.OCSPExtension
-								</argument>
-							</arguments>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>
 			
-			</plugins>
-			</build>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<id>Copy config files</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.outputDirectory}</outputDirectory>
+							<resources>
+								<resource>
+									<filtering>true</filtering>
+									<directory>${project.build.directory}/maven-shared-archive-resource</directory>
+									<includes>
+										<include>conf/**/*.properties</include>
+									</includes>
+									<excludes>
+											<exclude>conf/install.properties</exclude>
+											<exclude>conf/externalra.properties</exclude>
+											<exclude>conf/plugins/*</exclude>
+											<exclude>conf/batchtool.properties</exclude>
+									</excludes>
+								</resource>
+								<resource>
+									<filtering>true</filtering>
+									<directory>${project.build.directory}/maven-shared-archive-resource/upgrade</directory>
+								</resource>
+							</resources>
+						</configuration>
+						
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+	</build>
 
 	<reporting>
 		<plugins>
