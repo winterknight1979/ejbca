@@ -64,7 +64,7 @@ jobs:
     #    uses a compiled language
     - run: |
         echo '::set-env name=APPSRV_HOME::~'
-        mvn -fn -B -DskipTests=true clean verify
+        APPSRV_HOME=~ mvn -fn -B -DskipTests=true clean verify
         
 
     - name: Perform CodeQL Analysis
