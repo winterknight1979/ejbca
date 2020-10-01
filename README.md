@@ -1,6 +1,6 @@
 # ejbca
 
-[Merge branch to master](https://github.com/winterknight1979/ejbca/workflows/Merge%20branch%20to%20master/badge.svg)![Maven Release](https://github.com/winterknight1979/ejbca/workflows/Maven%20Release/badge.svg)[![codecov](https://codecov.io/gh/winterknight1979/ejbca/branch/master/graph/badge.svg?token=J3QRD54ZIG)](https://codecov.io/gh/winterknight1979/ejbca)
+![Merge branch to master](https://github.com/winterknight1979/ejbca/workflows/Merge%20branch%20to%20master/badge.svg)![Maven Release](https://github.com/winterknight1979/ejbca/workflows/Maven%20Release/badge.svg)[![codecov](https://codecov.io/gh/winterknight1979/ejbca/branch/master/graph/badge.svg?token=J3QRD54ZIG)](https://codecov.io/gh/winterknight1979/ejbca)
 
 This is a fork of PrimeKey EJBCA community edition, from v 6.15.2.6
 
