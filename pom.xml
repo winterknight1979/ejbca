@@ -761,6 +761,9 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 						<groupId>org.jacoco</groupId>
 						<artifactId>jacoco-maven-plugin</artifactId>
 						<version>0.8.6</version>
+						<configuration>
+							<append>true</append>
+						</configuration>
 						<executions>
 							<execution>
 								<goals>
