@@ -1,0 +1,213 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>goldeneyes.ejbca</groupId>
+		<artifactId>ejbca</artifactId>
+		<version>${revision}</version>
+	</parent>
+	<artifactId>ejbca-properties</artifactId>
+
+	<dependencies>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>shared-resources</artifactId>
+			<version>${project.version}</version>
+			<scope>compile</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-remote-resources-plugin</artifactId>
+				<version>1.7.0</version>
+				<configuration>
+					<resourceBundles>
+						<resourceBundle>${project.groupId}:shared-resources:${project.version}</resourceBundle>
+					</resourceBundles>
+					<outputDirectory>${project.build.directory}/maven-shared-archive-resource</outputDirectory>
+					<attachToMain>false</attachToMain>
+				</configuration>
+				<executions>
+					<execution>
+						<id>unpack-resource-bundle</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>process</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>properties-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>load-config-file</id>
+						<phase>initialize</phase>
+						<goals>
+							<goal>read-project-properties</goal>
+						</goals>
+
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.8</version>
+				<configuration>
+					<target>
+						<copy todir="${project.build.directory}/classes"
+							file="${project.build.directory}/maven-shared-archive-resource/internal.properties">
+							<filterchain>
+								<replacestring
+									from="#datasource.jndi-name-prefix="
+									to="datasource.jndi-name-prefix=${datasource.jndi-name-prefix}" />
+							</filterchain>
+						</copy>
+					</target>
+				</configuration>
+				<executions>
+					<execution>
+						<id>Copy internal resources</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<id>Copy config files</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.outputDirectory}</outputDirectory>
+							<resources>
+								<resource>
+									<filtering>true</filtering>
+									<directory>${project.build.directory}/maven-shared-archive-resource</directory>
+									<includes>
+										<include>conf/**/*.properties</include>
+									</includes>
+									<excludes>
+											<exclude>conf/install.properties</exclude>
+											<exclude>conf/externalra.properties</exclude>
+											<exclude>conf/plugins/*</exclude>
+											<exclude>conf/batchtool.properties</exclude>
+									</excludes>
+								</resource>
+								<resource>
+									<filtering>true</filtering>
+									<directory>${project.build.directory}/maven-shared-archive-resource/upgrade</directory>
+								</resource>
+							</resources>
+						</configuration>
+						
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+
+
+	</build>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>3.1.1</version>
+				<reportSets>
+					<reportSet>
+						<reports>
+							<report>dependencies</report>
+							<report>dependency-info</report>
+							<report>summary</report>
+							<report>index</report>
+							<report>plugins</report>
+							<report>dependency-convergence</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-report-plugin</artifactId>
+				<version>3.0.0-M4</version>
+				<reportSets>
+					<reportSet>
+						<reports>
+							<report>report-only</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+		</plugins>
+	</reporting>
+
+	<profiles>
+		<profile>
+			<id>coverage</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<version>0.8.6</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>prepare-agent</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>report</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>report</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+			<reporting>
+				<plugins>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<reportSets>
+							<reportSet>
+								<reports>
+									<!-- select non-aggregate reports -->
+									<report>report</report>
+
+								</reports>
+							</reportSet>
+						</reportSets>
+					</plugin>
+				</plugins>
+			</reporting>
+		</profile>
+	</profiles>
+
+	<name>The EJBCA properties files</name>
+	<description>This module contains the .properties files used by ejbca-ejb and
+  ejbca-ws-ejb</description>
+</project>
