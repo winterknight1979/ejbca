@@ -289,7 +289,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 			<dependency>
 				<groupId>com.google.guava</groupId>
 				<artifactId>guava</artifactId>
-				<version>20.0</version>
+				<version>[24.1.1,)</version>
 			</dependency>
 			<!-- UI -->
 			<dependency>
