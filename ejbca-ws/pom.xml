@@ -32,6 +32,12 @@
 			<artifactId>ejbca-common-web</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>ejbca-properties</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 		<!-- These need to not be in "provided" scope or wsgen will fail -->
 

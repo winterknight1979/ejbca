@@ -71,7 +71,8 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<!-- Test-only modules -->
 		
 		<module>ejbca-test-aggregator</module>
-		
+
+		<module>ejbca-properties</module>
 	</modules>
 
 	<scm>
