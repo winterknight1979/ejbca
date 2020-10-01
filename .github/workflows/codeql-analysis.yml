@@ -63,9 +63,8 @@ jobs:
     #    and modify them (or add more) to build your code if your project
     #    uses a compiled language
     - run: echo '::set-env name=APPSRV_HOME::~'
-    - run: |
-        make bootstrap
-        make release
+    - run: mvn -fn -B -DskipTests=true verify
+        
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
