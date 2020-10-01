@@ -16,7 +16,6 @@ import javax.ejb.Local;
 
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.ejbca.config.AcmeConfiguration;
-import org.ejbca.core.protocol.acme.AcmeProblemException;
 
 /**
  * ACME configuration handling business logic.

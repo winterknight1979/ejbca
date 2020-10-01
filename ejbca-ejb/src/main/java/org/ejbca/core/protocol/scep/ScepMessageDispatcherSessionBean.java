@@ -60,8 +60,6 @@ import org.ejbca.core.model.ca.AuthLoginException;
 import org.ejbca.core.model.ca.AuthStatusException;
 import org.ejbca.core.protocol.NoSuchAliasException;
 import org.ejbca.ui.web.protocol.CertificateRenewalException;
-import org.ejbca.core.protocol.scep.ScepOperationPlugin;
-import org.ejbca.core.protocol.scep.ScepResponsePlugin;
 
 /**
  * 

@@ -22,8 +22,6 @@ import java.util.List;
 import org.cesecore.authentication.AuthenticationFailedException;
 import org.ejbca.core.model.approval.Approval;
 import org.ejbca.core.model.approval.ApprovalException;
-import org.ejbca.core.model.approval.profile.ApprovalStep;
-import org.ejbca.core.model.approval.profile.PartitionedApprovalProfile;
 import org.junit.Test;
 
 /**
