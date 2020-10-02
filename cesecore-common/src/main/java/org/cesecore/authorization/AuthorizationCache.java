@@ -51,7 +51,7 @@ public enum AuthorizationCache {
     /** The access available to an authentication token and corresponding
      *  version of the authorization systems updateNumber. */
     public static class AuthorizationResult {
-        /** Rules */
+        /** Rules. */
         private final HashMap<String, Boolean> accessRules;
         /** Update number. */
         private final int updateNumber;

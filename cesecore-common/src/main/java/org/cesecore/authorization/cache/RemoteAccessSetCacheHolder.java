@@ -21,103 +21,136 @@ import org.cesecore.authorization.access.AccessSet;
 import org.cesecore.util.ConcurrentCache;
 
 /**
- * Holds a ConcurrentCache which can be filled with cached AccessSets from remote systems etc.
+ * Holds a ConcurrentCache which can be filled with cached
+ * AccessSets from remote systems etc.
  *
- * @version $Id: RemoteAccessSetCacheHolder.java 25591 2017-03-23 13:13:02Z jeklund $
+ * @version $Id: RemoteAccessSetCacheHolder.java
+ * 25591 2017-03-23 13:13:02Z jeklund $
  * @deprecated since EJBCA 6.8.0
  */
 @Deprecated
 public final class RemoteAccessSetCacheHolder {
-
-    private static final Logger log = Logger.getLogger(RemoteAccessSetCacheHolder.class);
+    /** Logger. */
+    private static final Logger LOG
+        = Logger.getLogger(RemoteAccessSetCacheHolder.class);
 
     // These fields are also modified by the test RemoteAccessSetCacheHolderTest
+    /** Last update. */
     private static volatile int lastUpdate = -1;
-    private static volatile boolean regularUpdateInProgress = false; // not clear caches etc.
-    private static final Object checkClearLock = new Object();
-    private static ConcurrentCache<AuthenticationToken,AccessSet> cache = new ConcurrentCache<>();
+    /** If update is in progress. */
+    private static volatile boolean regularUpdateInProgress = false;
+    // not clear caches etc.
+    /** Semaphore. */
+    private static final Object CHECK_CLEAR_LOCK = new Object();
+    /** Cache. */
+    private static ConcurrentCache<AuthenticationToken, AccessSet> cache
+        = new ConcurrentCache<>();
 
-    /** Can't be instantiated */
+    /** Can't be instantiated. */
     private RemoteAccessSetCacheHolder() { }
 
     /**
-     * Returns a ConcurrentCache object that can be used for caching AccessSets from remote systems.
-     * The caller is responsible for filling it with results from getAccessSetForAuthToken from the
-     * remote system, but it's automatically cleared whenever local access rules change.
+     * Returns a ConcurrentCache object that can be used for
+     *  caching AccessSets from remote systems.
+     * The caller is responsible for filling it with results
+     * from getAccessSetForAuthToken from the
+     * remote system, but it's automatically cleared whenever
+     * local access rules change.
      * @return Cache
      */
-    public static ConcurrentCache<AuthenticationToken,AccessSet> getCache() {
+    public static ConcurrentCache<AuthenticationToken, AccessSet> getCache() {
         return cache;
     }
 
     /**
-     * Starts a cache reload. The caller is responsible for actually building the cache data after
-     * calling this method, i.e. building a map of AuthenticationTokens to AccessSets, and then
+     * Starts a cache reload. The caller is responsible for actually
+     * building the cache data after
+     * calling this method, i.e. building a map of AuthenticationTokens
+     * to AccessSets, and then
      * passing that to finishCacheReload().
      *
-     * This method avoids duplicate cache invalidations if invoked multiple times from multiple
-     * sources (e.g. CAs in a cluster that broadcast a "clear caches" peer message).
+     * This method avoids duplicate cache invalidations if
+     * invoked multiple times from multiple
+     * sources (e.g. CAs in a cluster that broadcast a
+     * "clear caches" peer message).
      *
-     * @param updateNumber Access tree update number at the time the clear cache triggered.
+     * @param updateNumber Access tree update number at the
+     *     time the clear cache triggered.
      * @return Currently existing AuthenticationTokens in the cache.
      */
-    public static Set<AuthenticationToken> startCacheReload(final int updateNumber) {
-        log.trace(">startCacheReload");
-        synchronized (checkClearLock) {
+    public static Set<AuthenticationToken> startCacheReload(
+            final int updateNumber) {
+        LOG.trace(">startCacheReload");
+        synchronized (CHECK_CLEAR_LOCK) {
             if (updateNumber != -1) {
                 if (lastUpdate >= updateNumber) {
-                    log.trace("<startCacheReload (already has a more recent version)");
+                    LOG.trace("<startCacheReload "
+                            + "(already has a more recent version)");
                     return null;
                 }
                 lastUpdate = updateNumber;
                 regularUpdateInProgress = true;
-                log.debug("Started cache reload");
+                LOG.debug("Started cache reload");
             } else if (regularUpdateInProgress) {
-                log.trace("<startCacheReload (regular update was in progress)");
+                LOG.trace("<startCacheReload (regular update was in progress)");
                 return null;
             }
         }
         final Set<AuthenticationToken> existing = cache.getKeys();
-        log.trace("<startCacheReload");
+        LOG.trace("<startCacheReload");
         return existing;
     }
 
-    public static void finishCacheReload(final int updateNumber, final Map<AuthenticationToken,AccessSet> newCacheMap) {
-        log.trace(">finishCacheReload");
+    /** Complete cache reload.
+     *
+     * @param updateNumber Update
+     * @param newCacheMap New map
+     */
+    public static void finishCacheReload(final int updateNumber,
+            final Map<AuthenticationToken, AccessSet> newCacheMap) {
+        LOG.trace(">finishCacheReload");
 
         if (updateNumber != -1) {
             if (lastUpdate > updateNumber) {
-                log.trace("<finishCacheReload (not updating because a more recent update finished earlier)");
+                LOG.trace("<finishCacheReload "
+                        + "(not updating because a more recent "
+                        + "update finished earlier)");
                 return;
             }
         } else if (regularUpdateInProgress) {
-            log.trace("<finishCacheReload (not updating because regularUpdateInProgress)");
+            LOG.trace("<finishCacheReload "
+                    + "(not updating because regularUpdateInProgress)");
             return;
         }
 
         // Build new cache, but don't update it yet
-        final ConcurrentCache<AuthenticationToken,AccessSet> newCache = new ConcurrentCache<>(newCacheMap, -1L);
+        final ConcurrentCache<AuthenticationToken, AccessSet> newCache
+            = new ConcurrentCache<>(newCacheMap, -1L);
 
-        // Make sure we don't overwrite a more recent update (e.g. if it finished faster than us)
-        synchronized (checkClearLock) {
+        // Make sure we don't overwrite a more recent update
+        // (e.g. if it finished faster than us)
+        synchronized (CHECK_CLEAR_LOCK) {
             if (updateNumber != -1) {
                 if (lastUpdate > updateNumber) {
-                    log.trace("<finishCacheReload (already has a more recent version)");
+                    LOG.trace("<finishCacheReload "
+                            + "(already has a more recent version)");
                     return;
                 }
                 lastUpdate = updateNumber;
                 regularUpdateInProgress = false;
             } else if (regularUpdateInProgress) {
-                log.trace("<finishCacheReload (regular update was in progress)");
+                LOG.trace("<finishCacheReload "
+                        + "(regular update was in progress)");
                 return;
             }
             cache = newCache;
-            log.debug("Replaced access set cache");
+            LOG.debug("Replaced access set cache");
         }
-        log.trace("<finishCacheReload");
+        LOG.trace("<finishCacheReload");
     }
 
-    /** Empties the cache. Please try to only use this method with the local cache */
+    /** Empties the cache. Please try to only use this
+     *  method with the local cache */
     public static void forceEmptyCache() {
         cache.clear();
     }
