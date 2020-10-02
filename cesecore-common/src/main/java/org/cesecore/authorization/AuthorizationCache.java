@@ -41,39 +41,40 @@ import org.cesecore.util.ValidityDate;
  */
 public enum AuthorizationCache {
     /** Default instance. */
-	INSTANCE, 
-	/** RA instance. */
-	RAINSTANCE;
+    INSTANCE,
+    /** RA instance. */
+    RAINSTANCE;
 
-	/** Logger. */
+    /** Logger. */
     private final Logger log = Logger.getLogger(AuthorizationCache.class);
 
     /** The access available to an authentication token and corresponding
-     *  version of the authorization systems updateNumber */
+     *  version of the authorization systems updateNumber. */
     public static class AuthorizationResult {
         /** Rules */
-    	final HashMap<String, Boolean> accessRules;
-        /** Update number */
-        final int updateNumber;
- 
+        private final HashMap<String, Boolean> accessRules;
+        /** Update number. */
+        private final int updateNumber;
+
 
         /** Constructor.
-         * 
-         * @param accessRules Rules
-         * @param updateNumber Update number.
+         *
+         * @param theAccessRules Rules
+         * @param theUpdateNumber Update number.
          */
-        public AuthorizationResult(final HashMap<String, Boolean> accessRules,
-                final int updateNumber) {
-            this.accessRules = accessRules;
-            this.updateNumber = updateNumber;
+        public AuthorizationResult(
+                final HashMap<String, Boolean> theAccessRules,
+                final int theUpdateNumber) {
+            this.accessRules = theAccessRules;
+            this.updateNumber = theUpdateNumber;
         }
-        /** @return rules */	
+        /** @return rules */
         public HashMap<String, Boolean> getAccessRules() {
-        	return accessRules; 
+            return accessRules;
         }
         /** @return update number */
-        public int getUpdateNumeber() { 
-        	return updateNumber; 
+        public int getUpdateNumeber() {
+            return updateNumber;
         }
     }
 
@@ -101,7 +102,7 @@ public enum AuthorizationCache {
 
     private class AuthorizationCacheEntry {
         /** Rules. */
-    	private HashMap<String, Boolean> accessRules;
+        private HashMap<String, Boolean> accessRules;
         /** Update. */
         private int updateNumber = 0;
         /** Last used. */
@@ -115,14 +116,14 @@ public enum AuthorizationCache {
     /** Cache. */
     private ConcurrentHashMap<String, AuthorizationCacheEntry> cacheMap
         = new ConcurrentHashMap<>();
-    
+
     /** Last update. */
     private AtomicInteger latestUpdateNumber = new AtomicInteger(0);
 
     /** True if listener has been registered. */
     private final AtomicBoolean authorizationCacheReloadListenerRegistered
         = new AtomicBoolean(false);
-    
+
     /** Reload listener. */
     private final AuthorizationCacheReloadListener
         authorizationCacheReloadListener
@@ -248,8 +249,8 @@ public enum AuthorizationCache {
             final AuthenticationToken authenticationToken,
             final AuthorizationCacheCallback authorizationCacheCallback)
                     throws AuthenticationFailedException {
-        if (authenticationToken == null 
-        		|| authorizationCacheCallback == null) {
+        if (authenticationToken == null
+                || authorizationCacheCallback == null) {
             return new AuthorizationResult(new HashMap<String, Boolean>(), 0);
         }
         final String key = authenticationToken.getUniqueId();
@@ -317,7 +318,7 @@ public enum AuthorizationCache {
         ret.timeOfLastUse = System.currentTimeMillis();
         return new AuthorizationResult(ret.accessRules, ret.updateNumber);
     }
-    
+
     /**
      * @return Last Update Number
      */
