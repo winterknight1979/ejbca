@@ -15,24 +15,42 @@ package org.cesecore.audit.audit;
 /**
  * An error during validation of secure audit log data.
  *
- * @version $Id: AuditLogValidatorException.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version
+ *   $Id: AuditLogValidatorException.java 17625 2013-09-20 07:12:06Z netmackan $
  */
-public class AuditLogValidatorException extends Exception{
+public class AuditLogValidatorException extends Exception {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Create blank exception.
+     */
     public AuditLogValidatorException() {
         super();
     }
 
-    public AuditLogValidatorException(final String message, final Throwable throwable) {
+    /**
+     * Create exception with message and cause.
+     * @param message Message
+     * @param throwable Cause
+     */
+    public AuditLogValidatorException(final String message,
+            final Throwable throwable) {
         super(message, throwable);
     }
 
+    /**
+     * Create exception with message.
+     * @param message Message
+     */
     public AuditLogValidatorException(final String message) {
         super(message);
     }
 
+    /**
+     * Create exception with cause.
+     * @param throwable Cause
+     */
     public AuditLogValidatorException(final Throwable throwable) {
         super(throwable);
     }

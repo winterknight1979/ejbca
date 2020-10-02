@@ -25,22 +25,46 @@ public class AuditLogReportElem implements Serializable {
 
     private static final long serialVersionUID = -7018231147212983227L;
 
+    /** First. */
     private Long first;
+    /** Second. */
     private Long second;
+    /** Reasons. */
     private final List<String> reasons = new ArrayList<String>();
 
+    /**
+     * Constructor.
+     */
     public AuditLogReportElem() {
     }
 
-    public AuditLogReportElem(final Long first, final Long second, final List<String> reasons) {
-        this.first = first;
-        this.second = second;
-        this.reasons.addAll(reasons);
+    /**
+     * Constructor.
+     * @param firstElem First element
+     * @param secondElem Second element
+     * @param reasonsList Reasons
+     */
+    public AuditLogReportElem(
+            final Long firstElem,
+            final Long secondElem,
+            final List<String> reasonsList) {
+        this.first = firstElem;
+        this.second = secondElem;
+        this.reasons.addAll(reasonsList);
     }
 
-    public AuditLogReportElem(final Long first, final Long second, final String reason) {
-        this.first = first;
-        this.second = second;
+    /**
+     * Constructor.
+     * @param firstElem First element
+     * @param secondElem Second element
+     * @param reason Reason
+     */
+    public AuditLogReportElem(
+            final Long firstElem,
+            final Long secondElem,
+            final String reason) {
+        this.first = firstElem;
+        this.second = secondElem;
         this.reasons.add(reason);
     }
 
@@ -55,10 +79,10 @@ public class AuditLogReportElem implements Serializable {
     /**
      * Sets the first for this instance.
      *
-     * @param first The first.
+     * @param newFirst The first.
      */
-    public void setFirst(Long first) {
-        this.first = first;
+    public void setFirst(final Long newFirst) {
+        this.first = newFirst;
     }
     /**
      * Gets the second for this instance.
@@ -71,10 +95,10 @@ public class AuditLogReportElem implements Serializable {
     /**
      * Sets the second for this instance.
      *
-     * @param second The second.
+     * @param newSecond The second.
      */
-    public void setSecond(Long second) {
-        this.second = second;
+    public void setSecond(final Long newSecond) {
+        this.second = newSecond;
     }
     /**
      * Gets the reasons for this instance.
@@ -89,7 +113,7 @@ public class AuditLogReportElem implements Serializable {
      *
      * @param reason The reasons.
      */
-    public void setReason(String reason) {
+    public void setReason(final String reason) {
         this.reasons.add(reason);
     }
 

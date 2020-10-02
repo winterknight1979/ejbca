@@ -30,12 +30,50 @@ import java.io.OutputStream;
  */
 public interface AuditExporter {
 
+    /**
+     * Set the OutputStream.
+     * @param outputStream OS
+     * @throws IOException On IO fail
+     */
     void setOutputStream(OutputStream outputStream) throws IOException;
+    /**
+     * Start labelling.
+     * @param label Label
+     * @throws IOException On IO error
+     */
     void startObjectLabel(String label) throws IOException;
+    /**
+     * End labelling.
+     * @throws IOException On IO error
+     */
     void endObjectLabel() throws IOException;
+    /**
+     * Start writing the object.
+     * @throws IOException On IO error
+     */
     void writeStartObject() throws IOException;
+    /**
+     * Write an integer property.
+     * @param key Property key
+     * @param value Value
+     * @throws IOException On IO error
+     */
     void writeField(String key, long value) throws IOException;
+    /**
+     * Write a string property.
+     * @param key Property key
+     * @param value value
+     * @throws IOException On IO error
+     */
     void writeField(String key, String value) throws IOException;
+    /**
+     * Finish writing the object.
+     * @throws IOException On IO error
+     */
     void writeEndObject() throws IOException;
+    /**
+     * Close the log.
+     * @throws IOException On IO error.
+     */
     void close() throws IOException;
 }

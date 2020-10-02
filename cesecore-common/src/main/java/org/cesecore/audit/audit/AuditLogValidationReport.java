@@ -22,16 +22,22 @@ import org.apache.log4j.Logger;
  * This class represents the audit log validation report.
  * It's generated during validation.
  *
- * @version $Id: AuditLogValidationReport.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version
+ *   $Id: AuditLogValidationReport.java 17625 2013-09-20 07:12:06Z netmackan $
  */
-public class AuditLogValidationReport implements Serializable{
+public class AuditLogValidationReport implements Serializable {
 
-    private static final Logger log = Logger.getLogger(AuditLogValidationReport.class);
+    /** Logger. */
+    private static final Logger LOG
+        = Logger.getLogger(AuditLogValidationReport.class);
     private static final long serialVersionUID = 1L;
 
+    /** Errors. */
     private final List<AuditLogReportElem> errors;
+    /** Warnings. */
     private final List<AuditLogReportElem> warns;
 
+    /** Constructor. */
     public AuditLogValidationReport() {
         this.errors = new ArrayList<AuditLogReportElem>();
         this.warns = new ArrayList<AuditLogReportElem>();
@@ -43,11 +49,13 @@ public class AuditLogValidationReport implements Serializable{
     }
 
     /**
-     * Add a new error to the report list
+     * Add a new error to the report list.
      * @param error The error to be added.
      */
     public void error(final AuditLogReportElem error) {
-        log.warn(String.format("ERROR: auditlog sequence: %d -> %d. Reason: %s", error.getFirst(), error.getSecond(), error.getReasons()));
+        LOG.warn(String.format(
+                "ERROR: auditlog sequence: %d -> %d. Reason: %s",
+                error.getFirst(), error.getSecond(), error.getReasons()));
         this.errors.add(error);
     }
 
@@ -60,8 +68,11 @@ public class AuditLogValidationReport implements Serializable{
      * Add a new warning to the report.
      * @param warning The warning.
      */
-    public void warn(final AuditLogReportElem warning){
-        log.info(String.format("WARN: auditlog sequence: %d -> %d. Reason: %s", warning.getFirst(), warning.getSecond(), warning.getReasons()));
+    public void warn(final AuditLogReportElem warning) {
+        LOG.info(String.format("WARN: auditlog sequence: %d -> %d. Reason: %s",
+                warning.getFirst(),
+                warning.getSecond(),
+                warning.getReasons()));
         this.warns.add(warning);
     }
 }
