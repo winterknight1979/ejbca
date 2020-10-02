@@ -23,28 +23,65 @@ import java.io.Serializable;
  */
 public interface AccessUserAspect extends Serializable {
 
+    /** @return match */
     int getMatchWith();
 
+    /**
+     * Set match.
+     * @param matchWith Match
+     */
     void setMatchWith(Integer matchWith);
 
-    int getMatchType();
+    /**
+     * @return Type.
+     */
+      int getMatchType();
 
+
+    /**
+     * Set type.
+     * @param matchType Type
+     *
+     */
     void setMatchType(Integer matchType);
 
+    /**
+     * Set match as type.
+     * @param matchType type
+     */
     void setMatchTypeAsValue(AccessMatchType matchType);
 
+    /**
+     * Get match as type.
+     * @return type
+     */
     AccessMatchType getMatchTypeAsType();
 
+    /** @return match value */
     String getMatchValue();
 
+    /**
+     * Set match value.
+     * @param matchValue Value
+     */
     void setMatchValue(String matchValue);
 
+    /** @return CA ID */
     Integer getCaId();
 
+    /**
+     * Set CA ID.
+     * @param caId ID
+     */
     void setCaId(Integer caId);
 
+    /** @return token type */
     String getTokenType();
 
+    /**
+     * Set token type.
+     * @param tokenType Type
+     */
     void setTokenType(String tokenType);
 
 }
