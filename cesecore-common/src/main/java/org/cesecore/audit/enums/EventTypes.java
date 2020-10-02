@@ -15,7 +15,8 @@ package org.cesecore.audit.enums;
 /**
  * Contains all event types that CESeCore core needs to log to secure audit log.
  *
- * When doing secure audit log it is necessary to identify the event being logged.
+ * When doing secure audit log it is necessary to identify
+ * the event being logged.
  *
  * @see org.cesecore.audit.enums.ModuleTypes
  * @see org.cesecore.audit.enums.ServiceTypes
@@ -31,29 +32,36 @@ public enum EventTypes implements EventType {
     CA_CREATION,
     /** Removal of a Certificate Authority. */
     CA_DELETION,
-    /** Internal application name change of a Certificate Authority. Unrelated to Certificate Authority's Subject Distinguisher Name. */
+    /** Internal application name change of a Certificate Authority.
+     *  Unrelated to Certificate Authority's Subject Distinguisher Name. */
     CA_RENAMING,
     /** Modification of a Certificate Authority. */
     CA_EDITING,
     /** Certificate Authority starts using a different key pair. */
     CA_KEYACTIVATE,
-    /** Generation of a new key pair that can be used by the Certificate Authority during renewal or update. */
+    /** Generation of a new key pair that can be used by the
+     *  Certificate Authority during renewal or update. */
     CA_KEYGEN,
-    /** Certificate Authority state change to start serving requests. Unrelated to CA private key availability. */
+    /** Certificate Authority state change to start serving requests.
+     *  Unrelated to CA private key availability. */
     CA_SERVICEACTIVATE,
-    /** Certificate Authority state change to stop serving requests. Unrelated to CA private key availability. */
+    /** Certificate Authority state change to stop serving requests.
+     *  Unrelated to CA private key availability. */
     CA_SERVICEDEACTIVATE,
     /** Persistence of a certificate to the database. */
     CERT_STORED,
     /** Change of a certificate's status to revoked or active. */
     CERT_REVOKED,
-    /** Change of a certificate's status to unassigned, inactive, active, notified about expiration, revoked or archived. */
+    /** Change of a certificate's status to unassigned, inactive, active,
+     *  notified about expiration, revoked or archived. */
     CERT_CHANGEDSTATUS,
-    /** A request for certificate issuance from a Certificate Authority is submitted. */
+    /** A request for certificate issuance from a Certificate Authority
+     *  is submitted. */
     CERT_REQUEST,
     /** Issuance of a certificate by a Certificate Authority. */
     CERT_CREATION,
-    /** Certificate Transparency log servers responds to a pre-certificate submission from a Certificate Authority. */
+    /** Certificate Transparency log servers responds to a pre-certificate
+     *  submission from a Certificate Authority. */
     CERT_CTPRECERT_SUBMISSION,
     /** <i>Event type is currently not used in EJBCA.</i> */
     CERTIFICATE_KEY_BIND,
@@ -79,13 +87,17 @@ public enum EventTypes implements EventType {
     CRYPTOTOKEN_EDIT,
     /** Removal of a Crypto Token. */
     CRYPTOTOKEN_DELETION,
-    /** Activation of a Crypto Token, making the key material available for use by the application. */
+    /** Activation of a Crypto Token, making the key material available for
+     *  use by the application. */
     CRYPTOTOKEN_ACTIVATION,
-    /** Deactivation of a Crypto Token, making the key material unavailable for use by the application. */
+    /** Deactivation of a Crypto Token, making the key material unavailable
+     *  for use by the application. */
     CRYPTOTOKEN_DEACTIVATION,
-    /** Attempted reactivation of a Crypto Token. Since this occurs automatically, it may fail. */
+    /** Attempted reactivation of a Crypto Token. Since this occurs
+     *  automatically, it may fail. */
     CRYPTOTOKEN_REACTIVATION,
-    /** Removal of a key pair from the Crypto Token key material or key pair place-holder from the Crypto Token object. */
+    /** Removal of a key pair from the Crypto Token key material or key pair
+     *  place-holder from the Crypto Token object. */
     CRYPTOTOKEN_DELETE_ENTRY,
     /** Generation of a new key pair in the Crypto Token. */
     CRYPTOTOKEN_GEN_KEYPAIR,
@@ -93,7 +105,9 @@ public enum EventTypes implements EventType {
     CRYPTOTOKEN_GEN_KEY,
     /** <i>Event type is currently not used in EJBCA.</i> */
     CRYPTOTOKEN_GEN_EXTRACT_KEYPAIR,
-    /** Modification of the Crypto Token's auto-activation PIN. For soft key stores, this also implies changes of the protection of the key material. */
+    /** Modification of the Crypto Token's auto-activation PIN. For soft key
+     *  stores, this also implies changes of the protection of
+     *  the key material. */
     CRYPTOTOKEN_UPDATEPIN,
     /** Modification of an existing validator. */
     VALIDATOR_CHANGE,
@@ -154,12 +168,11 @@ public enum EventTypes implements EventType {
     /** Modification of an existing Internal Key Binding. */
     INTERNALKEYBINDING_EDIT,
     /** Removal of an existing Internal Key Binding. */
-    INTERNALKEYBINDING_DELETE,
-    ;
+    INTERNALKEYBINDING_DELETE,;
 
     @Override
-    public boolean equals(EventType value) {
-        if(value == null) {
+    public boolean equals(final EventType value) {
+        if (value == null) {
             return false;
         }
         return this.toString().equals(value.toString());

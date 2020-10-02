@@ -13,8 +13,10 @@
 package org.cesecore.audit.enums;
 
 /**
- * Specifies the status of an operation. When trying to do a secure log through the SecureEventsLogger session bean, it is necessary
- * to specify if the overall operation resulted in FAILURE, SUCCESS or if it doens't matter VOID.
+ * Specifies the status of an operation. When trying to do a secure log
+ * through the SecureEventsLogger session bean, it is necessary
+ * to specify if the overall operation resulted in FAILURE, SUCCESS
+ * or if it doens't matter VOID.
  *
  * @version $Id: EventStatus.java 20945 2015-03-19 18:04:33Z jeklund $
  *

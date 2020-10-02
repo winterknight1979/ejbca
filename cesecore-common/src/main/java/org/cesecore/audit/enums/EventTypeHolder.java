@@ -22,10 +22,14 @@ package org.cesecore.audit.enums;
 public class EventTypeHolder implements EventType {
     private static final long serialVersionUID = 1955829966673283680L;
 
+    /** Value. */
     private final String value;
 
-    public EventTypeHolder(final String value) {
-        this.value = value;
+    /** Constructor.
+     * @param avalue Value
+     * */
+    public EventTypeHolder(final String avalue) {
+        this.value = avalue;
     }
 
     @Override
@@ -34,11 +38,11 @@ public class EventTypeHolder implements EventType {
     }
 
     @Override
-    public boolean equals(EventType value) {
-        if(value == null) {
+    public boolean equals(final EventType aValue) {
+        if (aValue == null) {
             return false;
         }
-        return this.value.equals(value.toString());
+        return this.value.equals(aValue.toString());
     }
 
 }

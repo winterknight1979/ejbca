@@ -9,10 +9,15 @@ public class ServiceTypeHolder implements ServiceType {
 
     private static final long serialVersionUID = 1L;
 
+    /** Value. */
     private final String value;
 
-    public ServiceTypeHolder(final String value) {
-        this.value = value;
+    /**
+     * Constructor.
+     * @param aValue Value
+     */
+    public ServiceTypeHolder(final String aValue) {
+        this.value = aValue;
     }
 
     @Override
@@ -21,10 +26,10 @@ public class ServiceTypeHolder implements ServiceType {
     }
 
     @Override
-    public boolean equals(final ServiceType value) {
-        if (value == null) {
+    public boolean equals(final ServiceType aValue) {
+        if (aValue == null) {
             return false;
         }
-        return this.value.equals(value.toString());
+        return this.value.equals(aValue.toString());
     }
 }

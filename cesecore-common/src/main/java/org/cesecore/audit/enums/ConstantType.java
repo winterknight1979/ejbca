@@ -10,6 +10,15 @@ import java.io.Serializable;
  *
  */
 public interface ConstantType<T extends ConstantType<T>> extends Serializable {
-    boolean equals(final T value);
+    /**
+     * Test for equality.
+     * @param value Value
+     * @return same as {@link Object#equals(Object)}
+     */
+    boolean equals(T value);
+    /**
+     * Convert to string.
+     * @return A string representation.
+     */
     String toString();
 }

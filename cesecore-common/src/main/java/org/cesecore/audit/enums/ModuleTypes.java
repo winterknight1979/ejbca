@@ -13,9 +13,11 @@
 package org.cesecore.audit.enums;
 
 /**
- * When doing secure audit log it is necessary to identify from which module a security audit event originates.
+ * When doing secure audit log it is necessary to identify from which module
+ * a security audit event originates.
  *
- * A modules is a group of related functionality. This class contains the modules in the CESeCore core itself.
+ * A modules is a group of related functionality. This class contains the
+ * modules in the CESeCore core itself.
  *
  * @see org.cesecore.audit.enums.EventTypes
  * @see org.cesecore.audit.enums.ServiceTypes
@@ -54,11 +56,11 @@ public enum ModuleTypes implements ModuleType {
     GLOBALCONF;
 
     @Override
-    public boolean equals(ModuleType value) {
-        if(value == null) {
+    public boolean equals(final ModuleType aValue) {
+        if (aValue == null) {
             return false;
         }
-        return this.toString().equals(value.toString());
+        return this.toString().equals(aValue.toString());
     }
 
 }

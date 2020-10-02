@@ -23,12 +23,12 @@ package org.cesecore.audit.enums;
  * @version $Id: ServiceTypes.java 20951 2015-03-20 13:15:30Z jeklund $
  */
 public enum ServiceTypes implements ServiceType {
-    /** CE Security Core */
+    /** CE Security Core. */
     CORE;
 
     @Override
-    public boolean equals(ServiceType value) {
-        if(value == null) {
+    public boolean equals(final ServiceType value) {
+        if (value == null) {
             return false;
         }
         return this.toString().equals(value.toString());

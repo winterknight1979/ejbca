@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>goldeneyes.ejbca</groupId>
@@ -29,16 +31,17 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 
 	<modules>
 		<!-- Shared resource bundle -->
-	
+		<module>build-config</module>
+
 		<module>shared-resources</module>
-		
+
 		<!-- CeSeCore JARs -->
-		
+
 		<module>cesecore-common</module>
 		<module>cesecore-entity</module>
 		<module>cesecore-ejb-interface</module>
 		<module>cesecore-ejb</module>
-		
+
 		<!-- EJBCA Library JARs -->
 		<module>ejbca-properties</module>
 		<module>ejbca-common</module>
@@ -48,18 +51,18 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<module>ejbca-common-web</module>
 		<module>ejbca-ws-common</module>
 		<module>ejbca-ws</module>
-		
+
 		<!-- Edition-Specific library JARs -->
-		
+
 		<module>edition-specific-interface</module>
 		<module>edition-specific-ejb</module>
-		
+
 		<!-- CLI Tools -->
-		
+
 		<module>ejbca-ws-cli</module>
-		
+
 		<!-- WebApp modules -->
-		
+
 		<module>publicweb-gui</module>
 		<module>ejbca-renew-war</module>
 		<module>ejbca-scep-war</module>
@@ -67,10 +70,11 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 		<module>ejbca-cmp-war</module>
 		<module>healthcheck-war</module>
 		<module>clearcache-war</module>
-		
+
 		<!-- Test-only modules -->
-		
+
 		<module>ejbca-test-aggregator</module>
+
 
 		
 	</modules>
@@ -90,10 +94,10 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 			<url>scm:git:https://github.com/winterknight1979/ejbca.git</url>
 		</site>
 		<repository>
-      <id>github</id>
-      <name>GitHub Packages</name>
-      <url>https://maven.pkg.github.com/winterknight1979/ejbca</url>
-    </repository>
+			<id>github</id>
+			<name>GitHub Packages</name>
+			<url>https://maven.pkg.github.com/winterknight1979/ejbca</url>
+		</repository>
 	</distributionManagement>
 
 	<properties>
@@ -640,23 +644,31 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 					</execution>
 				</executions>
 			</plugin>
-            	<plugin>
+			<plugin>
 				<groupId>com.github.spotbugs</groupId>
 				<artifactId>spotbugs-maven-plugin</artifactId>
 				<version>4.0.4</version>
 				<configuration>
-                                    <goalPrefix>spotbugs</goalPrefix>
-                                </configuration>
+					<goalPrefix>spotbugs</goalPrefix>
+				</configuration>
 			</plugin>
 			<plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.1.1</version>
-                <configuration>
-                    <suppressionsLocation>${project.basedir}/checkstyle-suppressions.xml</suppressionsLocation>
-                </configuration>
-                </plugin>
-                    </plugins>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>3.1.1</version>
+				<dependencies>
+				    <dependency>
+				        <groupId>goldeneyes.ejbca</groupId>
+				        <artifactId>build-config</artifactId>
+				        <version>1.0</version>
+				    </dependency>
+				</dependencies>
+				<configuration>
+					<suppressionsLocation>${project.basedir}/checkstyle-suppressions.xml</suppressionsLocation>
+					<configLocation>checkstyle.xml</configLocation>
+				</configuration>
+			</plugin>
+		</plugins>
 	</build>
 
 	<reporting>
@@ -679,7 +691,7 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 					</reportSet>
 				</reportSets>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-report-plugin</artifactId>
@@ -749,8 +761,8 @@ Forked from PrimeKey EJB-CA CE 6.15.2.6</description>
 				<artifactId>spotbugs-maven-plugin</artifactId>
 				<version>4.0.4</version>
 				<configuration>
-                                    <goalPrefix>spotbugs</goalPrefix>
-                                </configuration>
+					<goalPrefix>spotbugs</goalPrefix>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

@@ -21,10 +21,15 @@ public class ModuleTypeHolder implements ModuleType {
 
     private static final long serialVersionUID = 1L;
 
+    /** Value. */
     private final String value;
 
-    public ModuleTypeHolder(final String value) {
-        this.value = value;
+    /**
+     * Constructor.
+     * @param aValue Value
+     */
+    public ModuleTypeHolder(final String aValue) {
+        this.value = aValue;
     }
 
     @Override
@@ -33,10 +38,10 @@ public class ModuleTypeHolder implements ModuleType {
     }
 
     @Override
-    public boolean equals(final ModuleType value) {
-        if (value == null) {
+    public boolean equals(final ModuleType aValue) {
+        if (aValue == null) {
             return false;
         }
-        return this.value.equals(value.toString());
+        return this.value.equals(aValue.toString());
     }
 }
