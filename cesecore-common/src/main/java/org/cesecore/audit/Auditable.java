@@ -44,7 +44,12 @@ public interface Auditable {
      *
      * @return The audit logs to the given criteria
      */
-    List<? extends AuditLogEntry> selectAuditLogs(AuthenticationToken token, int startIndex, int max, QueryCriteria criteria, Properties properties);
+    List<? extends AuditLogEntry> selectAuditLogs(
+            AuthenticationToken token,
+            int startIndex,
+            int max,
+            QueryCriteria criteria,
+            Properties properties);
 
     /**
      * This operation is used to export a set logs.
@@ -53,7 +58,8 @@ public interface Auditable {
      * @param cryptoToken Crypto Token to be used.
      * @param timestamp Timestamp till which the logs will be exported.
      * @param deleteAfterExport Deletes the exported results if true.
-     * @param signatureDetails Map containing signature details. (@see AuditLogBasicExporter public static varaibles).
+     * @param signatureDetails Map containing signature details.
+     *         (@see AuditLogBasicExporter public static varaibles).
      * @param exporter the exporter implementation to be used
      * @param properties properties to be passed on the device
      *
@@ -61,8 +67,15 @@ public interface Auditable {
      *
      * @throws AuditLogExporterException if export fails
      */
-    AuditLogExportReport exportAuditLogs(AuthenticationToken token, CryptoToken cryptoToken, Date timestamp, boolean deleteAfterExport,
-            Map<String, Object> signatureDetails, Properties properties, Class<? extends AuditExporter> exporter) throws AuditLogExporterException;
+    AuditLogExportReport exportAuditLogs(
+            AuthenticationToken token,
+            CryptoToken cryptoToken,
+            Date timestamp,
+            boolean deleteAfterExport,
+            Map<String, Object> signatureDetails,
+            Properties properties,
+            Class<? extends AuditExporter> exporter)
+                    throws AuditLogExporterException;
 
     /**
      * This operation is used to verify integrity of log to detect potential
@@ -75,6 +88,10 @@ public interface Auditable {
      * @return validation report.
      * @throws AuditLogValidatorException If validation fails
      */
-    AuditLogValidationReport verifyLogsIntegrity(AuthenticationToken token, Date date, Properties properties) throws AuditLogValidatorException;
+    AuditLogValidationReport verifyLogsIntegrity(
+            AuthenticationToken token,
+            Date date,
+            Properties properties)
+                    throws AuditLogValidatorException;
 
 }

@@ -26,19 +26,34 @@ import org.cesecore.audit.enums.ServiceType;
  */
 public interface AuditLogEntry {
 
-    /* Database column names that AuditLogDevices might implement. Used to build custom queries. */
-    public static final String FIELD_TIMESTAMP            = "timeStamp";
-    public static final String FIELD_EVENTTYPE            = "eventType";
-    public static final String FIELD_EVENTSTATUS          = "eventStatus";
-    public static final String FIELD_AUTHENTICATION_TOKEN = "authToken";
-    public static final String FIELD_SERVICE              = "service";
-    public static final String FIELD_MODULE               = "module";
-    public static final String FIELD_CUSTOM_ID            = "customId";
-    public static final String FIELD_SEARCHABLE_DETAIL1   = "searchDetail1";
-    public static final String FIELD_SEARCHABLE_DETAIL2   = "searchDetail2";
-    public static final String FIELD_ADDITIONAL_DETAILS   = "additionalDetails";
-    public static final String FIELD_SEQUENCENUMBER        = "sequenceNumber";
-    public static final String FIELD_NODEID               = "nodeId";
+    /* Database column names that AuditLogDevices
+     * might implement. Used to build custom queries. */
+    /** Timestamp.*/
+    String FIELD_TIMESTAMP            = "timeStamp";
+    /** Event type.*/
+    String FIELD_EVENTTYPE            = "eventType";
+    /** Event status. */
+    String FIELD_EVENTSTATUS          = "eventStatus";
+    /** Authentication token. */
+    String FIELD_AUTHENTICATION_TOKEN = "authToken";
+    /** Service. */
+    String FIELD_SERVICE              = "service";
+    /** Module. */
+    String FIELD_MODULE               = "module";
+    /** Custom ID. */
+    String FIELD_CUSTOM_ID            = "customId";
+    /**
+     * Searchable detail.
+     */
+    String FIELD_SEARCHABLE_DETAIL1   = "searchDetail1";
+    /** Serchable detail. */
+    String FIELD_SEARCHABLE_DETAIL2   = "searchDetail2";
+    /** Extra details. */
+    String FIELD_ADDITIONAL_DETAILS   = "additionalDetails";
+    /** Sequence number. */
+    String FIELD_SEQUENCENUMBER        = "sequenceNumber";
+    /** Node ID. */
+    String FIELD_NODEID               = "nodeId";
 
     /** @return epoch GMT timestamp when log was created. */
     Long getTimeStamp();
@@ -49,7 +64,8 @@ public interface AuditLogEntry {
     /** @return event status. @see EventStatus */
     EventStatus getEventStatusValue();
 
-    /** @return the authentication token that triggered the creation of a log. */
+    /** @return
+     *     the authentication token that triggered the creation of a log. */
     String getAuthToken();
 
     /** @return service type. @see ServiceTypes */

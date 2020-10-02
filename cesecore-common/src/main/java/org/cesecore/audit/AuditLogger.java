@@ -31,7 +31,8 @@ public interface AuditLogger {
     /**
      * Creates a signed log, stored in the database.
      *
-     * @param trustedTime TrustedTime instance will be used to get a trusted timestamp.
+     * @param trustedTime
+     *     TrustedTime instance will be used to get a trusted timestamp.
      * @param eventType The event log type.
      * @param eventStatus The status of the operation to log.
      * @param module The module where the operation took place.
@@ -45,6 +46,17 @@ public interface AuditLogger {
      *
      * @throws AuditRecordStorageException if unable to store the log record
      */
-    void log(TrustedTime trustedTime, EventType eventType, EventStatus eventStatus, ModuleType module, ServiceType service, String authToken,
-            String customId, String searchDetail1, String searchDetail2, Map<String, Object> additionalDetails, Properties properties) throws AuditRecordStorageException;
+    void log(
+            TrustedTime trustedTime,
+            EventType eventType,
+            EventStatus eventStatus,
+            ModuleType module,
+            ServiceType service,
+            String authToken,
+            String customId,
+            String searchDetail1,
+            String searchDetail2,
+            Map<String, Object> additionalDetails,
+            Properties properties)
+                    throws AuditRecordStorageException;
 }

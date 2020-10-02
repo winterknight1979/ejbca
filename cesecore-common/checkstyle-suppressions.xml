@@ -11,5 +11,6 @@
  	<suppress checks="RegexpSinglelineCheck"
  			  files="intresources.en.properties"
  			  lines="18-19" />
+ 	<suppress checks="ParameterNumberCheck" files="AuditLogger.java" lines="49"/>
 
  </suppressions>

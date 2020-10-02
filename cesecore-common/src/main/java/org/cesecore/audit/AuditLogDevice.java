@@ -33,7 +33,8 @@ public interface AuditLogDevice extends Auditable, AuditLogger {
     /**
      * Prepares the secure audit log mechanism for reset.
      * This method will block till all audit log processes are completed.
-     * Should be used with caution because once called audit log will not be operational.
+     * Should be used with caution because once called audit log will
+     * not be operational.
      * Any attempt to log will result in an exception.
      * @throws AuditLogResetException If reset fails
      */
