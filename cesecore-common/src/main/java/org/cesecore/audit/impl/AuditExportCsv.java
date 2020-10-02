@@ -26,8 +26,10 @@ import org.cesecore.audit.audit.AuditExporter;
  */
 public class AuditExportCsv implements AuditExporter {
 
-    PrintWriter pw;
-    boolean isThisLineEmpty;
+    /** PrintWriter. */
+    private PrintWriter pw;
+    /** Is the current line empty? */
+    private boolean isThisLineEmpty;
 
     @Override
     public void close() throws IOException {
@@ -35,7 +37,8 @@ public class AuditExportCsv implements AuditExporter {
     }
 
     @Override
-    public void setOutputStream(OutputStream outputStream) throws IOException {
+    public void setOutputStream(final OutputStream outputStream)
+            throws IOException {
         pw = new PrintWriter(outputStream);
     }
 
@@ -45,7 +48,8 @@ public class AuditExportCsv implements AuditExporter {
     }
 
     @Override
-    public void writeField(String key, long value) throws IOException {
+    public void writeField(final String key, final long value)
+            throws IOException {
         printTab();
         pw.print(value);
         isThisLineEmpty = false;
@@ -57,13 +61,15 @@ public class AuditExportCsv implements AuditExporter {
     }
 
     @Override
-    public void writeField(String key, String value) throws IOException {
+    public void writeField(final String key, final String value)
+            throws IOException {
         printTab();
         pw.print(value);
         isThisLineEmpty = false;
     }
 
-    /** Print a tab-char before the value if it is not the first one in this row. */
+    /** Print a tab-char before the value if it is not the
+     *  first one in this row. */
     private void printTab() {
         if (!isThisLineEmpty) {
             pw.print('\t');
@@ -71,7 +77,7 @@ public class AuditExportCsv implements AuditExporter {
     }
 
     @Override
-    public void startObjectLabel(String label) throws IOException {
+    public void startObjectLabel(final String label) throws IOException {
     }
 
     @Override
