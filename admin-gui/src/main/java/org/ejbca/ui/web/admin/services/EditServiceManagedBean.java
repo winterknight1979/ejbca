@@ -145,17 +145,20 @@ public class EditServiceManagedBean extends BaseManagedBean {
 		return "editservice";
 	}
 
-	/** Help method used to edit data in the custom worker type. */
+	/** Help method used to edit data in the custom worker type. 
+	 * @return type */
 	public CustomWorkerType getCustomWorkerType(){
 		return (CustomWorkerType) serviceConfigurationView.getServiceTypeManager().getServiceTypeByName(CustomWorkerType.NAME);
 	}
 	
-	/** Help method used to edit data in the custom action type. */
+	/** Help method used to edit data in the custom action type. 
+	 * @return Type */
 	public CustomActionType getCustomActionType(){
 		return (CustomActionType) serviceConfigurationView.getServiceTypeManager().getServiceTypeByName(CustomActionType.NAME);
 	}	
 	
-	/** Help method used to edit data in the custom interval type. */
+	/** Help method used to edit data in the custom interval type. 
+	 * @return Type */
 	public CustomIntervalType getCustomIntervalType(){
 		return (CustomIntervalType) serviceConfigurationView.getServiceTypeManager().getServiceTypeByName(CustomIntervalType.NAME);
 	}
@@ -167,7 +170,8 @@ public class EditServiceManagedBean extends BaseManagedBean {
         return ejb.getAuthorizationSession().isAuthorizedNoLogging(getAdmin(), AccessRulesConstants.SERVICES_EDIT);
     }
 	
-	/** Help method used to edit data in the mail action type. */
+	/** Help method used to edit data in the mail action type. 
+	 * @return Type*/
 	public MailActionType getMailActionType(){
 		return (MailActionType) serviceConfigurationView.getServiceTypeManager().getServiceTypeByName(MailActionType.NAME);
 	}	
@@ -188,7 +192,8 @@ public class EditServiceManagedBean extends BaseManagedBean {
 		return ret; 		
 	}
 	
-	/** Help method used to edit data in the notifying worker type. */
+	/** Help method used to edit data in the notifying worker type. 
+	 * @return type */
 	public BaseEmailNotifyingWorkerType getNotifyingType(){
 		log.trace(">getNotifyingType");
 		BaseEmailNotifyingWorkerType ret = null;
@@ -238,24 +243,28 @@ public class EditServiceManagedBean extends BaseManagedBean {
 		return ret;
 	}
 
-	/** Help method used to edit data in the RenewCAWorkerType. */
+	/** Help method used to edit data in the RenewCAWorkerType. 
+	 * @return Type */
 	public RenewCAWorkerType getRenewType(){
 		String name = RenewCAWorkerType.NAME;
 		return (RenewCAWorkerType) serviceConfigurationView.getServiceTypeManager().getServiceTypeByName(name);
 	}
 
-	/** Help method to edit data in the publish queue worker type */
+	/** Help method to edit data in the publish queue worker type 
+	 * @return Type */
 	public PublishQueueWorkerType getPublishWorkerType() {
 		return (PublishQueueWorkerType)serviceConfigurationView.getServiceTypeManager().getServiceTypeByName(PublishQueueWorkerType.NAME);
 	}
     
-	/** Help method used to edit data in the CRLDownloadWorkerType. */
+	/** Help method used to edit data in the CRLDownloadWorkerType. 
+	 * @return Type */
     public CRLDownloadWorkerType getCrlDownloadWorkerType() {
         String name = CRLDownloadWorkerType.NAME;
         return (CRLDownloadWorkerType) serviceConfigurationView.getServiceTypeManager().getServiceTypeByName(name);
     }
 
-	/** Help method used to edit data in the custom interval type. */
+	/** Help method used to edit data in the custom interval type. 
+	 * @return Type */
 	public PeriodicalIntervalType getPeriodicalIntervalType(){
 		return (PeriodicalIntervalType) serviceConfigurationView.getServiceTypeManager().getServiceTypeByName(PeriodicalIntervalType.NAME);
 	}

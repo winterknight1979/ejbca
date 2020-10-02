@@ -55,7 +55,11 @@ import org.ejbca.ui.web.admin.BaseManagedBean;
  * Managed Bean for the Role Member manage/view page.
  * 
  * @version $Id: RoleMembersBean.java 29157 2018-06-08 08:00:08Z anatom $
+ * 
+ * TODO: CDI beans
  */
+
+@SuppressWarnings("deprecation")
 @ViewScoped
 @ManagedBean
 public class RoleMembersBean extends BaseManagedBean implements Serializable {
@@ -101,7 +105,7 @@ public class RoleMembersBean extends BaseManagedBean implements Serializable {
     
     /**
      * Get the appropriate Access match type based on the access match value.
-     * @param accessMatchValue
+     * @param accessMatchValue Value
      * @return Equal Case sensitive unless access match value forces something else.
      */
     private AccessMatchType getAccessMatchType(AccessMatchValue accessMatchValue) {
@@ -173,7 +177,6 @@ public class RoleMembersBean extends BaseManagedBean implements Serializable {
     }
 
     /** @return a viewable list of 'match with'-texts */
-    @SuppressWarnings("deprecation")
     public List<SelectItem> getMatchWithItems() {
         if (matchWithItems == null) {
             matchWithItems = new ArrayList<>();
@@ -197,10 +200,12 @@ public class RoleMembersBean extends BaseManagedBean implements Serializable {
 
     /** @return the selected tokenType and tokenMatchKey combo */
     public String getMatchWithSelected() { return matchWithSelected; }
-    /** Set the selected tokenType and tokenMatchKey combo */
+    /** Set the selected tokenType and tokenMatchKey combo 
+     * @param matchWithSelected string */
     public void setMatchWithSelected(final String matchWithSelected) { this.matchWithSelected = matchWithSelected; }
 
-    /** @return a human readable version of the tokenType and tokenMatchKey values */
+    /** @param roleMember member
+     * @return a human readable version of the tokenType and tokenMatchKey values */
     public String getMatchWithItemString(final RoleMember roleMember) {
         final AuthenticationTokenMetaData authenticationTokenMetaData = AccessMatchValueReverseLookupRegistry.INSTANCE.getMetaData(roleMember.getTokenType());
         final String tokenTypeString = getEjbcaWebBean().getText(authenticationTokenMetaData.getTokenType());
@@ -226,10 +231,12 @@ public class RoleMembersBean extends BaseManagedBean implements Serializable {
 
     /** @return the currently selected CA if any */
     public Integer getTokenIssuerId() { return tokenIssuerId; }
-    /** Set the currently selected CA */
+    /** Set the currently selected CA 
+     * @param tokenIssuerId Issuer*/
     public void setTokenIssuerId(final Integer tokenIssuerId) { this.tokenIssuerId = tokenIssuerId; }
 
-    /** @return a human readable version of the RoleMember's tokenIsserId (CA name) */
+    /** @param roleMember Role
+     * @return a human readable version of the RoleMember's tokenIsserId (CA name) */
     public String getTokenIssuerIdString(final RoleMember roleMember) {
         final int tokenIssuerId = roleMember.getTokenIssuerId();
         if (tokenIssuerId==RoleMember.NO_ISSUER) {
@@ -255,7 +262,8 @@ public class RoleMembersBean extends BaseManagedBean implements Serializable {
         return this.caIdToNameMap;
     }
 
-    /** @return a human readable version of the RoleMember's tokenMatchOperator */
+    /** @param roleMember Member
+     * @return a human readable version of the RoleMember's tokenMatchOperator */
     public String getTokenMatchOperatorString(final RoleMember roleMember) {
         return getEjbcaWebBean().getText(AccessMatchType.matchFromDatabase(roleMember.getTokenMatchOperator()).name());
     }
@@ -267,10 +275,12 @@ public class RoleMembersBean extends BaseManagedBean implements Serializable {
 
     /** @return the current tokenMatchValue */
     public String getTokenMatchValue() { return tokenMatchValue; }
-    /** Set the current tokenMatchValue */
+    /** Set the current tokenMatchValue 
+     * @param tokenMatchValue Match*/
     public void setTokenMatchValue(final String tokenMatchValue) { this.tokenMatchValue = tokenMatchValue.trim(); }
     
-    /** @return true if the currently selected tokenType and tokenMatchKey combo implies that the tokenMatchValue is a hex certificate serial number */
+    /** @param roleMember Member
+     * @return true if the currently selected tokenType and tokenMatchKey combo implies that the tokenMatchValue is a hex certificate serial number */
     public boolean isRenderCertificateLink(final RoleMember roleMember) {
         return X509CertificateAuthenticationTokenMetaData.TOKEN_TYPE.equals(roleMember.getTokenType()) &&
                 X500PrincipalAccessMatchValue.WITH_SERIALNUMBER.getNumericValue() == roleMember.getTokenMatchKey();
@@ -284,7 +294,9 @@ public class RoleMembersBean extends BaseManagedBean implements Serializable {
     private int getSelectedTokenMatchKey() {
         return Integer.parseInt(matchWithSelected.split(":")[1]);
     }
-    /** @return the AccessMatchValue from the specified tokenType and tokenMatchKey combo */
+    /** @param tokenType type
+     * @param tokenMatchKey key
+     * @return the AccessMatchValue from the specified tokenType and tokenMatchKey combo */
     private AccessMatchValue getAccessMatchValue(final String tokenType, final int tokenMatchKey) {
         final AuthenticationTokenMetaData metaData = AccessMatchValueReverseLookupRegistry.INSTANCE.getMetaData(tokenType);
         return metaData.getAccessMatchValueIdMap().get(tokenMatchKey);
@@ -292,7 +304,8 @@ public class RoleMembersBean extends BaseManagedBean implements Serializable {
 
     /** @return the current human readable description */
     public String getDescription() { return description; }
-    /** Set the current human readable description */
+    /** Set the current human readable description 
+     * @param description Description*/
     public void setDescription(final String description) { this.description = description.trim(); }
 
     /** Invoked by the admin when adding a new RoleMember. */
@@ -359,12 +372,14 @@ public class RoleMembersBean extends BaseManagedBean implements Serializable {
         }
     }
 
-    /** @return true if the RoleMember's tokenType and tokenMatchKey combo implies that it is issued by a CA */
+    /** @param roleMember Member
+     * @return true if the RoleMember's tokenType and tokenMatchKey combo implies that it is issued by a CA */
     public boolean isTokenIssuerIdUsed(final RoleMember roleMember) {
         return getAccessMatchValue(roleMember.getTokenType(), roleMember.getTokenMatchKey()).isIssuedByCa();
     }
 
-    /** @return true if the RoleMember's tokenType and tokenMatchKey combo implies a tokenMatchValue is used */
+    /** @param roleMember Member
+     * @return true if the RoleMember's tokenType and tokenMatchKey combo implies a tokenMatchValue is used */
     public boolean isTokenMatchValueUsed(final RoleMember roleMember) {
         return !getAccessMatchValue(roleMember.getTokenType(), roleMember.getTokenMatchKey()).getAvailableAccessMatchTypes().isEmpty();
     }

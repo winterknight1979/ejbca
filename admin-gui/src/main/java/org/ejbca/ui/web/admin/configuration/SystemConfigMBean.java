@@ -496,7 +496,8 @@ public class SystemConfigMBean extends BaseManagedBean implements Serializable {
         this.statedumpLockdownAfterImport = statedumpLockdownAfterImport;
     }
 
-    /** Returns true if EJBCA was built with Statedump (from EJBCA 6.5.0 or later) and it hasn't been locked down in the user interface. */
+    /** Returns true if EJBCA was built with Statedump (from EJBCA 6.5.0 or later) and it hasn't been locked down in the user interface. 
+     * @return bool*/
     public boolean isStatedumpAvailable() {
         return statedumpSession != null && !getGlobalConfiguration().getStatedumpLockedDown();
     }

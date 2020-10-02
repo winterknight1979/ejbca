@@ -274,8 +274,10 @@ public class ScepConfigMBean extends BaseManagedBean implements Serializable {
         currentAliasEditMode = currentAliasEditMode && isAllowedToEdit();
     }
 
-    /** Build a list sorted by name from the existing SCEP configuration aliases */
+    /** Build a list sorted by name from the existing SCEP configuration aliases 
+     * @return model */
     public ListDataModel<ScepAliasGuiInfo> getAliasGuiList() {
+    	
         flushCache();
         final List<ScepAliasGuiInfo> list = new ArrayList<>();
         for (String alias : scepConfig.getAliasList()) {

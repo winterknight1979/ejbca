@@ -15,6 +15,7 @@ package org.ejbca.ui.web.admin.services.servicetypes;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -77,8 +78,10 @@ public class CustomWorkerType extends WorkerType {
 	/**
 	 * Sets the class path, and detects if it is an auto-detected class
 	 * or a manually specified class.
+	 * @param classPath Classpath
 	 */
 	public void setClassPath(String classPath) {
+		
 	    if (CustomLoader.isDisplayedInList(classPath, IWorker.class)) {
             autoClassPath = classPath;
             manualClassPath = "";
@@ -168,15 +171,15 @@ public class CustomWorkerType extends WorkerType {
 	        if (customUiPropertyListDataModel==null) {
 	            final List<CustomServiceWorkerProperty> customUiPropertyList = new ArrayList<>();
 	            try {
-	                final CustomServiceWorkerUiSupport customPublisherUiSupport = (CustomServiceWorkerUiSupport) Class.forName(getClassPath()).newInstance();
+	                final CustomServiceWorkerUiSupport customPublisherUiSupport = (CustomServiceWorkerUiSupport) Class.forName(getClassPath()).getConstructor().newInstance();
 	                final Properties currentProperties = new Properties();
 	                currentProperties.load(new ByteArrayInputStream(getPropertyText().getBytes()));
 	                customUiPropertyList.addAll(customPublisherUiSupport.getCustomUiPropertyList(EjbcaJSFHelper.getBean().getAdmin(), currentProperties, EjbcaJSFHelper.getBean().getText()));
-	            } catch (InstantiationException e) {
+	            } catch (InstantiationException | InvocationTargetException e) {
 	                e.printStackTrace();
 	            } catch (IllegalAccessException e) {
 	                e.printStackTrace();
-	            } catch (ClassNotFoundException e) {
+	            } catch (ClassNotFoundException | NoSuchMethodException e) {
 	                e.printStackTrace();
 	            } catch (IOException e) {
 	                e.printStackTrace();

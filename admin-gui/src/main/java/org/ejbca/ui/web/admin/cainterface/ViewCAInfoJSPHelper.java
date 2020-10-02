@@ -65,6 +65,8 @@ public class ViewCAInfoJSPHelper implements java.io.Serializable {
      * Method that initialized the bean.
      *
      * @param request is a reference to the http request.
+     * @param ejbcawebbean bean
+     * @param cabean bean
      */
     public void initialize(HttpServletRequest request, EjbcaWebBean ejbcawebbean, CAInterfaceBean cabean) {
         if (!initialized) {
@@ -76,7 +78,7 @@ public class ViewCAInfoJSPHelper implements java.io.Serializable {
     /**
      * Method that parses the request and take appropriate actions.
      * @param request the http request
-     * @throws Exception
+     * @throws Exception fail
      */
     public void parseRequest(HttpServletRequest request) throws Exception {
         generalerrormessage = null;

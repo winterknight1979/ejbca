@@ -79,7 +79,9 @@ import org.ejbca.util.query.Query;
  * Session scoped bean for displaying information about an approval request.
  *
  * @version $Id: ApproveActionManagedBean.java 34227 2020-01-09 14:20:59Z henriks $
+ * TODO: Update to CDI beans
  */
+@SuppressWarnings("deprecation")
 @ViewScoped
 @ManagedBean(name="approvalActionManagedBean")
 public class ApproveActionManagedBean extends BaseManagedBean {
@@ -541,6 +543,7 @@ public class ApproveActionManagedBean extends BaseManagedBean {
 
     /**
      * Extract the partition properties, and fill in all and any placeholders. Also cull any properties set to be hidden.
+     * @param approvalPartition Partition
      *
      * @return a list of dynamic properties
      */
@@ -622,8 +625,8 @@ public class ApproveActionManagedBean extends BaseManagedBean {
     /**
      * Updates the approval profile based on the role changes in session.
      *
-     * @param approvalProfile
-     * @return
+     * @param approvalProfile Profile
+     * @return Profile
      */
     private ApprovalProfile updateApprovalProfile(final ApprovalProfile approvalProfile) {
 
@@ -672,7 +675,7 @@ public class ApproveActionManagedBean extends BaseManagedBean {
      /**
       * Update role members based on latest from role member session.
       *
-      * @param roleToUpdate
+      * @param roleToUpdate Role
       * @return list of updated role infos.
       */
      private List<RoleInformation> updateRoleMembers(final RoleInformation roleToUpdate) {

@@ -107,7 +107,6 @@ public class ProfilesExportServlet extends BaseAdminServlet {
             return;
         }
 
-        final String profileId = request.getParameter("profileId");
         final String type = request.getParameter("profileType");
         final boolean exportCertificateProfiles = StringUtils.equalsIgnoreCase(type, "cp");
         final boolean exportEndEntityProfiles = StringUtils.equalsIgnoreCase(type, "eep");

@@ -119,6 +119,9 @@ public class ServiceConfigurationView implements Serializable{
 	/**
 	 * Method that populates a service configuration from a
 	 * GUI data.
+	 * @param errorMessages Messages
+	 * @return Config
+	 * @throws IOException Fail 
 	 */
 	public ServiceConfiguration getServiceConfiguration(ArrayList<String> errorMessages) throws IOException{
 		ServiceConfiguration retval = new ServiceConfiguration();
@@ -396,7 +399,8 @@ public class ServiceConfigurationView implements Serializable{
        return stringsToItems(CustomLoader.getCustomClasses(IAction.class));
     }
 	
-	/** returns this sessions service type manager */
+	/** returns this sessions service type manager 
+	 * @return Manager*/
 	public ServiceTypeManager getServiceTypeManager(){
 		return typeManager;
 	}

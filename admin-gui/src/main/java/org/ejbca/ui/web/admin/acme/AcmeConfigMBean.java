@@ -73,7 +73,8 @@ public class AcmeConfigMBean extends BaseManagedBean implements Serializable {
         globalInfo = new AcmeGlobalGuiInfo(globalAcmeConfigurationConfig);
 
     }
-    /** Build a list sorted by name from the existing ACME configuration aliases */
+    /** Build a list sorted by name from the existing ACME configuration aliases 
+     * @return Model*/
     public ListDataModel<AcmeAliasGuiInfo> getAliasGuiList() {
         flushCache();
         final List<AcmeAliasGuiInfo> list = new ArrayList<>();
@@ -194,7 +195,8 @@ public class AcmeConfigMBean extends BaseManagedBean implements Serializable {
         return ret;
     }
     
-    /** Returns an information text to show below the End Entity Profile selection. */
+    /** Returns an information text to show below the End Entity Profile selection. 
+     * @return String */
     public String getDefaultCaText() {
         if (getUsableEEProfileNames().isEmpty()) {
             return getEjbcaWebBean().getText("ACME_MUST_HAVE_ONE_PROFILE");
@@ -217,7 +219,7 @@ public class AcmeConfigMBean extends BaseManagedBean implements Serializable {
     }
 
     /** Invoked when admin saves the ACME alias configurations 
-     * @throws EjbcaException */
+     * @throws EjbcaException On fail */
     public void saveCurrentAlias() throws EjbcaException {
         if (currentAlias != null) {
             AcmeConfiguration acmeConfig = globalAcmeConfigurationConfig.getAcmeConfiguration(currentAliasStr);

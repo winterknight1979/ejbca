@@ -59,8 +59,10 @@ public class CustomIntervalType extends IntervalType {
 /**
      * Sets the class path, and detects if it is an auto-detected class
      * or a manually specified class.
+ * @param classPath CP
      */
     public void setClassPath(String classPath) {
+    	
         if (CustomLoader.isDisplayedInList(classPath, IInterval.class)) {
             autoClassPath = classPath;
             manualClassPath = "";

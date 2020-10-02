@@ -174,7 +174,8 @@ public class ListServicesManagedBean extends BaseManagedBean {
 	
 	/**
 	 * returns true if the is a faulty service name.
-	 * @param newServiceName
+	 * @param newServiceName name
+	 * @return bool
 	 */
 	private boolean errorInServiceName(String newServiceName) {
 		return StringUtils.contains(newServiceName, ";");

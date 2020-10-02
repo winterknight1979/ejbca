@@ -295,8 +295,10 @@ public class InternalKeyBindingMBean extends BaseManagedBean implements Serializ
         return availableKeyBindingTypes;
     }
 
-    /** Workaround to cache the items used to render the page long enough for actions to be able to use them, but reload on every page view. */
+    /** Workaround to cache the items used to render the page long enough for actions to be able to use them, but reload on every page view. 
+     * @return Bool */
     public boolean isPageLoadResetTrigger() {
+    	
         flushListCaches();
         return false;
     }
@@ -1409,8 +1411,8 @@ public class InternalKeyBindingMBean extends BaseManagedBean implements Serializ
 
     /**
      * Updates the current operational status of the current key binding.
-     * @param currentKeyBindingInfo
-     * @param cryptoTokenInfo
+     * @param currentKeyBindingInfo Info
+     * @param cryptoTokenInfo Info
      * @return path to corresponding icon based on the followings:
      *
      * Online if keybinding is enabled, crypto token is active and keybinding exists in the cache
@@ -1434,8 +1436,8 @@ public class InternalKeyBindingMBean extends BaseManagedBean implements Serializ
 
     /**
      * Just check crypto token status for keybindings other than ocsp
-     * @param currentKeyBindingInfo
-     * @param cryptoTokenInfo
+     * @param currentKeyBindingInfo Info
+     * @param cryptoTokenInfo Info
      * @return active logo if crypto token is active, offline logo otherwise.
      */
     private String updateGenericKeyBindingStatus(final InternalKeyBindingInfo currentKeyBindingInfo, final CryptoTokenInfo cryptoTokenInfo) {
@@ -1447,8 +1449,8 @@ public class InternalKeyBindingMBean extends BaseManagedBean implements Serializ
 
     /**
      *
-     * @param currentKeyBindingInfo
-     * @param cryptoTokenInfo
+     * @param currentKeyBindingInfo Info
+     * @param cryptoTokenInfo Info
      * @return active if crypto token active and keybinding exists in cache.
      *         pending if crypto token is active but keybidning not present in cache.
      *         offline otherwise.

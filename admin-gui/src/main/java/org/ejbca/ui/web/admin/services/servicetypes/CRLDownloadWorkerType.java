@@ -45,7 +45,8 @@ public class CRLDownloadWorkerType extends BaseWorkerType {
         return ignoreNextUpdate;
     }
 
-    /** Set to true if the nextUpdate field of the CRL should be ignored and the CRL should always be downloaded to see if there is a newer version. */
+    /** Set to true if the nextUpdate field of the CRL should be ignored and the CRL should always be downloaded to see if there is a newer version. 
+     * @param ignoreNextUpdate bool*/
     public void setIgnoreNextUpdate(final boolean ignoreNextUpdate) {
         this.ignoreNextUpdate = ignoreNextUpdate;
     }
@@ -55,7 +56,8 @@ public class CRLDownloadWorkerType extends BaseWorkerType {
         return maxDownloadSize;
     }
 
-    /** Set the size of the largest CRL that we will try to download. */
+    /** Set the size of the largest CRL that we will try to download. 
+     * @param maxDownloadSize Size*/
     public void setMaxDownloadSize(String maxDownloadSize) {
         this.maxDownloadSize = maxDownloadSize;
     }

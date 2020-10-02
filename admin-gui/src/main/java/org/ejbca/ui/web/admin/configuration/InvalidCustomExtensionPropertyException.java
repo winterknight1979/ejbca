@@ -29,22 +29,22 @@ public class InvalidCustomExtensionPropertyException extends Exception {
     }
 
     /**
-     * @param message
+     * @param message message
      */
     public InvalidCustomExtensionPropertyException(String message) {
         super(message);
     }
 
     /**
-     * @param cause
+     * @param cause Cause
      */
     public InvalidCustomExtensionPropertyException(Throwable cause) {
         super(cause);
     }
 
     /**
-     * @param message
-     * @param cause
+     * @param message Message
+     * @param cause Cause
      */
     public InvalidCustomExtensionPropertyException(String message, Throwable cause) {
         super(message, cause);

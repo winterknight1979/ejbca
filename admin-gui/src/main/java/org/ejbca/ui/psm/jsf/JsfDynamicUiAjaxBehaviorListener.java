@@ -47,6 +47,8 @@ public class JsfDynamicUiAjaxBehaviorListener implements Serializable, AjaxBehav
 
     /** 
      * Constructor with DynamicUiProperty and UI component reference.
+     * @param dynamicUiProperty UI
+     * @param component Component
      */
     public JsfDynamicUiAjaxBehaviorListener(final DynamicUiProperty<?> dynamicUiProperty, final UIInput component) {
         this.dynamicUiProperty = dynamicUiProperty;

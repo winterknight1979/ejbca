@@ -301,6 +301,8 @@ public class AdminCertReqServlet extends BaseAdminServlet {
     }
 
     /**
+     * @param pkcs10 PKCS 10 string
+     * @return bytes
      *
      */
     private final static byte[] pkcs10Bytes(String pkcs10) {
@@ -328,6 +330,9 @@ public class AdminCertReqServlet extends BaseAdminServlet {
     }
 
     /**
+     * @param req Request
+     * @return Bean
+     * @throws ServletException Fail
      *
      */
     private final CAInterfaceBean getCaBean(HttpServletRequest req) throws ServletException {
@@ -353,6 +358,10 @@ public class AdminCertReqServlet extends BaseAdminServlet {
     }
 
     /**
+     * @param rabean Bean
+     * @param username User
+     * @return String
+     * @throws ServletException Fail
      *
      */
     private final String checkUsername(RAInterfaceBean rabean, String username) throws ServletException {

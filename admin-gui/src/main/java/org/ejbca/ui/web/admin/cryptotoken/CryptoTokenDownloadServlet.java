@@ -25,13 +25,11 @@ import org.apache.log4j.Logger;
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.authorization.control.CryptoTokenRules;
-import org.cesecore.authorization.control.StandardRules;
 import org.cesecore.keys.token.CryptoTokenManagementSessionLocal;
 import org.cesecore.keys.token.CryptoTokenOfflineException;
 import org.cesecore.keys.util.KeyTools;
 import org.cesecore.util.CryptoProviderTools;
 import org.cesecore.util.StringTools;
-import org.ejbca.core.model.authorization.AccessRulesConstants;
 import org.ejbca.ui.web.admin.cainterface.BaseAdminServlet;
 import org.ejbca.ui.web.admin.cainterface.exception.AdminWebAuthenticationException;
 

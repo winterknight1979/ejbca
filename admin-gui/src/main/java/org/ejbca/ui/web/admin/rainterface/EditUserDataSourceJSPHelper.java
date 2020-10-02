@@ -121,6 +121,9 @@ public class EditUserDataSourceJSPHelper implements java.io.Serializable {
      * Method that initialized the bean.
      *
      * @param request is a reference to the http request.
+     * @param ejbcawebbean Bean
+     * @param rabean RA Bean
+     * @throws Exception Fail
      */
     public void initialize(HttpServletRequest request, EjbcaWebBean ejbcawebbean,
             RAInterfaceBean rabean) throws  Exception{

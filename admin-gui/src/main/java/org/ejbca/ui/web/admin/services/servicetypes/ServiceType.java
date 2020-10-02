@@ -68,23 +68,29 @@ public abstract class ServiceType implements Serializable{
 	
 	/**
 	 * All implementing classes should populate the properties
-	 * @return
+	 * @param errorMessages error
+	 * @return props
+	 * @throws IOException fail 
 	 */
 	public abstract Properties getProperties(ArrayList<String> errorMessages) throws IOException;
 	
 	/**
 	 * All implementing classes should populate the gui data
-	 * @return
+	 * @param properties props
+	 * 
+	 * @throws IOException fail
 	 */
 	public abstract void setProperties(Properties properties) throws IOException;
 	
 	/**
 	 * The classPath of the component in the model
+	 * @return string
 	 */
     public abstract String getClassPath();
     
     /**
      * Return true if this type is a custom type 
+     * @return bool
      */
     public abstract boolean isCustom();
 }

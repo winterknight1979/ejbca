@@ -29,22 +29,22 @@ public class CacheClearException extends Exception {
     }
 
     /**
-     * @param message
+     * @param message message
      */
     public CacheClearException(String message) {
         super(message);
     }
 
     /**
-     * @param cause
+     * @param cause Cause
      */
     public CacheClearException(Throwable cause) {
         super(cause);
     }
 
     /**
-     * @param message
-     * @param cause
+     * @param message Message
+     * @param cause Cause
      */
     public CacheClearException(String message, Throwable cause) {
         super(message, cause);

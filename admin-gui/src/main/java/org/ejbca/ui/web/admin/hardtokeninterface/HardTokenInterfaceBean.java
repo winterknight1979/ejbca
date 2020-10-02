@@ -61,7 +61,8 @@ public class HardTokenInterfaceBean implements Serializable {
     private AuthenticationToken admin;
     private boolean initialized = false;
     private HardTokenView[] result;
-    private HardTokenProfileDataHandler hardtokenprofiledatahandler;
+    @SuppressWarnings("deprecation")
+	private HardTokenProfileDataHandler hardtokenprofiledatahandler;
 
     /** Creates new LogInterfaceBean */
     public HardTokenInterfaceBean() {
@@ -71,8 +72,11 @@ public class HardTokenInterfaceBean implements Serializable {
      * Method that initialized the bean.
      *
      * @param request is a reference to the http request.
+     * @param ejbcawebbean Bean
+     * @throws Exception Fail
      */
-    public void initialize(HttpServletRequest request, EjbcaWebBean ejbcawebbean) throws Exception {
+    @SuppressWarnings("deprecation")
+	public void initialize(HttpServletRequest request, EjbcaWebBean ejbcawebbean) throws Exception {
         if (!initialized) {
             admin = ejbcawebbean.getAdminObject();
             EjbLocalHelper ejbLocalHelper = new EjbLocalHelper();
@@ -90,7 +94,10 @@ public class HardTokenInterfaceBean implements Serializable {
         }
     }
 
-    /** Returns the first found hard token for the given username. */
+    /** Returns the first found hard token for the given username. 
+     * @param username User
+     * @param includePUK PUK
+     * @return View */
     public HardTokenView getHardTokenViewWithUsername(String username, boolean includePUK) {
         this.result = null;
         Collection<HardTokenInformation> res = hardtokensession.getHardTokens(admin, username, includePUK);
@@ -142,7 +149,9 @@ public class HardTokenInterfaceBean implements Serializable {
         return hardtokensession.getHardTokenIssuers(admin).keySet().toArray(new String[0]);
     }
 
-    /** Returns the alias from id. */
+    /** Returns the alias from id. 
+     * @param id ID
+     * @return Alias*/
     public String getHardTokenIssuerAlias(int id) {
         return hardtokensession.getHardTokenIssuerAlias(id);
     }
@@ -195,7 +204,9 @@ public class HardTokenInterfaceBean implements Serializable {
     }
 
     /** Returns false if profile is used by any user or in authorization rules. 
-     * @throws AuthorizationDeniedException */
+     * @param alias Alias
+     * @return Issuer
+     * @throws AuthorizationDeniedException Fail */
     public boolean removeHardTokenIssuer(String alias) throws AuthorizationDeniedException {
         boolean issuerused = false;
         if (hardtokensession.isAuthorizedToEditHardTokenIssuer(admin, alias)) {
@@ -229,6 +240,11 @@ public class HardTokenInterfaceBean implements Serializable {
 
     /**
      * Method that checks if a token is key recoverable and also check if the administrator is authorized to the action.
+     * @param tokensn SN
+     * @param username Iser
+     * @param rabean Bean
+     * @return bool
+     * @throws Exception fail
      */
     public boolean isTokenKeyRecoverable(String tokensn, String username, RAInterfaceBean rabean) throws Exception {
         boolean retval = false;
@@ -254,7 +270,8 @@ public class HardTokenInterfaceBean implements Serializable {
         }
     }
 
-    public HardTokenProfileDataHandler getHardTokenProfileDataHandler() {
+    @SuppressWarnings("deprecation")
+	public HardTokenProfileDataHandler getHardTokenProfileDataHandler() {
         return hardtokenprofiledatahandler;
     }
 }

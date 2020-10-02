@@ -133,8 +133,10 @@ public class LanguageProperties extends Properties {
 	/**
 	 * Returns true if the given line is a line that must
 	 * be appended to the next line  
+	 * @param line Line
+	 * @return bool
 	 */  
-	private boolean continueLine (String line) { 
+	private boolean continueLine (String line) {
 		int slashCount = 0;   
 		int index = line.length() - 1; 
 		while((index >= 0) && (line.charAt(index--) == '\\')) {  
@@ -145,6 +147,8 @@ public class LanguageProperties extends Properties {
 	/**
 	 * Converts encoded \\uxxxx to unicode chars 
 	 * and changes special saved chars to their original forms 
+	 * @param theString String
+	 * @return String
 	 */  
 	private String loadConvert (String theString) {  
 		char aChar;  
@@ -197,6 +201,9 @@ public class LanguageProperties extends Properties {
 	}
 	/**
 	 * Gets a message string and replaces {0}, {1}, {2}... parameters in it.
+	 * @param key Key
+	 * @param params Params
+	 * @return Message
 	 */
 	public String getMessage(final String key, final Object... params) {
 	    final String format = getProperty(key);

@@ -36,7 +36,9 @@ import org.ejbca.ui.web.admin.BaseManagedBean;
  * JSF Managed Bean for the post upgrade page.
  * 
  * @version $Id: UpgradeBean.java 26920 2017-10-27 13:36:23Z mikekushner $
+ * TODO: use CDI
  */
+@SuppressWarnings("deprecation")
 @ViewScoped // Local variables will live as long as actions on the backed page return "" or void.
 @ManagedBean
 public class UpgradeBean extends BaseManagedBean implements Serializable {
@@ -85,7 +87,8 @@ public class UpgradeBean extends BaseManagedBean implements Serializable {
     private void postConstruct() {
     }
 
-    /** @see UpgradeSessionLocal#isPostUpgradeNeeded() */
+    /** @return bool
+     * @see UpgradeSessionLocal#isPostUpgradeNeeded() */
     public boolean isPostUpgradeRequired() {
         return upgradeSession.isPostUpgradeNeeded();
     }
@@ -171,6 +174,7 @@ public class UpgradeBean extends BaseManagedBean implements Serializable {
     /** Noop. Invoked by the user to refresh the page */
     public void actionNoAction() {}
 
-    /** Noop. Invoked by the user to refresh the page */
+    /** Noop. Invoked by the user to refresh the page 
+     * @param event event */
     public void actionNoActionAjaxListener(final AjaxBehaviorEvent event) {}
 }

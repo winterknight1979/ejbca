@@ -59,8 +59,10 @@ public class CustomActionType extends ActionType {
 	/**
      * Sets the class path, and detects if it is an auto-detected class
      * or a manually specified class.
+	 * @param classPath CP
      */
     public void setClassPath(String classPath) {
+    	
         if (CustomLoader.isDisplayedInList(classPath, IAction.class)) {
             autoClassPath = classPath;
             manualClassPath = "";

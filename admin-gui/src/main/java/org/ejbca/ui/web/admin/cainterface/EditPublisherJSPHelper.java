@@ -180,6 +180,9 @@ public class EditPublisherJSPHelper {
      * Method that initialized the bean.
      *
      * @param request is a reference to the http request.
+     * @param ejbcawebbean Web bean
+     * @param cabean CA bean
+     * @throws Exception Fail
      */
     public void initialize(HttpServletRequest request, EjbcaWebBean ejbcawebbean,
             CAInterfaceBean cabean) throws  Exception{
@@ -821,10 +824,12 @@ public class EditPublisherJSPHelper {
     	return getPublisherQueueLength(publishername, intervalLower, intervalUpper);
     }
     
-    public int getPublisherQueueLength(String publishername) {
+    @SuppressWarnings("deprecation")
+	public int getPublisherQueueLength(String publishername) {
     	return cabean.getPublisherQueueLength(cabean.getPublisherDataHandler().getPublisherId(publishername));
     }
-    public int[] getPublisherQueueLength(String publishername, int[] intervalLower, int[] intervalUpper) {
+    @SuppressWarnings("deprecation")
+	public int[] getPublisherQueueLength(String publishername, int[] intervalLower, int[] intervalUpper) {
     	return cabean.getPublisherQueueLength(cabean.getPublisherDataHandler().getPublisherId(publishername), intervalLower, intervalUpper);
     }
     
@@ -918,7 +923,7 @@ public class EditPublisherJSPHelper {
     }
 
     List<TreeSet<Integer>> convertMultiPublishersStringToData(final Map<String, Integer> publisherNameToIdMap, final String textareaData) throws PublisherDoesntExistsException, PublisherExistsException {
-        TreeSet<Integer> selectedPublishers = new TreeSet();
+        TreeSet<Integer> selectedPublishers = new TreeSet<>(); 
         List<String> listOfPublisherNames = Arrays.asList(textareaData.split("\n"));
         ArrayList<TreeSet<Integer>> data = new ArrayList<>();
         TreeSet<Integer> tree = new TreeSet<>();

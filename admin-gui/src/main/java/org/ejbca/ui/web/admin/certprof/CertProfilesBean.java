@@ -177,7 +177,8 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
         return certificateProfileItems;
     }
 
-    /** @return true if the specified certificate profile id is fixed */
+    /** @param profileId ID
+     * @return true if the specified certificate profile id is fixed */
     private boolean isCertProfileFixed(final int profileId) {
         if (profileId <= CertificateProfileConstants.FIXED_CERTIFICATEPROFILE_BOUNDRY) {
             return true;
@@ -678,7 +679,8 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
         return cprofile;
     }
 
-    /** @return trueif the file shall be ignored from a Certificate Profile import, false if it should be imported */
+    /** @param filename Filename
+     * @return trueif the file shall be ignored from a Certificate Profile import, false if it should be imported */
     private boolean ignoreFile(String filename) {
         if (filename.lastIndexOf(".xml") != (filename.length() - 4)) {
             log.info(filename + " is not an XML file. IGNORED");
@@ -693,7 +695,10 @@ public class CertProfilesBean extends BaseManagedBean implements Serializable {
         return false;
     }
 
-    /** @return true if the profile should be ignored from a Certificate Profile import because it already exists, false if it should be imported */
+    /** @param filename Filename
+     * @param profilename Profile name
+     * @param profileid Profile ID
+     * @return true if the profile should be ignored from a Certificate Profile import because it already exists, false if it should be imported */
     private boolean ignoreProfile(String filename, String profilename, int profileid) {
         // We don't add the fixed profiles, EJBCA handles those automagically
         if (CertificateProfileConstants.isFixedCertificateProfile(profileid)) {

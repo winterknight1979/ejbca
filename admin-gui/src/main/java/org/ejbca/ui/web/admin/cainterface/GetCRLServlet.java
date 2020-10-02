@@ -129,7 +129,7 @@ public class GetCRLServlet extends BaseAdminServlet {
     } // doGet
 
 	/**
-	 * @param dn
+	 * @param  dn DN
 	 * @return base filename, without extension, with CN, or SN (of CN is null) or O, with spaces removed so name is compacted.
 	 */
 	private String getBaseFileName(String dn) {

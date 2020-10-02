@@ -135,8 +135,10 @@ public class EditHardTokenProfileJSPHelper implements java.io.Serializable {
     // Public methods.
     /**
      * Method that initialized the bean.
+     * @param ejbcawebbean Web bean
+     * @param hardtokenbean Token bean
      *
-     * @param request is a reference to the http request.
+     * @throws Exception Fail
      */
     public void initialize(EjbcaWebBean ejbcawebbean, HardTokenInterfaceBean hardtokenbean) throws Exception {
 
@@ -147,10 +149,11 @@ public class EditHardTokenProfileJSPHelper implements java.io.Serializable {
         }
     }
 
-    public String parseRequest(HttpServletRequest request) throws AuthorizationDeniedException {
+    @SuppressWarnings("deprecation")
+	public String parseRequest(HttpServletRequest request) throws AuthorizationDeniedException {
         String includefile = PAGE_HARDTOKENPROFILES;
         String profile = null;
-        HardTokenProfileDataHandler handler = hardtokenbean.getHardTokenProfileDataHandler();
+		HardTokenProfileDataHandler handler = hardtokenbean.getHardTokenProfileDataHandler();
         String action = null;
 
         InputStream file = null;

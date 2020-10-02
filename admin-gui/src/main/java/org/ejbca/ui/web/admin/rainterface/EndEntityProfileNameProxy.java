@@ -35,7 +35,8 @@ public class EndEntityProfileNameProxy implements java.io.Serializable {
     private HashMap<Integer, String> profilenamestore;
     private EndEntityProfileSession endEntityProfileSession;
 
-    /** Creates a new instance of ProfileNameProxy */
+    /** Creates a new instance of ProfileNameProxy 
+     * @param endEntityProfileSession Session */
     public EndEntityProfileNameProxy(EndEntityProfileSession endEntityProfileSession){
               // Get the RaAdminSession instance.
       this.endEntityProfileSession = endEntityProfileSession;

@@ -245,7 +245,9 @@ public class AuditorManagedBean implements Serializable {
 		return results;
 	}
 	
-	/** Converts a map with possibly Base64 encoded items to a string */
+	/** Converts a map with possibly Base64 encoded items to a string 
+	 * @param value Value
+	 * @return String */
 	public String mapToString(final Map<String,Object> value) {
 	    return MapToStringConverter.getAsString(value);
 	}
@@ -655,7 +657,7 @@ public class AuditorManagedBean implements Serializable {
             }
             
             try {
-                auditExporter = exporterClass.newInstance();
+                auditExporter = exporterClass.getConstructor().newInstance();
             } catch (Exception e) {
                 log.warn("AuditExporter for " + getDevice() + " is not configured correctly.", e);
             }
@@ -677,7 +679,11 @@ public class AuditorManagedBean implements Serializable {
         }
     }
 
-    /** Uses the provided exporter to generate export data in memory. Responds with the data instead of rendering a new page. */
+    /** Uses the provided exporter to generate export data in memory. Responds with the data instead of rendering a new page. 
+     * @param b Bytes
+     * @param contentType Type 
+     * @param filename File
+     * @throws IOException On error */
     private void downloadResults(byte[] b, String contentType, String filename) throws IOException {
             final HttpServletResponse response = (HttpServletResponse) FacesContext.getCurrentInstance().getExternalContext().getResponse();
             response.setContentType(contentType);
@@ -691,7 +697,10 @@ public class AuditorManagedBean implements Serializable {
 
     // Duplicate of code from org.cesecore.audit.impl.integrityprotected.IntegrityProtectedAuditorSessionBean.writeToExport
     // (unusable from here.. :/)
-    /** We want to export exactly like it was stored in the database, to comply with requirements on logging systems where no altering of the original log data is allowed. */
+    /** We want to export exactly like it was stored in the database, to comply with requirements on logging systems where no altering of the original log data is allowed. 
+     * @param auditExporter Exporter
+     * @param auditRecordData Data
+     * @throws IOException On fail */
     private void writeToExport(final AuditExporter auditExporter, final AuditRecordData auditRecordData) throws IOException {
         auditExporter.writeStartObject();
         auditExporter.writeField("pk", auditRecordData.getPk());

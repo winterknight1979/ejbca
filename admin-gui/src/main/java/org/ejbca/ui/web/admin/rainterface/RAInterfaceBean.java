@@ -47,10 +47,8 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken;
 import org.cesecore.authentication.tokens.AuthenticationToken;
 import org.cesecore.authentication.tokens.PublicAccessAuthenticationToken;
-import org.cesecore.authentication.tokens.WebPrincipal;
 import org.cesecore.authorization.AuthorizationDeniedException;
 import org.cesecore.authorization.AuthorizationSessionLocal;
 import org.cesecore.authorization.control.StandardRules;
@@ -190,11 +188,12 @@ public class RAInterfaceBean implements Serializable {
     }
 
     /** Adds a user to the database, the string array must be in format defined in class UserView.
-     * @throws WaitingForApprovalException
-     * @throws EndEntityProfileValidationException
-     * @throws AuthorizationDeniedException
-     * @throws CADoesntExistsException
-     * @throws EndEntityExistsException
+     * @param userdata Data
+     * @throws WaitingForApprovalException fail
+     * @throws EndEntityProfileValidationException fail
+     * @throws AuthorizationDeniedException fail
+     * @throws CADoesntExistsException fail
+     * @throws EndEntityExistsException fail
      * @return added user as EndEntityInformation
      * @throws CertificateSerialNumberException  if SubjectDN serial number already exists.
      * @throws ApprovalException  if an approval already exists for this request.
@@ -230,6 +229,7 @@ public class RAInterfaceBean implements Serializable {
      *
      * @param usernames an array of usernames to delete.
      * @return false if administrator wasn't authorized to delete all of given users.
+     * @throws NoSuchEndEntityException Fail
      * @throws CouldNotRemoveEndEntityException if the user could not be deleted.
      * 
      * */
@@ -253,6 +253,9 @@ public class RAInterfaceBean implements Serializable {
      * @param usernames an array of usernames to change.
      * @param status gives the status to apply to users, should be one of UserDataRemote.STATUS constants.
      * @return false if administrator wasn't authorized to change all of the given users.
+     * @throws ApprovalException Approval
+     * @throws NoSuchEndEntityException Fail
+     * @throws WaitingForApprovalException fail
      * */
     public boolean setUserStatuses(String[] usernames, String status) throws ApprovalException, NoSuchEndEntityException, WaitingForApprovalException {
     	log.trace(">setUserStatuses()");
@@ -276,6 +279,11 @@ public class RAInterfaceBean implements Serializable {
      * Revokes the given user.
      * @param username username of user to revoke.
      * @param reason reason(s) of revocation.
+     * @throws AuthorizationDeniedException Fail
+     * @throws NoSuchEndEntityException Fail
+     * @throws ApprovalException Fail
+     * @throws WaitingForApprovalException Fail 
+     * @throws AlreadyRevokedException Fail
      */
     public void revokeUser(String username, int reason) throws AuthorizationDeniedException,
         NoSuchEndEntityException, ApprovalException, WaitingForApprovalException, AlreadyRevokedException {
@@ -295,8 +303,11 @@ public class RAInterfaceBean implements Serializable {
      *
      * @param serno serial number of certificate to revoke.
      * @param issuerdn the issuerdn of certificate to revoke.
+     * @param username User
      * @param reason reason(s) of revocation.
      * @return false if administrator wasn't authorized to revoke the given certificate.
+     * @throws ApprovalException Fail
+     * @throws WaitingForApprovalException Fail
      */
     public boolean revokeCert(BigInteger serno, String issuerdn, String username, int reason) throws ApprovalException, WaitingForApprovalException {
     	if (log.isTraceEnabled()) {
@@ -323,6 +334,8 @@ public class RAInterfaceBean implements Serializable {
      * @param issuerdn the issuerdn of certificate to reactivate.
      * @param username the username joined to the certificate.
      * @return false if administrator wasn't authorized to unrevoke the given certificate.
+     * @throws ApprovalException Approval
+     * @throws WaitingForApprovalException fail 
      */
     public boolean unrevokeCert(BigInteger serno, String issuerdn, String username) throws ApprovalException, WaitingForApprovalException {
     	// Method needed because it is used as an ApprovalOveradableClassName
@@ -367,7 +380,9 @@ public class RAInterfaceBean implements Serializable {
         log.trace("<changeUserData()");
     }
 
-    /** Method to filter out a user by it's username */
+    /** Method to filter out a user by it's username 
+     * @param username User
+     * @return View */
     public UserView[] filterByUsername(String username) {
     	log.trace(">filterByUserName()");
     	EndEntityInformation[] userarray = new EndEntityInformation[1];
@@ -386,12 +401,18 @@ public class RAInterfaceBean implements Serializable {
     	return usersView.getUsers(0,1);
     }
 
-    /** Method used to check if user exists */
+    /** Method used to check if user exists 
+     * @param username User
+     * @return View
+     * @throws Exception fail */
     public boolean userExist(String username) throws Exception{
     	return endEntityManagementSession.existsUser(username);
     }
 
-    /** Method to retrieve a user from the database without inserting it into users data, used by 'viewuser.jsp' and page*/
+    /** Method to retrieve a user from the database without inserting it into users data, used by 'viewuser.jsp' and page
+     * @param username User
+     * @return View
+     * @throws Exception fail */
     public UserView findUser(String username) throws Exception{
     	if (log.isTraceEnabled()) {
     		log.trace(">findUser(" + username + ")");
@@ -407,7 +428,10 @@ public class RAInterfaceBean implements Serializable {
     	return userview;
     }
 
-    /** Method to retrieve a user from the database without inserting it into users data, used by 'edituser.jsp' and page*/
+    /** Method to retrieve a user from the database without inserting it into users data, used by 'edituser.jsp' and page
+     * @param username User
+     * @return View
+     * @throws AuthorizationDeniedException fail */
     public UserView findUserForEdit(String username) throws AuthorizationDeniedException {
     	UserView userview = null;
     	EndEntityInformation user = endEntityAccessSession.findUser(administrator, username);
@@ -422,13 +446,20 @@ public class RAInterfaceBean implements Serializable {
     	return userview;
     }
 
-    /** Method to find all users in database */
+    /** Method to find all users in database 
+     * @param index Index
+     * @param size Size
+     * @return View  */
     public UserView[] findAllUsers(int index, int size) {
        usersView.setUsers(endEntityAccessSession.findAllUsersWithLimit(administrator), caSession.getCAIdToNameMap());
        return usersView.getUsers(index,size);
     }
 
-    /** Method to find all users in database */
+    /** Method to find all users in database 
+     * @param tokensn SN
+     * @param index Index
+     * @param size Size
+     * @return View */
     public UserView[] filterByTokenSN(String tokensn, int index,int size) {
     	UserView[] returnval = null;
     	ArrayList<EndEntityInformation> userlist = new ArrayList<>();
@@ -448,7 +479,12 @@ public class RAInterfaceBean implements Serializable {
     	return returnval;
     }
 
-    /** Method that fetches a certificate by serialnumber and returns the user(s), else a null value if no certificate/user exists. */
+    /** Method that fetches a certificate by serialnumber and returns the user(s), else a null value if no certificate/user exists. 
+     * @param serialnumber SN
+     * @param index Index
+     * @param size Size
+     * @return Views
+     * @throws NumberFormatException fail */
     public UserView[] filterByCertificateSerialNumber(final String serialnumber, final int index, final int size) throws NumberFormatException {
     	final BigInteger serno = new BigInteger(StringTools.stripWhitespace(serialnumber), 16);
     	final List<CertificateDataWrapper> cdws = certificatesession.getCertificateDataBySerno(serno);
@@ -474,7 +510,12 @@ public class RAInterfaceBean implements Serializable {
     	return usersView.getUsers(index, size);
     }
 
-    /** Method that lists all users with certificate's that expires within given days. */
+    /** Method that lists all users with certificate's that expires within given days. 
+     * @param days Days
+     * @param index Index
+     * @param size Size
+     * @return Views
+     * @throws NumberFormatException Fail */
     public UserView[] filterByExpiringCertificates(String days, int index, int size) throws NumberFormatException {
     	ArrayList<EndEntityInformation> userlist = new ArrayList<>();
     	UserView[] returnval = null;
@@ -522,12 +563,17 @@ public class RAInterfaceBean implements Serializable {
         return endEntityAuthorization(administrator, user.getEndEntityProfileId(),AccessRulesConstants.EDIT_END_ENTITY, false);
     }
 
-    /** Method to resort filtered user data. */
+    /** Method to resort filtered user data. 
+     * @param sortby Sort
+     * @param sortorder order */
     public void sortUserData(int sortby, int sortorder) {
     	usersView.sortBy(sortby,sortorder);
     }
 
-    /** Method to return the users between index and size, if userdata is smaller than size, a smaller array is returned. */
+    /** Method to return the users between index and size, if userdata is smaller than size, a smaller array is returned. 
+     * @param index Index
+     * @param size Size
+     * @return View */
     public UserView[] getUsers(int index, int size) {
     	return usersView.getUsers(index, size);
     }
@@ -546,6 +592,8 @@ public class RAInterfaceBean implements Serializable {
 
     // Method dealing with added user memory.
     /** A method to get the last added users in adduser.jsp.
+     * @param size Size
+     * @return Views
      *
      * @see org.ejbca.ui.web.admin.rainterface.AddedUserMemory
      */
@@ -562,7 +610,9 @@ public class RAInterfaceBean implements Serializable {
         return raauthorization.getViewAuthorizedEndEntityProfilesWithMissingCAs();
     }
 
-    /** Returns the profile name from id proxied */
+    /** Returns the profile name from id proxied 
+     * @param profileid ID
+     * @return Name */
     public String getEndEntityProfileName(int profileid) {
     	return endEntityProfileSession.getEndEntityProfileName(profileid);
     }
@@ -648,7 +698,8 @@ public class RAInterfaceBean implements Serializable {
         return messageArray;
     }
 
-    /** @return a list of role names where the End Entity Profile's ID is explicitly defined in the role's access rules */
+    /** @param profileId ID
+     * @return a list of role names where the End Entity Profile's ID is explicitly defined in the role's access rules */
     private List<String> getRulesWithEndEntityProfile(final int profileId) {
         if (log.isTraceEnabled()) {
             log.trace(">getRulesWithEndEntityProfile(" + profileId + ")");
@@ -908,7 +959,12 @@ public class RAInterfaceBean implements Serializable {
     	return parameter.equals(EndEntityProfile.TRUE);
     }
 
-    /** Help function used to check end entity profile authorization. */
+    /** Help function used to check end entity profile authorization. 
+     * @param admin Admin
+     * @param profileid ID
+     * @param rights Rights
+     * @param log Log
+     * @return Auth */
     public boolean endEntityAuthorization(AuthenticationToken admin, int profileid, String rights, boolean log) {
     	boolean returnval = false;
     	if (log) {
@@ -924,6 +980,7 @@ public class RAInterfaceBean implements Serializable {
     /**
      *  Help function used by edit end entity pages used to temporary save a profile
      *  so things can be canceled later
+     * @return Profile
      */
     public EndEntityProfile getTemporaryEndEntityProfile(){
     	return this.temporaryEndEntityProfile;
@@ -996,6 +1053,8 @@ public class RAInterfaceBean implements Serializable {
      * intersection of: - The administrator's authorized CAs, the end entity profile's available CAs and the certificate profile's available CAs.
      *
      * @param endentityprofileid the EE profile of the end entity
+     * @param endentityAccessRule Rule
+     * @return Map
      * @returns a HashMap of CertificateProfileIds mapped to Lists if CA IDs. It returns a set of available CAs per end entity profile.
      */
 

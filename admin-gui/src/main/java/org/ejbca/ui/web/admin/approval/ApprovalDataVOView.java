@@ -178,6 +178,7 @@ public class ApprovalDataVOView implements Serializable {
     /**
      * Constructs JavaScript that opens up a new window and opens up actionview
      * there
+     * @return JS
      */
     public String getApproveActionWindowLink() {
         String link = EjbcaJSFHelper.getBean().getEjbcaWebBean().getBaseUrl()

@@ -51,7 +51,8 @@ public abstract class BaseManagedBean implements Serializable {
 		return EjbcaJSFHelper.getBean().getEjbcaWebBean();
 	}
 
-	/** @return true if the current admin is authorized to the resources or false otherwise */
+	/** @param resources Resources
+	 * @return true if the current admin is authorized to the resources or false otherwise */
     protected boolean isAuthorizedTo(final String...resources) {
         return getEjbcaWebBean().getEjb().getAuthorizationSession().isAuthorizedNoLogging(getAdmin(), resources);
     }
@@ -88,6 +89,8 @@ public abstract class BaseManagedBean implements Serializable {
 	/**
 	 * Return the public constants of classObject as a Map, so they can be referenced from the JSF page.
 	 * (The implementation caches the Map for subsequent calls.)
+	 * @param classObject Object
+	 * @return Map
 	 */
 	protected Map<String, Object> getPublicConstantsAsMap(Class<?> classObject) {
 		Map<String, Object> result = publicConstantCache.get(classObject.getName());
@@ -111,7 +114,8 @@ public abstract class BaseManagedBean implements Serializable {
 		return result;
 	}
 
-	/** Sort the provided list by the SelectItems' labels. */
+	/** Sort the provided list by the SelectItems' labels. 
+	 * @param selectItems Items*/
 	protected void sortSelectItemsByLabel(List<SelectItem> selectItems) {
 	    Collections.sort(selectItems, new SelectItemComparator());
 	}
@@ -120,6 +124,7 @@ public abstract class BaseManagedBean implements Serializable {
      * Perform a post-redirect-get if the requests is not invoked via AJAX to the current view id with the specified request string appended.
      *
      * It will try to preserve FacesMessages using the bug-riddled Flash scope.
+     * @param requestString String
      */
     protected void nonAjaxPostRedirectGet(final String requestString) {
         final FacesContext facesContext = FacesContext.getCurrentInstance();

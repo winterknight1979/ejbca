@@ -39,7 +39,8 @@ public class EjbcaJSFHelper {
     	}
     }
     
-    /** Returns the EJBCA title */
+    /** Returns the EJBCA title 
+     * @return Title*/
     public String getEjbcaTitle(){
         GlobalConfiguration gc = getEjbcaWebBean().getGlobalConfiguration();
         if (gc == null) {
@@ -49,28 +50,33 @@ public class EjbcaJSFHelper {
     	return gc.getEjbcaTitle();
     }
     
-    /** Returns the EJBCA theme */
+    /** Returns the EJBCA theme 
+     * @return Theme */
     public String getTheme(){
     	return getEjbcaWebBean().getCssFile();
     }
     
-    /** Returns the EJBCA base url */
+    /** Returns the EJBCA base url 
+     * @return String */
     public String getEjbcaBaseURL(){
     	return getEjbcaWebBean().getBaseUrl();
     }   
     
-    /** Returns the EJBCA content string */
+    /** Returns the EJBCA content string 
+     * @return String */
     public String getContent(){
     	return "text/html; charset=" + WebConfiguration.getWebContentEncoding();
     } 
     
-   /** Used for language resources. */
+   /** Used for language resources. 
+ * @return Resource */
     public EjbcaJSFLanguageResource getText(){
     	setEjbcaWebBean(getEjbcaWebBean());
     	return text;
     }
     
-    /** Used for image resources. */
+    /** Used for image resources. 
+     * @return Resource */
      public EjbcaJSFImageResource getImage(){
         setEjbcaWebBean(getEjbcaWebBean());
      	return image;
@@ -78,7 +84,7 @@ public class EjbcaJSFHelper {
     
      /**
       * Special function for approval pages since it has two different accessrules
-     * @throws AuthorizationDeniedException 
+     * @throws AuthorizationDeniedException fail
       *
       */
      public void authorizedToApprovalPages() throws AuthorizationDeniedException{

@@ -33,6 +33,8 @@ public class CustomLoader {
      * java.util.ServiceLoader. The implementations class names must
      * be added to the text file META-INF/services/ in its JAR file,
      * with one class name per line.
+     * @param interfaceClass Class
+     * @param <T> Type
      * 
      * @return A list of class names (including the full package paths)
      */
@@ -48,6 +50,9 @@ public class CustomLoader {
 
     /**
      * Checks whether a class was displayed in the list of classes in the user interface.
+     * @param className Class
+     * @param interfaceClass Class
+     * @return bool
      */
     public static boolean isDisplayedInList(String className, Class<?> interfaceClass) {
         if (!WebConfiguration.isManualClassPathsEnabled()) return true; // otherwise old manual classes won't be shown in the GUI

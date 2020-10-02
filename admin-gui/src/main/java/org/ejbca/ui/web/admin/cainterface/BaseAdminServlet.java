@@ -13,7 +13,6 @@
 package org.ejbca.ui.web.admin.cainterface;
 
 import java.beans.Beans;
-import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.HashSet;
 import java.util.Set;
@@ -67,9 +66,10 @@ public abstract class BaseAdminServlet extends HttpServlet {
      * Authenticates the client using it's X.509 certificate.
      * @param request Servlet request
      * @param response Servlet response
-     * @return AuthenticationToken from {@link AuthenticationSessionLocal}. Never null.
-     * @throws IOException
-     * @throws ServletException
+     * @param accessResources Resources
+     * @return AuthenticationToken from  AuthenticationSessionLocal. Never null.
+     * @throws AdminWebAuthenticationException Fail 
+     * @throws ServletException Fail
      */
     protected AuthenticationToken authenticateAdmin(HttpServletRequest request, HttpServletResponse response, final String... accessResources) throws AdminWebAuthenticationException, ServletException {
         // Check if authorized
@@ -102,6 +102,9 @@ public abstract class BaseAdminServlet extends HttpServlet {
     
     /**
      * Gets the RAInterfaceBean object, or creates and initializes a new RAInterfaceBean if not already created.
+     * @param req Request
+     * @return Bean
+     * @throws ServletException Fail
      */
     protected final RAInterfaceBean getRaBean(HttpServletRequest req) throws ServletException {
         HttpSession session = req.getSession();
@@ -127,6 +130,9 @@ public abstract class BaseAdminServlet extends HttpServlet {
 
     /**
      * Gets the EjbcaWebBean object, or creates and initializes a new EjbcaWebBean if not already created.
+     * @param req Request
+     * @return Bean
+     * @throws ServletException Fail
      */
     protected final EjbcaWebBean getEjbcaWebBean(HttpServletRequest req) throws ServletException {
         HttpSession session = req.getSession();

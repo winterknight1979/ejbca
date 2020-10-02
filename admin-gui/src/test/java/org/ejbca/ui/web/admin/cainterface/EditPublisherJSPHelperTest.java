@@ -48,13 +48,15 @@ public class EditPublisherJSPHelperTest {
     @Test(expected = PublisherDoesntExistsException.class)
     public void convertMultiPublishersStringToDataNotExistinPublisher() throws Exception {
         String input = "Apple\nOrange\n\nKiwi\nblablalba\nAvocado";
-        List<TreeSet<Integer>> result = helper.convertMultiPublishersStringToData(getNameToIdMap(), input);
+        @SuppressWarnings("unused")
+		List<TreeSet<Integer>> result = helper.convertMultiPublishersStringToData(getNameToIdMap(), input);
     }
 
     @Test(expected = PublisherExistsException.class)
     public void convertMultiPublishersStringToDataDoublicatePublisher() throws Exception {
         String input = "Apple\nOrange\n\nKiwi\nApple\nAvocado";
-        List<TreeSet<Integer>> result = helper.convertMultiPublishersStringToData(getNameToIdMap(), input);
+        @SuppressWarnings("unused")
+		List<TreeSet<Integer>> result = helper.convertMultiPublishersStringToData(getNameToIdMap(), input);
     }
     @Test
     public void convertMultiPublishersStringToDataNewLinesAndSpaces() throws Exception {

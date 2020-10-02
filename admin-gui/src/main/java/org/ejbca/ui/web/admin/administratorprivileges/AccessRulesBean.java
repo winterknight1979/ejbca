@@ -59,9 +59,11 @@ import org.ejbca.ui.web.admin.BaseManagedBean;
  * - Basic mode access rule configuration
  * - Advanced mode access rule configuration
  * - Advanced mode access rule summary
- *
+ * 
  * @version $Id: AccessRulesBean.java 29919 2018-09-28 10:44:43Z samuellb $
+ * TODO: Use CDI beans
  */
+@SuppressWarnings("deprecation")
 @ViewScoped
 @ManagedBean
 public class AccessRulesBean extends BaseManagedBean implements Serializable {
@@ -159,7 +161,8 @@ public class AccessRulesBean extends BaseManagedBean implements Serializable {
         public String getResourceSub() { return resourceSub; }
         /** @return one of the {@link AccessRuleState} enum names representing the current state of this rule */
         public String getState() { return state.name(); }
-        /** Set one of the {@link AccessRuleState} enum names representing the current state of this rule */
+        /** Set one of the {@link AccessRuleState} enum names representing the current state of this rule 
+         * @param state state */
         public void setState(String state) { this.state = AccessRuleState.valueOf(state); }
         /** @return one of the {@link AccessRuleState} enum representing the current state of this rule */
         private AccessRuleState getStateEnum() { return state; }
@@ -390,7 +393,10 @@ public class AccessRulesBean extends BaseManagedBean implements Serializable {
         setResourcesOtherSelected(getSelectedRulesFromSelectItems(accessRules, getAvailableResourcesOther()));
     }
 
-    /** @return minimal list of resources that the provided access rules grants */
+    /** @param accessRules Access Rules
+     * @param baseResource Base Resource
+     * @param ids IDs
+     * @return minimal list of resources that the provided access rules grants */
     private List<String> getSelectedRulesFromIdentifiers(final LinkedHashMap<String, Boolean> accessRules, final String baseResource, final Set<Integer> ids) {
         final List<String> ret = new ArrayList<>();
         if (AccessRulesHelper.hasAccessToResource(accessRules, baseResource)) {
@@ -409,6 +415,11 @@ public class AccessRulesBean extends BaseManagedBean implements Serializable {
     /**
      * Like {@link #getSelectedRulesFromIdentifiers}, but also includes rules that have all enabled sub-rules present.
      * (example: if "Create End Entity" and "Edit End Entity" are selected, then it will also include all profiles that have those items allowed)
+     * @param accessRules Access Rules
+     * @param baseResource Base Resource
+     * @param ids  IDs
+     * @param selectedSubRules sub rules 
+     * @return minimal list of resources that the provided access rules grants
      */
     private List<String> getSelectedRulesFromIdentifiers(final LinkedHashMap<String, Boolean> accessRules, final String baseResource, final Set<Integer> ids,
             final List<SelectItem> selectedSubRules) {
@@ -438,7 +449,9 @@ public class AccessRulesBean extends BaseManagedBean implements Serializable {
         return ret;
     }
 
-    /** @return minimal list of resources that the provided access rules grants */
+    /** @param accessRules Rules
+     * @param selectItems Items
+     * @return minimal list of resources that the provided access rules grants */
     private List<String> getSelectedRulesFromSelectItems(final LinkedHashMap<String, Boolean> accessRules, final List<SelectItem> selectItems) {
         final List<String> ret = new ArrayList<>();
         for (final SelectItem selectItem : selectItems) {
@@ -452,7 +465,8 @@ public class AccessRulesBean extends BaseManagedBean implements Serializable {
 
     /** @return the currently select role template */
     public String getAccessRulesTemplateSelected() { return accessRulesTemplateSelected; }
-    /** Set the currently select role template */
+    /** Set the currently select role template 
+     * @param accessRulesTemplateSelected template */
     public void setAccessRulesTemplateSelected(String accessRulesTemplateSelected) { this.accessRulesTemplateSelected = accessRulesTemplateSelected; }
 
     /** @return true if this role is assumed to have been configured outside of the basic mode */
@@ -474,7 +488,8 @@ public class AccessRulesBean extends BaseManagedBean implements Serializable {
         return null;
     }
 
-    /** Invoked by the user when changing selected template and JavaScript is enabled */
+    /** Invoked by the user when changing selected template and JavaScript is enabled 
+     * @param event  Event*/
     public void actionAccessRulesTemplateSelectAjaxListener(final AjaxBehaviorEvent event) {
         actionAccessRulesTemplateSelect();
     }
@@ -560,7 +575,8 @@ public class AccessRulesBean extends BaseManagedBean implements Serializable {
 
     /** @return the currently selected CA access resources */
     public List<String> getResourcesCaSelected() { return resourcesCaSelected; }
-    /** Set the currently selected CA access resources */
+    /** Set the currently selected CA access resources 
+     * @param resourcesCaSelected Sccess resources */
     public void setResourcesCaSelected(final List<String> resourcesCaSelected) { this.resourcesCaSelected = new ArrayList<>(resourcesCaSelected); }
 
     /** @return the selectable CA access resources */
@@ -586,7 +602,8 @@ public class AccessRulesBean extends BaseManagedBean implements Serializable {
 
     /** @return the currently selected RA functionality resources */
     public List<String> getResourcesEeSelected() { return resourcesEeSelected; }
-    /** Set the currently selected RA functionality resources */
+    /** Set the currently selected RA functionality resources 
+     * @param resourcesEeSelected EE Selection */
     public void setResourcesEeSelected(final List<String> resourcesEeSelected) { this.resourcesEeSelected = new ArrayList<>(resourcesEeSelected); }
 
     /** @return the selectable RA functionality resources */
@@ -630,7 +647,8 @@ public class AccessRulesBean extends BaseManagedBean implements Serializable {
 
     /** @return the currently selected EEP resources */
     public List<String> getResourcesEepSelected() { return resourcesEepSelected; }
-    /** Set the currently selected EEP resources */
+    /** Set the currently selected EEP resources 
+     * @param resourcesEepSelected EEP resources*/
     public void setResourcesEepSelected(final List<String> resourcesEepSelected) { this.resourcesEepSelected = new ArrayList<>(resourcesEepSelected); }
 
     /** @return the selectable EEP resources */
@@ -657,7 +675,8 @@ public class AccessRulesBean extends BaseManagedBean implements Serializable {
     /** @return the currently selected key validator resources */
     public List<String> getResourcesKeyValidatorsSelected() { return resourcesKeyValidatorsSelected; }
 
-    /** Set the currently selected key validator resources */
+    /** Set the currently selected key validator resources 
+     * @param resourcesKeyValidatorsSelected Validators */
     public void setResourcesKeyValidatorsSelected(final List<String> resourcesKeyValidatorsSelected) {
         this.resourcesKeyValidatorsSelected = new ArrayList<>(resourcesKeyValidatorsSelected);
     }
@@ -688,7 +707,8 @@ public class AccessRulesBean extends BaseManagedBean implements Serializable {
 
     /** @return the currently selected IKB resources */
     public List<String> getResourcesIkbSelected() { return resourcesIkbSelected; }
-    /** Set the currently selected IKB resources */
+    /** Set the currently selected IKB resources 
+     * @param resourcesIkbSelected IKB Resources */
     public void setResourcesIkbSelected(final List<String> resourcesIkbSelected) { this.resourcesIkbSelected = new ArrayList<>(resourcesIkbSelected); }
 
     /** @return the selectable IKB resources */
@@ -717,7 +737,8 @@ public class AccessRulesBean extends BaseManagedBean implements Serializable {
 
     /** @return the currently selected Other resources */
     public List<String> getResourcesOtherSelected() { return resourcesOtherSelected; }
-    /** Set the currently selected Other resources */
+    /** Set the currently selected Other resources 
+     * @param resourcesOtherSelected Other resources */
     public void setResourcesOtherSelected(final List<String> resourcesOtherSelected) { this.resourcesOtherSelected = new ArrayList<>(resourcesOtherSelected); }
 
     /** @return the selectable Other resources */
@@ -811,7 +832,9 @@ public class AccessRulesBean extends BaseManagedBean implements Serializable {
         }
     }
 
-    /** Remove the resources of the SelectItem values from the access rule map if present */
+    /** Remove the resources of the SelectItem values from the access rule map if present 
+     * @param newAccessRules Rules
+     * @param selectItems Items */
     private void filterOutSelectItems(final HashMap<String, Boolean> newAccessRules, final List<SelectItem> selectItems) {
         for (final SelectItem selectItem : selectItems) {
             final String selectedResource = String.valueOf(selectItem.getValue());

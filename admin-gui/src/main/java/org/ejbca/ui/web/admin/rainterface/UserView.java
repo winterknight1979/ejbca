@@ -260,8 +260,10 @@ public class UserView implements Serializable, Comparable<UserView> {
 
     /**
      * getCommonName is a special function used in list end entity gui to display names in cases not a CN field exists in dn only, surname and givenname
+     * @return Name
      */
     public String getCommonName() {
+    	
         return commonname;
     }
 

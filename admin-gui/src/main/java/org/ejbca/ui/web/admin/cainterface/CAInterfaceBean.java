@@ -169,7 +169,8 @@ public class CAInterfaceBean implements Serializable {
     private SignSession signsession; 
    
     private CADataHandler cadatahandler;
-    private PublisherDataHandler publisherdatahandler;
+    @SuppressWarnings("deprecation")
+	private PublisherDataHandler publisherdatahandler;
 
     private boolean initialized;
     private AuthenticationToken authenticationToken;
@@ -184,7 +185,8 @@ public class CAInterfaceBean implements Serializable {
     public CAInterfaceBean() { }
 
     // Public methods
-    public void initialize(EjbcaWebBean ejbcawebbean) {
+    @SuppressWarnings("deprecation")
+	public void initialize(EjbcaWebBean ejbcawebbean) {
         if (!initialized) {
           certificatesession = ejbLocalHelper.getCertificateStoreSession();
           certreqhistorysession = ejbLocalHelper.getCertReqHistorySession();
@@ -205,6 +207,7 @@ public class CAInterfaceBean implements Serializable {
 
           cadatahandler = new CADataHandler(authenticationToken, ejbLocalHelper, ejbcawebbean);
           publisherdatahandler = new PublisherDataHandler(authenticationToken, publishersession);
+          
           isUniqueIndex = certcreatesession.isUniqueCertificateSerialNumberIndex();
           initialized =true;
         }
@@ -225,6 +228,7 @@ public class CAInterfaceBean implements Serializable {
 
     /**
      * Method that returns a HashMap connecting available CAIds (Integer) to CA Names (String).
+     * @return Map
      */ 
     public Map<Integer, String>  getCAIdToNameMap(){
     	return casession.getCAIdToNameMap();      
@@ -281,7 +285,9 @@ public class CAInterfaceBean implements Serializable {
         return ret;
     }
 
-    /** Returns the profile name from id proxied */
+    /** Returns the profile name from id proxied 
+     * @param profileid Profile
+     * @return Name */
     public String getCertificateProfileName(int profileid) {
         return certificateProfileSession.getCertificateProfileName(profileid);
     }
@@ -306,7 +312,10 @@ public class CAInterfaceBean implements Serializable {
         return certificateProfile;
     }
 
-    /** Help function that checks if administrator is authorized to view profile. */
+    /** Help function that checks if administrator is authorized to view profile. 
+     * @param profile Profile
+     * @param id ID
+     * @return bool */
     private boolean authorizedToViewProfile(CertificateProfile profile, final int id) {
         return certificateProfileSession.getAuthorizedCertificateProfileIds(authenticationToken, profile.getType()).contains(Integer.valueOf(id));
     }
@@ -375,27 +384,39 @@ public class CAInterfaceBean implements Serializable {
       return cadatahandler;
     }
     
-    /** Slow method to get CAInfo. The returned object has id-to-name maps of publishers and validators. */
+    /** Slow method to get CAInfo. The returned object has id-to-name maps of publishers and validators. 
+     * @param name Name
+     * @return Info
+     * @throws AuthorizationDeniedException Fail */
     public CAInfoView getCAInfo(String name) throws AuthorizationDeniedException {
       return cadatahandler.getCAInfo(name);   
     }
     
-    /** Slow method to get CAInfo. The returned object has id-to-name maps of publishers and validators. */
+    /** Slow method to get CAInfo. The returned object has id-to-name maps of publishers and validators. 
+     * @param name Name
+     * @return View*/
     public CAInfoView getCAInfoNoAuth(String name) {
         return cadatahandler.getCAInfoNoAuth(name);   
      }
 
-    /** Slow method to get CAInfo. The returned object has id-to-name maps of publishers and validators. */
+    /** Slow method to get CAInfo. The returned object has id-to-name maps of publishers and validators. 
+     * @param caid CA
+     * @return Info
+     * @throws AuthorizationDeniedException fail */
     public CAInfoView getCAInfo(int caid) throws AuthorizationDeniedException {
       return cadatahandler.getCAInfo(caid);   
     }  
     
-    /** Slow method to get CAInfo. The returned object has id-to-name maps of publishers and validators. */
+    /** Slow method to get CAInfo. The returned object has id-to-name maps of publishers and validators. 
+     * @param caid CA
+     * @return View */
     public CAInfoView getCAInfoNoAuth(int caid) {
         return cadatahandler.getCAInfoNoAuth(caid);   
     }
     
-    /** Fast method to get CAInfo. Returns the object directly, without bundling it with name-to-id maps. */
+    /** Fast method to get CAInfo. Returns the object directly, without bundling it with name-to-id maps. 
+     * @param caid CA
+     * @return Info */
     public CAInfo getCAInfoFastNoAuth(int caid) {
         return casession.getCAInfoInternal(caid);
     }
@@ -523,6 +544,8 @@ public class CAInterfaceBean implements Serializable {
 
 	/**
 	 * Returns a List of CertReqHistUserData from the certreqhist database in an collection sorted by timestamp.
+	 * @param username Isername
+	 * @return List
 	 */
 	public List<CertReqHistory> getCertReqUserDatas(String username){
 		List<CertReqHistory> history = this.certreqhistorysession.retrieveCertReqHistory(username);
@@ -1231,7 +1254,11 @@ public class CAInterfaceBean implements Serializable {
         return failedCryptoTokens;
     }
 
-    /** @return a list of key pair aliases that can be used for either signing or encryption under the supplied CA signing algorithm */
+    /** @param cryptoTokenId Token IF
+     * @param caSigingAlgorithm Algorithm
+     * @return a list of key pair aliases that can be used for either signing or encryption under the supplied CA signing algorithm 
+     * @throws CryptoTokenOfflineException Fail 
+     * @throws AuthorizationDeniedException Fail */
     public List<String> getAvailableCryptoTokenMixedAliases(int cryptoTokenId, final String caSigingAlgorithm) throws CryptoTokenOfflineException, AuthorizationDeniedException {
         final List<String> aliases = new ArrayList<>();
         aliases.addAll(getAvailableCryptoTokenAliases(cryptoTokenId, caSigingAlgorithm));
@@ -1241,7 +1268,11 @@ public class CAInterfaceBean implements Serializable {
         return aliases;
     }
 
-    /** @return a list of key pair aliases that can be used for signing using the supplied CA signing algorithm */
+    /** @param cryptoTokenId Token ID
+     * @param caSigingAlgorithm Algorithm
+     * @return a list of key pair aliases that can be used for signing using the supplied CA signing algorithm 
+     * @throws CryptoTokenOfflineException Fail 
+     * @throws AuthorizationDeniedException Fail */
 	public List<String> getAvailableCryptoTokenAliases(int cryptoTokenId, final String caSigingAlgorithm) throws CryptoTokenOfflineException, AuthorizationDeniedException {
 	    final List<String> aliases = new ArrayList<>();
 	    if (cryptoTokenManagementSession.getCryptoTokenInfo(cryptoTokenId) == null) {
@@ -1257,7 +1288,11 @@ public class CAInterfaceBean implements Serializable {
         return aliases;
 	}
 
-    /** @return a list of key pair aliases that can be used for encryption using the supplied CA signing algorithm to derive encryption algo. */
+    /** @param cryptoTokenId Token ID
+     * @param caSigingAlgorithm Algorithm
+     * @return a list of key pair aliases that can be used for encryption using the supplied CA signing algorithm to derive encryption algo. 
+     * @throws CryptoTokenOfflineException Fail 
+     * @throws AuthorizationDeniedException Fail */
     public List<String> getAvailableCryptoTokenEncryptionAliases(int cryptoTokenId, final String caSigingAlgorithm) throws CryptoTokenOfflineException, AuthorizationDeniedException {
         final List<String> aliases = new ArrayList<>();
         if (cryptoTokenManagementSession.getCryptoTokenInfo(cryptoTokenId) == null) {
@@ -1413,6 +1448,7 @@ public class CAInterfaceBean implements Serializable {
     
     /** Returns true if any CVC CA implementation is available, false otherwise.
      * Used to hide/give warning when no CVC CA implementation is available.
+     * @return success
      */
     public boolean isCVCAvailable() {
         boolean ret = false;
@@ -1425,12 +1461,15 @@ public class CAInterfaceBean implements Serializable {
     /** Returns true if a unique (issuerDN,serialNumber) is present in the database. 
      * If this is available, you can not use CVC CAs. Returns false if a unique index is 
      * Used to hide/give warning when no CVC CA implementation is available.
+     * @return bool
      */
     public boolean isUniqueIssuerDNSerialNoIndexPresent() {
         return certificatesession.isUniqueCertificateSerialNumberIndex();
     }
     
     /** Returns the "not before" date of the next certificate during a rollover period, or null if no next certificate exists.
+     * @param caid ID
+     * @return Date
      * @throws CADoesntExistsException If the CA doesn't exist.
      */
     public Date getRolloverNotBefore(int caid) throws CADoesntExistsException {
@@ -1443,8 +1482,10 @@ public class CAInterfaceBean implements Serializable {
     }
     
     /** Returns the current CA validity "not after" date. 
-     * @throws AuthorizationDeniedException 
-     * @throws CADoesntExistsException */
+     * @param caid ID
+     * @return Date
+     * @throws AuthorizationDeniedException Fail 
+     * @throws CADoesntExistsException Fail */
     public Date getRolloverNotAfter(int caid) throws CADoesntExistsException, AuthorizationDeniedException {
         final Collection<Certificate> chain = casession.getCAInfo(authenticationToken, caid).getCertificateChain();
         return CertTools.getNotAfter(chain.iterator().next());
@@ -1486,11 +1527,11 @@ public class CAInterfaceBean implements Serializable {
      * This method used while creating a new CA to warn users about keys which are already in use 
      * by other CAs.
      * 
-     * @param CAIds
-     * @param alias
-     * @param currentCryptoTokenId
+     * @param CAIds IDs
+     * @param alias Alias
+     * @param currentCryptoTokenId Yoken
      * @return boolean true if crypto key is used by another CA or false otherwise.
-     * @throws IllegalStateException 
+     * @throws IllegalStateException Fail
      */
     public boolean isKeyInUse(final Collection<Integer> CAIds, final String alias, final int currentCryptoTokenId) {
         for (final int caId : CAIds) {

@@ -57,6 +57,8 @@ public class ApprovalDataVOViewList extends AbstractList<ApprovalDataVOView> imp
 
     /**
      * Sort the list.
+     * @param column Column
+     * @param ascending Up or down
      */
     protected void sort(final String column, final boolean ascending) {
         Comparator<ApprovalDataVOView> comparator = new Comparator<ApprovalDataVOView>() {
@@ -84,6 +86,8 @@ public class ApprovalDataVOViewList extends AbstractList<ApprovalDataVOView> imp
 
     /**
      * Is the default sort direction for the given column "ascending" ?
+     * @param sortColumn Column
+     * @return always true
      */
     protected boolean isDefaultAscending(String sortColumn) {
         return true;

@@ -44,8 +44,8 @@ public class NoCacheFilter implements Filter {
 
     /**
      * Returns true for the request URIs that should be cached, false otherwise
-     * @param request
-     * @return
+     * @param request req
+     * @return uri
      */
     private boolean cacheURI(HttpServletRequest request) {
         String requestUri = request.getRequestURI();

@@ -39,25 +39,35 @@ public class PublisherDataHandler implements Serializable {
     private PublisherSessionLocal publishersession;
     private AuthenticationToken administrator;
 
-    /** Creates a new instance of PublisherDataHandler */
+    /** Creates a new instance of PublisherDataHandler 
+     * @param administrator Admin
+     * @param publishersession Session */
     public PublisherDataHandler(AuthenticationToken administrator, PublisherSessionLocal publishersession) {
         this.publishersession = publishersession;
         this.administrator = administrator;
     }
 
-    /** Method to add a publisher. Throws PublisherExitsException if profile already exists  */
+    /** Method to add a publisher. Throws PublisherExitsException if profile already exists  
+     * @param name Name
+     * @param publisher Pub 
+     * @throws PublisherExistsException Fail 
+     * @throws AuthorizationDeniedException Fail */
     public void addPublisher(String name, BasePublisher publisher) throws PublisherExistsException, AuthorizationDeniedException {
         publishersession.addPublisher(administrator, name, publisher);
 
     }
 
-    /** Method to change a publisher. */
+    /** Method to change a publisher. 
+     * @param name Name
+     * @param publisher Pub 
+     * @throws AuthorizationDeniedException fail  */
     public void changePublisher(String name, BasePublisher publisher) throws AuthorizationDeniedException {
         publishersession.changePublisher(administrator, name, publisher);
     }
 
     /**
      * Removes a publisher
+     * @param name Name
      * @throws AuthorizationDeniedException if not authorized
      * @throws ReferencesToItemExistException if references exist.
      */
@@ -65,7 +75,11 @@ public class PublisherDataHandler implements Serializable {
         publishersession.removePublisher(administrator, name);
     }
 
-    /** Metod to rename a publisher */
+    /** Metod to rename a publisher 
+     * @param oldname Name
+     * @param newname Name
+     * @throws PublisherExistsException fail
+     * @throws AuthorizationDeniedException fail */
     public void renamePublisher(String oldname, String newname) throws PublisherExistsException, AuthorizationDeniedException {
         publishersession.renamePublisher(administrator, oldname, newname);
 

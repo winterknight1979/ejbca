@@ -44,8 +44,9 @@ import org.ejbca.ui.web.admin.BaseManagedBean;
 /**
  * JSF MBean backing the approval profiles page.
  * @version $Id: ApprovalProfilesMBean.java 28844 2018-05-04 08:31:02Z samuellb $
- *
+ * TODO: Use CDI beans
  */
+@SuppressWarnings("deprecation")
 @SessionScoped
 @ManagedBean(name="approvalProfilesMBean")
 public class ApprovalProfilesMBean extends BaseManagedBean implements Serializable {

@@ -334,33 +334,39 @@ public class EjbcaWebBean implements Serializable {
         return globalconfiguration;
     }
 
-    /** Returns the current users common name */
+    /** Returns the current users common name 
+     * @return Name */
     public String getUsersCommonName() {
         return usercommonname;
     }
 
-    /** Returns the users certificate serialnumber, user to id the adminpreference. */
+    /** Returns the users certificate serialnumber, user to id the adminpreference. 
+     * @return  FP */
     public String getCertificateFingerprint() {
         return certificateFingerprint;
     }
 
-    /** Return the admins selected theme including its trailing '.css' */
+    /** Return the admins selected theme including its trailing '.css' 
+     * @return CSS */
     public String getCssFile() {
         return globalconfiguration.getAdminWebPath() + globalconfiguration.getThemePath() + "/" + currentAdminPreference.getTheme() + ".css";
     }
 
-    /** Return the IE fixes CSS of the admins selected theme including it's trailing '.css' */
+    /** Return the IE fixes CSS of the admins selected theme including it's trailing '.css' 
+     * @return CSS */
     public String getIeFixesCssFile() {
         return globalconfiguration.getAdminWebPath() + globalconfiguration.getThemePath() + "/" + currentAdminPreference.getTheme()
                 + globalconfiguration.getIeCssFilenamePostfix() + ".css";
     }
 
-    /** Returns the admins prefered language */
+    /** Returns the admins prefered language 
+     * @return language */
     public int getPreferedLanguage() {
         return currentAdminPreference.getPreferedLanguage();
     }
 
-    /** Returns the admins secondary language. */
+    /** Returns the admins secondary language. 
+     * @return Language */
     public int getSecondaryLanguage() {
         return currentAdminPreference.getSecondaryLanguage();
     }
@@ -480,6 +486,7 @@ public class EjbcaWebBean implements Serializable {
     /**
      * Checks if the admin have authorization to view the resource without performing any logging. Used by menu page Does not return false if not
      * authorized, instead throws an AuthorizationDeniedException.
+     * @param resources resources 
      *
      * @deprecated Don't use as is in a new admin GUI. Use {@link #isAuthorizedNoLogSilent(String...)} instead.
      *
@@ -497,6 +504,7 @@ public class EjbcaWebBean implements Serializable {
     /**
      * Checks if the admin have authorization to view the resource without performing any logging. Will simply return a boolean,
      * does not throw exception.
+     * @param resources resources 
      *
      * @return true if is authorized to resource, false if not
      */
@@ -526,6 +534,8 @@ public class EjbcaWebBean implements Serializable {
      *
      * The parameter imagefilename should the wanted filename without language infix. For example: given imagefilename 'caimg.png' would return
      * 'caimg.en.png' if English was the users preferred language. It's important that all letters in imagefilename is lowercase.
+     * @param imagefilename filename
+     * @return image
      */
 
     public String getImagefileInfix(String imagefilename) {
@@ -622,27 +632,37 @@ public class EjbcaWebBean implements Serializable {
         return str;
     }
 
-    /** @return a more user friendly representation of a Date. */
+    /** @param date date
+     * @return a more user friendly representation of a Date. */
     public String formatAsISO8601(final Date date) {
         return ValidityDate.formatAsISO8601(date, timeZone);
     }
 
-    /** Parse a Date and reformat it as vailidation. */
+    /** Parse a Date and reformat it as vailidation. 
+     * @param value value
+     * @return format
+     * @throws ParseException  fail */
     public String validateDateFormat(String value) throws ParseException {
         return ValidityDate.formatAsUTC(ValidityDate.parseAsUTC(value));
     }
 
-    /** Check if the argument is a relative date/time in the form days:min:seconds. */
+    /** Check if the argument is a relative date/time in the form days:min:seconds. 
+     * @param dateString date
+     * @return bool  */
     public boolean isRelativeDateTime(final String dateString) {
         return dateString.matches("^\\d+:\\d?\\d:\\d?\\d$");
     }
 
-    /** To be used when giving format example. */
+    /** To be used when giving format example. 
+     * @return example */
     public String getDateExample() {
         return "[" + ValidityDate.ISO8601_DATE_FORMAT + "]: '" + formatAsISO8601(new Date()) + "'";
     }
 
-    /** Convert a the format "yyyy-MM-dd HH:mm:ssZZ" to "yyyy-MM-dd HH:mm" with implied TimeZone UTC used when storing. */
+    /** Convert a the format "yyyy-MM-dd HH:mm:ssZZ" to "yyyy-MM-dd HH:mm" with implied TimeZone UTC used when storing. 
+     * @param dateString String
+     * @return UTC
+     * @throws ParseException fail */
     public String getImpliedUTCFromISO8601(final String dateString) throws ParseException {
         return ValidityDate.getImpliedUTCFromISO8601(dateString);
     }
@@ -650,6 +670,9 @@ public class EjbcaWebBean implements Serializable {
     /**
      * Convert a the format "yyyy-MM-dd HH:mm:ssZZ" to "yyyy-MM-dd HH:mm" with implied TimeZone UTC used when storing. If it is a relative date we
      * return it as it was. Otherwise we try to parse it as a ISO8601 date time.
+     * @param dateString String
+     * @return UTC
+     * @throws ParseException Fail
      */
     public String getImpliedUTCFromISO8601OrRelative(final String dateString) throws ParseException {
         if (!isRelativeDateTime(dateString)) {
@@ -658,7 +681,10 @@ public class EjbcaWebBean implements Serializable {
         return dateString;
     }
 
-    /** Convert a the format "yyyy-MM-dd HH:mm" with implied TimeZone UTC to a more user friendly "yyyy-MM-dd HH:mm:ssZZ". */
+    /** Convert a the format "yyyy-MM-dd HH:mm" with implied TimeZone UTC to a more user friendly "yyyy-MM-dd HH:mm:ssZZ". 
+     * @param dateString String
+     * @return ISO
+     * @throws ParseException fail */
     public String getISO8601FromImpliedUTC(final String dateString) throws ParseException {
         return ValidityDate.getISO8601FromImpliedUTC(dateString, timeZone);
     }
@@ -667,6 +693,8 @@ public class EjbcaWebBean implements Serializable {
      * Convert a the format "yyyy-MM-dd HH:mm" with implied TimeZone UTC to a more user friendly "yyyy-MM-dd HH:mm:ssZZ". If it is a relative date we
      * return it as it was. If we fail to parse the stored date we return an error-string followed by the stored value.
      * If the passed in value is empty, we return an empty string
+     * @param dateString String
+     * @return ISO
      */
     public String getISO8601FromImpliedUTCOrRelative(final String dateString) {
         if (StringUtils.isEmpty(dateString)) {
@@ -791,6 +819,7 @@ public class EjbcaWebBean implements Serializable {
 
     /**
      * Returns authorized end entity  profile names as a treemap of name (String) -> id (Integer)
+     * @return Map
      */
     public TreeMap<String, Integer> getAuthorizedEndEntityCertificateProfileNames() {
         final TreeMap<String,Integer> ret = new TreeMap<>();
@@ -809,6 +838,7 @@ public class EjbcaWebBean implements Serializable {
 
     /**
      * Returns authorized sub CA certificate profile names as a treemap of name (String) -> id (Integer)
+     * @return Map
      */
     public TreeMap<String, Integer> getAuthorizedSubCACertificateProfileNames() {
         final TreeMap<String,Integer> ret = new TreeMap<>();
@@ -822,6 +852,7 @@ public class EjbcaWebBean implements Serializable {
 
     /**
      * Returns authorized root CA certificate profile names as a treemap of name (String) -> id (Integer)
+     * @return Map
      */
     public TreeMap<String, Integer> getAuthorizedRootCACertificateProfileNames() {
         final TreeMap<String,Integer> ret = new TreeMap<>();
@@ -857,6 +888,7 @@ public class EjbcaWebBean implements Serializable {
 
     /**
      * Returns all authorized publishers names as a treemap of name (String) -> id (Integer).
+     * @return Map
      */
     public TreeMap<String, Integer> getAuthorizedPublisherNames() {
         final TreeMap<String,Integer> ret = new TreeMap<>();
@@ -892,6 +924,8 @@ public class EjbcaWebBean implements Serializable {
 
     /**
      * Returns authorized end entity profile names as a treemap of name (String) -> id (String)
+     * @param endentityAccessRule Rule
+     * @return Map
      */
     public TreeMap<String, String> getAuthorizedEndEntityProfileNames(final String endentityAccessRule) {
         final RAAuthorization raAuthorization = new RAAuthorization(administrator, globalConfigurationSession, authorizationSession, caSession, endEntityProfileSession);
@@ -904,6 +938,7 @@ public class EjbcaWebBean implements Serializable {
 
     /**
      * Method returning all CA ids with CMS service enabled
+     * @return IDs
      */
     public Collection<Integer> getCAIdsWithCMSServiceActive() {
         ArrayList<Integer> retval = new ArrayList<>();
@@ -1063,6 +1098,9 @@ public class EjbcaWebBean implements Serializable {
     }
 
     /** Perform HTTP connection to the cluster nodes clear-cache Servlet
+     * @param hostname Host
+     * @param excludeActiveCryptoTokens bool
+     * @return bool
      * @throws IOException if any of the external hosts couldn't be contacted
      */
     private boolean checkHost(String hostname, boolean excludeActiveCryptoTokens) throws IOException {
@@ -1089,7 +1127,8 @@ public class EjbcaWebBean implements Serializable {
         return false;
     }
 
-    /** @return true if the provided hostname matches the name reported by the system for localhost */
+    /** @param hostname Host
+     * @return true if the provided hostname matches the name reported by the system for localhost */
     private boolean isLocalHost(final String hostname) {
         try {
             if (hostname.equals(InetAddress.getLocalHost().getHostName())) {

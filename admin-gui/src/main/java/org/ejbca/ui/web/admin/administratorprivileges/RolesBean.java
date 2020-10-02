@@ -42,7 +42,9 @@ import org.ejbca.ui.web.admin.BaseManagedBean;
  * Managed Bean for the Roles overview page.
  * 
  * @version $Id: RolesBean.java 28844 2018-05-04 08:31:02Z samuellb $
+ * TODO: CDI beans
  */
+@SuppressWarnings("deprecation")
 @ViewScoped
 @ManagedBean
 public class RolesBean extends BaseManagedBean implements Serializable {
@@ -145,17 +147,20 @@ public class RolesBean extends BaseManagedBean implements Serializable {
 
     /** @return the currently selected namespace when adding or renaming a role */
     public String getEditNameSpaceSelected() { return editNameSpaceSelected; }
-    /** Set the currently selected namespace when adding or renaming a role */
+    /** Set the currently selected namespace when adding or renaming a role 
+     * @param editNameSpaceSelected Selected*/
     public void setEditNameSpaceSelected(String editNameSpaceSelected) { this.editNameSpaceSelected = editNameSpaceSelected; }
 
     /** @return the currently free-text namespace when adding or renaming a role (or null if no free text editing is currently ongoing) */
     public String getEditNameSpace() { return editNameSpace; }
-    /** Set the currently free-text namespace when adding or renaming a role (or null if no free text editing is currently ongoing) */
+    /** Set the currently free-text namespace when adding or renaming a role (or null if no free text editing is currently ongoing) 
+     * @param editNameSpace NS */
     public void setEditNameSpace(String editNameSpace) { this.editNameSpace = editNameSpace.trim(); }
 
     /** @return the free-text role name when adding or renaming a role */
     public String getEditRoleName() { return editRoleName; }
-    /** Set the free-text role name when adding or renaming a role */
+    /** Set the free-text role name when adding or renaming a role 
+     * @param editRoleName Name */
     public void setEditRoleName(String editRoleName) { this.editRoleName = editRoleName.trim(); }
     
     public int getSelectedStyle() {

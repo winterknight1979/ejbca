@@ -86,6 +86,8 @@ public class ServiceTypeManager implements Serializable {
 	
 	/**
 	 * Returns the service type with the given name.
+	 * @param name Name
+	 * @return service
 	 */
 	public ServiceType getServiceTypeByName(String name) {
 		return availableTypesByName.get(name);
@@ -94,6 +96,8 @@ public class ServiceTypeManager implements Serializable {
 	/**
 	 * Returns the service type with the classpath or
 	 * null if the classpath should have a custom page.
+	 * @param classPath CP
+	 * @return Type
 	 */
 	public ServiceType getServiceTypeByClassPath(String classPath) {		
 		return availableTypesByClassPath.get(classPath);

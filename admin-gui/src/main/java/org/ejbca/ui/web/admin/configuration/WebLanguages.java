@@ -40,7 +40,9 @@ public class WebLanguages implements java.io.Serializable {
 
     /** Constructor used to load static content. An instance must be declared with this constructor before
      *  any WebLanguage object can be used. */
-    /** Special constructor used by Ejbca web bean */
+    /** Special constructor used by Ejbca web bean 
+     * @param servletContext Context
+     * @param globalconfiguration Config */
     private void init(ServletContext servletContext, GlobalConfiguration globalconfiguration) {
         if(languages == null){
             // Get available languages.
@@ -105,7 +107,10 @@ public class WebLanguages implements java.io.Serializable {
     }
 
 
-    /** The main method that looks up the template text in the users preferred language. */
+    /** The main method that looks up the template text in the users preferred language. 
+     * @param template Template
+     * @param params Params
+     * @return text */
     public  String getText(String template, Object... params){
       String returnvalue = null;
       try{

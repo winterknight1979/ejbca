@@ -35,7 +35,7 @@ public class EditEndEntityBean {
 
     /**
      * Set the current end entity's ExtendedInformation.
-     * @param extendedInformation 
+     * @param extendedInformation Info
      */
     public void setExtendedInformation(ExtendedInformation extendedInformation) {
         this.extendedInformation = extendedInformation;

@@ -507,6 +507,7 @@ public class CertProfileBean extends BaseManagedBean implements Serializable {
     public boolean isNonOverridableExtensionOIDs() { return !getCertificateProfile().getNonOverridableExtensionOIDs().isEmpty(); }
     /** Toggles which Set is populated, the one for overridable, or the one for non-overridable
      * true to populate non-overridable extension list, false for overridable
+     * @throws IOException Fail
      */
     public void toggleAllowExtensionOverride() throws IOException {
         getCertificateProfile().setAllowExtensionOverride(!getCertificateProfile().getAllowExtensionOverride());
@@ -820,7 +821,9 @@ public class CertProfileBean extends BaseManagedBean implements Serializable {
         return pdsListModel;
     }
 
-    /** Called when the user presses the "Add" button to add a new PDS URL field */
+    /** Called when the user presses the "Add" button to add a new PDS URL field 
+     * @return String
+     * @throws IOException Fail */
     public String addQCEtsiPds() throws IOException {
         final List<PKIDisclosureStatement> pdsList = getQCEtsiPdsList();
         pdsList.add(new PKIDisclosureStatement("", "en")); // start with blank values, that the user can fill in
@@ -840,7 +843,8 @@ public class CertProfileBean extends BaseManagedBean implements Serializable {
         return "";
     }
 
-    /** Returns true if there's a PDS URL filled in that can be deleted */
+    /** Returns true if there's a PDS URL filled in that can be deleted 
+     * @return Bool*/
     public boolean isAbleToDeletePDSUrl() {
         final List<PKIDisclosureStatement> pdsList = getQCEtsiPdsList();
         if (pdsList.size() == 1) {
@@ -945,7 +949,8 @@ public class CertProfileBean extends BaseManagedBean implements Serializable {
         return ret;
     }
     
-    /** @returns the size of the select box */ 
+    /** @return 
+     *    the size of the select box */ 
     public int getDistinctCTLabelsAvailableSize() { return Math.max(3, Math.min(6, getDistinctCtLabelsAvailable().size())); }
 
     public List<String> getEnabledCtLabels() {
@@ -1288,7 +1293,9 @@ public class CertProfileBean extends BaseManagedBean implements Serializable {
     }
     public int getPublisherListAvailableSize() { return Math.max(1, Math.min(5, getPublisherListAvailable().size())); };
 
-    /** Redirect the client browser to the relevant section of certificate profile page */
+    /** Redirect the client browser to the relevant section of certificate profile page 
+     * @param componentId ID
+     * @throws IOException Fail */
     private void redirectToComponent(final String componentId) throws IOException {
         final ExternalContext ec = FacesContext.getCurrentInstance().getExternalContext();
         ec.redirect(getEjbcaWebBean().getBaseUrl()+getEjbcaWebBean().getGlobalConfiguration().getAdminWebPath()+"ca/editcertificateprofiles/editcertificateprofile.jsf#cpf:"+componentId);

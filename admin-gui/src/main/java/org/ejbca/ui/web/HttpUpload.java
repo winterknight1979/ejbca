@@ -55,7 +55,6 @@ public class HttpUpload {
      * @throws IOException if there are network problems, etc.
      * @throws FileUploadException if the request is invalid.
      */
-    @SuppressWarnings("unchecked") // Needed in some environments, and detected as unnecessary in others. Do not remove!
     public HttpUpload(HttpServletRequest request, String[] fileFields, int maxbytes) throws IOException, FileUploadException {
         if (ServletFileUpload.isMultipartContent(request)) {
             final Map<String,ArrayList<String>> paramTemp = new HashMap<>();

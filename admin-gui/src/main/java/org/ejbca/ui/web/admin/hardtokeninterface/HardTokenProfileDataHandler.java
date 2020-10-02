@@ -50,7 +50,13 @@ public class HardTokenProfileDataHandler implements Serializable {
     private CaSession caSession; 
     private AuthenticationToken administrator;
     
-    /** Creates a new instance of HardTokenProfileDataHandler */
+    /** Creates a new instance of HardTokenProfileDataHandler 
+     * @param administrator Admin
+     * @param hardtokensession Session
+     * @param certificatesession Session
+     * @param authorizationSession Session
+     * @param endEntityManagementSession Session
+     * @param caSession Session */
     public HardTokenProfileDataHandler(AuthenticationToken administrator, HardTokenSession hardtokensession, CertificateProfileSession certificatesession, AuthorizationSessionLocal authorizationSession, 
             EndEntityManagementSessionLocal endEntityManagementSession, CaSession caSession) {
        this.hardtokensession = hardtokensession;           
@@ -62,9 +68,12 @@ public class HardTokenProfileDataHandler implements Serializable {
     }
     
        /** Method to add a hard token profile. 
+     * @param name NAme
+     * @param profile Peofile
         * 
         * @return false, if the profile have a bad XML encoding.
-        * @throws HardTokenProfileExistsException if profile already exists  */
+        * @throws HardTokenProfileExistsException if profile already exists  
+     * @throws AuthorizationDeniedException fail*/
     public boolean addHardTokenProfile(String name, HardTokenProfile profile) throws HardTokenProfileExistsException, AuthorizationDeniedException {
       boolean success = false;
       if(authorizedToProfile(profile, true)){
@@ -82,8 +91,11 @@ public class HardTokenProfileDataHandler implements Serializable {
 
 
 	/** Method to change a hard token profile. 
+	 * @param name Name
+	 * @param profile Profile
         * 
         * @return false, if the profile have a bad XML encoding.
+	 * @throws AuthorizationDeniedException fail
         * */     
     public boolean changeHardTokenProfile(String name, HardTokenProfile profile) throws AuthorizationDeniedException{
         boolean success = false;
@@ -98,7 +110,10 @@ public class HardTokenProfileDataHandler implements Serializable {
       return success;
     }
     
-    /** Method to remove a hard token profile, returns true if deletion failed.*/ 
+    /** Method to remove a hard token profile, returns true if deletion failed.
+     * @param name Name
+     * @return Ptofile
+     * @throws AuthorizationDeniedException fail */ 
     public boolean removeHardTokenProfile(String name) throws AuthorizationDeniedException{
       boolean returnval = true;  
       
@@ -119,7 +134,11 @@ public class HardTokenProfileDataHandler implements Serializable {
       return returnval;          
     }
     
-    /** Metod to rename a hard token profile */
+    /** Metod to rename a hard token profile 
+     * @param oldname Name
+     * @param newname Profile
+     * @throws HardTokenProfileExistsException FGail
+     * @throws AuthorizationDeniedException Fail */
     public void renameHardTokenProfile(String oldname, String newname) throws HardTokenProfileExistsException, AuthorizationDeniedException{
      if(authorizedToProfileName(oldname, true)){    
 		hardtokensession.renameHardTokenProfile(administrator, oldname,newname);
@@ -139,7 +158,10 @@ public class HardTokenProfileDataHandler implements Serializable {
     
 
 
-      /** Method to get a reference to a Hard Token profile.*/ 
+      /** Method to get a reference to a Hard Token profile.
+     * @param id ID
+     * @return Profile
+     * @throws AuthorizationDeniedException Fail */ 
     public HardTokenProfile getHardTokenProfile(int id) throws AuthorizationDeniedException{
       if(!authorizedToProfileId(id, false)) {
         throw new AuthorizationDeniedException("Not authorized to hard token profile");            
@@ -162,6 +184,9 @@ public class HardTokenProfileDataHandler implements Serializable {
     
     /**
      * Help function that checks if administrator is authorized to edit profile with given name.
+     * @param profilename Profile
+     * @param editcheck Check
+     * @return Bool
      */
     private boolean authorizedToProfileName(String profilename, boolean editcheck){
 		HardTokenProfile profile = hardtokensession.getHardTokenProfile(profilename);
@@ -171,6 +196,9 @@ public class HardTokenProfileDataHandler implements Serializable {
     
     /**
      * Help function that checks if administrator is authorized to edit profile with given name.
+     * @param profileid Profile
+     * @param editcheck Check
+     * @return bool
      */
     private boolean authorizedToProfileId(int profileid, boolean editcheck){
       HardTokenProfile profile = hardtokensession.getHardTokenProfile(profileid);
@@ -179,6 +207,9 @@ public class HardTokenProfileDataHandler implements Serializable {
     
     /**
      * Help function that checks if administrator is authorized to edit profile.
+     * @param profile Profile
+     * @param editcheck Check
+     * @return Bool
      */    
     private boolean authorizedToProfile(HardTokenProfile profile, boolean editcheck) {
         boolean returnval = false;
@@ -208,7 +239,7 @@ public class HardTokenProfileDataHandler implements Serializable {
    
     /**
      * Method that test to XML encode and decode a profile.
-     * @param profile 
+     * @param profile Profile
      * @return false if something went wrong in the encoding process.
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })

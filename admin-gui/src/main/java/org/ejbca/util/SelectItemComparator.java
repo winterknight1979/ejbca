@@ -38,7 +38,8 @@ public class SelectItemComparator implements Comparator<SelectItem>, Serializabl
         this(new Object[0]);
     }
     
-    /** specialObjects will be placed first. Typically these will be IDs */ 
+    /** specialObjects will be placed first. Typically these will be IDs 
+     * @param specialObjects Objects*/ 
     public SelectItemComparator(Object... specialObjects) {
         this.specialObjects = new HashSet<>(Arrays.asList(specialObjects));
     }

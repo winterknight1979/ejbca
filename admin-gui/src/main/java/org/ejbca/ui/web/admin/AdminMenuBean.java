@@ -32,7 +32,9 @@ import org.ejbca.ui.web.admin.configuration.EjbcaJSFHelper;
 /**
  * Backing bean for the menu on the left (in the default theme) in the AdminWeb.
  * @version $Id: AdminMenuBean.java 30655 2018-11-28 08:58:52Z aminkh $
+ * TODO: Switch to CDI
  */
+@SuppressWarnings("deprecation")
 @RequestScoped
 @ManagedBean
 public class AdminMenuBean extends BaseManagedBean implements Serializable {

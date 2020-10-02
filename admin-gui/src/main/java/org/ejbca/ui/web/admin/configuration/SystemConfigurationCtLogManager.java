@@ -105,6 +105,7 @@ public class SystemConfigurationCtLogManager extends CtLogManager {
 
         /**
          * Load an existing CT log into the editor.
+         * @param ctLog Log
          */
         public void loadIntoEditor(final CTLogInfo ctLog) {
             this.label = ctLog.getLabel();

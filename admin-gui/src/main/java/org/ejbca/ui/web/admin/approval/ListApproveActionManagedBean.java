@@ -156,6 +156,7 @@ public class ListApproveActionManagedBean extends BaseManagedBean {
 	
 	/**
 	 * Help method to list.
+	 * @return Date
 	 */
 	private Date getStartDate(){
 		if(Integer.parseInt(selectedTimeSpan) == 0){

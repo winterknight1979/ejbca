@@ -57,8 +57,9 @@ import org.ejbca.util.HTMLTools;
 /**
  * JSF MBean backing the approval profile pages.
  * @version $Id: ApprovalProfileMBean.java 34227 2020-01-09 14:20:59Z henriks $
- *
+ * TODO: switch to CDI beans
  */
+@SuppressWarnings("deprecation")
 @ViewScoped // Local variables will live as long as actions on the backed page return "" or void.
 @ManagedBean(name="approvalProfileMBean")
 public class ApprovalProfileMBean extends BaseManagedBean implements Serializable {
