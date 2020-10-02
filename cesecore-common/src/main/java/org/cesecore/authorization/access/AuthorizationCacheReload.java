@@ -15,26 +15,38 @@ package org.cesecore.authorization.access;
 import java.io.Serializable;
 
 /**
- * You can have a method that has a parameter of this type with the &#64;Observes attribute to be
- * notified when the access rules or roles have been changed. Please make the method
+ * You can have a method that has a parameter of this type with the
+ * &#64;Observes attribute to be
+ * notified when the access rules or roles have been changed. Please make
+ * the method
  * &#64;Asynchronous so it doesn't block the caller (currently
- *  org.cesecore.authorization.cache.AccessTreeUpdateSessionBean#signalForAccessTreeUpdate() in cesecore-ejb.
+ * org.cesecore.authorization.cache.AccessTreeUpdateSessionBean#signalForAccessTreeUpdate()
+ * in cesecore-ejb.
  *
  * Currently we can't use JEE events, because it requires that we use CDI.
- * Instead the method org.cesecore.authorization.cache.AccessTreeUpdateSessionLocal.addReloadEvent(AuthorizationCacheReloadListener) can be used
+ * Instead the method
+ * org.cesecore.authorization.cache.AccessTreeUpdateSessionLocal.addReloadEvent(AuthorizationCacheReloadListener)
+ * can be used
  *
- * @version $Id: AuthorizationCacheReload.java 25591 2017-03-23 13:13:02Z jeklund $
+ * @version $Id: AuthorizationCacheReload.java
+ * 25591 2017-03-23 13:13:02Z jeklund $
  */
 public final class AuthorizationCacheReload implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    /** Update number. */
     private final int accessTreeUpdateNumber;
 
-    public AuthorizationCacheReload(final int accessTreeUpdateNumber) {
-        this.accessTreeUpdateNumber = accessTreeUpdateNumber;
+    /**
+     * Set tree number.
+     * @param anAccessTreeUpdateNumber Number
+     */
+    public AuthorizationCacheReload(final int anAccessTreeUpdateNumber) {
+        this.accessTreeUpdateNumber = anAccessTreeUpdateNumber;
     }
 
+    /** @return number */
     public int getAccessTreeUpdateNumber() {
         return accessTreeUpdateNumber;
     }

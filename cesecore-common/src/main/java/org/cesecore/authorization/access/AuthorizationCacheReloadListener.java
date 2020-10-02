@@ -15,7 +15,8 @@ package org.cesecore.authorization.access;
 /**
  * Interface for subscriber to AuthorizationCacheReload events.
  *
- * @version $Id: AuthorizationCacheReloadListener.java 25591 2017-03-23 13:13:02Z jeklund $
+ * @version $Id: AuthorizationCacheReloadListener.java
+ * 25591 2017-03-23 13:13:02Z jeklund $
  */
 public interface AuthorizationCacheReloadListener {
 
@@ -23,6 +24,7 @@ public interface AuthorizationCacheReloadListener {
      * @param event Event*/
     void onReload(AuthorizationCacheReload event);
 
-    /** @return a human readable name for logging of who is subscribing to events. */
+    /** @return a human readable name for logging of who
+     * is subscribing to events. */
     String getListenerName();
 }
