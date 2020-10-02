@@ -20,34 +20,59 @@ import org.cesecore.authentication.tokens.X509CertificateAuthenticationTokenMeta
 import org.cesecore.authorization.user.AccessMatchType;
 
 /**
- * Match with constants. Observe that these constants are also used as a priority indicator for access rules. The higher values the higher priority.
+ * Match with constants. Observe that these constants are also used as a
+ * priority indicator for access rules. The higher values the higher priority.
  *
- * @version $Id: X500PrincipalAccessMatchValue.java 25615 2017-03-24 18:44:19Z samuellb $
+ * @version $Id: X500PrincipalAccessMatchValue.java 25615 2017-03-24 18:44:19Z
+ *          samuellb $
  *
  */
 public enum X500PrincipalAccessMatchValue implements AccessMatchValue {
-    @Deprecated // Will never match anything which makes it rather useless keep around long term. (Deprecated in 6.8.0.)
+     /** None. */
+    @Deprecated // Will never match anything which makes it rather useless keep
+                // around long
+                // term. (Deprecated in 6.8.0.)
     NONE(0),
+    /** Country. */
     WITH_COUNTRY(1),
+    /** Domain. */
     WITH_DOMAINCOMPONENT(2),
+    /** State. */
     WITH_STATEORPROVINCE(3),
+    /** Locality. */
     WITH_LOCALITY(4),
+    /** Org. */
     WITH_ORGANIZATION(5),
+    /** Unit. */
     WITH_ORGANIZATIONALUNIT(6),
+    /** Title. */
     WITH_TITLE(7),
+    /** Common name. */
     WITH_COMMONNAME(8),
+    /** UID. */
     WITH_UID(9),
+    /** DN serial. */
     WITH_DNSERIALNUMBER(10),
+    /** Serial. */
     WITH_SERIALNUMBER(11),
+    /** Email. */
     WITH_DNEMAILADDRESS(12),
+    /** RFC 822 Email. */
     WITH_RFC822NAME(13),
+    /** UPN. */
     WITH_UPN(14),
+    /** Full DN. */
     WITH_FULLDN(15);
 
+    /** Value. */
     private final int numericValue;
 
-    private X500PrincipalAccessMatchValue(int numericValue) {
-        this.numericValue = numericValue;
+    /**
+     * Constryctor.
+     * @param aNumericValue Value
+     */
+    X500PrincipalAccessMatchValue(final int aNumericValue) {
+        this.numericValue = aNumericValue;
     }
 
     @Override
@@ -80,7 +105,8 @@ public enum X500PrincipalAccessMatchValue implements AccessMatchValue {
         if (value == null) {
             return null;
         } else if (this == WITH_SERIALNUMBER) {
-            return value.trim().toUpperCase(Locale.ROOT).replaceAll("^0+([0-9A-F]+)$", "$1");
+            return value.trim().toUpperCase(Locale.ROOT)
+                    .replaceAll("^0+([0-9A-F]+)$", "$1");
         } else {
             return value; // no normalization
         }

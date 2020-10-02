@@ -27,17 +27,19 @@ public interface AccessMatchValue {
 
     /**
      *
-     * @return the numeric value of this AccessMatchValue, i.e. its database value.
+     * @return the numeric value of this AccessMatchValue, i.e. its database
+     * value.
      */
     int getNumericValue();
-
 
     /** @return true if this is a preferred value */
     boolean isDefaultValue();
 
     /**
-     * A string value inherent to the implementing AccessMatchValue. This value should be unique, but independent of code
-     * (i.e do not use Class.getSimpleName()) to avoid upgrade issues in case of future refactorization.
+     * A string value inherent to the implementing AccessMatchValue. This value
+     * should be unique, but independent of code (i.e do not use
+     * Class.getSimpleName()) to avoid upgrade issues in case of future
+     * refactorization.
      *
      * @return a name for the implementation of this match value.
      */
@@ -60,9 +62,12 @@ public interface AccessMatchValue {
     List<AccessMatchType> getAvailableAccessMatchTypes();
 
     /**
-     * Normalizes a match value string. If normalization is not applicable for the
-     * match key, then it returns the string unchanged. If the match key does not
+     * Normalizes a match value string. If normalization
+     * is not applicable for the
+     * match key, then it returns the string unchanged.
+     * If the match key does not
      * have match values at all, then it returns null.
+     *
      * @param value Value
      * @return Normalized value
      */

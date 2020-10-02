@@ -13,29 +13,44 @@
 package org.cesecore.authorization.user.matchvalues;
 
 /**
- * This runtime exception is thrown to signify that an attempt of an enum to extend the AccessMatchValue
- * interface failed and could not be recovered.
+ * This runtime exception is thrown to signify that an attempt of an enum to
+ * extend the AccessMatchValue interface failed and could not be recovered.
  *
- * @version $Id: InvalidMatchValueException.java 17625 2013-09-20 07:12:06Z netmackan $
+ * @version $Id: InvalidMatchValueException.java 17625 2013-09-20 07:12:06Z
+ *          netmackan $
  *
  */
 public class InvalidMatchValueException extends RuntimeException {
 
     private static final long serialVersionUID = -7145630440532075247L;
-
+    /** Bare exception. */
     public InvalidMatchValueException() {
         super();
     }
 
-    public InvalidMatchValueException(String message, Throwable cause) {
+    /**
+     * Exception with message and cause.
+     * @param message Message
+     * @param cause Cause
+     */
+    public InvalidMatchValueException(
+            final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public InvalidMatchValueException(String message) {
+    /**
+     * Exception with message.
+     * @param message Message
+     */
+    public InvalidMatchValueException(final String message) {
         super(message);
     }
 
-    public InvalidMatchValueException(Throwable cause) {
+    /**
+     * Exception with cause.
+     * @param cause Cause
+     */
+    public InvalidMatchValueException(final Throwable cause) {
         super(cause);
     }
 
