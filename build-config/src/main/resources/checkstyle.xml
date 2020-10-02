@@ -31,6 +31,18 @@
 
 -->
 
+<!-- 
+	Changes from Sun for EJBCA:
+	* Allow single word comments and imports to be longer than 80 chars
+	* Don't require jdoc on @Override
+	* Allow protected visibility
+	* Allow magic numbers in HashCode().
+	
+	Other than TODO comments, all acceptable deviations from this style should be
+	suppressed in the per-module suppression file.
+	
+ -->
+
 <module name="Checker">
   <!--
       If you set the basedir property below, then all reported file
@@ -73,6 +85,9 @@
   <module name="FileLength"/>
   <module name="LineLength">
     <property name="fileExtensions" value="java"/>
+    <property name="ignorePattern" value="(^import .*;$|^ *\* *[^ ]+$)"/> 
+     <!-- ignore import statements -->
+     <!-- Ignore long single word comments -->
   </module>
 
   <!-- Checks for whitespace                               -->
@@ -165,7 +180,9 @@
     <module name="HiddenField"/>
     <module name="IllegalInstantiation"/>
     <module name="InnerAssignment"/>
-    <module name="MagicNumber"/>
+    <module name="MagicNumber">
+    	<property name="ignoreHashCodeMethod" value="true"/>
+    </module>
     <module name="MissingSwitchDefault"/>
     <module name="MultipleVariableDeclarations"/>
     <module name="SimplifyBooleanExpression"/>
@@ -179,7 +196,9 @@
     <module name="FinalClass"/>
     <module name="HideUtilityClassConstructor"/>
     <module name="InterfaceIsType"/>
-    <module name="VisibilityModifier"/>
+    <module name="VisibilityModifier">
+    	<property name="protectedAllowed" value="true"/>
+    </module>
 
     <!-- Miscellaneous other checks.                   -->
     <!-- See https://checkstyle.org/config_misc.html -->

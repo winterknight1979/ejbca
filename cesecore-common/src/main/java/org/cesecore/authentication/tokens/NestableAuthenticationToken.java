@@ -18,52 +18,72 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * A NestableAuthenticationToken represents an AuthenticationToken where the original credentials has
+ * A NestableAuthenticationToken represents an AuthenticationToken
+ * where the original credentials has
  * passed through multiple step of authentication.
  *
- * @version $Id: NestableAuthenticationToken.java 25797 2017-05-04 15:52:00Z jeklund $
+ * @version $Id: NestableAuthenticationToken.java
+ * 25797 2017-05-04 15:52:00Z jeklund $
  */
-public abstract class NestableAuthenticationToken extends LocalJvmOnlyAuthenticationToken {
+public abstract class NestableAuthenticationToken extends
+    LocalJvmOnlyAuthenticationToken {
 
     private static final long serialVersionUID = 1L;
+    /** Maximum nesting depth. */
     private static final int MAX_NESTING = 10;
 
+    /** Internal token. */
     private NestableAuthenticationToken nestedAuthenticationToken = null;
 
-    protected NestableAuthenticationToken(final Set<? extends Principal> principals, final Set<?> credentials) {
+    protected NestableAuthenticationToken(
+            final Set<? extends Principal> principals,
+            final Set<?> credentials) {
         super(principals, credentials);
     }
 
-    /** @return a List of all nested AuthenticationTokens (excluding the object itself) or an empty List, never null.*/
+    /** @return a List of all nested AuthenticationTokens (excluding the
+     * object itself) or an empty List, never null.*/
     public List<NestableAuthenticationToken> getNestedAuthenticationTokens() {
-        final List<NestableAuthenticationToken> nestedAuthenticationTokens = new ArrayList<>();
+        final List<NestableAuthenticationToken> theNestedAuthenticationTokens
+            = new ArrayList<>();
         NestableAuthenticationToken current = this.nestedAuthenticationToken;
-        while (current!=null) {
-            nestedAuthenticationTokens.add(current);
-            // Perform a small sanity check to protect against loops or massive nesting in order to exhaust server mem
-            if (nestedAuthenticationTokens.size()>MAX_NESTING) {
-                throw new IllegalStateException("Hard coded limit of number of nested AuthenticationTokens reached.");
+        while (current != null) {
+            theNestedAuthenticationTokens.add(current);
+            // Perform a small sanity check to protect against loops or
+            // massive nesting in order to exhaust server mem
+            if (theNestedAuthenticationTokens.size() > MAX_NESTING) {
+                throw new IllegalStateException("Hard coded limit of number "
+                        + "of nested AuthenticationTokens reached.");
             }
             current = current.nestedAuthenticationToken;
         }
-        return nestedAuthenticationTokens;
+        return theNestedAuthenticationTokens;
     }
 
-    public void appendNestedAuthenticationToken(final NestableAuthenticationToken nestedAuthenticationToken) {
+    /**
+     * Append a token.
+     * @param aNestedAuthenticationToken Token to append.
+     */
+    public void appendNestedAuthenticationToken(
+            final NestableAuthenticationToken aNestedAuthenticationToken) {
         NestableAuthenticationToken current = this;
         int count = 0;
         while (true) {
-            // If the nested token we are appending was created locally, we consider all to be created locally as well
-            if (nestedAuthenticationToken.isCreatedInThisJvm() && !current.isCreatedInThisJvm()) {
+            // If the nested token we are appending was created locally,
+            // we consider all to be created locally as well
+            if (aNestedAuthenticationToken.isCreatedInThisJvm()
+                    && !current.isCreatedInThisJvm()) {
                 current.initRandomToken();
             }
-            if (current.nestedAuthenticationToken==null) {
-                current.nestedAuthenticationToken = nestedAuthenticationToken;
+            if (current.nestedAuthenticationToken == null) {
+                current.nestedAuthenticationToken = aNestedAuthenticationToken;
                 break;
             }
-            // Perform a small sanity check to protect against loops or massive nesting in order to exhaust server mem
-            if (count++>MAX_NESTING) {
-                throw new IllegalStateException("Hard coded limit of number of nested AuthenticationTokens reached.");
+            // Perform a small sanity check to protect against loops or
+            // massive nesting in order to exhaust server mem
+            if (count++ > MAX_NESTING) {
+                throw new IllegalStateException("Hard coded limit of number of"
+                        + " nested AuthenticationTokens reached.");
             }
             current = current.nestedAuthenticationToken;
         }
@@ -72,25 +92,27 @@ public abstract class NestableAuthenticationToken extends LocalJvmOnlyAuthentica
     @Override
     public void initRandomToken() {
         super.initRandomToken();
-        if (nestedAuthenticationToken!=null) {
+        if (nestedAuthenticationToken != null) {
             nestedAuthenticationToken.initRandomToken();
         }
     }
 
-    /** Returns information of the entity this authentication token belongs to. */
+    /** Returns information of the entity
+     * this authentication token belongs to. */
     @Override
     public String toString() {
         String ret = toStringOverride();
-        if (ret==null) {
+        if (ret == null) {
             ret = super.toString();
         }
-        if (nestedAuthenticationToken!=null) {
+        if (nestedAuthenticationToken != null) {
             ret += " [via] " + nestedAuthenticationToken.toString();
         }
         return ret;
     }
 
-    /** Override and return anything but null to use this value instead of {@link AuthenticationToken#toString()}
+    /** Override and return anything but null to use this value instead of
+     * {@link AuthenticationToken#toString()}.
      * @return null by default */
     protected String toStringOverride() {
         return null;
@@ -98,6 +120,9 @@ public abstract class NestableAuthenticationToken extends LocalJvmOnlyAuthentica
 
     @Override
     protected String generateUniqueId() {
-        return nestedAuthenticationToken==null ? null : nestedAuthenticationToken.getMetaData().getTokenType() + ";" + nestedAuthenticationToken.getUniqueId();
+        return nestedAuthenticationToken == null
+                ? null
+                : nestedAuthenticationToken.getMetaData().getTokenType()
+                    + ";" + nestedAuthenticationToken.getUniqueId();
     }
 }

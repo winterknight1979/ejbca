@@ -13,5 +13,7 @@
  	<suppress checks="RegexpSinglelineCheck"
  			  files="intresources.en.properties"
  			  lines="18-19" />
+ 	  
+ 	
 
  </suppressions>

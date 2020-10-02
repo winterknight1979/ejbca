@@ -26,12 +26,14 @@ package org.cesecore.authentication.tokens;
 //
 ///**
 // * TODO Not done at all
-// * @version $Id: ApiKeyAuthenticationToken.java 29044 2018-05-29 07:20:54Z henriks $
+// * @version $Id: ApiKeyAuthenticationToken.java
+//                 29044 2018-05-29 07:20:54Z henriks $
 // *
 // */
 //public class ApiKeyAuthenticationToken extends AuthenticationToken {
 //
-//    private static final ApiKeyAuthenticationTokenMetaData metaData = new ApiKeyAuthenticationTokenMetaData();
+//    private static final ApiKeyAuthenticationTokenMetaData metaData =
+//                new ApiKeyAuthenticationTokenMetaData();
 //
 //    private static final long serialVersionUID = 1L;
 //
@@ -51,11 +53,13 @@ package org.cesecore.authentication.tokens;
 //    }
 //
 //    @Override
-//    public boolean matches(AccessUserAspect accessUser) throws AuthenticationFailedException {
+//    public boolean matches(AccessUserAspect accessUser)
+//            throws AuthenticationFailedException {
 //        if (StringUtils.isEmpty(apiKeyHash)) {
 //            return false;
 //        }
-//        if (matchTokenType(accessUser.getTokenType()) && accessUser.getMatchValue().equals(apiKeyHash)) {
+//        if (matchTokenType(accessUser.getTokenType()) &&
+//                 accessUser.getMatchValue().equals(apiKeyHash)) {
 //            return true;
 //        }
 //        return false;

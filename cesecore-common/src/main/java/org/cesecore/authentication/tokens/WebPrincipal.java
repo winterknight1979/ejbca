@@ -23,17 +23,20 @@ import java.security.Principal;
 public class WebPrincipal implements Principal, Serializable {
 
     private static final long serialVersionUID = 1L;
-
-    final String moduleName;
-    final String clientIPAddress;
+    /** Module. */
+    private final String moduleName;
+    /** Client IP. */
+    private final String clientIPAddress;
 
     /**
-     * @param moduleName Arbitrary identifier of the page or module, e.g. "AutoEnrollServlet"
-     * @param clientIPAddress Remote IP address
+     * @param aModuleName Arbitrary identifier of the page or module,
+     *     e.g. "AutoEnrollServlet"
+     * @param theClientIPAddress Remote IP address
      */
-    public WebPrincipal(final String moduleName, final String clientIPAddress) {
-        this.clientIPAddress = clientIPAddress;
-        this.moduleName = moduleName;
+    public WebPrincipal(final String aModuleName,
+            final String theClientIPAddress) {
+        this.clientIPAddress = theClientIPAddress;
+        this.moduleName = aModuleName;
     }
 
     @Override
@@ -46,10 +49,14 @@ public class WebPrincipal implements Principal, Serializable {
         return moduleName + ": " + clientIPAddress;
     }
 
+    /** @return module */
     public String getModuleName() {
         return moduleName;
     }
 
+    /**
+     * @return IP address
+     */
     public String getClientIPAddress() {
         return clientIPAddress;
     }

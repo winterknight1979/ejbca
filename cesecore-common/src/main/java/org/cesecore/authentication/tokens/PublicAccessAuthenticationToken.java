@@ -21,20 +21,30 @@ import org.cesecore.authentication.AuthenticationFailedException;
 import org.cesecore.authorization.user.AccessUserAspect;
 
 /**
- * AuthenticationToken representing a user that has provided no means of authentication,
+ * AuthenticationToken representing a user that has provided no means
+ *     of authentication,
  * e.g. a client accessing an interface like public RA web pages.
  *
- * @version $Id: PublicAccessAuthenticationToken.java 26057 2017-06-22 08:08:34Z anatom $
+ * @version $Id: PublicAccessAuthenticationToken.java
+ *     26057 2017-06-22 08:08:34Z anatom $
  */
-public class PublicAccessAuthenticationToken extends NestableAuthenticationToken {
+public class PublicAccessAuthenticationToken
+    extends NestableAuthenticationToken {
 
-    /** Public access to the RA. Compare to PublicWebPrincipal which serves the same purpose, but is used in the PublicWeb */
-    public static class PublicAccessPrincipal implements Principal, Serializable {
+    /** Public access to the RA. Compare to PublicWebPrincipal which serves
+     * the same purpose, but is used in the PublicWeb. */
+    public static class PublicAccessPrincipal
+        implements     Principal, Serializable {
         private static final long serialVersionUID = 1L;
+        /** Principal. */
         private final String principal;
 
-        public PublicAccessPrincipal(final String principal) {
-            this.principal = principal;
+        /**
+         * Constrictor.
+         * @param aPrincipal principal
+         */
+        public PublicAccessPrincipal(final String aPrincipal) {
+            this.principal = aPrincipal;
         }
 
         @Override
@@ -45,11 +55,13 @@ public class PublicAccessAuthenticationToken extends NestableAuthenticationToken
 
     private static class PublicAccessCredential implements Serializable {
         private static final long serialVersionUID = 1L;
+        /** Should we encrypt. */
         private final boolean confidentialTransport;
 
-        public PublicAccessCredential(final boolean confidentialTransport) {
-            this.confidentialTransport = confidentialTransport;
+       PublicAccessCredential(final boolean isConfidentialTransport) {
+            this.confidentialTransport = isConfidentialTransport;
         }
+
 
         public boolean isConfidentialTransport() {
             return confidentialTransport;
@@ -57,33 +69,53 @@ public class PublicAccessAuthenticationToken extends NestableAuthenticationToken
     }
 
     private static final long serialVersionUID = 1L;
-    public static final PublicAccessAuthenticationTokenMetaData metaData = new PublicAccessAuthenticationTokenMetaData();
+    /** Metadata. */
+    public static final PublicAccessAuthenticationTokenMetaData METADATA
+        = new PublicAccessAuthenticationTokenMetaData();
 
+    /** Principal. */
     private final PublicAccessPrincipal principal;
+    /** Credential. */
     private final PublicAccessCredential credential;
 
+    /**
+     * Constructor.
+     * @param aPrincipal Proncipal.
+     */
     @Deprecated
-    public PublicAccessAuthenticationToken(final String principal) {
-        this(principal, false);
+    public PublicAccessAuthenticationToken(final String aPrincipal) {
+        this(aPrincipal, false);
     }
 
-    public PublicAccessAuthenticationToken(final String principal, final boolean confidentialTransport) {
-        super(new HashSet<>(Arrays.asList(new PublicAccessPrincipal(principal))),
-                new HashSet<>(Arrays.asList(new PublicAccessCredential(confidentialTransport))));
-        this.principal = new PublicAccessPrincipal(principal);
+    /**
+     * Constructor.
+     * @param aPrincipal Principal
+     * @param confidentialTransport Transport
+     */
+    public PublicAccessAuthenticationToken(final String aPrincipal,
+            final boolean confidentialTransport) {
+        super(new HashSet<>(Arrays.asList(
+                new PublicAccessPrincipal(aPrincipal))),
+                    new HashSet<>(Arrays.asList(
+                        new PublicAccessCredential(confidentialTransport))));
+        this.principal = new PublicAccessPrincipal(aPrincipal);
         this.credential = new PublicAccessCredential(confidentialTransport);
     }
 
     @Override
-    public boolean matches(AccessUserAspect accessUser) throws AuthenticationFailedException {
-        // Protect against spoofing by checking if this token was created locally
+    public boolean matches(final AccessUserAspect accessUser)
+            throws AuthenticationFailedException {
+        // Protect against spoofing by checking if this
+        // token was created locally
         if (!super.isCreatedInThisJvm()) {
             return false;
         }
         if (!matchTokenType(accessUser.getTokenType())) {
             return false;
         }
-        final PublicAccessMatchValue matchValue = (PublicAccessMatchValue) getMatchValueFromDatabaseValue(accessUser.getMatchWith());
+        final PublicAccessMatchValue matchValue
+            = (PublicAccessMatchValue) getMatchValueFromDatabaseValue(
+                    accessUser.getMatchWith());
         switch (matchValue) {
         case TRANSPORT_CONFIDENTIAL:
             return credential.isConfidentialTransport();
@@ -98,7 +130,8 @@ public class PublicAccessAuthenticationToken extends NestableAuthenticationToken
 
     @Override
     public int getPreferredMatchKey() {
-        return AuthenticationToken.NO_PREFERRED_MATCH_KEY; // not applicable to this type of authentication token
+        return AuthenticationToken.NO_PREFERRED_MATCH_KEY;
+        // not applicable to this type of authentication token
     }
 
     @Override
@@ -106,21 +139,27 @@ public class PublicAccessAuthenticationToken extends NestableAuthenticationToken
         return null;
     }
 
-    /** Returns information of the entity this authentication token belongs to. */
+    /** Returns information of the entity this
+     * authentication token belongs to. */
     @Override
     public String toString() {
         return super.toString();
     }
 
-    /** Override the default Principal.getName() when doing toString on this object. */
+    /** Override the default Principal.getName()
+     * when doing toString on this object. */
     @Override
     protected String toStringOverride() {
-        return principal.getName() + (credential.isConfidentialTransport() ? " (TRANSPORT_CONFIDENTIAL)" : " (TRANSPORT_PLAIN)");
+        return principal.getName() + (credential.isConfidentialTransport()
+                ? " (TRANSPORT_CONFIDENTIAL)"
+                : " (TRANSPORT_PLAIN)");
     }
 
     @Override
     public int hashCode() {
-        int hashCode = 4711 * 1 + ((principal.getName() == null) ? 0 : principal.getName().hashCode());
+        int hashCode = 4711 * 1 + ((principal.getName() == null)
+                ? 0
+                : principal.getName().hashCode());
         hashCode *= 17 + (credential.isConfidentialTransport() ? 0 : 1);
         return hashCode;
     }
@@ -136,7 +175,8 @@ public class PublicAccessAuthenticationToken extends NestableAuthenticationToken
         if (getClass() != obj.getClass()) {
             return false;
         }
-        PublicAccessAuthenticationToken other = (PublicAccessAuthenticationToken) obj;
+        PublicAccessAuthenticationToken other
+            = (PublicAccessAuthenticationToken) obj;
         if (principal.getName() == null) {
             if (other.principal.getName() != null) {
                 return false;
@@ -144,16 +184,20 @@ public class PublicAccessAuthenticationToken extends NestableAuthenticationToken
         } else if (!principal.getName().equals(other.principal.getName())) {
             return false;
         }
-        return credential.isConfidentialTransport()==other.credential.isConfidentialTransport();
+        return credential.isConfidentialTransport()
+                == other.credential.isConfidentialTransport();
     }
 
     @Override
     protected String generateUniqueId() {
-        return generateUniqueId(super.isCreatedInThisJvm(), principal.getName(), credential.isConfidentialTransport()) + ";" + super.generateUniqueId();
+        return generateUniqueId(super.isCreatedInThisJvm(),
+                principal.getName(),
+                credential.isConfidentialTransport())
+                    + ";" + super.generateUniqueId();
     }
 
     @Override
     public AuthenticationTokenMetaData getMetaData() {
-        return metaData;
+        return METADATA;
     }
 }

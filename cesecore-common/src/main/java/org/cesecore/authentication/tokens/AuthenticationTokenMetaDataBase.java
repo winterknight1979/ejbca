@@ -19,32 +19,56 @@ import java.util.Map;
 import org.cesecore.authorization.user.matchvalues.AccessMatchValue;
 
 /**
- * Common functions for meta data definitions for AuthenticationTokens that should be auto-detected via ServiceLoader of AuthenticationTokenMetaData.
+ * Common functions for meta data definitions for AuthenticationTokens
+ *     that should be auto-detected via ServiceLoader of
+ *     AuthenticationTokenMetaData.
  *
- * @version $Id: AuthenticationTokenMetaDataBase.java 25431 2017-03-09 16:52:15Z mikekushner $
+ * @version $Id: AuthenticationTokenMetaDataBase.java
+ *     25431 2017-03-09 16:52:15Z mikekushner $
  */
-public abstract class AuthenticationTokenMetaDataBase implements AuthenticationTokenMetaData {
+public abstract class AuthenticationTokenMetaDataBase
+    implements AuthenticationTokenMetaData {
 
+    /** Type of token. */
     private final String tokenType;
+    /** List of matching values. */
     private final List<? extends AccessMatchValue> accessMatchValues;
+    /** Allow configuration. */
     private final boolean userConfigurable;
-    private final Map<Integer,AccessMatchValue> accessMatchValueIdMap = new HashMap<>();
-    private final Map<String,AccessMatchValue> accessMatchValueNameMap = new HashMap<>();
+    /** Map of match IDs. */
+    private final Map<Integer, AccessMatchValue> accessMatchValueIdMap
+        = new HashMap<>();
+    /** Map of matching values. */
+    private final Map<String, AccessMatchValue> accessMatchValueNameMap
+        = new HashMap<>();
+    /** Default match value. */
     private final AccessMatchValue defaultAccessMatchValue;
 
-    protected AuthenticationTokenMetaDataBase(final String tokenType, final List<? extends AccessMatchValue> accessMatchValues, final boolean userConfigurable) {
-        this.tokenType = tokenType;
-        this.accessMatchValues = accessMatchValues;
-        this.userConfigurable = userConfigurable;
-        AccessMatchValue defaultAccessMatchValue = null;
+    /** Constructor.
+     *
+     * @param theTokenType Type of token
+     * @param theAccessMatchValues Values to match
+     * @param isUserConfigurable Allow config
+     */
+    protected AuthenticationTokenMetaDataBase(
+            final String theTokenType,
+            final List<? extends AccessMatchValue> theAccessMatchValues,
+            final boolean isUserConfigurable) {
+        this.tokenType = theTokenType;
+        this.accessMatchValues = theAccessMatchValues;
+        this.userConfigurable = isUserConfigurable;
+        AccessMatchValue theDefaultAccessMatchValue = null;
         for (final AccessMatchValue accessMatchValue : getAccessMatchValues()) {
-            accessMatchValueIdMap.put(accessMatchValue.getNumericValue(), accessMatchValue);
-            accessMatchValueNameMap.put(accessMatchValue.name(), accessMatchValue);
-            if (defaultAccessMatchValue == null || accessMatchValue.isDefaultValue()) {
-                defaultAccessMatchValue = accessMatchValue;
+            accessMatchValueIdMap.put(accessMatchValue.getNumericValue(),
+                    accessMatchValue);
+            accessMatchValueNameMap.put(accessMatchValue.name(),
+                    accessMatchValue);
+            if (theDefaultAccessMatchValue == null
+                    || accessMatchValue.isDefaultValue()) {
+                theDefaultAccessMatchValue = accessMatchValue;
             }
         }
-        this.defaultAccessMatchValue = defaultAccessMatchValue;
+        this.defaultAccessMatchValue = theDefaultAccessMatchValue;
     }
 
     @Override
@@ -63,12 +87,12 @@ public abstract class AuthenticationTokenMetaDataBase implements AuthenticationT
     }
 
     @Override
-    public Map<Integer,AccessMatchValue> getAccessMatchValueIdMap() {
+    public Map<Integer, AccessMatchValue> getAccessMatchValueIdMap() {
         return accessMatchValueIdMap;
     }
 
     @Override
-    public Map<String,AccessMatchValue> getAccessMatchValueNameMap() {
+    public Map<String, AccessMatchValue> getAccessMatchValueNameMap() {
         return accessMatchValueNameMap;
     }
 
@@ -79,7 +103,10 @@ public abstract class AuthenticationTokenMetaDataBase implements AuthenticationT
 
     @Override
     public boolean isSuperToken() {
-        // Legacy pattern: When default value is assigned number Integer.MAX_VALUE, the AuthenticationToken will grant any access rule...
-        return getAccessMatchValueDefault().getNumericValue() == Integer.MAX_VALUE;
+        // Legacy pattern: When default value is assigned number
+        // Integer.MAX_VALUE, the AuthenticationToken will grant
+        // any access rule...
+        return getAccessMatchValueDefault().getNumericValue()
+                    == Integer.MAX_VALUE;
     }
 }

@@ -5,12 +5,12 @@
      "https://checkstyle.org/dtds/suppressions_1_0.dtd">
  <suppressions>
  	
- 	<suppress checks="RegexpSinglelineCheck"
- 			  files="ejbcaresources.en.properties"
- 			  lines="19" />
- 	<suppress checks="RegexpSinglelineCheck"
- 			  files="intresources.en.properties"
- 			  lines="18-19" />
+ 	<suppress checks="RegexpSinglelineCheck" files="ejbcaresources.en.properties" lines="19" />
+ 	<suppress checks="RegexpSinglelineCheck" files="intresources.en.properties" lines="18-19" />
  	<suppress checks="ParameterNumberCheck" files="AuditLogger.java" lines="49"/>
-
+ 	<suppress checks="ConstantNameCheck" files="AlwaysAllowLocalAuthenticationToken.java" lines="41" />		
+	<suppress checks="MagicNumberCheck" files="X509CertificateAuthenticationToken.java" lines="180"/>	
+	<suppress checks="MethodLengthCheck" files="X509CertificateAuthenticationToken.java" lines="150"/>
+	
+	
  </suppressions>

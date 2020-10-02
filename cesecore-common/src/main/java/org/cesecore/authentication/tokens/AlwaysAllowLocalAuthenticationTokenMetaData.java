@@ -19,21 +19,29 @@ import org.cesecore.authorization.user.AccessMatchType;
 import org.cesecore.authorization.user.matchvalues.AccessMatchValue;
 
 /**
- * Meta data definition and ServiceLoader marker for {@link org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken}.
+ * Meta data definition and ServiceLoader marker for {@link
+ * org.cesecore.authentication.tokens.AlwaysAllowLocalAuthenticationToken}.
  *
- * @version $Id: AlwaysAllowLocalAuthenticationTokenMetaData.java 25615 2017-03-24 18:44:19Z samuellb $
+ * @version
+ *     $Id: AlwaysAllowLocalAuthenticationTokenMetaData.java
+ *     25615 2017-03-24 18:44:19Z samuellb $
  */
-public class AlwaysAllowLocalAuthenticationTokenMetaData extends AuthenticationTokenMetaDataBase {
+public class AlwaysAllowLocalAuthenticationTokenMetaData
+    extends AuthenticationTokenMetaDataBase {
+    /** Type. */
+    private static String tokenType = "AlwaysAllowLocalAuthenticationToken";
 
-    private static String TOKEN_TYPE = "AlwaysAllowLocalAuthenticationToken";
+    private enum InternalMatchValue implements AccessMatchValue {
+        /** Instance. */
+        INSTANCE(0),
+        /** Default. */
+        DEFAULT(Integer.MAX_VALUE);
 
-    private static enum InternalMatchValue implements AccessMatchValue {
-        INSTANCE(0), DEFAULT(Integer.MAX_VALUE);
-
+        /** Value. */
         private final int numericValue;
 
-        private InternalMatchValue(final int numericValue) {
-            this.numericValue = numericValue;
+        InternalMatchValue(final int aNumericValue) {
+            this.numericValue = aNumericValue;
         }
 
         @Override
@@ -43,7 +51,7 @@ public class AlwaysAllowLocalAuthenticationTokenMetaData extends AuthenticationT
 
         @Override
         public String getTokenType() {
-            return TOKEN_TYPE;
+            return tokenType;
         }
 
         @Override
@@ -67,7 +75,10 @@ public class AlwaysAllowLocalAuthenticationTokenMetaData extends AuthenticationT
         }
     }
 
+    /**
+     * Basic constructor.
+     */
     public AlwaysAllowLocalAuthenticationTokenMetaData() {
-        super(TOKEN_TYPE, Arrays.asList(InternalMatchValue.values()), false);
+        super(tokenType, Arrays.asList(InternalMatchValue.values()), false);
     }
 }

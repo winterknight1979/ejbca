@@ -22,14 +22,22 @@ import org.cesecore.authorization.user.matchvalues.AccessMatchValue;
  * @version $Id: PublicAccessMatchValue.java 26057 2017-06-22 08:08:34Z anatom $
  */
 public enum PublicAccessMatchValue implements AccessMatchValue {
+    /** Any transport. */
     TRANSPORT_ANY(0),
+    /** Plain transport. */
     TRANSPORT_PLAIN(1),
+    /** Encrypted transport. */
     TRANSPORT_CONFIDENTIAL(2);
 
+    /** Value. */
     private int numericValue;
 
-    private PublicAccessMatchValue(int numericValue) {
-        this.numericValue = numericValue;
+    /**
+     * Set value.
+     * @param aNumericValue Value
+     */
+    PublicAccessMatchValue(final int aNumericValue) {
+        this.numericValue = aNumericValue;
     }
 
     @Override

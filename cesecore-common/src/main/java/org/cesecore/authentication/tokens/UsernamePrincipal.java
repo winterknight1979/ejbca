@@ -24,10 +24,14 @@ public class UsernamePrincipal implements Principal, Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    final String username;
+    /** User. */
+    private final String username;
 
-    public UsernamePrincipal(final String username) {
-        this.username = username;
+    /** Constructor.
+     * @param aUsername User
+     * */
+    public UsernamePrincipal(final String aUsername) {
+        this.username = aUsername;
     }
 
     @Override

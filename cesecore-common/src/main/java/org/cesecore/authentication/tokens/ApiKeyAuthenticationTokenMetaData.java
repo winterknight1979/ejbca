@@ -21,16 +21,20 @@ package org.cesecore.authentication.tokens;
 //
 //
 ///**
-// * Meta data definition and ServiceLoader marker for {@link org.ejbca.core.ejb.authentication.cli.CliAuthenticationToken}.
+// * Meta data definition and ServiceLoader marker for
+//   {@link org.ejbca.core.ejb.authentication.cli.CliAuthenticationToken}.
 // *
-// * @version $Id: ApiKeyAuthenticationTokenMetaData.java 29044 2018-05-29 07:20:54Z henriks $
+// * @version $Id: ApiKeyAuthenticationTokenMetaData.java
+//            29044 2018-05-29 07:20:54Z henriks $
 // *
 // */
-//public class ApiKeyAuthenticationTokenMetaData extends AuthenticationTokenMetaDataBase {
+//public class ApiKeyAuthenticationTokenMetaData
+//        extends AuthenticationTokenMetaDataBase {
 //
 //    public static final String TOKEN_TYPE = "ApiKeyAuthenticationToken";
 //
 //    public ApiKeyAuthenticationTokenMetaData() {
-//        super(TOKEN_TYPE, Arrays.asList(ApiKeyAccessMatchValue.values()), true);
+//        super(TOKEN_TYPE, Arrays.asList(ApiKeyAccessMatchValue.values()),
+//                true);
 //    }
 //}
