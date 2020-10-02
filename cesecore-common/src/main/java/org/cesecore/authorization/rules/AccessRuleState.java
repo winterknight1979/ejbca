@@ -20,42 +20,71 @@ import java.util.Map;
  *
  */
 public enum AccessRuleState {
-    RULE_NOTUSED("UNUSED", 0), RULE_ACCEPT("ACCEPT", 1), RULE_DECLINE("DECLINE", 2);
+    /** Rule is not used. */
+    RULE_NOTUSED("UNUSED", 0),
+    /** Rule was accepted. */
+    RULE_ACCEPT("ACCEPT", 1),
+    /** Rule was declined. */
+    RULE_DECLINE("DECLINE", 2);
 
-    private AccessRuleState(String name, int databaseValue) {
-        this.name = name;
-        this.databaseValue = databaseValue;
+    /**
+     * Constructor.
+     * @param aName Name
+     * @param aDatabaseValue ID
+     */
+    AccessRuleState(final String aName, final int aDatabaseValue) {
+        this.name = aName;
+        this.databaseValue = aDatabaseValue;
     }
 
+    /**
+     * @return Name
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * @return ID
+     */
     public int getDatabaseValue() {
         return databaseValue;
     }
 
-    public static AccessRuleState matchDatabaseValue(Integer value) {
+    /**
+     * Get state of rule by ID.
+     * @param value ID
+     * @return State
+     */
+    public static AccessRuleState matchDatabaseValue(final Integer value) {
         return databaseValueToRuleMap.get(value);
     }
 
-    public static AccessRuleState matchName(String name) {
+    /**
+     * Get state of rule name.
+     * @param name Name
+     * @return State
+     */
+    public static AccessRuleState matchName(final String name) {
         return nameToRuleMap.get(name);
     }
 
+    /** Rule name. */
     private String name;
+    /** Rule ID. */
     private int databaseValue;
-    private static Map<Integer, AccessRuleState> databaseValueToRuleMap = new HashMap<Integer, AccessRuleState>();
-    private static Map<String, AccessRuleState> nameToRuleMap = new HashMap<String, AccessRuleState>();
+    /** Map of rule ID's to rules. */
+    private static Map<Integer, AccessRuleState> databaseValueToRuleMap
+        = new HashMap<Integer, AccessRuleState>();
+    /** Map of rule names to rules. */
+    private static Map<String, AccessRuleState> nameToRuleMap
+        = new HashMap<String, AccessRuleState>();
 
     static {
-        for(AccessRuleState state : AccessRuleState.values()) {
+        for (AccessRuleState state : AccessRuleState.values()) {
             databaseValueToRuleMap.put(state.getDatabaseValue(), state);
             nameToRuleMap.put(state.getName(), state);
         }
     }
-
-
-
 
 }
