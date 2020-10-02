@@ -21,36 +21,52 @@ import java.util.Map;
  *
  */
 public enum AuditLogRules {
+    /** Base. */
     BASE("/secureaudit"),
+    /** Configure. */
     CONFIGURE(BASE.resource() + "/management/manage"),
+    /** Export. */
     EXPORT_LOGS(BASE.resource() + "/auditor/export"),
+    /** View. */
     VIEW(BASE.resource() + "/auditor/select"),
+    /** Verify. */
     VERIFY(BASE.resource() + "/auditor/verify"),
+    /** Log. */
     LOG(BASE.resource() + "/log"),
+    /** Custom log. */
     LOG_CUSTOM(BASE.resource() + "/log_custom_events");
 
+    /** Resource. */
     private final String resource;
-    private static final Map<String,String> allResources = new HashMap<>();
+    /** All resources. */
+    private static final Map<String, String> ALL_RESOURCES = new HashMap<>();
 
     static {
         for (AuditLogRules rule : AuditLogRules.values()) {
-            allResources.put(rule.resource(), rule.resource());
+            ALL_RESOURCES.put(rule.resource(), rule.resource());
         }
     }
 
-    private AuditLogRules(String resource) {
-        this.resource = resource;
+    /**
+     * Constructor.
+     * @param aResource Resource
+     */
+    AuditLogRules(final String aResource) {
+        this.resource = aResource;
     }
 
+    /** @return resource */
     public String resource() {
         return this.resource;
     }
 
+    @Override
     public String toString() {
         return this.resource;
     }
 
-    public static Map<String,String> getAllResources() {
-        return Collections.unmodifiableMap(allResources);
+    /** @return Map of all resources */
+    public static Map<String, String> getAllResources() {
+        return Collections.unmodifiableMap(ALL_RESOURCES);
     }
 }
